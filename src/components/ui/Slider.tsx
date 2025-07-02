@@ -94,15 +94,6 @@ export function Slider({
     document.body.style.cursor = 'ew-resize';
   }, [value]);
 
-  const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
-    setDragStart(null);
-    
-    // Restore text selection
-    document.body.style.userSelect = '';
-    document.body.style.cursor = '';
-  }, []);
-
   // Global mouse move and up handlers for better drag experience
   useEffect(() => {
     const handleGlobalMouseMove = (e: MouseEvent) => {
