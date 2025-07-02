@@ -1,14 +1,8 @@
-import React from 'react';
-import { AppLayout } from './components/layout/AppLayout';
-import { MoireProjectProvider } from './hooks/MoireProjectContext';
 import './App.css';
+import { AppLayout } from './components/layout/AppLayout';
 
 function App() {
-  return (
-    <MoireProjectProvider>
-      <AppLayout />
-    </MoireProjectProvider>
-  );
+  return <AppLayout />;
 }
 
 export default App;

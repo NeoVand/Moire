@@ -1,152 +1,145 @@
-import React, { useState } from 'react';
-import { Sun, Moon, Menu, Save, Download, ZoomIn, ZoomOut, Move, Grid, RotateCcw, Monitor } from 'lucide-react';
-import { Button } from '../ui/Button';
-import { useTheme } from '../../hooks/useTheme';
+import React, { useRef } from 'react';
+import { Upload, Download, ZoomIn, ZoomOut, Sun, Moon } from 'lucide-react';
+import { Button } from '../ui';
 import { useMoireProjectContext } from '../../hooks/MoireProjectContext';
-import type { Resolution } from '../../types/moire';
-
-const RESOLUTION_PRESETS: { value: string; label: string; width: number; height: number }[] = [
-  { value: 'small', label: '400×300 (Small)', width: 400, height: 300 },
-  { value: 'medium', label: '800×600 (Medium)', width: 800, height: 600 },
-  { value: 'large', label: '1200×900 (Large)', width: 1200, height: 900 },
-  { value: 'hd', label: '1920×1080 (HD)', width: 1920, height: 1080 },
-  { value: '4k', label: '3840×2160 (4K)', width: 3840, height: 2160 },
-  { value: '8k', label: '7680×4320 (8K)', width: 7680, height: 4320 },
-  { value: 'square-small', label: '500×500 (Small Square)', width: 500, height: 500 },
-  { value: 'square-medium', label: '1000×1000 (Medium Square)', width: 1000, height: 1000 },
-  { value: 'square-large', label: '2000×2000 (Large Square)', width: 2000, height: 2000 },
-  { value: 'square-4k', label: '4096×4096 (4K Square)', width: 4096, height: 4096 },
-  { value: 'print-a4', label: '2480×3508 (A4 Print)', width: 2480, height: 3508 },
-  { value: 'print-a3', label: '3508×4961 (A3 Print)', width: 3508, height: 4961 },
-  { value: 'ultra-wide', label: '3440×1440 (Ultra Wide)', width: 3440, height: 1440 },
-  { value: 'cinema-4k', label: '4096×2160 (Cinema 4K)', width: 4096, height: 2160 },
-];
+import { useTheme } from '../../hooks/useTheme';
 
 export function Header() {
   const { theme, toggleTheme } = useTheme();
-  const { project, setZoom, setPan, zoomIn, zoomOut, resetZoom, setResolution } = useMoireProjectContext();
-  const [showResolutionMenu, setShowResolutionMenu] = useState(false);
+  const { project, resetZoom, zoomIn, zoomOut, setBackgroundColor } = useMoireProjectContext();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const zoomPercentage = Math.round(project.canvas.zoom * 100);
+  const handleImport = () => {
+    fileInputRef.current?.click();
+  };
 
-  const handleResolutionSelect = (preset: { value: string; label: string; width: number; height: number }) => {
-    setResolution(preset.width, preset.height);
-    setShowResolutionMenu(false);
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && file.type === 'application/json') {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const content = e.target?.result as string;
+          const data = JSON.parse(content);
+          console.log('Imported data:', data);
+          // TODO: Implement project import
+        } catch (error) {
+          console.error('Failed to parse imported file:', error);
+        }
+      };
+      reader.readAsText(file);
+    }
+  };
+
+  const handleExport = () => {
+    const dataStr = JSON.stringify(project, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${project.name || 'moire-pattern'}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
-    <header className="h-14 bg-[var(--bg-secondary)] border-b border-[var(--border)] px-4 flex items-center justify-between">
-      {/* Left side - Logo and App Name */}
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-gradient-to-br from-[var(--accent-primary)] to-[var(--accent-secondary)] rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">M</span>
+    <header className="bg-transparent border-b border-[var(--border)]/50 flex items-center justify-between px-3 py-2 flex-shrink-0">
+      {/* Left - Logo, Import/Export & Zoom Controls */}
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 bg-[var(--accent-primary)] rounded flex items-center justify-center text-white text-xs font-bold">
+            M
           </div>
-          <h1 className="text-lg font-semibold text-[var(--text-primary)]">
-            Moiré
-          </h1>
+          <h1 className="text-sm font-semibold text-[var(--text-primary)]">Moiré</h1>
         </div>
-
-        {/* File Operations */}
+        
+        <div className="w-px h-5 bg-[var(--border)]" />
+        
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="sm">
-            <Menu className="w-4 h-4 mr-2" />
-            File
-          </Button>
-          <Button variant="ghost" size="sm">
-            <Save className="w-4 h-4 mr-2" />
-            Save
-          </Button>
-          <Button variant="ghost" size="sm">
-            <Download className="w-4 h-4 mr-2" />
-            Export
-          </Button>
-        </div>
-      </div>
-
-      {/* Center - Canvas Controls */}
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" size="sm">
-          <Move className="w-4 h-4 mr-2" />
-          Pan
-        </Button>
-        <Button variant="ghost" size="sm" onClick={zoomIn}>
-          <ZoomIn className="w-4 h-4" />
-        </Button>
-        <Button variant="ghost" size="sm" onClick={zoomOut}>
-          <ZoomOut className="w-4 h-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={resetZoom}
-          className="px-2"
-        >
-          <RotateCcw className="w-4 h-4 mr-1" />
-          {zoomPercentage}%
-        </Button>
-        
-        <div className="w-px h-6 bg-[var(--border)] mx-2" />
-        
-        <Button variant="ghost" size="sm">
-          <Grid className="w-4 h-4 mr-2" />
-          Grid
-        </Button>
-        
-        {/* Resolution Selector */}
-        <div className="relative">
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setShowResolutionMenu(!showResolutionMenu)}
+            className="h-7 px-2 text-xs"
+            onClick={handleImport}
           >
-            <Monitor className="w-4 h-4 mr-2" />
-            {project.canvas.width} × {project.canvas.height}
+            <Upload className="w-3 h-3 mr-1" />
+            Import
           </Button>
-          
-          {showResolutionMenu && (
-            <>
-              <div className="absolute top-full right-0 mt-1 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg shadow-lg z-10 min-w-56 max-h-80 overflow-y-auto">
-                <div className="p-2">
-                  <div className="text-xs font-medium text-[var(--text-secondary)] mb-2 px-2">
-                    Resolution Presets
-                  </div>
-                  {RESOLUTION_PRESETS.map(preset => (
-                    <button
-                      key={preset.value}
-                      onClick={() => handleResolutionSelect(preset)}
-                      className="w-full text-left px-2 py-1 text-xs hover:bg-[var(--bg-tertiary)] rounded transition-colors"
-                    >
-                      {preset.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Click outside to close resolution menu */}
-              <div
-                className="fixed inset-0 z-5"
-                onClick={() => setShowResolutionMenu(false)}
-              />
-            </>
-          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 px-2 text-xs"
+            onClick={handleExport}
+          >
+            <Download className="w-3 h-3 mr-1" />
+            Export
+          </Button>
         </div>
+        
+        <div className="w-px h-5 bg-[var(--border)]" />
+        
+        <div className="flex items-center gap-1">
+          <button
+            onClick={zoomOut}
+            className="p-1.5 hover:bg-[var(--bg-tertiary)] rounded transition-colors"
+            title="Zoom Out"
+          >
+            <ZoomOut className="w-3 h-3 text-[var(--text-secondary)]" />
+          </button>
+          
+          <button
+            onClick={resetZoom}
+            className="px-2 py-1 text-xs font-mono text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] rounded transition-colors min-w-[3rem] text-center"
+          >
+            {Math.round(project.canvas.zoom * 100)}%
+          </button>
+          
+          <button
+            onClick={zoomIn}
+            className="p-1.5 hover:bg-[var(--bg-tertiary)] rounded transition-colors"
+            title="Zoom In"
+          >
+            <ZoomIn className="w-3 h-3 text-[var(--text-secondary)]" />
+          </button>
+        </div>
+        
+        <div className="w-px h-5 bg-[var(--border)]" />
+        
+        {/* Background Color Picker */}
+        <div className="flex items-center gap-1">
+          <span className="text-xs text-[var(--text-secondary)]">BG:</span>
+          <input
+            type="color"
+            value={project.canvas.backgroundColor}
+            onChange={(e) => setBackgroundColor(e.target.value)}
+            className="w-6 h-6 rounded cursor-pointer border border-[var(--border)] bg-transparent"
+            title="Canvas Background Color"
+          />
+        </div>
+        
+        {/* Hidden file input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".json"
+          onChange={handleFileChange}
+          style={{ display: 'none' }}
+        />
       </div>
 
-      {/* Right side - Theme Toggle */}
-      <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="sm"
+      {/* Right - Theme Toggle */}
+      <div className="flex items-center">
+        <button
           onClick={toggleTheme}
-          aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+          className="p-1.5 hover:bg-[var(--bg-tertiary)] rounded-full transition-colors"
+          title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
         >
-          {theme === 'light' ? (
-            <Moon className="w-4 h-4" />
+          {theme === 'dark' ? (
+            <Sun className="w-4 h-4 text-[var(--text-secondary)]" />
           ) : (
-            <Sun className="w-4 h-4" />
+            <Moon className="w-4 h-4 text-[var(--text-secondary)]" />
           )}
-        </Button>
+        </button>
       </div>
     </header>
   );

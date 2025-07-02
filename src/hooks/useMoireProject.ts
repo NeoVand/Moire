@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import type { MoireProject, PatternLayer } from '../types/moire';
-import { createDefaultProject } from '../types/moire';
+import { createDefaultProject, PATTERN_DEFINITIONS } from '../types/moire';
 
 export function useMoireProject() {
   const [project, setProject] = useState<MoireProject>(createDefaultProject);
@@ -18,7 +18,13 @@ export function useMoireProject() {
     setProject(prev => ({
       ...prev,
       layers: prev.layers.map(layer =>
-        layer.id === layerId ? { ...layer, ...updates } : layer
+        layer.id === layerId ? {
+          ...layer,
+          ...updates,
+          // Ensure nested objects are deep copied
+          position: updates.position ? { ...updates.position } : layer.position,
+          parameters: updates.parameters ? { ...layer.parameters, ...updates.parameters } : layer.parameters,
+        } : layer
       ),
     }));
   }, []);
@@ -47,22 +53,30 @@ export function useMoireProject() {
     }));
   }, []);
 
-  const addLayer = useCallback((type: PatternLayer['type'] = 'lines') => {
+  const addLayer = useCallback((patternType: string = 'straight-lines') => {
     const newId = (project.layers.length + 1).toString();
+    
+    // Find the pattern definition to get default parameters
+    const patternDef = PATTERN_DEFINITIONS.find(p => p.id === patternType);
+    if (!patternDef) {
+      console.error(`Pattern type ${patternType} not found`);
+      return;
+    }
+
     const newLayer: PatternLayer = {
       id: newId,
       name: `Layer ${newId}`,
-      type,
-      rotation: 0,
-      frequency: 20,
-      phase: 0,
-      position: { x: 0, y: 0 },
-      thickness: 1,
-      fillMode: 'stroke',
-      color: '#000000',
-      opacity: 1,
+      category: patternDef.category,
+      type: patternType,
       visible: true,
+      color: '#000000',
+      position: { x: 0, y: 0 },
+      rotation: 0,
+      opacity: 1,
+      fillMode: 'stroke',
+      blendMode: 'normal',
       locked: false,
+      parameters: { ...patternDef.defaultParameters },
     };
 
     setProject(prev => ({
@@ -147,41 +161,15 @@ export function useMoireProject() {
     }));
   }, []);
 
-  // Resolution functions
-  const setResolution = useCallback((width: number, height: number) => {
+  const setBackgroundColor = useCallback((color: string) => {
     setProject(prev => ({
       ...prev,
       canvas: {
         ...prev.canvas,
-        width: Math.max(100, Math.min(8000, width)), // Increased max to 8000px
-        height: Math.max(100, Math.min(8000, height)),
+        backgroundColor: color,
       },
     }));
   }, []);
-
-  const setPresetResolution = useCallback((preset: string) => {
-    const resolutions: Record<string, [number, number]> = {
-      'small': [400, 300],
-      'medium': [800, 600],
-      'large': [1200, 900],
-      'hd': [1920, 1080],
-      '4k': [3840, 2160],
-      '8k': [7680, 4320],
-      'square-small': [500, 500],
-      'square-medium': [1000, 1000],
-      'square-large': [2000, 2000],
-      'square-4k': [4096, 4096],
-      'print-a4': [2480, 3508], // A4 at 300 DPI
-      'print-a3': [3508, 4961], // A3 at 300 DPI
-      'ultra-wide': [3440, 1440],
-      'cinema-4k': [4096, 2160],
-    };
-
-    if (resolutions[preset]) {
-      const [width, height] = resolutions[preset];
-      setResolution(width, height);
-    }
-  }, [setResolution]);
 
   return {
     project,
@@ -193,12 +181,12 @@ export function useMoireProject() {
     toggleLayerLock,
     addLayer,
     removeLayer,
+    setProject,
     setZoom,
     zoomIn,
     zoomOut,
     resetZoom,
     setPan,
-    setResolution,
-    setPresetResolution,
+    setBackgroundColor,
   };
 } 

@@ -10,24 +10,24 @@ interface MoireProjectContextType {
   updateSelectedLayer: (updates: Partial<PatternLayer>) => void;
   toggleLayerVisibility: (layerId: string) => void;
   toggleLayerLock: (layerId: string) => void;
-  addLayer: (type?: PatternLayer['type']) => void;
+  addLayer: (patternType?: string) => void;
   removeLayer: (layerId: string) => void;
+  setProject: React.Dispatch<React.SetStateAction<MoireProject>>;
   setZoom: (zoom: number) => void;
   zoomIn: () => void;
   zoomOut: () => void;
   resetZoom: () => void;
   setPan: (pan: { x: number; y: number }) => void;
-  setResolution: (width: number, height: number) => void;
-  setPresetResolution: (preset: string) => void;
+  setBackgroundColor: (color: string) => void;
 }
 
 const MoireProjectContext = createContext<MoireProjectContextType | null>(null);
 
 export function MoireProjectProvider({ children }: { children: React.ReactNode }) {
-  const projectState = useMoireProject();
+  const hookValue = useMoireProject();
 
   return (
-    <MoireProjectContext.Provider value={projectState}>
+    <MoireProjectContext.Provider value={hookValue}>
       {children}
     </MoireProjectContext.Provider>
   );

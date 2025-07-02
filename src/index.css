@@ -2,31 +2,30 @@
 
 /* Custom Design System Variables */
 :root {
-  /* Dark Theme (Primary) */
-  --bg-primary: #0a0a0a;       /* Deep black canvas */
-  --bg-secondary: #1a1a1a;     /* Panel backgrounds */
-  --bg-tertiary: #2a2a2a;      /* Elevated elements */
-  --accent-primary: #00d4ff;   /* Cyan accent (Moiré-inspired) */
-  --accent-secondary: #ff6b6b; /* Warm contrast */
-  --text-primary: #ffffff;     /* High contrast text */
-  --text-secondary: #a0a0a0;   /* Muted text */
-  --border: #404040;           /* Subtle borders */
-
-  /* Typography */
-  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  /* Professional color palette - refined and elegant */
+  --accent-primary: #6366f1; /* Indigo - consistent across themes */
+  --accent-secondary: #8b5cf6; /* Purple accent */
+  
+  /* Light theme */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-tertiary: #f1f5f9;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --border: #e2e8f0;
 }
 
-/* Light Theme */
-[data-theme="light"] {
-  --bg-primary: #ffffff;
-  --bg-secondary: #f8f9fa;
-  --bg-tertiary: #e9ecef;
-  --accent-primary: #0066cc;
-  --accent-secondary: #dc3545;
-  --text-primary: #212529;
-  --text-secondary: #6c757d;
-  --border: #dee2e6;
+[data-theme="dark"] {
+  /* Professional dark theme - muted and sophisticated */
+  --accent-primary: #5b5bd6; /* Slightly muted indigo for dark theme */
+  --accent-secondary: #7c3aed;
+  
+  --bg-primary: #0c0c0e;      /* Very dark, almost black */
+  --bg-secondary: #161618;    /* Subtle elevation */
+  --bg-tertiary: #1f1f23;     /* Card/panel backgrounds */
+  --text-primary: #e4e4e7;    /* High contrast but not pure white */
+  --text-secondary: #a1a1aa;  /* Muted secondary text */
+  --border: #27272a;          /* Subtle borders */
 }
 
 body {
@@ -53,5 +52,18 @@ body {
 }
 
 ::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+
+
+/* Resize handle */
+.resize-handle::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 4px;
   background: var(--text-secondary);
 }

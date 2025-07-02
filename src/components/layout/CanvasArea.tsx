@@ -1,49 +1,24 @@
-import React from 'react';
+import { useRef } from 'react';
 import { MoireCanvas } from '../canvas/MoireCanvas';
 import { useMoireProjectContext } from '../../hooks/MoireProjectContext';
-import type { Resolution } from '../../types/moire';
 
 export function CanvasArea() {
-  const { project, setZoom, setPan } = useMoireProjectContext();
-
-  const handleZoomChange = (newZoom: number) => {
-    setZoom(newZoom);
-  };
-
-  const handlePanChange = (newPan: { x: number; y: number }) => {
-    setPan(newPan);
-  };
-
-  const currentResolution: Resolution = {
-    label: `${project.canvas.width}×${project.canvas.height}`,
-    width: project.canvas.width,
-    height: project.canvas.height
-  };
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { project, setPan } = useMoireProjectContext();
 
   return (
-    <main className="flex-1 bg-[var(--bg-primary)] flex flex-col">
-      {/* Canvas Container - Centered */}
-      <div className="flex-1 flex items-center justify-center p-8 overflow-hidden">
-        <MoireCanvas 
-          layers={project.layers}
-          resolution={currentResolution}
-          zoom={project.canvas.zoom}
-          pan={project.canvas.pan}
-          onZoomChange={handleZoomChange}
-          onPanChange={handlePanChange}
-        />
-      </div>
-      
-      {/* Info overlay */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-[var(--bg-secondary)]/90 backdrop-blur-sm rounded-lg px-3 py-2 text-xs text-[var(--text-secondary)]">
-        <div className="flex items-center gap-3">
-          <span>Interactive Moiré Pattern</span>
-          <span>•</span>
-          <span>{project.layers.filter(l => l.visible).length} layers active</span>
-          <span>•</span>
-          <span>Trackpad: Ctrl+Scroll to zoom, Scroll to pan</span>
-        </div>
-      </div>
-    </main>
+    <div ref={containerRef} className="flex-1 min-w-0 relative">
+      <MoireCanvas 
+        layers={project.layers}
+        zoom={project.canvas.zoom}
+        pan={project.canvas.pan}
+        backgroundColor={project.canvas.backgroundColor}
+        onZoomChange={(_zoom) => {
+          // Zoom changes are handled through the project context
+          // This component just renders, zoom control is in Header
+        }}
+        onPanChange={setPan}
+      />
+    </div>
   );
 } 
