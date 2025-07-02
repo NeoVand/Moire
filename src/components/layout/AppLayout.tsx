@@ -8,12 +8,7 @@ export function AppLayout() {
   return (
     <div className="h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] flex flex-col overflow-hidden relative">
       <MoireProjectProvider>
-        {/* Background Canvas Area - Full Screen */}
-        <div className="absolute inset-0">
-          <CanvasArea />
-        </div>
-        
-        {/* UI Overlay with Glass Effect */}
+        {/* UI Layout */}
         <div className="relative z-10 h-full flex flex-col">
           {/* Header */}
           <div className="backdrop-blur-md bg-[var(--bg-secondary)]/80 border-b border-[var(--border)]/50">

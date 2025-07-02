@@ -410,22 +410,21 @@ export function MoireCanvas({ layers, zoom, pan, backgroundColor, onZoomChange, 
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
 
-    // Slower, more controlled zoom
-    const zoomFactor = e.deltaY > 0 ? 0.95 : 1.05; // Much more gradual
-    const newZoom = Math.max(0.1, Math.min(10, zoom * zoomFactor)); // Allow more zoom range
+    // Simple zoom calculation - always zoom on wheel/trackpad scroll
+    const zoomDelta = -e.deltaY * 0.001; // Negative because deltaY is positive for scroll down
+    const zoomFactor = Math.exp(zoomDelta);
+    const newZoom = Math.max(0.1, Math.min(10, zoom * zoomFactor));
     
-    // Calculate the point in the canvas that the mouse is over
-    const canvasPointX = (mouseX - pan.x - canvasSize.width / 2) / zoom;
-    const canvasPointY = (mouseY - pan.y - canvasSize.height / 2) / zoom;
+    // Calculate the point in the canvas that the mouse is over (in world coordinates)
+    const canvasPointX = (mouseX - canvasSize.width / 2 - pan.x) / zoom;
+    const canvasPointY = (mouseY - canvasSize.height / 2 - pan.y) / zoom;
     
-    // Calculate new pan to keep the mouse point stationary
-    const newPan = {
-      x: mouseX - canvasSize.width / 2 - canvasPointX * newZoom,
-      y: mouseY - canvasSize.height / 2 - canvasPointY * newZoom
-    };
+    // Calculate new pan to keep the mouse point stationary during zoom
+    const newPanX = mouseX - canvasSize.width / 2 - canvasPointX * newZoom;
+    const newPanY = mouseY - canvasSize.height / 2 - canvasPointY * newZoom;
     
     onZoomChange(newZoom);
-    onPanChange(newPan);
+    onPanChange({ x: newPanX, y: newPanY });
   }, [zoom, pan, onZoomChange, onPanChange, canvasSize]);
 
   // Handle mouse events for dragging to pan
@@ -491,10 +490,18 @@ export function MoireCanvas({ layers, zoom, pan, backgroundColor, onZoomChange, 
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    canvas.addEventListener('wheel', handleWheel, { passive: false });
+    // Add wheel event listener with options to ensure it works
+    const wheelHandler = (e: WheelEvent) => {
+      handleWheel(e);
+    };
+
+    canvas.addEventListener('wheel', wheelHandler, { 
+      passive: false, // Allow preventDefault
+      capture: false 
+    });
     
     return () => {
-      canvas.removeEventListener('wheel', handleWheel);
+      canvas.removeEventListener('wheel', wheelHandler);
     };
   }, [handleWheel]);
 
@@ -531,7 +538,7 @@ export function MoireCanvas({ layers, zoom, pan, backgroundColor, onZoomChange, 
     <div ref={containerRef} className="absolute inset-0">
       <canvas
         ref={canvasRef}
-        className="w-full h-full cursor-move"
+        className={`w-full h-full ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         style={{
           imageRendering: 'auto'
         }}

@@ -88,29 +88,48 @@ export function Slider({
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     setIsDragging(true);
     setDragStart({ x: e.clientX, value: value });
+    
+    // Prevent text selection during drag
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'ew-resize';
   }, [value]);
-
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (isDragging && dragStart) {
-      updateValue(e.clientX);
-    }
-  }, [isDragging, updateValue, dragStart]);
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
     setDragStart(null);
+    
+    // Restore text selection
+    document.body.style.userSelect = '';
+    document.body.style.cursor = '';
   }, []);
 
+  // Global mouse move and up handlers for better drag experience
   useEffect(() => {
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      if (isDragging && dragStart) {
+        updateValue(e.clientX);
+      }
+    };
+
+    const handleGlobalMouseUp = () => {
+      setIsDragging(false);
+      setDragStart(null);
+      
+      // Restore text selection (important for global mouse up)
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
+    };
+
     if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-      };
+      document.addEventListener('mousemove', handleGlobalMouseMove);
+      document.addEventListener('mouseup', handleGlobalMouseUp);
     }
-  }, [isDragging, handleMouseMove, handleMouseUp]);
+
+    return () => {
+      document.removeEventListener('mousemove', handleGlobalMouseMove);
+      document.removeEventListener('mouseup', handleGlobalMouseUp);
+    };
+  }, [isDragging, updateValue, dragStart]);
 
   const percentage = ((value - min) / (max - min)) * 100;
 
@@ -145,7 +164,7 @@ export function Slider({
       {/* Slider Container */}
       <div 
         ref={sliderRef}
-        className={`relative bg-[var(--bg-tertiary)] rounded-full cursor-pointer hover:bg-[var(--bg-tertiary)]/80 transition-colors ${
+        className={`relative bg-[var(--bg-tertiary)] rounded-full cursor-ew-resize hover:bg-[var(--bg-tertiary)]/80 transition-colors ${
           compact ? "h-2" : "h-3"
         } ${isAltPressed && isDragging ? 'ring-2 ring-[var(--accent-primary)]/50 shadow-md' : isAltPressed ? 'ring-1 ring-[var(--accent-primary)]/50' : ''}`}
         onMouseDown={handleMouseDown}
@@ -155,9 +174,9 @@ export function Slider({
           style={{ width: `${percentage}%` }}
         />
         <div 
-          className={`absolute top-1/2 -translate-y-1/2 bg-white border-2 border-[var(--accent-primary)] rounded-full shadow-sm transition-all duration-150 ${
+          className={`absolute top-1/2 -translate-y-1/2 bg-white border-2 border-[var(--accent-primary)] rounded-full shadow-sm transition-all duration-150 cursor-ew-resize ${
             compact ? "w-4 h-4" : "w-5 h-5"
-          } ${isDragging ? 'scale-110' : ''} ${isAltPressed && isDragging ? 'ring-2 ring-[var(--accent-primary)]/30 shadow-lg' : isAltPressed ? 'ring-2 ring-[var(--accent-primary)]/30' : ''}`}
+          } ${isDragging ? 'scale-110 shadow-lg' : ''} ${isAltPressed && isDragging ? 'ring-2 ring-[var(--accent-primary)]/30 shadow-lg' : isAltPressed ? 'ring-2 ring-[var(--accent-primary)]/30' : ''}`}
           style={{ left: `calc(${percentage}% - ${compact ? '8px' : '10px'})` }}
         />
       </div>
