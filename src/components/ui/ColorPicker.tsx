@@ -6,6 +6,7 @@ interface ColorPickerProps {
   onChange: (color: string) => void;
   disabled?: boolean;
   className?: string;
+  allowNone?: boolean; // Allow "none" as an option
 }
 
 const COLOR_CATEGORIES = {
@@ -31,7 +32,7 @@ const COLOR_CATEGORIES = {
   ]
 };
 
-export function ColorPicker({ value, onChange, disabled = false, className = '' }: ColorPickerProps) {
+export function ColorPicker({ value, onChange, disabled = false, className = '', allowNone = false }: ColorPickerProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeCategory, setActiveCategory] = useState('Primary');
   const [showCustom, setShowCustom] = useState(false);
@@ -50,12 +51,19 @@ export function ColorPicker({ value, onChange, disabled = false, className = '' 
         className="w-full flex items-center justify-between p-2 bg-[var(--bg-tertiary)] border border-[var(--border)] rounded hover:border-[var(--accent-primary)]/50 transition-colors"
       >
         <div className="flex items-center gap-2">
+          {value === 'none' ? (
+            <div className="w-4 h-4 rounded border border-[var(--border)] bg-transparent relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-transparent via-red-500 to-transparent opacity-30 transform rotate-45" />
+              <div className="absolute inset-[1px] bg-white rounded-sm" />
+            </div>
+          ) : (
           <div
             className="w-4 h-4 rounded border border-[var(--border)]"
             style={{ backgroundColor: value }}
           />
+          )}
           <span className="text-xs font-mono text-[var(--text-primary)]">
-            {value.toUpperCase()}
+            {value === 'none' ? 'NONE' : value.toUpperCase()}
           </span>
         </div>
         {isExpanded ? (
@@ -98,6 +106,26 @@ export function ColorPicker({ value, onChange, disabled = false, className = '' 
               Custom
             </button>
           </div>
+
+          {/* None Option */}
+          {allowNone && !showCustom && (
+            <div className="mb-2">
+              <button
+                onClick={() => handleColorSelect('none')}
+                className={`w-full px-2 py-1 text-xs rounded border transition-all flex items-center gap-2 ${
+                  value === 'none'
+                    ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)]/10 text-[var(--accent-primary)]'
+                    : 'border-[var(--border)] hover:border-[var(--accent-primary)]/50 text-[var(--text-secondary)]'
+                }`}
+                title="No color (transparent)"
+              >
+                <div className="w-4 h-4 rounded border border-current bg-transparent relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-transparent via-current to-transparent opacity-30 transform rotate-45" />
+                </div>
+                None
+              </button>
+            </div>
+          )}
 
           {/* Color Grid */}
           {!showCustom && (

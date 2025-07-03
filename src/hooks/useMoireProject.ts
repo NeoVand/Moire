@@ -70,10 +70,10 @@ export function useMoireProject() {
       type: patternType,
       visible: true,
       color: '#000000',
+      ...(patternDef.category === 'tiles' && { fillColor: '#ffffff' }), // Add default fill color for tiles
       position: { x: 0, y: 0 },
       rotation: 0,
       opacity: 1,
-
       blendMode: 'normal',
       locked: false,
       parameters: { ...patternDef.defaultParameters },

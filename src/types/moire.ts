@@ -6,10 +6,11 @@ export interface Position {
 export interface PatternLayer {
   id: string;
   name: string;
-  category: 'lines' | 'curves' | 'grids' | 'concentric';
+  category: 'lines' | 'curves' | 'tiles' | 'concentric';
   type: string; // Specific pattern type within category
   visible: boolean;
   color: string;
+  fillColor?: string; // Optional fill color for tiles
   position: Position;
   rotation: number;
   opacity: number;
@@ -37,7 +38,7 @@ export interface PatternLayer {
 export interface PatternDefinition {
   id: string;
   name: string;
-  category: 'lines' | 'curves' | 'grids' | 'concentric';
+  category: 'lines' | 'curves' | 'tiles' | 'concentric';
   icon: string; // Icon identifier
   description: string;
   defaultParameters: PatternLayer['parameters'];
@@ -132,56 +133,120 @@ export const PATTERN_DEFINITIONS: PatternDefinition[] = [
     },
   },
 
-  // GRIDS CATEGORY
+  // TILES CATEGORY
   {
-    id: 'rectangular-grid',
-    name: 'Rectangular',
-    category: 'grids',
-    icon: 'grid',
-    description: 'Square or rectangular grid pattern',
-    defaultParameters: {
-      spacing: 30,
-      thickness: 1,
-      phase: 0,
-    },
-    parameterConfig: {
-      spacing: { label: 'Grid Size', min: 2, max: 500, step: 1, unit: 'px' },
-      thickness: { label: 'Line Width', min: 0.1, max: 20, step: 0.1, unit: 'px' },
-      phase: { label: 'Offset', min: 0, max: 100, step: 1, unit: '%' },
-    },
-  },
-  {
-    id: 'hexagonal-grid',
-    name: 'Hexagonal',
-    category: 'grids',
-    icon: 'hexagon',
-    description: 'Honeycomb hexagonal grid pattern',
-    defaultParameters: {
-      spacing: 40,
-      thickness: 1,
-      phase: 0,
-    },
-    parameterConfig: {
-      spacing: { label: 'Hex Size', min: 5, max: 500, step: 1, unit: 'px' },
-      thickness: { label: 'Line Width', min: 0.1, max: 20, step: 0.1, unit: 'px' },
-      phase: { label: 'Rotation', min: 0, max: 60, step: 1, unit: '°' },
-    },
-  },
-  {
-    id: 'triangular-grid',
+    id: 'triangular-tiling',
     name: 'Triangular',
-    category: 'grids',
+    category: 'tiles',
     icon: 'triangle',
-    description: 'Triangular tessellation pattern',
+    description: 'Triangular tessellation tiling',
     defaultParameters: {
-      spacing: 35,
-      thickness: 1,
+      size: 40,
+      spacing: 10,
+      thickness: 1.5,
       phase: 0,
+      offsetX: 0,
+      offsetY: 0,
     },
     parameterConfig: {
-      spacing: { label: 'Triangle Size', min: 5, max: 500, step: 1, unit: 'px' },
-      thickness: { label: 'Line Width', min: 0.1, max: 20, step: 0.1, unit: 'px' },
-      phase: { label: 'Orientation', min: 0, max: 180, step: 1, unit: '°' },
+      size: { label: 'Tile Size', min: 5, max: 150, step: 1, unit: 'px', description: 'Size of individual tiles' },
+      spacing: { label: 'Gap Size', min: 0, max: 50, step: 0.5, unit: 'px', description: 'Space between tiles' },
+      thickness: { label: 'Stroke Width', min: 0.1, max: 10, step: 0.1, unit: 'px' },
+      phase: { label: 'Rotation', min: 0, max: 360, step: 1, unit: '°' },
+      offsetX: { label: 'X Offset', min: -50, max: 50, step: 0.5, unit: 'px', description: 'Horizontal shift per row' },
+      offsetY: { label: 'Y Offset', min: -50, max: 50, step: 0.5, unit: 'px', description: 'Vertical shift per column' },
+    },
+  },
+  {
+    id: 'square-tiling',
+    name: 'Square',
+    category: 'tiles',
+    icon: 'square',
+    description: 'Square grid tiling pattern',
+    defaultParameters: {
+      size: 40,
+      spacing: 10,
+      thickness: 1.5,
+      phase: 0,
+      offsetX: 0,
+      offsetY: 0,
+    },
+    parameterConfig: {
+      size: { label: 'Tile Size', min: 5, max: 150, step: 1, unit: 'px', description: 'Size of individual tiles' },
+      spacing: { label: 'Gap Size', min: 0, max: 50, step: 0.5, unit: 'px', description: 'Space between tiles' },
+      thickness: { label: 'Stroke Width', min: 0.1, max: 10, step: 0.1, unit: 'px' },
+      phase: { label: 'Rotation', min: 0, max: 45, step: 1, unit: '°' },
+      offsetX: { label: 'X Offset', min: -50, max: 50, step: 0.5, unit: 'px', description: 'Horizontal shift per row' },
+      offsetY: { label: 'Y Offset', min: -50, max: 50, step: 0.5, unit: 'px', description: 'Vertical shift per column' },
+    },
+  },
+  {
+    id: 'rhombus-tiling',
+    name: 'Rhombus',
+    category: 'tiles',
+    icon: 'rhombus',
+    description: 'Diamond-shaped rhombus tiling',
+    defaultParameters: {
+      size: 40,
+      spacing: 10,
+      thickness: 1.5,
+      phase: 1.5,
+      offsetX: 0,
+      offsetY: 0,
+    },
+    parameterConfig: {
+      size: { label: 'Tile Size', min: 5, max: 150, step: 1, unit: 'px', description: 'Size of individual tiles' },
+      spacing: { label: 'Gap Size', min: 0, max: 50, step: 0.5, unit: 'px', description: 'Space between tiles' },
+      thickness: { label: 'Stroke Width', min: 0.1, max: 10, step: 0.1, unit: 'px' },
+      phase: { label: 'Aspect Ratio', min: 0.5, max: 3, step: 0.1, description: 'Width to height ratio' },
+      offsetX: { label: 'X Offset', min: -50, max: 50, step: 0.5, unit: 'px', description: 'Horizontal shift per row' },
+      offsetY: { label: 'Y Offset', min: -50, max: 50, step: 0.5, unit: 'px', description: 'Vertical shift per column' },
+    },
+  },
+  {
+    id: 'hexagonal-tiling',
+    name: 'Hexagonal',
+    category: 'tiles',
+    icon: 'hexagon',
+    description: 'Honeycomb hexagonal tiling',
+    defaultParameters: {
+      size: 40,
+      spacing: 10,
+      thickness: 1.5,
+      phase: 0,
+      offsetX: 0,
+      offsetY: 0,
+    },
+    parameterConfig: {
+      size: { label: 'Tile Size', min: 5, max: 150, step: 1, unit: 'px', description: 'Size of individual tiles' },
+      spacing: { label: 'Gap Size', min: 0, max: 50, step: 0.5, unit: 'px', description: 'Space between tiles' },
+      thickness: { label: 'Stroke Width', min: 0.1, max: 10, step: 0.1, unit: 'px' },
+      phase: { label: 'Rotation', min: 0, max: 60, step: 1, unit: '°' },
+      offsetX: { label: 'X Offset', min: -50, max: 50, step: 0.5, unit: 'px', description: 'Horizontal shift per row' },
+      offsetY: { label: 'Y Offset', min: -50, max: 50, step: 0.5, unit: 'px', description: 'Vertical shift per column' },
+    },
+  },
+  {
+    id: 'circle-packing',
+    name: 'Circle Packing',
+    category: 'tiles',
+    icon: 'circle',
+    description: 'Hexagonal circle packing pattern',
+    defaultParameters: {
+      size: 40,
+      spacing: 10,
+      thickness: 1.5,
+      phase: 0.8,
+      offsetX: 0,
+      offsetY: 0,
+    },
+    parameterConfig: {
+      size: { label: 'Grid Size', min: 5, max: 150, step: 1, unit: 'px', description: 'Size of grid cells' },
+      spacing: { label: 'Gap Size', min: 0, max: 50, step: 0.5, unit: 'px', description: 'Space between circles' },
+      thickness: { label: 'Stroke Width', min: 0.1, max: 10, step: 0.1, unit: 'px' },
+      phase: { label: 'Circle Size', min: 0.1, max: 1, step: 0.05, description: 'Circle size relative to grid cell' },
+      offsetX: { label: 'X Offset', min: -50, max: 50, step: 0.5, unit: 'px', description: 'Horizontal shift per row' },
+      offsetY: { label: 'Y Offset', min: -50, max: 50, step: 0.5, unit: 'px', description: 'Vertical shift per column' },
     },
   },
 

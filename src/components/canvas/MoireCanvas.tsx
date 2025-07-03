@@ -137,53 +137,178 @@ export function MoireCanvas({ layers, zoom, pan, backgroundColor, onZoomChange, 
     ctx.stroke();
   };
 
-  // Grids Category
-  const drawRectangularGrid = (ctx: CanvasRenderingContext2D, layer: PatternLayer, bounds: number) => {
-    const { spacing = 30, thickness = 1, phase = 0 } = layer.parameters;
+  // Tiles Category
+  const drawTriangularTiling = (ctx: CanvasRenderingContext2D, layer: PatternLayer, bounds: number) => {
+    const { size = 40, spacing = 10, thickness = 1.5, phase = 0, offsetX = 0, offsetY = 0 } = layer.parameters;
     
     ctx.lineWidth = thickness;
-    const offset = (phase / 100) * spacing;
-    const lineCount = Math.ceil((bounds * 2) / spacing) + 2;
-
-    // Vertical lines
-    for (let i = -lineCount; i <= lineCount; i++) {
-      const x = i * spacing + offset;
-      ctx.beginPath();
-      ctx.moveTo(x, -bounds);
-      ctx.lineTo(x, bounds);
-      ctx.stroke();
-    }
-
-    // Horizontal lines
-    for (let i = -lineCount; i <= lineCount; i++) {
-      const y = i * spacing + offset;
-      ctx.beginPath();
-      ctx.moveTo(-bounds, y);
-      ctx.lineTo(bounds, y);
-      ctx.stroke();
-    }
-  };
-
-  const drawHexagonalGrid = (ctx: CanvasRenderingContext2D, layer: PatternLayer, bounds: number) => {
-    const { spacing = 40, thickness = 1, phase = 0 } = layer.parameters;
-    
-    ctx.lineWidth = thickness;
-    const hexRadius = spacing / 2;
-    const hexWidth = hexRadius * 2;
-    const hexHeight = hexRadius * Math.sqrt(3);
-    const verticalSpacing = hexHeight * 0.75; // Proper vertical spacing for tessellation
-    const horizontalSpacing = hexWidth * 0.75; // Proper horizontal spacing
+    const triangleHeight = size * Math.sqrt(3) / 2;
+    const gridSpacing = size + spacing; // Total distance between triangle centers
+    const rowHeight = triangleHeight + spacing * 0.5; // Row spacing with gap
     const phaseRad = (phase / 360) * 2 * Math.PI;
     
-    const cols = Math.ceil(bounds / horizontalSpacing) + 3;
-    const rows = Math.ceil(bounds / verticalSpacing) + 3;
+    const cols = Math.ceil((bounds * 2) / gridSpacing) + 4;
+    const rows = Math.ceil((bounds * 2) / rowHeight) + 4;
 
     for (let row = -rows; row <= rows; row++) {
       for (let col = -cols; col <= cols; col++) {
+        // Progressive offset: each row/column gets more offset
+        const progressiveOffsetX = offsetX * row;
+        const progressiveOffsetY = offsetY * col;
+        
+        // Alternate triangle orientation for proper tessellation
+        const isUpTriangle = (col + row) % 2 === 0;
+        const xOffset = (row % 2) * (gridSpacing / 2);
+        
+        const x = col * gridSpacing + xOffset + progressiveOffsetX;
+        const y = row * rowHeight + progressiveOffsetY;
+        
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(phaseRad);
+        
+      ctx.beginPath();
+        if (isUpTriangle) {
+          // Upward pointing triangle
+          ctx.moveTo(0, -triangleHeight / 2);
+          ctx.lineTo(-size / 2, triangleHeight / 2);
+          ctx.lineTo(size / 2, triangleHeight / 2);
+        } else {
+          // Downward pointing triangle
+          ctx.moveTo(0, triangleHeight / 2);
+          ctx.lineTo(-size / 2, -triangleHeight / 2);
+          ctx.lineTo(size / 2, -triangleHeight / 2);
+        }
+        ctx.closePath();
+        
+        // Fill if fillColor is provided and not "none"
+        if (layer.fillColor && layer.fillColor !== 'none') {
+          ctx.fillStyle = layer.fillColor;
+          ctx.fill();
+        }
+        
+        // Stroke if color is not "none"
+        if (layer.color !== 'none') {
+      ctx.stroke();
+    }
+
+        ctx.restore();
+      }
+    }
+  };
+
+  const drawSquareTiling = (ctx: CanvasRenderingContext2D, layer: PatternLayer, bounds: number) => {
+    const { size = 40, spacing = 10, thickness = 1.5, phase = 0, offsetX = 0, offsetY = 0 } = layer.parameters;
+    
+    ctx.lineWidth = thickness;
+    const phaseRad = (phase / 360) * 2 * Math.PI;
+    const gridSpacing = size + spacing;
+    
+    const cols = Math.ceil((bounds * 2) / gridSpacing) + 4;
+    const rows = Math.ceil((bounds * 2) / gridSpacing) + 4;
+
+    for (let row = -rows; row <= rows; row++) {
+      for (let col = -cols; col <= cols; col++) {
+        // Progressive offset: each row/column gets more offset
+        const progressiveOffsetX = offsetX * row;
+        const progressiveOffsetY = offsetY * col;
+        
+        const x = col * gridSpacing + progressiveOffsetX;
+        const y = row * gridSpacing + progressiveOffsetY;
+        
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(phaseRad);
+        
+        const halfSize = size / 2;
+        
+        // Fill if fillColor is provided and not "none"
+        if (layer.fillColor && layer.fillColor !== 'none') {
+          ctx.fillStyle = layer.fillColor;
+          ctx.fillRect(-halfSize, -halfSize, size, size);
+        }
+        
+        // Stroke if color is not "none"
+        if (layer.color !== 'none') {
+          ctx.strokeRect(-halfSize, -halfSize, size, size);
+        }
+        
+        ctx.restore();
+      }
+    }
+  };
+
+  const drawRhombusTiling = (ctx: CanvasRenderingContext2D, layer: PatternLayer, bounds: number) => {
+    const { size = 40, spacing = 10, thickness = 1.5, phase = 1.5, offsetX = 0, offsetY = 0 } = layer.parameters;
+    
+    ctx.lineWidth = thickness;
+    const aspectRatio = Math.max(0.5, Math.min(3, phase));
+    const rhombusWidth = size;
+    const rhombusHeight = size / aspectRatio;
+    const gridSpacingX = rhombusWidth + spacing;
+    const gridSpacingY = rhombusHeight + spacing;
+    
+    const cols = Math.ceil((bounds * 2) / gridSpacingX) + 4;
+    const rows = Math.ceil((bounds * 2) / gridSpacingY) + 4;
+
+    for (let row = -rows; row <= rows; row++) {
+      for (let col = -cols; col <= cols; col++) {
+        // Progressive offset: each row/column gets more offset
+        const progressiveOffsetX = offsetX * row;
+        const progressiveOffsetY = offsetY * col;
+        
+        // Offset every other row for proper rhombus tessellation
+        const xOffset = (row % 2) * (gridSpacingX / 2);
+        
+        const x = col * gridSpacingX + xOffset + progressiveOffsetX;
+        const y = row * gridSpacingY + progressiveOffsetY;
+        
+      ctx.beginPath();
+        // Draw rhombus as diamond shape
+        ctx.moveTo(x, y - rhombusHeight / 2); // Top
+        ctx.lineTo(x + rhombusWidth / 2, y); // Right
+        ctx.lineTo(x, y + rhombusHeight / 2); // Bottom
+        ctx.lineTo(x - rhombusWidth / 2, y); // Left
+        ctx.closePath();
+        
+        // Fill if fillColor is provided and not "none"
+        if (layer.fillColor && layer.fillColor !== 'none') {
+          ctx.fillStyle = layer.fillColor;
+          ctx.fill();
+        }
+        
+        // Stroke if color is not "none"
+        if (layer.color !== 'none') {
+      ctx.stroke();
+        }
+      }
+    }
+  };
+
+  const drawHexagonalTiling = (ctx: CanvasRenderingContext2D, layer: PatternLayer, bounds: number) => {
+    const { size = 40, spacing = 10, thickness = 1.5, phase = 0, offsetX = 0, offsetY = 0 } = layer.parameters;
+    
+    ctx.lineWidth = thickness;
+    const hexRadius = size / 2;
+    const hexWidth = hexRadius * 2;
+    const hexHeight = hexRadius * Math.sqrt(3);
+    const verticalSpacing = hexHeight * 0.75 + spacing;
+    const horizontalSpacing = hexWidth * 0.75 + spacing;
+    const phaseRad = (phase / 360) * 2 * Math.PI;
+    
+    const cols = Math.ceil((bounds * 2) / horizontalSpacing) + 4;
+    const rows = Math.ceil((bounds * 2) / verticalSpacing) + 4;
+
+    for (let row = -rows; row <= rows; row++) {
+      for (let col = -cols; col <= cols; col++) {
+        // Progressive offset: each row/column gets more offset
+        const progressiveOffsetX = offsetX * row;
+        const progressiveOffsetY = offsetY * col;
+        
         // Offset every other row for proper hexagonal tessellation
         const xOffset = (row % 2) * (horizontalSpacing / 2);
-        const x = col * horizontalSpacing + xOffset;
-        const y = row * verticalSpacing;
+        const x = col * horizontalSpacing + xOffset + progressiveOffsetX;
+        const y = row * verticalSpacing + progressiveOffsetY;
         
         ctx.beginPath();
         for (let i = 0; i < 6; i++) {
@@ -198,51 +323,57 @@ export function MoireCanvas({ layers, zoom, pan, backgroundColor, onZoomChange, 
           }
         }
         ctx.closePath();
-        ctx.stroke();
+        
+        // Fill if fillColor is provided and not "none"
+        if (layer.fillColor && layer.fillColor !== 'none') {
+          ctx.fillStyle = layer.fillColor;
+          ctx.fill();
+        }
+        
+        // Stroke if color is not "none"
+        if (layer.color !== 'none') {
+          ctx.stroke();
+        }
       }
     }
   };
 
-  const drawTriangularGrid = (ctx: CanvasRenderingContext2D, layer: PatternLayer, bounds: number) => {
-    const { spacing = 35, thickness = 1, phase = 0 } = layer.parameters;
+  const drawCirclePacking = (ctx: CanvasRenderingContext2D, layer: PatternLayer, bounds: number) => {
+    const { size = 40, spacing = 10, thickness = 1.5, phase = 0.8, offsetX = 0, offsetY = 0 } = layer.parameters;
     
     ctx.lineWidth = thickness;
-    const triangleHeight = spacing * Math.sqrt(3) / 2;
-    const rowHeight = triangleHeight; // Each row is one triangle height apart
-    const phaseRad = (phase / 360) * 2 * Math.PI;
-    const cols = Math.ceil(bounds / spacing) + 3;
-    const rows = Math.ceil(bounds / rowHeight) + 3;
+    const circleRadius = size * phase / 2; // phase controls circle size relative to grid cell
+    const hexHeight = size * Math.sqrt(3);
+    const verticalSpacing = hexHeight * 0.75 + spacing;
+    const horizontalSpacing = size * 0.75 + spacing;
+    
+    const cols = Math.ceil((bounds * 2) / horizontalSpacing) + 4;
+    const rows = Math.ceil((bounds * 2) / verticalSpacing) + 4;
 
     for (let row = -rows; row <= rows; row++) {
       for (let col = -cols; col <= cols; col++) {
-        // Alternate triangle orientation and position for proper tessellation
-        const isEvenRow = row % 2 === 0;
-        const isUpTriangle = (col + row) % 2 === 0;
+        // Progressive offset: each row/column gets more offset
+        const progressiveOffsetX = offsetX * row;
+        const progressiveOffsetY = offsetY * col;
         
-        const xOffset = isEvenRow ? 0 : spacing / 2;
-        const x = col * spacing + xOffset;
-        const y = row * rowHeight;
-        
-        ctx.save();
-        ctx.translate(x, y);
-        ctx.rotate(phaseRad);
+        // Offset every other row for proper hexagonal packing
+        const xOffset = (row % 2) * (horizontalSpacing / 2);
+        const x = col * horizontalSpacing + xOffset + progressiveOffsetX;
+        const y = row * verticalSpacing + progressiveOffsetY;
         
         ctx.beginPath();
-        if (isUpTriangle) {
-          // Upward pointing triangle
-          ctx.moveTo(0, -triangleHeight / 2);
-          ctx.lineTo(-spacing / 2, triangleHeight / 2);
-          ctx.lineTo(spacing / 2, triangleHeight / 2);
-        } else {
-          // Downward pointing triangle
-          ctx.moveTo(0, triangleHeight / 2);
-          ctx.lineTo(-spacing / 2, -triangleHeight / 2);
-          ctx.lineTo(spacing / 2, -triangleHeight / 2);
-        }
-        ctx.closePath();
-        ctx.stroke();
+        ctx.arc(x, y, circleRadius, 0, 2 * Math.PI);
         
-        ctx.restore();
+        // Fill if fillColor is provided and not "none"
+        if (layer.fillColor && layer.fillColor !== 'none') {
+          ctx.fillStyle = layer.fillColor;
+          ctx.fill();
+        }
+        
+        // Stroke if color is not "none"
+        if (layer.color !== 'none') {
+          ctx.stroke();
+        }
       }
     }
   };
@@ -283,7 +414,7 @@ export function MoireCanvas({ layers, zoom, pan, backgroundColor, onZoomChange, 
       const progressiveOffsetY = offsetY * i;
       
       ctx.strokeRect(-size + progressiveOffsetX, -size + progressiveOffsetY, size * 2, size * 2);
-    }
+      }
   };
 
   const drawConcentricRhombus = (ctx: CanvasRenderingContext2D, layer: PatternLayer, bounds: number) => {
@@ -437,10 +568,10 @@ export function MoireCanvas({ layers, zoom, pan, backgroundColor, onZoomChange, 
         }
       }
       ctx.closePath();
-      ctx.stroke();
+        ctx.stroke();
       
       ctx.restore();
-    }
+      }
   };
 
   const drawConcentricStars5 = (ctx: CanvasRenderingContext2D, layer: PatternLayer, bounds: number) => {
@@ -499,6 +630,11 @@ export function MoireCanvas({ layers, zoom, pan, backgroundColor, onZoomChange, 
     ctx.globalAlpha = layer.opacity;
     ctx.globalCompositeOperation = layer.blendMode as GlobalCompositeOperation;
 
+    // Set fill color for tiles if provided
+    if (layer.fillColor && layer.category === 'tiles') {
+      ctx.fillStyle = layer.fillColor;
+    }
+
     // Draw pattern based on type
     switch (layer.type) {
       case 'straight-lines':
@@ -513,14 +649,20 @@ export function MoireCanvas({ layers, zoom, pan, backgroundColor, onZoomChange, 
       case 'spiral':
         drawSpiral(ctx, layer, bounds);
         break;
-      case 'rectangular-grid':
-        drawRectangularGrid(ctx, layer, bounds);
+      case 'triangular-tiling':
+        drawTriangularTiling(ctx, layer, bounds);
         break;
-      case 'hexagonal-grid':
-        drawHexagonalGrid(ctx, layer, bounds);
+      case 'square-tiling':
+        drawSquareTiling(ctx, layer, bounds);
         break;
-      case 'triangular-grid':
-        drawTriangularGrid(ctx, layer, bounds);
+      case 'rhombus-tiling':
+        drawRhombusTiling(ctx, layer, bounds);
+        break;
+      case 'hexagonal-tiling':
+        drawHexagonalTiling(ctx, layer, bounds);
+        break;
+      case 'circle-packing':
+        drawCirclePacking(ctx, layer, bounds);
         break;
       case 'concentric-circles':
         drawConcentricCircles(ctx, layer, bounds);

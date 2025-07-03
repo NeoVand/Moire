@@ -90,6 +90,10 @@ export function RightSidebar() {
     updateSelectedLayer({ color });
   };
 
+  const handleFillColorSelect = (fillColor: string) => {
+    updateSelectedLayer({ fillColor });
+  };
+
   const handleParameterChange = (paramKey: string, value: number) => {
     if (!selectedLayer) return;
     
@@ -150,7 +154,14 @@ export function RightSidebar() {
         <path d="M8 8 C8 6, 10 6, 10 8 C10 11, 6 11, 6 8 C6 4, 12 4, 12 8 C12 14, 2 14, 2 8 C2 1, 15 1, 15 8"/>
       </svg>
     )},
-    { id: 'grids', name: 'Grids', icon: () => <Grid3x3 className="w-5 h-5 flex-shrink-0" /> },
+    { id: 'tiles', name: 'Tiles', icon: () => (
+      <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1">
+        <rect x="1" y="1" width="6" height="6" rx="0.5"/>
+        <rect x="9" y="1" width="6" height="6" rx="0.5"/>
+        <rect x="1" y="9" width="6" height="6" rx="0.5"/>
+        <rect x="9" y="9" width="6" height="6" rx="0.5"/>
+      </svg>
+    ) },
     { id: 'concentric', name: 'Concentric', icon: () => (
       <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1">
         <circle cx="8" cy="8" r="2.5"/>
@@ -330,14 +341,30 @@ export function RightSidebar() {
             {/* Color Section */}
             <div className="p-3 border-b border-[var(--border)]">
               <h3 className="text-xs font-medium text-[var(--text-primary)] mb-2 uppercase tracking-wide">
-                Color
+                Stroke Color
               </h3>
               
               <ColorPicker
                 value={selectedLayer.color}
                 onChange={handleColorSelect}
+                allowNone={selectedLayer.category === 'tiles'}
               />
             </div>
+
+            {/* Fill Color Section - Only for tiles */}
+            {selectedLayer.category === 'tiles' && (
+              <div className="p-3 border-b border-[var(--border)]">
+                <h3 className="text-xs font-medium text-[var(--text-primary)] mb-2 uppercase tracking-wide">
+                  Fill Color
+                </h3>
+                
+                <ColorPicker
+                  value={selectedLayer.fillColor || '#ffffff'}
+                  onChange={handleFillColorSelect}
+                  allowNone={true}
+                />
+              </div>
+            )}
 
             {/* Dynamic Parameters Section */}
             <div className="p-3">

@@ -11,10 +11,11 @@ Built with React, TypeScript, and mathematical precision - create stunning inter
 ## ✨ What Makes This Special
 
 🎯 **Mathematically Accurate** - Built on proper Moiré interference theory with beat frequency calculations  
-🎨 **Artistically Powerful** - 16 pattern types from classic lines to complex hexagonal grids  
-⚡ **Real-time Interactive** - 60fps rendering with instant parameter updates  
+🎨 **Artistically Powerful** - 16 pattern types from classic lines to advanced tessellated tiles  
+⚡ **Real-time Interactive** - 60fps rendering with instant parameter updates and live canvas manipulation  
 🖱️ **Intuitive Controls** - Professional UI with direct canvas manipulation, trackpad zoom, and layer management  
-🎛️ **Professional Tools** - Dual sidebars, precise sliders, color palettes, and blend modes  
+🎛️ **Professional Tools** - Dual sidebars, precise sliders, dual-color system, and 12 blend modes  
+🎭 **Advanced Tiles System** - Tessellated patterns with independent stroke/fill colors and progressive offsets  
 📐 **High Resolution** - Export-ready patterns up to 8K resolution  
 
 ---
@@ -44,9 +45,10 @@ Open `http://localhost:5173` and start creating mesmerizing patterns immediately
 - **Blend Modes**: Choose how layers interact (Multiply, Screen, Overlay, etc.)
 
 ### 2. **Pattern Design** (Right Sidebar)
-- **Choose Category**: Lines, Curves, Grids, or Concentric patterns
-- **Select Pattern**: 16 types from simple lines to complex hexagonal tessellations
-- **Fine-tune Parameters**: Spacing, thickness, phase, aspect ratios, and progressive offsets
+- **Choose Category**: Lines, Curves, Tiles, or Concentric patterns
+- **Select Pattern**: 16 types from simple lines to complex tessellated tiles
+- **Dual Color System**: Independent stroke (outline) and fill (interior) colors for tiles
+- **Advanced Controls**: Spacing, thickness, size, phase, aspect ratios, and progressive offsets
 
 ### 3. **Interactive Canvas**
 - **Zoom**: Use trackpad pinch or mouse wheel - zooms to cursor position
@@ -65,30 +67,33 @@ Open `http://localhost:5173` and start creating mesmerizing patterns immediately
 
 ## 🎨 Pattern Gallery
 
-### **Lines & Grids**
-Create classic moiré bands with line patterns and grid interference
+### **Lines & Basic Patterns**
+Create classic moiré bands with line patterns and simple interference
 - **Straight Lines**: Perfect parallel interference patterns
-- **Rectangular Grid**: 2D grid moiré with crosshatch effects
-- **Triangular Grid**: Mathematical tessellation with angular interference
+- **Wavy Lines**: Organic flowing patterns with adjustable amplitude
 
 ### **Curves & Organic**
 Flowing, natural-looking interference patterns
 - **Sine Waves**: Undulating patterns with wave interference
-- **Spirals**: Logarithmic and Archimedean spiral types
-- **Wavy Lines**: Organic flowing patterns with adjustable amplitude
+- **Spirals**: Logarithmic and Archimedean spiral types with fine control
+
+### **Advanced Tessellated Tiles**
+Professional-grade tiling patterns with dual-color control and independent sizing
+- **Triangular Tiling**: Perfect tessellated triangles with proper orientation
+- **Square Tiling**: Classic grid tiles with rotation and gap control
+- **Rhombus Tiling**: Diamond tessellation with adjustable aspect ratio (0.5-3.0)
+- **Hexagonal Tiling**: Honeycomb patterns with precise tessellation
+- **Circle Packing**: Hexagonal circle arrangement with size and spacing control
+- **Dual Color System**: Independent stroke (outline) and fill (interior) colors
+- **Progressive Offsets**: Create spiral and drift effects with X/Y offset controls (-50 to +50px)
+- **Size & Spacing**: Separate tile size (5-150px) and gap spacing (0-50px) controls
 
 ### **Concentric & Radial**
-Circular patterns creating radial and hyperbolic effects with progressive offsets
+Circular patterns creating radial and hyperbolic effects
 - **Concentric Circles**: Classic target patterns with radial interference
 - **Radial Lines**: Spoke patterns for kaleidoscopic effects
 - **Concentric Shapes**: Triangles, squares, rhombus, pentagons, hexagons, ellipses, and 5-point stars
-- **Progressive Offsets**: Create spiral and drift effects as patterns move outward
-
-### **Advanced Scientific**
-Patterns inspired by physics and materials science
-- **Hexagonal Grids**: Graphene-inspired tessellations for twistronics simulation
-- **Diamond Grids**: Crystal structure patterns
-- **Noise Patterns**: Randomized interference for texture effects
+- **Extended Ranges**: Ring counts up to 200, customizable spacing and thickness
 
 ---
 
@@ -160,17 +165,20 @@ Moiré patterns demonstrate fundamental principles of wave interference:
 ## 🚀 Advanced Features
 
 ### **Professional Layer System**
-- **Multiple Layers**: Add unlimited pattern layers
-- **Transform Controls**: Precise position, rotation, and opacity
+- **Multiple Layers**: Add unlimited pattern layers with independent controls
+- **Transform Controls**: Precise position, rotation, and opacity with decimal precision
 - **Direct Canvas Manipulation**: Move and rotate layers directly on canvas with modifier keys
-- **Blend Modes**: 12 different blending options for complex effects
-- **Layer Management**: Visibility, locking, duplication, and deletion
+- **Blend Modes**: 12 different blending options (Normal, Multiply, Screen, Overlay, etc.)
+- **Layer Management**: Visibility toggle, duplication, deletion, and selection
+- **Dual Color Support**: Independent stroke and fill colors for tile patterns
 
 ### **Precision Controls**
-- **Fine Adjustment**: Alt+drag for 10x finer control
+- **Fine Adjustment**: Alt+drag for 10x finer control on all sliders
 - **Decimal Values**: Precise parameter control with decimal stepping
-- **Extended Ranges**: Ring counts up to 200, aspect ratios from 0.1-10
-- **Reset Options**: Individual and bulk reset functionality
+- **Extended Ranges**: Ring counts up to 200, aspect ratios from 0.1-10, size up to 150px
+- **Progressive Offsets**: X/Y offset controls (-50 to +50px) for spiral/drift effects
+- **Color Flexibility**: "None" option for stroke/fill colors to create outline-only or fill-only patterns
+- **Reset Options**: Individual parameter reset buttons and bulk reset functionality
 - **Real-time Preview**: Instant feedback for all parameter changes
 
 ### **High-Quality Output**
@@ -192,15 +200,17 @@ Moiré patterns demonstrate fundamental principles of wave interference:
 ### **Canvas Interactions**
 - **Zoom**: Mouse wheel or trackpad pinch → zooms to cursor position
 - **Pan**: Click and drag → move around the canvas
-- **Move Layer**: `Option + Drag` → move selected layer position
+- **Move Layer**: `Option + Drag` → move selected layer position in real-time
 - **Rotate Layer**: `Option + Shift + Drag` → rotate selected layer (up = CCW, down = CW)
+- **Visual Feedback**: Real-time cursor changes and smooth transformations
 
 ### **Interface Controls**
-- **Fine Control**: Hold `Alt/Option` + drag sliders → 10x precision
-- **Help Toggle**: Press `H` → show/hide canvas controls help
-- **Tab Navigation**: Navigate through all controls
+- **Fine Control**: Hold `Alt/Option` + drag sliders → 10x precision on all parameters
+- **Help Toggle**: Press `H` → show/hide interactive canvas controls overlay
+- **Tab Navigation**: Navigate through all controls with keyboard
 - **Enter/Space**: Activate buttons and controls
 - **Arrow Keys**: Fine-tune slider values when focused
+- **Context Menus**: Right-click for additional layer options
 
 ---
 
@@ -231,8 +241,9 @@ Moiré patterns demonstrate fundamental principles of wave interference:
 We welcome contributions! Areas where you can help:
 
 - **Export Features**: Implement PNG/SVG export functionality
-- **Animation System**: Build keyframe animation tools
+- **Animation System**: Build keyframe animation tools  
 - **Pattern Library**: Create preset galleries and templates
+- **Advanced Tiles**: Additional tessellation patterns and mathematical functions
 - **Performance**: WebGL optimization for complex patterns
 - **Documentation**: Improve tutorials and educational content
 
