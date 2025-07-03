@@ -1,18 +1,54 @@
 import React, { useState } from 'react';
-import { Settings, ChevronLeft, ChevronRight, Minus, Star, Circle, Square, Triangle, Hexagon, Grid3x3 } from 'lucide-react';
+import { Settings, ChevronLeft, ChevronRight, Minus, Star, Grid3x3 } from 'lucide-react';
 import { Slider, ColorPicker } from '../ui';
 import { useMoireProjectContext } from '../../hooks/MoireProjectContext';
 import { PATTERN_DEFINITIONS } from '../../types/moire';
-import type { PatternLayer } from '../../types/moire';
 
 // Icon mapping for pattern types
-const PATTERN_ICONS: { [key: string]: React.ComponentType<any> } = {
+const PATTERN_ICONS: { [key: string]: React.ComponentType<React.SVGProps<SVGSVGElement>> } = {
   'minus': Minus,
   'star': Star,
-  'circle': Circle,
-  'square': Square,
-  'triangle': Triangle,
-  'hexagon': Hexagon,
+  'circle': () => (
+    <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <circle cx="8" cy="8" r="6"/>
+    </svg>
+  ),
+  'square': () => (
+    <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <rect x="2" y="2" width="12" height="12" rx="1"/>
+    </svg>
+  ),
+  'triangle': () => (
+    <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M8 2 L14 13 L2 13 Z"/>
+    </svg>
+  ),
+  'hexagon': () => (
+    <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M8 1 L13.5 4.5 L13.5 11.5 L8 15 L2.5 11.5 L2.5 4.5 Z"/>
+    </svg>
+  ),
+  'pentagon': () => (
+    <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M8 2 L12.5 5.5 L10.5 11.5 L5.5 11.5 L3.5 5.5 Z"/>
+    </svg>
+  ),
+  'rhombus': () => (
+    <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M8 2 L14 8 L8 14 L2 8 Z"/>
+    </svg>
+  ),
+  'ellipse': () => (
+    <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <ellipse cx="8" cy="8" rx="6" ry="4"/>
+    </svg>
+  ),
+  'star5': () => (
+    <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M8 2 L9.8 6.2 L14 6.2 L10.6 8.8 L12.4 13 L8 10.4 L3.6 13 L5.4 8.8 L2 6.2 L6.2 6.2 Z"/>
+    </svg>
+  ),
+
   'grid': Grid3x3,
   'wave': () => (
     <svg className="w-3 h-3" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -26,37 +62,7 @@ const PATTERN_ICONS: { [key: string]: React.ComponentType<any> } = {
   ),
 };
 
-// Style mode icons
-const FILL_MODES: { value: PatternLayer['fillMode']; label: string; icon: React.ComponentType<any> }[] = [
-  { 
-    value: 'stroke', 
-    label: 'Lines', 
-    icon: () => (
-      <svg className="w-3 h-3" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <rect x="3" y="6" width="10" height="4" />
-      </svg>
-    )
-  },
-  { 
-    value: 'fill', 
-    label: 'Fill', 
-    icon: () => (
-      <svg className="w-3 h-3" viewBox="0 0 16 16" fill="currentColor">
-        <rect x="3" y="6" width="10" height="4" />
-      </svg>
-    )
-  },
-  { 
-    value: 'both', 
-    label: 'Both', 
-    icon: () => (
-      <svg className="w-3 h-3" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <rect x="3" y="6" width="10" height="4" fill="currentColor" fillOpacity="0.3" />
-        <rect x="3" y="6" width="10" height="4" />
-      </svg>
-    )
-  },
-];
+
 
 export function RightSidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -78,9 +84,7 @@ export function RightSidebar() {
     });
   };
 
-  const handleFillModeChange = (fillMode: PatternLayer['fillMode']) => {
-    updateSelectedLayer({ fillMode });
-  };
+
 
   const handleColorSelect = (color: string) => {
     updateSelectedLayer({ color });
@@ -132,14 +136,28 @@ export function RightSidebar() {
   }, {} as { [key: string]: typeof PATTERN_DEFINITIONS });
 
   const categories = [
-    { id: 'lines', name: 'Lines', icon: Minus },
-    { id: 'curves', name: 'Curves', icon: () => (
-      <svg className="w-3 h-3" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <path d="M1 8 Q3 4, 5 8 T9 8 Q11 12, 13 8 T15 8"/>
+    { id: 'lines', name: 'Lines', icon: () => (
+      <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1">
+        <path d="M2 13 L7 2"/>
+        <path d="M4 14 L10 2"/>
+        <path d="M6 15 L13 2"/>
+        <path d="M9 15 L15 4"/>
+        <path d="M12 15 L15 8"/>
       </svg>
     )},
-    { id: 'grids', name: 'Grids', icon: Grid3x3 },
-    { id: 'concentric', name: 'Concentric', icon: Circle },
+    { id: 'curves', name: 'Curves', icon: () => (
+      <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1">
+        <path d="M8 8 C8 6, 10 6, 10 8 C10 11, 6 11, 6 8 C6 4, 12 4, 12 8 C12 14, 2 14, 2 8 C2 1, 15 1, 15 8"/>
+      </svg>
+    )},
+    { id: 'grids', name: 'Grids', icon: () => <Grid3x3 className="w-5 h-5 flex-shrink-0" /> },
+    { id: 'concentric', name: 'Concentric', icon: () => (
+      <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1">
+        <circle cx="8" cy="8" r="2.5"/>
+        <circle cx="8" cy="8" r="5"/>
+        <circle cx="8" cy="8" r="7.5"/>
+      </svg>
+    )},
   ];
 
   if (!selectedLayer && isCollapsed) {
@@ -286,54 +304,28 @@ export function RightSidebar() {
                 Pattern Type
               </h3>
               
-              <div className="grid grid-cols-2 gap-1">
+              <div className="grid grid-cols-4 gap-1">
                 {patternsByCategory[activeCategory]?.map(pattern => {
                   const IconComponent = PATTERN_ICONS[pattern.icon] || Settings;
                   return (
                     <button
                       key={pattern.id}
                       onClick={() => handlePatternTypeChange(pattern.id)}
-                      className={`p-2 rounded border transition-colors flex flex-col items-center gap-1 text-xs ${
+                      className={`p-2 rounded border transition-colors flex items-center justify-center ${
                         selectedLayer.type === pattern.id
                           ? 'bg-[var(--accent-primary)] text-white border-[var(--accent-primary)]'
                           : 'bg-[var(--bg-tertiary)] text-[var(--text-primary)] border-[var(--border)] hover:bg-[var(--accent-primary)]/20 hover:border-[var(--accent-primary)]/50'
                       }`}
-                      title={pattern.description}
+                      title={`${pattern.name} - ${pattern.description}`}
                     >
                       <IconComponent />
-                      <span className="leading-none">{pattern.name}</span>
                     </button>
                   );
                 })}
               </div>
             </div>
 
-            {/* Style Mode Section */}
-            <div className="p-3 border-b border-[var(--border)]">
-              <h3 className="text-xs font-medium text-[var(--text-primary)] mb-2 uppercase tracking-wide">
-                Style Mode
-              </h3>
-              <div className="grid grid-cols-3 gap-1">
-                {FILL_MODES.map(mode => {
-                  const IconComponent = mode.icon;
-                  return (
-                    <button
-                      key={mode.value}
-                      onClick={() => handleFillModeChange(mode.value)}
-                      className={`px-2 py-1.5 text-xs rounded transition-colors flex items-center gap-1 ${
-                        selectedLayer.fillMode === mode.value
-                          ? 'bg-[var(--accent-primary)] text-white'
-                          : 'bg-[var(--bg-tertiary)] text-[var(--text-primary)] hover:bg-[var(--accent-primary)]/20'
-                      }`}
-                      title={mode.label}
-                    >
-                      <IconComponent />
-                      <span className="hidden sm:inline">{mode.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+
 
             {/* Color Section */}
             <div className="p-3 border-b border-[var(--border)]">
@@ -375,8 +367,8 @@ export function RightSidebar() {
                   if (!patternDef) return null;
 
                   return Object.entries(patternDef.parameterConfig).map(([paramKey, config]) => {
-                    const currentValue = (selectedLayer.parameters as any)[paramKey] ?? config.min;
-                    const defaultValue = (patternDef.defaultParameters as any)[paramKey];
+                    const currentValue = selectedLayer.parameters[paramKey as keyof typeof selectedLayer.parameters] ?? config.min;
+                    const defaultValue = patternDef.defaultParameters[paramKey as keyof typeof patternDef.defaultParameters] ?? config.min;
                     
                     return (
                       <Slider

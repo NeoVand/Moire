@@ -73,7 +73,7 @@ export function useMoireProject() {
       position: { x: 0, y: 0 },
       rotation: 0,
       opacity: 1,
-      fillMode: 'stroke',
+
       blendMode: 'normal',
       locked: false,
       parameters: { ...patternDef.defaultParameters },

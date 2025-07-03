@@ -1,5 +1,8 @@
-import React, { useRef, useEffect, useCallback, useState } from 'react';
+import { useRef, useEffect, useCallback, useState } from 'react';
 import type { PatternLayer } from '../../types/moire';
+import { useCanvasInteractions } from '../../hooks/useCanvasInteractions';
+import { InteractionHelper } from './InteractionHelper';
+import { useMoireProjectContext } from '../../hooks/MoireProjectContext';
 
 interface MoireCanvasProps {
   layers: PatternLayer[];
@@ -14,8 +17,20 @@ export function MoireCanvas({ layers, zoom, pan, backgroundColor, onZoomChange, 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [canvasSize, setCanvasSize] = useState({ width: 800, height: 600 });
-  const [isDragging, setIsDragging] = useState(false);
-  const [lastMousePos, setLastMousePos] = useState({ x: 0, y: 0 });
+  const [showHelp, setShowHelp] = useState(false);
+  
+  // Get selected layer info for interaction helper
+  const { selectedLayer } = useMoireProjectContext();
+  
+  // Initialize canvas interactions with the new hook
+  const {
+    interactionState,
+    statusText,
+    handleMouseDown,
+    handleMouseMove,
+    handleMouseUp,
+    setupGlobalListeners,
+  } = useCanvasInteractions(zoom, pan, canvasSize, onPanChange);
 
   // Update canvas size to fill container
   useEffect(() => {
@@ -183,13 +198,7 @@ export function MoireCanvas({ layers, zoom, pan, backgroundColor, onZoomChange, 
           }
         }
         ctx.closePath();
-        
-        if (layer.fillMode === 'fill' || layer.fillMode === 'both') {
-          ctx.fill();
-        }
-        if (layer.fillMode === 'stroke' || layer.fillMode === 'both') {
-          ctx.stroke();
-        }
+        ctx.stroke();
       }
     }
   };
@@ -231,13 +240,7 @@ export function MoireCanvas({ layers, zoom, pan, backgroundColor, onZoomChange, 
           ctx.lineTo(spacing / 2, -triangleHeight / 2);
         }
         ctx.closePath();
-        
-        if (layer.fillMode === 'fill' || layer.fillMode === 'both') {
-          ctx.fill();
-        }
-        if (layer.fillMode === 'stroke' || layer.fillMode === 'both') {
-          ctx.stroke();
-        }
+        ctx.stroke();
         
         ctx.restore();
       }
@@ -246,7 +249,7 @@ export function MoireCanvas({ layers, zoom, pan, backgroundColor, onZoomChange, 
 
   // Concentric Category
   const drawConcentricCircles = (ctx: CanvasRenderingContext2D, layer: PatternLayer, bounds: number) => {
-    const { spacing = 20, thickness = 1.5, count = 15, phase = 0 } = layer.parameters;
+    const { spacing = 20, thickness = 1.5, count = 15, phase = 0, offsetX = 0, offsetY = 0 } = layer.parameters;
     
     ctx.lineWidth = thickness;
     const startRadius = phase;
@@ -255,14 +258,18 @@ export function MoireCanvas({ layers, zoom, pan, backgroundColor, onZoomChange, 
       const radius = startRadius + i * spacing;
       if (radius > bounds) break;
       
+      // Progressive offset: each ring gets more offset based on its index
+      const progressiveOffsetX = offsetX * i;
+      const progressiveOffsetY = offsetY * i;
+      
       ctx.beginPath();
-      ctx.arc(0, 0, radius, 0, 2 * Math.PI);
+      ctx.arc(progressiveOffsetX, progressiveOffsetY, radius, 0, 2 * Math.PI);
       ctx.stroke();
     }
   };
 
   const drawConcentricSquares = (ctx: CanvasRenderingContext2D, layer: PatternLayer, bounds: number) => {
-    const { spacing = 25, thickness = 1.5, count = 12, phase = 0 } = layer.parameters;
+    const { spacing = 25, thickness = 1.5, count = 12, phase = 0, offsetX = 0, offsetY = 0 } = layer.parameters;
     
     ctx.lineWidth = thickness;
     const startSize = phase;
@@ -271,17 +278,43 @@ export function MoireCanvas({ layers, zoom, pan, backgroundColor, onZoomChange, 
       const size = startSize + i * spacing;
       if (size > bounds) break;
       
-      if (layer.fillMode === 'fill' || layer.fillMode === 'both') {
-        ctx.fillRect(-size, -size, size * 2, size * 2);
-      }
-      if (layer.fillMode === 'stroke' || layer.fillMode === 'both') {
-        ctx.strokeRect(-size, -size, size * 2, size * 2);
-      }
+      // Progressive offset: each ring gets more offset based on its index
+      const progressiveOffsetX = offsetX * i;
+      const progressiveOffsetY = offsetY * i;
+      
+      ctx.strokeRect(-size + progressiveOffsetX, -size + progressiveOffsetY, size * 2, size * 2);
+    }
+  };
+
+  const drawConcentricRhombus = (ctx: CanvasRenderingContext2D, layer: PatternLayer, bounds: number) => {
+    const { spacing = 24, thickness = 1.5, count = 10, phase = 1.5, offsetX = 0, offsetY = 0 } = layer.parameters;
+    
+    ctx.lineWidth = thickness;
+    const aspectRatio = Math.max(0.1, Math.min(10, phase)); // Use phase as aspect ratio
+    
+    for (let i = 0; i < count; i++) {
+      const sizeX = spacing * (i + 1);
+      const sizeY = sizeX / aspectRatio;
+      
+      if (sizeX > bounds && sizeY > bounds) break;
+      
+      // Progressive offset: each ring gets more offset based on its index
+      const progressiveOffsetX = offsetX * i;
+      const progressiveOffsetY = offsetY * i;
+      
+      ctx.beginPath();
+      // Draw rhombus as a diamond shape
+      ctx.moveTo(progressiveOffsetX, -sizeY + progressiveOffsetY); // Top point
+      ctx.lineTo(sizeX + progressiveOffsetX, progressiveOffsetY); // Right point
+      ctx.lineTo(progressiveOffsetX, sizeY + progressiveOffsetY); // Bottom point
+      ctx.lineTo(-sizeX + progressiveOffsetX, progressiveOffsetY); // Left point
+      ctx.closePath();
+      ctx.stroke();
     }
   };
 
   const drawConcentricHexagons = (ctx: CanvasRenderingContext2D, layer: PatternLayer, bounds: number) => {
-    const { spacing = 22, thickness = 1.5, count = 10, phase = 0 } = layer.parameters;
+    const { spacing = 22, thickness = 1.5, count = 10, phase = 0, offsetX = 0, offsetY = 0 } = layer.parameters;
     
     ctx.lineWidth = thickness;
     const startRadius = Math.max(1, phase);
@@ -291,11 +324,15 @@ export function MoireCanvas({ layers, zoom, pan, backgroundColor, onZoomChange, 
       const radius = startRadius + i * spacing;
       if (radius > bounds) break;
       
+      // Progressive offset: each ring gets more offset based on its index
+      const progressiveOffsetX = offsetX * i;
+      const progressiveOffsetY = offsetY * i;
+      
       ctx.beginPath();
       for (let j = 0; j < 6; j++) {
         const angle = (j * 60) * Math.PI / 180 + phaseRad;
-        const x = Math.cos(angle) * radius;
-        const y = Math.sin(angle) * radius;
+        const x = Math.cos(angle) * radius + progressiveOffsetX;
+        const y = Math.sin(angle) * radius + progressiveOffsetY;
         
         if (j === 0) {
           ctx.moveTo(x, y);
@@ -304,18 +341,152 @@ export function MoireCanvas({ layers, zoom, pan, backgroundColor, onZoomChange, 
         }
       }
       ctx.closePath();
-      
-      if (layer.fillMode === 'fill' || layer.fillMode === 'both') {
-        ctx.fill();
-      }
-      if (layer.fillMode === 'stroke' || layer.fillMode === 'both') {
-        ctx.stroke();
-      }
+      ctx.stroke();
     }
   };
 
+  const drawConcentricEllipses = (ctx: CanvasRenderingContext2D, layer: PatternLayer, bounds: number) => {
+    const { spacing = 18, thickness = 1.5, count = 12, phase = 1.5, offsetX = 0, offsetY = 0 } = layer.parameters;
+    
+    ctx.lineWidth = thickness;
+    const aspectRatio = Math.max(0.2, Math.min(3, phase)); // Use phase as aspect ratio
+    
+    for (let i = 0; i < count; i++) {
+      const radiusX = spacing * (i + 1);
+      const radiusY = radiusX / aspectRatio;
+      
+      if (radiusX > bounds && radiusY > bounds) break;
+      
+      // Progressive offset: each ring gets more offset based on its index
+      const progressiveOffsetX = offsetX * i;
+      const progressiveOffsetY = offsetY * i;
+      
+      ctx.beginPath();
+      ctx.ellipse(progressiveOffsetX, progressiveOffsetY, radiusX, radiusY, 0, 0, 2 * Math.PI);
+      ctx.stroke();
+    }
+  };
+
+  const drawConcentricTriangles = (ctx: CanvasRenderingContext2D, layer: PatternLayer, bounds: number) => {
+    const { spacing = 25, thickness = 1.5, count = 10, phase = 0, offsetX = 0, offsetY = 0 } = layer.parameters;
+    
+    ctx.lineWidth = thickness;
+    const phaseRad = (phase / 360) * 2 * Math.PI;
+    
+    for (let i = 0; i < count; i++) {
+      const size = spacing * (i + 1);
+      if (size > bounds) break;
+      
+      // Progressive offset: each ring gets more offset based on its index
+      const progressiveOffsetX = offsetX * i;
+      const progressiveOffsetY = offsetY * i;
+      
+      ctx.save();
+      ctx.translate(progressiveOffsetX, progressiveOffsetY);
+      ctx.rotate(phaseRad);
+      
+      ctx.beginPath();
+      // Draw equilateral triangle
+      for (let j = 0; j < 3; j++) {
+        const angle = (j * 120) * Math.PI / 180;
+        const x = Math.cos(angle) * size;
+        const y = Math.sin(angle) * size;
+        
+        if (j === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      }
+      ctx.closePath();
+      ctx.stroke();
+      
+      ctx.restore();
+    }
+  };
+
+  const drawConcentricPentagons = (ctx: CanvasRenderingContext2D, layer: PatternLayer, bounds: number) => {
+    const { spacing = 24, thickness = 1.5, count = 8, phase = 0, offsetX = 0, offsetY = 0 } = layer.parameters;
+    
+    ctx.lineWidth = thickness;
+    const phaseRad = (phase / 360) * 2 * Math.PI;
+    
+    for (let i = 0; i < count; i++) {
+      const size = spacing * (i + 1);
+      if (size > bounds) break;
+      
+      // Progressive offset: each ring gets more offset based on its index
+      const progressiveOffsetX = offsetX * i;
+      const progressiveOffsetY = offsetY * i;
+      
+      ctx.save();
+      ctx.translate(progressiveOffsetX, progressiveOffsetY);
+      ctx.rotate(phaseRad);
+      
+      ctx.beginPath();
+      // Draw pentagon
+      for (let j = 0; j < 5; j++) {
+        const angle = (j * 72) * Math.PI / 180;
+        const x = Math.cos(angle) * size;
+        const y = Math.sin(angle) * size;
+        
+        if (j === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      }
+      ctx.closePath();
+      ctx.stroke();
+      
+      ctx.restore();
+    }
+  };
+
+  const drawConcentricStars5 = (ctx: CanvasRenderingContext2D, layer: PatternLayer, bounds: number) => {
+    const { spacing = 22, thickness = 1.5, count = 8, phase = 0, offsetX = 0, offsetY = 0 } = layer.parameters;
+    
+    ctx.lineWidth = thickness;
+    const phaseRad = (phase / 360) * 2 * Math.PI;
+    
+    for (let i = 0; i < count; i++) {
+      const outerRadius = spacing * (i + 1);
+      const innerRadius = outerRadius * 0.4; // Inner radius is 40% of outer radius
+      if (outerRadius > bounds) break;
+      
+      // Progressive offset: each ring gets more offset based on its index
+      const progressiveOffsetX = offsetX * i;
+      const progressiveOffsetY = offsetY * i;
+      
+      ctx.save();
+      ctx.translate(progressiveOffsetX, progressiveOffsetY);
+      ctx.rotate(phaseRad);
+      
+      ctx.beginPath();
+      // Draw 5-pointed star
+      for (let j = 0; j < 10; j++) {
+        const angle = (j * 36) * Math.PI / 180; // 36 degrees for each point
+        const radius = j % 2 === 0 ? outerRadius : innerRadius;
+        const x = Math.cos(angle - Math.PI / 2) * radius; // -PI/2 to start from top
+        const y = Math.sin(angle - Math.PI / 2) * radius;
+        
+        if (j === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      }
+      ctx.closePath();
+      ctx.stroke();
+      
+      ctx.restore();
+    }
+  };
+
+
+
   // Main pattern dispatcher
-  const drawPattern = (ctx: CanvasRenderingContext2D, layer: PatternLayer, bounds: number) => {
+  const drawPattern = useCallback((ctx: CanvasRenderingContext2D, layer: PatternLayer, bounds: number) => {
     ctx.save();
     
     // Apply layer transformations
@@ -357,15 +528,30 @@ export function MoireCanvas({ layers, zoom, pan, backgroundColor, onZoomChange, 
       case 'concentric-squares':
         drawConcentricSquares(ctx, layer, bounds);
         break;
+      case 'concentric-rhombus':
+        drawConcentricRhombus(ctx, layer, bounds);
+        break;
       case 'concentric-hexagons':
         drawConcentricHexagons(ctx, layer, bounds);
+        break;
+      case 'concentric-ellipses':
+        drawConcentricEllipses(ctx, layer, bounds);
+        break;
+      case 'concentric-triangles':
+        drawConcentricTriangles(ctx, layer, bounds);
+        break;
+      case 'concentric-pentagons':
+        drawConcentricPentagons(ctx, layer, bounds);
+        break;
+      case 'concentric-stars-5':
+        drawConcentricStars5(ctx, layer, bounds);
         break;
       default:
         console.warn(`Unknown pattern type: ${layer.type}`);
     }
     
     ctx.restore();
-  };
+  }, []);
 
   // Main rendering function
   const render = useCallback(() => {
@@ -397,7 +583,7 @@ export function MoireCanvas({ layers, zoom, pan, backgroundColor, onZoomChange, 
     });
 
     ctx.restore();
-  }, [layers, zoom, pan, canvasSize, backgroundColor]);
+  }, [layers, zoom, pan, canvasSize, backgroundColor, drawPattern]);
 
   // Handle wheel events for zoom
   const handleWheel = useCallback((e: WheelEvent) => {
@@ -427,63 +613,29 @@ export function MoireCanvas({ layers, zoom, pan, backgroundColor, onZoomChange, 
     onPanChange({ x: newPanX, y: newPanY });
   }, [zoom, pan, onZoomChange, onPanChange, canvasSize]);
 
-  // Handle mouse events for dragging to pan
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-    setLastMousePos({ x: e.clientX, y: e.clientY });
-  }, []);
+  // Mouse events are now handled by the useCanvasInteractions hook
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isDragging) return;
-    e.preventDefault();
-
-    const deltaX = e.clientX - lastMousePos.x;
-    const deltaY = e.clientY - lastMousePos.y;
-
-    onPanChange({
-      x: pan.x + deltaX,
-      y: pan.y + deltaY
-    });
-
-    setLastMousePos({ x: e.clientX, y: e.clientY });
-  }, [isDragging, lastMousePos, pan, onPanChange]);
-
-  const handleMouseUp = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-  }, []);
-
-  // Global mouse move and up handlers for better drag experience
+  // Set up global keyboard event listeners for modifier key detection
   useEffect(() => {
-    const handleGlobalMouseMove = (e: MouseEvent) => {
-      if (!isDragging) return;
+    return setupGlobalListeners();
+  }, [setupGlobalListeners]);
 
-      const deltaX = e.clientX - lastMousePos.x;
-      const deltaY = e.clientY - lastMousePos.y;
-
-      onPanChange({
-        x: pan.x + deltaX,
-        y: pan.y + deltaY
-      });
-
-      setLastMousePos({ x: e.clientX, y: e.clientY });
+  // Add keyboard shortcut for help toggle
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === 'h' || e.key === 'H') {
+        // Only toggle if not typing in an input
+        if (document.activeElement?.tagName !== 'INPUT' && 
+            document.activeElement?.tagName !== 'TEXTAREA') {
+          e.preventDefault();
+          setShowHelp(prev => !prev);
+        }
+      }
     };
 
-    const handleGlobalMouseUp = () => {
-      setIsDragging(false);
-    };
-
-    if (isDragging) {
-      document.addEventListener('mousemove', handleGlobalMouseMove);
-      document.addEventListener('mouseup', handleGlobalMouseUp);
-    }
-
-    return () => {
-      document.removeEventListener('mousemove', handleGlobalMouseMove);
-      document.removeEventListener('mouseup', handleGlobalMouseUp);
-    };
-  }, [isDragging, lastMousePos, pan, onPanChange]);
+    document.addEventListener('keydown', handleKeyPress);
+    return () => document.removeEventListener('keydown', handleKeyPress);
+  }, []);
 
   // Set up wheel event listener
   useEffect(() => {
@@ -538,14 +690,38 @@ export function MoireCanvas({ layers, zoom, pan, backgroundColor, onZoomChange, 
     <div ref={containerRef} className="absolute inset-0">
       <canvas
         ref={canvasRef}
-        className={`w-full h-full ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+        className="w-full h-full"
         style={{
-          imageRendering: 'auto'
+          imageRendering: 'auto',
+          cursor: interactionState.currentCursor,
         }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
+      />
+      
+      {/* Status indicator for active interaction modes */}
+      {interactionState.currentMode !== 'pan' && (
+        <div className="absolute bottom-4 left-4 px-3 py-2 bg-black/80 backdrop-blur-sm text-white text-sm rounded-lg border border-white/20 font-medium">
+          {statusText}
+        </div>
+      )}
+      
+      {/* Help toggle button */}
+      <button
+        onClick={() => setShowHelp(!showHelp)}
+        className="absolute top-4 left-4 w-8 h-8 bg-black/80 backdrop-blur-sm text-white rounded-lg border border-white/20 hover:bg-white/10 transition-colors flex items-center justify-center"
+        title="Toggle canvas controls help (H)"
+      >
+        <span className="text-sm font-bold">?</span>
+      </button>
+      
+      {/* Interaction helper */}
+      <InteractionHelper
+        currentMode={interactionState.currentMode}
+        selectedLayerName={selectedLayer?.name}
+        isVisible={showHelp}
       />
     </div>
   );

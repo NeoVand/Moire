@@ -13,7 +13,6 @@ export interface PatternLayer {
   position: Position;
   rotation: number;
   opacity: number;
-  fillMode: 'stroke' | 'fill' | 'both';
   blendMode: 'normal' | 'multiply' | 'screen' | 'overlay' | 'soft-light' | 'hard-light' | 'color-dodge' | 'color-burn' | 'darken' | 'lighten' | 'difference' | 'exclusion';
   locked: boolean;
   
@@ -29,6 +28,8 @@ export interface PatternLayer {
     angle?: number;        // For directional patterns
     count?: number;        // Number of elements (for radial, concentric)
     phase?: number;        // Phase offset (universal)
+    offsetX?: number;      // X offset accumulation for concentric patterns
+    offsetY?: number;      // Y offset accumulation for concentric patterns
   };
 }
 
@@ -186,22 +187,26 @@ export const PATTERN_DEFINITIONS: PatternDefinition[] = [
 
   // CONCENTRIC CATEGORY
   {
-    id: 'concentric-circles',
-    name: 'Circles',
+    id: 'concentric-triangles',
+    name: 'Triangles',
     category: 'concentric',
-    icon: 'circle',
-    description: 'Concentric circular rings',
+    icon: 'triangle',
+    description: 'Concentric triangular rings',
     defaultParameters: {
-      spacing: 20,
+      spacing: 25,
       thickness: 1.5,
-      count: 15,
+      count: 10,
       phase: 0,
+      offsetX: 0,
+      offsetY: 0,
     },
     parameterConfig: {
-      spacing: { label: 'Ring Spacing', min: 1, max: 200, step: 0.5, unit: 'px' },
+      spacing: { label: 'Ring Spacing', min: 1, max: 100, step: 0.5, unit: 'px' },
       thickness: { label: 'Line Width', min: 0.1, max: 20, step: 0.1, unit: 'px' },
-      count: { label: 'Ring Count', min: 2, max: 100, step: 1 },
-      phase: { label: 'Start Radius', min: 0, max: 500, step: 1, unit: 'px' },
+      count: { label: 'Ring Count', min: 2, max: 200, step: 1 },
+      phase: { label: 'Rotation', min: 0, max: 120, step: 1, unit: '°' },
+      offsetX: { label: 'X Offset', min: -20, max: 20, step: 0.1, unit: 'px', description: 'Progressive X displacement per ring' },
+      offsetY: { label: 'Y Offset', min: -20, max: 20, step: 0.1, unit: 'px', description: 'Progressive Y displacement per ring' },
     },
   },
   {
@@ -215,12 +220,62 @@ export const PATTERN_DEFINITIONS: PatternDefinition[] = [
       thickness: 1.5,
       count: 12,
       phase: 0,
+      offsetX: 0,
+      offsetY: 0,
     },
     parameterConfig: {
-      spacing: { label: 'Ring Spacing', min: 1, max: 200, step: 0.5, unit: 'px' },
+      spacing: { label: 'Ring Spacing', min: 1, max: 100, step: 0.5, unit: 'px' },
       thickness: { label: 'Line Width', min: 0.1, max: 20, step: 0.1, unit: 'px' },
-      count: { label: 'Ring Count', min: 2, max: 60, step: 1 },
+      count: { label: 'Ring Count', min: 2, max: 200, step: 1 },
       phase: { label: 'Start Size', min: 0, max: 500, step: 1, unit: 'px' },
+      offsetX: { label: 'X Offset', min: -20, max: 20, step: 0.1, unit: 'px', description: 'Progressive X displacement per ring' },
+      offsetY: { label: 'Y Offset', min: -20, max: 20, step: 0.1, unit: 'px', description: 'Progressive Y displacement per ring' },
+    },
+  },
+  {
+    id: 'concentric-rhombus',
+    name: 'Rhombus',
+    category: 'concentric',
+    icon: 'rhombus',
+    description: 'Concentric rhombus rings with adjustable aspect ratio',
+    defaultParameters: {
+      spacing: 24,
+      thickness: 1.5,
+      count: 10,
+      phase: 1.5,
+      offsetX: 0,
+      offsetY: 0,
+    },
+    parameterConfig: {
+      spacing: { label: 'Ring Spacing', min: 1, max: 100, step: 0.5, unit: 'px' },
+      thickness: { label: 'Line Width', min: 0.1, max: 20, step: 0.1, unit: 'px' },
+      count: { label: 'Ring Count', min: 2, max: 200, step: 1 },
+      phase: { label: 'Aspect Ratio', min: 0.1, max: 10, step: 0.1, description: 'Width to height ratio' },
+      offsetX: { label: 'X Offset', min: -20, max: 20, step: 0.1, unit: 'px', description: 'Progressive X displacement per ring' },
+      offsetY: { label: 'Y Offset', min: -20, max: 20, step: 0.1, unit: 'px', description: 'Progressive Y displacement per ring' },
+    },
+  },
+  {
+    id: 'concentric-pentagons',
+    name: 'Pentagons',
+    category: 'concentric',
+    icon: 'pentagon',
+    description: 'Concentric pentagonal rings',
+    defaultParameters: {
+      spacing: 24,
+      thickness: 1.5,
+      count: 8,
+      phase: 0,
+      offsetX: 0,
+      offsetY: 0,
+    },
+    parameterConfig: {
+      spacing: { label: 'Ring Spacing', min: 1, max: 100, step: 0.5, unit: 'px' },
+      thickness: { label: 'Line Width', min: 0.1, max: 20, step: 0.1, unit: 'px' },
+      count: { label: 'Ring Count', min: 2, max: 200, step: 1 },
+      phase: { label: 'Rotation', min: 0, max: 72, step: 1, unit: '°' },
+      offsetX: { label: 'X Offset', min: -20, max: 20, step: 0.1, unit: 'px', description: 'Progressive X displacement per ring' },
+      offsetY: { label: 'Y Offset', min: -20, max: 20, step: 0.1, unit: 'px', description: 'Progressive Y displacement per ring' },
     },
   },
   {
@@ -234,12 +289,85 @@ export const PATTERN_DEFINITIONS: PatternDefinition[] = [
       thickness: 1.5,
       count: 10,
       phase: 0,
+      offsetX: 0,
+      offsetY: 0,
     },
     parameterConfig: {
-      spacing: { label: 'Ring Spacing', min: 1, max: 200, step: 0.5, unit: 'px' },
+      spacing: { label: 'Ring Spacing', min: 1, max: 100, step: 0.5, unit: 'px' },
       thickness: { label: 'Line Width', min: 0.1, max: 20, step: 0.1, unit: 'px' },
-      count: { label: 'Ring Count', min: 2, max: 50, step: 1 },
+      count: { label: 'Ring Count', min: 2, max: 200, step: 1 },
       phase: { label: 'Rotation', min: 0, max: 60, step: 1, unit: '°' },
+      offsetX: { label: 'X Offset', min: -20, max: 20, step: 0.1, unit: 'px', description: 'Progressive X displacement per ring' },
+      offsetY: { label: 'Y Offset', min: -20, max: 20, step: 0.1, unit: 'px', description: 'Progressive Y displacement per ring' },
+    },
+  },
+  {
+    id: 'concentric-circles',
+    name: 'Circles',
+    category: 'concentric',
+    icon: 'circle',
+    description: 'Concentric circular rings',
+    defaultParameters: {
+      spacing: 20,
+      thickness: 1.5,
+      count: 15,
+      phase: 0,
+      offsetX: 0,
+      offsetY: 0,
+    },
+    parameterConfig: {
+      spacing: { label: 'Ring Spacing', min: 1, max: 100, step: 0.5, unit: 'px' },
+      thickness: { label: 'Line Width', min: 0.1, max: 20, step: 0.1, unit: 'px' },
+      count: { label: 'Ring Count', min: 2, max: 200, step: 1 },
+      phase: { label: 'Start Radius', min: 0, max: 500, step: 1, unit: 'px' },
+      offsetX: { label: 'X Offset', min: -20, max: 20, step: 0.1, unit: 'px', description: 'Progressive X displacement per ring' },
+      offsetY: { label: 'Y Offset', min: -20, max: 20, step: 0.1, unit: 'px', description: 'Progressive Y displacement per ring' },
+    },
+  },
+  {
+    id: 'concentric-ellipses',
+    name: 'Ellipses',
+    category: 'concentric',
+    icon: 'ellipse',
+    description: 'Concentric elliptical rings',
+    defaultParameters: {
+      spacing: 18,
+      thickness: 1.5,
+      count: 12,
+      phase: 1.5,
+      offsetX: 0,
+      offsetY: 0,
+    },
+    parameterConfig: {
+      spacing: { label: 'Ring Spacing', min: 1, max: 100, step: 0.5, unit: 'px' },
+      thickness: { label: 'Line Width', min: 0.1, max: 20, step: 0.1, unit: 'px' },
+      count: { label: 'Ring Count', min: 2, max: 200, step: 1 },
+      phase: { label: 'Aspect Ratio', min: 0.1, max: 10, step: 0.1, description: 'Width to height ratio' },
+      offsetX: { label: 'X Offset', min: -20, max: 20, step: 0.1, unit: 'px', description: 'Progressive X displacement per ring' },
+      offsetY: { label: 'Y Offset', min: -20, max: 20, step: 0.1, unit: 'px', description: 'Progressive Y displacement per ring' },
+    },
+  },
+  {
+    id: 'concentric-stars-5',
+    name: '5-Point Stars',
+    category: 'concentric',
+    icon: 'star5',
+    description: 'Concentric 5-pointed star rings',
+    defaultParameters: {
+      spacing: 22,
+      thickness: 1.5,
+      count: 8,
+      phase: 0,
+      offsetX: 0,
+      offsetY: 0,
+    },
+    parameterConfig: {
+      spacing: { label: 'Ring Spacing', min: 1, max: 100, step: 0.5, unit: 'px' },
+      thickness: { label: 'Line Width', min: 0.1, max: 20, step: 0.1, unit: 'px' },
+      count: { label: 'Ring Count', min: 2, max: 200, step: 1 },
+      phase: { label: 'Rotation', min: 0, max: 72, step: 1, unit: '°' },
+      offsetX: { label: 'X Offset', min: -20, max: 20, step: 0.1, unit: 'px', description: 'Progressive X displacement per ring' },
+      offsetY: { label: 'Y Offset', min: -20, max: 20, step: 0.1, unit: 'px', description: 'Progressive Y displacement per ring' },
     },
   },
 ];
@@ -267,7 +395,6 @@ export function createDefaultProject(): MoireProject {
     position: { x: 0, y: 0 },
     rotation: 0,
     opacity: 1,
-    fillMode: 'stroke',
     blendMode: 'normal',
     locked: false,
     parameters: {
