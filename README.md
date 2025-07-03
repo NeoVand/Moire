@@ -11,9 +11,9 @@ Built with React, TypeScript, and mathematical precision - create stunning inter
 ## ✨ What Makes This Special
 
 🎯 **Mathematically Accurate** - Built on proper Moiré interference theory with beat frequency calculations  
-🎨 **Artistically Powerful** - 17 pattern types from classic lines to complex hexagonal grids  
+🎨 **Artistically Powerful** - 16 pattern types from classic lines to complex hexagonal grids  
 ⚡ **Real-time Interactive** - 60fps rendering with instant parameter updates  
-🖱️ **Intuitive Controls** - Professional UI with trackpad zoom, fine adjustment, and layer management  
+🖱️ **Intuitive Controls** - Professional UI with direct canvas manipulation, trackpad zoom, and layer management  
 🎛️ **Professional Tools** - Dual sidebars, precise sliders, color palettes, and blend modes  
 📐 **High Resolution** - Export-ready patterns up to 8K resolution  
 
@@ -45,13 +45,14 @@ Open `http://localhost:5173` and start creating mesmerizing patterns immediately
 
 ### 2. **Pattern Design** (Right Sidebar)
 - **Choose Category**: Lines, Curves, Grids, or Concentric patterns
-- **Select Pattern**: 17 types from simple lines to complex hexagonal tessellations
-- **Style Mode**: Lines (stroke), Fill (solid), or Both (stripes)
-- **Fine-tune Parameters**: Spacing, thickness, phase, and more
+- **Select Pattern**: 16 types from simple lines to complex hexagonal tessellations
+- **Fine-tune Parameters**: Spacing, thickness, phase, aspect ratios, and progressive offsets
 
 ### 3. **Interactive Canvas**
 - **Zoom**: Use trackpad pinch or mouse wheel - zooms to cursor position
 - **Pan**: Click and drag to move around your pattern
+- **Direct Layer Control**: Option + drag to move selected layer, Option + Shift + drag to rotate
+- **Interactive Help**: Press 'H' to toggle canvas controls help overlay
 - **Real-time Updates**: Watch patterns transform as you adjust parameters
 
 ### 4. **Pro Tips for Amazing Results**
@@ -77,10 +78,11 @@ Flowing, natural-looking interference patterns
 - **Wavy Lines**: Organic flowing patterns with adjustable amplitude
 
 ### **Concentric & Radial**
-Circular patterns creating radial and hyperbolic effects
+Circular patterns creating radial and hyperbolic effects with progressive offsets
 - **Concentric Circles**: Classic target patterns with radial interference
 - **Radial Lines**: Spoke patterns for kaleidoscopic effects
-- **Concentric Squares/Hexagons**: Geometric shape repetition
+- **Concentric Shapes**: Triangles, squares, rhombus, pentagons, hexagons, ellipses, and 5-point stars
+- **Progressive Offsets**: Create spiral and drift effects as patterns move outward
 
 ### **Advanced Scientific**
 Patterns inspired by physics and materials science
@@ -160,12 +162,14 @@ Moiré patterns demonstrate fundamental principles of wave interference:
 ### **Professional Layer System**
 - **Multiple Layers**: Add unlimited pattern layers
 - **Transform Controls**: Precise position, rotation, and opacity
+- **Direct Canvas Manipulation**: Move and rotate layers directly on canvas with modifier keys
 - **Blend Modes**: 12 different blending options for complex effects
 - **Layer Management**: Visibility, locking, duplication, and deletion
 
 ### **Precision Controls**
 - **Fine Adjustment**: Alt+drag for 10x finer control
 - **Decimal Values**: Precise parameter control with decimal stepping
+- **Extended Ranges**: Ring counts up to 200, aspect ratios from 0.1-10
 - **Reset Options**: Individual and bulk reset functionality
 - **Real-time Preview**: Instant feedback for all parameter changes
 
@@ -185,12 +189,15 @@ Moiré patterns demonstrate fundamental principles of wave interference:
 
 ## 🎮 Keyboard Shortcuts & Gestures
 
-### **Mouse & Trackpad**
+### **Canvas Interactions**
 - **Zoom**: Mouse wheel or trackpad pinch → zooms to cursor position
 - **Pan**: Click and drag → move around the canvas
-- **Fine Control**: Hold `Alt/Option` + drag sliders → 10x precision
+- **Move Layer**: `Option + Drag` → move selected layer position
+- **Rotate Layer**: `Option + Shift + Drag` → rotate selected layer (up = CCW, down = CW)
 
-### **Keyboard**
+### **Interface Controls**
+- **Fine Control**: Hold `Alt/Option` + drag sliders → 10x precision
+- **Help Toggle**: Press `H` → show/hide canvas controls help
 - **Tab Navigation**: Navigate through all controls
 - **Enter/Space**: Activate buttons and controls
 - **Arrow Keys**: Fine-tune slider values when focused
