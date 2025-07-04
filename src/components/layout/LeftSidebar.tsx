@@ -220,7 +220,7 @@ export function LeftSidebar() {
 
   return (
     <aside 
-      className="bg-[var(--bg-secondary)]/80 backdrop-blur-xl border-r border-[var(--border)] flex flex-col relative h-full w-full overflow-hidden"
+      className="bg-[var(--bg-secondary)]/80 backdrop-blur-md border-r border-[var(--border)] flex flex-col relative h-full w-full overflow-hidden"
       style={{ width: `${width}px` }}
     >
       {/* Gradient background overlay */}

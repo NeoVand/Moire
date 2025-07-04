@@ -457,18 +457,18 @@ export function createDefaultProject(): MoireProject {
     type: 'concentric-circles',
     visible: true,
     color: '#000000',
-    position: { x: -2.1, y: 20 },
-    rotation: 14,
+    position: { x: -10, y: 20 },
+    rotation: 50.0,
     opacity: 1,
     blendMode: 'normal',
     locked: false,
     parameters: {
-      spacing: 7.0,
-      thickness: 4.0,
-      count: 100,
+      spacing: 6.0,
+      thickness: 3.5,
+      count: 160,
       phase: 0,
       offsetX: 0,
-      offsetY: -0.6,
+      offsetY: -0.5,
     },
   };
 
@@ -479,18 +479,18 @@ export function createDefaultProject(): MoireProject {
     type: 'concentric-circles',
     visible: true,
     color: '#000000',
-    position: { x: 1.4, y: -20 },
-    rotation: 6.3,
+    position: { x: 10, y: -20 },
+    rotation: -5.8,
     opacity: 1,
     blendMode: 'normal',
     locked: false,
     parameters: {
-      spacing: 7.0,
-      thickness: 4.0,
-      count: 100,
+      spacing: 6.0,
+      thickness: 3.5,
+      count: 160,
       phase: 0,
       offsetX: 0,
-      offsetY: 0.6,
+      offsetY: 0.5,
     },
   };
 
@@ -502,7 +502,7 @@ export function createDefaultProject(): MoireProject {
     canvas: {
       zoom: 1,
       pan: { x: 0, y: 0 },
-      backgroundColor: '#F8B23A',
+      backgroundColor: '#66ccff',
     },
   };
 } 

@@ -132,11 +132,11 @@ export function RightSidebar() {
   };
 
   if (!selectedLayer) {
-    return (
-      <aside 
-        className="bg-[var(--bg-secondary)]/80 backdrop-blur-xl border-l border-[var(--border)] flex flex-col items-center justify-center h-full relative"
-        style={{ width: `${width}px` }}
-      >
+      return (
+    <aside 
+      className="bg-[var(--bg-secondary)]/80 backdrop-blur-md border-l border-[var(--border)] flex flex-col items-center justify-center h-full relative"
+      style={{ width: `${width}px` }}
+    >
         {/* Resize Handle */}
         <div
           className="absolute top-0 left-0 w-1 h-full cursor-col-resize hover:bg-gradient-to-b hover:from-[var(--gradient-start)] hover:to-[var(--gradient-end)] opacity-0 hover:opacity-80 transition-all duration-200"
@@ -204,7 +204,7 @@ export function RightSidebar() {
 
   return (
     <aside 
-      className="bg-[var(--bg-secondary)]/80 backdrop-blur-xl border-l border-[var(--border)] flex flex-col relative h-full w-full overflow-hidden"
+      className="bg-[var(--bg-secondary)]/80 backdrop-blur-md border-l border-[var(--border)] flex flex-col relative h-full w-full overflow-hidden"
       style={{ width: `${width}px` }}
     >
       {/* Gradient background overlay */}

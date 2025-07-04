@@ -18,7 +18,7 @@ export function AppLayout() {
         </div>
 
         {/* Header - positioned absolutely on top with backdrop blur */}
-        <div className="absolute top-0 left-0 right-0 z-30 bg-[var(--bg-secondary)]/80 backdrop-blur-xl border-b border-[var(--border)] flex-shrink-0">
+        <div className="absolute top-0 left-0 right-0 z-30 bg-[var(--bg-secondary)]/80 backdrop-blur-md border-b border-[var(--border)] flex-shrink-0">
           <Header onHelpClick={() => setIsHelpModalOpen(true)} />
         </div>
 
