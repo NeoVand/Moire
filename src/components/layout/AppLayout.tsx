@@ -17,7 +17,7 @@ export function AppLayout() {
 
           <div className="flex flex-1 min-h-0">
             {/* Left Sidebar */}
-            <div className="backdrop-blur-md bg-[var(--bg-secondary)]/85 border-r border-[var(--border)]/50">
+            <div className="backdrop-blur-md bg-[var(--bg-secondary)]/85 border-r border-[var(--border)]/50 h-full">
               <LeftSidebar />
             </div>
 
@@ -25,7 +25,7 @@ export function AppLayout() {
             <CanvasArea />
 
             {/* Right Sidebar */}
-            <div className="backdrop-blur-md bg-[var(--bg-secondary)]/85 border-l border-[var(--border)]/50">
+            <div className="backdrop-blur-md bg-[var(--bg-secondary)]/85 border-l border-[var(--border)]/50 h-full">
               <RightSidebar />
             </div>
           </div>

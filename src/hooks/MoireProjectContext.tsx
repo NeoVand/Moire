@@ -12,6 +12,7 @@ interface MoireProjectContextType {
   toggleLayerLock: (layerId: string) => void;
   addLayer: (patternType?: string) => void;
   removeLayer: (layerId: string) => void;
+  reorderLayers: (fromIndex: number, toIndex: number) => void;
   setProject: React.Dispatch<React.SetStateAction<MoireProject>>;
   setZoom: (zoom: number) => void;
   zoomIn: () => void;

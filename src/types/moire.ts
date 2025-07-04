@@ -450,29 +450,54 @@ export interface MoireProject {
 }
 
 export function createDefaultProject(): MoireProject {
-  const defaultLayer: PatternLayer = {
+  const layer1: PatternLayer = {
     id: '1',
     name: 'Layer 1',
-    category: 'lines',
-    type: 'straight-lines',
+    category: 'concentric',
+    type: 'concentric-circles',
     visible: true,
     color: '#000000',
-    position: { x: 0, y: 0 },
-    rotation: 0,
+    position: { x: -2.1, y: 20 },
+    rotation: 14,
     opacity: 1,
     blendMode: 'normal',
     locked: false,
     parameters: {
-      spacing: 20,
-      thickness: 1,
+      spacing: 7.0,
+      thickness: 4.0,
+      count: 100,
       phase: 0,
+      offsetX: 0,
+      offsetY: -0.6,
+    },
+  };
+
+  const layer2: PatternLayer = {
+    id: '2',
+    name: 'Layer 2',
+    category: 'concentric',
+    type: 'concentric-circles',
+    visible: true,
+    color: '#000000',
+    position: { x: 1.4, y: -20 },
+    rotation: 6.3,
+    opacity: 1,
+    blendMode: 'normal',
+    locked: false,
+    parameters: {
+      spacing: 7.0,
+      thickness: 4.0,
+      count: 100,
+      phase: 0,
+      offsetX: 0,
+      offsetY: 0.6,
     },
   };
 
   return {
     id: 'default',
     name: 'Untitled Project',
-    layers: [defaultLayer],
+    layers: [layer1, layer2],
     selectedLayerId: '1',
     canvas: {
       zoom: 1,

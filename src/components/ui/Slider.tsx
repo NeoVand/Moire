@@ -128,7 +128,7 @@ export function Slider({
   const showReset = defaultValue !== undefined && onReset && value !== defaultValue;
 
   return (
-    <div className={compact ? "space-y-1" : "space-y-2"}>
+    <div className={compact ? "space-y-2" : "space-y-3"}>
       {/* Label and Value */}
       <div className="flex justify-between items-center">
         <label className={`font-medium text-[var(--text-primary)] flex items-center gap-1.5 ${compact ? 'text-xs' : 'text-sm'}`}>

@@ -717,8 +717,8 @@ export function MoireCanvas({ layers, zoom, pan, backgroundColor, onZoomChange, 
     const maxDimension = Math.max(canvasSize.width, canvasSize.height);
     const bounds = (maxDimension / zoom) * 0.8; // Render beyond visible area
 
-    // Render all visible layers
-    layers.forEach(layer => {
+    // Render all visible layers in reverse order (first in list = top layer = rendered last)
+    [...layers].reverse().forEach(layer => {
       if (layer.visible) {
         drawPattern(ctx, layer, bounds);
       }

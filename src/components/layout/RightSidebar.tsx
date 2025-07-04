@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Settings, ChevronLeft, ChevronRight, Minus, Star, Grid3x3 } from 'lucide-react';
 import { Slider, ColorPicker } from '../ui';
 import { useMoireProjectContext } from '../../hooks/MoireProjectContext';
@@ -72,6 +72,13 @@ export function RightSidebar() {
     selectedLayer,
     updateSelectedLayer,
   } = useMoireProjectContext();
+
+  // Sync activeCategory with selectedLayer's category
+  useEffect(() => {
+    if (selectedLayer) {
+      setActiveCategory(selectedLayer.category);
+    }
+  }, [selectedLayer?.category, selectedLayer?.id]);
 
   const handlePatternTypeChange = (patternId: string) => {
     const patternDef = PATTERN_DEFINITIONS.find(p => p.id === patternId);
@@ -283,7 +290,7 @@ export function RightSidebar() {
           {/* Content */}
           <div className="flex-1 overflow-y-auto min-h-0 max-h-full">
             {/* Category Tabs */}
-            <div className="p-3 border-b border-[var(--border)]">
+            <div className="p-4 border-b border-[var(--border)]">
               <h3 className="text-xs font-medium text-[var(--text-primary)] mb-2 uppercase tracking-wide">
                 Category
               </h3>
@@ -310,7 +317,7 @@ export function RightSidebar() {
             </div>
 
             {/* Pattern Selection */}
-            <div className="p-3 border-b border-[var(--border)]">
+            <div className="p-4 border-b border-[var(--border)]">
               <h3 className="text-xs font-medium text-[var(--text-primary)] mb-2 uppercase tracking-wide">
                 Pattern Type
               </h3>
@@ -339,7 +346,7 @@ export function RightSidebar() {
 
 
             {/* Color Section */}
-            <div className="p-3 border-b border-[var(--border)]">
+            <div className="p-4 border-b border-[var(--border)]">
               <h3 className="text-xs font-medium text-[var(--text-primary)] mb-2 uppercase tracking-wide">
                 Stroke Color
               </h3>
@@ -353,7 +360,7 @@ export function RightSidebar() {
 
             {/* Fill Color Section - Only for tiles */}
             {selectedLayer.category === 'tiles' && (
-              <div className="p-3 border-b border-[var(--border)]">
+              <div className="p-4 border-b border-[var(--border)]">
                 <h3 className="text-xs font-medium text-[var(--text-primary)] mb-2 uppercase tracking-wide">
                   Fill Color
                 </h3>
@@ -367,7 +374,7 @@ export function RightSidebar() {
             )}
 
             {/* Dynamic Parameters Section */}
-            <div className="p-3">
+            <div className="p-4">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-xs font-medium text-[var(--text-primary)] uppercase tracking-wide">
                   Parameters
@@ -388,7 +395,7 @@ export function RightSidebar() {
                 </button>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {selectedLayer.type && (() => {
                   const patternDef = PATTERN_DEFINITIONS.find(p => p.id === selectedLayer.type);
                   if (!patternDef) return null;

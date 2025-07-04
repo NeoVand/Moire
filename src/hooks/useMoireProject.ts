@@ -101,6 +101,19 @@ export function useMoireProject() {
     });
   }, []);
 
+  const reorderLayers = useCallback((fromIndex: number, toIndex: number) => {
+    setProject(prev => {
+      const newLayers = [...prev.layers];
+      const [movedLayer] = newLayers.splice(fromIndex, 1);
+      newLayers.splice(toIndex, 0, movedLayer);
+      
+      return {
+        ...prev,
+        layers: newLayers,
+      };
+    });
+  }, []);
+
   // Zoom functions
   const setZoom = useCallback((zoom: number) => {
     const clampedZoom = Math.max(0.1, Math.min(5, zoom)); // Clamp between 10% and 500%
@@ -181,6 +194,7 @@ export function useMoireProject() {
     toggleLayerLock,
     addLayer,
     removeLayer,
+    reorderLayers,
     setProject,
     setZoom,
     zoomIn,

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Layers, Eye, EyeOff, Plus, Trash2, ChevronLeft, ChevronRight, ArrowUpDown, ArrowLeftRight, RotateCw, Gauge, Copy, Blend } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Layers, Eye, EyeOff, Plus, Trash2, ChevronLeft, ChevronRight, ArrowUpDown, ArrowLeftRight, RotateCw, Gauge, Copy, Blend, GripVertical } from 'lucide-react';
 import { Slider } from '../ui';
 import { useMoireProjectContext } from '../../hooks/MoireProjectContext';
 import { PATTERN_DEFINITIONS } from '../../types/moire';
@@ -23,6 +23,20 @@ const BLEND_MODES: { value: PatternLayer['blendMode']; label: string }[] = [
 export function LeftSidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [width, setWidth] = useState(260);
+  const [dragState, setDragState] = useState<{
+    isDragging: boolean;
+    draggedIndex: number | null;
+    draggedOverIndex: number | null;
+  }>({
+    isDragging: false,
+    draggedIndex: null,
+    draggedOverIndex: null,
+  });
+
+  // Use ref to track current drag state for event handlers
+  const dragStateRef = useRef(dragState);
+  dragStateRef.current = dragState;
+
   const {
     project,
     selectedLayer,
@@ -31,6 +45,7 @@ export function LeftSidebar() {
     toggleLayerVisibility,
     addLayer,
     removeLayer,
+    reorderLayers,
     setProject,
   } = useMoireProjectContext();
 
@@ -94,9 +109,61 @@ export function LeftSidebar() {
     return patternDef?.name || layer.type;
   };
 
+  // Drag and drop handlers
+  const handleDragStart = (e: React.MouseEvent, index: number) => {
+    e.preventDefault();
+    
+    setDragState({
+      isDragging: true,
+      draggedIndex: index,
+      draggedOverIndex: index,
+    });
+
+    // Add global mouse event listeners
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      // Find the element under the mouse
+      const elementBelow = document.elementFromPoint(e.clientX, e.clientY);
+      const layerCard = elementBelow?.closest('[data-layer-index]');
+      
+      if (layerCard) {
+        const targetIndex = parseInt(layerCard.getAttribute('data-layer-index') || '0');
+        setDragState(prev => ({
+          ...prev,
+          draggedOverIndex: targetIndex,
+        }));
+      }
+    };
+
+    const handleGlobalMouseUp = () => {
+      const currentDragState = dragStateRef.current;
+      
+      if (currentDragState.draggedIndex !== null && 
+          currentDragState.draggedOverIndex !== null && 
+          currentDragState.draggedIndex !== currentDragState.draggedOverIndex) {
+        reorderLayers(currentDragState.draggedIndex, currentDragState.draggedOverIndex);
+      }
+      
+      setDragState({
+        isDragging: false,
+        draggedIndex: null,
+        draggedOverIndex: null,
+      });
+
+      document.removeEventListener('mousemove', handleGlobalMouseMove);
+      document.removeEventListener('mouseup', handleGlobalMouseUp);
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
+    };
+
+    document.addEventListener('mousemove', handleGlobalMouseMove);
+    document.addEventListener('mouseup', handleGlobalMouseUp);
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'grabbing';
+  };
+
   return (
     <aside 
-      className="bg-transparent border-r border-[var(--border)]/50 flex flex-col relative"
+      className="bg-transparent border-r border-[var(--border)]/50 flex flex-col relative h-full"
       style={{ width: isCollapsed ? '48px' : `${width}px` }}
     >
       {/* Resize Handle */}
@@ -170,76 +237,122 @@ export function LeftSidebar() {
           </div>
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto min-h-0">
+          <div className="flex-1 overflow-y-auto h-0">
             {/* Layers List */}
-            <div className="p-4">
-              <div className="space-y-3">
-                {project.layers.map(layer => (
-                  <div
-                    key={layer.id}
-                    className={`p-3 rounded-lg border cursor-pointer transition-all duration-200 ${
-                      project.selectedLayerId === layer.id
-                        ? 'bg-[var(--accent-primary)]/10 border-[var(--accent-primary)] shadow-sm ring-1 ring-[var(--accent-primary)]/20'
-                        : 'bg-[var(--bg-tertiary)] border-[var(--border)] hover:border-[var(--accent-primary)]/50 hover:shadow-sm'
-                    }`}
-                    onClick={() => selectLayer(layer.id)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1 min-w-0 mr-3">
-                        <div className="text-sm font-medium text-[var(--text-primary)] mb-1 truncate">
-                          {layer.name}
+            <div className="p-4 border-b border-[var(--border)]">
+              <div className="space-y-2">
+                {project.layers.map((layer, index) => {
+                  const isDragged = dragState.draggedIndex === index;
+                  const showInsertionLine = dragState.isDragging && 
+                    dragState.draggedIndex !== null && 
+                    dragState.draggedOverIndex !== null &&
+                    dragState.draggedIndex !== index;
+                  
+                  // Calculate if we should show insertion line above this item
+                  const showLineAbove = showInsertionLine && (
+                    (dragState.draggedIndex! > dragState.draggedOverIndex! && index === dragState.draggedOverIndex) ||
+                    (dragState.draggedIndex! < dragState.draggedOverIndex! && index === dragState.draggedOverIndex! + 1)
+                  );
+                  
+                  return (
+                    <React.Fragment key={layer.id}>
+                      {/* Single elegant insertion line */}
+                      {showLineAbove && (
+                        <div className="relative py-1">
+                          <div className="h-0.5 bg-gradient-to-r from-transparent via-[var(--accent-primary)] to-transparent rounded-full opacity-80">
+                            <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-[var(--accent-primary)] rounded-full shadow-sm"></div>
+                          </div>
                         </div>
-                        <div className="text-xs text-[var(--text-secondary)] truncate">
-                          {getPatternDisplayName(layer)}
+                      )}
+                      
+                      <div
+                        data-layer-index={index}
+                        className={`relative flex items-center p-2 rounded border cursor-pointer transition-all duration-200 ${
+                          project.selectedLayerId === layer.id
+                            ? 'bg-[var(--accent-primary)]/10 border-[var(--accent-primary)] shadow-sm ring-1 ring-[var(--accent-primary)]/20'
+                            : 'bg-[var(--bg-tertiary)] border-[var(--border)] hover:border-[var(--accent-primary)]/50 hover:shadow-sm'
+                        } ${isDragged ? 'opacity-50 rotate-1 scale-105 z-10' : ''}`}
+                        onClick={() => selectLayer(layer.id)}
+                      >
+                        {/* Drag Handle */}
+                        <div
+                          className="flex items-center justify-center w-4 h-6 mr-2 cursor-grab hover:bg-[var(--accent-primary)]/20 rounded transition-colors group"
+                          onMouseDown={(e) => handleDragStart(e, index)}
+                          title="Drag to reorder"
+                        >
+                          <GripVertical className="w-3 h-3 text-[var(--text-secondary)] group-hover:text-[var(--accent-primary)] transition-colors" />
+                        </div>
+
+                        <div className="flex items-center justify-between flex-1">
+                          <div className="flex-1 min-w-0 mr-2">
+                            <div className="text-xs font-medium text-[var(--text-primary)] mb-0.5 truncate">
+                              {layer.name}
+                            </div>
+                            <div className="text-xs text-[var(--text-secondary)] truncate opacity-75">
+                              {getPatternDisplayName(layer)}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-0.5">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleLayerVisibility(layer.id);
+                              }}
+                              className="w-6 h-6 hover:bg-[var(--bg-primary)] rounded transition-colors flex items-center justify-center"
+                              title={layer.visible ? "Hide layer" : "Show layer"}
+                            >
+                              {layer.visible ? (
+                                <Eye className="w-3 h-3 text-[var(--text-secondary)]" />
+                              ) : (
+                                <EyeOff className="w-3 h-3 text-[var(--text-secondary)]" />
+                              )}
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                duplicateLayer(layer.id);
+                              }}
+                              className="w-6 h-6 hover:bg-[var(--bg-primary)] rounded transition-colors flex items-center justify-center"
+                              title="Duplicate layer"
+                            >
+                              <Copy className="w-3 h-3 text-[var(--text-secondary)]" />
+                            </button>
+                            {project.layers.length > 1 && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeLayer(layer.id);
+                                }}
+                                className="w-6 h-6 hover:bg-red-500/10 hover:text-red-500 rounded transition-colors flex items-center justify-center"
+                                title="Delete layer"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleLayerVisibility(layer.id);
-                          }}
-                          className="w-7 h-7 hover:bg-[var(--bg-primary)] rounded-md transition-colors flex items-center justify-center"
-                          title={layer.visible ? "Hide layer" : "Show layer"}
-                        >
-                          {layer.visible ? (
-                            <Eye className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
-                          ) : (
-                            <EyeOff className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
-                          )}
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            duplicateLayer(layer.id);
-                          }}
-                          className="w-7 h-7 hover:bg-[var(--bg-primary)] rounded-md transition-colors flex items-center justify-center"
-                          title="Duplicate layer"
-                        >
-                          <Copy className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
-                        </button>
-                        {project.layers.length > 1 && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              removeLayer(layer.id);
-                            }}
-                            className="w-7 h-7 hover:bg-red-500/10 hover:text-red-500 rounded-md transition-colors flex items-center justify-center"
-                            title="Delete layer"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                      </div>
+                    </React.Fragment>
+                  );
+                })}
+                
+                {/* Insertion line at the very bottom */}
+                {dragState.isDragging && 
+                 dragState.draggedIndex !== null && 
+                 dragState.draggedOverIndex === project.layers.length - 1 &&
+                 dragState.draggedIndex < project.layers.length - 1 && (
+                  <div className="relative py-1">
+                    <div className="h-0.5 bg-gradient-to-r from-transparent via-[var(--accent-primary)] to-transparent rounded-full opacity-80">
+                      <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-[var(--accent-primary)] rounded-full shadow-sm"></div>
                     </div>
                   </div>
-                ))}
+                )}
+                </div>
               </div>
-            </div>
 
             {/* Transform Controls */}
             {selectedLayer && (
-              <div className="border-t border-[var(--border)] p-4">
+              <div className="p-4">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-semibold text-[var(--text-primary)] uppercase tracking-wide">
                     Transform
@@ -259,10 +372,10 @@ export function LeftSidebar() {
                   </button>
                 </div>
 
-                <div className="space-y-4">
-                  <div className="space-y-3">
+                <div className="space-y-6">
+                  <div className="space-y-4">
                     <h4 className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Position</h4>
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       <Slider
                         label="X"
                         value={selectedLayer.position.x}
@@ -301,9 +414,9 @@ export function LeftSidebar() {
                     </div>
                   </div>
 
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     <h4 className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Rotation & Opacity</h4>
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       <Slider
                         label="Rotation"
                         value={selectedLayer.rotation}
@@ -334,7 +447,7 @@ export function LeftSidebar() {
                   </div>
                   
                   {/* Blend Mode Dropdown */}
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     <h4 className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Blending</h4>
                     <div className="space-y-2">
                       <label className="text-xs font-medium text-[var(--text-primary)] flex items-center gap-2">
