@@ -1,10 +1,10 @@
-# 🌊 Moiré Pattern Generator
+# 🌊 Moiré Lab
 
 **A sophisticated, interactive Moiré pattern generator that transforms mathematical interference into mesmerizing visual art.**
 
 Built with React, TypeScript, and mathematical precision - create stunning interference patterns with professional-grade tools and real-time interaction.
 
-![Moiré Pattern Generator](./public/screenshot.png)
+![Moiré Lab](./public/screenshot.png)
 
 ---
 

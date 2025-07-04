@@ -65,7 +65,7 @@ export function Header({ onHelpClick }: HeaderProps) {
             </div>
             <div className="absolute inset-0 bg-gradient-to-br from-[var(--gradient-start)] to-[var(--gradient-end)] rounded-lg opacity-0 group-hover:opacity-20 transition-opacity duration-300 blur-lg" />
           </div>
-          <h1 className="text-sm font-bold gradient-text">Moiré</h1>
+          <h1 className="text-sm font-bold gradient-text">Moiré Lab</h1>
         </div>
         
         <div className="w-px h-3 bg-gradient-to-b from-[var(--gradient-start)] to-[var(--gradient-end)] opacity-30" />
