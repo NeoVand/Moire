@@ -7,7 +7,7 @@ export function CanvasArea() {
   const { project, setZoom, setPan } = useMoireProjectContext();
 
   return (
-    <div ref={containerRef} className="flex-1 min-w-0 relative">
+    <div ref={containerRef} className="absolute inset-0 w-full h-full">
       <MoireCanvas 
         layers={project.layers}
         zoom={project.canvas.zoom}
