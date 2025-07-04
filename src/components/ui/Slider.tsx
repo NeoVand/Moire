@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 interface SliderProps {
   label: string;
@@ -9,7 +9,7 @@ interface SliderProps {
   unit?: string;
   onChange: (value: number) => void;
   compact?: boolean;
-  icon?: () => React.ReactElement;
+  icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   defaultValue?: number;
   onReset?: () => void;
 }
@@ -27,180 +27,343 @@ export function Slider({
   defaultValue,
   onReset
 }: SliderProps) {
-  const [isDragging, setIsDragging] = useState(false);
   const [isAltPressed, setIsAltPressed] = useState(false);
-  const [dragStart, setDragStart] = useState<{ x: number; value: number } | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [lastMouseX, setLastMouseX] = useState<number | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingValue, setEditingValue] = useState('');
   const sliderRef = useRef<HTMLDivElement>(null);
+  
+  // Calculate the percentage for the gradient fill
+  const percentage = ((value - min) / (max - min)) * 100;
 
-  // Listen for Alt key press/release globally
+  // Keyboard event handlers
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.altKey !== isAltPressed) {
-        setIsAltPressed(e.altKey);
+      if (e.altKey && !isAltPressed) {
+        setIsAltPressed(true);
       }
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.altKey !== isAltPressed) {
-        setIsAltPressed(e.altKey);
+      if (!e.altKey && isAltPressed) {
+        setIsAltPressed(false);
       }
-    };
-
-    const handleBlur = () => {
-      setIsAltPressed(false);
     };
 
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
-    window.addEventListener('blur', handleBlur);
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
-      window.removeEventListener('blur', handleBlur);
     };
   }, [isAltPressed]);
 
+  // Custom drag handling for smooth fine control with incremental movement
   const updateValue = useCallback((clientX: number) => {
-    if (!sliderRef.current || !dragStart) return;
+    if (!sliderRef.current || lastMouseX === null) return;
 
     const rect = sliderRef.current.getBoundingClientRect();
     
-    // Calculate the mouse movement delta from drag start
-    const mouseDelta = clientX - dragStart.x;
+    // Calculate the incremental mouse movement since last update
+    const deltaX = clientX - lastMouseX;
     
-    // Apply sensitivity: when Alt is pressed, movement is 10x less sensitive
-    const sensitivity = isAltPressed ? 0.1 : 1.0;
-    const adjustedDelta = mouseDelta * sensitivity;
+    // Apply sensitivity: when Alt is pressed, movement is 20x less sensitive
+    const sensitivity = isAltPressed ? 0.05 : 1.0;
+    const adjustedDelta = deltaX * sensitivity;
     
     // Convert mouse delta to value delta based on slider width and range
     const valueDelta = (adjustedDelta / rect.width) * (max - min);
-    const newValue = dragStart.value + valueDelta;
     
-    // Apply stepping
-    const effectiveStep = isAltPressed ? step / 10 : step;
-    const steppedValue = Math.round(newValue / effectiveStep) * effectiveStep;
-    const clampedValue = Math.max(min, Math.min(max, steppedValue));
+    // Calculate new value
+    const newValue = value + valueDelta;
     
-    onChange(clampedValue);
-  }, [min, max, step, onChange, isAltPressed, dragStart]);
+    // Apply stepping based on whether Alt is pressed
+    let finalValue: number;
+    if (isAltPressed) {
+      // For fine control, use much smaller steps
+      const fineStep = step * 0.01; // Even finer than before
+      finalValue = Math.round(newValue / fineStep) * fineStep;
+    } else {
+      // Normal stepping
+      finalValue = Math.round(newValue / step) * step;
+    }
+    
+    // Clamp to bounds
+    const clampedValue = Math.max(min, Math.min(max, finalValue));
+    
+    // Only update if the value actually changed
+    if (Math.abs(clampedValue - value) > Number.EPSILON) {
+      onChange(clampedValue);
+    }
+    
+    // Update last mouse position for next incremental calculation
+    setLastMouseX(clientX);
+  }, [min, max, step, onChange, isAltPressed, lastMouseX, value]);
 
+  // Handle mouse down to start custom dragging
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    setIsDragging(true);
-    setDragStart({ x: e.clientX, value: value });
-    
-    // Prevent text selection during drag
-    document.body.style.userSelect = 'none';
-    document.body.style.cursor = 'ew-resize';
-  }, [value]);
+    if (!isEditing) {
+      e.preventDefault();
+      setIsDragging(true);
+      setLastMouseX(e.clientX);
+      
+      // Prevent text selection during drag
+      document.body.style.userSelect = 'none';
+      document.body.style.cursor = 'ew-resize';
+    }
+  }, [isEditing]);
 
   // Global mouse move and up handlers for better drag experience
   useEffect(() => {
     const handleGlobalMouseMove = (e: MouseEvent) => {
-      if (isDragging && dragStart) {
+      if (isDragging && lastMouseX !== null) {
+        e.preventDefault();
         updateValue(e.clientX);
       }
     };
 
-    const handleGlobalMouseUp = () => {
+    const handleGlobalMouseUp = (e: MouseEvent) => {
+      e.preventDefault();
       setIsDragging(false);
-      setDragStart(null);
+      setLastMouseX(null);
       
-      // Restore text selection (important for global mouse up)
+      // Restore text selection
       document.body.style.userSelect = '';
       document.body.style.cursor = '';
     };
 
     if (isDragging) {
-      document.addEventListener('mousemove', handleGlobalMouseMove);
-      document.addEventListener('mouseup', handleGlobalMouseUp);
+      document.addEventListener('mousemove', handleGlobalMouseMove, { passive: false });
+      document.addEventListener('mouseup', handleGlobalMouseUp, { passive: false });
     }
 
     return () => {
       document.removeEventListener('mousemove', handleGlobalMouseMove);
       document.removeEventListener('mouseup', handleGlobalMouseUp);
     };
-  }, [isDragging, updateValue, dragStart]);
+  }, [isDragging, updateValue, lastMouseX]);
 
-  const percentage = ((value - min) / (max - min)) * 100;
+  // Fallback range input change handler for direct clicks on the hidden input
+  const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!isDragging) { // Only use fallback when not dragging
+      const newValue = parseFloat(e.target.value);
+      if (!isNaN(newValue)) {
+        onChange(newValue);
+      }
+    }
+  };
 
-  // Show reset button if we have a default value and current value differs
-  const showReset = defaultValue !== undefined && onReset && value !== defaultValue;
+  // Value editing handlers
+  const handleValueClick = useCallback(() => {
+    if (!isDragging) {
+      setIsEditing(true);
+      setEditingValue(value.toString());
+    }
+  }, [value, isDragging]);
+
+  const handleValueDoubleClick = useCallback(() => {
+    if (!isDragging) {
+      setIsEditing(true);
+      setEditingValue(value.toString());
+      // Select all text after a short delay
+      setTimeout(() => {
+        const input = document.querySelector('input[data-editing-value="true"]') as HTMLInputElement;
+        if (input) {
+          input.select();
+        }
+      }, 0);
+    }
+  }, [value, isDragging]);
+
+  const validateValue = useCallback((inputValue: string): number | null => {
+    const trimmed = inputValue.trim();
+    if (trimmed === '') return null;
+
+    const parsed = parseFloat(trimmed);
+    if (isNaN(parsed)) return null;
+
+    // Determine validation type based on slider properties
+    const isIntegerSlider = step >= 1 && Number.isInteger(step);
+    const isPositiveOnly = min >= 0;
+
+    // Apply type-specific validation
+    if (isIntegerSlider && !Number.isInteger(parsed)) {
+      return null; // Must be integer
+    }
+    
+    if (isPositiveOnly && parsed < 0) {
+      return null; // Must be positive
+    }
+
+    // Clamp to bounds
+    const clampedValue = Math.max(min, Math.min(max, parsed));
+    
+    // Apply stepping
+    const steppedValue = Math.round(clampedValue / step) * step;
+    
+    return steppedValue;
+  }, [min, max, step]);
+
+  const handleValueSubmit = useCallback(() => {
+    const validatedValue = validateValue(editingValue);
+    if (validatedValue !== null) {
+      onChange(validatedValue);
+    }
+    setIsEditing(false);
+    setEditingValue('');
+  }, [editingValue, validateValue, onChange]);
+
+  const handleValueCancel = useCallback(() => {
+    setIsEditing(false);
+    setEditingValue('');
+  }, []);
+
+  // Global click handler to exit edit mode
+  useEffect(() => {
+    const handleGlobalClick = (e: MouseEvent) => {
+      if (isEditing) {
+        const target = e.target as Element;
+        // Check if click is outside the input
+        if (!target.closest('[data-editing-value="true"]')) {
+          handleValueSubmit();
+        }
+      }
+    };
+
+    if (isEditing) {
+      document.addEventListener('mousedown', handleGlobalClick);
+      return () => document.removeEventListener('mousedown', handleGlobalClick);
+    }
+  }, [isEditing, handleValueSubmit]);
+
+  // Show reset button if value differs from default
+  const showReset = defaultValue !== undefined && onReset && Math.abs(value - defaultValue) > step * 0.1;
 
   return (
     <div className={compact ? "space-y-2" : "space-y-3"}>
       {/* Label and Value */}
       <div className="flex justify-between items-center">
         <label className={`font-medium text-[var(--text-primary)] flex items-center gap-1.5 ${compact ? 'text-xs' : 'text-sm'}`}>
-          {Icon && <Icon />}
+          {Icon && <Icon className="text-[var(--gradient-end)]" />}
           {label}
-          {isAltPressed && <span className="text-[var(--accent-primary)] text-xs">(Fine)</span>}
           {showReset && (
             <button
               onClick={onReset}
-              className="ml-1 px-1 py-0.5 text-xs bg-[var(--bg-tertiary)] hover:bg-[var(--accent-primary)] hover:text-white rounded transition-colors"
+              className="ml-1 px-1.5 py-0.5 text-xs bg-[var(--bg-tertiary)]/50 hover:bg-[var(--bg-tertiary)]/80 text-[var(--text-secondary)] hover:text-[var(--gradient-end)] rounded transition-all duration-200 border border-[var(--border)]/50 opacity-60 hover:opacity-100"
               title={`Reset to ${defaultValue}${unit}`}
             >
               ↺
             </button>
           )}
         </label>
-        <span className={`font-mono text-[var(--text-secondary)] ${
-          compact ? "text-xs" : "text-sm"
-        }`}>
-          {typeof value === 'number' ? value.toFixed(step < 0.1 ? 2 : step < 1 ? 1 : 0) : value}{unit}
-        </span>
+        <div className={`font-mono text-[var(--text-secondary)] ${compact ? "text-xs" : "text-sm"}`}>
+          {isEditing ? (
+            <div className="flex items-center">
+              <input
+                type="text"
+                value={editingValue}
+                onChange={(e) => setEditingValue(e.target.value)}
+                onBlur={handleValueSubmit}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleValueSubmit();
+                  } else if (e.key === 'Escape') {
+                    handleValueCancel();
+                  }
+                }}
+                className="bg-transparent border-none outline-none text-right"
+                style={{ 
+                  padding: '0',
+                  margin: '0',
+                  lineHeight: 'inherit',
+                  fontFamily: 'inherit',
+                  fontSize: 'inherit',
+                  fontWeight: 'inherit',
+                  color: 'inherit',
+                  width: '50px',
+                  boxSizing: 'border-box'
+                }}
+                data-editing-value="true"
+                autoFocus
+                onClick={(e) => e.stopPropagation()}
+              />
+              <span className="text-[var(--text-muted)]">{unit}</span>
+            </div>
+          ) : (
+            <span 
+              className="cursor-text select-none"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleValueClick();
+              }}
+              onDoubleClick={(e) => {
+                e.stopPropagation();
+                handleValueDoubleClick();
+              }}
+              title="Click to edit value"
+            >
+              {typeof value === 'number' ? value.toFixed(step < 0.1 ? 2 : step < 1 ? 1 : 0) : value}{unit}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Slider Container */}
       <div 
         ref={sliderRef}
-        className={`relative bg-[var(--bg-tertiary)] rounded-full cursor-ew-resize hover:bg-[var(--bg-tertiary)]/80 transition-colors ${
+        className={`relative bg-[var(--bg-tertiary)] rounded-full transition-colors ${
           compact ? "h-2" : "h-3"
-        } ${isAltPressed && isDragging ? 'ring-2 ring-[var(--accent-primary)]/50 shadow-md' : isAltPressed ? 'ring-1 ring-[var(--accent-primary)]/50' : ''}`}
+        } ${isEditing ? 'cursor-default' : 'cursor-ew-resize hover:bg-[var(--bg-tertiary)]/80'} ${isAltPressed ? 'ring-2 ring-[var(--gradient-end)]/50 shadow-md' : ''}`}
         onMouseDown={handleMouseDown}
       >
+        {/* Track with gradient fill */}
+        <div className="absolute inset-0 rounded-full border border-[var(--border)] overflow-hidden">
+          {/* Gradient fill based on value */}
+          <div 
+            className="absolute left-0 top-0 h-full bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] rounded-full transition-all duration-150 ease-out"
+            style={{ width: `${percentage}%` }}
+          />
+          
+          {/* Animated shimmer effect */}
+          <div 
+            className="absolute top-0 h-full w-8 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full"
+            style={{ 
+              left: `${percentage}%`,
+              animation: isDragging ? 'shimmer 0.5s ease-in-out' : 'none'
+            }}
+          />
+        </div>
+
+        {/* Slider thumb */}
         <div 
-          className="absolute top-0 left-0 h-full bg-[var(--accent-primary)] rounded-full transition-all duration-150"
-          style={{ width: `${percentage}%` }}
+          className={`absolute top-1/2 -translate-y-1/2 bg-[var(--bg-primary)] border-2 border-[var(--gradient-end)] rounded-full shadow-sm transition-all duration-150 cursor-ew-resize ${
+            compact ? "w-3.5 h-3.5" : "w-4.5 h-4.5"
+          } ${isDragging ? 'scale-110 shadow-lg' : ''} ${isAltPressed ? 'ring-2 ring-[var(--gradient-end)]/30 scale-105' : ''}`}
+          style={{ left: `calc(${percentage}% - ${compact ? '7px' : '9px'})` }}
         />
-        <div 
-          className={`absolute top-1/2 -translate-y-1/2 bg-white border-2 border-[var(--accent-primary)] rounded-full shadow-sm transition-all duration-150 cursor-ew-resize ${
-            compact ? "w-4 h-4" : "w-5 h-5"
-          } ${isDragging ? 'scale-110 shadow-lg' : ''} ${isAltPressed && isDragging ? 'ring-2 ring-[var(--accent-primary)]/30 shadow-lg' : isAltPressed ? 'ring-2 ring-[var(--accent-primary)]/30' : ''}`}
-          style={{ left: `calc(${percentage}% - ${compact ? '8px' : '10px'})` }}
+
+        {/* Hidden range input for accessibility and fallback */}
+        <input
+          type="range"
+          min={min}
+          max={max}
+          step={step}
+          value={value}
+          onChange={handleSliderChange}
+          className="absolute inset-0 w-full h-full opacity-0 pointer-events-none"
+          aria-label={label}
+          tabIndex={-1}
         />
       </div>
-      
+
+      {/* Enhanced Slider Styling */}
       <style dangerouslySetInnerHTML={{
         __html: `
-          .slider::-webkit-slider-thumb {
-            appearance: none;
-            width: ${compact ? '12px' : '16px'};
-            height: ${compact ? '12px' : '16px'};
-            border-radius: 50%;
-            background: var(--accent-primary);
-            cursor: pointer;
-            border: 2px solid white;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-          }
-          
-          .slider::-moz-range-thumb {
-            width: ${compact ? '12px' : '16px'};
-            height: ${compact ? '12px' : '16px'};
-            border-radius: 50%;
-            background: var(--accent-primary);
-            cursor: pointer;
-            border: 2px solid white;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-          }
-          
-          .slider:disabled::-webkit-slider-thumb {
-            cursor: not-allowed;
-          }
-          
-          .slider:disabled::-moz-range-thumb {
-            cursor: not-allowed;
+          @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
           }
         `
       }} />

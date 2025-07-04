@@ -63,7 +63,7 @@ const PATTERN_ICONS: { [key: string]: React.ComponentType<React.SVGProps<SVGSVGE
 };
 
 export function RightSidebar() {
-  const [width, setWidth] = useState(260);
+  const [width, setWidth] = useState(280);
   const [activeCategory, setActiveCategory] = useState<string>('lines');
   const {
     selectedLayer,
@@ -107,14 +107,14 @@ export function RightSidebar() {
     });
   };
 
+  // Handle resize
   const handleResize = (e: React.MouseEvent) => {
-    e.preventDefault();
     const startX = e.clientX;
     const startWidth = width;
 
     const handleMouseMove = (e: MouseEvent) => {
-      e.preventDefault();
-      const newWidth = Math.max(200, Math.min(400, startWidth - (e.clientX - startX)));
+      const deltaX = startX - e.clientX;
+      const newWidth = Math.max(220, Math.min(420, startWidth + deltaX));
       setWidth(newWidth);
     };
 
@@ -127,10 +127,39 @@ export function RightSidebar() {
 
     document.body.style.userSelect = 'none';
     document.body.style.cursor = 'col-resize';
-
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
   };
+
+  if (!selectedLayer) {
+    return (
+      <aside 
+        className="bg-[var(--bg-secondary)]/80 backdrop-blur-xl border-l border-[var(--border)] flex flex-col items-center justify-center h-full relative"
+        style={{ width: `${width}px` }}
+      >
+        {/* Resize Handle */}
+        <div
+          className="absolute top-0 left-0 w-1 h-full cursor-col-resize hover:bg-gradient-to-b hover:from-[var(--gradient-start)] hover:to-[var(--gradient-end)] opacity-0 hover:opacity-80 transition-all duration-200"
+          onMouseDown={handleResize}
+        />
+        
+        {/* Gradient background overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[var(--gradient-start)]/5 via-transparent to-[var(--gradient-end)]/5 pointer-events-none" />
+        
+        <div className="text-center space-y-3 relative z-10">
+          <div className="w-12 h-12 bg-gradient-to-br from-[var(--gradient-start)] to-[var(--gradient-end)] rounded-xl flex items-center justify-center mx-auto shadow-lg">
+            <Settings className="w-6 h-6 text-white" />
+          </div>
+          <div className="space-y-1">
+            <h3 className="text-sm font-semibold text-[var(--text-primary)]">No Layer Selected</h3>
+            <p className="text-xs text-[var(--text-secondary)] max-w-48">
+              Select a layer from the left sidebar to edit its properties
+            </p>
+          </div>
+        </div>
+      </aside>
+    );
+  }
 
   // Group patterns by category
   const patternsByCategory = PATTERN_DEFINITIONS.reduce((acc, pattern) => {
@@ -143,7 +172,7 @@ export function RightSidebar() {
 
   const categories = [
     { id: 'lines', name: 'Lines', icon: () => (
-      <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1">
+      <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1">
         <path d="M2 13 L7 2"/>
         <path d="M4 14 L10 2"/>
         <path d="M6 15 L13 2"/>
@@ -152,12 +181,12 @@ export function RightSidebar() {
       </svg>
     )},
     { id: 'curves', name: 'Curves', icon: () => (
-      <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1">
+      <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1">
         <path d="M8 8 C8 6, 10 6, 10 8 C10 11, 6 11, 6 8 C6 4, 12 4, 12 8 C12 14, 2 14, 2 8 C2 1, 15 1, 15 8"/>
       </svg>
     )},
     { id: 'tiles', name: 'Tiles', icon: () => (
-      <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1">
+      <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1">
         <rect x="1" y="1" width="6" height="6" rx="0.5"/>
         <rect x="9" y="1" width="6" height="6" rx="0.5"/>
         <rect x="1" y="9" width="6" height="6" rx="0.5"/>
@@ -165,7 +194,7 @@ export function RightSidebar() {
       </svg>
     ) },
     { id: 'concentric', name: 'Concentric', icon: () => (
-      <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1">
+      <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1">
         <circle cx="8" cy="8" r="2.5"/>
         <circle cx="8" cy="8" r="5"/>
         <circle cx="8" cy="8" r="7.5"/>
@@ -175,20 +204,23 @@ export function RightSidebar() {
 
   return (
     <aside 
-      className="bg-[var(--bg-secondary)] border-l border-[var(--border)] flex flex-col relative h-full w-full"
+      className="bg-[var(--bg-secondary)]/80 backdrop-blur-xl border-l border-[var(--border)] flex flex-col relative h-full w-full overflow-hidden"
       style={{ width: `${width}px` }}
     >
+      {/* Gradient background overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[var(--gradient-start)]/5 via-transparent to-[var(--gradient-end)]/5 pointer-events-none" />
+      
       {/* Resize Handle */}
       <div
-        className="absolute top-0 left-0 w-1 h-full cursor-col-resize hover:bg-[var(--accent-primary)] opacity-0 hover:opacity-50 transition-opacity"
+        className="absolute top-0 left-0 w-1 h-full cursor-col-resize hover:bg-gradient-to-b hover:from-[var(--gradient-start)] hover:to-[var(--gradient-end)] opacity-0 hover:opacity-80 transition-all duration-200 z-10"
         onMouseDown={handleResize}
       />
 
       {/* Header */}
-      <div className="px-3 py-2 border-b border-[var(--border)] flex-shrink-0">
+      <div className="px-3 pt-3 pb-2 border-b border-[var(--border)]/50 flex-shrink-0 relative z-10">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wide">
+            <h2 className="text-xs font-medium text-[var(--text-primary)] uppercase tracking-wide">
               Pattern Settings
             </h2>
             {selectedLayer && (
@@ -200,156 +232,155 @@ export function RightSidebar() {
         </div>
       </div>
 
-      {!selectedLayer ? (
-        /* No Layer Selected State */
-        <div className="flex-1 flex items-center justify-center p-6">
-          <div className="text-center">
-            <Settings className="w-8 h-8 text-[var(--text-secondary)] mx-auto mb-2" />
-            <p className="text-xs text-[var(--text-secondary)]">
-              Select a layer to modify its pattern settings
-            </p>
-          </div>
-        </div>
-      ) : (
-        /* Layer Selected State */
-        <div className="flex-1 overflow-y-auto min-h-0 max-h-full">
-          {/* Category Tabs */}
-          <div className="p-4 border-b border-[var(--border)]">
-            <h3 className="text-xs font-medium text-[var(--text-primary)] mb-2 uppercase tracking-wide">
-              Category
-            </h3>
-            
-            <div className="grid grid-cols-2 gap-1">
-              {categories.map(category => {
-                const IconComponent = category.icon;
-                return (
-                  <button
-                    key={category.id}
-                    onClick={() => setActiveCategory(category.id)}
-                    className={`p-1.5 rounded text-xs transition-colors flex items-center gap-1.5 ${
-                      activeCategory === category.id
-                        ? 'bg-[var(--accent-primary)] text-white'
-                        : 'bg-[var(--bg-tertiary)] text-[var(--text-primary)] hover:bg-[var(--accent-primary)]/20'
-                    }`}
-                  >
-                    <IconComponent />
-                    <span>{category.name}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Pattern Selection */}
-          <div className="p-4 border-b border-[var(--border)]">
-            <h3 className="text-xs font-medium text-[var(--text-primary)] mb-2 uppercase tracking-wide">
-              Pattern Type
-            </h3>
-            
-            <div className="grid grid-cols-4 gap-1">
-              {patternsByCategory[activeCategory]?.map(pattern => {
-                const IconComponent = PATTERN_ICONS[pattern.icon] || Settings;
-                return (
-                  <button
-                    key={pattern.id}
-                    onClick={() => handlePatternTypeChange(pattern.id)}
-                    className={`p-2 rounded border transition-colors flex items-center justify-center ${
-                      selectedLayer.type === pattern.id
-                        ? 'bg-[var(--accent-primary)] text-white border-[var(--accent-primary)]'
-                        : 'bg-[var(--bg-tertiary)] text-[var(--text-primary)] border-[var(--border)] hover:bg-[var(--accent-primary)]/20 hover:border-[var(--accent-primary)]/50'
-                    }`}
-                    title={`${pattern.name} - ${pattern.description}`}
-                  >
-                    <IconComponent />
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Colors Section */}
-          <div className="p-4 border-b border-[var(--border)]">
-            <h3 className="text-xs font-medium text-[var(--text-primary)] mb-3 uppercase tracking-wide">
-              Colors
-            </h3>
-            
-            <div className="space-y-3">
-              {/* Stroke Color */}
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-[var(--text-primary)]">Stroke</span>
-                <ColorPicker
-                  value={selectedLayer.color}
-                  onChange={handleColorSelect}
-                  allowNone={selectedLayer.category === 'tiles'}
-                />
-              </div>
-
-              {/* Fill Color - Only for tiles */}
-              {selectedLayer.category === 'tiles' && (
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-[var(--text-primary)]">Fill</span>
-                  <ColorPicker
-                    value={selectedLayer.fillColor || '#ffffff'}
-                    onChange={handleFillColorSelect}
-                    allowNone={true}
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Dynamic Parameters Section */}
-          <div className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xs font-medium text-[var(--text-primary)] uppercase tracking-wide">
-                Parameters
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto relative z-10">
+        {selectedLayer && (
+          <div>
+            {/* Category Tabs */}
+            <div className="p-3 border-b border-[var(--border)]/50">
+              <h3 className="text-xs font-medium text-[var(--text-primary)] mb-2 uppercase tracking-wide">
+                Category
               </h3>
-              <button
-                onClick={() => {
-                  const patternDef = PATTERN_DEFINITIONS.find(p => p.id === selectedLayer.type);
-                  if (patternDef) {
-                    updateSelectedLayer({
-                      parameters: { ...patternDef.defaultParameters }
-                    });
-                  }
-                }}
-                className="px-2 py-1 text-xs bg-[var(--bg-tertiary)] hover:bg-[var(--accent-primary)] hover:text-white rounded transition-colors"
-                title="Reset all parameters to default values"
-              >
-                Reset
-              </button>
+              
+              <div className="grid grid-cols-2 gap-1">
+                {categories.map(category => {
+                  const IconComponent = category.icon;
+                  return (
+                    <button
+                      key={category.id}
+                      onClick={() => setActiveCategory(category.id)}
+                      className={`p-1.5 rounded text-xs transition-all duration-200 flex items-center gap-1.5 ${
+                        activeCategory === category.id
+                          ? 'bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] text-white shadow-sm'
+                          : 'bg-[var(--bg-tertiary)]/60 text-[var(--text-primary)] hover:bg-gradient-to-r hover:from-[var(--gradient-start)]/20 hover:to-[var(--gradient-end)]/20'
+                      }`}
+                    >
+                      <IconComponent />
+                      <span>{category.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
-            <div className="space-y-3">
-              {selectedLayer.type && (() => {
-                const patternDef = PATTERN_DEFINITIONS.find(p => p.id === selectedLayer.type);
-                if (!patternDef) return null;
-
-                return Object.entries(patternDef.parameterConfig).map(([paramKey, config]) => {
-                  const currentValue = selectedLayer.parameters[paramKey as keyof typeof selectedLayer.parameters] ?? config.min;
-                  const defaultValue = patternDef.defaultParameters[paramKey as keyof typeof patternDef.defaultParameters] ?? config.min;
+            {/* Pattern Type Selection */}
+            <div className="p-3 border-b border-[var(--border)]/50">
+              <h3 className="text-xs font-medium text-[var(--text-primary)] mb-2 uppercase tracking-wide">
+                Pattern Type
+              </h3>
+              
+              <div className="grid grid-cols-4 gap-1">
+                {patternsByCategory[activeCategory]?.map(pattern => {
+                  const IconComponent = PATTERN_ICONS[pattern.icon] || Settings;
+                  const isSelected = selectedLayer.type === pattern.id;
                   
                   return (
-                    <Slider
-                      key={paramKey}
-                      label={config.label}
-                      value={currentValue}
-                      min={config.min}
-                      max={config.max}
-                      step={config.step}
-                      unit={config.unit}
-                      onChange={(value) => handleParameterChange(paramKey, value)}
-                      compact
-                      defaultValue={defaultValue}
-                      onReset={() => handleParameterChange(paramKey, defaultValue)}
-                    />
+                    <button
+                      key={pattern.id}
+                      onClick={() => handlePatternTypeChange(pattern.id)}
+                      className={`group relative p-2 rounded-lg border transition-all duration-200 flex items-center justify-center hover:scale-105 ${
+                        isSelected
+                          ? 'bg-gradient-to-br from-[var(--gradient-start)] to-[var(--gradient-end)] text-white border-transparent shadow-lg'
+                          : 'bg-[var(--bg-tertiary)]/60 text-[var(--text-primary)] border-[var(--border)] hover:bg-gradient-to-br hover:from-[var(--gradient-start)]/10 hover:to-[var(--gradient-end)]/10 hover:border-[var(--gradient-start)]/50'
+                      }`}
+                      title={`${pattern.name} - ${pattern.description}`}
+                    >
+                      <IconComponent className="w-4 h-4" />
+                      
+                      {/* Glow effect for selected state */}
+                      {isSelected && (
+                        <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-[var(--gradient-start)] to-[var(--gradient-end)] opacity-20 blur-lg pointer-events-none" />
+                      )}
+                    </button>
                   );
-                });
-              })()}
+                })}
+              </div>
+            </div>
+
+            {/* Colors Section */}
+            <div className="p-3 border-b border-[var(--border)]/50">
+              <h3 className="text-xs font-medium text-[var(--text-primary)] mb-3 uppercase tracking-wide">
+                Colors
+              </h3>
+              
+              <div className="space-y-3">
+                {/* Stroke Color */}
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-[var(--text-primary)]">Stroke</span>
+                  <ColorPicker
+                    value={selectedLayer.color}
+                    onChange={handleColorSelect}
+                    allowNone={selectedLayer.category === 'tiles'}
+                  />
+                </div>
+
+                {/* Fill Color - Only for tiles */}
+                {selectedLayer.category === 'tiles' && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-[var(--text-primary)]">Fill</span>
+                    <ColorPicker
+                      value={selectedLayer.fillColor || '#ffffff'}
+                      onChange={handleFillColorSelect}
+                      allowNone={true}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Parameters Section */}
+            <div className="p-3">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-xs font-medium text-[var(--text-primary)] uppercase tracking-wide">
+                  Parameters
+                </h3>
+                <button
+                  onClick={() => {
+                    const patternDef = PATTERN_DEFINITIONS.find(p => p.id === selectedLayer.type);
+                    if (patternDef) {
+                      updateSelectedLayer({
+                        parameters: { ...patternDef.defaultParameters }
+                      });
+                    }
+                  }}
+                  className="px-2 py-1 text-xs bg-[var(--bg-tertiary)]/50 hover:bg-[var(--bg-tertiary)]/80 text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded transition-colors border border-[var(--border)]/50 opacity-70 hover:opacity-100"
+                  title="Reset all parameters to default values"
+                >
+                  Reset
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {selectedLayer.type && (() => {
+                  const patternDef = PATTERN_DEFINITIONS.find(p => p.id === selectedLayer.type);
+                  if (!patternDef) return null;
+
+                  return Object.entries(patternDef.parameterConfig).map(([paramKey, config]) => {
+                    const currentValue = selectedLayer.parameters[paramKey as keyof typeof selectedLayer.parameters] ?? config.min;
+                    const defaultValue = patternDef.defaultParameters[paramKey as keyof typeof patternDef.defaultParameters] ?? config.min;
+                    
+                    return (
+                      <Slider
+                        key={paramKey}
+                        label={config.label}
+                        value={currentValue}
+                        min={config.min}
+                        max={config.max}
+                        step={config.step}
+                        unit={config.unit}
+                        onChange={(value) => handleParameterChange(paramKey, value)}
+                        compact
+                        defaultValue={defaultValue}
+                        onReset={() => handleParameterChange(paramKey, defaultValue)}
+                      />
+                    );
+                  });
+                })()}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </aside>
   );
 } 

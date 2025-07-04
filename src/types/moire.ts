@@ -502,7 +502,7 @@ export function createDefaultProject(): MoireProject {
     canvas: {
       zoom: 1,
       pan: { x: 0, y: 0 },
-      backgroundColor: '#ffffff',
+      backgroundColor: '#F8B23A',
     },
   };
 } 

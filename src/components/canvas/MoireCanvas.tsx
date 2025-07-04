@@ -711,7 +711,11 @@ export function MoireCanvas({ layers, zoom, pan, backgroundColor, onZoomChange, 
     ctx.save();
     ctx.scale(zoom, zoom);
     ctx.translate(pan.x / zoom, pan.y / zoom);
-    ctx.translate(canvasSize.width / (2 * zoom), canvasSize.height / (2 * zoom));
+    
+    // Center the coordinate system, but shift everything down by navbar height
+    // This makes the coordinate center appear in the visual center of available space
+    const navbarHeight = 40; // Full navbar height
+    ctx.translate(canvasSize.width / (2 * zoom), canvasSize.height / (2 * zoom) + navbarHeight / zoom);
 
     // Calculate bounds for pattern rendering
     const maxDimension = Math.max(canvasSize.width, canvasSize.height);
@@ -744,12 +748,14 @@ export function MoireCanvas({ layers, zoom, pan, backgroundColor, onZoomChange, 
     const newZoom = Math.max(0.1, Math.min(10, zoom * zoomFactor));
     
     // Calculate the point in the canvas that the mouse is over (in world coordinates)
+    // Account for the navbar offset in the coordinate system
+    const navbarHeight = 40; // Full navbar height
     const canvasPointX = (mouseX - canvasSize.width / 2 - pan.x) / zoom;
-    const canvasPointY = (mouseY - canvasSize.height / 2 - pan.y) / zoom;
+    const canvasPointY = (mouseY - canvasSize.height / 2 - navbarHeight - pan.y) / zoom;
     
     // Calculate new pan to keep the mouse point stationary during zoom
     const newPanX = mouseX - canvasSize.width / 2 - canvasPointX * newZoom;
-    const newPanY = mouseY - canvasSize.height / 2 - canvasPointY * newZoom;
+    const newPanY = mouseY - canvasSize.height / 2 - navbarHeight - canvasPointY * newZoom;
     
     onZoomChange(newZoom);
     onPanChange({ x: newPanX, y: newPanY });
@@ -770,6 +776,12 @@ export function MoireCanvas({ layers, zoom, pan, backgroundColor, onZoomChange, 
         if (document.activeElement?.tagName !== 'INPUT' && 
             document.activeElement?.tagName !== 'TEXTAREA') {
           e.preventDefault();
+          
+          // Remove focus from any active element to prevent blue outline
+          if (document.activeElement && document.activeElement instanceof HTMLElement) {
+            document.activeElement.blur();
+          }
+          
           setShowHelp(prev => !prev);
         }
       }
@@ -845,7 +857,7 @@ export function MoireCanvas({ layers, zoom, pan, backgroundColor, onZoomChange, 
       
       {/* Status indicator for active interaction modes */}
       {interactionState.currentMode !== 'pan' && (
-        <div className="absolute bottom-4 left-4 px-3 py-2 bg-black/80 backdrop-blur-sm text-white text-sm rounded-lg border border-white/20 font-medium">
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 px-3 py-2 bg-black/80 backdrop-blur-sm text-white text-sm rounded-lg border border-white/20 font-medium z-40">
           {statusText}
         </div>
       )}

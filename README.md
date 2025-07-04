@@ -62,7 +62,9 @@ Open `http://localhost:5173` and start creating mesmerizing patterns immediately
 ### 4. **Pro Tips for Amazing Results**
 - **Small Rotations**: Try 1-5° differences between layers for classic moiré bands
 - **Layer Colors**: Use contrasting colors to highlight interference patterns  
-- **Fine Control**: Hold `Alt/Option` while dragging sliders for 10x precision
+- **Fine Control**: Hold `Alt/Option` while dragging sliders for 20x precision
+- **Direct Value Input**: Click any slider value or layer name to edit directly with smart validation
+- **Interactive Help**: Press `H` or click the help button to view comprehensive controls and animated demonstration
 - **Reset Options**: Use individual reset buttons (↺) or "Reset All" for quick resets
 
 ---
@@ -169,6 +171,7 @@ Moiré patterns demonstrate fundamental principles of wave interference:
 ### **Professional Layer System**
 - **Multiple Layers**: Add unlimited pattern layers with independent controls
 - **Drag & Drop Reordering**: Intuitive layer reordering with visual insertion indicators
+- **Inline Editing**: Click layer names to rename, double-click for full selection
 - **Transform Controls**: Precise position, rotation, and opacity with decimal precision
 - **Direct Canvas Manipulation**: Move and rotate layers directly on canvas with modifier keys
 - **Blend Modes**: 12 different blending options (Normal, Multiply, Screen, Overlay, etc.)
@@ -176,7 +179,8 @@ Moiré patterns demonstrate fundamental principles of wave interference:
 - **Dual Color Support**: Independent stroke and fill colors for tile patterns
 
 ### **Precision Controls**
-- **Fine Adjustment**: Alt+drag for 10x finer control on all sliders
+- **Fine Adjustment**: Alt+drag for 20x finer control on all sliders
+- **Direct Value Input**: Click any slider value to type exact numbers with smart validation
 - **Decimal Values**: Precise parameter control with decimal stepping
 - **Extended Ranges**: Ring counts up to 200, aspect ratios from 0.1-10, size up to 150px
 - **Progressive Offsets**: X/Y offset controls (-50 to +50px) for spiral/drift effects
@@ -209,8 +213,9 @@ Moiré patterns demonstrate fundamental principles of wave interference:
 - **Visual Feedback**: Real-time cursor changes and smooth transformations
 
 ### **Interface Controls**
-- **Fine Control**: Hold `Alt/Option` + drag sliders → 10x precision on all parameters
-- **Help Toggle**: Press `H` → show/hide interactive canvas controls overlay
+- **Fine Control**: Hold `Alt/Option` + drag sliders → 20x precision on all parameters
+- **Direct Editing**: Click slider values or layer names → type exact values with validation
+- **Help System**: Press `H` or click help button → comprehensive documentation with animated demo
 - **Tab Navigation**: Navigate through all controls with keyboard
 - **Enter/Space**: Activate buttons and controls
 - **Arrow Keys**: Fine-tune slider values when focused
