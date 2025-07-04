@@ -267,33 +267,30 @@ export function RightSidebar() {
             </div>
           </div>
 
-          {/* Color Section */}
-          <div className="p-4 border-b border-[var(--border)]">
-            <h3 className="text-xs font-medium text-[var(--text-primary)] mb-2 uppercase tracking-wide">
-              Stroke Color
-            </h3>
-            
-            <ColorPicker
-              value={selectedLayer.color}
-              onChange={handleColorSelect}
-              allowNone={selectedLayer.category === 'tiles'}
-            />
-          </div>
-
-          {/* Fill Color Section - Only for tiles */}
-          {selectedLayer.category === 'tiles' && (
-            <div className="p-4 border-b border-[var(--border)]">
-              <h3 className="text-xs font-medium text-[var(--text-primary)] mb-2 uppercase tracking-wide">
-                Fill Color
-              </h3>
-              
+          {/* Colors - Inline */}
+          <div className="p-4 border-b border-[var(--border)] space-y-3">
+            {/* Stroke Color */}
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-[var(--text-primary)]">Stroke Color</span>
               <ColorPicker
-                value={selectedLayer.fillColor || '#ffffff'}
-                onChange={handleFillColorSelect}
-                allowNone={true}
+                value={selectedLayer.color}
+                onChange={handleColorSelect}
+                allowNone={selectedLayer.category === 'tiles'}
               />
             </div>
-          )}
+            
+            {/* Fill Color - Only for tiles */}
+            {selectedLayer.category === 'tiles' && (
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-[var(--text-primary)]">Fill Color:</span>
+                <ColorPicker
+                  value={selectedLayer.fillColor || '#ffffff'}
+                  onChange={handleFillColorSelect}
+                  allowNone={true}
+                />
+              </div>
+            )}
+          </div>
 
           {/* Dynamic Parameters Section */}
           <div className="p-4">

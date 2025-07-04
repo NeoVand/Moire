@@ -57,6 +57,16 @@ body {
 
 
 
+/* Color input theming */
+input[type="color"] {
+  color-scheme: light dark;
+}
+
+/* Dark theme adjustments for color inputs */
+[data-theme="dark"] input[type="color"] {
+  filter: brightness(0.9) contrast(1.1);
+}
+
 /* Resize handle */
 .resize-handle::after {
   content: '';
