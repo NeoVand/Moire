@@ -40,9 +40,11 @@ Open `http://localhost:5173` and start creating mesmerizing patterns immediately
 
 ### 1. **Layer Management** (Left Sidebar)
 - **Add Layers**: Click `+` to add new pattern layers
+- **Drag & Reorder**: Drag layers by the grip handle to reorder them with elegant visual feedback
 - **Select & Edit**: Click any layer to make it active
 - **Transform Controls**: Adjust position, rotation, and opacity
 - **Blend Modes**: Choose how layers interact (Multiply, Screen, Overlay, etc.)
+- **Intuitive Layering**: Top of list = top layer visually (like professional design tools)
 
 ### 2. **Pattern Design** (Right Sidebar)
 - **Choose Category**: Lines, Curves, Tiles, or Concentric patterns
@@ -166,6 +168,7 @@ Moiré patterns demonstrate fundamental principles of wave interference:
 
 ### **Professional Layer System**
 - **Multiple Layers**: Add unlimited pattern layers with independent controls
+- **Drag & Drop Reordering**: Intuitive layer reordering with visual insertion indicators
 - **Transform Controls**: Precise position, rotation, and opacity with decimal precision
 - **Direct Canvas Manipulation**: Move and rotate layers directly on canvas with modifier keys
 - **Blend Modes**: 12 different blending options (Normal, Multiply, Screen, Overlay, etc.)
@@ -188,8 +191,9 @@ Moiré patterns demonstrate fundamental principles of wave interference:
 - **Retina Support**: Crisp rendering on high-DPI displays
 
 ### **Professional UI/UX**
-- **Dual Sidebars**: Organized layer management and pattern controls
+- **Dual Sidebars**: Organized layer management and pattern controls with improved spacing
 - **Unified Navigation**: Clean header with all essential controls
+- **Enhanced Accessibility**: Better scrolling, professional spacing, and intuitive interactions
 - **Theme Support**: Beautiful light and dark themes
 - **Accessibility**: Keyboard navigation and screen reader support
 
