@@ -267,29 +267,35 @@ export function RightSidebar() {
             </div>
           </div>
 
-          {/* Colors - Inline */}
-          <div className="p-4 border-b border-[var(--border)] space-y-3">
-            {/* Stroke Color */}
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-[var(--text-primary)]">Stroke Color</span>
-              <ColorPicker
-                value={selectedLayer.color}
-                onChange={handleColorSelect}
-                allowNone={selectedLayer.category === 'tiles'}
-              />
-            </div>
+          {/* Colors Section */}
+          <div className="p-4 border-b border-[var(--border)]">
+            <h3 className="text-xs font-medium text-[var(--text-primary)] mb-3 uppercase tracking-wide">
+              Colors
+            </h3>
             
-            {/* Fill Color - Only for tiles */}
-            {selectedLayer.category === 'tiles' && (
+            <div className="space-y-3">
+              {/* Stroke Color */}
               <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-[var(--text-primary)]">Fill Color:</span>
+                <span className="text-xs font-medium text-[var(--text-primary)]">Stroke</span>
                 <ColorPicker
-                  value={selectedLayer.fillColor || '#ffffff'}
-                  onChange={handleFillColorSelect}
-                  allowNone={true}
+                  value={selectedLayer.color}
+                  onChange={handleColorSelect}
+                  allowNone={selectedLayer.category === 'tiles'}
                 />
               </div>
-            )}
+
+              {/* Fill Color - Only for tiles */}
+              {selectedLayer.category === 'tiles' && (
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-[var(--text-primary)]">Fill</span>
+                  <ColorPicker
+                    value={selectedLayer.fillColor || '#ffffff'}
+                    onChange={handleFillColorSelect}
+                    allowNone={true}
+                  />
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Dynamic Parameters Section */}
