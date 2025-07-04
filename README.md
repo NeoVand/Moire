@@ -4,7 +4,7 @@
 
 Built with React, TypeScript, and mathematical precision - create stunning interference patterns with professional-grade tools and real-time interaction.
 
-![Moiré Lab](./public/screenshot.png)
+![Moiré Lab](./public/moirescreenvideo.gif)
 
 ---
 

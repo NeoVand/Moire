@@ -274,23 +274,34 @@ export function RightSidebar() {
                   const IconComponent = PATTERN_ICONS[pattern.icon] || Settings;
                   const isSelected = selectedLayer.type === pattern.id;
                   
+                  if (isSelected) {
+                    return (
+                      <div
+                        key={pattern.id}
+                        className="p-0.5 bg-gradient-to-br from-[var(--gradient-start)] to-[var(--gradient-end)] rounded-md shadow-lg"
+                      >
+                        <button
+                          onClick={() => handlePatternTypeChange(pattern.id)}
+                          className="group relative w-full p-2 bg-gradient-to-br from-[var(--gradient-start)] to-[var(--gradient-end)] text-white rounded-sm transition-all duration-200 flex items-center justify-center hover:scale-105"
+                          title={`${pattern.name} - ${pattern.description}`}
+                        >
+                          <IconComponent className="w-4 h-4" />
+                          
+                          {/* Glow effect for selected state */}
+                          <div className="absolute inset-0 rounded-sm bg-gradient-to-br from-[var(--gradient-start)] to-[var(--gradient-end)] opacity-20 blur-lg pointer-events-none" />
+                        </button>
+                      </div>
+                    );
+                  }
+                  
                   return (
                     <button
                       key={pattern.id}
                       onClick={() => handlePatternTypeChange(pattern.id)}
-                      className={`group relative p-2 rounded-lg border transition-all duration-200 flex items-center justify-center hover:scale-105 ${
-                        isSelected
-                          ? 'bg-gradient-to-br from-[var(--gradient-start)] to-[var(--gradient-end)] text-white border-transparent shadow-lg'
-                          : 'bg-[var(--bg-tertiary)]/60 text-[var(--text-primary)] border-[var(--border)] hover:bg-gradient-to-br hover:from-[var(--gradient-start)]/10 hover:to-[var(--gradient-end)]/10 hover:border-[var(--gradient-start)]/50'
-                      }`}
+                      className="group relative p-2 rounded-md border bg-[var(--bg-tertiary)]/60 text-[var(--text-primary)] border-[var(--border)] hover:bg-gradient-to-br hover:from-[var(--gradient-start)]/10 hover:to-[var(--gradient-end)]/10 hover:border-[var(--gradient-start)]/50 transition-all duration-200 flex items-center justify-center hover:scale-105"
                       title={`${pattern.name} - ${pattern.description}`}
                     >
                       <IconComponent className="w-4 h-4" />
-                      
-                      {/* Glow effect for selected state */}
-                      {isSelected && (
-                        <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-[var(--gradient-start)] to-[var(--gradient-end)] opacity-20 blur-lg pointer-events-none" />
-                      )}
                     </button>
                   );
                 })}
