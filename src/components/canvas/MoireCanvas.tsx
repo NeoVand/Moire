@@ -53,37 +53,196 @@ export function MoireCanvas({ layers, zoom, pan, backgroundColor, onZoomChange, 
 
   // Lines Category
   const drawStraightLines = (ctx: CanvasRenderingContext2D, layer: PatternLayer, bounds: number) => {
-    const { spacing = 20, thickness = 1, phase = 0 } = layer.parameters;
+    const { spacing = 20, thickness = 1, phase = 0, offsetX = 0, count = 50, size = 800 } = layer.parameters;
     
     ctx.lineWidth = thickness;
-    const offset = (phase / 360) * spacing;
-    const lineCount = Math.ceil((bounds * 2) / spacing) + 2;
+    const phaseOffset = (phase / 360) * spacing;
+    const maxLines = Math.min(count, 1000); // Enforce maximum limit
+    const halfLines = Math.floor(maxLines / 2);
+    
+    // Use user-controlled line length, but cap at reasonable limits to prevent zoom conflicts
+    const lineLength = Math.min(size / 2, Math.max(canvasSize.width, canvasSize.height) / zoom);
 
-    for (let i = -lineCount; i <= lineCount; i++) {
-      const y = i * spacing + offset;
-      ctx.beginPath();
-      ctx.moveTo(-bounds, y);
-      ctx.lineTo(bounds, y);
-      ctx.stroke();
+    for (let i = -halfLines; i <= halfLines; i++) {
+      // Progressive spacing: each line's spacing increases by offsetX * line_index
+      const cumulativeSpacing = i * spacing + (offsetX * i * Math.abs(i));
+      const y = cumulativeSpacing + phaseOffset;
+      
+      // Only draw if within bounds
+      if (Math.abs(y) <= bounds) {
+        ctx.beginPath();
+        ctx.moveTo(-lineLength, y);
+        ctx.lineTo(lineLength, y);
+        ctx.stroke();
+      }
     }
   };
 
   const drawRadialLines = (ctx: CanvasRenderingContext2D, layer: PatternLayer, bounds: number) => {
-    const { count = 24, thickness = 1, phase = 0 } = layer.parameters;
+    const { count = 24, thickness = 1, phase = 0, spacing = 0, offsetY = 360 } = layer.parameters;
     
     ctx.lineWidth = thickness;
-    const angleStep = (2 * Math.PI) / count;
-    const phaseRad = (phase / 360) * 2 * Math.PI;
+    const angularSpan = Math.max(10, Math.min(360, offsetY)); // Angular span in degrees
+    const angleStep = (angularSpan / 360) * (2 * Math.PI) / count; // Convert to radians
+    const phaseRad = (phase / 360) * 2 * Math.PI; // Angular offset in radians
+    const radialOffset = Math.max(0, spacing); // Radial offset from center
 
     for (let i = 0; i < count; i++) {
       const angle = i * angleStep + phaseRad;
-      const x = Math.cos(angle) * bounds;
-      const y = Math.sin(angle) * bounds;
+      const startX = Math.cos(angle) * radialOffset;
+      const startY = Math.sin(angle) * radialOffset;
+      const endX = Math.cos(angle) * bounds;
+      const endY = Math.sin(angle) * bounds;
       
       ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(x, y);
+      ctx.moveTo(startX, startY);
+      ctx.lineTo(endX, endY);
       ctx.stroke();
+    }
+  };
+
+  const drawSineWaveLines = (ctx: CanvasRenderingContext2D, layer: PatternLayer, bounds: number) => {
+    const { spacing = 30, amplitude = 15, wavelength = 60, thickness = 1.5, phase = 0, count = 30, size = 800 } = layer.parameters;
+    
+    ctx.lineWidth = thickness;
+    const phaseRad = (phase / 360) * 2 * Math.PI;
+    const maxLines = Math.min(count, 1000); // Enforce maximum limit
+    const halfLines = Math.floor(maxLines / 2);
+    
+    // Use user-controlled line length, but cap at reasonable limits to prevent zoom conflicts
+    const lineLength = Math.min(size / 2, Math.max(canvasSize.width, canvasSize.height) / zoom);
+
+    for (let i = -halfLines; i <= halfLines; i++) {
+      const baseY = i * spacing;
+      
+      // Only draw if the line would be visible within bounds
+      if (Math.abs(baseY) <= bounds + amplitude) {
+        ctx.beginPath();
+        for (let x = -lineLength; x <= lineLength; x += 2) {
+          const y = baseY + Math.sin((x / wavelength) * 2 * Math.PI + phaseRad) * amplitude;
+          if (x === -lineLength) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        }
+        ctx.stroke();
+      }
+    }
+  };
+
+  const drawSawtoothWaveLines = (ctx: CanvasRenderingContext2D, layer: PatternLayer, bounds: number) => {
+    const { spacing = 30, amplitude = 15, wavelength = 60, thickness = 1.5, phase = 0, count = 30, size = 800 } = layer.parameters;
+    
+    ctx.lineWidth = thickness;
+    const phaseOffset = (phase / 360) * wavelength;
+    const maxLines = Math.min(count, 1000); // Enforce maximum limit
+    const halfLines = Math.floor(maxLines / 2);
+    
+    // Use user-controlled line length, but cap at reasonable limits to prevent zoom conflicts
+    const lineLength = Math.min(size / 2, Math.max(canvasSize.width, canvasSize.height) / zoom);
+
+    for (let i = -halfLines; i <= halfLines; i++) {
+      const baseY = i * spacing;
+      
+      // Only draw if the line would be visible within bounds
+      if (Math.abs(baseY) <= bounds + amplitude) {
+        ctx.beginPath();
+        for (let x = -lineLength; x <= lineLength; x += 2) {
+          // Create sawtooth wave: linear ramp from -amplitude to +amplitude, then drop
+          const adjustedX = x + phaseOffset;
+          const cyclePosition = ((adjustedX % wavelength) + wavelength) % wavelength;
+          const normalizedPosition = (cyclePosition / wavelength) * 2 - 1; // -1 to 1
+          const y = baseY + normalizedPosition * amplitude;
+          
+          if (x === -lineLength) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        }
+        ctx.stroke();
+      }
+    }
+  };
+
+  const drawSquareWaveLines = (ctx: CanvasRenderingContext2D, layer: PatternLayer, bounds: number) => {
+    const { spacing = 30, amplitude = 15, wavelength = 60, thickness = 1.5, phase = 0, count = 30, size = 800 } = layer.parameters;
+    
+    ctx.lineWidth = thickness;
+    const phaseOffset = (phase / 360) * wavelength;
+    const maxLines = Math.min(count, 1000); // Enforce maximum limit
+    const halfLines = Math.floor(maxLines / 2);
+    
+    // Use user-controlled line length, but cap at reasonable limits to prevent zoom conflicts
+    const lineLength = Math.min(size / 2, Math.max(canvasSize.width, canvasSize.height) / zoom);
+
+    for (let i = -halfLines; i <= halfLines; i++) {
+      const baseY = i * spacing;
+      
+      // Only draw if the line would be visible within bounds
+      if (Math.abs(baseY) <= bounds + amplitude) {
+        ctx.beginPath();
+        for (let x = -lineLength; x <= lineLength; x += 2) {
+          // Create square wave: alternate between +amplitude and -amplitude
+          const adjustedX = x + phaseOffset;
+          const cyclePosition = ((adjustedX % wavelength) + wavelength) % wavelength;
+          const waveValue = (cyclePosition < wavelength / 2) ? amplitude : -amplitude;
+          const y = baseY + waveValue;
+          
+          if (x === -lineLength) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        }
+        ctx.stroke();
+      }
+    }
+  };
+
+  const drawTriangleWaveLines = (ctx: CanvasRenderingContext2D, layer: PatternLayer, bounds: number) => {
+    const { spacing = 30, amplitude = 15, wavelength = 60, thickness = 1.5, phase = 0, count = 30, size = 800 } = layer.parameters;
+    
+    ctx.lineWidth = thickness;
+    const phaseOffset = (phase / 360) * wavelength;
+    const maxLines = Math.min(count, 1000); // Enforce maximum limit
+    const halfLines = Math.floor(maxLines / 2);
+    
+    // Use user-controlled line length, but cap at reasonable limits to prevent zoom conflicts
+    const lineLength = Math.min(size / 2, Math.max(canvasSize.width, canvasSize.height) / zoom);
+
+    for (let i = -halfLines; i <= halfLines; i++) {
+      const baseY = i * spacing;
+      
+      // Only draw if the line would be visible within bounds
+      if (Math.abs(baseY) <= bounds + amplitude) {
+        ctx.beginPath();
+        for (let x = -lineLength; x <= lineLength; x += 2) {
+          // Create triangle wave: ramp up from -amplitude to +amplitude, then down
+          const adjustedX = x + phaseOffset;
+          const cyclePosition = ((adjustedX % wavelength) + wavelength) % wavelength;
+          const halfWavelength = wavelength / 2;
+          
+          let waveValue;
+          if (cyclePosition < halfWavelength) {
+            // Ramp up from -amplitude to +amplitude
+            waveValue = -amplitude + (2 * amplitude * cyclePosition / halfWavelength);
+          } else {
+            // Ramp down from +amplitude to -amplitude
+            waveValue = amplitude - (2 * amplitude * (cyclePosition - halfWavelength) / halfWavelength);
+          }
+          
+          const y = baseY + waveValue;
+          
+          if (x === -lineLength) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        }
+        ctx.stroke();
+      }
     }
   };
 
@@ -93,21 +252,27 @@ export function MoireCanvas({ layers, zoom, pan, backgroundColor, onZoomChange, 
     
     ctx.lineWidth = thickness;
     const phaseRad = (phase / 360) * 2 * Math.PI;
-    const lineCount = Math.ceil((bounds * 2) / spacing) + 2;
+    const lineCount = Math.min(Math.ceil((bounds * 2) / spacing) + 2, 200); // Limit max lines
+    
+    // Limit line length to reasonable viewport-based size to prevent zoom conflicts
+    const maxLineLength = Math.min(bounds, Math.max(canvasSize.width, canvasSize.height) / zoom);
 
     for (let i = -lineCount; i <= lineCount; i++) {
       const baseY = i * spacing;
       
-      ctx.beginPath();
-      for (let x = -bounds; x <= bounds; x += 2) {
-        const y = baseY + Math.sin((x / wavelength) * 2 * Math.PI + phaseRad) * amplitude;
-        if (x === -bounds) {
-          ctx.moveTo(x, y);
-        } else {
-          ctx.lineTo(x, y);
+      // Only draw if the line would be visible within bounds
+      if (Math.abs(baseY) <= bounds + amplitude) {
+        ctx.beginPath();
+        for (let x = -maxLineLength; x <= maxLineLength; x += 2) {
+          const y = baseY + Math.sin((x / wavelength) * 2 * Math.PI + phaseRad) * amplitude;
+          if (x === -maxLineLength) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
         }
+        ctx.stroke();
       }
-      ctx.stroke();
     }
   };
 
@@ -642,6 +807,18 @@ export function MoireCanvas({ layers, zoom, pan, backgroundColor, onZoomChange, 
         break;
       case 'radial-lines':
         drawRadialLines(ctx, layer, bounds);
+        break;
+      case 'sine-wave-lines':
+        drawSineWaveLines(ctx, layer, bounds);
+        break;
+      case 'sawtooth-wave-lines':
+        drawSawtoothWaveLines(ctx, layer, bounds);
+        break;
+      case 'square-wave-lines':
+        drawSquareWaveLines(ctx, layer, bounds);
+        break;
+      case 'triangle-wave-lines':
+        drawTriangleWaveLines(ctx, layer, bounds);
         break;
       case 'sine-waves':
         drawSineWaves(ctx, layer, bounds);

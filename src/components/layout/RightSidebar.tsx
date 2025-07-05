@@ -6,6 +6,45 @@ import { PATTERN_DEFINITIONS } from '../../types/moire';
 
 // Icon mapping for pattern types
 const PATTERN_ICONS: { [key: string]: React.ComponentType<React.SVGProps<SVGSVGElement>> } = {
+  'straight-lines': () => (
+    <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M2 4 L14 4"/>
+      <path d="M2 8 L14 8"/>
+      <path d="M2 12 L14 12"/>
+    </svg>
+  ),
+  'radial-lines': () => (
+    <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M8 8 L8 2"/>
+      <path d="M8 8 L11.5 4.5"/>
+      <path d="M8 8 L14 8"/>
+      <path d="M8 8 L11.5 11.5"/>
+      <path d="M8 8 L8 14"/>
+      <path d="M8 8 L4.5 11.5"/>
+      <path d="M8 8 L2 8"/>
+      <path d="M8 8 L4.5 4.5"/>
+    </svg>
+  ),
+  'sine-wave': () => (
+    <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M1 8 C3 1, 5 15, 8 8 C11 1, 13 15, 15 8"/>
+    </svg>
+  ),
+  'sawtooth-wave': () => (
+    <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M1 13 L6 3 L6 13 L11 3 L11 13 L15 8"/>
+    </svg>
+  ),
+  'square-wave': () => (
+    <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M1 12 L1 4 L6 4 L6 12 L11 12 L11 4 L15 4"/>
+    </svg>
+  ),
+  'triangle-wave': () => (
+    <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M1 11 L4 5 L8 11 L12 5 L15 11"/>
+    </svg>
+  ),
   'minus': Minus,
   'star': Star,
   'circle': () => (

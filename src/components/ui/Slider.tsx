@@ -200,8 +200,15 @@ export function Slider({
     // Clamp to bounds
     const clampedValue = Math.max(min, Math.min(max, parsed));
     
-    // Apply stepping
+    // For precise input, preserve user's precision instead of applying stepping
+    // Only apply stepping if the value would be significantly different
     const steppedValue = Math.round(clampedValue / step) * step;
+    
+    // If the user's input is very close to a step boundary, use their exact value
+    // This allows for more precise control when typing values
+    if (Math.abs(clampedValue - steppedValue) < step * 0.01) {
+      return clampedValue;
+    }
     
     return steppedValue;
   }, [min, max, step]);
@@ -304,7 +311,7 @@ export function Slider({
               }}
               title="Click to edit value"
             >
-              {typeof value === 'number' ? value.toFixed(step < 0.1 ? 2 : step < 1 ? 1 : 0) : value}{unit}
+              {typeof value === 'number' ? value.toFixed(2) : value}{unit}
             </span>
           )}
         </div>
