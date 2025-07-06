@@ -95,8 +95,55 @@ const PATTERN_ICONS: { [key: string]: React.ComponentType<React.SVGProps<SVGSVGE
     </svg>
   ),
   'spiral': () => (
-    <svg className="w-3 h-3" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
       <path d="M8 2 C12 2, 14 4, 14 8 C14 11, 12 12, 8 12 C6 12, 4 11, 4 8 C4 6, 5 5, 8 5 C9 5, 10 5.5, 10 8"/>
+    </svg>
+  ),
+  'cycloid': () => (
+    <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M1 12 C2 8, 4 4, 6 8 C8 12, 10 8, 12 4 C14 8, 15 12, 15 12"/>
+      <circle cx="3" cy="10" r="1" fill="none" strokeWidth="1"/>
+      <circle cx="8" cy="6" r="1" fill="none" strokeWidth="1"/>
+      <circle cx="13" cy="10" r="1" fill="none" strokeWidth="1"/>
+    </svg>
+  ),
+  'epitrochoid': () => (
+    <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M8 2 C10 2, 12 4, 12 6 C12 8, 10 10, 8 10 C6 10, 4 8, 4 6 C4 4, 6 2, 8 2 Z"/>
+      <path d="M8 6 C9 5, 10 6, 10 7 C10 8, 9 9, 8 9 C7 9, 6 8, 6 7 C6 6, 7 5, 8 6 Z"/>
+      <circle cx="8" cy="6" r="3" fill="none" strokeWidth="1" opacity="0.3"/>
+    </svg>
+  ),
+  'lissajous': () => (
+    <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M2 8 C4 2, 6 14, 8 8 C10 2, 12 14, 14 8"/>
+      <path d="M8 2 C14 4, 2 6, 8 8 C14 10, 2 12, 8 14"/>
+    </svg>
+  ),
+  'hyperbola': () => (
+    <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M2 2 C4 4, 6 6, 8 8 C10 10, 12 12, 14 14"/>
+      <path d="M14 2 C12 4, 10 6, 8 8 C6 10, 4 12, 2 14"/>
+    </svg>
+  ),
+  'catenary': () => (
+    <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M2 6 C4 8, 6 10, 8 12 C10 10, 12 8, 14 6"/>
+      <path d="M2 4 C4 6, 6 8, 8 10 C10 8, 12 6, 14 4"/>
+      <path d="M2 8 C4 10, 6 12, 8 14 C10 12, 12 10, 14 8"/>
+    </svg>
+  ),
+  'parametric': () => (
+    <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M2 4 L4 4"/>
+      <path d="M6 4 L8 4"/>
+      <path d="M10 4 L12 4"/>
+      <path d="M14 4 L14 4"/>
+      <path d="M2 8 C4 6, 6 10, 8 8 C10 6, 12 10, 14 8"/>
+      <path d="M2 12 L4 12"/>
+      <path d="M6 12 L8 12"/>
+      <path d="M10 12 L12 12"/>
+      <path d="M14 12 L14 12"/>
     </svg>
   ),
 };
@@ -378,6 +425,84 @@ export function RightSidebar() {
               </div>
             </div>
 
+            {/* Parametric Code Editor - Only for parametric curves */}
+            {selectedLayer.type === 'parametric-curves' && (
+              <div className="p-3 border-b border-[var(--border)]/50">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-xs font-medium text-[var(--text-primary)] uppercase tracking-wide">
+                    Custom Functions
+                  </h3>
+                  <button
+                    onClick={() => {
+                      updateSelectedLayer({
+                        parameters: {
+                          ...selectedLayer.parameters,
+                          xFunction: 'return amplitude * (1 + n * 0.1) * Math.cos(t + phase);',
+                          yFunction: 'return amplitude * (1 + n * 0.1) * Math.sin(t + phase);'
+                        }
+                      });
+                    }}
+                    className="px-2 py-1 text-xs bg-[var(--bg-tertiary)]/50 hover:bg-[var(--bg-tertiary)]/80 text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded transition-colors border border-[var(--border)]/50 opacity-70 hover:opacity-100"
+                    title="Reset to default concentric circles"
+                  >
+                    Reset
+                  </button>
+                </div>
+                
+                <div className="space-y-3">
+                  {/* X Function */}
+                  <div>
+                    <label className="text-xs font-medium text-[var(--text-primary)] mb-2 block">
+                      X Function (t, n)
+                    </label>
+                    <textarea
+                      value={selectedLayer.parameters.xFunction || ''}
+                      onChange={(e) => updateSelectedLayer({
+                        parameters: {
+                          ...selectedLayer.parameters,
+                          xFunction: e.target.value
+                        }
+                      })}
+                      className="w-full h-20 px-2 py-2 text-xs font-mono bg-[var(--bg-tertiary)] border border-[var(--border)] rounded focus:ring-2 focus:ring-[var(--gradient-start)]/30 focus:border-[var(--gradient-start)] text-[var(--text-primary)] resize-none"
+                      placeholder="return amplitude * Math.cos(t + phase);"
+                      spellCheck={false}
+                    />
+                  </div>
+                  
+                  {/* Y Function */}
+                  <div>
+                    <label className="text-xs font-medium text-[var(--text-primary)] mb-2 block">
+                      Y Function (t, n)
+                    </label>
+                    <textarea
+                      value={selectedLayer.parameters.yFunction || ''}
+                      onChange={(e) => updateSelectedLayer({
+                        parameters: {
+                          ...selectedLayer.parameters,
+                          yFunction: e.target.value
+                        }
+                      })}
+                      className="w-full h-20 px-2 py-2 text-xs font-mono bg-[var(--bg-tertiary)] border border-[var(--border)] rounded focus:ring-2 focus:ring-[var(--gradient-start)]/30 focus:border-[var(--gradient-start)] text-[var(--text-primary)] resize-none"
+                      placeholder="return amplitude * Math.sin(t + phase);"
+                      spellCheck={false}
+                    />
+                  </div>
+                  
+                  {/* Available Variables Info */}
+                  <div className="bg-[var(--bg-tertiary)]/30 border border-[var(--border)]/30 rounded p-2">
+                    <p className="text-xs text-[var(--text-secondary)] font-medium mb-1">Available Variables:</p>
+                    <div className="text-xs text-[var(--text-secondary)] space-y-0.5">
+                      <div><code className="font-mono">t</code> - parameter (varies with curve position)</div>
+                      <div><code className="font-mono">n</code> - curve index (-count/2 to +count/2)</div>
+                      <div><code className="font-mono">amplitude</code> - scale factor parameter</div>
+                      <div><code className="font-mono">phase</code> - phase offset (in radians)</div>
+                      <div><code className="font-mono">Math</code> - Math object (sin, cos, etc.)</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Parameters Section */}
             <div className="p-3">
               <div className="flex items-center justify-between mb-2">
@@ -406,25 +531,32 @@ export function RightSidebar() {
                   if (!patternDef) return null;
 
                   return Object.entries(patternDef.parameterConfig).map(([paramKey, config]) => {
+                    // Skip string parameters (like xFunction, yFunction) for regular sliders
+                    if (paramKey === 'xFunction' || paramKey === 'yFunction') return null;
+                    
                     const currentValue = selectedLayer.parameters[paramKey as keyof typeof selectedLayer.parameters] ?? config.min;
                     const defaultValue = patternDef.defaultParameters[paramKey as keyof typeof patternDef.defaultParameters] ?? config.min;
+                    
+                    // Ensure values are numbers
+                    const numericCurrentValue = typeof currentValue === 'number' ? currentValue : config.min;
+                    const numericDefaultValue = typeof defaultValue === 'number' ? defaultValue : config.min;
                     
                     return (
                       <Slider
                         key={paramKey}
                         label={config.label}
-                        value={currentValue}
+                        value={numericCurrentValue}
                         min={config.min}
                         max={config.max}
                         step={config.step}
                         unit={config.unit}
                         onChange={(value) => handleParameterChange(paramKey, value)}
                         compact
-                        defaultValue={defaultValue}
-                        onReset={() => handleParameterChange(paramKey, defaultValue)}
+                        defaultValue={numericDefaultValue}
+                        onReset={() => handleParameterChange(paramKey, numericDefaultValue)}
                       />
                     );
-                  });
+                  }).filter(Boolean);
                 })()}
               </div>
             </div>

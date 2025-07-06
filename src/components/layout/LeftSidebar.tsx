@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Layers, Eye, EyeOff, Plus, Trash2, ArrowUpDown, ArrowLeftRight, RotateCw, Gauge, Copy, Blend, GripVertical } from 'lucide-react';
+import { Eye, EyeOff, Plus, Trash2, ArrowUpDown, ArrowLeftRight, RotateCw, Gauge, Copy, Blend, GripVertical } from 'lucide-react';
 import { Slider } from '../ui';
 import { useMoireProjectContext } from '../../hooks/MoireProjectContext';
 import { PATTERN_DEFINITIONS } from '../../types/moire';

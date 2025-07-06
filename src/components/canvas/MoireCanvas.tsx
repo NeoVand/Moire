@@ -101,35 +101,7 @@ export function MoireCanvas({ layers, zoom, pan, backgroundColor, onZoomChange, 
     }
   };
 
-  const drawSineWaveLines = (ctx: CanvasRenderingContext2D, layer: PatternLayer, bounds: number) => {
-    const { spacing = 30, amplitude = 15, wavelength = 60, thickness = 1.5, phase = 0, count = 30, size = 800 } = layer.parameters;
-    
-    ctx.lineWidth = thickness;
-    const phaseRad = (phase / 360) * 2 * Math.PI;
-    const maxLines = Math.min(count, 1000); // Enforce maximum limit
-    const halfLines = Math.floor(maxLines / 2);
-    
-    // Use user-controlled line length, but cap at reasonable limits to prevent zoom conflicts
-    const lineLength = Math.min(size / 2, Math.max(canvasSize.width, canvasSize.height) / zoom);
-
-    for (let i = -halfLines; i <= halfLines; i++) {
-      const baseY = i * spacing;
-      
-      // Only draw if the line would be visible within bounds
-      if (Math.abs(baseY) <= bounds + amplitude) {
-        ctx.beginPath();
-        for (let x = -lineLength; x <= lineLength; x += 2) {
-          const y = baseY + Math.sin((x / wavelength) * 2 * Math.PI + phaseRad) * amplitude;
-          if (x === -lineLength) {
-            ctx.moveTo(x, y);
-          } else {
-            ctx.lineTo(x, y);
-          }
-        }
-        ctx.stroke();
-      }
-    }
-  };
+  // Remove sine wave lines - moved to curves category
 
   const drawSawtoothWaveLines = (ctx: CanvasRenderingContext2D, layer: PatternLayer, bounds: number) => {
     const { spacing = 30, amplitude = 15, wavelength = 60, thickness = 1.5, phase = 0, count = 30, size = 800 } = layer.parameters;
@@ -247,24 +219,30 @@ export function MoireCanvas({ layers, zoom, pan, backgroundColor, onZoomChange, 
   };
 
   // Curves Category
-  const drawSineWaves = (ctx: CanvasRenderingContext2D, layer: PatternLayer, bounds: number) => {
-    const { spacing = 40, amplitude = 20, wavelength = 80, thickness = 1.5, phase = 0 } = layer.parameters;
+  const drawSineWaveCurves = (ctx: CanvasRenderingContext2D, layer: PatternLayer, bounds: number) => {
+    const { count = 25, spacing = 40, amplitude = 20, wavelength = 80, thickness = 1.5, phase = 0, offsetX = 0, offsetY = 0 } = layer.parameters;
     
     ctx.lineWidth = thickness;
     const phaseRad = (phase / 360) * 2 * Math.PI;
-    const lineCount = Math.min(Math.ceil((bounds * 2) / spacing) + 2, 200); // Limit max lines
+    const maxCurves = Math.min(count, 200); // Enforce maximum limit
+    const halfCurves = Math.floor(maxCurves / 2);
     
     // Limit line length to reasonable viewport-based size to prevent zoom conflicts
     const maxLineLength = Math.min(bounds, Math.max(canvasSize.width, canvasSize.height) / zoom);
 
-    for (let i = -lineCount; i <= lineCount; i++) {
+    for (let i = -halfCurves; i <= halfCurves; i++) {
       const baseY = i * spacing;
       
+      // Progressive offset effects for moiré patterns
+      const progressiveOffsetX = offsetX * i;
+      const progressiveOffsetY = offsetY * i;
+      
       // Only draw if the line would be visible within bounds
-      if (Math.abs(baseY) <= bounds + amplitude) {
+      if (Math.abs(baseY + progressiveOffsetY) <= bounds + amplitude) {
         ctx.beginPath();
         for (let x = -maxLineLength; x <= maxLineLength; x += 2) {
-          const y = baseY + Math.sin((x / wavelength) * 2 * Math.PI + phaseRad) * amplitude;
+          const adjustedX = x + progressiveOffsetX;
+          const y = baseY + progressiveOffsetY + Math.sin((adjustedX / wavelength) * 2 * Math.PI + phaseRad) * amplitude;
           if (x === -maxLineLength) {
             ctx.moveTo(x, y);
           } else {
@@ -276,30 +254,309 @@ export function MoireCanvas({ layers, zoom, pan, backgroundColor, onZoomChange, 
     }
   };
 
-  const drawSpiral = (ctx: CanvasRenderingContext2D, layer: PatternLayer, bounds: number) => {
-    const { turns = 8, thickness = 1.5, phase = 0 } = layer.parameters;
+  const drawSpiralCurves = (ctx: CanvasRenderingContext2D, layer: PatternLayer, bounds: number) => {
+    const { count = 6, spacing = 15, turns = 8, thickness = 1.5, phase = 0, size = 0, offsetX = 0, offsetY = 0 } = layer.parameters;
     
     ctx.lineWidth = thickness;
-    const maxRadius = bounds;
-    const totalTurns = turns;
-    const steps = Math.max(500, totalTurns * 50); // More steps for smoother spirals
     const phaseRad = (phase / 360) * 2 * Math.PI;
+    const radialOffset = Math.max(0, size);
     
-    ctx.beginPath();
-    for (let i = 0; i <= steps; i++) {
-      const t = i / steps;
-      const angle = t * totalTurns * 2 * Math.PI + phaseRad;
-      const radius = t * maxRadius;
-      const x = Math.cos(angle) * radius;
-      const y = Math.sin(angle) * radius;
+    // Fixed spiral size - independent of zoom level
+    const baseMaxRadius = 300; // Fixed base radius for spiral extent
+    const steps = Math.max(500, turns * 50); // More steps for smoother spirals
+    
+    for (let spiralIndex = 0; spiralIndex < count; spiralIndex++) {
+      const spiralRadialOffset = radialOffset + spiralIndex * spacing;
+      const effectiveMaxRadius = baseMaxRadius + spiralIndex * spacing; // Each spiral is bigger than the last
       
-      if (i === 0) {
-        ctx.moveTo(x, y);
-      } else {
-        ctx.lineTo(x, y);
+      // Progressive offset effects for moiré patterns
+      const progressiveOffsetX = offsetX * spiralIndex;
+      const progressiveOffsetY = offsetY * spiralIndex;
+      
+      // Only draw if the spiral center would be visible within bounds
+      if (Math.abs(progressiveOffsetX) <= bounds && Math.abs(progressiveOffsetY) <= bounds) {
+        ctx.beginPath();
+        for (let i = 0; i <= steps; i++) {
+          const t = i / steps;
+          const angle = t * turns * 2 * Math.PI + phaseRad;
+          const radius = spiralRadialOffset + t * effectiveMaxRadius;
+          const x = Math.cos(angle) * radius + progressiveOffsetX;
+          const y = Math.sin(angle) * radius + progressiveOffsetY;
+          
+          if (i === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        }
+        ctx.stroke();
       }
     }
-    ctx.stroke();
+  };
+
+  const drawCycloidCurves = (ctx: CanvasRenderingContext2D, layer: PatternLayer, bounds: number) => {
+    const { count = 15, spacing = 50, radius = 20, thickness = 1.5, phase = 0, size = 3, offsetX = 0, offsetY = 0 } = layer.parameters;
+    
+    ctx.lineWidth = thickness;
+    const phaseRad = (phase / 360) * 2 * Math.PI;
+    const rollingDistance = size;
+    const maxCurves = Math.min(count, 50);
+    const halfCurves = Math.floor(maxCurves / 2);
+    
+    for (let i = -halfCurves; i <= halfCurves; i++) {
+      const baseY = i * spacing;
+      
+      // Progressive offset effects for moiré patterns
+      const progressiveOffsetX = offsetX * i;
+      const progressiveOffsetY = offsetY * i;
+      
+      // Only draw if the curve would be visible within bounds
+      if (Math.abs(baseY + progressiveOffsetY) <= bounds + radius) {
+        ctx.beginPath();
+        const steps = Math.max(200, rollingDistance * 100);
+        
+        for (let j = 0; j <= steps; j++) {
+          const t = (j / steps) * rollingDistance * 2 * Math.PI + phaseRad;
+          const x = radius * (t - Math.sin(t)) + progressiveOffsetX;
+          const y = baseY + progressiveOffsetY + radius * (1 - Math.cos(t));
+          
+          if (j === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        }
+        ctx.stroke();
+      }
+    }
+  };
+
+  const drawEpitrochoidCurves = (ctx: CanvasRenderingContext2D, layer: PatternLayer, bounds: number) => {
+    const { count = 8, spacing = 25, radius = 30, thickness = 1.5, phase = 1.5, size = 15, offsetX = 0, offsetY = 0 } = layer.parameters;
+    
+    ctx.lineWidth = thickness;
+    const baseRadius = radius;
+    const rollingRadius = size;
+    const pointDistance = phase * rollingRadius;
+    const maxCurves = Math.min(count, 30);
+    const halfCurves = Math.floor(maxCurves / 2);
+    
+    for (let i = -halfCurves; i <= halfCurves; i++) {
+      const currentBaseRadius = baseRadius + i * spacing;
+      
+      // Progressive offset effects for moiré patterns
+      const progressiveOffsetX = offsetX * i;
+      const progressiveOffsetY = offsetY * i;
+      
+      // Only draw if the curve would be visible within bounds
+      if (currentBaseRadius <= bounds) {
+        ctx.beginPath();
+        const steps = Math.max(300, Math.floor(currentBaseRadius * 2));
+        
+        for (let j = 0; j <= steps; j++) {
+          const t = (j / steps) * 2 * Math.PI * Math.ceil((currentBaseRadius + rollingRadius) / rollingRadius);
+          const x = (currentBaseRadius + rollingRadius) * Math.cos(t) - pointDistance * Math.cos(((currentBaseRadius + rollingRadius) / rollingRadius) * t) + progressiveOffsetX;
+          const y = (currentBaseRadius + rollingRadius) * Math.sin(t) - pointDistance * Math.sin(((currentBaseRadius + rollingRadius) / rollingRadius) * t) + progressiveOffsetY;
+          
+          if (j === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        }
+        ctx.stroke();
+      }
+    }
+  };
+
+  const drawLissajousCurves = (ctx: CanvasRenderingContext2D, layer: PatternLayer, bounds: number) => {
+    const { count = 12, spacing = 30, amplitude = 25, thickness = 1.5, phase = 0, size = 2, offsetX = 0, offsetY = 0 } = layer.parameters;
+    
+    ctx.lineWidth = thickness;
+    const phaseRad = (phase / 360) * 2 * Math.PI;
+    const frequencyRatio = size;
+    const maxCurves = Math.min(count, 40);
+    const halfCurves = Math.floor(maxCurves / 2);
+    
+    for (let i = -halfCurves; i <= halfCurves; i++) {
+      const currentAmplitude = amplitude + i * (spacing / 2);
+      
+      // Progressive offset effects for moiré patterns
+      const progressiveOffsetX = offsetX * i;
+      const progressiveOffsetY = offsetY * i;
+      
+      // Only draw if the curve would be visible within bounds
+      if (currentAmplitude <= bounds) {
+        ctx.beginPath();
+        const steps = 1000; // High resolution for smooth curves
+        
+        for (let j = 0; j <= steps; j++) {
+          const t = (j / steps) * 2 * Math.PI * Math.max(1, frequencyRatio);
+          const x = currentAmplitude * Math.sin(t + phaseRad) + progressiveOffsetX;
+          const y = currentAmplitude * Math.sin(frequencyRatio * t) + progressiveOffsetY;
+          
+          if (j === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        }
+        ctx.stroke();
+      }
+    }
+  };
+
+  const drawHyperbolaCurves = (ctx: CanvasRenderingContext2D, layer: PatternLayer, bounds: number) => {
+    const { count = 10, spacing = 35, amplitude = 20, thickness = 1.5, phase = 1.5, size = 50, offsetX = 0, offsetY = 0 } = layer.parameters;
+    
+    ctx.lineWidth = thickness;
+    const eccentricity = phase;
+    const scaleFactor = amplitude;
+    const centerDistance = size;
+    const maxCurves = Math.min(count, 30);
+    const halfCurves = Math.floor(maxCurves / 2);
+    
+    for (let i = -halfCurves; i <= halfCurves; i++) {
+      const currentScale = scaleFactor + i * spacing;
+      
+      // Progressive offset effects for moiré patterns
+      const progressiveOffsetX = offsetX * i + (i % 2) * centerDistance; // Use center distance for alternating offset
+      const progressiveOffsetY = offsetY * i;
+      
+      // Only draw if the curve would be visible within bounds
+      if (currentScale <= bounds) {
+        ctx.beginPath();
+        const steps = 200;
+        let firstPoint = true;
+        
+        // Draw both branches of the hyperbola
+        for (let branch = -1; branch <= 1; branch += 2) {
+          for (let j = 0; j <= steps; j++) {
+            const t = (j / steps - 0.5) * 4; // Parameter range
+            const x = branch * currentScale * Math.sqrt(1 + t * t) + progressiveOffsetX;
+            const y = currentScale * t / eccentricity + progressiveOffsetY;
+            
+            if (firstPoint) {
+              ctx.moveTo(x, y);
+              firstPoint = false;
+            } else {
+              ctx.lineTo(x, y);
+            }
+          }
+        }
+        ctx.stroke();
+      }
+    }
+  };
+
+  const drawCatenaryCurves = (ctx: CanvasRenderingContext2D, layer: PatternLayer, bounds: number) => {
+    const { count = 15, spacing = 40, amplitude = 30, thickness = 1.5, phase = 0, size = 200, offsetX = 0, offsetY = 0 } = layer.parameters;
+    
+    ctx.lineWidth = thickness;
+    const phaseRad = (phase / 360) * 2 * Math.PI;
+    const chainTension = amplitude;
+    const chainLength = size;
+    const maxCurves = Math.min(count, 50);
+    const halfCurves = Math.floor(maxCurves / 2);
+    
+    for (let i = -halfCurves; i <= halfCurves; i++) {
+      const baseY = i * spacing;
+      
+      // Progressive offset effects for moiré patterns
+      const progressiveOffsetX = offsetX * i;
+      const progressiveOffsetY = offsetY * i;
+      
+      // Only draw if the curve would be visible within bounds
+      if (Math.abs(baseY + progressiveOffsetY) <= bounds + chainTension) {
+        ctx.beginPath();
+        const steps = 200;
+        
+        for (let j = 0; j <= steps; j++) {
+          const x = ((j / steps) - 0.5) * chainLength + progressiveOffsetX;
+          const y = baseY + progressiveOffsetY + chainTension * Math.cosh(x / chainTension) - chainTension + Math.sin(x / chainTension + phaseRad) * (chainTension / 10);
+          
+          if (j === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        }
+        ctx.stroke();
+      }
+    }
+  };
+
+  const drawParametricCurves = (ctx: CanvasRenderingContext2D, layer: PatternLayer, _bounds: number) => {
+    const { 
+      count = 10, 
+      spacing = 40, 
+      amplitude = 50, 
+      thickness = 1.5, 
+      phase = 0, 
+      size = 100, 
+      offsetX = 0, 
+      offsetY = 0,
+      xFunction = 'return amplitude * (1 + n * 0.1) * Math.cos(t + phase);',
+      yFunction = 'return amplitude * (1 + n * 0.1) * Math.sin(t + phase);'
+    } = layer.parameters;
+    
+    ctx.lineWidth = thickness;
+    const phaseRad = (phase / 360) * 2 * Math.PI;
+    const parameterRange = size;
+    const resolution = spacing;
+    const maxCurves = Math.min(count, 100);
+    const halfCurves = Math.floor(maxCurves / 2);
+    
+    // Create functions from user-defined code
+    let getX: (t: number, n: number) => number;
+    let getY: (t: number, n: number) => number;
+    
+    try {
+      // Create function with available variables in scope
+      const xFunc = new Function('t', 'n', 'amplitude', 'phase', 'Math', xFunction as string);
+      const yFunc = new Function('t', 'n', 'amplitude', 'phase', 'Math', yFunction as string);
+      
+      getX = (t: number, n: number) => {
+        const result = xFunc(t, n, amplitude, phaseRad, Math);
+        return typeof result === 'number' ? result : 0;
+      };
+      getY = (t: number, n: number) => {
+        const result = yFunc(t, n, amplitude, phaseRad, Math);
+        return typeof result === 'number' ? result : 0;
+      };
+    } catch (error) {
+      console.warn('Error in parametric function:', error);
+      // Fallback to default functions
+      getX = (t: number, n: number) => amplitude * (1 + n * 0.1) * Math.cos(t + phaseRad);
+      getY = (t: number, n: number) => amplitude * (1 + n * 0.1) * Math.sin(t + phaseRad);
+    }
+    
+    for (let i = -halfCurves; i <= halfCurves; i++) {
+      // Progressive offset effects for moiré patterns
+      const progressiveOffsetX = offsetX * i;
+      const progressiveOffsetY = offsetY * i;
+      
+      ctx.beginPath();
+      const steps = Math.max(50, Math.floor(resolution));
+      
+              try {
+          for (let j = 0; j <= steps; j++) {
+            const t = ((j / steps) - 0.5) * parameterRange;
+            const x = getX(t, i) + progressiveOffsetX;
+            const y = getY(t, i) + progressiveOffsetY;
+            
+            if (j === 0) {
+              ctx.moveTo(x, y);
+            } else {
+              ctx.lineTo(x, y);
+            }
+          }
+          ctx.stroke();
+        } catch (error) {
+          // Skip this curve if there's an error in the function
+          console.warn('Error drawing parametric curve:', error);
+        }
+    }
   };
 
   // Tiles Category
@@ -808,9 +1065,7 @@ export function MoireCanvas({ layers, zoom, pan, backgroundColor, onZoomChange, 
       case 'radial-lines':
         drawRadialLines(ctx, layer, bounds);
         break;
-      case 'sine-wave-lines':
-        drawSineWaveLines(ctx, layer, bounds);
-        break;
+      // sine-wave-lines removed - moved to curves category
       case 'sawtooth-wave-lines':
         drawSawtoothWaveLines(ctx, layer, bounds);
         break;
@@ -820,11 +1075,29 @@ export function MoireCanvas({ layers, zoom, pan, backgroundColor, onZoomChange, 
       case 'triangle-wave-lines':
         drawTriangleWaveLines(ctx, layer, bounds);
         break;
-      case 'sine-waves':
-        drawSineWaves(ctx, layer, bounds);
+      case 'sine-wave-curves':
+        drawSineWaveCurves(ctx, layer, bounds);
         break;
-      case 'spiral':
-        drawSpiral(ctx, layer, bounds);
+      case 'spiral-curves':
+        drawSpiralCurves(ctx, layer, bounds);
+        break;
+      case 'cycloid-curves':
+        drawCycloidCurves(ctx, layer, bounds);
+        break;
+      case 'epitrochoid-curves':
+        drawEpitrochoidCurves(ctx, layer, bounds);
+        break;
+      case 'lissajous-curves':
+        drawLissajousCurves(ctx, layer, bounds);
+        break;
+      case 'hyperbola-curves':
+        drawHyperbolaCurves(ctx, layer, bounds);
+        break;
+      case 'catenary-curves':
+        drawCatenaryCurves(ctx, layer, bounds);
+        break;
+      case 'parametric-curves':
+        drawParametricCurves(ctx, layer, bounds);
         break;
       case 'triangular-tiling':
         drawTriangularTiling(ctx, layer, bounds);

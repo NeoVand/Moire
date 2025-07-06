@@ -1,4 +1,4 @@
-import { HelpCircle, RotateCw, Move, Hand, ZoomIn } from 'lucide-react';
+import { RotateCw, Move, Hand, ZoomIn } from 'lucide-react';
 import type { InteractionMode } from '../../utils/canvasInteractions';
 
 interface InteractionHelperProps {
