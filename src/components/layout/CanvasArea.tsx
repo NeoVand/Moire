@@ -6,6 +6,8 @@ export function CanvasArea() {
   const containerRef = useRef<HTMLDivElement>(null);
   const { project, setZoom, setPan } = useMoireProjectContext();
 
+
+
   return (
     <div ref={containerRef} className="absolute inset-0 w-full h-full">
       <MoireCanvas 

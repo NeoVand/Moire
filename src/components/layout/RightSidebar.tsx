@@ -165,12 +165,23 @@ export function RightSidebar() {
 
   const handlePatternTypeChange = (patternId: string) => {
     const patternDef = PATTERN_DEFINITIONS.find(p => p.id === patternId);
-    if (!patternDef) return;
+    if (!patternDef || !selectedLayer) return;
+
+    // Preserve existing values for common parameters, only add new ones
+    const preservedParameters = { ...selectedLayer.parameters };
+    const newParameters = { ...patternDef.defaultParameters };
+    
+    // Keep existing values for parameters that exist in both old and new pattern
+    Object.keys(newParameters).forEach(key => {
+      if (preservedParameters[key as keyof typeof preservedParameters] !== undefined) {
+        newParameters[key as keyof typeof newParameters] = preservedParameters[key as keyof typeof preservedParameters];
+      }
+    });
 
     updateSelectedLayer({ 
       category: patternDef.category,
       type: patternId,
-      parameters: { ...patternDef.defaultParameters }
+      parameters: newParameters
     });
   };
 
@@ -178,9 +189,7 @@ export function RightSidebar() {
     updateSelectedLayer({ color });
   };
 
-  const handleFillColorSelect = (fillColor: string) => {
-    updateSelectedLayer({ fillColor });
-  };
+  // Removed fillColor handling since it's no longer supported
 
   const handleParameterChange = (paramKey: string, value: number) => {
     if (!selectedLayer) return;
@@ -266,19 +275,6 @@ export function RightSidebar() {
         <path d="M12 15 L15 8"/>
       </svg>
     )},
-    { id: 'curves', name: 'Curves', icon: () => (
-      <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1">
-        <path d="M8 8 C8 6, 10 6, 10 8 C10 11, 6 11, 6 8 C6 4, 12 4, 12 8 C12 14, 2 14, 2 8 C2 1, 15 1, 15 8"/>
-      </svg>
-    )},
-    { id: 'tiles', name: 'Tiles', icon: () => (
-      <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1">
-        <rect x="1" y="1" width="6" height="6" rx="0.5"/>
-        <rect x="9" y="1" width="6" height="6" rx="0.5"/>
-        <rect x="1" y="9" width="6" height="6" rx="0.5"/>
-        <rect x="9" y="9" width="6" height="6" rx="0.5"/>
-      </svg>
-    ) },
     { id: 'concentric', name: 'Concentric', icon: () => (
       <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1">
         <circle cx="8" cy="8" r="2.5"/>
@@ -407,101 +403,13 @@ export function RightSidebar() {
                   <ColorPicker
                     value={selectedLayer.color}
                     onChange={handleColorSelect}
-                    allowNone={selectedLayer.category === 'tiles'}
+                    allowNone={false}
                   />
                 </div>
-
-                {/* Fill Color - Only for tiles */}
-                {selectedLayer.category === 'tiles' && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium text-[var(--text-primary)]">Fill</span>
-                    <ColorPicker
-                      value={selectedLayer.fillColor || '#ffffff'}
-                      onChange={handleFillColorSelect}
-                      allowNone={true}
-                    />
-                  </div>
-                )}
               </div>
             </div>
 
-            {/* Parametric Code Editor - Only for parametric curves */}
-            {selectedLayer.type === 'parametric-curves' && (
-              <div className="p-3 border-b border-[var(--border)]/50">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-xs font-medium text-[var(--text-primary)] uppercase tracking-wide">
-                    Custom Functions
-                  </h3>
-                  <button
-                    onClick={() => {
-                      updateSelectedLayer({
-                        parameters: {
-                          ...selectedLayer.parameters,
-                          xFunction: 'return amplitude * (1 + n * 0.1) * Math.cos(t + phase);',
-                          yFunction: 'return amplitude * (1 + n * 0.1) * Math.sin(t + phase);'
-                        }
-                      });
-                    }}
-                    className="px-2 py-1 text-xs bg-[var(--bg-tertiary)]/50 hover:bg-[var(--bg-tertiary)]/80 text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded transition-colors border border-[var(--border)]/50 opacity-70 hover:opacity-100"
-                    title="Reset to default concentric circles"
-                  >
-                    Reset
-                  </button>
-                </div>
-                
-                <div className="space-y-3">
-                  {/* X Function */}
-                  <div>
-                    <label className="text-xs font-medium text-[var(--text-primary)] mb-2 block">
-                      X Function (t, n)
-                    </label>
-                    <textarea
-                      value={selectedLayer.parameters.xFunction || ''}
-                      onChange={(e) => updateSelectedLayer({
-                        parameters: {
-                          ...selectedLayer.parameters,
-                          xFunction: e.target.value
-                        }
-                      })}
-                      className="w-full h-20 px-2 py-2 text-xs font-mono bg-[var(--bg-tertiary)] border border-[var(--border)] rounded focus:ring-2 focus:ring-[var(--gradient-start)]/30 focus:border-[var(--gradient-start)] text-[var(--text-primary)] resize-none"
-                      placeholder="return amplitude * Math.cos(t + phase);"
-                      spellCheck={false}
-                    />
-                  </div>
-                  
-                  {/* Y Function */}
-                  <div>
-                    <label className="text-xs font-medium text-[var(--text-primary)] mb-2 block">
-                      Y Function (t, n)
-                    </label>
-                    <textarea
-                      value={selectedLayer.parameters.yFunction || ''}
-                      onChange={(e) => updateSelectedLayer({
-                        parameters: {
-                          ...selectedLayer.parameters,
-                          yFunction: e.target.value
-                        }
-                      })}
-                      className="w-full h-20 px-2 py-2 text-xs font-mono bg-[var(--bg-tertiary)] border border-[var(--border)] rounded focus:ring-2 focus:ring-[var(--gradient-start)]/30 focus:border-[var(--gradient-start)] text-[var(--text-primary)] resize-none"
-                      placeholder="return amplitude * Math.sin(t + phase);"
-                      spellCheck={false}
-                    />
-                  </div>
-                  
-                  {/* Available Variables Info */}
-                  <div className="bg-[var(--bg-tertiary)]/30 border border-[var(--border)]/30 rounded p-2">
-                    <p className="text-xs text-[var(--text-secondary)] font-medium mb-1">Available Variables:</p>
-                    <div className="text-xs text-[var(--text-secondary)] space-y-0.5">
-                      <div><code className="font-mono">t</code> - parameter (varies with curve position)</div>
-                      <div><code className="font-mono">n</code> - curve index (-count/2 to +count/2)</div>
-                      <div><code className="font-mono">amplitude</code> - scale factor parameter</div>
-                      <div><code className="font-mono">phase</code> - phase offset (in radians)</div>
-                      <div><code className="font-mono">Math</code> - Math object (sin, cos, etc.)</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+            {/* Parametric Code Editor section removed - no longer supported */}
 
             {/* Parameters Section */}
             <div className="p-3">
