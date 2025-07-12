@@ -88,8 +88,8 @@ export const PATTERN_DEFINITIONS: PatternDefinition[] = [
       spacing: { label: 'Ring Spacing', min: 1, max: 100, step: 0.5, unit: 'px' },
       thickness: { label: 'Line Width', min: 0.1, max: 20, step: 0.1, unit: 'px' },
       phase: { label: 'Start Radius', min: 0, max: 500, step: 1, unit: 'px', description: 'Radius of the innermost circle' },
-      offsetX: { label: 'X Offset', min: -20, max: 20, step: 0.1, unit: 'px', description: 'Progressive X displacement for moiré effects' },
-      offsetY: { label: 'Y Offset', min: -20, max: 20, step: 0.1, unit: 'px', description: 'Progressive Y displacement for moiré effects' },
+      offsetX: { label: 'X Offset', min: -3, max: 3, step: 0.01, unit: 'px', description: 'Progressive X displacement for moiré effects' },
+      offsetY: { label: 'Y Offset', min: -3, max: 3, step: 0.01, unit: 'px', description: 'Progressive Y displacement for moiré effects' },
     },
   },
   {
@@ -109,8 +109,8 @@ export const PATTERN_DEFINITIONS: PatternDefinition[] = [
       spacing: { label: 'Ring Spacing', min: 1, max: 100, step: 0.5, unit: 'px' },
       thickness: { label: 'Line Width', min: 0.1, max: 20, step: 0.1, unit: 'px' },
       phase: { label: 'Start Size', min: 0, max: 500, step: 1, unit: 'px', description: 'Size of the innermost square' },
-      offsetX: { label: 'X Offset', min: -20, max: 20, step: 0.1, unit: 'px', description: 'Progressive X displacement for moiré effects' },
-      offsetY: { label: 'Y Offset', min: -20, max: 20, step: 0.1, unit: 'px', description: 'Progressive Y displacement for moiré effects' },
+      offsetX: { label: 'X Offset', min: -3, max: 3, step: 0.01, unit: 'px', description: 'Progressive X displacement for moiré effects' },
+      offsetY: { label: 'Y Offset', min: -3, max: 3, step: 0.01, unit: 'px', description: 'Progressive Y displacement for moiré effects' },
     },
   },
   {
@@ -130,8 +130,31 @@ export const PATTERN_DEFINITIONS: PatternDefinition[] = [
       spacing: { label: 'Ring Spacing', min: 1, max: 100, step: 0.5, unit: 'px' },
       thickness: { label: 'Line Width', min: 0.1, max: 20, step: 0.1, unit: 'px' },
       phase: { label: 'Start Size', min: 0, max: 500, step: 1, unit: 'px', description: 'Size of the innermost triangle' },
-      offsetX: { label: 'X Offset', min: -20, max: 20, step: 0.1, unit: 'px', description: 'Progressive X displacement for moiré effects' },
-      offsetY: { label: 'Y Offset', min: -20, max: 20, step: 0.1, unit: 'px', description: 'Progressive Y displacement for moiré effects' },
+      offsetX: { label: 'X Offset', min: -3, max: 3, step: 0.01, unit: 'px', description: 'Progressive X displacement for moiré effects' },
+      offsetY: { label: 'Y Offset', min: -3, max: 3, step: 0.01, unit: 'px', description: 'Progressive Y displacement for moiré effects' },
+    },
+  },
+  {
+    id: 'concentric-polygons',
+    name: 'Polygons',
+    category: 'concentric',
+    icon: 'hexagon',
+    description: 'Concentric polygon rings - customize the number of sides',
+    defaultParameters: {
+      spacing: 25,
+      thickness: 1.5,
+      phase: 10,
+      offsetX: 0,
+      offsetY: 0,
+      count: 6, // Number of sides (hexagon by default)
+    },
+    parameterConfig: {
+      spacing: { label: 'Ring Spacing', min: 1, max: 100, step: 0.5, unit: 'px' },
+      thickness: { label: 'Line Width', min: 0.1, max: 20, step: 0.1, unit: 'px' },
+      phase: { label: 'Start Size', min: 0, max: 500, step: 1, unit: 'px', description: 'Size of the innermost polygon' },
+      count: { label: 'Number of Sides', min: 3, max: 20, step: 1, description: 'Triangle=3, Square=4, Pentagon=5, Hexagon=6, etc.' },
+      offsetX: { label: 'X Offset', min: -3, max: 3, step: 0.01, unit: 'px', description: 'Progressive X displacement for moiré effects' },
+      offsetY: { label: 'Y Offset', min: -3, max: 3, step: 0.01, unit: 'px', description: 'Progressive Y displacement for moiré effects' },
     },
   },
 ];
@@ -164,7 +187,6 @@ export function createDefaultProject(): MoireProject {
     parameters: {
       spacing: 6.0,
       thickness: 3.5,
-      count: 160,
       phase: 0,
       offsetX: 0,
       offsetY: -0.5,
@@ -186,7 +208,6 @@ export function createDefaultProject(): MoireProject {
     parameters: {
       spacing: 6.0,
       thickness: 3.5,
-      count: 160,
       phase: 0,
       offsetX: 0,
       offsetY: 0.5,

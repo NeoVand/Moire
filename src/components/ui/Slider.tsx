@@ -29,9 +29,9 @@ export function Slider({
 }: SliderProps) {
   const [isAltPressed, setIsAltPressed] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [lastMouseX, setLastMouseX] = useState<number | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editingValue, setEditingValue] = useState('');
+  const [lastMouseX, setLastMouseX] = useState<number | null>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
   
   // Calculate the percentage for the gradient fill
@@ -60,47 +60,52 @@ export function Slider({
     };
   }, [isAltPressed]);
 
-  // Custom drag handling for smooth fine control with incremental movement
+  // Hybrid drag handling: direct positioning for normal drag, incremental for fine control
   const updateValue = useCallback((clientX: number) => {
-    if (!sliderRef.current || lastMouseX === null) return;
+    if (!sliderRef.current) return;
 
     const rect = sliderRef.current.getBoundingClientRect();
     
-    // Calculate the incremental mouse movement since last update
-    const deltaX = clientX - lastMouseX;
-    
-    // Apply sensitivity: when Alt is pressed, movement is 20x less sensitive
-    const sensitivity = isAltPressed ? 0.05 : 1.0;
-    const adjustedDelta = deltaX * sensitivity;
-    
-    // Convert mouse delta to value delta based on slider width and range
-    const valueDelta = (adjustedDelta / rect.width) * (max - min);
-    
-    // Calculate new value
-    const newValue = value + valueDelta;
-    
-    // Apply stepping based on whether Alt is pressed
-    let finalValue: number;
-    if (isAltPressed) {
-      // For fine control, use much smaller steps
-      const fineStep = step * 0.01; // Even finer than before
-      finalValue = Math.round(newValue / fineStep) * fineStep;
+    if (isAltPressed && lastMouseX !== null) {
+      // Fine control mode: incremental movement
+      const deltaX = clientX - lastMouseX;
+      
+      // Make movement much more gradual when Alt is pressed
+      const sensitivity = 0.2; // 5x slower movement
+      const adjustedDelta = deltaX * sensitivity;
+      
+      // Convert mouse delta to value delta
+      const valueDelta = (adjustedDelta / rect.width) * (max - min);
+      
+      // Calculate new value
+      const newValue = value + valueDelta;
+      
+      // Use much finer steps for precise control
+      const fineStep = step * 0.1;
+      const steppedValue = Math.round(newValue / fineStep) * fineStep;
+      
+      // Clamp to bounds
+      const clampedValue = Math.max(min, Math.min(max, steppedValue));
+      
+      // Update if changed
+      if (Math.abs(clampedValue - value) > Number.EPSILON) {
+        onChange(clampedValue);
+      }
     } else {
-      // Normal stepping
-      finalValue = Math.round(newValue / step) * step;
-    }
-    
-    // Clamp to bounds
-    const clampedValue = Math.max(min, Math.min(max, finalValue));
-    
-    // Only update if the value actually changed
-    if (Math.abs(clampedValue - value) > Number.EPSILON) {
-      onChange(clampedValue);
+      // Normal mode: direct positioning
+      const relativeX = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+      const rawValue = min + relativeX * (max - min);
+      const steppedValue = Math.round(rawValue / step) * step;
+      const clampedValue = Math.max(min, Math.min(max, steppedValue));
+      
+      if (Math.abs(clampedValue - value) > Number.EPSILON) {
+        onChange(clampedValue);
+      }
     }
     
     // Update last mouse position for next incremental calculation
     setLastMouseX(clientX);
-  }, [min, max, step, onChange, isAltPressed, lastMouseX, value]);
+  }, [min, max, step, onChange, isAltPressed, value, lastMouseX]);
 
   // Handle mouse down to start custom dragging
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -109,16 +114,21 @@ export function Slider({
       setIsDragging(true);
       setLastMouseX(e.clientX);
       
+      // For normal mode, update immediately. For Alt mode, wait for mouse move
+      if (!isAltPressed) {
+        updateValue(e.clientX);
+      }
+      
       // Prevent text selection during drag
       document.body.style.userSelect = 'none';
       document.body.style.cursor = 'ew-resize';
     }
-  }, [isEditing]);
+  }, [isEditing, updateValue, isAltPressed]);
 
   // Global mouse move and up handlers for better drag experience
   useEffect(() => {
     const handleGlobalMouseMove = (e: MouseEvent) => {
-      if (isDragging && lastMouseX !== null) {
+      if (isDragging) {
         e.preventDefault();
         updateValue(e.clientX);
       }
@@ -143,7 +153,7 @@ export function Slider({
       document.removeEventListener('mousemove', handleGlobalMouseMove);
       document.removeEventListener('mouseup', handleGlobalMouseUp);
     };
-  }, [isDragging, updateValue, lastMouseX]);
+  }, [isDragging, updateValue]);
 
   // Fallback range input change handler for direct clicks on the hidden input
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -311,7 +321,9 @@ export function Slider({
               }}
               title="Click to edit value"
             >
-              {typeof value === 'number' ? value.toFixed(2) : value}{unit}
+              {typeof value === 'number' ? (
+                Number.isInteger(value) ? value.toString() : value.toFixed(2)
+              ) : value}{unit}
             </span>
           )}
         </div>

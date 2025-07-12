@@ -132,7 +132,7 @@ const createMoireSketch = () => {
 
           p5.blendMode(p5.BLEND);
           p5.quad(-1, -1, 1, -1, 1, 1, -1, 1);
-        } else if ((layer.type === 'concentric-circles' || layer.type === 'concentric-squares' || layer.type === 'concentric-triangles') && curveShader) {
+        } else if ((layer.type === 'concentric-circles' || layer.type === 'concentric-squares' || layer.type === 'concentric-triangles' || layer.type === 'concentric-polygons') && curveShader) {
           p5.shader(curveShader);
           const spacing = layer.parameters.spacing || 20;
           curveShader.setUniform('u_density', 1.0 / spacing);
@@ -151,16 +151,21 @@ const createMoireSketch = () => {
           curveShader.setUniform('u_phase', layer.parameters.phase || 0);
           curveShader.setUniform('u_offsetX', layer.parameters.offsetX || 0);
           curveShader.setUniform('u_offsetY', layer.parameters.offsetY || 0);
-          // Pass shape type to shader (1.0 for circles, 2.0 for squares, 3.0 for triangles)
+          // Pass shape type to shader (1.0 for circles, 2.0 for squares, 3.0 for triangles, 4.0 for polygons)
           let shapeType = 1.0; // Default to circles
+          let sides = 3.0; // Default number of sides
           if (layer.type === 'concentric-circles') {
             shapeType = 1.0;
           } else if (layer.type === 'concentric-squares') {
             shapeType = 2.0;
           } else if (layer.type === 'concentric-triangles') {
             shapeType = 3.0;
+          } else if (layer.type === 'concentric-polygons') {
+            shapeType = 4.0;
+            sides = layer.parameters.count || 6; // Use count parameter for number of sides (default hexagon)
           }
           curveShader.setUniform('u_shapeType', shapeType);
+          curveShader.setUniform('u_sides', sides);
           
           p5.blendMode(p5.BLEND);
           p5.quad(-1, -1, 1, -1, 1, 1, -1, 1);

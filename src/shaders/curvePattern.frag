@@ -13,7 +13,8 @@ uniform float u_offsetX;
 uniform float u_offsetY;
 uniform vec2 u_position;
 uniform float u_rotation;
-uniform float u_shapeType; // 1.0 = circles, 2.0 = squares, 3.0 = triangles
+uniform float u_shapeType; // 1.0 = circles, 2.0 = squares, 3.0 = triangles, 4.0 = polygons
+uniform float u_sides; // Number of sides for polygon shapes
 
 in vec2 vTexCoord;
 out vec4 fragColor;
@@ -27,32 +28,38 @@ float shapeSquare(vec2 q) {
   return max(abs(q.x), abs(q.y)) - 1.0;
 }
 
-float shapeTriangle(vec2 p) {
-  // Sharp triangle using polar coordinates approach (avoids SDF rounding)
+// General polygon function using polar coordinates
+float shapePolygon(vec2 p, float sides) {
+  // Sharp polygon using polar coordinates approach (avoids SDF rounding)
   // Based on http://thndl.com/square-shaped-shaders.html
   const float PI = 3.14159265359;
   const float TWO_PI = 6.28318530718;
   
   // Number of sides
-  float N = 3.0;
+  float N = sides;
   
   // Angle and radius from current point
   float a = atan(p.y, p.x) + PI;
   float r = TWO_PI / N;
   
-  // Sharp triangle distance using cos modulation
+  // Sharp polygon distance using cos modulation
   float d = cos(floor(0.5 + a/r) * r - a) * length(p);
   
   // Return distance from radius 1.0 boundary
   return d - 1.0;
 }
 
+float shapeTriangle(vec2 p) {
+  return shapePolygon(p, 3.0);
+}
+
 // Universal concentric SDF solver using Newton's method
-float concentricSDF(vec2 p, vec2 offset, float spacing, float phase, float shapeType) {
+float concentricSDF(vec2 p, vec2 offset, float spacing, float phase, float shapeType, float sides) {
   const float epsilon = 1e-6;
   bool isCircle = shapeType < 1.5;
   bool isSquare = shapeType >= 1.5 && shapeType < 2.5;
-  bool isTriangle = shapeType >= 2.5;
+  bool isTriangle = shapeType >= 2.5 && shapeType < 3.5;
+  bool isPolygon = shapeType >= 3.5;
   
   // Initial guess for ring index
   float shapeDistAtP;
@@ -60,8 +67,10 @@ float concentricSDF(vec2 p, vec2 offset, float spacing, float phase, float shape
     shapeDistAtP = shapeCircle(p);
   } else if (isSquare) {
     shapeDistAtP = shapeSquare(p);
-  } else {
+  } else if (isTriangle) {
     shapeDistAtP = shapeTriangle(p);
+  } else {
+    shapeDistAtP = shapePolygon(p, sides);
   }
   float n = max(0.0, (shapeDistAtP + phase) / spacing);
   
@@ -75,8 +84,10 @@ float concentricSDF(vec2 p, vec2 offset, float spacing, float phase, float shape
       shapeDist = shapeCircle(q);
     } else if (isSquare) {
       shapeDist = shapeSquare(q);
-    } else {
+    } else if (isTriangle) {
       shapeDist = shapeTriangle(q);
+    } else {
+      shapeDist = shapePolygon(q, sides);
     }
     float f = shapeDist - (n * spacing - phase);
     
@@ -93,10 +104,16 @@ float concentricSDF(vec2 p, vec2 offset, float spacing, float phase, float shape
         gradShape = vec2(0.0, sign(q.y));
       }
     } else {
-      // Triangle gradient - numerical with appropriate step size for polar approach
+      // Triangle/Polygon gradient - numerical with appropriate step size for polar approach
       const float h = 0.001;
-      float dx = shapeTriangle(q + vec2(h, 0.0)) - shapeTriangle(q - vec2(h, 0.0));
-      float dy = shapeTriangle(q + vec2(0.0, h)) - shapeTriangle(q - vec2(0.0, h));
+      float dx, dy;
+      if (isTriangle) {
+        dx = shapeTriangle(q + vec2(h, 0.0)) - shapeTriangle(q - vec2(h, 0.0));
+        dy = shapeTriangle(q + vec2(0.0, h)) - shapeTriangle(q - vec2(0.0, h));
+      } else {
+        dx = shapePolygon(q + vec2(h, 0.0), sides) - shapePolygon(q - vec2(h, 0.0), sides);
+        dy = shapePolygon(q + vec2(0.0, h), sides) - shapePolygon(q - vec2(0.0, h), sides);
+      }
       gradShape = vec2(dx, dy) / (2.0 * h);
       
       // Ensure we have a valid gradient
@@ -131,8 +148,10 @@ float concentricSDF(vec2 p, vec2 offset, float spacing, float phase, float shape
       shapeDist0 = shapeCircle(q0);
     } else if (isSquare) {
       shapeDist0 = shapeSquare(q0);
-    } else {
+    } else if (isTriangle) {
       shapeDist0 = shapeTriangle(q0);
+    } else {
+      shapeDist0 = shapePolygon(q0, sides);
     }
     float targetSize0 = n0 * spacing - phase;
     float ringDist0 = abs(shapeDist0 - targetSize0);
@@ -146,8 +165,10 @@ float concentricSDF(vec2 p, vec2 offset, float spacing, float phase, float shape
     shapeDist1 = shapeCircle(q1);
   } else if (isSquare) {
     shapeDist1 = shapeSquare(q1);
-  } else {
+  } else if (isTriangle) {
     shapeDist1 = shapeTriangle(q1);
+  } else {
+    shapeDist1 = shapePolygon(q1, sides);
   }
   float targetSize1 = n1 * spacing - phase;
   if (targetSize1 >= 0.0) {
@@ -171,8 +192,8 @@ void main() {
   float phaseOffset = u_phase;
   vec2 offsetVec = vec2(u_offsetX, u_offsetY);
   
-  // Use universal solver for both shapes
-  float dist = concentricSDF(rotatedPos, offsetVec, spacing, phaseOffset, u_shapeType);
+  // Use universal solver for all shapes
+  float dist = concentricSDF(rotatedPos, offsetVec, spacing, phaseOffset, u_shapeType, u_sides);
   
   float halfThickness = u_thickness * 0.5;
   
