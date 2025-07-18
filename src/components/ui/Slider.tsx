@@ -68,18 +68,18 @@ export function Slider({
     
     if (isAltPressed && lastMouseX !== null) {
       // Fine control mode: incremental movement
-      const deltaX = clientX - lastMouseX;
-      
+    const deltaX = clientX - lastMouseX;
+    
       // Make movement much more gradual when Alt is pressed
       const sensitivity = 0.2; // 5x slower movement
-      const adjustedDelta = deltaX * sensitivity;
-      
+    const adjustedDelta = deltaX * sensitivity;
+    
       // Convert mouse delta to value delta
-      const valueDelta = (adjustedDelta / rect.width) * (max - min);
-      
-      // Calculate new value
-      const newValue = value + valueDelta;
-      
+    const valueDelta = (adjustedDelta / rect.width) * (max - min);
+    
+    // Calculate new value
+    const newValue = value + valueDelta;
+    
       // Use much finer steps for precise control
       const fineStep = step * 0.1;
       const steppedValue = Math.round(newValue / fineStep) * fineStep;
@@ -97,9 +97,9 @@ export function Slider({
       const rawValue = min + relativeX * (max - min);
       const steppedValue = Math.round(rawValue / step) * step;
       const clampedValue = Math.max(min, Math.min(max, steppedValue));
-      
-      if (Math.abs(clampedValue - value) > Number.EPSILON) {
-        onChange(clampedValue);
+    
+    if (Math.abs(clampedValue - value) > Number.EPSILON) {
+      onChange(clampedValue);
       }
     }
     
@@ -299,7 +299,7 @@ export function Slider({
                   fontSize: 'inherit',
                   fontWeight: 'inherit',
                   color: 'inherit',
-                  width: '50px',
+                  width: '60px',
                   boxSizing: 'border-box'
                 }}
                 data-editing-value="true"
@@ -322,7 +322,9 @@ export function Slider({
               title="Click to edit value"
             >
               {typeof value === 'number' ? (
-                Number.isInteger(value) ? value.toString() : value.toFixed(2)
+                value === 0 ? '0' : // Always show 0 as "0"
+                Number.isInteger(value) ? value.toString() : 
+                step <= 0.001 ? value.toFixed(3) : value.toFixed(2) // More precision for very small steps
               ) : value}{unit}
             </span>
           )}

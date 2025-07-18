@@ -23,6 +23,7 @@ export interface PatternLayer {
     phase?: number;        // Phase offset (universal)
     offsetX?: number;      // Progressive X offset for moiré effects
     offsetY?: number;      // Progressive Y offset for moiré effects
+    rotationOffset?: number; // Progressive rotation offset for spiral effects
     count?: number;        // Number of elements (for shapes with limited count)
     size?: number;         // Size parameter for specific patterns
   };
@@ -83,6 +84,7 @@ export const PATTERN_DEFINITIONS: PatternDefinition[] = [
       phase: 0,
       offsetX: 0,
       offsetY: 0,
+      rotationOffset: 0,
     },
     parameterConfig: {
       spacing: { label: 'Ring Spacing', min: 1, max: 100, step: 0.5, unit: 'px' },
@@ -90,6 +92,7 @@ export const PATTERN_DEFINITIONS: PatternDefinition[] = [
       phase: { label: 'Start Radius', min: 0, max: 500, step: 1, unit: 'px', description: 'Radius of the innermost circle' },
       offsetX: { label: 'X Offset', min: -3, max: 3, step: 0.01, unit: 'px', description: 'Progressive X displacement for moiré effects' },
       offsetY: { label: 'Y Offset', min: -3, max: 3, step: 0.01, unit: 'px', description: 'Progressive Y displacement for moiré effects' },
+      rotationOffset: { label: 'Rotation Offset', min: -0.2, max: 0.2, step: 0.001, unit: 'rad', description: 'Progressive rotation for spiral moiré effects' },
     },
   },
   {
@@ -104,6 +107,7 @@ export const PATTERN_DEFINITIONS: PatternDefinition[] = [
       phase: 10,
       offsetX: 0,
       offsetY: 0,
+      rotationOffset: 0,
     },
     parameterConfig: {
       spacing: { label: 'Ring Spacing', min: 1, max: 100, step: 0.5, unit: 'px' },
@@ -111,6 +115,7 @@ export const PATTERN_DEFINITIONS: PatternDefinition[] = [
       phase: { label: 'Start Size', min: 0, max: 500, step: 1, unit: 'px', description: 'Size of the innermost square' },
       offsetX: { label: 'X Offset', min: -3, max: 3, step: 0.01, unit: 'px', description: 'Progressive X displacement for moiré effects' },
       offsetY: { label: 'Y Offset', min: -3, max: 3, step: 0.01, unit: 'px', description: 'Progressive Y displacement for moiré effects' },
+      rotationOffset: { label: 'Rotation Offset', min: -0.2, max: 0.2, step: 0.001, unit: 'rad', description: 'Progressive rotation for spiral moiré effects' },
     },
   },
   {
@@ -125,6 +130,7 @@ export const PATTERN_DEFINITIONS: PatternDefinition[] = [
       phase: 10,
       offsetX: 0,
       offsetY: 0,
+      rotationOffset: 0,
     },
     parameterConfig: {
       spacing: { label: 'Ring Spacing', min: 1, max: 100, step: 0.5, unit: 'px' },
@@ -132,6 +138,7 @@ export const PATTERN_DEFINITIONS: PatternDefinition[] = [
       phase: { label: 'Start Size', min: 0, max: 500, step: 1, unit: 'px', description: 'Size of the innermost triangle' },
       offsetX: { label: 'X Offset', min: -3, max: 3, step: 0.01, unit: 'px', description: 'Progressive X displacement for moiré effects' },
       offsetY: { label: 'Y Offset', min: -3, max: 3, step: 0.01, unit: 'px', description: 'Progressive Y displacement for moiré effects' },
+      rotationOffset: { label: 'Rotation Offset', min: -0.2, max: 0.2, step: 0.001, unit: 'rad', description: 'Progressive rotation for spiral moiré effects' },
     },
   },
   {
@@ -146,6 +153,7 @@ export const PATTERN_DEFINITIONS: PatternDefinition[] = [
       phase: 10,
       offsetX: 0,
       offsetY: 0,
+      rotationOffset: 0,
       count: 6, // Number of sides (hexagon by default)
     },
     parameterConfig: {
@@ -155,6 +163,7 @@ export const PATTERN_DEFINITIONS: PatternDefinition[] = [
       count: { label: 'Number of Sides', min: 3, max: 20, step: 1, description: 'Triangle=3, Square=4, Pentagon=5, Hexagon=6, etc.' },
       offsetX: { label: 'X Offset', min: -3, max: 3, step: 0.01, unit: 'px', description: 'Progressive X displacement for moiré effects' },
       offsetY: { label: 'Y Offset', min: -3, max: 3, step: 0.01, unit: 'px', description: 'Progressive Y displacement for moiré effects' },
+      rotationOffset: { label: 'Rotation Offset', min: -0.2, max: 0.2, step: 0.001, unit: 'rad', description: 'Progressive rotation for spiral moiré effects' },
     },
   },
 ];

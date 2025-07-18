@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { MoireCanvas } from '../canvas/MoireCanvas';
+import { MoireCanvas } from '../canvas/MoireCanvasWebGL';
 import { useMoireProjectContext } from '../../hooks/MoireProjectContext';
 
 export function CanvasArea() {
