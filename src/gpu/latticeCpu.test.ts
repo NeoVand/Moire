@@ -21,12 +21,19 @@ approx(gridDistanceCpu({ x: s / 2, y: 0 }, 2, s, false), 0, 0.02);
 approx(gridDistanceCpu({ x: s / 2, y: 0 }, 2, s, true), s / 2, 0.02);
 approx(gridDistanceCpu({ x: s / 2, y: (s * Math.sqrt(3)) / 2 }, 2, s, true), 0, 0.02);
 
-// Hex: center is inside a cell; corners are vertices
+// Hex: honeycomb sides (not the triangular supporting lines); corners are vertices
 const hex = latticeHits({ x: 0, y: 0 }, 1, s);
 approx(hex.vertex, s, 0.05);
 approx(hex.edge, (s * Math.sqrt(3)) / 2, 0.05);
 approx(gridDistanceCpu({ x: 0, y: s }, 1, s, true), 0, 0.08);
 approx(gridDistanceCpu({ x: 0, y: s }, 1, s, false), 0, 0.08);
+const mid = { x: (s * Math.sqrt(3)) / 2, y: 0 };
+approx(gridDistanceCpu(mid, 1, s, false), 0, 0.05);
+approx(gridDistanceCpu(mid, 1, s, true), s / 2, 0.05);
+assert.ok(
+  gridDistanceCpu({ x: 0, y: s * 0.3 }, 1, s, false) > 1,
+  'long diagonal through a hex is not an edge'
+);
 
 // Stretch: cells scale in layer space; distances stay world-space
 approx(gridDistanceCpu({ x: s * 2, y: 0 }, 0, s, true, 2, 1), 0);

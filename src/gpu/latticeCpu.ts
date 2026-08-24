@@ -84,6 +84,24 @@ function triangleHits(
   return { edge, vertex: Math.hypot((pL.x - cx) * sx, (pL.y - cy) * sy) };
 }
 
+function hexEdgeWorld(
+  q: { x: number; y: number },
+  s: number,
+  sx: number,
+  sy: number
+): number {
+  const apothem = s * HEX_Y;
+  let edge = Infinity;
+  for (let k = 0; k < 6; k++) {
+    const ang = (k * Math.PI) / 3;
+    const nx = Math.cos(ang);
+    const ny = Math.sin(ang);
+    const dLocal = apothem - (q.x * nx + q.y * ny);
+    edge = Math.min(edge, dLocal / Math.max(Math.hypot(nx / sx, ny / sy), 1e-6));
+  }
+  return Math.max(edge, 0);
+}
+
 function hexHits(
   p: { x: number; y: number },
   s: number,
@@ -91,12 +109,6 @@ function hexHits(
   sy: number
 ): { edge: number; vertex: number } {
   const pL = { x: p.x / sx, y: p.y / sy };
-  const pitch = s * SQRT3;
-  const edge = Math.min(
-    worldLineFamily(pL, Math.PI / 6, pitch, sx, sy, 0.5),
-    worldLineFamily(pL, Math.PI / 2, pitch, sx, sy, 0.5),
-    worldLineFamily(pL, (5 * Math.PI) / 6, pitch, sx, sy, 0.5)
-  );
   const h = s * SQRT3;
   const b = pL.y / (1.5 * s);
   const a = (pL.x - b * h * 0.5) / h;
@@ -109,7 +121,7 @@ function hexHits(
     const ang = Math.PI / 6 + (k * Math.PI) / 3;
     vertex = Math.min(vertex, Math.hypot((q.x - s * Math.cos(ang)) * sx, (q.y - s * Math.sin(ang)) * sy));
   }
-  return { edge, vertex };
+  return { edge: hexEdgeWorld(q, s, sx, sy), vertex };
 }
 
 export function latticeHits(

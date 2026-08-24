@@ -25,6 +25,20 @@ fn worldLineFamilyWgsl(p: vec2<f32>, angle: f32, pitch: f32, scale: vec2<f32>, p
   [lineFamilyWgsl]
 );
 
+const hexEdgeWorldWgsl = wgslFn(`
+fn hexEdgeWorldWgsl(q: vec2<f32>, s: f32, scale: vec2<f32>) -> f32 {
+  let apothem = s * 0.86602540378;
+  var edge = 1e8;
+  for (var i = 0; i < 6; i += 1) {
+    let ang = f32(i) * 1.0471975512;
+    let n = vec2<f32>(cos(ang), sin(ang));
+    let dLocal = apothem - dot(q, n);
+    edge = min(edge, dLocal / max(length(n / scale), 1e-6));
+  }
+  return max(edge, 0.0);
+}
+`);
+
 const hexRoundWgsl = wgslFn(`
 fn hexRoundWgsl(uv: vec2<f32>) -> vec2<f32> {
   let x = uv.x;
@@ -75,19 +89,12 @@ fn gridDistance(p: vec2<f32>, kind: f32, spacing: f32, wantVertex: f32, scaleX: 
     vertex = length(vec2<f32>(dx, dy));
   } else if (k == 1) {
     let pL = vec2<f32>(p.x / sx, p.y / sy);
-    let pitch = s * 1.73205080757;
-    edge = min(
-      worldLineFamilyWgsl(pL, 0.523598775598, pitch, scale, 0.5),
-      min(
-        worldLineFamilyWgsl(pL, 1.57079632679, pitch, scale, 0.5),
-        worldLineFamilyWgsl(pL, 2.61799387799, pitch, scale, 0.5)
-      )
-    );
     let h = s * 1.73205080757;
     let b = pL.y / (1.5 * s);
     let a = (pL.x - b * h * 0.5) / h;
     let r = hexRoundWgsl(vec2<f32>(a, b));
     let q = pL - vec2<f32>(r.x * h + r.y * h * 0.5, r.y * 1.5 * s);
+    edge = hexEdgeWorldWgsl(q, s, scale);
     vertex = 1e8;
     for (var i = 0; i < 6; i += 1) {
       let ang = 0.523598775598 + f32(i) * 1.0471975512;
@@ -118,5 +125,5 @@ fn gridDistance(p: vec2<f32>, kind: f32, spacing: f32, wantVertex: f32, scaleX: 
   return edge;
 }
 `,
-  [worldLineFamilyWgsl, hexRoundWgsl]
+  [worldLineFamilyWgsl, hexEdgeWorldWgsl, hexRoundWgsl]
 );

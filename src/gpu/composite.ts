@@ -101,13 +101,13 @@ export function buildColorNode(camera: CameraUniforms, slots: LayerSlot[]) {
 
     for (const slot of slots) {
       If(slot.active.greaterThan(0.5), () => {
-        const rel = world.sub(slot.position);
         const c = slot.rotation.cos();
         const s = slot.rotation.sin();
-        const local = vec2(
-          c.mul(rel.x).add(s.mul(rel.y)),
-          s.negate().mul(rel.x).add(c.mul(rel.y))
+        const rotated = vec2(
+          c.mul(world.x).add(s.mul(world.y)),
+          s.negate().mul(world.x).add(c.mul(world.y))
         );
+        const local = rotated.sub(slot.position);
 
         const dist = float(0).toVar();
         const alpha = float(0).toVar();

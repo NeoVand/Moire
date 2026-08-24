@@ -115,7 +115,7 @@ export function MoireStage() {
       mode,
       lastX: e.clientX,
       lastY: e.clientY,
-      originAngle: layer ? Math.atan2(world.y - layer.position.y, world.x - layer.position.x) : 0,
+      originAngle: Math.atan2(world.y, world.x),
       startRotation: layer?.rotation ?? 0,
     };
     setCursor(mode === 'pan' ? 'grabbing' : mode === 'rotate' ? 'crosshair' : 'move');
@@ -138,8 +138,8 @@ export function MoireStage() {
     if (drag.mode === 'pan') {
       const delta = screenDeltaToWorld(e.clientX - drag.lastX, e.clientY - drag.lastY, zoom);
       store.setPan({
-        x: store.camera.pan.x + delta.x,
-        y: store.camera.pan.y + delta.y,
+        x: store.camera.pan.x - delta.x,
+        y: store.camera.pan.y - delta.y,
       });
       drag.lastX = e.clientX;
       drag.lastY = e.clientY;
@@ -171,7 +171,7 @@ export function MoireStage() {
       zoom,
       store.camera.pan
     );
-    const angle = Math.atan2(world.y - layer.position.y, world.x - layer.position.x);
+    const angle = Math.atan2(world.y, world.x);
     const degrees = ((angle - drag.originAngle) * 180) / Math.PI;
     store.updateLayer(layer.id, { rotation: drag.startRotation + degrees });
   };
