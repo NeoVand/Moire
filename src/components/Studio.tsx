@@ -400,7 +400,7 @@ function Chrome({ onToggle }: { onToggle: () => void }) {
       >
         {Math.round(zoom * 100)}%
       </button>
-      <ColorField value={backgroundColor} onChange={setBackgroundColor} swatchOnly />
+      <ColorField value={backgroundColor} onChange={setBackgroundColor} />
       <IconButton
         icon={theme === 'dark' ? Sun03Icon : Moon02Icon}
         label={theme === 'dark' ? 'Light theme' : 'Dark theme'}
