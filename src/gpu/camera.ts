@@ -34,6 +34,20 @@ export function screenDeltaToWorld(dx: number, dy: number, zoom: number): Vec2 {
   };
 }
 
+/**
+ * World-space pointer delta → layer position delta.
+ * Position lives in the unrotated frame; the shader does `R(-θ) * world - position`.
+ */
+export function worldDeltaToLayerPosition(delta: Vec2, rotationDegrees: number): Vec2 {
+  const rad = (rotationDegrees * Math.PI) / 180;
+  const c = Math.cos(rad);
+  const s = Math.sin(rad);
+  return {
+    x: c * delta.x + s * delta.y,
+    y: -s * delta.x + c * delta.y,
+  };
+}
+
 /** Pan that keeps `world` under the same screen point after a zoom change. */
 export function panForZoomToCursor(
   world: Vec2,

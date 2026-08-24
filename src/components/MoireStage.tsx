@@ -8,6 +8,7 @@ import {
   clampZoom,
   panForZoomToCursor,
   screenDeltaToWorld,
+  worldDeltaToLayerPosition,
 } from '../gpu/camera';
 import { useProjectStore } from '../store/project';
 
@@ -150,7 +151,10 @@ export function MoireStage() {
     if (!layer) return;
 
     if (drag.mode === 'move') {
-      const delta = screenDeltaToWorld(e.clientX - drag.lastX, e.clientY - drag.lastY, zoom);
+      const delta = worldDeltaToLayerPosition(
+        screenDeltaToWorld(e.clientX - drag.lastX, e.clientY - drag.lastY, zoom),
+        layer.rotation
+      );
       store.updateLayer(layer.id, {
         position: {
           x: layer.position.x + delta.x,
