@@ -295,26 +295,24 @@ function LayerFields() {
         defaultValue={LAYER_DEFAULTS.rotation}
         onChange={(rotation) => updateLayer(layer.id, { rotation })}
       />
-      <div className="grid grid-cols-2 gap-x-3 gap-y-2">
-        <Slider
-          label="Spacing"
-          value={layer.spacing}
-          min={1}
-          max={120}
-          step={0.1}
-          defaultValue={spacingDefault}
-          onChange={(spacing) => updateLayer(layer.id, { spacing })}
-        />
-        <Slider
-          label="Thickness"
-          value={layer.thickness}
-          min={0.2}
-          max={20}
-          step={0.1}
-          defaultValue={LAYER_DEFAULTS.thickness}
-          onChange={(thickness) => updateLayer(layer.id, { thickness })}
-        />
-      </div>
+      <Slider
+        label="Spacing"
+        value={layer.spacing}
+        min={1}
+        max={120}
+        step={0.1}
+        defaultValue={spacingDefault}
+        onChange={(spacing) => updateLayer(layer.id, { spacing })}
+      />
+      <Slider
+        label="Thickness"
+        value={layer.thickness}
+        min={0.2}
+        max={20}
+        step={0.1}
+        defaultValue={LAYER_DEFAULTS.thickness}
+        onChange={(thickness) => updateLayer(layer.id, { thickness })}
+      />
       <Slider
         label={isConcentric(layer.type) ? 'Start' : 'Phase'}
         value={layer.phase}
@@ -383,13 +381,7 @@ function LayerFields() {
   );
 }
 
-function Chrome({
-  open,
-  onToggle,
-}: {
-  open: boolean;
-  onToggle: () => void;
-}) {
+function Chrome({ onToggle }: { onToggle: () => void }) {
   const zoom = useProjectStore((s) => s.camera.zoom);
   const backgroundColor = useProjectStore((s) => s.backgroundColor);
   const resetView = useProjectStore((s) => s.resetView);
@@ -398,15 +390,11 @@ function Chrome({
 
   return (
     <div className="flex items-center gap-0.5">
-      <button
-        type="button"
-        className="flex items-center gap-1.5 rounded-md py-0.5 pr-1 pl-0.5 text-[var(--text-primary)]"
-        onClick={open ? undefined : onToggle}
-        title={open ? undefined : 'Open studio'}
-      >
+      <span className="flex items-center gap-1.5 py-0.5 pr-1 pl-0.5 text-[var(--text-primary)]">
         <Mark size={18} />
         <span className="text-[13px] font-semibold tracking-[-0.03em]">Moire</span>
-      </button>
+      </span>
+      <span className="flex-1" />
       <button
         type="button"
         title="Reset view"
@@ -417,7 +405,6 @@ function Chrome({
         {Math.round(zoom * 100)}%
       </button>
       <ColorField value={backgroundColor} onChange={setBackgroundColor} swatchOnly />
-      <span className="flex-1" />
       <IconButton
         icon={theme === 'dark' ? Sun03Icon : Moon02Icon}
         label={theme === 'dark' ? 'Light theme' : 'Dark theme'}
@@ -433,9 +420,7 @@ function Chrome({
         dense
       />
       <IconButton icon={ImageDownloadIcon} label="Export PNG" onClick={() => void savePng()} size={14} dense />
-      {open && (
-        <IconButton icon={ArrowLeft01Icon} label="Hide studio" onClick={onToggle} size={14} dense />
-      )}
+      <IconButton icon={ArrowLeft01Icon} label="Hide studio" onClick={onToggle} size={14} dense />
     </div>
   );
 }
@@ -464,9 +449,14 @@ export function Studio() {
   if (!open) {
     return (
       <div className="pointer-events-none absolute top-3 left-3 z-20">
-        <div className="hud-card pointer-events-auto px-1.5 py-1">
-          <Chrome open={false} onToggle={() => setOpen(true)} />
-        </div>
+        <button
+          type="button"
+          title="Open studio"
+          onClick={() => setOpen(true)}
+          className="hud-card pointer-events-auto grid size-9 place-items-center text-[var(--text-primary)]"
+        >
+          <Mark size={18} />
+        </button>
       </div>
     );
   }
@@ -478,7 +468,7 @@ export function Studio() {
         onWheel={(e) => e.stopPropagation()}
       >
         <header className="shrink-0 px-1.5 py-1">
-          <Chrome open onToggle={() => setOpen(false)} />
+          <Chrome onToggle={() => setOpen(false)} />
         </header>
 
         <Rule />
