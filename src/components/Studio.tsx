@@ -237,7 +237,7 @@ function LayerFields() {
               onClick={() => setLayerType(layer.id, pattern.id)}
               className={`grid h-8 flex-1 place-items-center rounded-md ${
                 active
-                  ? 'bg-[var(--text-primary)] text-[var(--bg-primary)]'
+                  ? 'text-[var(--text-primary)] ring-1 ring-inset ring-[color-mix(in_srgb,var(--text-primary)_45%,transparent)]'
                   : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'
               }`}
             >
