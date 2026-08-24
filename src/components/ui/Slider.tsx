@@ -157,7 +157,7 @@ export function Slider({
       </div>
       <div
         ref={trackRef}
-        className="relative h-3 cursor-ew-resize"
+        className="relative h-4 overflow-visible cursor-ew-resize"
         onMouseDown={(e) => {
           e.preventDefault();
           setIsDragging(true);
@@ -170,7 +170,7 @@ export function Slider({
           style={{ left: `${fillLeft}%`, width: `${fillWidth}%` }}
         />
         <div
-          className="absolute top-1/2 size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[var(--text-primary)] bg-[var(--bg-secondary)]"
+          className="absolute top-1/2 size-[13px] -translate-x-1/2 -translate-y-1/2 rounded-full border-[2.5px] border-solid border-[var(--text-primary)] bg-[var(--bg-secondary)]"
           style={{ left: `${pct}%` }}
         />
       </div>
