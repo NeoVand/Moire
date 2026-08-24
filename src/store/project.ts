@@ -79,11 +79,15 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       name: `Layer ${layers.length + 1}`,
       type,
       color: selected?.color ?? '#000000',
+      rotation: selected?.rotation ?? 0,
       spacing: type === 'straight-lines' ? 16 : selected?.spacing ?? 12,
       thickness: selected?.thickness ?? 2,
       position: selected
         ? { x: selected.position.x + 14, y: selected.position.y - 12 }
         : { x: 0, y: 0 },
+      offset:
+        selected && type !== 'straight-lines' ? { ...selected.offset } : { x: 0, y: 0 },
+      rotationOffset: selected && type !== 'straight-lines' ? selected.rotationOffset : 0,
     });
     set({
       layers: [...layers, layer],
@@ -135,9 +139,18 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
 
   setLayerType: (id, type) =>
     set((s) => ({
-      layers: s.layers.map((layer) =>
-        layer.id === id ? { ...layer, type, sides: layer.sides || 6 } : layer
-      ),
+      layers: s.layers.map((layer) => {
+        if (layer.id !== id) return layer;
+        if (type === 'straight-lines') {
+          return { ...layer, type, offset: { x: 0, y: 0 }, rotationOffset: 0 };
+        }
+        return {
+          ...layer,
+          type,
+          sides: layer.sides || 6,
+          offset: layer.type === 'straight-lines' ? { x: 0, y: 0 } : layer.offset,
+        };
+      }),
     })),
 
   setZoom: (zoom) =>

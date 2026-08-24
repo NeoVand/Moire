@@ -82,7 +82,7 @@ export function createDefaultProject(): MoireProject {
   return {
     selectedLayerId: '1',
     camera: { zoom: 1, pan: { x: 0, y: 0 } },
-    backgroundColor: '#66ccff',
+    backgroundColor: '#ffffff',
     layers: [
       createLayer({
         id: '1',
@@ -111,3 +111,18 @@ export function createDefaultProject(): MoireProject {
 }
 
 export const MAX_LAYERS = 12;
+
+export const LAYER_DEFAULTS = {
+  opacity: 1,
+  positionX: 0,
+  positionY: 0,
+  rotation: 0,
+  spacing: 20,
+  spacingLines: 16,
+  thickness: 1.5,
+  phase: 0,
+  offsetX: 0,
+  offsetY: 0,
+  rotationOffset: 0,
+  sides: 6,
+} as const;

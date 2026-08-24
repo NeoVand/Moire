@@ -9,6 +9,7 @@ import {
   float,
   uniform,
   mix,
+  max,
   smoothstep,
 } from 'three/tsl';
 import { MAX_LAYERS, type PatternLayer, type PatternType } from '../types/moire';
@@ -54,7 +55,7 @@ export function createCameraUniforms() {
   return {
     zoom: uniform(1),
     pan: uniform(new THREE.Vector2(0, 0)),
-    background: uniform(new THREE.Color(0x66ccff)),
+    background: uniform(new THREE.Color(0xffffff)),
   };
 }
 
@@ -96,7 +97,7 @@ export function buildColorNode(camera: CameraUniforms, slots: LayerSlot[]) {
         );
 
         const dist = float(0).toVar();
-        If(slot.type.lessThan(0.5), () => {
+        If(slot.type.lessThanEqual(0.1), () => {
           dist.assign(lineDistance(local, float(0), slot.spacing, slot.phase, slot.offset.x));
         }).Else(() => {
           dist.assign(
@@ -112,10 +113,10 @@ export function buildColorNode(camera: CameraUniforms, slots: LayerSlot[]) {
           );
         });
 
-        const pixel = float(1).div(camera.zoom);
-        const halfT = slot.thickness.mul(0.5);
+        const pixel = float(1).div(max(camera.zoom, float(0.08)));
+        const halfT = max(slot.thickness.mul(0.5), pixel.mul(1.15));
         const alpha = float(1)
-          .sub(smoothstep(halfT.sub(pixel), halfT.add(pixel), dist))
+          .sub(smoothstep(halfT.sub(pixel.mul(0.7)), halfT.add(pixel.mul(0.7)), dist))
           .mul(slot.opacity)
           .clamp(0, 1);
         color.assign(mix(color, slot.color, alpha));

@@ -26,6 +26,12 @@ export function useShortcuts() {
         return;
       }
 
+      if (e.key === 'i' || e.key === 'I') {
+        e.preventDefault();
+        window.dispatchEvent(new Event('moire-inspector'));
+        return;
+      }
+
       if (!selected) return;
 
       if (e.key === 'h' || e.key === 'H') {

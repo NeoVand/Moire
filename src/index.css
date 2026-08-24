@@ -8,17 +8,21 @@
   --text-secondary: #9a9a9a;
   --text-muted: #6a6a6a;
   --border: #2a2a2a;
+  --track: #3a3a3a;
+  --hud-bg: color-mix(in srgb, #161616 38%, transparent);
   --hud-shadow: 0 18px 50px rgba(0, 0, 0, 0.38);
 }
 
 [data-theme="light"] {
   --bg-primary: #f4f4f2;
   --bg-secondary: #ffffff;
-  --bg-hover: #f0f0ee;
+  --bg-hover: #ecece8;
   --text-primary: #161616;
   --text-secondary: #5c5c5c;
   --text-muted: #8a8a8a;
-  --border: #d8d8d6;
+  --border: #d0d0cc;
+  --track: #d8d8d4;
+  --hud-bg: color-mix(in srgb, #ffffff 42%, transparent);
   --hud-shadow: 0 16px 40px rgba(20, 20, 16, 0.08);
 }
 
@@ -82,9 +86,10 @@ input[type="color"]::-webkit-color-swatch {
 }
 
 .hud-card {
-  border: 1px solid var(--border);
-  background: color-mix(in srgb, var(--bg-secondary) 88%, transparent);
-  backdrop-filter: blur(18px);
+  border: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
+  background: var(--hud-bg);
+  backdrop-filter: blur(28px) saturate(1.35);
+  -webkit-backdrop-filter: blur(28px) saturate(1.35);
   border-radius: 16px;
   box-shadow: var(--hud-shadow);
 }

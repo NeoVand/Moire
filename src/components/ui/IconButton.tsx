@@ -23,7 +23,7 @@ export function IconButton({
     tone === 'inherit'
       ? 'text-current opacity-55 hover:opacity-100'
       : active
-        ? 'bg-[var(--text-primary)] text-[var(--bg-primary)]'
+        ? 'bg-[var(--bg-hover)] text-[var(--text-primary)] ring-1 ring-[var(--text-primary)]/30'
         : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]';
 
   return (
@@ -32,8 +32,15 @@ export function IconButton({
       title={label}
       aria-label={label}
       disabled={disabled}
-      onClick={onClick}
-      onMouseDown={(e) => e.currentTarget.blur()}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick?.();
+      }}
+      onPointerDown={(e) => e.stopPropagation()}
+      onMouseDown={(e) => {
+        e.stopPropagation();
+        e.currentTarget.blur();
+      }}
       className={`grid size-8 place-items-center rounded-lg transition-opacity disabled:opacity-30 ${palette}`}
     >
       <Icon icon={icon} size={size} />

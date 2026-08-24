@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { RefreshCwIcon } from '@hugeicons/core-free-icons';
+import { Icon } from './Icon';
 
 interface SliderProps {
   label: string;
@@ -7,6 +9,7 @@ interface SliderProps {
   max: number;
   step: number;
   unit?: string;
+  defaultValue?: number;
   onChange: (value: number) => void;
 }
 
@@ -18,7 +21,20 @@ function formatValue(value: number, step: number): string {
   return value.toFixed(2);
 }
 
-export function Slider({ label, value, min, max, step, unit = '', onChange }: SliderProps) {
+function nearlyEqual(a: number, b: number, step: number) {
+  return Math.abs(a - b) <= Math.max(step * 0.51, 1e-6);
+}
+
+export function Slider({
+  label,
+  value,
+  min,
+  max,
+  step,
+  unit = '',
+  defaultValue,
+  onChange,
+}: SliderProps) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -58,16 +74,31 @@ export function Slider({ label, value, min, max, step, unit = '', onChange }: Sl
   };
 
   const pct = ((value - min) / (max - min)) * 100;
+  const mid = min < 0 && max > 0 ? ((0 - min) / (max - min)) * 100 : 0;
+  const fillLeft = min < 0 && max > 0 ? Math.min(pct, mid) : 0;
+  const fillWidth = min < 0 && max > 0 ? Math.abs(pct - mid) : pct;
+  const isDirty = defaultValue !== undefined && !nearlyEqual(value, defaultValue, step);
 
   return (
-    <div className="grid gap-1.5">
-      <div className="flex items-baseline justify-between gap-2">
-        <span className="text-[11px] uppercase tracking-wide text-[var(--text-secondary)]">
-          {label}
+    <div className="grid gap-1">
+      <div className="flex h-4 items-center justify-between gap-2">
+        <span className="flex min-w-0 items-center gap-1 text-[10px] uppercase tracking-wide text-[var(--text-secondary)]">
+          <span className="truncate">{label}</span>
+          {isDirty && (
+            <button
+              type="button"
+              title={`Reset ${label}`}
+              aria-label={`Reset ${label}`}
+              onClick={() => onChange(defaultValue)}
+              className="grid size-4 place-items-center text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+            >
+              <Icon icon={RefreshCwIcon} size={11} />
+            </button>
+          )}
         </span>
         {isEditing ? (
           <input
-            className="w-16 bg-transparent text-right font-mono text-[11px] text-[var(--text-primary)] outline-none"
+            className="w-14 bg-transparent text-right font-mono text-[11px] text-[var(--text-primary)] outline-none"
             value={draft}
             autoFocus
             onChange={(e) => setDraft(e.target.value)}
@@ -93,20 +124,20 @@ export function Slider({ label, value, min, max, step, unit = '', onChange }: Sl
       </div>
       <div
         ref={trackRef}
-        className="relative h-3 cursor-ew-resize"
+        className="relative h-4 cursor-ew-resize"
         onMouseDown={(e) => {
           e.preventDefault();
           setIsDragging(true);
           applyFromClientX(e.clientX);
         }}
       >
-        <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-[var(--border)]" />
+        <div className="absolute inset-x-0 top-1/2 h-[3px] -translate-y-1/2 rounded-full bg-[var(--track)]" />
         <div
-          className="absolute top-1/2 h-px -translate-y-1/2 bg-[var(--text-primary)]"
-          style={{ width: `${pct}%` }}
+          className="absolute top-1/2 h-[3px] -translate-y-1/2 rounded-full bg-[var(--text-primary)]"
+          style={{ left: `${fillLeft}%`, width: `${fillWidth}%` }}
         />
         <div
-          className="absolute top-1/2 size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[var(--border)] bg-[var(--bg-primary)]"
+          className="absolute top-1/2 size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[var(--text-primary)] bg-[var(--bg-secondary)]"
           style={{ left: `${pct}%` }}
         />
       </div>
