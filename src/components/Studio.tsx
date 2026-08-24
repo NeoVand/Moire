@@ -9,12 +9,9 @@ import {
   ImageDownloadIcon,
   JupiterIcon,
   KeyboardIcon,
-  Moon02Icon,
-  Sun03Icon,
   ViewIcon,
   ViewOffSlashIcon,
 } from '@hugeicons/core-free-icons';
-import { useTheme } from '../hooks/useTheme';
 import { exportPng } from '../gpu/capture';
 import {
   LAYER_DEFAULTS,
@@ -534,7 +531,6 @@ function Chrome({ onToggle }: { onToggle: () => void }) {
   const backgroundColor = useProjectStore((s) => s.backgroundColor);
   const resetView = useProjectStore((s) => s.resetView);
   const setBackgroundColor = useProjectStore((s) => s.setBackgroundColor);
-  const { theme, toggleTheme } = useTheme();
 
   return (
     <div className="flex items-center gap-0.5">
@@ -558,13 +554,6 @@ function Chrome({ onToggle }: { onToggle: () => void }) {
         {Math.round(zoom * 100)}%
       </button>
       <ColorField value={backgroundColor} onChange={setBackgroundColor} />
-      <IconButton
-        icon={theme === 'dark' ? Sun03Icon : Moon02Icon}
-        label={theme === 'dark' ? 'Light theme' : 'Dark theme'}
-        onClick={toggleTheme}
-        size={14}
-        dense
-      />
       <IconButton
         icon={KeyboardIcon}
         label="Shortcuts"

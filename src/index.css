@@ -13,19 +13,6 @@
   --hud-shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
 }
 
-[data-theme="light"] {
-  --bg-primary: #f4f4f2;
-  --bg-secondary: #ffffff;
-  --bg-hover: #ecece8;
-  --text-primary: #161616;
-  --text-secondary: #5c5c5c;
-  --text-muted: #8a8a8a;
-  --border: #d0d0cc;
-  --track: #d8d8d4;
-  --hud-bg: color-mix(in srgb, #f4f4f2 78%, transparent);
-  --hud-shadow: 0 16px 40px rgba(20, 20, 16, 0.1);
-}
-
 html,
 body,
 #root {

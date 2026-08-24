@@ -65,7 +65,7 @@ Hex grid edges are hexagon sides, not three-line families. Grids have no offset.
 - `1`–`9` select a layer. `H` hides it. `D` duplicates. `⌫` removes.
 - Click the mark for a short note on the effect. `?` lists shortcuts.
 
-Theme defaults to dark. The canvas defaults to white. Pattern colors are the only accent.
+The studio is dark. The canvas defaults to white. Pattern colors are the only accent.
 
 ## Develop
 

@@ -13,7 +13,7 @@ Canvas-first WebGPU moiré tool. Vite + React + TypeScript + Three.js TSL. Do no
 - Render on dirty store subscribe, rAF-coalesced. Do not rebuild `colorNode` when layer count changes.
 - Pattern colors are the only accent. Background default is `#ffffff`.
 - Hugeicons only. Lines use `Asterisk02Icon`, not `EqualSignIcon` or `LineIcon`.
-- Theme defaults to dark. Zoom, background, theme, and shortcuts live in the studio header.
+- Studio chrome is dark. Zoom, background, and shortcuts live in the studio header.
 
 ## Inverse math (CPU and WGSL must stay twins)
 
