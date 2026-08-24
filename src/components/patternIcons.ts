@@ -25,6 +25,6 @@ export const PATTERN_ICONS: Record<PatternType, HugeIcon> = {
 export const FAMILY_ICONS: Record<PatternFamily, HugeIcon> = {
   lines: Asterisk02Icon,
   circles: CircleIcon,
-  polygon: HexagonIcon,
+  polygon: TriangleIcon,
   grid: Grid3X3Icon,
 };
