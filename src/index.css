@@ -39,14 +39,16 @@ body {
   color: var(--text-primary);
 }
 
-button {
-  background: none;
-  border: 0;
-  padding: 0;
-  color: inherit;
-  font-family: inherit;
-  font-weight: inherit;
-  cursor: pointer;
+@layer base {
+  button {
+    background: none;
+    border: 0;
+    padding: 0;
+    color: inherit;
+    font-family: inherit;
+    font-weight: inherit;
+    cursor: pointer;
+  }
 }
 
 button:focus:not(:focus-visible) {

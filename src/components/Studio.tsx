@@ -111,7 +111,6 @@ function LayerStack() {
       <div className="grid gap-0.5">
         {layers.map((layer, index) => {
           const selected = layer.id === selectedLayerId;
-          const label = PATTERN_META.find((item) => item.id === layer.type)?.label ?? layer.type;
           return (
             <div
               key={layer.id}
@@ -141,9 +140,6 @@ function LayerStack() {
                   style={{ background: layer.visible ? layer.color : 'transparent' }}
                 />
                 <span className="min-w-0 truncate text-[12px]">{layer.name}</span>
-                <span className="ml-auto opacity-50" title={label}>
-                  <Icon icon={PATTERN_ICONS[layer.type]} size={14} />
-                </span>
               </button>
               <IconButton
                 icon={layer.visible ? ViewIcon : ViewOffSlashIcon}
@@ -239,9 +235,9 @@ function LayerFields() {
               type="button"
               title={pattern.label}
               onClick={() => setLayerType(layer.id, pattern.id)}
-              className={`grid h-7 flex-1 place-items-center rounded-md ${
+              className={`grid h-8 flex-1 place-items-center rounded-md ${
                 active
-                  ? 'bg-[color-mix(in_srgb,var(--text-primary)_10%,transparent)] text-[var(--text-primary)]'
+                  ? 'bg-[var(--text-primary)] text-[var(--bg-primary)]'
                   : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'
               }`}
             >
