@@ -20,7 +20,9 @@ import {
   PATTERN_META,
   familyOf,
   isConcentric,
+  isCurves,
   isGrid,
+  isRadialLines,
   type PatternFamily,
   type PatternType,
 } from '../types/moire';
@@ -57,11 +59,13 @@ function ShapeChip({
   active,
   onClick,
   icon,
+  iconClassName,
 }: {
   label: string;
   active: boolean;
   onClick: () => void;
   icon: HugeIcon;
+  iconClassName?: string;
 }) {
   return (
     <button
@@ -74,7 +78,9 @@ function ShapeChip({
           : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'
       }`}
     >
-      <Icon icon={icon} size={16} />
+      <span className={iconClassName ? `inline-block ${iconClassName}` : undefined}>
+        <Icon icon={icon} size={16} />
+      </span>
     </button>
   );
 }
@@ -113,7 +119,8 @@ function PatternPicker({
             <ShapeChip
               key={id}
               label={PATTERN_META.find((item) => item.id === id)?.label ?? id}
-              icon={PATTERN_ICONS[id]}
+              icon={PATTERN_ICONS[id].icon}
+              iconClassName={PATTERN_ICONS[id].className}
               active={type === id}
               onClick={() => onChange(id)}
             />
@@ -333,7 +340,7 @@ function LayerFields() {
   const typeLabel = PATTERN_META.find((item) => item.id === layer.type)?.label;
   const spacingDefault = isGrid(layer.type)
     ? LAYER_DEFAULTS.spacingGrid
-    : layer.type === 'straight-lines'
+    : layer.type === 'straight-lines' || isCurves(layer.type)
       ? LAYER_DEFAULTS.spacingLines
       : LAYER_DEFAULTS.spacing;
 
@@ -365,21 +372,87 @@ function LayerFields() {
       <Slider
         label="Thickness"
         value={layer.thickness}
-        min={0.2}
+        min={0.01}
         max={20}
-        step={0.1}
+        step={0.01}
         defaultValue={LAYER_DEFAULTS.thickness}
         onChange={(thickness) => updateLayer(layer.id, { thickness })}
       />
-      <Slider
-        label="Spacing"
-        value={layer.spacing}
-        min={1}
-        max={120}
-        step={0.1}
-        defaultValue={spacingDefault}
-        onChange={(spacing) => updateLayer(layer.id, { spacing })}
-      />
+      {isRadialLines(layer.type) ? (
+        <Slider
+          label="Count"
+          value={layer.lineCount ?? LAYER_DEFAULTS.lineCount}
+          min={2}
+          max={360}
+          step={1}
+          defaultValue={LAYER_DEFAULTS.lineCount}
+          onChange={(lineCount) => updateLayer(layer.id, { lineCount })}
+        />
+      ) : (
+        <Slider
+          label="Spacing"
+          value={layer.spacing}
+          min={1}
+          max={120}
+          step={0.1}
+          defaultValue={spacingDefault}
+          onChange={(spacing) => updateLayer(layer.id, { spacing })}
+        />
+      )}
+      {layer.type === 'curve-wave' && (
+        <>
+          <Slider
+            label="Amplitude"
+            value={layer.bend ?? LAYER_DEFAULTS.bendWave}
+            min={0}
+            max={80}
+            step={0.1}
+            defaultValue={LAYER_DEFAULTS.bendWave}
+            onChange={(bend) => updateLayer(layer.id, { bend })}
+          />
+          <Slider
+            label="Frequency"
+            value={layer.frequency ?? LAYER_DEFAULTS.frequency}
+            min={0.1}
+            max={8}
+            step={0.01}
+            defaultValue={LAYER_DEFAULTS.frequency}
+            onChange={(frequency) => updateLayer(layer.id, { frequency })}
+          />
+          <Slider
+            label="Phase"
+            value={((layer.phase ?? 0) * 180) / Math.PI}
+            min={0}
+            max={360}
+            step={0.1}
+            unit="°"
+            defaultValue={LAYER_DEFAULTS.phase}
+            onChange={(deg) => updateLayer(layer.id, { phase: (deg * Math.PI) / 180 })}
+          />
+        </>
+      )}
+      {layer.type === 'curve-parabola' && (
+        <Slider
+          label="Bend"
+          value={layer.bend ?? LAYER_DEFAULTS.bendParabola}
+          min={-8}
+          max={8}
+          step={0.01}
+          defaultValue={LAYER_DEFAULTS.bendParabola}
+          onChange={(bend) => updateLayer(layer.id, { bend })}
+        />
+      )}
+      {layer.type === 'curve-spiral' && (
+        <Slider
+          label="Pitch"
+          value={layer.bend ?? LAYER_DEFAULTS.bendSpiral}
+          min={0}
+          max={80}
+          step={0.1}
+          defaultValue={LAYER_DEFAULTS.bendSpiral}
+          onChange={(bend) => updateLayer(layer.id, { bend })}
+        />
+      )}
       <div className="grid grid-cols-2 gap-x-3 gap-y-2">
         <Slider
           label="X"
@@ -456,7 +529,17 @@ function LayerFields() {
             </button>
           </div>
         </>
-      ) : (
+      ) : isRadialLines(layer.type) ? (
+        <Slider
+          label="Start"
+          value={layer.phase}
+          min={0}
+          max={400}
+          step={1}
+          defaultValue={LAYER_DEFAULTS.phase}
+          onChange={(phase) => updateLayer(layer.id, { phase })}
+        />
+      ) : layer.type === 'curve-wave' ? null : (
         <Slider
           label={isConcentric(layer.type) ? 'Start' : 'Phase'}
           value={layer.phase}
@@ -467,7 +550,7 @@ function LayerFields() {
           onChange={(phase) => updateLayer(layer.id, { phase })}
         />
       )}
-      {isGrid(layer.type) ? null : layer.type === 'straight-lines' ? (
+      {isGrid(layer.type) || isRadialLines(layer.type) || isCurves(layer.type) ? null : layer.type === 'straight-lines' ? (
         <Slider
           label="Progressive"
           value={layer.offset.x}

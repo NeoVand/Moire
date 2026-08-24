@@ -347,3 +347,67 @@ fn lineDistance(p: vec2<f32>, angle: f32, spacing: f32, phase: f32, progressive:
   return min(f, 1.0 - f) * abs(s);
 }
 `);
+
+const periodicDistWgsl = wgslFn(`
+fn periodicDistWgsl(value: f32, spacing: f32) -> f32 {
+  let s = abs(spacing);
+  if (s < 1e-8) {
+    return abs(value);
+  }
+  let q = value / s;
+  let f = q - floor(q);
+  return min(f, 1.0 - f) * s;
+}
+`);
+
+export const curveDistance = wgslFn(`
+fn curveDistance(p: vec2<f32>, kind: f32, spacing: f32, phase: f32, bend: f32, frequency: f32) -> f32 {
+  var s = abs(spacing);
+  if (s < 1e-4) {
+    s = 1e-4;
+  }
+  let k = i32(kind + 0.5);
+  if (k <= 0) {
+    let lambda = 32.0 / max(frequency, 0.05);
+    let osc = bend * sin(6.28318530718 * p.y / lambda + phase);
+    return periodicDistWgsl(p.x - osc, s);
+  }
+  if (k == 1) {
+    let a = bend * 0.01;
+    let psi = p.y - a * p.x * p.x - phase;
+    let grad = sqrt(1.0 + (2.0 * a * p.x) * (2.0 * a * p.x));
+    return periodicDistWgsl(psi, s) / max(grad, 1e-4);
+  }
+  if (k == 2) {
+    let u = p.x * p.x - p.y * p.y;
+    let adj = sqrt(abs(u)) - phase;
+    let n = max(round(adj / s), 1.0);
+    return abs(adj - n * s);
+  }
+  let r = length(p);
+  if (r < 1e-6) {
+    return periodicDistWgsl(-phase, s);
+  }
+  if (abs(bend) < 1e-4) {
+    return periodicDistWgsl(r - phase, s);
+  }
+  let starts = max(round(abs(bend) / s), 1.0);
+  let pitch = starts * s;
+  let th = atan2(p.y, p.x);
+  return periodicDistWgsl(r - pitch * th / 6.28318530718 - phase, s);
+}
+`, [periodicDistWgsl]);
+
+export const radialLineDistance = wgslFn(`
+fn radialLineDistance(p: vec2<f32>, count: f32, start: f32) -> f32 {
+  let n = max(round(count), 1.0);
+  let r = length(p);
+  let inner = max(start, 0.0);
+  if (r < 1e-6) {
+    return inner;
+  }
+  let seg = 3.14159265359 / n;
+  let dLine = r * abs(sin(wrapToHalfWgsl(atan2(p.y, p.x), seg)));
+  return max(dLine, inner - r);
+}
+`, [wrapToHalfWgsl]);

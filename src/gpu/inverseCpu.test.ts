@@ -1,5 +1,12 @@
 import assert from 'node:assert/strict';
-import { centeredMod, circleQuadratic, lineDistanceCpu, ringDistanceCpu } from './inverseCpu.ts';
+import {
+  centeredMod,
+  circleQuadratic,
+  curveDistanceCpu,
+  lineDistanceCpu,
+  radialLineDistanceCpu,
+  ringDistanceCpu,
+} from './inverseCpu.ts';
 
 function approx(actual: number, expected: number, tol = 1e-3) {
   assert.ok(
@@ -173,5 +180,57 @@ for (const r of [80, 900, 6000]) {
   }
 }
 assert.ok(lineWorst <= 8.01, `lines opened a gap, worst=${lineWorst}`);
+
+// Radial: 2 lines are the axes. Origin is ink. A point on +X is on a line.
+approx(radialLineDistanceCpu({ x: 0, y: 0 }, 2), 0);
+approx(radialLineDistanceCpu({ x: 80, y: 0 }, 2), 0);
+approx(radialLineDistanceCpu({ x: 0, y: 80 }, 2), 0);
+approx(radialLineDistanceCpu({ x: 80, y: 80 }, 2), 80);
+approx(radialLineDistanceCpu({ x: 80, y: 0 }, 4), 0);
+approx(radialLineDistanceCpu({ x: 80, y: 80 }, 4), 0);
+approx(radialLineDistanceCpu({ x: 0, y: 0 }, 2, 20), 20);
+approx(radialLineDistanceCpu({ x: 10, y: 0 }, 2, 20), 10);
+approx(radialLineDistanceCpu({ x: 20, y: 0 }, 2, 20), 0);
+approx(radialLineDistanceCpu({ x: 40, y: 0 }, 2, 20), 0);
+
+// Wave at amplitude 0 is vertical parallels. Frequency is independent of spacing.
+approx(curveDistanceCpu({ x: 0, y: 40 }, 0, 16, 0, 0), 0);
+approx(curveDistanceCpu({ x: 8, y: 0 }, 0, 16, 0, 0), 8);
+approx(
+  curveDistanceCpu({ x: 5, y: 30 }, 0, 16, 0, 0),
+  lineDistanceCpu({ x: 5, y: 30 }, 0, 16, 0, 0)
+);
+const waveY = 8;
+const waveX = 10 * Math.sin((Math.PI * 2 * 1 * waveY) / 32);
+approx(curveDistanceCpu({ x: waveX, y: waveY }, 0, 16, 0, 10), 0, 0.05);
+const wavePhase = Math.PI / 2;
+approx(curveDistanceCpu({ x: 10, y: 0 }, 0, 16, wavePhase, 10), 0, 0.05);
+
+// Parabola opens up: y = 0.01 B x² + n s. Bend 0 is horizontal parallels.
+approx(curveDistanceCpu({ x: 40, y: 0 }, 1, 16, 0, 0), 0);
+approx(curveDistanceCpu({ x: 0, y: 8 }, 1, 16, 0, 0), 8);
+approx(curveDistanceCpu({ x: 20, y: 0.01 * 400 }, 1, 16, 0, 1), 0, 0.05);
+approx(curveDistanceCpu({ x: 0, y: 8 }, 1, 16, 0, 4), 8, 0.2);
+const paraFar = curveDistanceCpu({ x: 80, y: 0.04 * 6400 + 8 }, 1, 16, 0, 4);
+assert.ok(paraFar > 0.4, `high-bend parabola should stay a single family, dist=${paraFar}`);
+
+// Hyperbola: east-west rectangular, vertices at (± n s, 0). Not a quadratic wrap.
+approx(curveDistanceCpu({ x: 16, y: 0 }, 2, 16, 0, 0), 0, 0.05);
+approx(curveDistanceCpu({ x: -32, y: 0 }, 2, 16, 0, 0), 0, 0.05);
+approx(curveDistanceCpu({ x: 0, y: 32 }, 2, 16, 0, 0), 0, 0.05);
+assert.ok(curveDistanceCpu({ x: 0, y: 0 }, 2, 16, 0, 0) > 8, 'hyperbola leaves the origin open');
+
+// Spiral: pitch is Δr per turn. Integer starts keep the field continuous across the cut.
+approx(curveDistanceCpu({ x: 16, y: 0 }, 3, 16, 0, 0), 0, 0.05);
+approx(curveDistanceCpu({ x: 0, y: 4 }, 3, 16, 0, 20), 0, 0.15);
+approx(curveDistanceCpu({ x: 16, y: 0 }, 3, 16, 0, 32), 0, 0.15);
+approx(curveDistanceCpu({ x: 24, y: 0 }, 3, 24, 0, 32), 0, 0.15);
+assert.ok(
+  curveDistanceCpu({ x: 16, y: 0 }, 3, 24, 0, 32) > 4,
+  'spiral spacing should be the arm gap'
+);
+const dCutA = curveDistanceCpu({ x: -80, y: 0.2 }, 3, 16, 0, 20);
+const dCutB = curveDistanceCpu({ x: -80, y: -0.2 }, 3, 16, 0, 20);
+assert.ok(Math.abs(dCutA - dCutB) < 0.6, `spiral branch cut, ${dCutA} vs ${dCutB}`);
 
 console.log('inverseCpu checks passed');

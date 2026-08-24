@@ -338,3 +338,58 @@ export function lineDistanceCpu(
   const s = Math.abs(pitch) > 1e-4 ? pitch : spacing;
   return periodicDist(proj, s);
 }
+
+const WAVE_CYCLE = 32;
+const PARABOLA_BEND = 0.01;
+
+/** 0 wave, 1 parabola, 2 hyperbola, 3 spiral. */
+export function curveDistanceCpu(
+  p: { x: number; y: number },
+  kind: number,
+  spacing: number,
+  phase: number,
+  bend: number,
+  frequency = 1
+): number {
+  const s = Math.abs(spacing) > 1e-4 ? Math.abs(spacing) : 1e-4;
+  const k = Math.round(kind);
+  if (k <= 0) {
+    const lambda = WAVE_CYCLE / Math.max(frequency, 0.05);
+    const osc = bend * Math.sin((TAU * p.y) / lambda + phase);
+    return periodicDist(p.x - osc, s);
+  }
+  if (k === 1) {
+    const a = bend * PARABOLA_BEND;
+    const psi = p.y - a * p.x * p.x - phase;
+    const grad = Math.hypot(1, 2 * a * p.x);
+    return periodicDist(psi, s) / Math.max(grad, 1e-4);
+  }
+  if (k === 2) {
+    const u = p.x * p.x - p.y * p.y;
+    const adj = Math.sqrt(Math.abs(u)) - phase;
+    const n = Math.max(Math.round(adj / s), 1);
+    return Math.abs(adj - n * s);
+  }
+  const r = length2(p);
+  if (r < EPS) return periodicDist(-phase, s);
+  if (Math.abs(bend) < 1e-4) return periodicDist(r - phase, s);
+  const starts = Math.max(1, Math.round(Math.abs(bend) / s));
+  const pitch = starts * s;
+  const th = Math.atan2(p.y, p.x);
+  return periodicDist(r - (pitch / TAU) * th - phase, s);
+}
+
+/** N undirected lines through the origin, equally spaced over π. `start` opens a hole at the center. */
+export function radialLineDistanceCpu(
+  p: { x: number; y: number },
+  count: number,
+  start = 0
+): number {
+  const n = Math.max(1, Math.round(count));
+  const r = length2(p);
+  const inner = Math.max(0, start);
+  if (r < EPS) return inner;
+  const seg = Math.PI / n;
+  const dLine = r * Math.abs(Math.sin(wrapToHalf(Math.atan2(p.y, p.x), seg)));
+  return Math.max(dLine, inner - r);
+}

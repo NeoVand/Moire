@@ -13,13 +13,15 @@ import {
   smoothstep,
 } from 'three/tsl';
 import { MAX_LAYERS, type PatternLayer, type PatternType } from '../types/moire';
-import { lineDistance, ringDistance } from './inverse.wgsl';
+import { curveDistance, lineDistance, radialLineDistance, ringDistance } from './inverse.wgsl';
 import { gridDistance } from './lattice.wgsl';
 
 export function patternTypeCode(type: PatternType): number {
   switch (type) {
     case 'straight-lines':
       return 0;
+    case 'radial-lines':
+      return 8;
     case 'concentric-circles':
       return 1;
     case 'concentric-squares':
@@ -34,6 +36,14 @@ export function patternTypeCode(type: PatternType): number {
       return 6;
     case 'grid-triangle':
       return 7;
+    case 'curve-wave':
+      return 9;
+    case 'curve-parabola':
+      return 10;
+    case 'curve-hyperbola':
+      return 11;
+    case 'curve-spiral':
+      return 12;
     default:
       return 1;
   }
@@ -56,6 +66,9 @@ export function createLayerSlot() {
     vertexSize: uniform(2.5),
     drawEdges: uniform(1),
     scale: uniform(new THREE.Vector2(1, 1)),
+    lineCount: uniform(8),
+    bend: uniform(0),
+    frequency: uniform(1),
   };
 }
 
@@ -91,6 +104,9 @@ export function writeLayerSlot(slot: LayerSlot, layer: PatternLayer | undefined)
   slot.vertexSize.value = layer.vertexSize ?? 0;
   slot.drawEdges.value = layer.drawEdges === false ? 0 : 1;
   slot.scale.value.set(layer.scale?.x ?? 1, layer.scale?.y ?? 1);
+  slot.lineCount.value = layer.lineCount ?? 8;
+  slot.bend.value = layer.bend ?? 0;
+  slot.frequency.value = layer.frequency ?? 1;
 }
 
 export function buildColorNode(camera: CameraUniforms, slots: LayerSlot[]) {
@@ -132,18 +148,35 @@ export function buildColorNode(camera: CameraUniforms, slots: LayerSlot[]) {
               )
             );
           }).Else(() => {
-            const kind = slot.type.sub(5);
-            const edgeD = gridDistance(local, kind, slot.spacing, float(0), slot.scale.x, slot.scale.y);
-            const vertD = gridDistance(local, kind, slot.spacing, float(1), slot.scale.x, slot.scale.y);
-            const edgeA = float(1)
-              .sub(smoothstep(halfT.sub(aa), halfT.add(aa), edgeD))
-              .mul(slot.drawEdges);
-            const vertA = float(0).toVar();
-            If(slot.vertexSize.greaterThan(0.001), () => {
-              const vR = slot.vertexSize;
-              vertA.assign(float(1).sub(smoothstep(max(vR.sub(aa), float(0)), vR.add(aa), vertD)));
+            If(slot.type.lessThan(7.5), () => {
+              const kind = slot.type.sub(5);
+              const edgeD = gridDistance(local, kind, slot.spacing, float(0), slot.scale.x, slot.scale.y);
+              const vertD = gridDistance(local, kind, slot.spacing, float(1), slot.scale.x, slot.scale.y);
+              const edgeA = float(1)
+                .sub(smoothstep(halfT.sub(aa), halfT.add(aa), edgeD))
+                .mul(slot.drawEdges);
+              const vertA = float(0).toVar();
+              If(slot.vertexSize.greaterThan(0.001), () => {
+                const vR = slot.vertexSize;
+                vertA.assign(float(1).sub(smoothstep(max(vR.sub(aa), float(0)), vR.add(aa), vertD)));
+              });
+              alpha.assign(max(edgeA, vertA));
+            }).Else(() => {
+              If(slot.type.lessThan(8.5), () => {
+                dist.assign(radialLineDistance(local, slot.lineCount, slot.phase));
+              }).Else(() => {
+                dist.assign(
+                  curveDistance(
+                    local,
+                    slot.type.sub(9),
+                    slot.spacing,
+                    slot.phase,
+                    slot.bend,
+                    slot.frequency
+                  )
+                );
+              });
             });
-            alpha.assign(max(edgeA, vertA));
           });
         });
 
@@ -154,7 +187,15 @@ export function buildColorNode(camera: CameraUniforms, slots: LayerSlot[]) {
               .mul(slot.opacity)
           );
         }).Else(() => {
-          alpha.assign(alpha.mul(slot.opacity));
+          If(slot.type.greaterThan(7.5), () => {
+            alpha.assign(
+              float(1)
+                .sub(smoothstep(halfT.sub(aa), halfT.add(aa), dist))
+                .mul(slot.opacity)
+            );
+          }).Else(() => {
+            alpha.assign(alpha.mul(slot.opacity));
+          });
         });
         color.assign(mix(color, slot.color, alpha.clamp(0, 1)));
       });

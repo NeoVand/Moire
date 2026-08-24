@@ -9,7 +9,8 @@ Canvas-first WebGPU moiré tool. Vite + React + TypeScript + Three.js TSL. Do no
 - Drag moves the selected layer (screen-space; invert layer rotation onto position). Option-drag rotates around the world origin (degrees in UI). Space or middle-drag pans. Wheel zooms to cursor. Shift on sliders is fine control.
 - `rotation` is degrees. `rotationOffset` is radians, always present on the layer.
 - No `maxRings`, JSON import/export theater, or fake blend modes.
-- V1 patterns: parallel lines; concentric circles, squares, triangles, n-gons; square / hex / triangle lattices (no offset; vertices + optional edges; X/Y scale). Hex edges are hexagon sides, not 3-line families. Studio groups them as Lines, Circles, Polygon, Grid.
+- V1 patterns: parallel lines and radial lines through the origin; concentric circles, squares, triangles, n-gons; square / hex / triangle lattices (no offset; vertices + optional edges; X/Y scale); curves — wave, parabola, hyperbola, Archimedean spiral. Hex edges are hexagon sides, not 3-line families. Studio groups them as Lines, Concentric, Grid, Curves.
+- Radial lines: N undirected lines through the layer origin, equally spaced over π. No spacing, progressive, or offset — `lineCount` instead (default 8, max 360). `phase` is Start: a hole of that radius around the origin (0 draws through the center). Type code 8.
 - Render on dirty store subscribe, rAF-coalesced. Do not rebuild `colorNode` when layer count changes.
 - Pattern colors are the only accent. Background default is `#ffffff`.
 - Hugeicons only. Lines use `Asterisk02Icon`, not `EqualSignIcon` or `LineIcon`.
@@ -25,6 +26,12 @@ Ring `n`: shape of radius `n * spacing + phase`, center `rotate(n * δ, n * θ)`
 - Rotation, or translated polygons: Newton plus a sweep of `n` over `[nMin, nMax]`. Rotation fans the nearest index away from `|p|/spacing`; missing that range drops whole sides (the “broken segments / white holes” when zoomed out).
 - `shapeRadius`: `length` (circles), `max(|x|,|y|)` (squares), regular-polygon radial metric (tri / n-gon).
 - Three.js `wgslFn` only parses the first `fn` in a string. One helper per `wgslFn`, passed as includes.
+- Parallel lines: `mod` of the projection. Radial lines: `max(r * |sin(wrapToHalf(atan2(p), π/N))|, start - r)`.
+- Curves: type codes 9–12. No walking offset.
+  - Wave: `φ = x − A sin(2π f y / 32 + ψ)`. `bend` is A, `frequency` is f (1 = one cycle / 32), `phase` is ψ. Ink `periodicDist(φ, spacing)`.
+  - Parabola: one upward family `y = 0.01 B x² + n s + phase`. Bend 0 is horizontal parallels. Euclidean band `periodicDist(ψ, s) / |∇ψ|` (sides darken at high bend).
+  - Hyperbola: rectangular `√|x² − y²| = n s + phase` for n ≥ 1 (east-west and north-south). No quadratic wrap.
+  - Spiral: Archimedean. Spacing is the arm gap. Starts `M = max(1, round(B / s))`, used pitch `M s` so the cut stays closed. `periodicDist(r − (M s / 2π) θ − phase, s)`. Pitch 0 is concentric.
 - Files: `src/gpu/inverseCpu.ts` and `src/gpu/inverse.wgsl.ts`. Tests: `node --experimental-strip-types src/gpu/inverseCpu.test.ts`.
 
 ## Renderer
@@ -40,7 +47,7 @@ Ring `n`: shape of radius `n * spacing + phase`, center `rotate(n * δ, n * θ)`
 - PNG export is `exportPng()` in `src/gpu/capture.ts`. The stage registers `MoireRenderer.snapshot()`.
 - Frosted HUD: `--hud-bg` + `backdrop-filter`. Selected layer is a quiet ring, not an inverted overlay.
 - Every slider has a reset affordance next to its label when dirty. Defaults live in `LAYER_DEFAULTS`.
-- Switching a layer to lines zeros `offset` and `rotationOffset`.
+- Switching a layer to lines, grid, or curves zeros `offset` and `rotationOffset`.
 
 ## Git
 

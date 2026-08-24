@@ -4,7 +4,11 @@ import {
   MAX_LAYERS,
   createDefaultProject,
   createLayer,
+  defaultBend,
+  defaultCurveSpacing,
+  isCurves,
   isGrid,
+  isLines,
 } from '../types/moire';
 import { clampZoom } from '../gpu/camera';
 
@@ -83,17 +87,27 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       type,
       color: selected?.color ?? '#000000',
       rotation: selected?.rotation ?? 0,
-      spacing: type === 'straight-lines' || isGrid(type) ? 16 : selected?.spacing ?? 12,
+      spacing: isCurves(type)
+        ? defaultCurveSpacing(type)
+        : isLines(type) || isGrid(type)
+          ? 16
+          : selected?.spacing ?? 12,
       thickness: selected?.thickness ?? 2,
       position: selected
         ? { x: selected.position.x + 14, y: selected.position.y - 12 }
         : { x: 0, y: 0 },
       offset:
-        selected && type !== 'straight-lines' && !isGrid(type)
+        selected && !isLines(type) && !isGrid(type) && !isCurves(type)
           ? { ...selected.offset }
           : { x: 0, y: 0 },
       rotationOffset:
-        selected && type !== 'straight-lines' && !isGrid(type) ? selected.rotationOffset : 0,
+        selected && !isLines(type) && !isGrid(type) && !isCurves(type)
+          ? selected.rotationOffset
+          : 0,
+      lineCount: selected?.lineCount ?? 8,
+      bend: isCurves(type) ? defaultBend(type) : selected?.bend ?? 0,
+      frequency: 1,
+      phase: isCurves(type) ? 0 : selected?.phase ?? 0,
     });
     set({
       layers: [...layers, layer],
@@ -124,7 +138,6 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     const copy = mergeLayer(source, {
       id: newId,
       name: `${source.name} copy`,
-      position: { x: source.position.x + 8, y: source.position.y - 8 },
     });
     set({
       layers: [...layers, copy],
@@ -147,14 +160,26 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     set((s) => ({
       layers: s.layers.map((layer) => {
         if (layer.id !== id) return layer;
-        if (type === 'straight-lines' || isGrid(type)) {
-          return { ...layer, type, offset: { x: 0, y: 0 }, rotationOffset: 0 };
+        if (isLines(type) || isGrid(type) || isCurves(type)) {
+          return {
+            ...layer,
+            type,
+            offset: { x: 0, y: 0 },
+            rotationOffset: 0,
+            bend: isCurves(type) ? defaultBend(type) : layer.bend,
+            spacing: isCurves(type) ? defaultCurveSpacing(type) : layer.spacing,
+            frequency: 1,
+            phase: isCurves(type) ? 0 : layer.phase,
+          };
         }
         return {
           ...layer,
           type,
           sides: layer.sides || 6,
-          offset: layer.type === 'straight-lines' || isGrid(layer.type) ? { x: 0, y: 0 } : layer.offset,
+          offset:
+            isLines(layer.type) || isGrid(layer.type) || isCurves(layer.type)
+              ? { x: 0, y: 0 }
+              : layer.offset,
         };
       }),
     })),

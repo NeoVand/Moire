@@ -21,7 +21,7 @@
   <img alt="Hugeicons" src="https://img.shields.io/badge/Hugeicons-111?style=flat-square">
 </p>
 
-Two similar periodic figures—lines, rings, polygons, or lattices—overlay to make a new figure. Moiré is a full-bleed canvas with one studio on the left. Add layers, drag them, and watch the interference write itself.
+Two similar periodic figures—lines, concentric shapes, or lattices—overlay to make a new figure. Moiré is a full-bleed canvas with one studio on the left. Add layers, drag them, and watch the interference write itself.
 
 ## Fields, not drawings
 
@@ -50,10 +50,10 @@ Stroke width is also a field test. `halfT = max(thickness / 2, 1.15 · pixel)` s
 
 | Family | What it draws |
 | --- | --- |
-| **Lines** | Parallel strokes |
-| **Circles** | Concentric rings |
-| **Polygon** | Concentric squares, triangles, or hexagons |
+| **Lines** | Parallel strokes, or radial strokes through the layer origin |
+| **Concentric** | Circles, squares, triangles, or hexagons |
 | **Grid** | Square, hex, or triangle lattices — vertices, optional edges, Scale X/Y |
+| **Curves** | Sine waves, parabolas, hyperbolas, or Archimedean spirals |
 
 Hex grid edges are hexagon sides, not three-line families. Grids have no offset.
 
