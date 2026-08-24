@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { RefreshCwIcon } from '@hugeicons/core-free-icons';
 import { Icon } from './Icon';
 
@@ -10,7 +10,6 @@ interface SliderProps {
   step: number;
   unit?: string;
   defaultValue?: number;
-  leading?: ReactNode;
   onChange: (value: number) => void;
 }
 
@@ -33,7 +32,6 @@ export function Slider({
   step,
   unit = '',
   defaultValue,
-  leading,
   onChange,
 }: SliderProps) {
   const trackRef = useRef<HTMLDivElement>(null);
@@ -123,27 +121,24 @@ export function Slider({
           </button>
         )}
       </div>
-      <div className="flex items-center gap-2">
-        {leading}
+      <div
+        ref={trackRef}
+        className="relative h-3 cursor-ew-resize"
+        onMouseDown={(e) => {
+          e.preventDefault();
+          setIsDragging(true);
+          applyFromClientX(e.clientX);
+        }}
+      >
+        <div className="absolute inset-x-0 top-1/2 h-0.5 -translate-y-1/2 rounded-full bg-[var(--track)]" />
         <div
-          ref={trackRef}
-          className="relative h-3 min-w-0 flex-1 cursor-ew-resize"
-          onMouseDown={(e) => {
-            e.preventDefault();
-            setIsDragging(true);
-            applyFromClientX(e.clientX);
-          }}
-        >
-          <div className="absolute inset-x-0 top-1/2 h-0.5 -translate-y-1/2 rounded-full bg-[var(--track)]" />
-          <div
-            className="absolute top-1/2 h-0.5 -translate-y-1/2 rounded-full bg-[var(--text-primary)]"
-            style={{ left: `${fillLeft}%`, width: `${fillWidth}%` }}
-          />
-          <div
-            className="absolute top-1/2 size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[var(--text-primary)] bg-[var(--bg-secondary)]"
-            style={{ left: `${pct}%` }}
-          />
-        </div>
+          className="absolute top-1/2 h-0.5 -translate-y-1/2 rounded-full bg-[var(--text-primary)]"
+          style={{ left: `${fillLeft}%`, width: `${fillWidth}%` }}
+        />
+        <div
+          className="absolute top-1/2 size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[var(--text-primary)] bg-[var(--bg-secondary)]"
+          style={{ left: `${pct}%` }}
+        />
       </div>
     </div>
   );

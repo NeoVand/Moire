@@ -247,20 +247,13 @@ function LayerFields() {
         })}
       </div>
 
-      <Slider
+      <ColorField
         label="Stroke"
-        leading={
-          <ColorField
-            value={layer.color}
-            onChange={(color) => updateLayer(layer.id, { color })}
-          />
-        }
-        value={layer.opacity}
-        min={0}
-        max={1}
-        step={0.01}
-        defaultValue={LAYER_DEFAULTS.opacity}
-        onChange={(opacity) => updateLayer(layer.id, { opacity })}
+        value={layer.color}
+        onChange={(color) => updateLayer(layer.id, { color })}
+        opacity={layer.opacity}
+        onOpacityChange={(opacity) => updateLayer(layer.id, { opacity })}
+        opacityDefault={LAYER_DEFAULTS.opacity}
       />
       <Slider
         label="Thickness"
