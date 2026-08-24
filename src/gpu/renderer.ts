@@ -74,6 +74,8 @@ export class MoireRenderer {
     canvas.style.width = '100%';
     canvas.style.height = '100%';
     canvas.style.touchAction = 'none';
+    // Chrome skips backdrop-filter over a bare WebGPU canvas unless it has a CSS image.
+    canvas.style.backgroundImage = 'linear-gradient(transparent, transparent)';
     canvas.setAttribute('aria-label', 'Moire canvas');
     container.appendChild(canvas);
     this.canvas = canvas;
@@ -91,7 +93,7 @@ export class MoireRenderer {
     if (this.scene && this.camera) {
       try {
         await this.renderer.compileAsync(this.scene, this.camera);
-        await this.renderer.renderAsync(this.scene, this.camera);
+        this.renderer.render(this.scene, this.camera);
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         throw new Error(`WebGPU shader compile failed: ${message}`);
@@ -160,7 +162,7 @@ export class MoireRenderer {
     this.raf = requestAnimationFrame(() => {
       this.raf = 0;
       if (!this.ready || !this.renderer || !this.scene || !this.camera) return;
-      void this.renderer.renderAsync(this.scene, this.camera);
+      this.renderer.render(this.scene, this.camera);
     });
   }
 
@@ -172,7 +174,7 @@ export class MoireRenderer {
       cancelAnimationFrame(this.raf);
       this.raf = 0;
     }
-    await this.renderer.renderAsync(this.scene, this.camera);
+    this.renderer.render(this.scene, this.camera);
     return encodeCanvasPng(this.canvas);
   }
 

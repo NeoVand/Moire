@@ -100,6 +100,24 @@ export function MoireStage() {
     };
   }, []);
 
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const { camera, setCamera } = useProjectStore.getState();
+      const rect = container.getBoundingClientRect();
+      const world = clientToWorld(e.clientX, e.clientY, rect, camera.zoom, camera.pan);
+      const nextZoom = clampZoom(camera.zoom * Math.exp(-e.deltaY * 0.001));
+      setCamera({
+        zoom: nextZoom,
+        pan: panForZoomToCursor(world, e.clientX, e.clientY, rect, nextZoom),
+      });
+    };
+    container.addEventListener('wheel', onWheel, { passive: false });
+    return () => container.removeEventListener('wheel', onWheel);
+  }, []);
+
   const onPointerDown = (e: React.PointerEvent) => {
     const container = containerRef.current;
     if (!container) return;
@@ -188,20 +206,6 @@ export function MoireStage() {
     }
   };
 
-  const onWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
-    const container = containerRef.current;
-    if (!container) return;
-    const { camera, setCamera } = useProjectStore.getState();
-    const rect = container.getBoundingClientRect();
-    const world = clientToWorld(e.clientX, e.clientY, rect, camera.zoom, camera.pan);
-    const nextZoom = clampZoom(camera.zoom * Math.exp(-e.deltaY * 0.001));
-    setCamera({
-      zoom: nextZoom,
-      pan: panForZoomToCursor(world, e.clientX, e.clientY, rect, nextZoom),
-    });
-  };
-
   return (
     <div
       ref={containerRef}
@@ -211,7 +215,6 @@ export function MoireStage() {
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
-      onWheel={onWheel}
     >
       {error && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-[var(--bg-primary)] px-6 text-center text-sm text-[var(--text-secondary)]">
