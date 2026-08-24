@@ -44,7 +44,8 @@ button {
   border: 0;
   padding: 0;
   color: inherit;
-  font: inherit;
+  font-family: inherit;
+  font-weight: inherit;
   cursor: pointer;
 }
 

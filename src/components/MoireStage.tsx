@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { JupiterIcon } from '@hugeicons/core-free-icons';
 import { registerCapture } from '../gpu/capture';
 import { MoireRenderer } from '../gpu/renderer';
 import {
@@ -25,6 +27,7 @@ export function MoireStage() {
   const dragRef = useRef<DragState | null>(null);
   const spaceRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
   const [cursor, setCursor] = useState('default');
 
   useEffect(() => {
@@ -46,6 +49,7 @@ export function MoireStage() {
         gpu.sync(state);
         gpu.render();
         registerCapture(() => gpu.snapshot());
+        setReady(true);
       })
       .catch((err: unknown) => {
         const message = err instanceof Error ? err.message : String(err);
@@ -208,6 +212,14 @@ export function MoireStage() {
       {error && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-[var(--bg-primary)] px-6 text-center text-sm text-[var(--text-secondary)]">
           {error}
+        </div>
+      )}
+      {!error && !ready && (
+        <div className="pointer-events-none absolute inset-0 z-10 grid place-items-center">
+          <div className="flex items-center gap-2 text-[var(--text-secondary)]">
+            <HugeiconsIcon icon={JupiterIcon} size={18} color="currentColor" strokeWidth={1.75} />
+            <span className="text-[13px]">Compiling</span>
+          </div>
         </div>
       )}
     </div>

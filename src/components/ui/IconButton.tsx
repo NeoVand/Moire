@@ -43,9 +43,9 @@ export function IconButton({
         e.stopPropagation();
         e.currentTarget.blur();
       }}
-      className={`grid place-items-center rounded-lg transition-opacity disabled:opacity-30 ${dense ? 'size-7' : 'size-8'} ${palette}`}
+      className={`grid place-items-center rounded-md transition-opacity disabled:opacity-30 ${dense ? 'size-6' : 'size-7'} ${palette}`}
     >
-      <Icon icon={icon} size={size} />
+      <Icon icon={icon} size={dense ? Math.min(size, 14) : size} />
     </button>
   );
 }

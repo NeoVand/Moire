@@ -12,7 +12,8 @@ Canvas-first WebGPU moiré tool. Vite + React + TypeScript + Three.js TSL. Do no
 - V1 patterns: parallel lines; concentric circles, squares, triangles, n-gons.
 - Render on dirty store subscribe, rAF-coalesced. Do not rebuild `colorNode` when layer count changes.
 - Pattern colors are the only accent. Background default is `#ffffff`.
-- Hugeicons only. Lines use `EqualSignIcon` (parallel strokes), not `LineIcon`.
+- Hugeicons only. Lines use `Asterisk02Icon`, not `EqualSignIcon` or `LineIcon`.
+- Theme defaults to dark. Zoom, background, theme, and shortcuts live in the studio header.
 
 ## Inverse math (CPU and WGSL must stay twins)
 
@@ -31,7 +32,7 @@ Ring `n`: shape of radius `n * spacing + phase`, center `rotate(n * δ, n * θ)`
 - Fixed `MAX_LAYERS` (12) slots compiled once. Hide/delete writes `active = 0` into the same uniforms. Never allocate a new slot array on count change.
 - Stroke: `halfT = max(thickness/2, 1.15 * pixel)` so hairlines and small geometric gaps do not pepper at zoom-out. `pixel = 1/zoom`.
 - `devicePixelRatio` clamped to 2. Camera at `z = 1`, `near = 0.1`. `toneMapped = false`.
-- First paint can stay blank until `compileAsync` finishes.
+- First paint waits on `compileAsync`. `MoireStage` shows a Jupiter “Compiling” mark until the first frame.
 
 ## UI
 

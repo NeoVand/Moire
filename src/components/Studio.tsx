@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
   Add01Icon,
@@ -45,15 +45,6 @@ function Rule() {
   return <div className="h-px bg-[var(--border)]" />;
 }
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <section className="grid gap-2">
-      <div className="text-[12px] font-medium text-[var(--text-secondary)]">{title}</div>
-      {children}
-    </section>
-  );
-}
-
 async function savePng() {
   try {
     await exportPng();
@@ -90,9 +81,9 @@ function LayerStack() {
   };
 
   return (
-    <section className="grid gap-1.5">
-      <div className="flex h-7 items-center justify-between">
-        <span className="text-[12px] font-medium text-[var(--text-secondary)]">Layers</span>
+    <section className="grid gap-1">
+      <div className="flex h-6 items-center justify-between">
+        <span className="text-[11px] font-medium text-[var(--text-secondary)]">Layers</span>
         <div ref={addRef} className="relative">
           <IconButton
             icon={Add01Icon}
@@ -143,13 +134,13 @@ function LayerStack() {
               <button
                 type="button"
                 onClick={() => selectLayer(layer.id)}
-                className="flex min-w-0 flex-1 items-center gap-2 py-1.5 pr-1 text-left"
+                className="flex min-w-0 flex-1 items-center gap-1.5 py-1 pr-1 text-left"
               >
                 <span
                   className="size-2 shrink-0 rounded-full border border-current"
                   style={{ background: layer.visible ? layer.color : 'transparent' }}
                 />
-                <span className="min-w-0 truncate text-[13px]">{layer.name}</span>
+                <span className="min-w-0 truncate text-[12px]">{layer.name}</span>
                 <span className="ml-auto opacity-50" title={label}>
                   <Icon icon={PATTERN_ICONS[layer.type]} size={14} />
                 </span>
@@ -208,11 +199,11 @@ function LayerFields() {
     layer.type === 'straight-lines' ? LAYER_DEFAULTS.spacingLines : LAYER_DEFAULTS.spacing;
 
   return (
-    <div className="grid gap-3.5">
+    <div className="grid gap-2.5">
       <div className="flex items-center justify-between gap-2">
         {editingName ? (
           <input
-            className="min-w-0 flex-1 bg-transparent text-[13px] font-medium text-[var(--text-primary)] outline-none"
+            className="min-w-0 flex-1 bg-transparent text-[12px] font-medium text-[var(--text-primary)] outline-none"
             value={draftName}
             autoFocus
             onChange={(e) => setDraftName(e.target.value)}
@@ -225,7 +216,7 @@ function LayerFields() {
         ) : (
           <button
             type="button"
-            className="min-w-0 truncate text-left text-[13px] font-medium text-[var(--text-primary)]"
+            className="min-w-0 truncate text-left text-[12px] font-medium text-[var(--text-primary)]"
             onDoubleClick={() => {
               setDraftName(layer.name);
               setEditingName(true);
@@ -234,7 +225,7 @@ function LayerFields() {
             {layer.name}
           </button>
         )}
-        <span className="shrink-0 text-[12px] text-[var(--text-muted)]">
+        <span className="shrink-0 text-[11px] text-[var(--text-muted)]">
           {PATTERN_META.find((item) => item.id === layer.type)?.label}
         </span>
       </div>
@@ -248,7 +239,7 @@ function LayerFields() {
               type="button"
               title={pattern.label}
               onClick={() => setLayerType(layer.id, pattern.id)}
-              className={`grid h-8 flex-1 place-items-center rounded-lg ${
+              className={`grid h-7 flex-1 place-items-center rounded-md ${
                 active
                   ? 'bg-[color-mix(in_srgb,var(--text-primary)_10%,transparent)] text-[var(--text-primary)]'
                   : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'
@@ -260,152 +251,196 @@ function LayerFields() {
         })}
       </div>
 
-      <Section title="Look">
-        <ColorField
-          label="Stroke"
-          value={layer.color}
-          onChange={(color) => updateLayer(layer.id, { color })}
-        />
+      <ColorField
+        label="Stroke"
+        value={layer.color}
+        onChange={(color) => updateLayer(layer.id, { color })}
+      />
+      <Slider
+        label="Opacity"
+        value={layer.opacity}
+        min={0}
+        max={1}
+        step={0.01}
+        defaultValue={LAYER_DEFAULTS.opacity}
+        onChange={(opacity) => updateLayer(layer.id, { opacity })}
+      />
+      <div className="grid grid-cols-2 gap-x-3 gap-y-2">
         <Slider
-          label="Opacity"
-          value={layer.opacity}
-          min={0}
-          max={1}
-          step={0.01}
-          defaultValue={LAYER_DEFAULTS.opacity}
-          onChange={(opacity) => updateLayer(layer.id, { opacity })}
-        />
-      </Section>
-
-      <Section title="Pose">
-        <div className="grid grid-cols-2 gap-x-3 gap-y-2">
-          <Slider
-            label="X"
-            value={layer.position.x}
-            min={-400}
-            max={400}
-            step={0.1}
-            defaultValue={LAYER_DEFAULTS.positionX}
-            onChange={(x) => updateLayer(layer.id, { position: { x } })}
-          />
-          <Slider
-            label="Y"
-            value={layer.position.y}
-            min={-400}
-            max={400}
-            step={0.1}
-            defaultValue={LAYER_DEFAULTS.positionY}
-            onChange={(y) => updateLayer(layer.id, { position: { y } })}
-          />
-        </div>
-        <Slider
-          label="Rotation"
-          value={layer.rotation}
-          min={-180}
-          max={180}
+          label="X"
+          value={layer.position.x}
+          min={-400}
+          max={400}
           step={0.1}
-          unit="°"
-          defaultValue={LAYER_DEFAULTS.rotation}
-          onChange={(rotation) => updateLayer(layer.id, { rotation })}
+          defaultValue={LAYER_DEFAULTS.positionX}
+          onChange={(x) => updateLayer(layer.id, { position: { x } })}
         />
-      </Section>
-
-      <Section title="Field">
-        <div className="grid grid-cols-2 gap-x-3 gap-y-2">
-          <Slider
-            label="Spacing"
-            value={layer.spacing}
-            min={1}
-            max={120}
-            step={0.1}
-            defaultValue={spacingDefault}
-            onChange={(spacing) => updateLayer(layer.id, { spacing })}
-          />
-          <Slider
-            label="Thickness"
-            value={layer.thickness}
-            min={0.2}
-            max={20}
-            step={0.1}
-            defaultValue={LAYER_DEFAULTS.thickness}
-            onChange={(thickness) => updateLayer(layer.id, { thickness })}
-          />
-        </div>
         <Slider
-          label={isConcentric(layer.type) ? 'Start' : 'Phase'}
-          value={layer.phase}
-          min={0}
-          max={isConcentric(layer.type) ? 400 : Math.max(layer.spacing, 1)}
-          step={1}
-          defaultValue={LAYER_DEFAULTS.phase}
-          onChange={(phase) => updateLayer(layer.id, { phase })}
+          label="Y"
+          value={layer.position.y}
+          min={-400}
+          max={400}
+          step={0.1}
+          defaultValue={LAYER_DEFAULTS.positionY}
+          onChange={(y) => updateLayer(layer.id, { position: { y } })}
         />
-        {layer.type === 'straight-lines' ? (
-          <Slider
-            label="Progressive"
-            value={layer.offset.x}
-            min={-8}
-            max={8}
-            step={0.01}
-            defaultValue={LAYER_DEFAULTS.offsetX}
-            onChange={(x) => updateLayer(layer.id, { offset: { x } })}
-          />
-        ) : (
-          <>
-            <div className="grid grid-cols-2 gap-x-3 gap-y-2">
-              <Slider
-                label="Offset X"
-                value={layer.offset.x}
-                min={-4}
-                max={4}
-                step={0.01}
-                defaultValue={LAYER_DEFAULTS.offsetX}
-                onChange={(x) => updateLayer(layer.id, { offset: { x } })}
-              />
-              <Slider
-                label="Offset Y"
-                value={layer.offset.y}
-                min={-4}
-                max={4}
-                step={0.01}
-                defaultValue={LAYER_DEFAULTS.offsetY}
-                onChange={(y) => updateLayer(layer.id, { offset: { y } })}
-              />
-            </div>
+      </div>
+      <Slider
+        label="Rotation"
+        value={layer.rotation}
+        min={-180}
+        max={180}
+        step={0.1}
+        unit="°"
+        defaultValue={LAYER_DEFAULTS.rotation}
+        onChange={(rotation) => updateLayer(layer.id, { rotation })}
+      />
+      <div className="grid grid-cols-2 gap-x-3 gap-y-2">
+        <Slider
+          label="Spacing"
+          value={layer.spacing}
+          min={1}
+          max={120}
+          step={0.1}
+          defaultValue={spacingDefault}
+          onChange={(spacing) => updateLayer(layer.id, { spacing })}
+        />
+        <Slider
+          label="Thickness"
+          value={layer.thickness}
+          min={0.2}
+          max={20}
+          step={0.1}
+          defaultValue={LAYER_DEFAULTS.thickness}
+          onChange={(thickness) => updateLayer(layer.id, { thickness })}
+        />
+      </div>
+      <Slider
+        label={isConcentric(layer.type) ? 'Start' : 'Phase'}
+        value={layer.phase}
+        min={0}
+        max={isConcentric(layer.type) ? 400 : Math.max(layer.spacing, 1)}
+        step={1}
+        defaultValue={LAYER_DEFAULTS.phase}
+        onChange={(phase) => updateLayer(layer.id, { phase })}
+      />
+      {layer.type === 'straight-lines' ? (
+        <Slider
+          label="Progressive"
+          value={layer.offset.x}
+          min={-8}
+          max={8}
+          step={0.01}
+          defaultValue={LAYER_DEFAULTS.offsetX}
+          onChange={(x) => updateLayer(layer.id, { offset: { x } })}
+        />
+      ) : (
+        <>
+          <div className="grid grid-cols-2 gap-x-3 gap-y-2">
             <Slider
-              label="Rot offset"
-              value={layer.rotationOffset}
-              min={-0.2}
-              max={0.2}
-              step={0.001}
-              unit=" rad"
-              defaultValue={LAYER_DEFAULTS.rotationOffset}
-              onChange={(rotationOffset) => updateLayer(layer.id, { rotationOffset })}
+              label="Offset X"
+              value={layer.offset.x}
+              min={-4}
+              max={4}
+              step={0.01}
+              defaultValue={LAYER_DEFAULTS.offsetX}
+              onChange={(x) => updateLayer(layer.id, { offset: { x } })}
             />
-          </>
-        )}
-        {layer.type === 'concentric-polygons' && (
+            <Slider
+              label="Offset Y"
+              value={layer.offset.y}
+              min={-4}
+              max={4}
+              step={0.01}
+              defaultValue={LAYER_DEFAULTS.offsetY}
+              onChange={(y) => updateLayer(layer.id, { offset: { y } })}
+            />
+          </div>
           <Slider
-            label="Sides"
-            value={layer.sides}
-            min={3}
-            max={16}
-            step={1}
-            defaultValue={LAYER_DEFAULTS.sides}
-            onChange={(sides) => updateLayer(layer.id, { sides })}
+            label="Rot offset"
+            value={layer.rotationOffset}
+            min={-0.2}
+            max={0.2}
+            step={0.001}
+            unit=" rad"
+            defaultValue={LAYER_DEFAULTS.rotationOffset}
+            onChange={(rotationOffset) => updateLayer(layer.id, { rotationOffset })}
           />
-        )}
-      </Section>
+        </>
+      )}
+      {layer.type === 'concentric-polygons' && (
+        <Slider
+          label="Sides"
+          value={layer.sides}
+          min={3}
+          max={16}
+          step={1}
+          defaultValue={LAYER_DEFAULTS.sides}
+          onChange={(sides) => updateLayer(layer.id, { sides })}
+        />
+      )}
     </div>
   );
 }
 
-export function Studio() {
+function Chrome({
+  open,
+  onToggle,
+}: {
+  open: boolean;
+  onToggle: () => void;
+}) {
   const zoom = useProjectStore((s) => s.camera.zoom);
   const backgroundColor = useProjectStore((s) => s.backgroundColor);
   const resetView = useProjectStore((s) => s.resetView);
   const setBackgroundColor = useProjectStore((s) => s.setBackgroundColor);
   const { theme, toggleTheme } = useTheme();
+
+  return (
+    <div className="flex items-center gap-0.5">
+      <button
+        type="button"
+        className="flex items-center gap-1.5 rounded-md py-0.5 pr-1 pl-0.5 text-[var(--text-primary)]"
+        onClick={open ? undefined : onToggle}
+        title={open ? undefined : 'Open studio'}
+      >
+        <Mark size={18} />
+        <span className="text-[13px] font-semibold tracking-[-0.03em]">Moire</span>
+      </button>
+      <button
+        type="button"
+        title="Reset view"
+        onClick={resetView}
+        onMouseDown={(e) => e.currentTarget.blur()}
+        className="rounded-md px-1.5 py-0.5 font-mono text-[10px] tabular-nums text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
+      >
+        {Math.round(zoom * 100)}%
+      </button>
+      <ColorField value={backgroundColor} onChange={setBackgroundColor} swatchOnly />
+      <span className="flex-1" />
+      <IconButton
+        icon={theme === 'dark' ? Sun03Icon : Moon02Icon}
+        label={theme === 'dark' ? 'Light theme' : 'Dark theme'}
+        onClick={toggleTheme}
+        size={14}
+        dense
+      />
+      <IconButton
+        icon={KeyboardIcon}
+        label="Shortcuts"
+        onClick={() => window.dispatchEvent(new Event('moire-shortcuts'))}
+        size={14}
+        dense
+      />
+      <IconButton icon={ImageDownloadIcon} label="Export PNG" onClick={() => void savePng()} size={14} dense />
+      {open && (
+        <IconButton icon={ArrowLeft01Icon} label="Hide studio" onClick={onToggle} size={14} dense />
+      )}
+    </div>
+  );
+}
+
+export function Studio() {
   const [open, setOpen] = useState(readOpen);
 
   useEffect(() => {
@@ -429,26 +464,8 @@ export function Studio() {
   if (!open) {
     return (
       <div className="pointer-events-none absolute top-3 left-3 z-20">
-        <div className="hud-card pointer-events-auto flex items-center gap-0.5 p-1 pr-1.5">
-          <button
-            type="button"
-            className="flex items-center gap-1.5 rounded-lg py-1 pr-1 pl-1.5 text-[var(--text-primary)]"
-            onClick={() => setOpen(true)}
-            title="Open studio"
-          >
-            <Mark size={20} />
-            <span className="text-[14px] font-semibold tracking-[-0.03em]">Moire</span>
-          </button>
-          <button
-            type="button"
-            title="Reset view"
-            onClick={resetView}
-            onMouseDown={(e) => e.currentTarget.blur()}
-            className="rounded-lg px-1.5 py-1 font-mono text-[11px] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
-          >
-            {Math.round(zoom * 100)}%
-          </button>
-          <IconButton icon={ImageDownloadIcon} label="Export PNG" onClick={() => void savePng()} dense />
+        <div className="hud-card pointer-events-auto px-1.5 py-1">
+          <Chrome open={false} onToggle={() => setOpen(true)} />
         </div>
       </div>
     );
@@ -457,51 +474,17 @@ export function Studio() {
   return (
     <div className="pointer-events-none absolute inset-y-3 left-3 z-20 flex max-h-[calc(100dvh-1.5rem)]">
       <aside
-        className="hud-card pointer-events-auto flex h-fit max-h-full w-[18.5rem] flex-col overflow-hidden"
+        className="hud-card pointer-events-auto flex h-fit max-h-full w-[17.5rem] flex-col overflow-hidden"
         onWheel={(e) => e.stopPropagation()}
       >
-        <header className="flex shrink-0 items-center gap-2 px-3 pt-2.5 pb-2">
-          <span className="text-[var(--text-primary)]">
-            <Mark />
-          </span>
-          <div className="min-w-0 flex-1 text-[15px] font-semibold tracking-[-0.03em] text-[var(--text-primary)]">
-            Moire
-          </div>
-          <IconButton icon={ImageDownloadIcon} label="Export PNG" onClick={() => void savePng()} dense />
-          <IconButton icon={ArrowLeft01Icon} label="Hide studio" onClick={() => setOpen(false)} dense />
+        <header className="shrink-0 px-1.5 py-1">
+          <Chrome open onToggle={() => setOpen(false)} />
         </header>
-
-        <div className="flex shrink-0 items-center gap-0.5 px-2.5 pb-2">
-          <button
-            type="button"
-            title="Reset view"
-            onClick={resetView}
-            onMouseDown={(e) => e.currentTarget.blur()}
-            className="rounded-lg px-2 py-1.5 font-mono text-[12px] text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
-          >
-            {Math.round(zoom * 100)}%
-          </button>
-          <span className="min-w-0 flex-1 px-1">
-            <ColorField value={backgroundColor} onChange={setBackgroundColor} />
-          </span>
-          <IconButton
-            icon={theme === 'dark' ? Sun03Icon : Moon02Icon}
-            label={theme === 'dark' ? 'Light theme' : 'Dark theme'}
-            onClick={toggleTheme}
-            dense
-          />
-          <IconButton
-            icon={KeyboardIcon}
-            label="Shortcuts"
-            onClick={() => window.dispatchEvent(new Event('moire-shortcuts'))}
-            dense
-          />
-        </div>
 
         <Rule />
 
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-2.5">
-          <div className="grid gap-3.5">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2.5 py-2">
+          <div className="grid gap-2.5">
             <LayerStack />
             <Rule />
             <LayerFields />

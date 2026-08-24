@@ -16,9 +16,8 @@ interface SliderProps {
 function formatValue(value: number, step: number): string {
   if (value === 0) return '0';
   if (Number.isInteger(value)) return String(value);
-  if (step <= 0.001) return value.toFixed(3);
-  if (step <= 0.01) return value.toFixed(3);
-  return value.toFixed(2);
+  const decimals = step <= 0.001 ? 3 : step < 1 ? 2 : 1;
+  return String(Number(value.toFixed(decimals)));
 }
 
 function nearlyEqual(a: number, b: number, step: number) {
@@ -80,9 +79,9 @@ export function Slider({
   const isDirty = defaultValue !== undefined && !nearlyEqual(value, defaultValue, step);
 
   return (
-    <div className="grid gap-1">
-      <div className="flex h-4 items-center justify-between gap-2">
-        <span className="flex min-w-0 items-center gap-1 text-[12px] text-[var(--text-secondary)]">
+    <div className="grid gap-0.5">
+      <div className="flex h-3.5 items-center justify-between gap-2">
+        <span className="flex min-w-0 items-center gap-1 text-[11px] text-[var(--text-secondary)]">
           <span className="truncate">{label}</span>
           {isDirty && (
             <button
@@ -90,15 +89,15 @@ export function Slider({
               title={`Reset ${label}`}
               aria-label={`Reset ${label}`}
               onClick={() => onChange(defaultValue)}
-              className="grid size-4 place-items-center text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+              className="grid size-3.5 place-items-center text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             >
-              <Icon icon={RefreshCwIcon} size={11} />
+              <Icon icon={RefreshCwIcon} size={10} />
             </button>
           )}
         </span>
         {isEditing ? (
           <input
-            className="w-14 bg-transparent text-right font-mono text-[11px] text-[var(--text-primary)] outline-none"
+            className="w-10 bg-transparent text-right font-mono text-[10px] tabular-nums text-[var(--text-primary)] outline-none"
             value={draft}
             autoFocus
             onChange={(e) => setDraft(e.target.value)}
@@ -111,33 +110,33 @@ export function Slider({
         ) : (
           <button
             type="button"
-            className="font-mono text-[11px] text-[var(--text-primary)]"
+            className="font-mono text-[10px] tabular-nums text-[var(--text-muted)]"
             onClick={() => {
               setDraft(String(value));
               setIsEditing(true);
             }}
           >
             {formatValue(value, step)}
-            {unit && <span className="text-[var(--text-muted)]">{unit}</span>}
+            {unit && <span>{unit}</span>}
           </button>
         )}
       </div>
       <div
         ref={trackRef}
-        className="relative h-4 cursor-ew-resize"
+        className="relative h-3 cursor-ew-resize"
         onMouseDown={(e) => {
           e.preventDefault();
           setIsDragging(true);
           applyFromClientX(e.clientX);
         }}
       >
-        <div className="absolute inset-x-0 top-1/2 h-[3px] -translate-y-1/2 rounded-full bg-[var(--track)]" />
+        <div className="absolute inset-x-0 top-1/2 h-0.5 -translate-y-1/2 rounded-full bg-[var(--track)]" />
         <div
-          className="absolute top-1/2 h-[3px] -translate-y-1/2 rounded-full bg-[var(--text-primary)]"
+          className="absolute top-1/2 h-0.5 -translate-y-1/2 rounded-full bg-[var(--text-primary)]"
           style={{ left: `${fillLeft}%`, width: `${fillWidth}%` }}
         />
         <div
-          className="absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[var(--text-primary)] bg-[var(--bg-secondary)]"
+          className="absolute top-1/2 size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[var(--text-primary)] bg-[var(--bg-secondary)]"
           style={{ left: `${pct}%` }}
         />
       </div>
