@@ -606,20 +606,22 @@ export function Studio() {
   return (
     <div className="pointer-events-none absolute top-3 right-auto bottom-5 left-5 z-20 flex max-h-[calc(100dvh-2rem)]">
       <aside
-        className="hud-card pointer-events-auto flex h-fit max-h-full w-[18.5rem] flex-col overflow-hidden"
+        className="hud-card pointer-events-auto flex h-fit max-h-full w-[18.5rem] flex-col"
         onWheel={(e) => e.stopPropagation()}
       >
-        <header className="shrink-0 px-4 pt-3 pb-2">
-          <Chrome onToggle={() => setOpen(false)} />
-        </header>
+        <div className="flex min-h-0 max-h-full flex-col overflow-hidden rounded-[inherit]">
+          <header className="shrink-0 px-4 pt-3 pb-2">
+            <Chrome onToggle={() => setOpen(false)} />
+          </header>
 
-        <Rule />
+          <Rule />
 
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-2 pb-4">
-          <div className="grid gap-2.5">
-            <LayerStack />
-            <Rule />
-            <LayerFields />
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-2 pb-4">
+            <div className="grid gap-2.5">
+              <LayerStack />
+              <Rule />
+              <LayerFields />
+            </div>
           </div>
         </div>
       </aside>

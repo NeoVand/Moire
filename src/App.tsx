@@ -8,8 +8,10 @@ export default function App() {
   useShortcuts();
 
   return (
-    <div className="relative h-screen overflow-hidden bg-[var(--bg-primary)] text-[var(--text-primary)]">
-      <MoireStage />
+    <div className="relative h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] [filter:blur(0)]">
+      <div className="absolute inset-0 overflow-hidden">
+        <MoireStage />
+      </div>
       <Studio />
       <ShortcutsOverlay />
       <AboutOverlay />

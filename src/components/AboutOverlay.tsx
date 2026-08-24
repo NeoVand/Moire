@@ -101,7 +101,7 @@ export function AboutOverlay() {
         role="dialog"
         aria-modal="true"
         aria-labelledby="moire-about-title"
-        className="hud-card pointer-events-auto w-[20.5rem] max-h-[calc(100dvh-3rem)] max-w-full overflow-x-hidden overflow-y-auto p-4"
+        className="hud-card pointer-events-auto w-[20.5rem] max-h-[calc(100dvh-3rem)] max-w-full p-4"
         onClick={(e) => e.stopPropagation()}
         onWheel={(e) => e.stopPropagation()}
       >
