@@ -538,10 +538,15 @@ function Chrome({ onToggle }: { onToggle: () => void }) {
 
   return (
     <div className="flex items-center gap-0.5">
-      <span className="flex items-center gap-1.5 py-0.5 pr-1 pl-0.5 text-[var(--text-primary)]">
-        <Mark size={18} />
-        <span className="text-[13px] font-semibold tracking-[-0.03em]">Moire</span>
-      </span>
+      <button
+        type="button"
+        title="About Moiré"
+        onClick={() => window.dispatchEvent(new Event('moire-about'))}
+        className="flex items-center gap-1.5 rounded-md pr-1 text-[var(--text-primary)] hover:opacity-80"
+      >
+        <Mark size={22} />
+        <span className="text-[13px] font-semibold tracking-[-0.03em]">Moiré</span>
+      </button>
       <span className="flex-1" />
       <button
         type="button"
@@ -596,32 +601,32 @@ export function Studio() {
 
   if (!open) {
     return (
-      <div className="pointer-events-none absolute top-3 left-3 z-20">
+      <div className="pointer-events-none absolute top-3 left-5 z-20">
         <button
           type="button"
           title="Open studio"
           onClick={() => setOpen(true)}
           className="hud-card pointer-events-auto grid size-9 place-items-center text-[var(--text-primary)]"
         >
-          <Mark size={18} />
+          <Mark size={20} />
         </button>
       </div>
     );
   }
 
   return (
-    <div className="pointer-events-none absolute inset-y-3 left-3 z-20 flex max-h-[calc(100dvh-1.5rem)]">
+    <div className="pointer-events-none absolute top-3 right-auto bottom-5 left-5 z-20 flex max-h-[calc(100dvh-2rem)]">
       <aside
-        className="hud-card pointer-events-auto flex h-fit max-h-full w-[17.5rem] flex-col overflow-hidden"
+        className="hud-card pointer-events-auto flex h-fit max-h-full w-[18.5rem] flex-col overflow-hidden"
         onWheel={(e) => e.stopPropagation()}
       >
-        <header className="shrink-0 px-1.5 py-1">
+        <header className="shrink-0 px-4 pt-3 pb-2">
           <Chrome onToggle={() => setOpen(false)} />
         </header>
 
         <Rule />
 
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2.5 py-2">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-2 pb-4">
           <div className="grid gap-2.5">
             <LayerStack />
             <Rule />

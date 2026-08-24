@@ -1,3 +1,4 @@
+import { AboutOverlay } from './components/AboutOverlay';
 import { MoireStage } from './components/MoireStage';
 import { ShortcutsOverlay } from './components/ShortcutsOverlay';
 import { Studio } from './components/Studio';
@@ -11,6 +12,7 @@ export default function App() {
       <MoireStage />
       <Studio />
       <ShortcutsOverlay />
+      <AboutOverlay />
     </div>
   );
 }
