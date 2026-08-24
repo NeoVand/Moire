@@ -33,7 +33,6 @@ export class MoireRenderer {
   private lastWidth = 0;
   private lastHeight = 0;
   private lastDpr = 0;
-  private slotCount = 0;
 
   canvas: HTMLCanvasElement | null = null;
 
@@ -104,8 +103,7 @@ export class MoireRenderer {
     if (!this.renderer) return;
 
     this.cameraUniforms = createCameraUniforms();
-    this.slotCount = 2;
-    this.slots = createSlots(this.slotCount);
+    this.slots = createSlots(MAX_LAYERS);
 
     const material = new MeshBasicNodeMaterial();
     material.colorNode = buildColorNode(this.cameraUniforms, this.slots);
@@ -127,9 +125,6 @@ export class MoireRenderer {
 
   sync(state: RendererSync) {
     if (!this.cameraUniforms) return;
-    const count = Math.max(1, Math.min(MAX_LAYERS, state.layers.length));
-    if (count !== this.slotCount) this.rebuildSlots(count);
-
     this.cameraUniforms.zoom.value = state.camera.zoom;
     this.cameraUniforms.pan.value.set(state.camera.pan.x, state.camera.pan.y);
     this.cameraUniforms.background.value.set(state.backgroundColor);
@@ -137,16 +132,6 @@ export class MoireRenderer {
 
     for (let i = 0; i < this.slots.length; i++) {
       writeLayerSlot(this.slots[i], state.layers[i]);
-    }
-  }
-
-  private rebuildSlots(count: number) {
-    if (!this.cameraUniforms || !this.material) return;
-    this.slotCount = count;
-    this.slots = createSlots(count);
-    this.material.colorNode = buildColorNode(this.cameraUniforms, this.slots);
-    if (this.ready && this.renderer && this.scene && this.camera) {
-      void this.renderer.compileAsync(this.scene, this.camera).then(() => this.render());
     }
   }
 
