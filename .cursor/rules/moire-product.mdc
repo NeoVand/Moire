@@ -11,6 +11,6 @@ Read `AGENTS.md` before changing renderer, inverse math, or HUD.
 - Rotation needs an `n` sweep; do not cap rings. Holes at zoom-out are missed sides.
 - Do not rebuild `colorNode` when layer count changes. Fixed `MAX_LAYERS` slots.
 - World Y up; flip Y only in `camera.ts`. `rotation` is degrees, `rotationOffset` is radians.
-- Inspector must not scroll. Selected layer is a quiet ring, never an inverted overlay.
+- One left `Studio` chrome (logo, view, layers, fields). `I` collapses it. No separate HUD / inspector / filmstrip.
 - Default background is white. Lines icon is `EqualSignIcon`.
 - Do not resurrect `maxRings`, Option-key modes, JSON import, or fake blends.

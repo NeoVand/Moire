@@ -21,7 +21,7 @@ const ROWS: { icon: typeof KeyboardIcon; keys: string; detail: string }[] = [
   { icon: Delete02Icon, keys: '⌫', detail: 'Remove' },
   { icon: KeyboardIcon, keys: '1–9', detail: 'Select a layer' },
   { icon: ZoomInAreaIcon, keys: 'F', detail: 'Reset view' },
-  { icon: KeyboardIcon, keys: 'I', detail: 'Hide or show the inspector' },
+  { icon: KeyboardIcon, keys: 'I', detail: 'Hide or show the studio' },
 ];
 
 export function ShortcutsOverlay() {

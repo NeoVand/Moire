@@ -80,9 +80,9 @@ export function Slider({
   const isDirty = defaultValue !== undefined && !nearlyEqual(value, defaultValue, step);
 
   return (
-    <div className="grid gap-1">
-      <div className="flex h-4 items-center justify-between gap-2">
-        <span className="flex min-w-0 items-center gap-1 text-[10px] uppercase tracking-wide text-[var(--text-secondary)]">
+    <div className="grid gap-1.5">
+      <div className="flex h-5 items-center justify-between gap-2">
+        <span className="flex min-w-0 items-center gap-1.5 text-[11px] uppercase tracking-wide text-[var(--text-secondary)]">
           <span className="truncate">{label}</span>
           {isDirty && (
             <button
@@ -124,7 +124,7 @@ export function Slider({
       </div>
       <div
         ref={trackRef}
-        className="relative h-4 cursor-ew-resize"
+        className="relative h-5 cursor-ew-resize"
         onMouseDown={(e) => {
           e.preventDefault();
           setIsDragging(true);
@@ -137,7 +137,7 @@ export function Slider({
           style={{ left: `${fillLeft}%`, width: `${fillWidth}%` }}
         />
         <div
-          className="absolute top-1/2 size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[var(--text-primary)] bg-[var(--bg-secondary)]"
+          className="absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[var(--text-primary)] bg-[var(--bg-secondary)]"
           style={{ left: `${pct}%` }}
         />
       </div>

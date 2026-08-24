@@ -88,8 +88,8 @@ input[type="color"]::-webkit-color-swatch {
 .hud-card {
   border: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
   background: var(--hud-bg);
-  backdrop-filter: blur(28px) saturate(1.35);
-  -webkit-backdrop-filter: blur(28px) saturate(1.35);
-  border-radius: 16px;
+  backdrop-filter: blur(32px) saturate(1.4);
+  -webkit-backdrop-filter: blur(32px) saturate(1.4);
+  border-radius: 22px;
   box-shadow: var(--hud-shadow);
 }
