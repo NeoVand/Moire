@@ -1,14 +1,14 @@
 import {
   Asterisk02Icon,
+  CellsIcon,
   CircleIcon,
-  GridViewIcon,
-  Hexagon01Icon,
+  Grid3X3Icon,
   HexagonIcon,
+  NanoTechnologyIcon,
   SquareIcon,
-  Triangle01Icon,
   TriangleIcon,
 } from '@hugeicons/core-free-icons';
-import type { PatternType } from '../types/moire';
+import type { PatternFamily, PatternType } from '../types/moire';
 import type { HugeIcon } from './ui/Icon';
 
 export const PATTERN_ICONS: Record<PatternType, HugeIcon> = {
@@ -17,7 +17,14 @@ export const PATTERN_ICONS: Record<PatternType, HugeIcon> = {
   'concentric-squares': SquareIcon,
   'concentric-triangles': TriangleIcon,
   'concentric-polygons': HexagonIcon,
-  'grid-square': GridViewIcon,
-  'grid-hex': Hexagon01Icon,
-  'grid-triangle': Triangle01Icon,
+  'grid-square': Grid3X3Icon,
+  'grid-hex': CellsIcon,
+  'grid-triangle': NanoTechnologyIcon,
+};
+
+export const FAMILY_ICONS: Record<PatternFamily, HugeIcon> = {
+  lines: Asterisk02Icon,
+  circles: CircleIcon,
+  polygon: HexagonIcon,
+  grid: Grid3X3Icon,
 };

@@ -108,7 +108,7 @@ export function MoireStage() {
     const world = clientToWorld(e.clientX, e.clientY, rect, camera.zoom, camera.pan);
 
     const pan = e.button === 1 || spaceRef.current;
-    const rotate = !pan && e.shiftKey && !!layer;
+    const rotate = !pan && e.altKey && !!layer;
     const mode: DragMode = pan ? 'pan' : rotate ? 'rotate' : 'move';
 
     dragRef.current = {
@@ -126,7 +126,7 @@ export function MoireStage() {
   const onPointerMove = (e: React.PointerEvent) => {
     const drag = dragRef.current;
     if (!drag) {
-      if (e.shiftKey) setCursor('crosshair');
+      if (e.altKey) setCursor('crosshair');
       else if (spaceRef.current) setCursor('grab');
       else setCursor('default');
       return;

@@ -27,3 +27,16 @@ approx(hex.vertex, s, 0.05);
 approx(hex.edge, (s * Math.sqrt(3)) / 2, 0.05);
 approx(gridDistanceCpu({ x: 0, y: s }, 1, s, true), 0, 0.08);
 approx(gridDistanceCpu({ x: 0, y: s }, 1, s, false), 0, 0.08);
+
+// Stretch: cells scale in layer space; distances stay world-space
+approx(gridDistanceCpu({ x: s * 2, y: 0 }, 0, s, true, 2, 1), 0);
+approx(gridDistanceCpu({ x: s, y: 0 }, 0, s, true, 2, 1), s);
+approx(gridDistanceCpu({ x: s, y: 0 }, 0, s, false, 2, 1), 0);
+approx(gridDistanceCpu({ x: 0, y: s / 2 }, 0, s, false, 2, 1), 0);
+approx(latticeHits({ x: s, y: s / 2 }, 0, s, 2, 1).edge, s / 2);
+
+approx(gridDistanceCpu({ x: s * 2, y: 0 }, 2, s, true, 2, 1), 0, 0.02);
+approx(gridDistanceCpu({ x: s, y: 0 }, 2, s, true, 2, 1), s, 0.05);
+
+approx(gridDistanceCpu({ x: 0, y: s * 2 }, 1, s, true, 1, 2), 0, 0.1);
+approx(gridDistanceCpu({ x: 0, y: s }, 1, s, true, 1, 2), (s * Math.sqrt(3)) / 2, 0.15);

@@ -19,15 +19,18 @@ import { exportPng } from '../gpu/capture';
 import {
   LAYER_DEFAULTS,
   MAX_LAYERS,
+  PATTERN_FAMILIES,
   PATTERN_META,
+  familyOf,
   isConcentric,
   isGrid,
+  type PatternFamily,
   type PatternType,
 } from '../types/moire';
 import { useProjectStore, useSelectedLayer } from '../store/project';
-import { PATTERN_ICONS } from './patternIcons';
+import { FAMILY_ICONS, PATTERN_ICONS } from './patternIcons';
 import { ColorField } from './ui/ColorField';
-import { Icon } from './ui/Icon';
+import { Icon, type HugeIcon } from './ui/Icon';
 import { IconButton } from './ui/IconButton';
 import { Slider } from './ui/Slider';
 
@@ -50,6 +53,78 @@ function Mark({ size = 22 }: { size?: number }) {
 
 function Rule() {
   return <div className="h-px bg-[var(--border)]" />;
+}
+
+function ShapeChip({
+  label,
+  active,
+  onClick,
+  icon,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+  icon: HugeIcon;
+}) {
+  return (
+    <button
+      type="button"
+      title={label}
+      onClick={onClick}
+      className={`grid h-8 flex-1 place-items-center rounded-md ${
+        active
+          ? 'text-[var(--text-primary)] ring-1 ring-inset ring-[color-mix(in_srgb,var(--text-primary)_45%,transparent)]'
+          : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'
+      }`}
+    >
+      <Icon icon={icon} size={16} />
+    </button>
+  );
+}
+
+function PatternPicker({
+  type,
+  onChange,
+}: {
+  type: PatternType;
+  onChange: (type: PatternType) => void;
+}) {
+  const lastByFamily = useRef<Partial<Record<PatternFamily, PatternType>>>({});
+  const family = familyOf(type);
+  lastByFamily.current[family] = type;
+  const variants = PATTERN_FAMILIES.find((item) => item.id === family)?.types ?? [];
+
+  return (
+    <div className="grid gap-0.5">
+      <div className="flex gap-0.5">
+        {PATTERN_FAMILIES.map((item) => (
+          <ShapeChip
+            key={item.id}
+            label={item.label}
+            icon={FAMILY_ICONS[item.id]}
+            active={item.id === family}
+            onClick={() => {
+              if (item.id === family) return;
+              onChange(lastByFamily.current[item.id] ?? item.types[0]);
+            }}
+          />
+        ))}
+      </div>
+      {variants.length > 1 && (
+        <div className="flex gap-0.5">
+          {variants.map((id) => (
+            <ShapeChip
+              key={id}
+              label={PATTERN_META.find((item) => item.id === id)?.label ?? id}
+              icon={PATTERN_ICONS[id]}
+              active={type === id}
+              onClick={() => onChange(id)}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 function LayerName({
@@ -169,13 +244,13 @@ function LayerStack() {
             dense
           />
           {addOpen && layers.length < MAX_LAYERS && (
-            <div className="hud-card absolute top-full right-0 z-30 mt-1 grid grid-cols-5 gap-0.5 p-1">
-              {PATTERN_META.map((pattern) => (
+            <div className="hud-card absolute top-full right-0 z-30 mt-1 flex gap-0.5 p-1">
+              {PATTERN_FAMILIES.map((family) => (
                 <IconButton
-                  key={pattern.id}
-                  icon={PATTERN_ICONS[pattern.id]}
-                  label={`Add ${pattern.label.toLowerCase()}`}
-                  onClick={() => spawn(pattern.id)}
+                  key={family.id}
+                  icon={FAMILY_ICONS[family.id]}
+                  label={`Add ${family.label.toLowerCase()}`}
+                  onClick={() => spawn(family.types[0])}
                   dense
                 />
               ))}
@@ -256,6 +331,9 @@ function LayerFields() {
 
   if (!layer) return null;
 
+  const family = familyOf(layer.type);
+  const familyMeta = PATTERN_FAMILIES.find((item) => item.id === family);
+  const typeLabel = PATTERN_META.find((item) => item.id === layer.type)?.label;
   const spacingDefault = isGrid(layer.type)
     ? LAYER_DEFAULTS.spacingGrid
     : layer.type === 'straight-lines'
@@ -272,52 +350,13 @@ function LayerFields() {
           onCommit={(name) => renameLayer(layer.id, name)}
         />
         <span className="shrink-0 text-[11px] text-[var(--text-muted)]">
-          {PATTERN_META.find((item) => item.id === layer.type)?.label}
+          {familyMeta && familyMeta.types.length > 1
+            ? `${familyMeta.label} · ${typeLabel}`
+            : (familyMeta?.label ?? typeLabel)}
         </span>
       </div>
 
-      <div className="grid gap-0.5">
-        <div className="flex gap-0.5">
-          {PATTERN_META.filter((pattern) => pattern.group !== 'grid').map((pattern) => {
-            const active = layer.type === pattern.id;
-            return (
-              <button
-                key={pattern.id}
-                type="button"
-                title={pattern.label}
-                onClick={() => setLayerType(layer.id, pattern.id)}
-                className={`grid h-8 flex-1 place-items-center rounded-md ${
-                  active
-                    ? 'text-[var(--text-primary)] ring-1 ring-inset ring-[color-mix(in_srgb,var(--text-primary)_45%,transparent)]'
-                    : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'
-                }`}
-              >
-                <Icon icon={PATTERN_ICONS[pattern.id]} size={16} />
-              </button>
-            );
-          })}
-        </div>
-        <div className="grid grid-cols-5 gap-0.5">
-          {PATTERN_META.filter((pattern) => pattern.group === 'grid').map((pattern) => {
-            const active = layer.type === pattern.id;
-            return (
-              <button
-                key={pattern.id}
-                type="button"
-                title={pattern.label}
-                onClick={() => setLayerType(layer.id, pattern.id)}
-                className={`grid h-8 place-items-center rounded-md ${
-                  active
-                    ? 'text-[var(--text-primary)] ring-1 ring-inset ring-[color-mix(in_srgb,var(--text-primary)_45%,transparent)]'
-                    : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'
-                }`}
-              >
-                <Icon icon={PATTERN_ICONS[pattern.id]} size={16} />
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      <PatternPicker type={layer.type} onChange={(type) => setLayerType(layer.id, type)} />
 
       <ColorField
         label="Stroke"
@@ -376,6 +415,26 @@ function LayerFields() {
       />
       {isGrid(layer.type) ? (
         <>
+          <div className="grid grid-cols-2 gap-x-3 gap-y-2">
+            <Slider
+              label="Scale X"
+              value={layer.scale?.x ?? LAYER_DEFAULTS.scaleX}
+              min={0.2}
+              max={5}
+              step={0.01}
+              defaultValue={LAYER_DEFAULTS.scaleX}
+              onChange={(x) => updateLayer(layer.id, { scale: { x } })}
+            />
+            <Slider
+              label="Scale Y"
+              value={layer.scale?.y ?? LAYER_DEFAULTS.scaleY}
+              min={0.2}
+              max={5}
+              step={0.01}
+              defaultValue={LAYER_DEFAULTS.scaleY}
+              onChange={(y) => updateLayer(layer.id, { scale: { y } })}
+            />
+          </div>
           <Slider
             label="Vertices"
             value={layer.vertexSize ?? LAYER_DEFAULTS.vertexSize}

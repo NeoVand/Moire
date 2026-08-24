@@ -55,6 +55,7 @@ export function createLayerSlot() {
     sides: uniform(6),
     vertexSize: uniform(2.5),
     drawEdges: uniform(1),
+    scale: uniform(new THREE.Vector2(1, 1)),
   };
 }
 
@@ -89,6 +90,7 @@ export function writeLayerSlot(slot: LayerSlot, layer: PatternLayer | undefined)
   slot.sides.value = layer.sides;
   slot.vertexSize.value = layer.vertexSize ?? 0;
   slot.drawEdges.value = layer.drawEdges === false ? 0 : 1;
+  slot.scale.value.set(layer.scale?.x ?? 1, layer.scale?.y ?? 1);
 }
 
 export function buildColorNode(camera: CameraUniforms, slots: LayerSlot[]) {
@@ -130,8 +132,8 @@ export function buildColorNode(camera: CameraUniforms, slots: LayerSlot[]) {
             );
           }).Else(() => {
             const kind = slot.type.sub(5);
-            const edgeD = gridDistance(local, kind, slot.spacing, float(0));
-            const vertD = gridDistance(local, kind, slot.spacing, float(1));
+            const edgeD = gridDistance(local, kind, slot.spacing, float(0), slot.scale.x, slot.scale.y);
+            const vertD = gridDistance(local, kind, slot.spacing, float(1), slot.scale.x, slot.scale.y);
             const edgeA = float(1)
               .sub(smoothstep(halfT.sub(aa), halfT.add(aa), edgeD))
               .mul(slot.drawEdges);

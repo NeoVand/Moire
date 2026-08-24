@@ -38,15 +38,48 @@ function dragOn(
   event.stopPropagation();
   const el = event.currentTarget;
   el.setPointerCapture(event.pointerId);
-  applyFromPointer(event, el, onAt);
-  const move = (next: PointerEvent) => applyFromPointer(next, el, onAt);
+  let last = { x: event.clientX, y: event.clientY, nx: 0, ny: 0 };
+  let origin: { x: number; y: number; nx: number; ny: number } | null = null;
+  applyFromPointer(event, el, (nx, ny) => {
+    last = { x: event.clientX, y: event.clientY, nx, ny };
+    origin = event.shiftKey ? last : null;
+    onAt(nx, ny);
+  });
+  const apply = (clientX: number, clientY: number, shift: boolean) => {
+    const rect = el.getBoundingClientRect();
+    last = { ...last, x: clientX, y: clientY };
+    if (shift) {
+      if (!origin) origin = last;
+      last = {
+        ...last,
+        nx: clamp01(origin.nx + ((clientX - origin.x) / Math.max(rect.width, 1)) * 0.12),
+        ny: clamp01(origin.ny + ((clientY - origin.y) / Math.max(rect.height, 1)) * 0.12),
+      };
+      onAt(last.nx, last.ny);
+      return;
+    }
+    origin = last;
+    applyFromPointer({ clientX, clientY } as PointerEvent, el, (nx, ny) => {
+      last = { ...last, nx, ny };
+      onAt(nx, ny);
+    });
+  };
+  const move = (next: PointerEvent) => apply(next.clientX, next.clientY, next.shiftKey);
+  const onKey = (e: KeyboardEvent) => {
+    if (e.key !== 'Shift') return;
+    origin = { ...last };
+  };
   const up = () => {
     el.releasePointerCapture(event.pointerId);
     window.removeEventListener('pointermove', move);
     window.removeEventListener('pointerup', up);
+    window.removeEventListener('keydown', onKey);
+    window.removeEventListener('keyup', onKey);
   };
   window.addEventListener('pointermove', move);
   window.addEventListener('pointerup', up);
+  window.addEventListener('keydown', onKey);
+  window.addEventListener('keyup', onKey);
 }
 
 function placePanel(trigger: HTMLElement, height: number) {

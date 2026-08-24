@@ -13,4 +13,4 @@ Read `AGENTS.md` before changing renderer, inverse math, or HUD.
 - World Y up; flip Y only in `camera.ts`. `rotation` is degrees, `rotationOffset` is radians.
 - One left `Studio` chrome (Jupiter logo, view, layers, fields, PNG export). `I` collapses it. `E` exports. No separate HUD / inspector / filmstrip.
 - Default background is white. Theme defaults to dark. Lines icon is `Asterisk02Icon`.
-- Do not resurrect `maxRings`, Option-key modes, JSON import, or fake blends.
+- Option-drag rotates. Shift on sliders is fine control. Grids stretch with Scale X/Y. Do not resurrect `maxRings`, JSON import, or fake blends.

@@ -6,6 +6,7 @@ import {
   KeyboardIcon,
   Move01Icon,
   Rotate01Icon,
+  SlidersHorizontalIcon,
   ViewOffIcon,
   ZoomInAreaIcon,
 } from '@hugeicons/core-free-icons';
@@ -14,9 +15,10 @@ import { Icon } from './ui/Icon';
 
 const ROWS: { icon: typeof KeyboardIcon; keys: string; detail: string }[] = [
   { icon: Move01Icon, keys: 'Drag', detail: 'Move the selected field' },
-  { icon: Rotate01Icon, keys: 'Shift-drag', detail: 'Rotate around its origin' },
+  { icon: Rotate01Icon, keys: '⌥-drag', detail: 'Rotate around its origin' },
   { icon: Move01Icon, keys: 'Space-drag', detail: 'Pan the canvas' },
   { icon: ZoomInAreaIcon, keys: 'Scroll', detail: 'Zoom to the cursor' },
+  { icon: SlidersHorizontalIcon, keys: 'Shift-drag', detail: 'Fine-tune a slider' },
   { icon: ViewOffIcon, keys: 'H', detail: 'Hide or show' },
   { icon: Copy01Icon, keys: 'D', detail: 'Duplicate' },
   { icon: Delete02Icon, keys: '⌫', detail: 'Remove' },

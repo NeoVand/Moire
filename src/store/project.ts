@@ -8,9 +8,10 @@ import {
 } from '../types/moire';
 import { clampZoom } from '../gpu/camera';
 
-export type LayerPatch = Omit<Partial<PatternLayer>, 'position' | 'offset'> & {
+export type LayerPatch = Omit<Partial<PatternLayer>, 'position' | 'offset' | 'scale'> & {
   position?: Partial<Vec2>;
   offset?: Partial<Vec2>;
+  scale?: Partial<Vec2>;
 };
 
 export interface ProjectStore {
@@ -44,6 +45,7 @@ function mergeLayer(layer: PatternLayer, patch: LayerPatch): PatternLayer {
     ...patch,
     position: patch.position ? { ...layer.position, ...patch.position } : layer.position,
     offset: patch.offset ? { ...layer.offset, ...patch.offset } : layer.offset,
+    scale: { ...(layer.scale ?? { x: 1, y: 1 }), ...patch.scale },
     rotationOffset: patch.rotationOffset ?? layer.rotationOffset,
   };
 }

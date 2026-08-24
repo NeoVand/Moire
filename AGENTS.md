@@ -6,10 +6,10 @@ Canvas-first WebGPU moiré tool. Vite + React + TypeScript + Three.js TSL. Do no
 
 - Full-bleed canvas. One studio chrome on the left (Jupiter mark, view, layers, fields, PNG export). `I` collapses it to a Moire pill. `E` exports a PNG.
 - World Y is up. Flip Y only in `src/gpu/camera.ts` (pointer / zoom-to-cursor).
-- Drag moves the selected layer. Shift-drag rotates (degrees in UI). Space or middle-drag pans. Wheel zooms to cursor.
+- Drag moves the selected layer. Option-drag rotates (degrees in UI). Space or middle-drag pans. Wheel zooms to cursor. Shift on sliders is fine control.
 - `rotation` is degrees. `rotationOffset` is radians, always present on the layer.
-- No `maxRings`, Option-key modes, JSON import/export theater, or fake blend modes.
-- V1 patterns: parallel lines; concentric circles, squares, triangles, n-gons; square / hex / triangle lattices (no offset; vertices + optional edges).
+- No `maxRings`, JSON import/export theater, or fake blend modes.
+- V1 patterns: parallel lines; concentric circles, squares, triangles, n-gons; square / hex / triangle lattices (no offset; vertices + optional edges; X/Y scale). Studio groups them as Lines, Circles, Polygon, Grid.
 - Render on dirty store subscribe, rAF-coalesced. Do not rebuild `colorNode` when layer count changes.
 - Pattern colors are the only accent. Background default is `#ffffff`.
 - Hugeicons only. Lines use `Asterisk02Icon`, not `EqualSignIcon` or `LineIcon`.

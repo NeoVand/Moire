@@ -34,6 +34,8 @@ export interface PatternLayer {
   vertexSize: number;
   /** Lattice edges. Grids have no offset. */
   drawEdges: boolean;
+  /** Lattice stretch in layer space. 1 is unstretched. */
+  scale: Vec2;
 }
 
 export interface CameraState {
@@ -48,20 +50,37 @@ export interface MoireProject {
   backgroundColor: string;
 }
 
+export type PatternFamily = 'lines' | 'circles' | 'polygon' | 'grid';
+
 export const PATTERN_META: {
   id: PatternType;
   label: string;
-  group: 'lines' | 'concentric' | 'grid';
+  family: PatternFamily;
 }[] = [
-  { id: 'straight-lines', label: 'Lines', group: 'lines' },
-  { id: 'concentric-circles', label: 'Circles', group: 'concentric' },
-  { id: 'concentric-squares', label: 'Squares', group: 'concentric' },
-  { id: 'concentric-triangles', label: 'Triangles', group: 'concentric' },
-  { id: 'concentric-polygons', label: 'Polygons', group: 'concentric' },
-  { id: 'grid-square', label: 'Square grid', group: 'grid' },
-  { id: 'grid-hex', label: 'Hex grid', group: 'grid' },
-  { id: 'grid-triangle', label: 'Triangle grid', group: 'grid' },
+  { id: 'straight-lines', label: 'Lines', family: 'lines' },
+  { id: 'concentric-circles', label: 'Circles', family: 'circles' },
+  { id: 'concentric-squares', label: 'Square', family: 'polygon' },
+  { id: 'concentric-triangles', label: 'Triangle', family: 'polygon' },
+  { id: 'concentric-polygons', label: 'Hexagon', family: 'polygon' },
+  { id: 'grid-square', label: 'Square', family: 'grid' },
+  { id: 'grid-hex', label: 'Hexagon', family: 'grid' },
+  { id: 'grid-triangle', label: 'Triangle', family: 'grid' },
 ];
+
+export const PATTERN_FAMILIES: {
+  id: PatternFamily;
+  label: string;
+  types: PatternType[];
+}[] = [
+  { id: 'lines', label: 'Lines', types: ['straight-lines'] },
+  { id: 'circles', label: 'Circles', types: ['concentric-circles'] },
+  { id: 'polygon', label: 'Polygon', types: ['concentric-squares', 'concentric-triangles', 'concentric-polygons'] },
+  { id: 'grid', label: 'Grid', types: ['grid-square', 'grid-hex', 'grid-triangle'] },
+];
+
+export function familyOf(type: PatternType): PatternFamily {
+  return PATTERN_META.find((item) => item.id === type)?.family ?? 'circles';
+}
 
 export function isConcentric(type: PatternType): boolean {
   return (
@@ -79,7 +98,7 @@ export function isGrid(type: PatternType): boolean {
 export function createLayer(
   partial: Partial<PatternLayer> & Pick<PatternLayer, 'id' | 'name'>
 ): PatternLayer {
-  const { position, offset, ...rest } = partial;
+  const { position, offset, scale, ...rest } = partial;
   return {
     type: 'concentric-circles',
     visible: true,
@@ -96,6 +115,7 @@ export function createLayer(
     ...rest,
     position: { x: 0, y: 0, ...position },
     offset: { x: 0, y: 0, ...offset },
+    scale: { x: 1, y: 1, ...scale },
   };
 }
 
@@ -148,4 +168,6 @@ export const LAYER_DEFAULTS = {
   sides: 6,
   vertexSize: 2.5,
   spacingGrid: 16,
+  scaleX: 1,
+  scaleY: 1,
 } as const;
