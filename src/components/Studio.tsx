@@ -133,12 +133,8 @@ function LayerStack() {
               <button
                 type="button"
                 onClick={() => selectLayer(layer.id)}
-                className="flex min-w-0 flex-1 items-center gap-1.5 py-1 pr-1 text-left"
+                className="flex min-w-0 flex-1 items-center py-1 pr-1 text-left"
               >
-                <span
-                  className="size-2 shrink-0 rounded-full border border-current"
-                  style={{ background: layer.visible ? layer.color : 'transparent' }}
-                />
                 <span className="min-w-0 truncate text-[12px]">{layer.name}</span>
               </button>
               <IconButton

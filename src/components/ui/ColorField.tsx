@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import { hexToHsv, hsvToHex, hsvToRgb, type Hsv } from '../../lib/color';
 
 interface ColorFieldProps {
@@ -65,8 +65,9 @@ function Swatch({
       aria-label={title}
       aria-expanded={expanded}
       onClick={onClick}
-      className="checkerboard relative size-6 overflow-hidden rounded border border-[var(--border)]"
+      className="relative size-6 overflow-hidden rounded border border-[var(--border)]"
     >
+      <span className="checkerboard-swatch absolute inset-0" />
       <span className="absolute inset-0" style={{ background: hex, opacity }} />
     </button>
   );
@@ -75,9 +76,32 @@ function Swatch({
 function Thumb({ left, top }: { left: string; top?: string }) {
   return (
     <span
-      className="pointer-events-none absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-[0_0_0_1px_rgba(0,0,0,0.35)]"
+      className="pointer-events-none absolute z-10 size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-white/20 shadow-[0_0_0_1px_rgba(0,0,0,0.4)]"
       style={{ left, top: top ?? '50%' }}
     />
+  );
+}
+
+function Slider({
+  value,
+  onAt,
+  children,
+}: {
+  value: number;
+  onAt: (nx: number) => void;
+  children: ReactNode;
+}) {
+  return (
+    <div className="relative h-5">
+      <div className="absolute inset-x-0 top-1/2 h-3 -translate-y-1/2 overflow-hidden rounded-full">
+        {children}
+      </div>
+      <div
+        className="absolute inset-y-0 inset-x-[7px] cursor-ew-resize"
+        onPointerDown={(e) => dragOn(e, (nx) => onAt(nx))}
+      />
+      <Thumb left={`calc(7px + ${clamp01(value)} * (100% - 14px))`} />
+    </div>
   );
 }
 
@@ -137,10 +161,10 @@ export function ColorField({
       />
       {open && (
         <div
-          className="hud-card absolute top-full right-0 z-30 mt-1.5 w-[12.5rem] p-2"
+          className="absolute top-full right-0 z-30 mt-1.5 w-[13.5rem] rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] p-3.5 shadow-[var(--hud-shadow)]"
           onPointerDown={(e) => e.stopPropagation()}
         >
-          <div className="grid gap-2">
+          <div className="grid gap-2.5">
             <div
               className="relative h-[7.25rem] cursor-crosshair overflow-hidden rounded-lg"
               style={{
@@ -152,32 +176,31 @@ export function ColorField({
             >
               <Thumb left={`${hsv.s * 100}%`} top={`${(1 - hsv.v) * 100}%`} />
             </div>
-            <div
-              className="relative h-3 cursor-ew-resize overflow-hidden rounded-full"
-              style={{
-                background:
-                  'linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00)',
-              }}
-              onPointerDown={(e) => dragOn(e, (nx) => commit({ ...hsv, h: nx * 360 }))}
-            >
-              <Thumb left={`${(hsv.h / 360) * 100}%`} />
-            </div>
+            <Slider value={hsv.h / 360} onAt={(nx) => commit({ ...hsv, h: nx * 360 })}>
+              <span
+                className="absolute inset-0"
+                style={{
+                  background: 'linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00)',
+                }}
+              />
+            </Slider>
             {hasAlpha && (
-              <div
-                className="checkerboard relative h-3 cursor-ew-resize overflow-hidden rounded-full"
-                onPointerDown={(e) => dragOn(e, (nx) => onOpacityChange(Math.round(nx * 100) / 100))}
+              <Slider
+                value={alpha}
+                onAt={(nx) => onOpacityChange(Math.round(nx * 100) / 100)}
               >
+                <span className="checkerboard absolute inset-0" />
                 <span
                   className="absolute inset-0"
                   style={{
                     background: `linear-gradient(to right, ${rgbCss(rgb, 0)}, ${rgbCss(rgb, 1)})`,
                   }}
                 />
-                <Thumb left={`${alpha * 100}%`} />
-              </div>
+              </Slider>
             )}
-            <div className="flex items-center gap-2">
-              <span className="checkerboard relative size-6 overflow-hidden rounded-md border border-[var(--border)]">
+            <div className="flex items-center gap-2 px-0.5">
+              <span className="relative size-6 overflow-hidden rounded-md border border-[var(--border)]">
+                <span className="checkerboard-swatch absolute inset-0" />
                 <span className="absolute inset-0" style={{ background: solidHex, opacity: alpha }} />
               </span>
               <span className="font-mono text-[10px] tabular-nums text-[var(--text-muted)]">
