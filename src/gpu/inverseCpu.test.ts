@@ -19,6 +19,12 @@ approx(
   0
 );
 
+// Circles + rot offset, no translation: θ is a no-op
+approx(
+  ringDistanceCpu({ x: 25, y: 0 }, { x: 0, y: 0 }, 0.4, 10, 0, 1, 3),
+  ringDistanceCpu({ x: 25, y: 0 }, { x: 0, y: 0 }, 0, 10, 0, 1, 3)
+);
+
 // Far from origin — no ring cap. Ring 100 at r=600.
 approx(
   ringDistanceCpu({ x: 600, y: 0 }, { x: 0, y: 0 }, 0, 6, 0, 1, 3),

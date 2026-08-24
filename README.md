@@ -27,6 +27,8 @@ Two similar periodic figures—lines, rings, polygons, or lattices—overlay to 
 
 This is not a pile of SVG paths. Nothing here is a list of rings the GPU then strokes. Each layer is a **scalar field**: every pixel asks how far it is from the nearest member of a family, and ink appears where that distance is smaller than half the stroke.
 
+That is also why it is fast. An SVG of the same scene would be a nightmare. Zoom out and a family has no last ring — you would emit thousands of path elements per layer, the painter would still not *be* the interference, and a drag would rebuild the tree. A field does not grow with `n`. Cost is pixels times layers: one fullscreen program, every pixel in parallel. Twelve layers at an arbitrary zoom is still one pass. The moiré is not a post-effect. It is two answers that disagree.
+
 A family is indexed by an integer `n`. Ring `n` has radius `n * spacing + phase`. If the layer is translated or rotated, the center walks with `n` too — `rotate(n · δ, n · θ)` — then the sample is unrotated back into that ring’s frame. Two of those fields, slightly out of step, *are* the moiré. The interference is not composited after the fact; it is what you see when two answers disagree.
 
 ```ts
@@ -38,7 +40,7 @@ function evalRing(p, n, offset, theta, spacing, phase, shape, sides) {
 }
 ```
 
-`shapeRadius` is the metric for that family: Euclidean length for circles, `max(|x|, |y|)` for squares, the regular-polygon radial metric for triangles and n-gons. Centered layers collapse to a `mod`. Circles with a pure translation solve a quadratic. Squares with a translation have a closed L∞ form. Rotation — or a translated polygon — needs Newton, plus a sweep of `n` over the range the orientation can actually occupy. Cap that range and whole sides vanish when you zoom out (the white holes). There is no `maxRings`.
+`shapeRadius` is the metric for that family: Euclidean length for circles, `max(|x|, |y|)` for squares, the regular-polygon radial metric for triangles and n-gons. Centered layers collapse to a `mod`. Circles with no translation stay on that path even with a rotation offset — spinning a radial metric is a no-op. Circles with a pure translation solve a quadratic. Squares with a translation have a closed L∞ form. Rotation on a polygon — or a translated polygon — needs Newton, plus a sweep of `n` over the range the orientation can actually occupy. Cap that range and whole sides vanish when you zoom out (the white holes). That sweep is the expensive path: each window is only as wide as it needs to be, and a pixel already inside the stroke stops looking. There is no `maxRings`.
 
 The same functions exist twice, on purpose: TypeScript in `src/gpu/inverseCpu.ts` and WGSL in `src/gpu/inverse.wgsl.ts`. Three.js `wgslFn` only parses the first `fn` in a string, so each helper is its own include. Tests lock the twins: `node --experimental-strip-types src/gpu/inverseCpu.test.ts`.
 

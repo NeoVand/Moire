@@ -253,13 +253,15 @@ export function ringDistanceCpu(
   spacing: number,
   phase: number,
   shape: ShapeKind,
-  sides: number
+  sides: number,
+  acceptBelow = 0
 ): number {
   const s = Math.max(spacing, 1e-4);
   const hasOff = dot(offset, offset) > 1e-8;
   const hasRot = Math.abs(theta) > 1e-8;
 
-  if (!hasOff && !hasRot) {
+  // Circles ignore θ when δ = 0: rotating a radial metric is a no-op.
+  if (!hasOff && (!hasRot || shape <= 1)) {
     return centeredMod(shapeRadius(p, shape, sides), s, phase);
   }
   if (!hasRot) {
@@ -280,17 +282,21 @@ export function ringDistanceCpu(
     d = consider(d, p, t0, offset, theta, s, phase, shape, sides, 4);
   };
 
+  const inked = () => acceptBelow > 0 && d <= acceptBelow;
+
   polish(tL2);
   polish(tInf);
   polish(tShape);
   polish(tL2 * 0.35);
   polish(tL2 * 1.6 + 3);
+  if (inked()) return d;
 
   if (hasOff) {
     const inv = r2 > EPS ? 1 / r2 : 0;
     const rot = rotate2d(offset, tShape * theta);
     const den = s + p.x * inv * rot.x + p.y * inv * rot.y;
     if (Math.abs(den) > 1e-4) polish((r2 - phase) / den);
+    if (inked()) return d;
   }
 
   const nSides = shapeSideCount(shape, sides);
@@ -307,6 +313,7 @@ export function ringDistanceCpu(
     const half = Math.min(16, Math.max(4, Math.ceil(step * 0.5 + 1)));
     for (let i = 0; i < samples; i++) {
       d = consider(d, p, nMin + (i + 0.5) * step, offset, theta, s, phase, shape, sides, half);
+      if (inked()) return d;
     }
   }
 

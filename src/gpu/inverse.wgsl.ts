@@ -117,11 +117,10 @@ fn checkNear(p: vec2<f32>, t: f32, offset: vec2<f32>, theta: f32, spacing: f32, 
 const checkWindow = wgslFn(`
 fn checkWindow(p: vec2<f32>, t: f32, offset: vec2<f32>, theta: f32, spacing: f32, phase: f32, shapeType: f32, sides: f32, half: f32) -> f32 {
   let n0 = floor(t);
+  let h = i32(clamp(round(half), 0.0, 16.0));
   var d = 1e6;
-  for (var k = -16; k <= 16; k += 1) {
-    if (abs(f32(k)) <= half + 0.1) {
-      d = min(d, evalRing(p, n0 + f32(k), offset, theta, spacing, phase, shapeType, sides));
-    }
+  for (var k = -h; k <= h; k += 1) {
+    d = min(d, evalRing(p, n0 + f32(k), offset, theta, spacing, phase, shapeType, sides));
   }
   return d;
 }
@@ -233,13 +232,13 @@ fn polishSeed(p: vec2<f32>, t0: f32, offset: vec2<f32>, theta: f32, spacing: f32
 `, [newtonFromWgsl, checkNear]);
 
 export const ringDistance = wgslFn(`
-fn ringDistance(p: vec2<f32>, offset: vec2<f32>, theta: f32, spacing: f32, phase: f32, shapeType: f32, sides: f32) -> f32 {
+fn ringDistance(p: vec2<f32>, offset: vec2<f32>, theta: f32, spacing: f32, phase: f32, shapeType: f32, sides: f32, acceptBelow: f32) -> f32 {
   let s = max(spacing, 1e-4);
   let hasOff = dot(offset, offset) > 1e-8;
   let hasRot = abs(theta) > 1e-8;
   let shape = i32(shapeType + 0.5);
 
-  if (!hasOff && !hasRot) {
+  if (!hasOff && (!hasRot || shape <= 1)) {
     return centeredModWgsl(shapeRadiusWgsl(p, shapeType, sides), s, phase);
   }
   if (!hasRot) {
@@ -263,6 +262,9 @@ fn ringDistance(p: vec2<f32>, offset: vec2<f32>, theta: f32, spacing: f32, phase
   d = min(d, polishSeed(p, tShape, offset, theta, s, phase, shapeType, sides));
   d = min(d, polishSeed(p, tL2 * 0.35, offset, theta, s, phase, shapeType, sides));
   d = min(d, polishSeed(p, tL2 * 1.6 + 3.0, offset, theta, s, phase, shapeType, sides));
+  if (acceptBelow > 0.0 && d <= acceptBelow) {
+    return d;
+  }
 
   if (hasOff) {
     var inv = 0.0;
@@ -273,6 +275,9 @@ fn ringDistance(p: vec2<f32>, offset: vec2<f32>, theta: f32, spacing: f32, phase
     let den = s + p.x * inv * rot.x + p.y * inv * rot.y;
     if (abs(den) > 1e-4) {
       d = min(d, polishSeed(p, (r2 - phase) / den, offset, theta, s, phase, shapeType, sides));
+    }
+    if (acceptBelow > 0.0 && d <= acceptBelow) {
+      return d;
     }
   }
 
@@ -304,6 +309,9 @@ fn ringDistance(p: vec2<f32>, offset: vec2<f32>, theta: f32, spacing: f32, phase
       }
       let t = nMin + (f32(i) + 0.5) * step;
       d = min(d, checkWindow(p, t, offset, theta, s, phase, shapeType, sides, half));
+      if (acceptBelow > 0.0 && d <= acceptBelow) {
+        return d;
+      }
     }
   }
 

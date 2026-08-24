@@ -127,7 +127,8 @@ export function buildColorNode(camera: CameraUniforms, slots: LayerSlot[]) {
                 slot.spacing,
                 slot.phase,
                 slot.type,
-                slot.sides
+                slot.sides,
+                max(halfT.sub(aa), float(0))
               )
             );
           }).Else(() => {
