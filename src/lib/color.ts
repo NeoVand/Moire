@@ -10,9 +10,18 @@ export interface Hsv {
   v: number;
 }
 
+export function parseHex(input: string): string | null {
+  const raw = input.trim().replace(/^#/, '');
+  if (/^[0-9a-fA-F]{3}$/.test(raw)) {
+    return `#${raw.replace(/./g, (ch) => ch + ch).toLowerCase()}`;
+  }
+  if (/^[0-9a-fA-F]{6}$/.test(raw)) return `#${raw.toLowerCase()}`;
+  return null;
+}
+
 export function hexToRgb(hex: string): Rgb {
-  const raw = hex.replace('#', '');
-  const n = Number.parseInt(raw.length === 3 ? raw.replace(/(.)/g, '$1$1') : raw, 16);
+  const normalized = parseHex(hex) ?? '#000000';
+  const n = Number.parseInt(normalized.slice(1), 16);
   return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
 }
 

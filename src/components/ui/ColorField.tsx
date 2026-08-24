@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
-import { hexToHsv, hsvToHex, hsvToRgb, type Hsv } from '../../lib/color';
+import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode, type Ref } from 'react';
+import { createPortal } from 'react-dom';
+import { hexToHsv, hsvToHex, hsvToRgb, parseHex, type Hsv } from '../../lib/color';
 
 interface ColorFieldProps {
   label?: string;
@@ -8,6 +9,9 @@ interface ColorFieldProps {
   opacity?: number;
   onOpacityChange?: (opacity: number) => void;
 }
+
+const PANEL_WIDTH = 216;
+const THUMB = 8;
 
 function clamp01(n: number) {
   return Math.min(1, Math.max(0, n));
@@ -45,30 +49,49 @@ function dragOn(
   window.addEventListener('pointerup', up);
 }
 
+function placePanel(trigger: HTMLElement, height: number) {
+  const rect = trigger.getBoundingClientRect();
+  const gap = 6;
+  const pad = 8;
+  const left = Math.min(Math.max(pad, rect.right - PANEL_WIDTH), window.innerWidth - PANEL_WIDTH - pad);
+  const below = rect.bottom + gap;
+  const above = rect.top - gap - height;
+  const top =
+    below + height <= window.innerHeight - pad || above < pad
+      ? Math.min(below, window.innerHeight - height - pad)
+      : above;
+  return { top, left };
+}
+
 function Swatch({
   hex,
   opacity,
   title,
   expanded,
   onClick,
+  buttonRef,
 }: {
   hex: string;
   opacity: number;
   title: string;
   expanded?: boolean;
   onClick: () => void;
+  buttonRef?: Ref<HTMLButtonElement>;
 }) {
   return (
     <button
+      ref={buttonRef}
       type="button"
       title={title}
       aria-label={title}
       aria-expanded={expanded}
       onClick={onClick}
-      className="relative size-6 overflow-hidden rounded border border-[var(--border)]"
+      className="relative size-5 shrink-0 rounded-full shadow-[0_0_0_1px_color-mix(in_srgb,var(--text-primary)_45%,transparent)]"
     >
-      <span className="checkerboard-swatch absolute inset-0" />
-      <span className="absolute inset-0" style={{ background: hex, opacity }} />
+      <span className="absolute inset-0 overflow-hidden rounded-full">
+        <span className="checkerboard-swatch absolute inset-0" />
+        <span className="absolute inset-0" style={{ background: hex, opacity }} />
+      </span>
     </button>
   );
 }
@@ -76,7 +99,7 @@ function Swatch({
 function Thumb({ left, top }: { left: string; top?: string }) {
   return (
     <span
-      className="pointer-events-none absolute z-10 size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-white/20 shadow-[0_0_0_1px_rgba(0,0,0,0.4)]"
+      className="pointer-events-none absolute z-10 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white bg-white/25 shadow-[0_0_0_1px_rgba(0,0,0,0.4)]"
       style={{ left, top: top ?? '50%' }}
     />
   );
@@ -91,17 +114,67 @@ function Slider({
   onAt: (nx: number) => void;
   children: ReactNode;
 }) {
+  const inset = THUMB / 2;
   return (
-    <div className="relative h-5">
-      <div className="absolute inset-x-0 top-1/2 h-3 -translate-y-1/2 overflow-hidden rounded-full">
+    <div className="relative h-4">
+      <div className="absolute inset-x-0 top-1/2 h-2.5 -translate-y-1/2 overflow-hidden rounded-full">
         {children}
       </div>
       <div
-        className="absolute inset-y-0 inset-x-[7px] cursor-ew-resize"
+        className="absolute inset-y-0 cursor-ew-resize"
+        style={{ left: inset, right: inset }}
         onPointerDown={(e) => dragOn(e, (nx) => onAt(nx))}
       />
-      <Thumb left={`calc(7px + ${clamp01(value)} * (100% - 14px))`} />
+      <Thumb left={`calc(${inset}px + ${clamp01(value)} * (100% - ${THUMB}px))`} />
     </div>
+  );
+}
+
+function HexField({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (color: string) => void;
+}) {
+  const [draft, setDraft] = useState(value);
+  const [editing, setEditing] = useState(false);
+
+  useEffect(() => {
+    if (!editing) setDraft(value);
+  }, [value, editing]);
+
+  const commit = () => {
+    const next = parseHex(draft);
+    if (next) onChange(next);
+    setEditing(false);
+  };
+
+  return (
+    <input
+      className="quiet-edit w-[4.6rem] bg-transparent font-mono text-[10px] uppercase tabular-nums text-[var(--text-muted)]"
+      value={draft}
+      spellCheck={false}
+      aria-label="Hex color"
+      onFocus={(e) => {
+        setEditing(true);
+        setDraft(value);
+        e.currentTarget.select();
+      }}
+      onChange={(e) => {
+        setEditing(true);
+        setDraft(e.target.value);
+      }}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') e.currentTarget.blur();
+        if (e.key === 'Escape') {
+          setDraft(value);
+          setEditing(false);
+          e.currentTarget.blur();
+        }
+      }}
+    />
   );
 }
 
@@ -114,7 +187,9 @@ export function ColorField({
 }: ColorFieldProps) {
   const [open, setOpen] = useState(false);
   const [hsv, setHsv] = useState<Hsv>(() => hexToHsv(value));
-  const rootRef = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const hasAlpha = opacity !== undefined && !!onOpacityChange;
   const alpha = hasAlpha ? opacity : 1;
   const hueHex = hsvToHex({ h: hsv.h, s: 1, v: 1 });
@@ -126,10 +201,27 @@ export function ColorField({
     if (next.s > 0.02 && next.v > 0.02) setHsv(next);
   }, [value]);
 
+  useLayoutEffect(() => {
+    if (!open) return;
+    const place = () => {
+      if (!triggerRef.current) return;
+      setPos(placePanel(triggerRef.current, panelRef.current?.offsetHeight ?? 240));
+    };
+    place();
+    window.addEventListener('resize', place);
+    window.addEventListener('scroll', place, true);
+    return () => {
+      window.removeEventListener('resize', place);
+      window.removeEventListener('scroll', place, true);
+    };
+  }, [open, hasAlpha]);
+
   useEffect(() => {
     if (!open) return;
     const onPointer = (e: PointerEvent) => {
-      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      if (triggerRef.current?.contains(target) || panelRef.current?.contains(target)) return;
+      setOpen(false);
     };
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpen(false);
@@ -147,70 +239,89 @@ export function ColorField({
     onChange(hsvToHex(next));
   };
 
+  const commitHex = (color: string) => {
+    setHsv(hexToHsv(color));
+    onChange(color);
+  };
+
   return (
-    <div ref={rootRef} className="relative flex items-center justify-between gap-3">
+    <div className="relative flex items-center justify-between gap-3">
       {label && (
         <span className="text-[11px] text-[var(--text-secondary)]">{label}</span>
       )}
       <Swatch
+        buttonRef={triggerRef}
         hex={value}
         opacity={alpha}
         title={label ?? value}
         expanded={open}
         onClick={() => setOpen((next) => !next)}
       />
-      {open && (
-        <div
-          className="absolute top-full right-0 z-30 mt-1.5 w-[13.5rem] rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] p-3.5 shadow-[var(--hud-shadow)]"
-          onPointerDown={(e) => e.stopPropagation()}
-        >
-          <div className="grid gap-2.5">
-            <div
-              className="relative h-[7.25rem] cursor-crosshair overflow-hidden rounded-lg"
-              style={{
-                background: `linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, ${hueHex})`,
-              }}
-              onPointerDown={(e) =>
-                dragOn(e, (nx, ny) => commit({ ...hsv, s: nx, v: 1 - ny }))
-              }
-            >
-              <Thumb left={`${hsv.s * 100}%`} top={`${(1 - hsv.v) * 100}%`} />
-            </div>
-            <Slider value={hsv.h / 360} onAt={(nx) => commit({ ...hsv, h: nx * 360 })}>
-              <span
-                className="absolute inset-0"
-                style={{
-                  background: 'linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00)',
-                }}
-              />
-            </Slider>
-            {hasAlpha && (
-              <Slider
-                value={alpha}
-                onAt={(nx) => onOpacityChange(Math.round(nx * 100) / 100)}
-              >
-                <span className="checkerboard absolute inset-0" />
+      {open &&
+        createPortal(
+          <div
+            ref={panelRef}
+            className="fixed z-50 w-[13.5rem] rounded-xl bg-[var(--bg-secondary)] p-3.5 shadow-[0_0_0_1px_color-mix(in_srgb,var(--text-primary)_34%,transparent),var(--hud-shadow)]"
+            style={{ top: pos.top, left: pos.left }}
+            onPointerDown={(e) => e.stopPropagation()}
+          >
+            <div className="grid gap-2.5">
+              <div className="relative h-[7.25rem]">
+                <div
+                  className="absolute inset-0 overflow-hidden rounded-lg"
+                  style={{
+                    background: `linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, ${hueHex})`,
+                  }}
+                />
+                <div
+                  className="absolute inset-[5px] cursor-crosshair"
+                  onPointerDown={(e) =>
+                    dragOn(e, (nx, ny) => commit({ ...hsv, s: nx, v: 1 - ny }))
+                  }
+                />
+                <Thumb
+                  left={`calc(5px + ${hsv.s} * (100% - 10px))`}
+                  top={`calc(5px + ${1 - hsv.v} * (100% - 10px))`}
+                />
+              </div>
+              <Slider value={hsv.h / 360} onAt={(nx) => commit({ ...hsv, h: nx * 360 })}>
                 <span
                   className="absolute inset-0"
                   style={{
-                    background: `linear-gradient(to right, ${rgbCss(rgb, 0)}, ${rgbCss(rgb, 1)})`,
+                    background: 'linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00)',
                   }}
                 />
               </Slider>
-            )}
-            <div className="flex items-center gap-2 px-0.5">
-              <span className="relative size-6 overflow-hidden rounded-md border border-[var(--border)]">
-                <span className="checkerboard-swatch absolute inset-0" />
-                <span className="absolute inset-0" style={{ background: solidHex, opacity: alpha }} />
-              </span>
-              <span className="font-mono text-[10px] tabular-nums text-[var(--text-muted)]">
-                {solidHex}
-                {hasAlpha ? ` · ${Math.round(alpha * 100)}%` : ''}
-              </span>
+              {hasAlpha && (
+                <Slider
+                  value={alpha}
+                  onAt={(nx) => onOpacityChange(Math.round(nx * 100) / 100)}
+                >
+                  <span className="checkerboard absolute inset-0" />
+                  <span
+                    className="absolute inset-0"
+                    style={{
+                      background: `linear-gradient(to right, ${rgbCss(rgb, 0)}, ${rgbCss(rgb, 1)})`,
+                    }}
+                  />
+                </Slider>
+              )}
+              <div className="flex items-center gap-2">
+                <span className="relative size-5 overflow-hidden rounded-full shadow-[0_0_0_1px_color-mix(in_srgb,var(--text-primary)_45%,transparent)]">
+                  <span className="checkerboard-swatch absolute inset-0" />
+                  <span className="absolute inset-0" style={{ background: solidHex, opacity: alpha }} />
+                </span>
+                <HexField value={solidHex} onChange={commitHex} />
+                {hasAlpha && (
+                  <span className="font-mono text-[10px] tabular-nums text-[var(--text-muted)]">
+                    {Math.round(alpha * 100)}%
+                  </span>
+                )}
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </div>
   );
 }

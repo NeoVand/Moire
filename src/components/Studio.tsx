@@ -45,6 +45,73 @@ function Rule() {
   return <div className="h-px bg-[var(--border)]" />;
 }
 
+function LayerName({
+  name,
+  onCommit,
+  onSelect,
+  editOn = 'double',
+  className = 'text-[12px]',
+}: {
+  name: string;
+  onCommit: (name: string) => void;
+  onSelect?: () => void;
+  editOn?: 'click' | 'double';
+  className?: string;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(name);
+
+  const startEdit = () => {
+    setDraft(name);
+    setEditing(true);
+  };
+
+  const commit = () => {
+    const next = draft.trim();
+    if (next && next !== name) onCommit(next);
+    setEditing(false);
+  };
+
+  if (editing) {
+    return (
+      <input
+        className={`quiet-edit min-w-0 flex-1 bg-transparent ${className}`}
+        value={draft}
+        autoFocus
+        spellCheck={false}
+        aria-label="Layer name"
+        onFocus={(e) => e.currentTarget.select()}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={commit}
+        onClick={(e) => e.stopPropagation()}
+        onPointerDown={(e) => e.stopPropagation()}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') commit();
+          if (e.key === 'Escape') {
+            setDraft(name);
+            setEditing(false);
+          }
+        }}
+      />
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      className={`quiet-edit min-w-0 flex-1 truncate text-left ${className}`}
+      onClick={editOn === 'click' ? startEdit : onSelect}
+      onDoubleClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        startEdit();
+      }}
+    >
+      {name}
+    </button>
+  );
+}
+
 async function savePng() {
   try {
     await exportPng();
@@ -62,6 +129,7 @@ function LayerStack() {
   const removeLayer = useProjectStore((s) => s.removeLayer);
   const duplicateLayer = useProjectStore((s) => s.duplicateLayer);
   const reorderLayers = useProjectStore((s) => s.reorderLayers);
+  const renameLayer = useProjectStore((s) => s.renameLayer);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const addRef = useRef<HTMLDivElement>(null);
@@ -114,8 +182,6 @@ function LayerStack() {
           return (
             <div
               key={layer.id}
-              draggable
-              onDragStart={() => setDragIndex(index)}
               onDragOver={(e) => e.preventDefault()}
               onDrop={() => {
                 if (dragIndex !== null) reorderLayers(dragIndex, index);
@@ -127,16 +193,20 @@ function LayerStack() {
                   : 'hover:bg-[var(--bg-hover)]'
               } ${!layer.visible ? 'opacity-45' : ''} ${dragIndex === index ? 'opacity-35' : ''}`}
             >
-              <span className="text-current opacity-30">
+              <span
+                draggable
+                onDragStart={() => setDragIndex(index)}
+                className="cursor-grab text-current opacity-30 active:cursor-grabbing"
+              >
                 <Icon icon={DragDropVerticalIcon} size={13} />
               </span>
-              <button
-                type="button"
-                onClick={() => selectLayer(layer.id)}
-                className="flex min-w-0 flex-1 items-center py-1 pr-1 text-left"
-              >
-                <span className="min-w-0 truncate text-[12px]">{layer.name}</span>
-              </button>
+              <div className="flex min-w-0 flex-1 items-center py-1 pr-1">
+                <LayerName
+                  name={layer.name}
+                  onSelect={() => selectLayer(layer.id)}
+                  onCommit={(name) => renameLayer(layer.id, name)}
+                />
+              </div>
               <IconButton
                 icon={layer.visible ? ViewIcon : ViewOffSlashIcon}
                 label={layer.visible ? 'Hide' : 'Show'}
@@ -176,16 +246,8 @@ function LayerFields() {
   const updateLayer = useProjectStore((s) => s.updateLayer);
   const renameLayer = useProjectStore((s) => s.renameLayer);
   const setLayerType = useProjectStore((s) => s.setLayerType);
-  const [editingName, setEditingName] = useState(false);
-  const [draftName, setDraftName] = useState('');
 
   if (!layer) return null;
-
-  const commitName = () => {
-    const next = draftName.trim();
-    if (next) renameLayer(layer.id, next);
-    setEditingName(false);
-  };
 
   const spacingDefault =
     layer.type === 'straight-lines' ? LAYER_DEFAULTS.spacingLines : LAYER_DEFAULTS.spacing;
@@ -193,30 +255,12 @@ function LayerFields() {
   return (
     <div className="grid gap-2.5">
       <div className="flex items-center justify-between gap-2">
-        {editingName ? (
-          <input
-            className="min-w-0 flex-1 bg-transparent text-[12px] font-medium text-[var(--text-primary)] outline-none"
-            value={draftName}
-            autoFocus
-            onChange={(e) => setDraftName(e.target.value)}
-            onBlur={commitName}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') commitName();
-              if (e.key === 'Escape') setEditingName(false);
-            }}
-          />
-        ) : (
-          <button
-            type="button"
-            className="min-w-0 truncate text-left text-[12px] font-medium text-[var(--text-primary)]"
-            onDoubleClick={() => {
-              setDraftName(layer.name);
-              setEditingName(true);
-            }}
-          >
-            {layer.name}
-          </button>
-        )}
+        <LayerName
+          name={layer.name}
+          editOn="click"
+          className="text-[12px] font-medium text-[var(--text-primary)]"
+          onCommit={(name) => renameLayer(layer.id, name)}
+        />
         <span className="shrink-0 text-[11px] text-[var(--text-muted)]">
           {PATTERN_META.find((item) => item.id === layer.type)?.label}
         </span>
