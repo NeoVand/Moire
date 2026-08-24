@@ -7,7 +7,7 @@ alwaysApply: true
 
 Read `AGENTS.md` before changing renderer, inverse math, or HUD.
 
-- Keep CPU (`inverseCpu.ts`) and WGSL (`inverse.wgsl.ts`) twins. One `fn` per `wgslFn`.
+- Keep CPU (`inverseCpu.ts`) and WGSL (`inverse.wgsl.ts`) twins. Lattices: `latticeCpu.ts` / `lattice.wgsl.ts`. One `fn` per `wgslFn`.
 - Rotation needs an `n` sweep; do not cap rings. Holes at zoom-out are missed sides.
 - Do not rebuild `colorNode` when layer count changes. Fixed `MAX_LAYERS` slots.
 - World Y up; flip Y only in `camera.ts`. `rotation` is degrees, `rotationOffset` is radians.

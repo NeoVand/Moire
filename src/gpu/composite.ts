@@ -14,6 +14,7 @@ import {
 } from 'three/tsl';
 import { MAX_LAYERS, type PatternLayer, type PatternType } from '../types/moire';
 import { lineDistance, ringDistance } from './inverse.wgsl';
+import { gridDistance } from './lattice.wgsl';
 
 export function patternTypeCode(type: PatternType): number {
   switch (type) {
@@ -27,6 +28,12 @@ export function patternTypeCode(type: PatternType): number {
       return 3;
     case 'concentric-polygons':
       return 4;
+    case 'grid-square':
+      return 5;
+    case 'grid-hex':
+      return 6;
+    case 'grid-triangle':
+      return 7;
     default:
       return 1;
   }
@@ -46,6 +53,8 @@ export function createLayerSlot() {
     offset: uniform(new THREE.Vector2(0, 0)),
     rotationOffset: uniform(0),
     sides: uniform(6),
+    vertexSize: uniform(2.5),
+    drawEdges: uniform(1),
   };
 }
 
@@ -78,6 +87,8 @@ export function writeLayerSlot(slot: LayerSlot, layer: PatternLayer | undefined)
   slot.offset.value.set(layer.offset.x, layer.offset.y);
   slot.rotationOffset.value = layer.rotationOffset;
   slot.sides.value = layer.sides;
+  slot.vertexSize.value = layer.vertexSize ?? 0;
+  slot.drawEdges.value = layer.drawEdges === false ? 0 : 1;
 }
 
 export function buildColorNode(camera: CameraUniforms, slots: LayerSlot[]) {
@@ -97,29 +108,52 @@ export function buildColorNode(camera: CameraUniforms, slots: LayerSlot[]) {
         );
 
         const dist = float(0).toVar();
+        const alpha = float(0).toVar();
+        const pixel = float(1).div(max(camera.zoom, float(0.08)));
+        const halfT = max(slot.thickness.mul(0.5), pixel.mul(1.15));
+        const aa = pixel.mul(0.7);
+
         If(slot.type.lessThanEqual(0.1), () => {
           dist.assign(lineDistance(local, float(0), slot.spacing, slot.phase, slot.offset.x));
         }).Else(() => {
-          dist.assign(
-            ringDistance(
-              local,
-              slot.offset,
-              slot.rotationOffset,
-              slot.spacing,
-              slot.phase,
-              slot.type,
-              slot.sides
-            )
-          );
+          If(slot.type.lessThan(4.5), () => {
+            dist.assign(
+              ringDistance(
+                local,
+                slot.offset,
+                slot.rotationOffset,
+                slot.spacing,
+                slot.phase,
+                slot.type,
+                slot.sides
+              )
+            );
+          }).Else(() => {
+            const kind = slot.type.sub(5);
+            const edgeD = gridDistance(local, kind, slot.spacing, float(0));
+            const vertD = gridDistance(local, kind, slot.spacing, float(1));
+            const edgeA = float(1)
+              .sub(smoothstep(halfT.sub(aa), halfT.add(aa), edgeD))
+              .mul(slot.drawEdges);
+            const vertA = float(0).toVar();
+            If(slot.vertexSize.greaterThan(0.001), () => {
+              const vR = slot.vertexSize;
+              vertA.assign(float(1).sub(smoothstep(max(vR.sub(aa), float(0)), vR.add(aa), vertD)));
+            });
+            alpha.assign(max(edgeA, vertA));
+          });
         });
 
-        const pixel = float(1).div(max(camera.zoom, float(0.08)));
-        const halfT = max(slot.thickness.mul(0.5), pixel.mul(1.15));
-        const alpha = float(1)
-          .sub(smoothstep(halfT.sub(pixel.mul(0.7)), halfT.add(pixel.mul(0.7)), dist))
-          .mul(slot.opacity)
-          .clamp(0, 1);
-        color.assign(mix(color, slot.color, alpha));
+        If(slot.type.lessThan(4.5), () => {
+          alpha.assign(
+            float(1)
+              .sub(smoothstep(halfT.sub(aa), halfT.add(aa), dist))
+              .mul(slot.opacity)
+          );
+        }).Else(() => {
+          alpha.assign(alpha.mul(slot.opacity));
+        });
+        color.assign(mix(color, slot.color, alpha.clamp(0, 1)));
       });
     }
 

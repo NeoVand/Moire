@@ -16,7 +16,14 @@ import {
 } from '@hugeicons/core-free-icons';
 import { useTheme } from '../hooks/useTheme';
 import { exportPng } from '../gpu/capture';
-import { LAYER_DEFAULTS, MAX_LAYERS, PATTERN_META, isConcentric, type PatternType } from '../types/moire';
+import {
+  LAYER_DEFAULTS,
+  MAX_LAYERS,
+  PATTERN_META,
+  isConcentric,
+  isGrid,
+  type PatternType,
+} from '../types/moire';
 import { useProjectStore, useSelectedLayer } from '../store/project';
 import { PATTERN_ICONS } from './patternIcons';
 import { ColorField } from './ui/ColorField';
@@ -162,7 +169,7 @@ function LayerStack() {
             dense
           />
           {addOpen && layers.length < MAX_LAYERS && (
-            <div className="hud-card absolute top-full right-0 z-30 mt-1 flex gap-0.5 p-1">
+            <div className="hud-card absolute top-full right-0 z-30 mt-1 grid grid-cols-5 gap-0.5 p-1">
               {PATTERN_META.map((pattern) => (
                 <IconButton
                   key={pattern.id}
@@ -249,8 +256,11 @@ function LayerFields() {
 
   if (!layer) return null;
 
-  const spacingDefault =
-    layer.type === 'straight-lines' ? LAYER_DEFAULTS.spacingLines : LAYER_DEFAULTS.spacing;
+  const spacingDefault = isGrid(layer.type)
+    ? LAYER_DEFAULTS.spacingGrid
+    : layer.type === 'straight-lines'
+      ? LAYER_DEFAULTS.spacingLines
+      : LAYER_DEFAULTS.spacing;
 
   return (
     <div className="grid gap-2.5">
@@ -266,25 +276,47 @@ function LayerFields() {
         </span>
       </div>
 
-      <div className="flex gap-0.5">
-        {PATTERN_META.map((pattern) => {
-          const active = layer.type === pattern.id;
-          return (
-            <button
-              key={pattern.id}
-              type="button"
-              title={pattern.label}
-              onClick={() => setLayerType(layer.id, pattern.id)}
-              className={`grid h-8 flex-1 place-items-center rounded-md ${
-                active
-                  ? 'text-[var(--text-primary)] ring-1 ring-inset ring-[color-mix(in_srgb,var(--text-primary)_45%,transparent)]'
-                  : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'
-              }`}
-            >
-              <Icon icon={PATTERN_ICONS[pattern.id]} size={16} />
-            </button>
-          );
-        })}
+      <div className="grid gap-0.5">
+        <div className="flex gap-0.5">
+          {PATTERN_META.filter((pattern) => pattern.group !== 'grid').map((pattern) => {
+            const active = layer.type === pattern.id;
+            return (
+              <button
+                key={pattern.id}
+                type="button"
+                title={pattern.label}
+                onClick={() => setLayerType(layer.id, pattern.id)}
+                className={`grid h-8 flex-1 place-items-center rounded-md ${
+                  active
+                    ? 'text-[var(--text-primary)] ring-1 ring-inset ring-[color-mix(in_srgb,var(--text-primary)_45%,transparent)]'
+                    : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'
+                }`}
+              >
+                <Icon icon={PATTERN_ICONS[pattern.id]} size={16} />
+              </button>
+            );
+          })}
+        </div>
+        <div className="grid grid-cols-5 gap-0.5">
+          {PATTERN_META.filter((pattern) => pattern.group === 'grid').map((pattern) => {
+            const active = layer.type === pattern.id;
+            return (
+              <button
+                key={pattern.id}
+                type="button"
+                title={pattern.label}
+                onClick={() => setLayerType(layer.id, pattern.id)}
+                className={`grid h-8 place-items-center rounded-md ${
+                  active
+                    ? 'text-[var(--text-primary)] ring-1 ring-inset ring-[color-mix(in_srgb,var(--text-primary)_45%,transparent)]'
+                    : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'
+                }`}
+              >
+                <Icon icon={PATTERN_ICONS[pattern.id]} size={16} />
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <ColorField
@@ -342,16 +374,44 @@ function LayerFields() {
         defaultValue={LAYER_DEFAULTS.rotation}
         onChange={(rotation) => updateLayer(layer.id, { rotation })}
       />
-      <Slider
-        label={isConcentric(layer.type) ? 'Start' : 'Phase'}
-        value={layer.phase}
-        min={0}
-        max={isConcentric(layer.type) ? 400 : Math.max(layer.spacing, 1)}
-        step={1}
-        defaultValue={LAYER_DEFAULTS.phase}
-        onChange={(phase) => updateLayer(layer.id, { phase })}
-      />
-      {layer.type === 'straight-lines' ? (
+      {isGrid(layer.type) ? (
+        <>
+          <Slider
+            label="Vertices"
+            value={layer.vertexSize ?? LAYER_DEFAULTS.vertexSize}
+            min={0}
+            max={16}
+            step={0.1}
+            defaultValue={LAYER_DEFAULTS.vertexSize}
+            onChange={(vertexSize) => updateLayer(layer.id, { vertexSize })}
+          />
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-[11px] text-[var(--text-secondary)]">Edges</span>
+            <button
+              type="button"
+              className={`quiet-edit rounded-md px-2 py-0.5 text-[11px] ${
+                layer.drawEdges !== false
+                  ? 'text-[var(--text-primary)] ring-1 ring-inset ring-[color-mix(in_srgb,var(--text-primary)_40%,transparent)]'
+                  : 'text-[var(--text-muted)]'
+              }`}
+              onClick={() => updateLayer(layer.id, { drawEdges: layer.drawEdges === false })}
+            >
+              {layer.drawEdges === false ? 'Off' : 'On'}
+            </button>
+          </div>
+        </>
+      ) : (
+        <Slider
+          label={isConcentric(layer.type) ? 'Start' : 'Phase'}
+          value={layer.phase}
+          min={0}
+          max={isConcentric(layer.type) ? 400 : Math.max(layer.spacing, 1)}
+          step={1}
+          defaultValue={LAYER_DEFAULTS.phase}
+          onChange={(phase) => updateLayer(layer.id, { phase })}
+        />
+      )}
+      {isGrid(layer.type) ? null : layer.type === 'straight-lines' ? (
         <Slider
           label="Progressive"
           value={layer.offset.x}

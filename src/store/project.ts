@@ -4,6 +4,7 @@ import {
   MAX_LAYERS,
   createDefaultProject,
   createLayer,
+  isGrid,
 } from '../types/moire';
 import { clampZoom } from '../gpu/camera';
 
@@ -80,14 +81,17 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       type,
       color: selected?.color ?? '#000000',
       rotation: selected?.rotation ?? 0,
-      spacing: type === 'straight-lines' ? 16 : selected?.spacing ?? 12,
+      spacing: type === 'straight-lines' || isGrid(type) ? 16 : selected?.spacing ?? 12,
       thickness: selected?.thickness ?? 2,
       position: selected
         ? { x: selected.position.x + 14, y: selected.position.y - 12 }
         : { x: 0, y: 0 },
       offset:
-        selected && type !== 'straight-lines' ? { ...selected.offset } : { x: 0, y: 0 },
-      rotationOffset: selected && type !== 'straight-lines' ? selected.rotationOffset : 0,
+        selected && type !== 'straight-lines' && !isGrid(type)
+          ? { ...selected.offset }
+          : { x: 0, y: 0 },
+      rotationOffset:
+        selected && type !== 'straight-lines' && !isGrid(type) ? selected.rotationOffset : 0,
     });
     set({
       layers: [...layers, layer],
@@ -141,14 +145,14 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     set((s) => ({
       layers: s.layers.map((layer) => {
         if (layer.id !== id) return layer;
-        if (type === 'straight-lines') {
+        if (type === 'straight-lines' || isGrid(type)) {
           return { ...layer, type, offset: { x: 0, y: 0 }, rotationOffset: 0 };
         }
         return {
           ...layer,
           type,
           sides: layer.sides || 6,
-          offset: layer.type === 'straight-lines' ? { x: 0, y: 0 } : layer.offset,
+          offset: layer.type === 'straight-lines' || isGrid(layer.type) ? { x: 0, y: 0 } : layer.offset,
         };
       }),
     })),

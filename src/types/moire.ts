@@ -3,7 +3,10 @@ export type PatternType =
   | 'concentric-circles'
   | 'concentric-squares'
   | 'concentric-triangles'
-  | 'concentric-polygons';
+  | 'concentric-polygons'
+  | 'grid-square'
+  | 'grid-hex'
+  | 'grid-triangle';
 
 export interface Vec2 {
   x: number;
@@ -27,6 +30,10 @@ export interface PatternLayer {
   /** Per-ring rotation, radians. Always present. */
   rotationOffset: number;
   sides: number;
+  /** Lattice vertex disk radius. 0 hides vertices. */
+  vertexSize: number;
+  /** Lattice edges. Grids have no offset. */
+  drawEdges: boolean;
 }
 
 export interface CameraState {
@@ -44,17 +51,29 @@ export interface MoireProject {
 export const PATTERN_META: {
   id: PatternType;
   label: string;
-  group: 'lines' | 'concentric';
+  group: 'lines' | 'concentric' | 'grid';
 }[] = [
   { id: 'straight-lines', label: 'Lines', group: 'lines' },
   { id: 'concentric-circles', label: 'Circles', group: 'concentric' },
   { id: 'concentric-squares', label: 'Squares', group: 'concentric' },
   { id: 'concentric-triangles', label: 'Triangles', group: 'concentric' },
   { id: 'concentric-polygons', label: 'Polygons', group: 'concentric' },
+  { id: 'grid-square', label: 'Square grid', group: 'grid' },
+  { id: 'grid-hex', label: 'Hex grid', group: 'grid' },
+  { id: 'grid-triangle', label: 'Triangle grid', group: 'grid' },
 ];
 
 export function isConcentric(type: PatternType): boolean {
-  return type !== 'straight-lines';
+  return (
+    type === 'concentric-circles' ||
+    type === 'concentric-squares' ||
+    type === 'concentric-triangles' ||
+    type === 'concentric-polygons'
+  );
+}
+
+export function isGrid(type: PatternType): boolean {
+  return type === 'grid-square' || type === 'grid-hex' || type === 'grid-triangle';
 }
 
 export function createLayer(
@@ -72,6 +91,8 @@ export function createLayer(
     phase: 0,
     rotationOffset: 0,
     sides: 6,
+    vertexSize: 2.5,
+    drawEdges: true,
     ...rest,
     position: { x: 0, y: 0, ...position },
     offset: { x: 0, y: 0, ...offset },
@@ -125,4 +146,6 @@ export const LAYER_DEFAULTS = {
   offsetY: 0,
   rotationOffset: 0,
   sides: 6,
+  vertexSize: 2.5,
+  spacingGrid: 16,
 } as const;

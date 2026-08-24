@@ -9,7 +9,7 @@ Canvas-first WebGPU moiré tool. Vite + React + TypeScript + Three.js TSL. Do no
 - Drag moves the selected layer. Shift-drag rotates (degrees in UI). Space or middle-drag pans. Wheel zooms to cursor.
 - `rotation` is degrees. `rotationOffset` is radians, always present on the layer.
 - No `maxRings`, Option-key modes, JSON import/export theater, or fake blend modes.
-- V1 patterns: parallel lines; concentric circles, squares, triangles, n-gons.
+- V1 patterns: parallel lines; concentric circles, squares, triangles, n-gons; square / hex / triangle lattices (no offset; vertices + optional edges).
 - Render on dirty store subscribe, rAF-coalesced. Do not rebuild `colorNode` when layer count changes.
 - Pattern colors are the only accent. Background default is `#ffffff`.
 - Hugeicons only. Lines use `Asterisk02Icon`, not `EqualSignIcon` or `LineIcon`.
