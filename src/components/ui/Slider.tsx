@@ -107,20 +107,23 @@ export function Slider({
   const mid = min < 0 && max > 0 ? ((0 - min) / (max - min)) * 100 : 0;
   const fillLeft = min < 0 && max > 0 ? Math.min(pct, mid) : 0;
   const fillWidth = min < 0 && max > 0 ? Math.abs(pct - mid) : pct;
-  const isDirty = defaultValue !== undefined && !nearlyEqual(value, defaultValue, step);
+  const isDirty =
+    defaultValue !== undefined &&
+    (!nearlyEqual(value, defaultValue, step) ||
+      formatValue(value, step) !== formatValue(defaultValue, step));
 
   return (
     <div className="grid gap-0.5">
       <div className="flex h-3.5 items-center justify-between gap-2">
         <span className="flex min-w-0 items-center gap-1 text-[11px] text-[var(--text-secondary)]">
-          <span className="truncate">{label}</span>
+          <span className="min-w-0 truncate">{label}</span>
           {isDirty && (
             <button
               type="button"
               title={`Reset ${label}`}
               aria-label={`Reset ${label}`}
               onClick={() => onChange(defaultValue)}
-              className="grid size-3.5 place-items-center text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+              className="grid size-3.5 shrink-0 place-items-center text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             >
               <Icon icon={RefreshCwIcon} size={10} />
             </button>

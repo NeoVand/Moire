@@ -415,26 +415,24 @@ function LayerFields() {
       />
       {isGrid(layer.type) ? (
         <>
-          <div className="grid grid-cols-2 gap-x-3 gap-y-2">
-            <Slider
-              label="Scale X"
-              value={layer.scale?.x ?? LAYER_DEFAULTS.scaleX}
-              min={0.2}
-              max={5}
-              step={0.01}
-              defaultValue={LAYER_DEFAULTS.scaleX}
-              onChange={(x) => updateLayer(layer.id, { scale: { x } })}
-            />
-            <Slider
-              label="Scale Y"
-              value={layer.scale?.y ?? LAYER_DEFAULTS.scaleY}
-              min={0.2}
-              max={5}
-              step={0.01}
-              defaultValue={LAYER_DEFAULTS.scaleY}
-              onChange={(y) => updateLayer(layer.id, { scale: { y } })}
-            />
-          </div>
+          <Slider
+            label="Scale X"
+            value={layer.scale?.x ?? LAYER_DEFAULTS.scaleX}
+            min={0.2}
+            max={5}
+            step={0.01}
+            defaultValue={LAYER_DEFAULTS.scaleX}
+            onChange={(x) => updateLayer(layer.id, { scale: { x } })}
+          />
+          <Slider
+            label="Scale Y"
+            value={layer.scale?.y ?? LAYER_DEFAULTS.scaleY}
+            min={0.2}
+            max={5}
+            step={0.01}
+            defaultValue={LAYER_DEFAULTS.scaleY}
+            onChange={(y) => updateLayer(layer.id, { scale: { y } })}
+          />
           <Slider
             label="Vertices"
             value={layer.vertexSize ?? LAYER_DEFAULTS.vertexSize}
