@@ -253,6 +253,24 @@ function LayerFields() {
         onChange={(color) => updateLayer(layer.id, { color })}
       />
       <Slider
+        label="Thickness"
+        value={layer.thickness}
+        min={0.2}
+        max={20}
+        step={0.1}
+        defaultValue={LAYER_DEFAULTS.thickness}
+        onChange={(thickness) => updateLayer(layer.id, { thickness })}
+      />
+      <Slider
+        label="Spacing"
+        value={layer.spacing}
+        min={1}
+        max={120}
+        step={0.1}
+        defaultValue={spacingDefault}
+        onChange={(spacing) => updateLayer(layer.id, { spacing })}
+      />
+      <Slider
         label="Opacity"
         value={layer.opacity}
         min={0}
@@ -290,24 +308,6 @@ function LayerFields() {
         unit="°"
         defaultValue={LAYER_DEFAULTS.rotation}
         onChange={(rotation) => updateLayer(layer.id, { rotation })}
-      />
-      <Slider
-        label="Spacing"
-        value={layer.spacing}
-        min={1}
-        max={120}
-        step={0.1}
-        defaultValue={spacingDefault}
-        onChange={(spacing) => updateLayer(layer.id, { spacing })}
-      />
-      <Slider
-        label="Thickness"
-        value={layer.thickness}
-        min={0.2}
-        max={20}
-        step={0.1}
-        defaultValue={LAYER_DEFAULTS.thickness}
-        onChange={(thickness) => updateLayer(layer.id, { thickness })}
       />
       <Slider
         label={isConcentric(layer.type) ? 'Start' : 'Phase'}
