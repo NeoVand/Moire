@@ -4,7 +4,7 @@ Canvas-first WebGPU moiré tool. Vite + React + TypeScript + Three.js TSL. Do no
 
 ## Product contract
 
-- Full-bleed canvas. One studio chrome on the left (wordmark, view, layers, fields). `I` collapses it to a Moire pill.
+- Full-bleed canvas. One studio chrome on the left (Jupiter mark, view, layers, fields, PNG export). `I` collapses it to a Moire pill. `E` exports a PNG.
 - World Y is up. Flip Y only in `src/gpu/camera.ts` (pointer / zoom-to-cursor).
 - Drag moves the selected layer. Shift-drag rotates (degrees in UI). Space or middle-drag pans. Wheel zooms to cursor.
 - `rotation` is degrees. `rotationOffset` is radians, always present on the layer.
@@ -35,7 +35,8 @@ Ring `n`: shape of radius `n * spacing + phase`, center `rotate(n * δ, n * θ)`
 
 ## UI
 
-- One `Studio` panel. Do not resurrect a separate top HUD, right inspector, or bottom filmstrip.
+- One `Studio` panel with a Jupiter (`JupiterIcon`) mark. Do not resurrect a separate top HUD, right inspector, or bottom filmstrip.
+- PNG export is `exportPng()` in `src/gpu/capture.ts`. The stage registers `MoireRenderer.snapshot()`.
 - Frosted HUD: `--hud-bg` + `backdrop-filter`. Selected layer is a quiet ring, not an inverted overlay.
 - Every slider has a reset affordance next to its label when dirty. Defaults live in `LAYER_DEFAULTS`.
 - Switching a layer to lines zeros `offset` and `rotationOffset`.

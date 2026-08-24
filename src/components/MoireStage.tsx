@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { registerCapture } from '../gpu/capture';
 import { MoireRenderer } from '../gpu/renderer';
 import {
   clientToWorld,
@@ -44,6 +45,7 @@ export function MoireStage() {
         const state = useProjectStore.getState();
         gpu.sync(state);
         gpu.render();
+        registerCapture(() => gpu.snapshot());
       })
       .catch((err: unknown) => {
         const message = err instanceof Error ? err.message : String(err);
@@ -63,6 +65,7 @@ export function MoireStage() {
     return () => {
       cancelled = true;
       unsub();
+      registerCapture(null);
       gpu.dispose();
       gpuRef.current = null;
     };

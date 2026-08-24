@@ -8,6 +8,7 @@ interface IconButtonProps {
   disabled?: boolean;
   size?: number;
   tone?: 'default' | 'inherit';
+  dense?: boolean;
 }
 
 export function IconButton({
@@ -18,6 +19,7 @@ export function IconButton({
   disabled = false,
   size = 16,
   tone = 'default',
+  dense = false,
 }: IconButtonProps) {
   const palette =
     tone === 'inherit'
@@ -41,7 +43,7 @@ export function IconButton({
         e.stopPropagation();
         e.currentTarget.blur();
       }}
-      className={`grid size-8 place-items-center rounded-lg transition-opacity disabled:opacity-30 ${palette}`}
+      className={`grid place-items-center rounded-lg transition-opacity disabled:opacity-30 ${dense ? 'size-7' : 'size-8'} ${palette}`}
     >
       <Icon icon={icon} size={size} />
     </button>

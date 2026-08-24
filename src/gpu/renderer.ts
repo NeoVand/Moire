@@ -16,6 +16,26 @@ export interface RendererSync {
   backgroundColor: string;
 }
 
+async function encodeCanvasPng(source: HTMLCanvasElement): Promise<Blob> {
+  try {
+    const bitmap = await createImageBitmap(source);
+    const off = document.createElement('canvas');
+    off.width = bitmap.width;
+    off.height = bitmap.height;
+    const ctx = off.getContext('2d');
+    if (!ctx) throw new Error('Could not read the canvas');
+    ctx.drawImage(bitmap, 0, 0);
+    bitmap.close();
+    const blob = await new Promise<Blob | null>((resolve) => off.toBlob(resolve, 'image/png'));
+    if (!blob) throw new Error('empty');
+    return blob;
+  } catch {
+    const blob = await new Promise<Blob | null>((resolve) => source.toBlob(resolve, 'image/png'));
+    if (!blob) throw new Error('Could not capture the canvas');
+    return blob;
+  }
+}
+
 export class MoireRenderer {
   private renderer: THREE.WebGPURenderer | null = null;
   private scene: THREE.Scene | null = null;
@@ -142,6 +162,18 @@ export class MoireRenderer {
       if (!this.ready || !this.renderer || !this.scene || !this.camera) return;
       void this.renderer.renderAsync(this.scene, this.camera);
     });
+  }
+
+  async snapshot(): Promise<Blob> {
+    if (!this.ready || !this.renderer || !this.scene || !this.camera || !this.canvas) {
+      throw new Error('Renderer is not ready');
+    }
+    if (this.raf) {
+      cancelAnimationFrame(this.raf);
+      this.raf = 0;
+    }
+    await this.renderer.renderAsync(this.scene, this.camera);
+    return encodeCanvasPng(this.canvas);
   }
 
   resize() {

@@ -1,8 +1,8 @@
 # Moiré Pattern Generator
 
-A high-performance WebGL-based tool for creating moiré interference patterns through layered geometric shapes.
+A canvas-first WebGPU tool for building moiré interference fields.
 
-![Demo](./public/moirescreenvideo.gif)
+Live: https://neovand.github.io/Moire/
 
 ## Getting Started
 
@@ -84,7 +84,7 @@ The WebGL implementation provides significant performance improvements over Canv
 
 ## Current Limitations
 
-- No export functionality (PNG/SVG)
+- PNG export from the studio or `E`
 - No animation system
 - Limited pattern types (only lines and concentric shapes currently)
 - No undo/redo system

@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { exportPng } from '../gpu/capture';
 import { isTypingTarget } from '../lib/keyboard';
 import { useProjectStore } from '../store/project';
 
@@ -29,6 +30,12 @@ export function useShortcuts() {
       if (e.key === 'i' || e.key === 'I') {
         e.preventDefault();
         window.dispatchEvent(new Event('moire-inspector'));
+        return;
+      }
+
+      if (e.key === 'e' || e.key === 'E') {
+        e.preventDefault();
+        void exportPng().catch((err) => console.error(err));
         return;
       }
 

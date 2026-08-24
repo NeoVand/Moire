@@ -1,28 +1,26 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { HugeiconsIcon } from '@hugeicons/react';
 import {
   Add01Icon,
   ArrowLeft01Icon,
-  ColorsIcon,
   Copy01Icon,
   Delete02Icon,
   DragDropVerticalIcon,
-  GeometricShapes01Icon,
+  ImageDownloadIcon,
+  JupiterIcon,
   KeyboardIcon,
   Moon02Icon,
-  PaintBoardIcon,
-  Rotate01Icon,
-  ShapesIcon,
   Sun03Icon,
   ViewIcon,
   ViewOffSlashIcon,
-  ZoomInAreaIcon,
 } from '@hugeicons/core-free-icons';
 import { useTheme } from '../hooks/useTheme';
+import { exportPng } from '../gpu/capture';
 import { LAYER_DEFAULTS, MAX_LAYERS, PATTERN_META, isConcentric, type PatternType } from '../types/moire';
 import { useProjectStore, useSelectedLayer } from '../store/project';
 import { PATTERN_ICONS } from './patternIcons';
 import { ColorField } from './ui/ColorField';
-import { Icon, type HugeIcon } from './ui/Icon';
+import { Icon } from './ui/Icon';
 import { IconButton } from './ui/IconButton';
 import { Slider } from './ui/Slider';
 
@@ -39,36 +37,29 @@ function readOpen() {
   }
 }
 
-function Mark() {
-  return (
-    <span className="grid size-10 shrink-0 place-items-center rounded-[13px] bg-[var(--text-primary)] text-[var(--bg-primary)]">
-      <Icon icon={GeometricShapes01Icon} size={20} />
-    </span>
-  );
+function Mark({ size = 22 }: { size?: number }) {
+  return <HugeiconsIcon icon={JupiterIcon} size={size} color="currentColor" strokeWidth={1.75} />;
 }
 
 function Rule() {
   return <div className="h-px bg-[var(--border)]" />;
 }
 
-function Section({
-  icon,
-  title,
-  children,
-}: {
-  icon: HugeIcon;
-  title: string;
-  children: ReactNode;
-}) {
+function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="grid gap-3">
-      <div className="flex items-center gap-2 text-[var(--text-muted)]">
-        <Icon icon={icon} size={14} />
-        <span className="text-[11px] font-medium uppercase tracking-[0.16em]">{title}</span>
-      </div>
+    <section className="grid gap-2">
+      <div className="text-[12px] font-medium text-[var(--text-secondary)]">{title}</div>
       {children}
     </section>
   );
+}
+
+async function savePng() {
+  try {
+    await exportPng();
+  } catch (err) {
+    console.error(err);
+  }
 }
 
 function LayerStack() {
@@ -99,11 +90,9 @@ function LayerStack() {
   };
 
   return (
-    <section className="grid gap-2.5">
-      <div className="flex items-center justify-between">
-        <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-[var(--text-muted)]">
-          Layers
-        </span>
+    <section className="grid gap-1.5">
+      <div className="flex h-7 items-center justify-between">
+        <span className="text-[12px] font-medium text-[var(--text-secondary)]">Layers</span>
         <div ref={addRef} className="relative">
           <IconButton
             icon={Add01Icon}
@@ -111,6 +100,7 @@ function LayerStack() {
             onClick={() => setAddOpen((open) => !open)}
             disabled={layers.length >= MAX_LAYERS}
             active={addOpen}
+            dense
           />
           {addOpen && layers.length < MAX_LAYERS && (
             <div className="hud-card absolute top-full right-0 z-30 mt-1 flex gap-0.5 p-1">
@@ -120,13 +110,14 @@ function LayerStack() {
                   icon={PATTERN_ICONS[pattern.id]}
                   label={`Add ${pattern.label.toLowerCase()}`}
                   onClick={() => spawn(pattern.id)}
+                  dense
                 />
               ))}
             </div>
           )}
         </div>
       </div>
-      <div className="grid gap-1">
+      <div className="grid gap-0.5">
         {layers.map((layer, index) => {
           const selected = layer.id === selectedLayerId;
           const label = PATTERN_META.find((item) => item.id === layer.type)?.label ?? layer.type;
@@ -140,50 +131,53 @@ function LayerStack() {
                 if (dragIndex !== null) reorderLayers(dragIndex, index);
                 setDragIndex(null);
               }}
-              className={`flex items-center gap-1 rounded-xl px-1.5 py-1 text-[var(--text-primary)] ${
+              className={`flex items-center gap-0.5 rounded-lg px-1 text-[var(--text-primary)] ${
                 selected
-                  ? 'bg-[color-mix(in_srgb,var(--text-primary)_10%,transparent)] ring-1 ring-[var(--text-primary)]/20'
+                  ? 'bg-[color-mix(in_srgb,var(--text-primary)_9%,transparent)]'
                   : 'hover:bg-[var(--bg-hover)]'
               } ${!layer.visible ? 'opacity-45' : ''} ${dragIndex === index ? 'opacity-35' : ''}`}
             >
-              <span className="text-current opacity-35">
-                <Icon icon={DragDropVerticalIcon} size={14} />
+              <span className="text-current opacity-30">
+                <Icon icon={DragDropVerticalIcon} size={13} />
               </span>
               <button
                 type="button"
                 onClick={() => selectLayer(layer.id)}
-                className="flex min-w-0 flex-1 items-center gap-2.5 px-1 py-1.5 text-left"
+                className="flex min-w-0 flex-1 items-center gap-2 py-1.5 pr-1 text-left"
               >
                 <span
-                  className="size-2.5 shrink-0 rounded-full border border-current"
+                  className="size-2 shrink-0 rounded-full border border-current"
                   style={{ background: layer.visible ? layer.color : 'transparent' }}
                 />
                 <span className="min-w-0 truncate text-[13px]">{layer.name}</span>
-                <span className="ml-auto opacity-55" title={label}>
-                  <Icon icon={PATTERN_ICONS[layer.type]} size={15} />
+                <span className="ml-auto opacity-50" title={label}>
+                  <Icon icon={PATTERN_ICONS[layer.type]} size={14} />
                 </span>
               </button>
               <IconButton
                 icon={layer.visible ? ViewIcon : ViewOffSlashIcon}
                 label={layer.visible ? 'Hide' : 'Show'}
                 onClick={() => toggleVisibility(layer.id)}
-                size={14}
+                size={13}
                 tone="inherit"
+                dense
               />
               <IconButton
                 icon={Copy01Icon}
                 label="Duplicate"
                 onClick={() => duplicateLayer(layer.id)}
-                size={14}
+                size={13}
                 tone="inherit"
+                dense
               />
               {layers.length > 1 && (
                 <IconButton
                   icon={Delete02Icon}
                   label="Delete"
                   onClick={() => removeLayer(layer.id)}
-                  size={14}
+                  size={13}
                   tone="inherit"
+                  dense
                 />
               )}
             </div>
@@ -214,11 +208,11 @@ function LayerFields() {
     layer.type === 'straight-lines' ? LAYER_DEFAULTS.spacingLines : LAYER_DEFAULTS.spacing;
 
   return (
-    <div className="grid gap-6">
-      <div>
+    <div className="grid gap-3.5">
+      <div className="flex items-center justify-between gap-2">
         {editingName ? (
           <input
-            className="w-full bg-transparent text-[15px] font-medium text-[var(--text-primary)] outline-none"
+            className="min-w-0 flex-1 bg-transparent text-[13px] font-medium text-[var(--text-primary)] outline-none"
             value={draftName}
             autoFocus
             onChange={(e) => setDraftName(e.target.value)}
@@ -231,7 +225,7 @@ function LayerFields() {
         ) : (
           <button
             type="button"
-            className="text-[15px] font-medium text-[var(--text-primary)]"
+            className="min-w-0 truncate text-left text-[13px] font-medium text-[var(--text-primary)]"
             onDoubleClick={() => {
               setDraftName(layer.name);
               setEditingName(true);
@@ -240,12 +234,12 @@ function LayerFields() {
             {layer.name}
           </button>
         )}
-        <div className="mt-0.5 text-[12px] text-[var(--text-muted)]">
+        <span className="shrink-0 text-[12px] text-[var(--text-muted)]">
           {PATTERN_META.find((item) => item.id === layer.type)?.label}
-        </div>
+        </span>
       </div>
 
-      <div className="grid grid-cols-5 gap-1">
+      <div className="flex gap-0.5">
         {PATTERN_META.map((pattern) => {
           const active = layer.type === pattern.id;
           return (
@@ -254,20 +248,19 @@ function LayerFields() {
               type="button"
               title={pattern.label}
               onClick={() => setLayerType(layer.id, pattern.id)}
-              className={`flex flex-col items-center gap-1.5 rounded-xl py-2.5 ${
+              className={`grid h-8 flex-1 place-items-center rounded-lg ${
                 active
-                  ? 'bg-[color-mix(in_srgb,var(--text-primary)_10%,transparent)] text-[var(--text-primary)] ring-1 ring-[var(--text-primary)]/20'
+                  ? 'bg-[color-mix(in_srgb,var(--text-primary)_10%,transparent)] text-[var(--text-primary)]'
                   : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'
               }`}
             >
-              <Icon icon={PATTERN_ICONS[pattern.id]} size={18} />
-              <span className="text-[10px] tracking-wide">{pattern.label}</span>
+              <Icon icon={PATTERN_ICONS[pattern.id]} size={16} />
             </button>
           );
         })}
       </div>
 
-      <Section icon={PaintBoardIcon} title="Look">
+      <Section title="Look">
         <ColorField
           label="Stroke"
           value={layer.color}
@@ -284,8 +277,8 @@ function LayerFields() {
         />
       </Section>
 
-      <Section icon={Rotate01Icon} title="Pose">
-        <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+      <Section title="Pose">
+        <div className="grid grid-cols-2 gap-x-3 gap-y-2">
           <Slider
             label="X"
             value={layer.position.x}
@@ -317,8 +310,8 @@ function LayerFields() {
         />
       </Section>
 
-      <Section icon={ShapesIcon} title="Field">
-        <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+      <Section title="Field">
+        <div className="grid grid-cols-2 gap-x-3 gap-y-2">
           <Slider
             label="Spacing"
             value={layer.spacing}
@@ -359,7 +352,7 @@ function LayerFields() {
           />
         ) : (
           <>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+            <div className="grid grid-cols-2 gap-x-3 gap-y-2">
               <Slider
                 label="Offset X"
                 value={layer.offset.x}
@@ -435,84 +428,80 @@ export function Studio() {
 
   if (!open) {
     return (
-      <div className="pointer-events-none absolute top-4 left-4 z-20">
-        <div className="hud-card pointer-events-auto flex items-center gap-1 p-1.5 pr-2">
+      <div className="pointer-events-none absolute top-3 left-3 z-20">
+        <div className="hud-card pointer-events-auto flex items-center gap-0.5 p-1 pr-1.5">
           <button
             type="button"
-            className="flex items-center gap-2.5 rounded-xl py-0.5 pr-1 pl-0.5"
+            className="flex items-center gap-1.5 rounded-lg py-1 pr-1 pl-1.5 text-[var(--text-primary)]"
             onClick={() => setOpen(true)}
             title="Open studio"
           >
-            <Mark />
-            <span className="text-[16px] font-semibold tracking-[-0.03em] text-[var(--text-primary)]">
-              Moire
-            </span>
+            <Mark size={20} />
+            <span className="text-[14px] font-semibold tracking-[-0.03em]">Moire</span>
           </button>
           <button
             type="button"
             title="Reset view"
             onClick={resetView}
             onMouseDown={(e) => e.currentTarget.blur()}
-            className="rounded-lg px-2 py-1.5 font-mono text-[11px] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
+            className="rounded-lg px-1.5 py-1 font-mono text-[11px] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
           >
             {Math.round(zoom * 100)}%
           </button>
+          <IconButton icon={ImageDownloadIcon} label="Export PNG" onClick={() => void savePng()} dense />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="pointer-events-none absolute inset-y-4 left-4 z-20 flex">
-      <aside className="hud-card pointer-events-auto flex w-[22rem] flex-col overflow-hidden">
-        <header className="flex items-center gap-3.5 px-5 pt-5 pb-4">
-          <Mark />
-          <div className="min-w-0 flex-1">
-            <div className="text-[19px] font-semibold tracking-[-0.04em] text-[var(--text-primary)]">
-              Moire
-            </div>
-            <div className="text-[12px] text-[var(--text-muted)]">Interference fields</div>
+    <div className="pointer-events-none absolute inset-y-3 left-3 z-20 flex max-h-[calc(100dvh-1.5rem)]">
+      <aside
+        className="hud-card pointer-events-auto flex h-fit max-h-full w-[18.5rem] flex-col overflow-hidden"
+        onWheel={(e) => e.stopPropagation()}
+      >
+        <header className="flex shrink-0 items-center gap-2 px-3 pt-2.5 pb-2">
+          <span className="text-[var(--text-primary)]">
+            <Mark />
+          </span>
+          <div className="min-w-0 flex-1 text-[15px] font-semibold tracking-[-0.03em] text-[var(--text-primary)]">
+            Moire
           </div>
-          <IconButton
-            icon={ArrowLeft01Icon}
-            label="Hide studio"
-            onClick={() => setOpen(false)}
-          />
+          <IconButton icon={ImageDownloadIcon} label="Export PNG" onClick={() => void savePng()} dense />
+          <IconButton icon={ArrowLeft01Icon} label="Hide studio" onClick={() => setOpen(false)} dense />
         </header>
 
-        <div className="flex items-center gap-1 px-5 pb-4">
+        <div className="flex shrink-0 items-center gap-0.5 px-2.5 pb-2">
           <button
             type="button"
             title="Reset view"
             onClick={resetView}
             onMouseDown={(e) => e.currentTarget.blur()}
-            className="flex items-center gap-1.5 rounded-xl px-2.5 py-2 font-mono text-[12px] text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
+            className="rounded-lg px-2 py-1.5 font-mono text-[12px] text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
           >
-            <Icon icon={ZoomInAreaIcon} size={16} />
             {Math.round(zoom * 100)}%
           </button>
-          <span className="flex flex-1 items-center gap-2 px-2">
-            <span className="text-[var(--text-muted)]">
-              <Icon icon={ColorsIcon} size={16} />
-            </span>
+          <span className="min-w-0 flex-1 px-1">
             <ColorField value={backgroundColor} onChange={setBackgroundColor} />
           </span>
           <IconButton
             icon={theme === 'dark' ? Sun03Icon : Moon02Icon}
             label={theme === 'dark' ? 'Light theme' : 'Dark theme'}
             onClick={toggleTheme}
+            dense
           />
           <IconButton
             icon={KeyboardIcon}
             label="Shortcuts"
             onClick={() => window.dispatchEvent(new Event('moire-shortcuts'))}
+            dense
           />
         </div>
 
         <Rule />
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
-          <div className="grid gap-7">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-2.5">
+          <div className="grid gap-3.5">
             <LayerStack />
             <Rule />
             <LayerFields />

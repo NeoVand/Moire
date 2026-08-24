@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   Copy01Icon,
   Delete02Icon,
+  ImageDownloadIcon,
   KeyboardIcon,
   Move01Icon,
   Rotate01Icon,
@@ -21,6 +22,7 @@ const ROWS: { icon: typeof KeyboardIcon; keys: string; detail: string }[] = [
   { icon: Delete02Icon, keys: '⌫', detail: 'Remove' },
   { icon: KeyboardIcon, keys: '1–9', detail: 'Select a layer' },
   { icon: ZoomInAreaIcon, keys: 'F', detail: 'Reset view' },
+  { icon: ImageDownloadIcon, keys: 'E', detail: 'Export a PNG' },
   { icon: KeyboardIcon, keys: 'I', detail: 'Hide or show the studio' },
 ];
 

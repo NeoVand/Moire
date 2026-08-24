@@ -8,7 +8,7 @@ export function ColorField({ label, value, onChange }: ColorFieldProps) {
   return (
     <label className="flex items-center justify-between gap-3">
       {label && (
-        <span className="text-[11px] uppercase tracking-wide text-[var(--text-secondary)]">
+        <span className="text-[12px] text-[var(--text-secondary)]">
           {label}
         </span>
       )}
