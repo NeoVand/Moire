@@ -123,7 +123,7 @@ function LayerStack() {
               }}
               className={`flex items-center gap-0.5 rounded-lg px-1 text-[var(--text-primary)] ${
                 selected
-                  ? 'bg-[color-mix(in_srgb,var(--text-primary)_9%,transparent)]'
+                  ? 'ring-1 ring-inset ring-[color-mix(in_srgb,var(--text-primary)_40%,transparent)]'
                   : 'hover:bg-[var(--bg-hover)]'
               } ${!layer.visible ? 'opacity-45' : ''} ${dragIndex === index ? 'opacity-35' : ''}`}
             >
