@@ -164,13 +164,13 @@ export function Slider({
           applyFromClientX(e.clientX, e.shiftKey);
         }}
       >
-        <div className="absolute inset-x-0 top-1/2 h-0.5 -translate-y-1/2 rounded-full bg-[var(--track)]" />
+        <div className="absolute inset-x-0 top-1/2 h-[1.5px] -translate-y-1/2 rounded-full bg-[var(--track)]" />
         <div
-          className="absolute top-1/2 h-0.5 -translate-y-1/2 rounded-full bg-[var(--text-primary)]"
+          className="absolute top-1/2 h-[1.5px] -translate-y-1/2 rounded-full bg-[var(--text-primary)]"
           style={{ left: `${fillLeft}%`, width: `${fillWidth}%` }}
         />
         <div
-          className="absolute top-1/2 size-[13px] -translate-x-1/2 -translate-y-1/2 rounded-full border-[2.5px] border-solid border-[var(--text-primary)] bg-[var(--bg-secondary)]"
+          className="absolute top-1/2 size-[13px] -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-solid border-[var(--text-primary)] bg-[var(--bg-secondary)]"
           style={{ left: `${pct}%` }}
         />
       </div>
