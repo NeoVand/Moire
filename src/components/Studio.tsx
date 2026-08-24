@@ -253,7 +253,6 @@ function LayerFields() {
         onChange={(color) => updateLayer(layer.id, { color })}
         opacity={layer.opacity}
         onOpacityChange={(opacity) => updateLayer(layer.id, { opacity })}
-        opacityDefault={LAYER_DEFAULTS.opacity}
       />
       <Slider
         label="Thickness"
