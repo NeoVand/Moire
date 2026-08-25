@@ -10,11 +10,13 @@ import {
   uniform,
   mix,
   max,
+  min,
   smoothstep,
 } from 'three/tsl';
 import { MAX_LAYERS, type PatternLayer, type PatternType } from '../types/moire';
 import { curveDistance, lineDistance, radialLineDistance, ringDistance } from './inverse.wgsl';
 import { gridDistance } from './lattice.wgsl';
+import { layerMorph } from './typeMorph';
 
 export function patternTypeCode(type: PatternType): number {
   switch (type) {
@@ -69,6 +71,8 @@ export function createLayerSlot() {
     lineCount: uniform(8),
     bend: uniform(0),
     frequency: uniform(1),
+    typeFrom: uniform(1),
+    morph: uniform(1),
   };
 }
 
@@ -107,6 +111,15 @@ export function writeLayerSlot(slot: LayerSlot, layer: PatternLayer | undefined)
   slot.lineCount.value = layer.lineCount ?? 8;
   slot.bend.value = layer.bend ?? 0;
   slot.frequency.value = layer.frequency ?? 1;
+  const morph = layerMorph(layer.id);
+  if (morph) {
+    slot.typeFrom.value = patternTypeCode(morph.from);
+    slot.type.value = patternTypeCode(morph.to);
+    slot.morph.value = morph.t;
+  } else {
+    slot.typeFrom.value = slot.type.value;
+    slot.morph.value = 1;
+  }
 }
 
 export function buildColorNode(camera: CameraUniforms, slots: LayerSlot[]) {
@@ -125,77 +138,123 @@ export function buildColorNode(camera: CameraUniforms, slots: LayerSlot[]) {
         );
         const local = rotated.sub(slot.position);
 
-        const dist = float(0).toVar();
-        const alpha = float(0).toVar();
         const pixel = float(1).div(max(camera.zoom, float(0.08)));
         const halfT = max(slot.thickness.mul(0.5), pixel.mul(1.15));
         const aa = pixel.mul(0.7);
+        const accept = max(halfT.sub(aa), float(0));
 
-        If(slot.type.lessThanEqual(0.1), () => {
-          dist.assign(lineDistance(local, float(0), slot.spacing, slot.phase, slot.offset.x));
-        }).Else(() => {
-          If(slot.type.lessThan(4.5), () => {
-            dist.assign(
-              ringDistance(
-                local,
-                slot.offset,
-                slot.rotationOffset,
-                slot.spacing,
-                slot.phase,
-                slot.type,
-                slot.sides,
-                max(halfT.sub(aa), float(0))
-              )
-            );
+        const strokeAlpha = (d) =>
+          float(1).sub(smoothstep(halfT.sub(aa), halfT.add(aa), d)).mul(slot.opacity);
+
+        const distOf = (typeNode) => {
+          const dist = float(1e6).toVar();
+          If(typeNode.lessThanEqual(0.1), () => {
+            dist.assign(lineDistance(local, float(0), slot.spacing, slot.phase, slot.offset.x));
           }).Else(() => {
-            If(slot.type.lessThan(7.5), () => {
-              const kind = slot.type.sub(5);
-              const edgeD = gridDistance(local, kind, slot.spacing, float(0), slot.scale.x, slot.scale.y);
-              const vertD = gridDistance(local, kind, slot.spacing, float(1), slot.scale.x, slot.scale.y);
+            If(typeNode.lessThan(4.5), () => {
+              dist.assign(
+                ringDistance(
+                  local,
+                  slot.offset,
+                  slot.rotationOffset,
+                  slot.spacing,
+                  slot.phase,
+                  typeNode,
+                  slot.sides,
+                  accept
+                )
+              );
+            }).Else(() => {
+              If(typeNode.lessThan(7.5), () => {
+                const kind = typeNode.sub(5);
+                const edgeD = gridDistance(
+                  local,
+                  kind,
+                  slot.spacing,
+                  float(0),
+                  slot.scale.x,
+                  slot.scale.y
+                );
+                const vertD = gridDistance(
+                  local,
+                  kind,
+                  slot.spacing,
+                  float(1),
+                  slot.scale.x,
+                  slot.scale.y
+                );
+                const edgeOnly = float(1e6).toVar();
+                If(slot.drawEdges.greaterThan(0.5), () => edgeOnly.assign(edgeD));
+                const vertOnly = float(1e6).toVar();
+                If(slot.vertexSize.greaterThan(0.001), () => vertOnly.assign(vertD));
+                dist.assign(min(edgeOnly, vertOnly));
+              }).Else(() => {
+                If(typeNode.lessThan(8.5), () => {
+                  dist.assign(radialLineDistance(local, slot.lineCount, slot.phase));
+                }).Else(() => {
+                  dist.assign(
+                    curveDistance(
+                      local,
+                      typeNode.sub(9),
+                      slot.spacing,
+                      slot.phase,
+                      slot.bend,
+                      slot.frequency
+                    )
+                  );
+                });
+              });
+            });
+          });
+          return dist;
+        };
+
+        const inkOf = (typeNode) => {
+          const ink = float(0).toVar();
+          If(typeNode.greaterThan(4.5), () => {
+            If(typeNode.lessThan(7.5), () => {
+              const kind = typeNode.sub(5);
+              const edgeD = gridDistance(
+                local,
+                kind,
+                slot.spacing,
+                float(0),
+                slot.scale.x,
+                slot.scale.y
+              );
+              const vertD = gridDistance(
+                local,
+                kind,
+                slot.spacing,
+                float(1),
+                slot.scale.x,
+                slot.scale.y
+              );
               const edgeA = float(1)
                 .sub(smoothstep(halfT.sub(aa), halfT.add(aa), edgeD))
                 .mul(slot.drawEdges);
               const vertA = float(0).toVar();
               If(slot.vertexSize.greaterThan(0.001), () => {
                 const vR = slot.vertexSize;
-                vertA.assign(float(1).sub(smoothstep(max(vR.sub(aa), float(0)), vR.add(aa), vertD)));
-              });
-              alpha.assign(max(edgeA, vertA));
-            }).Else(() => {
-              If(slot.type.lessThan(8.5), () => {
-                dist.assign(radialLineDistance(local, slot.lineCount, slot.phase));
-              }).Else(() => {
-                dist.assign(
-                  curveDistance(
-                    local,
-                    slot.type.sub(9),
-                    slot.spacing,
-                    slot.phase,
-                    slot.bend,
-                    slot.frequency
-                  )
+                vertA.assign(
+                  float(1).sub(smoothstep(max(vR.sub(aa), float(0)), vR.add(aa), vertD))
                 );
               });
+              ink.assign(max(edgeA, vertA).mul(slot.opacity));
+            }).Else(() => {
+              ink.assign(strokeAlpha(distOf(typeNode)));
             });
-          });
-        });
-
-        If(slot.type.lessThan(4.5), () => {
-          alpha.assign(
-            float(1)
-              .sub(smoothstep(halfT.sub(aa), halfT.add(aa), dist))
-              .mul(slot.opacity)
-          );
-        }).Else(() => {
-          If(slot.type.greaterThan(7.5), () => {
-            alpha.assign(
-              float(1)
-                .sub(smoothstep(halfT.sub(aa), halfT.add(aa), dist))
-                .mul(slot.opacity)
-            );
           }).Else(() => {
-            alpha.assign(alpha.mul(slot.opacity));
+            ink.assign(strokeAlpha(distOf(typeNode)));
           });
+          return ink;
+        };
+
+        const alpha = float(0).toVar();
+        If(slot.morph.greaterThan(0.999), () => {
+          alpha.assign(inkOf(slot.type));
+        }).Else(() => {
+          alpha.assign(strokeAlpha(mix(distOf(slot.typeFrom), distOf(slot.type), slot.morph)));
         });
         color.assign(mix(color, slot.color, alpha.clamp(0, 1)));
       });

@@ -6,7 +6,9 @@ import {
   lineDistanceCpu,
   radialLineDistanceCpu,
   ringDistanceCpu,
+  shapeRadius,
 } from './inverseCpu.ts';
+import { concentricSideCount, mixInvN } from '../types/moire.ts';
 
 function approx(actual: number, expected: number, tol = 1e-3) {
   assert.ok(
@@ -68,6 +70,14 @@ const center = {
 const p = { x: center.x + radius, y: center.y };
 const d = ringDistanceCpu(p, offset, theta, s, 0, 1, 3);
 assert.ok(d < 2, `spiraled ring 20 should be found, dist=${d}`);
+
+// Polygon n=4 matches L∞; many-gon matches Euclidean (circle stand-in)
+approx(shapeRadius({ x: 10, y: 4 }, 4, 4), shapeRadius({ x: 10, y: 4 }, 2, 4), 1e-6);
+approx(shapeRadius({ x: 10, y: 0 }, 4, 64), 10, 0.02);
+approx(mixInvN(64, 4, 0), 64, 1e-6);
+approx(mixInvN(64, 4, 1), 4, 1e-6);
+approx(concentricSideCount('concentric-circles', 6), 64);
+approx(concentricSideCount('concentric-squares', 6), 4);
 
 // Centered squares — L∞, infinite, including the diagonal
 approx(ringDistanceCpu({ x: 10, y: 0 }, { x: 0, y: 0 }, 0, 10, 0, 2, 4), 0);

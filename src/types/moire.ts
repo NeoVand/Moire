@@ -121,6 +121,19 @@ export function isConcentric(type: PatternType): boolean {
   );
 }
 
+/** Regular-polygon side count used when easing concentric shapes. Circle is a many-gon. */
+export function concentricSideCount(type: PatternType, sides: number): number {
+  if (type === 'concentric-circles') return 64;
+  if (type === 'concentric-squares') return 4;
+  if (type === 'concentric-triangles') return 3;
+  if (type === 'concentric-polygons') return Math.max(3, sides);
+  return Math.max(3, sides);
+}
+
+export function mixInvN(n0: number, n1: number, t: number): number {
+  return 1 / ((1 - t) / Math.max(n0, 1e-4) + t / Math.max(n1, 1e-4));
+}
+
 export function isGrid(type: PatternType): boolean {
   return type === 'grid-square' || type === 'grid-hex' || type === 'grid-triangle';
 }

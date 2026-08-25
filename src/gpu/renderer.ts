@@ -9,6 +9,7 @@ import {
   type CameraUniforms,
   type LayerSlot,
 } from './composite';
+import { clearLayerMorphs, hasLayerMorphs } from './typeMorph';
 
 export interface RendererSync {
   layers: PatternLayer[];
@@ -50,6 +51,8 @@ export class MoireRenderer {
   private disposed = false;
   private lossHooked = false;
   private raf = 0;
+  private morphRaf = 0;
+  private lastState: RendererSync | null = null;
   private lastWidth = 0;
   private lastHeight = 0;
   private lastDpr = 0;
@@ -146,7 +149,14 @@ export class MoireRenderer {
   }
 
   sync(state: RendererSync) {
-    if (!this.cameraUniforms) return;
+    this.lastState = state;
+    this.writeSlots();
+    if (hasLayerMorphs()) this.ensureMorphLoop();
+  }
+
+  private writeSlots() {
+    const state = this.lastState;
+    if (!this.cameraUniforms || !state) return;
     this.cameraUniforms.zoom.value = state.camera.zoom;
     this.cameraUniforms.pan.value.set(state.camera.pan.x, state.camera.pan.y);
     this.cameraUniforms.background.value.set(state.backgroundColor);
@@ -155,6 +165,18 @@ export class MoireRenderer {
     for (let i = 0; i < this.slots.length; i++) {
       writeLayerSlot(this.slots[i], state.layers[i]);
     }
+  }
+
+  private ensureMorphLoop() {
+    if (this.morphRaf || !this.ready) return;
+    const step = () => {
+      this.writeSlots();
+      if (this.ready && this.renderer && this.scene && this.camera) {
+        this.renderer.render(this.scene, this.camera);
+      }
+      this.morphRaf = hasLayerMorphs() ? requestAnimationFrame(step) : 0;
+    };
+    this.morphRaf = requestAnimationFrame(step);
   }
 
   render() {
@@ -196,7 +218,11 @@ export class MoireRenderer {
     this.disposed = true;
     this.ready = false;
     if (this.raf) cancelAnimationFrame(this.raf);
+    if (this.morphRaf) cancelAnimationFrame(this.morphRaf);
     this.raf = 0;
+    this.morphRaf = 0;
+    this.lastState = null;
+    clearLayerMorphs();
     this.observer?.disconnect();
     this.observer = null;
     this.mesh?.geometry.dispose();

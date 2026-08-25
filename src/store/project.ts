@@ -12,6 +12,7 @@ import {
   isLines,
 } from '../types/moire';
 import { clampZoom } from '../gpu/camera';
+import { beginLayerMorph, endLayerMorph } from '../gpu/typeMorph';
 
 export type LayerPatch = Omit<Partial<PatternLayer>, 'position' | 'offset' | 'scale'> & {
   position?: Partial<Vec2>;
@@ -81,6 +82,40 @@ function mixLayer(from: PatternLayer, to: PatternLayer, t: number): PatternLayer
       y: lerp(from.offset.y, to.offset.y, t),
     },
     rotationOffset: lerp(from.rotationOffset, to.rotationOffset, t),
+    sides: lerp(from.sides, to.sides, t),
+    vertexSize: lerp(from.vertexSize, to.vertexSize, t),
+    scale: {
+      x: lerp(from.scale?.x ?? 1, to.scale?.x ?? 1, t),
+      y: lerp(from.scale?.y ?? 1, to.scale?.y ?? 1, t),
+    },
+    lineCount: lerp(from.lineCount, to.lineCount, t),
+    bend: lerp(from.bend, to.bend, t),
+    frequency: lerp(from.frequency, to.frequency, t),
+    opacity: lerp(from.opacity, to.opacity, t),
+  };
+}
+
+function applyLayerType(layer: PatternLayer, type: PatternType): PatternLayer {
+  if (isLines(type) || isGrid(type) || isCurves(type)) {
+    return {
+      ...layer,
+      type,
+      offset: { x: 0, y: 0 },
+      rotationOffset: 0,
+      bend: isCurves(type) ? defaultBend(type) : layer.bend,
+      spacing: isCurves(type) ? defaultCurveSpacing(type) : layer.spacing,
+      frequency: isCurves(type) ? 1 : layer.frequency,
+      phase: isCurves(type) ? 0 : layer.phase,
+    };
+  }
+  return {
+    ...layer,
+    type,
+    sides: layer.sides || 6,
+    offset:
+      isLines(layer.type) || isGrid(layer.type) || isCurves(layer.type)
+        ? { x: 0, y: 0 }
+        : layer.offset,
   };
 }
 
@@ -172,6 +207,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
 
   removeLayer: (id) => {
     abortIntro();
+    endLayerMorph(id);
     set((s) => {
       if (s.layers.length <= 1) return s;
       const layers = s.layers.filter((layer) => layer.id !== id);
@@ -211,31 +247,11 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
 
   setLayerType: (id, type) => {
     abortIntro();
+    const layer = get().layers.find((item) => item.id === id);
+    if (!layer || layer.type === type) return;
+    beginLayerMorph(id, layer.type, type);
     set((s) => ({
-      layers: s.layers.map((layer) => {
-        if (layer.id !== id) return layer;
-        if (isLines(type) || isGrid(type) || isCurves(type)) {
-          return {
-            ...layer,
-            type,
-            offset: { x: 0, y: 0 },
-            rotationOffset: 0,
-            bend: isCurves(type) ? defaultBend(type) : layer.bend,
-            spacing: isCurves(type) ? defaultCurveSpacing(type) : layer.spacing,
-            frequency: 1,
-            phase: isCurves(type) ? 0 : layer.phase,
-          };
-        }
-        return {
-          ...layer,
-          type,
-          sides: layer.sides || 6,
-          offset:
-            isLines(layer.type) || isGrid(layer.type) || isCurves(layer.type)
-              ? { x: 0, y: 0 }
-              : layer.offset,
-        };
-      }),
+      layers: s.layers.map((item) => (item.id === id ? applyLayerType(item, type) : item)),
     }));
   },
 

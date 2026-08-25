@@ -47,7 +47,7 @@ Ring `n`: shape of radius `n * spacing + phase`, center `rotate(n * δ, n * θ)`
 - PNG export is `exportPng()` in `src/gpu/capture.ts`. The stage registers `MoireRenderer.snapshot()`.
 - Frosted HUD: `--hud-bg` + `backdrop-filter`. Selected layer is a quiet ring, not an inverted overlay.
 - Every slider has a reset affordance next to its label when dirty. Defaults live in `LAYER_DEFAULTS`.
-- Switching a layer to lines, grid, or curves zeros `offset` and `rotationOffset`.
+- Switching a layer to lines, grid, or curves zeros `offset` and `rotationOffset`. Type changes ease on the GPU (~280 ms): one stroke, mixed distances. The store snaps to the target.
 
 ## Git
 
