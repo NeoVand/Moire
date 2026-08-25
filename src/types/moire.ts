@@ -204,7 +204,7 @@ export function createDefaultProject(): MoireProject {
         id: '1',
         name: 'Layer 1',
         type: 'concentric-circles',
-        position: { x: -10, y: 20 },
+        position: { x: 20, y: 50 },
         rotation: 50,
         spacing: 6,
         thickness: 3.5,
