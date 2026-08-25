@@ -39,7 +39,7 @@ Ring `n`: shape of radius `n * spacing + phase`, center `rotate(n * δ, n * θ)`
 - Fixed `MAX_LAYERS` (12) slots compiled once. Hide/delete writes `active = 0` into the same uniforms. Never allocate a new slot array on count change.
 - Stroke: `halfT = max(thickness/2, 1.15 * pixel)` so hairlines and small geometric gaps do not pepper at zoom-out. `pixel = 1/zoom`.
 - `devicePixelRatio` clamped to 2. Camera at `z = 1`, `near = 0.1`. `toneMapped = false`.
-- First paint waits on `compileAsync`. `MoireStage` shows a Jupiter “Compiling” mark until the first frame.
+- First paint waits on `compileAsync`. `MoireStage` shows a Jupiter “Compiling” mark until the first frame. The first load then eases two default concentric layers into the preset.
 
 ## UI
 

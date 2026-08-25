@@ -51,6 +51,7 @@ export function MoireStage() {
         gpu.render();
         registerCapture(() => gpu.snapshot());
         setReady(true);
+        useProjectStore.getState().playIntro();
       })
       .catch((err: unknown) => {
         const message = err instanceof Error ? err.message : String(err);
@@ -69,6 +70,7 @@ export function MoireStage() {
 
     return () => {
       cancelled = true;
+      useProjectStore.getState().cancelIntro();
       unsub();
       registerCapture(null);
       gpu.dispose();

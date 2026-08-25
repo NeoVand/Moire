@@ -213,6 +213,23 @@ export function createDefaultProject(): MoireProject {
   };
 }
 
+/** Two coincident default concentric layers. The intro eases from here into the preset. */
+export function createIntroRestProject(): MoireProject {
+  const preset = createDefaultProject();
+  return {
+    ...preset,
+    layers: preset.layers.map((layer) =>
+      createLayer({
+        id: layer.id,
+        name: layer.name,
+        type: 'concentric-circles',
+        color: layer.color,
+        visible: layer.visible,
+      })
+    ),
+  };
+}
+
 export const MAX_LAYERS = 12;
 
 export const LAYER_DEFAULTS = {

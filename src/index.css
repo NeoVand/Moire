@@ -9,7 +9,7 @@
   --text-muted: #6a6a6a;
   --border: #2a2a2a;
   --track: #3a3a3a;
-  --hud-bg: color-mix(in srgb, #111111 76%, transparent);
+  --hud-bg: color-mix(in srgb, #111111 90%, transparent);
   --hud-shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
 }
 
