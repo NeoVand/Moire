@@ -1,10 +1,11 @@
 /**
  * CPU mirror of the WGSL inverse. Used to lock the math:
- * no maxRings, closed-form where it exists, Newton otherwise.
+ * no maxRings, closed-form where it exists, a bounded window otherwise.
  *
  * Rotation makes the nearest ring index wander away from |p|/spacing —
  * far from the origin a 45° square family lives near |p|/(s√2), not |p|/s.
- * Seeds must cover those orientation families or whole sides vanish.
+ * `shapeKappa` measures that fan exactly, so the index window is a proven
+ * superset of the answer instead of a seeded guess with a sample budget.
  */
 
 export type ShapeKind = 1 | 2 | 3 | 4;
@@ -16,10 +17,6 @@ function rotate2d(p: { x: number; y: number }, a: number) {
   const c = Math.cos(a);
   const s = Math.sin(a);
   return { x: c * p.x - s * p.y, y: s * p.x + c * p.y };
-}
-
-function perp(v: { x: number; y: number }) {
-  return { x: -v.y, y: v.x };
 }
 
 function length2(v: { x: number; y: number }) {
@@ -49,32 +46,6 @@ export function shapeRadius(
   const ang = Math.atan2(q.y, q.x);
   const seg = TAU / n;
   return length2(q) * Math.cos(wrapToHalf(ang, seg));
-}
-
-export function shapeGrad(
-  q: { x: number; y: number },
-  shape: ShapeKind,
-  sides: number
-): { x: number; y: number } {
-  const r = length2(q);
-  if (r < EPS) return { x: 1, y: 0 };
-  if (shape <= 1) return { x: q.x / r, y: q.y / r };
-  if (shape === 2) {
-    if (Math.abs(q.x) > Math.abs(q.y)) return { x: Math.sign(q.x), y: 0 };
-    return { x: 0, y: Math.sign(q.y) };
-  }
-  const n = shape === 3 ? 3 : Math.max(3, sides);
-  const ang = Math.atan2(q.y, q.x);
-  const seg = TAU / n;
-  const nrm = ang - wrapToHalf(ang, seg);
-  return { x: Math.cos(nrm), y: Math.sin(nrm) };
-}
-
-function shapeSideCount(shape: ShapeKind, sides: number): number {
-  if (shape <= 1) return 0;
-  if (shape === 2) return 4;
-  if (shape === 3) return 3;
-  return Math.max(3, Math.round(sides));
 }
 
 function evalRing(
@@ -208,42 +179,127 @@ export function squareTranslated(
   return d;
 }
 
-function newtonFrom(
+/**
+ * Indices the strided scan will visit. The old solver's worst case was 32 × 33
+ * ring evaluations, each costing two rotations, so this budget is a cheaper
+ * ceiling than what it replaced.
+ */
+export const RING_BUDGET = 2048;
+/**
+ * When κ|δ| ≤ s ≤ |δ| every ring sweeps past the origin, so infinitely many can
+ * pass near any point and no finite bound exists. Cap the window there.
+ */
+const RING_SPAN_CAP = 8192;
+
+/**
+ * Tightest constants with `shapeRadius(q) ∈ [κ·|q|, |q|]`.
+ *
+ * κ = cos(π/N) is exactly how far the radial metric can dip between two
+ * vertices, which is exactly how far a rotation can fan the nearest ring
+ * index away from |p|/spacing. Bounding that fan is what makes the window
+ * provable instead of heuristic.
+ */
+export function shapeKappa(shape: ShapeKind, sides: number): number {
+  if (shape <= 1) return 1;
+  if (shape === 2) return Math.SQRT1_2;
+  const n = shape === 3 ? 3 : Math.max(3, sides);
+  return Math.cos(Math.PI / n);
+}
+
+/**
+ * Ring n's frame, `R(-nθ)p − nδ`, in one angle instead of two rotations.
+ * Rotating the offset out is free because R preserves inner products.
+ */
+function ringLocal(
+  radius: number,
+  angle: number,
+  n: number,
+  theta: number,
+  offset: { x: number; y: number }
+): { x: number; y: number } {
+  const psi = n * theta - angle;
+  return {
+    x: radius * Math.cos(psi) - n * offset.x,
+    y: -radius * Math.sin(psi) - n * offset.y,
+  };
+}
+
+/**
+ * Integer indices that can possibly land within `guard` of p. With
+ * `h(n) = shapeRadius(qₙ) − (n·s + φ)` and `|qₙ| ∈ [ | |p| − n|δ| |, |p| + n|δ| ]`:
+ *
+ *   κ·| |p| − n|δ| | − (n·s + φ)  ≤  h(n)  ≤  (|p| + n|δ|) − (n·s + φ)
+ *
+ * `h(n) ≤ guard` gives the low end, `h(n) ≥ −guard` the high end. Every index
+ * outside is *proven* farther than guard, so this is a superset of the answer —
+ * no ring can hide outside it, which is what kills the zoom-out holes.
+ */
+export function ringIndexWindow(
+  radius: number,
+  offLen: number,
+  spacing: number,
+  phase: number,
+  kappa: number,
+  guard: number
+): { lo: number; hi: number } {
+  const lo = Math.max(
+    0,
+    Math.floor((kappa * radius - phase - guard) / (spacing + kappa * offLen))
+  );
+  let hi = Number.POSITIVE_INFINITY;
+  if (spacing > offLen) {
+    hi = (radius - phase + guard) / (spacing - offLen);
+  } else if (kappa * offLen > spacing) {
+    hi = (guard + phase + kappa * radius) / (kappa * offLen - spacing);
+  }
+  const capped = Number.isFinite(hi) ? Math.ceil(hi) : lo + RING_SPAN_CAP;
+  return { lo, hi: Math.max(lo, Math.min(capped, lo + RING_SPAN_CAP)) };
+}
+
+/**
+ * Walk the window, skipping indices the Lipschitz bound proves cannot win.
+ * Sphere tracing, but in ring-index space: from a sample `gap` away, no index
+ * within `(gap − bar)/slope` can beat `bar`, so that whole run is skippable
+ * without ever evaluating it.
+ */
+function ringScan(
   p: { x: number; y: number },
-  t0: number,
   offset: { x: number; y: number },
   theta: number,
   spacing: number,
   phase: number,
   shape: ShapeKind,
-  sides: number
+  sides: number,
+  acceptBelow: number,
+  guard: number
 ): number {
-  let t = Math.max(0, t0);
-  for (let i = 0; i < 12; i++) {
-    const center = rotate2d({ x: offset.x * t, y: offset.y * t }, t * theta);
-    const q = rotate2d({ x: p.x - center.x, y: p.y - center.y }, -t * theta);
-    const r = shapeRadius(q, shape, sides);
-    const f = r - (t * spacing + phase);
-    const deltaR = rotate2d(offset, t * theta);
-    const centerP = {
-      x: deltaR.x + t * theta * perp(deltaR).x,
-      y: deltaR.y + t * theta * perp(deltaR).y,
-    };
-    const qpRot = rotate2d(centerP, -t * theta);
-    const pq = perp(q);
-    const qp = {
-      x: -theta * pq.x - qpRot.x,
-      y: -theta * pq.y - qpRot.y,
-    };
-    const g = shapeGrad(q, shape, sides);
-    const fp = dot(g, qp) - spacing;
-    if (Math.abs(fp) < 1e-6) break;
-    let step = f / fp;
-    step = Math.min(12, Math.max(-12, step));
-    t = Math.max(0, t - step);
-    if (Math.abs(step) < 1e-4) break;
+  const radius = length2(p);
+  const angle = Math.atan2(p.y, p.x);
+  const offLen = length2(offset);
+  const spin = Math.abs(theta);
+  const kappa = shapeKappa(shape, sides);
+  const { lo, hi } = ringIndexWindow(radius, offLen, spacing, phase, kappa, guard);
+  // qₙ = R(-nθ)p − nδ, so dqₙ/dn = −θ·perp(R(-nθ)p) − δ and the bound is a
+  // constant: |h'(n)| ≤ |θ||p| + |δ| + s. shapeRadius is 1-Lipschitz in q,
+  // including across the corners where its gradient jumps.
+  const slope = spin * radius + offLen + spacing;
+
+  let best = 1e6;
+  let n = lo;
+  for (let i = 0; i < RING_BUDGET; i++) {
+    if (n > hi) break;
+    const q = ringLocal(radius, angle, n, theta, offset);
+    const gap = Math.abs(shapeRadius(q, shape, sides) - (n * spacing + phase));
+    if (gap < best) best = gap;
+    if (acceptBelow > 0 && best <= acceptBelow) return best;
+    // No index within (gap − bar)/slope of here can beat bar, so skip the run.
+    const bar = Math.min(best, guard);
+    const safe = Math.floor((gap - bar) / slope);
+    // Keep the tail inside the budget. Only bites when the window is enormous.
+    const reach = Math.ceil((hi - n) / Math.max(RING_BUDGET - i, 1));
+    n += Math.max(1, safe, reach);
   }
-  return t;
+  return Math.min(best, guard);
 }
 
 export function ringDistanceCpu(
@@ -254,7 +310,8 @@ export function ringDistanceCpu(
   phase: number,
   shape: ShapeKind,
   sides: number,
-  acceptBelow = 0
+  acceptBelow = 0,
+  rejectAbove = 0
 ): number {
   const s = Math.max(spacing, 1e-4);
   const hasOff = dot(offset, offset) > 1e-8;
@@ -269,60 +326,9 @@ export function ringDistanceCpu(
     if (shape <= 1) return circleQuadratic(p, offset, s, phase, shape, sides);
   }
 
-  const r2 = length2(p);
-  const rInf = Math.max(Math.abs(p.x), Math.abs(p.y));
-  const rShape = shapeRadius(p, shape, sides);
-  const tL2 = Math.max(0, (r2 - phase) / s);
-  const tInf = Math.max(0, (rInf - phase) / s);
-  const tShape = Math.max(0, (rShape - phase) / s);
-
-  let d = 1e6;
-  const polish = (t0: number) => {
-    d = consider(d, p, newtonFrom(p, t0, offset, theta, s, phase, shape, sides), offset, theta, s, phase, shape, sides, 4);
-    d = consider(d, p, t0, offset, theta, s, phase, shape, sides, 4);
-  };
-
-  const inked = () => acceptBelow > 0 && d <= acceptBelow;
-
-  polish(tL2);
-  polish(tInf);
-  polish(tShape);
-  polish(tL2 * 0.35);
-  polish(tL2 * 1.6 + 3);
-  if (inked()) return d;
-
-  if (hasOff) {
-    const inv = r2 > EPS ? 1 / r2 : 0;
-    const rot = rotate2d(offset, tShape * theta);
-    const den = s + p.x * inv * rot.x + p.y * inv * rot.y;
-    if (Math.abs(den) > 1e-4) polish((r2 - phase) / den);
-    if (inked()) return d;
-  }
-
-  const nSides = shapeSideCount(shape, sides);
-  const sidesForSpan = nSides >= 3 ? nSides : 4;
-  const seg = TAU / sidesForSpan;
-  const offLen = length2(offset);
-  const radialMin = r2 * Math.cos(seg * 0.5);
-  const nMin = Math.max(0, (radialMin - phase) / (s + offLen + 0.5));
-  const nMax = Math.max(nMin + 1, (r2 - phase) / Math.max(s - offLen, 0.2) + 2);
-  const span = nMax - nMin;
-  if (hasRot || (hasOff && nSides >= 3)) {
-    const samples = Math.min(32, Math.max(8, Math.ceil(span / 16)));
-    const step = span / samples;
-    const half = Math.min(16, Math.max(4, Math.ceil(step * 0.5 + 1)));
-    for (let i = 0; i < samples; i++) {
-      d = consider(d, p, nMin + (i + 0.5) * step, offset, theta, s, phase, shape, sides, half);
-      if (inked()) return d;
-    }
-  }
-
-  if (d > s * 0.42) {
-    d = consider(d, p, tShape, offset, theta, s, phase, shape, sides, 16);
-    d = consider(d, p, tL2, offset, theta, s, phase, shape, sides, 16);
-    d = consider(d, p, 0.5 * (nMin + nMax), offset, theta, s, phase, shape, sides, 16);
-  }
-  return d;
+  // Anything past `guard` renders as no ink, so the window only has to be exact below it.
+  const guard = Math.max(rejectAbove, s * 0.75);
+  return ringScan(p, offset, theta, s, phase, shape, sides, acceptBelow, guard);
 }
 
 export function lineDistanceCpu(

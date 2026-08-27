@@ -14,12 +14,6 @@ fn rotate2d(p: vec2<f32>, a: f32) -> vec2<f32> {
 }
 `);
 
-const perp2d = wgslFn(`
-fn perp2d(v: vec2<f32>) -> vec2<f32> {
-  return vec2<f32>(-v.y, v.x);
-}
-`);
-
 const wrapToHalfWgsl = wgslFn(`
 fn wrapToHalfWgsl(ang: f32, seg: f32) -> f32 {
   let half = seg * 0.5;
@@ -54,33 +48,63 @@ fn shapeRadiusWgsl(q: vec2<f32>, shapeType: f32, sides: f32) -> f32 {
 }
 `, [wrapToHalfWgsl]);
 
-const shapeGradWgsl = wgslFn(`
-fn shapeGradWgsl(q: vec2<f32>, shapeType: f32, sides: f32) -> vec2<f32> {
-  let r = length(q);
-  if (r < 1e-6) {
-    return vec2<f32>(1.0, 0.0);
-  }
+/**
+ * shapeRadius(q) never leaves [kappa * |q|, |q|]. kappa = cos(pi / N) is exactly
+ * how far a rotation can fan the nearest ring index away from |p| / spacing.
+ */
+const ringKappaWgsl = wgslFn(`
+fn ringKappaWgsl(shapeType: f32, sides: f32) -> f32 {
   let shape = i32(shapeType + 0.5);
   if (shape <= 1) {
-    return q / r;
+    return 1.0;
   }
   if (shape == 2) {
-    if (abs(q.x) > abs(q.y)) {
-      return vec2<f32>(sign(q.x), 0.0);
-    }
-    return vec2<f32>(0.0, sign(q.y));
+    return 0.70710678119;
   }
   var n = sides;
   if (shape == 3) {
     n = 3.0;
   }
   n = max(n, 3.0);
-  let ang = atan2(q.y, q.x);
-  let seg = 6.28318530718 / n;
-  let nrm = ang - wrapToHalfWgsl(ang, seg);
-  return vec2<f32>(cos(nrm), sin(nrm));
+  return cos(3.14159265359 / n);
 }
-`, [wrapToHalfWgsl]);
+`);
+
+/**
+ * Ring n's own frame, R(-n theta) p - n delta, in one angle instead of two
+ * rotations. The offset drops out of the rotation because R preserves dot
+ * products, which is also what makes the window below closed-form.
+ */
+const ringLocalWgsl = wgslFn(`
+fn ringLocalWgsl(radius: f32, angle: f32, n: f32, theta: f32, offset: vec2<f32>) -> vec2<f32> {
+  let psi = n * theta - angle;
+  return vec2<f32>(radius * cos(psi) - n * offset.x, -radius * sin(psi) - n * offset.y);
+}
+`);
+
+/**
+ * Integer indices that can possibly land within `guard` of p. With
+ * h(n) = shapeRadius(q_n) - (n s + phase) and |q_n| in [ | |p| - n|d| |, |p| + n|d| ]:
+ *
+ *   kappa * | |p| - n|d| | - (n s + phase)  <=  h(n)  <=  (|p| + n|d|) - (n s + phase)
+ *
+ * h <= guard gives the low end, h >= -guard the high end. Every index outside is
+ * proven farther than guard, so no ring can hide outside this window. When
+ * kappa|d| <= s <= |d| every ring sweeps past the origin and no finite bound
+ * exists, so the span is capped.
+ */
+const ringWindowWgsl = wgslFn(`
+fn ringWindowWgsl(radius: f32, offLen: f32, spacing: f32, phase: f32, kappa: f32, guard: f32) -> vec2<f32> {
+  let lo = max(0.0, floor((kappa * radius - phase - guard) / (spacing + kappa * offLen)));
+  var hi = lo + 8192.0;
+  if (spacing > offLen) {
+    hi = ceil((radius - phase + guard) / (spacing - offLen));
+  } else if (kappa * offLen > spacing) {
+    hi = ceil((guard + phase + kappa * radius) / (kappa * offLen - spacing));
+  }
+  return vec2<f32>(lo, max(lo, min(hi, lo + 8192.0)));
+}
+`);
 
 const evalRing = wgslFn(`
 fn evalRing(p: vec2<f32>, n: f32, offset: vec2<f32>, theta: f32, spacing: f32, phase: f32, shapeType: f32, sides: f32) -> f32 {
@@ -110,18 +134,6 @@ fn checkNear(p: vec2<f32>, t: f32, offset: vec2<f32>, theta: f32, spacing: f32, 
   d = min(d, evalRing(p, n0 + 2.0, offset, theta, spacing, phase, shapeType, sides));
   d = min(d, evalRing(p, n0 + 3.0, offset, theta, spacing, phase, shapeType, sides));
   d = min(d, evalRing(p, n0 + 4.0, offset, theta, spacing, phase, shapeType, sides));
-  return d;
-}
-`, [evalRing]);
-
-const checkWindow = wgslFn(`
-fn checkWindow(p: vec2<f32>, t: f32, offset: vec2<f32>, theta: f32, spacing: f32, phase: f32, shapeType: f32, sides: f32, half: f32) -> f32 {
-  let n0 = floor(t);
-  let h = i32(clamp(round(half), 0.0, 16.0));
-  var d = 1e6;
-  for (var k = -h; k <= h; k += 1) {
-    d = min(d, evalRing(p, n0 + f32(k), offset, theta, spacing, phase, shapeType, sides));
-  }
   return d;
 }
 `, [evalRing]);
@@ -195,44 +207,8 @@ fn squareTranslatedWgsl(p: vec2<f32>, offset: vec2<f32>, spacing: f32, phase: f3
 }
 `, [checkNear]);
 
-const newtonFromWgsl = wgslFn(`
-fn newtonFromWgsl(p: vec2<f32>, t0: f32, offset: vec2<f32>, theta: f32, spacing: f32, phase: f32, shapeType: f32, sides: f32) -> f32 {
-  var t = max(0.0, t0);
-  for (var i = 0; i < 12; i += 1) {
-    let center = rotate2d(offset * t, t * theta);
-    let q = rotate2d(p - center, -t * theta);
-    let r = shapeRadiusWgsl(q, shapeType, sides);
-    let f = r - (t * spacing + phase);
-    let deltaR = rotate2d(offset, t * theta);
-    let centerP = deltaR + (t * theta) * perp2d(deltaR);
-    let qp = -theta * perp2d(q) - rotate2d(centerP, -t * theta);
-    let g = shapeGradWgsl(q, shapeType, sides);
-    let fp = dot(g, qp) - spacing;
-    if (abs(fp) < 1e-6) {
-      break;
-    }
-    let step = clamp(f / fp, -12.0, 12.0);
-    t = max(0.0, t - step);
-    if (abs(step) < 1e-4) {
-      break;
-    }
-  }
-  return t;
-}
-`, [rotate2d, perp2d, shapeRadiusWgsl, shapeGradWgsl]);
-
-const polishSeed = wgslFn(`
-fn polishSeed(p: vec2<f32>, t0: f32, offset: vec2<f32>, theta: f32, spacing: f32, phase: f32, shapeType: f32, sides: f32) -> f32 {
-  let t = newtonFromWgsl(p, t0, offset, theta, spacing, phase, shapeType, sides);
-  return min(
-    checkNear(p, t, offset, theta, spacing, phase, shapeType, sides),
-    checkNear(p, t0, offset, theta, spacing, phase, shapeType, sides)
-  );
-}
-`, [newtonFromWgsl, checkNear]);
-
 export const ringDistance = wgslFn(`
-fn ringDistance(p: vec2<f32>, offset: vec2<f32>, theta: f32, spacing: f32, phase: f32, shapeType: f32, sides: f32, acceptBelow: f32) -> f32 {
+fn ringDistance(p: vec2<f32>, offset: vec2<f32>, theta: f32, spacing: f32, phase: f32, shapeType: f32, sides: f32, acceptBelow: f32, rejectAbove: f32) -> f32 {
   let s = max(spacing, 1e-4);
   let hasOff = dot(offset, offset) > 1e-8;
   let hasRot = abs(theta) > 1e-8;
@@ -250,87 +226,46 @@ fn ringDistance(p: vec2<f32>, offset: vec2<f32>, theta: f32, spacing: f32, phase
     }
   }
 
-  let r2 = length(p);
-  let rInf = max(abs(p.x), abs(p.y));
-  let rShape = shapeRadiusWgsl(p, shapeType, sides);
-  let tL2 = max(0.0, (r2 - phase) / s);
-  let tInf = max(0.0, (rInf - phase) / s);
-  let tShape = max(0.0, (rShape - phase) / s);
-
-  var d = polishSeed(p, tL2, offset, theta, s, phase, shapeType, sides);
-  d = min(d, polishSeed(p, tInf, offset, theta, s, phase, shapeType, sides));
-  d = min(d, polishSeed(p, tShape, offset, theta, s, phase, shapeType, sides));
-  d = min(d, polishSeed(p, tL2 * 0.35, offset, theta, s, phase, shapeType, sides));
-  d = min(d, polishSeed(p, tL2 * 1.6 + 3.0, offset, theta, s, phase, shapeType, sides));
-  if (acceptBelow > 0.0 && d <= acceptBelow) {
-    return d;
-  }
-
-  if (hasOff) {
-    var inv = 0.0;
-    if (r2 > 1e-6) {
-      inv = 1.0 / r2;
-    }
-    let rot = rotate2d(offset, tShape * theta);
-    let den = s + p.x * inv * rot.x + p.y * inv * rot.y;
-    if (abs(den) > 1e-4) {
-      d = min(d, polishSeed(p, (r2 - phase) / den, offset, theta, s, phase, shapeType, sides));
-    }
-    if (acceptBelow > 0.0 && d <= acceptBelow) {
-      return d;
-    }
-  }
-
-  var nSides = 0.0;
-  if (shape == 2) {
-    nSides = 4.0;
-  } else if (shape == 3) {
-    nSides = 3.0;
-  } else if (shape >= 4) {
-    nSides = max(sides, 3.0);
-  }
-  var sidesForSpan = nSides;
-  if (sidesForSpan < 3.0) {
-    sidesForSpan = 4.0;
-  }
-  let seg = 6.28318530718 / sidesForSpan;
+  // Anything past guard renders as no ink, so the window only has to be exact below it.
+  let guard = max(rejectAbove, s * 0.75);
+  let radius = length(p);
+  let angle = atan2(p.y, p.x);
   let offLen = length(offset);
-  let radialMin = r2 * cos(seg * 0.5);
-  let nMin = max(0.0, (radialMin - phase) / (s + offLen + 0.5));
-  let nMax = max(nMin + 1.0, (r2 - phase) / max(s - offLen, 0.2) + 2.0);
-  let span = nMax - nMin;
-  if (hasRot || (hasOff && nSides >= 3.0)) {
-    let samples = i32(clamp(ceil(span / 16.0), 8.0, 32.0));
-    let step = span / f32(samples);
-    let half = min(16.0, max(4.0, ceil(step * 0.5 + 1.0)));
-    for (var i = 0; i < 32; i += 1) {
-      if (i >= samples) {
-        break;
-      }
-      let t = nMin + (f32(i) + 0.5) * step;
-      d = min(d, checkWindow(p, t, offset, theta, s, phase, shapeType, sides, half));
-      if (acceptBelow > 0.0 && d <= acceptBelow) {
-        return d;
-      }
-    }
-  }
+  let win = ringWindowWgsl(radius, offLen, s, phase, ringKappaWgsl(shapeType, sides), guard);
+  let hi = win.y;
+  // q_n = R(-n theta) p - n delta, so dq/dn = -theta perp(R(-n theta) p) - delta
+  // and the bound is a constant. shapeRadius is 1-Lipschitz in q, corners included.
+  let slope = abs(theta) * radius + offLen + s;
 
-  if (d > s * 0.42) {
-    d = min(d, checkWindow(p, tShape, offset, theta, s, phase, shapeType, sides, 16.0));
-    d = min(d, checkWindow(p, tL2, offset, theta, s, phase, shapeType, sides, 16.0));
-    d = min(d, checkWindow(p, 0.5 * (nMin + nMax), offset, theta, s, phase, shapeType, sides, 16.0));
+  var best = 1e6;
+  var n = win.x;
+  for (var i = 0; i < 2048; i += 1) {
+    if (n > hi) {
+      break;
+    }
+    let q = ringLocalWgsl(radius, angle, n, theta, offset);
+    let gap = abs(shapeRadiusWgsl(q, shapeType, sides) - (n * s + phase));
+    best = min(best, gap);
+    if (acceptBelow > 0.0 && best <= acceptBelow) {
+      return best;
+    }
+    // No index within (gap - bar) / slope of here can beat bar, so skip the run.
+    let bar = min(best, guard);
+    let safe = floor((gap - bar) / slope);
+    // Keep the tail inside the budget. Only bites when the window is enormous.
+    let reach = ceil((hi - n) / max(2048.0 - f32(i), 1.0));
+    n = n + max(1.0, max(safe, reach));
   }
-  return d;
+  return min(best, guard);
 }
 `, [
   centeredModWgsl,
   shapeRadiusWgsl,
   squareTranslatedWgsl,
   circleQuadraticWgsl,
-  polishSeed,
-  rotate2d,
-  checkNear,
-  checkWindow,
+  ringKappaWgsl,
+  ringLocalWgsl,
+  ringWindowWgsl,
 ]);
 
 export const lineDistance = wgslFn(`

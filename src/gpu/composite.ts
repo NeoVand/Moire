@@ -142,11 +142,14 @@ export function buildColorNode(camera: CameraUniforms, slots: LayerSlot[]) {
         const halfT = max(slot.thickness.mul(0.5), pixel.mul(1.15));
         const aa = pixel.mul(0.7);
         const accept = max(halfT.sub(aa), float(0));
+        // Past halfT + aa the stroke is fully transparent, so the ring solver is
+        // free to prove indices away instead of measuring them.
+        const reject = halfT.add(aa);
 
         const strokeAlpha = (d) =>
           float(1).sub(smoothstep(halfT.sub(aa), halfT.add(aa), d)).mul(slot.opacity);
 
-        const distOf = (typeNode) => {
+        const distOf = (typeNode, rejectAbove = reject) => {
           const dist = float(1e6).toVar();
           If(typeNode.lessThanEqual(0.1), () => {
             dist.assign(lineDistance(local, float(0), slot.spacing, slot.phase, slot.offset.x));
@@ -161,7 +164,8 @@ export function buildColorNode(camera: CameraUniforms, slots: LayerSlot[]) {
                   slot.phase,
                   typeNode,
                   slot.sides,
-                  accept
+                  accept,
+                  rejectAbove
                 )
               );
             }).Else(() => {
@@ -254,7 +258,12 @@ export function buildColorNode(camera: CameraUniforms, slots: LayerSlot[]) {
         If(slot.morph.greaterThan(0.999), () => {
           alpha.assign(inkOf(slot.type));
         }).Else(() => {
-          alpha.assign(strokeAlpha(mix(distOf(slot.typeFrom), distOf(slot.type), slot.morph)));
+          // A morph mixes two distances, so both need to stay measured out to a
+          // full period or the blend inks early where one side had saturated.
+          const wide = max(reject, slot.spacing);
+          alpha.assign(
+            strokeAlpha(mix(distOf(slot.typeFrom, wide), distOf(slot.type, wide), slot.morph))
+          );
         });
         color.assign(mix(color, slot.color, alpha.clamp(0, 1)));
       });
