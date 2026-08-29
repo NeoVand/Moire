@@ -16,13 +16,13 @@ import { writePng } from '../lib/png.mjs';
 const FIGS = new URL('../../figures/', import.meta.url);
 mkdirSync(FIGS, { recursive: true });
 
-const W = 420;
-const H = 300;
+const W = 640;
+const H = 340;
 const INK = '#15181c';
 
 // Two concentric families, detuned by three percent: a textbook moire.
-const CFG_A = { kind: 'concentric', shape: 'circle', spacing: 11, position: { x: -55, y: 0 } };
-const CFG_B = { kind: 'concentric', shape: 'circle', spacing: 11.33, position: { x: 55, y: 0 } };
+const CFG_A = { kind: 'concentric', shape: 'circle', spacing: 11, position: { x: -70, y: 0 } };
+const CFG_B = { kind: 'concentric', shape: 'circle', spacing: 11.33, position: { x: 70, y: 0 } };
 const THICK = 1.6;
 
 // --- The field pipeline: one distance query per family per pixel, at final size.
