@@ -29,11 +29,19 @@ export interface ViewState {
   envelope: boolean;
   /** Gain about the stack's nominal coverage. 1 shows the average untouched. */
   envelopeContrast: number;
+  /**
+   * The heterodyne ratio map: where a fringe can form at all. Dark where the two
+   * topmost comparable layers' index gradients nearly agree, bright past the 1/4
+   * threshold where the carriers are too different to interfere — so an author
+   * sees where fringes will live before committing to parameters.
+   */
+  ratio: boolean;
 }
 
 export const VIEW_DEFAULTS: ViewState = {
   envelope: false,
   envelopeContrast: 3,
+  ratio: false,
 };
 
 export interface ProjectStore {
@@ -303,7 +311,15 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
 
   setBackgroundColor: (backgroundColor) => set({ backgroundColor }),
 
-  setView: (patch) => set((s) => ({ view: { ...s.view, ...patch } })),
+  // Envelope and ratio each replace the composite, so turning one on retires
+  // the other.
+  setView: (patch) =>
+    set((s) => {
+      const view = { ...s.view, ...patch };
+      if (patch.envelope) view.ratio = false;
+      if (patch.ratio) view.envelope = false;
+      return { view };
+    }),
 
   cancelIntro: () => stopIntro(),
 

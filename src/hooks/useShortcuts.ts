@@ -45,6 +45,12 @@ export function useShortcuts() {
         return;
       }
 
+      if (e.key === 'r' || e.key === 'R') {
+        e.preventDefault();
+        store.setView({ ratio: !store.view.ratio });
+        return;
+      }
+
       if (!selected) return;
 
       if (e.key === 'h' || e.key === 'H') {
