@@ -11,18 +11,26 @@ treatment~\cite{Amidror2009Theory}, developed with Hersch across a sequence of
 papers that moves from analysis of screen interactions~\cite{Amidror1994Spectral},
 to phase shifts~\cite{Amidror1996Fourier}, to synthesis under geometric
 transformation~\cite{Amidror1998Fourier}, and finally to aperiodic
-layers~\cite{Amidror2003Moire, AmidrorII}. This theory is what tells you \emph{that} a
-fringe exists and where its frequency lies. What it does not give you is a
-renderer: it is a statement about spectra of images, and it presumes the layers
-are (locally) periodic, or transforms of periodic structures.
+layers~\cite{Amidror2003Moire, AmidrorII}, whose random-dot extreme is the Glass
+pattern~\cite{Glass1969Moire}. The account is still growing: Feng extends it to
+\emph{objective} structures --- ring, helical and lattice patterns whose members
+are related by progressive symmetry transformations --- through an augmented
+Fourier approach~\cite{Feng2025Objective}. Those structures are the closest
+formal relatives of our walking families (\S\ref{sec:walking}), reached from the
+frequency side; we reach them per pixel, with a certificate, because a renderer
+has to. That is the general shape of our debt to this theory: it tells you
+\emph{that} a fringe exists and where its frequency lies, but it is a statement
+about spectra of images, not a renderer.
 
 \paragraph{The indicial equation.}
 Running alongside the spectral account is an older and more elementary one. Label
 the members of each layer, ask where a member of one crosses a member of the other
 in a fixed relation, and solve: Oster, Wasserman and Zwerling derive the fringe
-curves of the standard configurations this way~\cite{Oster1964}, and Amidror gives
-it as the geometric approach, complementary to the spectral
-one~\cite{Amidror2009Theory}. This is the direct ancestor of our
+curves of the standard configurations this way~\cite{Oster1964}, Amidror gives
+it as the geometric approach, complementary to the spectral one --- curved
+gratings read as indexed line families (Vol.~I, \S11.2
+of~\cite{Amidror2009Theory}) --- and the metrology literature develops it at
+book length~\cite{Bryngdahl1974Moire, Patorski1993Handbook}. This is the direct ancestor of our
 Section~\ref{sec:fringe}, and our index field is its label made continuous and
 evaluated per pixel. We claim no credit for the locus. What the indicial method
 does not supply is the quantity a renderer needs --- the coverage \emph{between} the
@@ -112,13 +120,17 @@ Direct use of interference to encode data is rare. MoireGraphs is the notable
 appearance of the word in the visualization literature, and it names a
 resemblance: a radial focus+context layout whose concentric rings of visual nodes
 \emph{look} like a circular moir\'e~\cite{JankunKelly2003Moire}. The place where
-fringes genuinely carry data is experimental mechanics, where moir\'e
-interferometry has been used for decades to read in-plane displacement: fringes
-are contour maps of displacement, with fringe order $N_x=fU$ for reference grating
-frequency $f$, and strains follow by differencing fringe
-orders~\cite{Post2008Moire, Post1994High}. That is a measurement technique, and its
-governing relation is exactly our fringe law read in the other direction.
-Section~\ref{sec:beyond} takes it as a design primitive instead.
+fringes genuinely carry data is experimental mechanics and optical metrology.
+Moir\'e interferometry reads in-plane displacement: fringes are contour maps of
+displacement, with fringe order $N_x=fU$ for reference grating frequency $f$,
+and strains follow by differencing fringe orders~\cite{Post2008Moire,
+Post1994High}. Moir\'e topography reads surface height the same way --- its
+fringes literally are elevation contours~\cite{Takasaki1970Moire,
+Meadows1970Contours} --- and Takeda's Fourier-transform method turned fringe
+images back into phase maps numerically~\cite{Takeda1982Fourier}. These are
+measurement techniques, and their governing relation is exactly our fringe law
+read in the other direction. Section~\ref{sec:beyond} takes it as a design
+primitive instead: the encoded field is arbitrary, on screen, and live.
 
 \paragraph{Distance fields and certified search.}
 The machinery we borrow from is the distance-field tradition: guaranteed
@@ -138,11 +150,16 @@ we replace amounts to. The closest methodological neighbours are the range-analy
 renderers, which bound a function over a spatial cell and subdivide until the
 bound decides~\cite{Knoll2009, Keeter2020, Sharp2022}. Section~\ref{sec:discussion}
 argues that our domain being $\Z$ rather than $\R^2$ is what upgrades their
-tolerance into a certificate. The support-function facts we need are standard
+tolerance into a certificate. Seen from optimization, the certified scan is a Piyavskii--Shubert
+search~\cite{Piyavskii1972, Shubert1972} run over $\Z$ instead of an interval of
+$\R$: the same Lipschitz envelopes, with the stopping tolerance replaced by
+integer exhaustion. The support-function facts we need are standard
 convex geometry~\cite{Rockafellar1970Convex, Schneider2014Convex}, and the same
 object is what collision detection queries when it walks a Minkowski
-difference~\cite{GJK1988, Ericson2004}; our contribution is noticing which four of
-its properties this problem is asking for.
+difference~\cite{GJK1988, Ericson2004} --- though there it prices one pair of
+bodies, where here the certificate ranges over an indexed family of them; our
+contribution is noticing which four of its properties this problem is asking
+for.
 
 \paragraph{Prefiltering a pattern.}
 Where a procedural pattern is too fine to sample, the correct answer is to

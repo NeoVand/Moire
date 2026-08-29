@@ -20,6 +20,11 @@ building patterns for it ever since, by hand~\cite{Watkins1982Kinetic} and by
 the plate~\cite{Nicolai2010Index}. Amidror gave it a complete Fourier
 theory~\cite{Amidror2009Theory}. Hersch's group at EPFL turned it into a design
 discipline and then into security printing~\cite{Hersch2004Band, Chosson2014Beating}.
+Physics lately rediscovered it at the nanoscale: two graphene sheets twisted by
+$1.1^\circ$ form a moir\'e superlattice whose slow beat reorganises the
+material's electronic structure into
+superconductivity~\cite{Bistritzer2011Moire, Cao2018Magic} --- the same
+difference of two dense structures, doing condensed-matter physics.
 
 And yet, if you sit down today and try to \emph{draw} with moir\'e, you find that
 the tools do not exist. This paper is about why, and about what we think the
@@ -82,10 +87,12 @@ We think the gap is not a missing feature. It is a missing representation.
   lower panel every ring is a continuous crisp line right into the corners and the
   only large-scale pattern is the fringe system itself.}
   \caption{\figlead{Raster versus field, same two families.} \emph{Above:} the
-  standard synthesis pipeline. Each layer is rasterised to a bilevel plate, the
-  plates are multiplied, and the product is displayed at a scale that is not the one
-  it was rasterised at --- which is what printing on transparencies and then
-  photographing, scanning or zooming amounts to. The strokes break into dashes, the
+  standard synthesis pipeline reused at a scale it was not rasterised for. Each
+  layer is rasterised to a bilevel plate, the plates are multiplied, and the
+  product is displayed at a different scale --- which is what photographing,
+  scanning or zooming a printed pair amounts to. (Printed at press resolution and
+  viewed in place, the plates never resample; every \emph{screen} reuse of them
+  does, and the screen is where an interactive tool lives.) The strokes break into dashes, the
   outer rings dissolve, and a coarse secondary pattern appears that is a property of
   the sampling grid rather than of either family. \emph{Below:} the same two
   families as fields. Two distance queries per pixel, composited, at the display
@@ -148,7 +155,8 @@ The families that make the richest interference are not. What op-artists and
 pattern designers actually reach for are families whose members are \emph{not}
 concentric: each ring displaced a little further than the last, or turned a
 little further, so the family as a whole shears, spirals, and finally unwinds into
-a pencil of near-parallel curves. We call these \emph{walking families}
+a pencil of near-parallel curves --- Riley's \emph{Blaze}, a nest of zigzag rings
+each turned against the last, is exactly such a family~\cite{Seitz1965Responsive}. We call these \emph{walking families}
 (Section~\ref{sec:walking}): member $n$ is the shape of radius $ns+\varphi$,
 centred at $\Rot{n\theta}(n\delta)$ and turned by $n\theta$. Two extra
 parameters, and the closed form is gone: each curve lives in its own frame, so no
