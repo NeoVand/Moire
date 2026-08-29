@@ -13,7 +13,20 @@ export default defineConfig({
   ],
   server: {
     watch: {
-      ignored: ['**/.agents/**', '**/.claude/**', '**/.codex/**'],
+      // Tailwind's content scan sees every file under the root, so writing a
+      // figure or a .tex reloads the canvas and kills any long-running experiment
+      // driving it. `paper/tools` stays watched: the page imports it.
+      ignored: [
+        '**/.agents/**',
+        '**/.claude/**',
+        '**/.codex/**',
+        '**/refs/**',
+        '**/paper/build/**',
+        '**/paper/data/**',
+        '**/paper/figures/**',
+        '**/paper/*.tex',
+        '**/paper/*.bib',
+      ],
     },
   },
 })

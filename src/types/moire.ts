@@ -13,6 +13,43 @@ export type PatternType =
   | 'curve-hyperbola'
   | 'curve-spiral';
 
+/**
+ * A field displaces a layer's index by `fieldAmount * f(q)` members. The fringes
+ * a modulated layer makes against an unmodulated twin are then the level sets of
+ * `f` at interval `1 / fieldAmount`, which is the tool's contouring control:
+ * encoded fields, streamlines, shadow moiré.
+ *
+ * The expression is the field. Presets in `src/fields/expr.ts` are starting
+ * points that compile through the same path as anything typed by hand, and an
+ * empty source means the layer carries no field.
+ */
+export interface FieldSpec {
+  /** An expression in `x`, `y`, `r`, `theta`. Empty means no field. */
+  source: string;
+  /** Fringes per unit of field: the contour interval is its reciprocal. */
+  amount: number;
+  /** Field extent in world units. The field is O(1) inside it. */
+  scale: number;
+}
+
+export const FIELD_NONE: FieldSpec = { source: '', amount: 3, scale: 200 };
+
+/**
+ * Every family carries a field. The index displacement is the shared language:
+ * the level-set families spend it on phase, the radial fan on a rotation, and a
+ * lattice on a translation along one of its generators.
+ */
+export function hasField(layer: Pick<PatternLayer, 'field'>): boolean {
+  return layer.field.source.trim().length > 0 && layer.field.amount !== 0;
+}
+
+/**
+ * Quadrature nodes for the envelope view's phase average. The integrand is
+ * periodic with period one, so a uniform grid is exact but for harmonics above
+ * this count, and the integrand is a composite of trapezoids.
+ */
+export const ENVELOPE_TAPS = 24;
+
 export interface Vec2 {
   x: number;
   y: number;
@@ -48,6 +85,8 @@ export interface PatternLayer {
   bend: number;
   /** Wave oscillation rate. 1 is one cycle per 32 world units. */
   frequency: number;
+  /** Scalar field displacing the layer's index. */
+  field: FieldSpec;
 }
 
 export interface CameraState {
@@ -170,7 +209,7 @@ export function defaultCurveSpacing(type: PatternType): number {
 export function createLayer(
   partial: Partial<PatternLayer> & Pick<PatternLayer, 'id' | 'name'>
 ): PatternLayer {
-  const { position, offset, scale, ...rest } = partial;
+  const { position, offset, scale, field: _field, ...rest } = partial;
   return {
     type: 'concentric-circles',
     visible: true,
@@ -188,6 +227,7 @@ export function createLayer(
     bend: 0,
     frequency: 1,
     ...rest,
+    field: { ...FIELD_NONE, ...partial.field },
     position: { x: 0, y: 0, ...position },
     offset: { x: 0, y: 0, ...offset },
     scale: { x: 1, y: 1, ...scale },
@@ -268,4 +308,6 @@ export const LAYER_DEFAULTS = {
   bendParabola: 1,
   bendSpiral: 32,
   frequency: 1,
+  fieldAmount: FIELD_NONE.amount,
+  fieldScale: FIELD_NONE.scale,
 } as const;

@@ -39,6 +39,12 @@ export function useShortcuts() {
         return;
       }
 
+      if (e.key === 'v' || e.key === 'V') {
+        e.preventDefault();
+        store.setView({ envelope: !store.view.envelope });
+        return;
+      }
+
       if (!selected) return;
 
       if (e.key === 'h' || e.key === 'H') {

@@ -3,20 +3,37 @@ import * as THREE from 'three/webgpu';
 import {
   Fn,
   If,
+  Loop,
   screenCoordinate,
   screenSize,
   vec2,
+  vec3,
+  vec4,
   float,
   uniform,
   mix,
   max,
-  min,
   smoothstep,
 } from 'three/tsl';
-import { MAX_LAYERS, type PatternLayer, type PatternType } from '../types/moire';
-import { curveDistance, lineDistance, radialLineDistance, ringDistance } from './inverse.wgsl';
-import { gridDistance } from './lattice.wgsl';
+import {
+  FIELD_NONE,
+  MAX_LAYERS,
+  type FieldSpec,
+  type PatternLayer,
+  type PatternType,
+} from '../types/moire';
+export { ENVELOPE_TAPS } from '../types/moire';
+import {
+  curvePhase,
+  linePhase,
+  phaseDistWgsl,
+  radialLinePhase,
+  ringPhase,
+} from './inverse.wgsl';
+import { gridDistance, latticeCellWgsl } from './lattice.wgsl';
 import { layerMorph } from './typeMorph';
+import { compileField, type CompiledField } from '../fields/expr';
+import { fieldFunction } from '../fields/expr.wgsl';
 
 export function patternTypeCode(type: PatternType): number {
   switch (type) {
@@ -71,12 +88,54 @@ export function createLayerSlot() {
     lineCount: uniform(8),
     bend: uniform(0),
     frequency: uniform(1),
+    fieldAmount: uniform(0),
+    fieldScale: uniform(200),
     typeFrom: uniform(1),
     morph: uniform(1),
   };
 }
 
 export type LayerSlot = ReturnType<typeof createLayerSlot>;
+
+/**
+ * Compiled programs, keyed by source.
+ *
+ * Parsing is cheap, but the renderer asks for a layer's program on every dirty
+ * frame — to decide whether the shader it has is still the right one — and a drag
+ * is hundreds of those. A source that does not compile comes back as null rather
+ * than throwing: the editor reports the error, and the canvas keeps drawing.
+ */
+const programCache = new Map<string, CompiledField | null>();
+
+export function compileFieldCached(source: string): CompiledField | null {
+  const key = source.trim();
+  if (!key) return null;
+  if (!programCache.has(key)) {
+    const result = compileField(key);
+    programCache.set(key, result.ok ? result : null);
+  }
+  return programCache.get(key) ?? null;
+}
+
+/**
+ * The expression a layer's shader has to be built for, or `''` for no field.
+ *
+ * A field with no amount is no field: it displaces nothing, so it should not
+ * cost a shader either. The amount itself stays a uniform, so dragging that
+ * slider never rebuilds anything.
+ */
+export function fieldSource(field: FieldSpec | undefined): string {
+  const spec = field ?? FIELD_NONE;
+  if (spec.amount === 0) return '';
+  const source = spec.source.trim();
+  return source && compileFieldCached(source) ? source : '';
+}
+
+function writeField(slot: LayerSlot, field: FieldSpec | undefined) {
+  const spec = field ?? FIELD_NONE;
+  slot.fieldAmount.value = fieldSource(field) ? spec.amount : 0;
+  slot.fieldScale.value = spec.scale || 200;
+}
 
 export function createCameraUniforms() {
   return {
@@ -87,6 +146,51 @@ export function createCameraUniforms() {
 }
 
 export type CameraUniforms = ReturnType<typeof createCameraUniforms>;
+
+/**
+ * The envelope view: the fringe field itself, rather than the strokes that carry
+ * it.
+ *
+ * The fringe theorem averages ink over a neighbourhood small enough that the
+ * index differences are constant but large enough that the carrier completes a
+ * period. There are two ways to sweep such a neighbourhood, and the stack decides
+ * which one is available.
+ *
+ * Advancing every family's phase together by one of its own periods holds every
+ * index difference fixed exactly while each carrier completes exactly one cycle.
+ * That is not a blur: there is no kernel, in pixels or in world units, nothing is
+ * sampled off-centre, and a uniform grid integrates a periodic integrand exactly
+ * but for harmonics above `taps`. Tens of taps land well inside a colour step.
+ *
+ * The alternative is to sweep the honest thing — a translation of the whole stack,
+ * which moves each family's index by its component along that family's normal.
+ * That is geometrically exact where the phase sweep is only bookkeeping, and it is
+ * unusable: the taps then sample a two-dimensional disc for a stroke that covers a
+ * few percent of it, so a few of the taps carry the answer and the rest carry
+ * noise. Sixty-four of them leave the carrier standing and the fringes mottled.
+ * The phase sweep's fiction is what makes it exact.
+ *
+ * What makes it affordable is that the sweep never re-solves. Each layer is solved
+ * once, for the three nearest members of its family, and a tap slides that triple
+ * by an offset — a couple of instructions instead of a search. Only the lattices
+ * resample, and a lattice is a closed-form cell lookup.
+ *
+ * `sweep` is 0 when the view is off, which collapses the loop to a single tap at
+ * zero phase: the ordinary render, bit for bit.
+ */
+export function createViewUniforms() {
+  return {
+    taps: uniform(1, 'int'),
+    sweep: uniform(0),
+    contrast: uniform(1),
+    pivot: uniform(new THREE.Color(0xffffff)),
+  };
+}
+
+/** Spaces a second phase against the first without ever repeating. */
+const GOLDEN = 0.6180339887498949;
+
+export type ViewUniforms = ReturnType<typeof createViewUniforms>;
 
 export function writeLayerSlot(slot: LayerSlot, layer: PatternLayer | undefined) {
   if (!layer || !layer.visible) {
@@ -111,6 +215,7 @@ export function writeLayerSlot(slot: LayerSlot, layer: PatternLayer | undefined)
   slot.lineCount.value = layer.lineCount ?? 8;
   slot.bend.value = layer.bend ?? 0;
   slot.frequency.value = layer.frequency ?? 1;
+  writeField(slot, layer.field);
   const morph = layerMorph(layer.id);
   if (morph) {
     slot.typeFrom.value = patternTypeCode(morph.from);
@@ -122,41 +227,93 @@ export function writeLayerSlot(slot: LayerSlot, layer: PatternLayer | undefined)
   }
 }
 
-export function buildColorNode(camera: CameraUniforms, slots: LayerSlot[]) {
+/**
+ * The whole composite, as one fragment function.
+ *
+ * `fields` is per slot and parallel to `slots`: the expression that slot's field
+ * is compiled from, unrolled into the shader, or null for no field. It is the one
+ * thing here that is baked rather than uniform, so changing an expression means a
+ * new material — which is what `MoireRenderer` debounces. Layer count, colours,
+ * types and every slider stay uniforms, and none of them rebuild anything.
+ */
+export function buildColorNode(
+  camera: CameraUniforms,
+  view: ViewUniforms,
+  slots: LayerSlot[],
+  fields: (CompiledField | null)[] = []
+) {
   return Fn(() => {
     const centered = screenCoordinate.sub(screenSize.mul(0.5));
     const world = vec2(centered.x, centered.y.negate()).div(camera.zoom).add(camera.pan);
-    const color = camera.background.toVar();
+    const pixel = float(1).div(max(camera.zoom, float(0.08)));
 
-    for (const slot of slots) {
+    // Solved once per layer, before the sweep. Everything the tap loop needs is in
+    // here, so a tap costs arithmetic rather than a search — and a hidden layer
+    // costs nothing, because the whole solve sits under the same branch that
+    // decides whether the layer draws at all.
+    const solved = slots.map((slot, index) => {
+      const local = vec2(0).toVar();
+      const halfT = float(0).toVar();
+      const aa = float(0).toVar();
+      const cell = vec4(0).toVar();
+      const shift = float(0).toVar();
+      const phase = vec4(0).toVar();
+      const phaseFrom = vec4(0).toVar();
+      const isLattice = slot.type.greaterThan(4.5).and(slot.type.lessThan(7.5));
+
       If(slot.active.greaterThan(0.5), () => {
         const c = slot.rotation.cos();
         const s = slot.rotation.sin();
-        const rotated = vec2(
-          c.mul(world.x).add(s.mul(world.y)),
-          s.negate().mul(world.x).add(c.mul(world.y))
+        local.assign(
+          vec2(
+            c.mul(world.x).add(s.mul(world.y)),
+            s.negate().mul(world.x).add(c.mul(world.y))
+          ).sub(slot.position)
         );
-        const local = rotated.sub(slot.position);
 
-        const pixel = float(1).div(max(camera.zoom, float(0.08)));
-        const halfT = max(slot.thickness.mul(0.5), pixel.mul(1.15));
-        const aa = pixel.mul(0.7);
+        halfT.assign(max(slot.thickness.mul(0.5), pixel.mul(1.15)));
+        aa.assign(pixel.mul(0.7));
         const accept = max(halfT.sub(aa), float(0));
         // Past halfT + aa the stroke is fully transparent, so the ring solver is
-        // free to prove indices away instead of measuring them.
-        const reject = halfT.add(aa);
+        // free to prove indices away instead of measuring them. Under the sweep the
+        // stroke visits every phase, so it has to be measured a whole pitch out.
+        const reject = max(halfT.add(aa), view.sweep.mul(slot.spacing));
 
-        const strokeAlpha = (d) =>
-          float(1).sub(smoothstep(halfT.sub(aa), halfT.add(aa), d)).mul(slot.opacity);
+        // A field is a displacement of the layer's *index*: `shift` many members,
+        // wherever you stand. That is the one description every family shares, and
+        // it is what makes the fringes against an unmodulated twin the level sets
+        // of the field. Each family then spends it in its own currency — phase for
+        // the level-set families, a rotation for the radial fan, a translation
+        // along a generator for the lattices.
+        //
+        // The expression is unrolled into this shader rather than interpreted from
+        // uniforms, so a layer with no field emits no field code at all — not a
+        // branch around it, nothing — and a layer with one pays for its own
+        // arithmetic and no dispatch.
+        const shiftGrad = vec2(0).toVar();
+        const program = fields[index];
+        if (program) {
+          const sample = fieldFunction(program, `moireField${index}`)(local, slot.fieldScale);
+          shift.assign(sample.x.mul(slot.fieldAmount));
+          shiftGrad.assign(vec2(sample.y, sample.z).mul(slot.fieldAmount));
+        }
+        const warp = shift.mul(slot.spacing);
+        const warpGrad = shiftGrad.mul(slot.spacing);
 
-        const distOf = (typeNode, rejectAbove = reject) => {
-          const dist = float(1e6).toVar();
+        cell.assign(
+          latticeCellWgsl(slot.type.sub(5), slot.spacing, slot.scale.x, slot.scale.y)
+        );
+
+        // A morph has two families in flight at once, so it needs both phases.
+        const phaseOf = (typeNode, out) => {
           If(typeNode.lessThanEqual(0.1), () => {
-            dist.assign(lineDistance(local, float(0), slot.spacing, slot.phase, slot.offset.x));
+            out.assign(
+              linePhase(local, float(0), slot.spacing, slot.phase, slot.offset.x, warp, warpGrad)
+            );
           }).Else(() => {
             If(typeNode.lessThan(4.5), () => {
-              dist.assign(
-                ringDistance(
+              out.assign(
+                ringPhase(
                   local,
                   slot.offset,
                   slot.rotationOffset,
@@ -165,111 +322,130 @@ export function buildColorNode(camera: CameraUniforms, slots: LayerSlot[]) {
                   typeNode,
                   slot.sides,
                   accept,
-                  rejectAbove
+                  reject,
+                  warp,
+                  warpGrad
                 )
               );
             }).Else(() => {
-              If(typeNode.lessThan(7.5), () => {
-                const kind = typeNode.sub(5);
-                const edgeD = gridDistance(
-                  local,
-                  kind,
-                  slot.spacing,
-                  float(0),
-                  slot.scale.x,
-                  slot.scale.y
+              If(typeNode.lessThan(8.5), () => {
+                out.assign(
+                  radialLinePhase(local, slot.lineCount, slot.phase, shift, shiftGrad)
                 );
-                const vertD = gridDistance(
-                  local,
-                  kind,
-                  slot.spacing,
-                  float(1),
-                  slot.scale.x,
-                  slot.scale.y
-                );
-                const edgeOnly = float(1e6).toVar();
-                If(slot.drawEdges.greaterThan(0.5), () => edgeOnly.assign(edgeD));
-                const vertOnly = float(1e6).toVar();
-                If(slot.vertexSize.greaterThan(0.001), () => vertOnly.assign(vertD));
-                dist.assign(min(edgeOnly, vertOnly));
               }).Else(() => {
-                If(typeNode.lessThan(8.5), () => {
-                  dist.assign(radialLineDistance(local, slot.lineCount, slot.phase));
-                }).Else(() => {
-                  dist.assign(
-                    curveDistance(
-                      local,
-                      typeNode.sub(9),
-                      slot.spacing,
-                      slot.phase,
-                      slot.bend,
-                      slot.frequency
-                    )
-                  );
-                });
+                out.assign(
+                  curvePhase(
+                    local,
+                    typeNode.sub(9),
+                    slot.spacing,
+                    slot.phase,
+                    slot.bend,
+                    slot.frequency,
+                    warp,
+                    warpGrad
+                  )
+                );
               });
             });
           });
-          return dist;
         };
 
-        const inkOf = (typeNode) => {
-          const ink = float(0).toVar();
-          If(typeNode.greaterThan(4.5), () => {
-            If(typeNode.lessThan(7.5), () => {
-              const kind = typeNode.sub(5);
+        // A lattice never reads the phase, and the solvers are the expensive part,
+        // so it does not pay for one.
+        If(isLattice.not(), () => {
+          phaseOf(slot.type, phase);
+          If(slot.morph.lessThan(0.999), () => phaseOf(slot.typeFrom, phaseFrom));
+        });
+      });
+
+      return { slot, local, halfT, aa, isLattice, cell, shift, phase, phaseFrom };
+    });
+
+    const sum = vec3(0).toVar();
+    Loop(view.taps, ({ i }) => {
+      // Centred on zero so that a single tap is the pattern itself, and so that
+      // the trio of members brackets every phase the sweep visits.
+      const along = float(i).add(0.5).div(float(view.taps));
+      const u = along.sub(0.5).mul(view.sweep);
+
+      // A lattice's second generator, swept against the first rather than with it.
+      // In lockstep the two indices stay correlated and the lattice beats against
+      // itself: a fine diagonal hatch, at the carrier's own scale, that no amount
+      // of contrast can be read through. Advancing this one by the golden ratio
+      // instead is a rank-1 lattice rule over the two-torus — it decorrelates a
+      // lattice from itself while keeping it in step with every other layer's
+      // matching generator, which is where the fringes people want actually live.
+      const v = float(i).mul(GOLDEN).fract().sub(0.5).mul(view.sweep);
+
+      const color = camera.background.toVar();
+      for (const { slot, local, halfT, aa, isLattice, cell, shift, phase, phaseFrom } of solved) {
+        If(slot.active.greaterThan(0.5), () => {
+          const strokeAlpha = (d) =>
+            float(1).sub(smoothstep(halfT.sub(aa), halfT.add(aa), d)).mul(slot.opacity);
+
+          const alpha = float(0).toVar();
+          If(isLattice, () => {
+            // A lattice has no scalar phase to slide, so it resamples: each
+            // generator is a translation, and stepping along one is exactly one step
+            // of the index it counts. The field rides in on the first of them.
+            const shifted = local.sub(cell.xy.mul(u.add(shift))).sub(cell.zw.mul(v));
+            // Both lookups sit behind what asks for them: a lattice resample is the
+            // most expensive thing a tap can do, and the sweep does it two dozen
+            // times over.
+            const kind = slot.type.sub(5);
+            const ink = float(0).toVar();
+            If(slot.drawEdges.greaterThan(0.5), () => {
               const edgeD = gridDistance(
-                local,
+                shifted,
                 kind,
                 slot.spacing,
                 float(0),
                 slot.scale.x,
                 slot.scale.y
               );
+              ink.assign(float(1).sub(smoothstep(halfT.sub(aa), halfT.add(aa), edgeD)));
+            });
+            If(slot.vertexSize.greaterThan(0.001), () => {
               const vertD = gridDistance(
-                local,
+                shifted,
                 kind,
                 slot.spacing,
                 float(1),
                 slot.scale.x,
                 slot.scale.y
               );
-              const edgeA = float(1)
-                .sub(smoothstep(halfT.sub(aa), halfT.add(aa), edgeD))
-                .mul(slot.drawEdges);
-              const vertA = float(0).toVar();
-              If(slot.vertexSize.greaterThan(0.001), () => {
-                const vR = slot.vertexSize;
-                vertA.assign(
-                  float(1).sub(smoothstep(max(vR.sub(aa), float(0)), vR.add(aa), vertD))
-                );
-              });
-              ink.assign(max(edgeA, vertA).mul(slot.opacity));
-            }).Else(() => {
-              ink.assign(strokeAlpha(distOf(typeNode)));
+              const vR = slot.vertexSize;
+              ink.assign(
+                max(ink, float(1).sub(smoothstep(max(vR.sub(aa), float(0)), vR.add(aa), vertD)))
+              );
             });
+            alpha.assign(ink.mul(slot.opacity));
           }).Else(() => {
-            ink.assign(strokeAlpha(distOf(typeNode)));
+            // One local period per unit of `u`, so the sweep covers exactly one
+            // carrier cycle whatever the family's pitch happens to be here.
+            const slide = (ph) => {
+              const gap = max(ph.y.sub(ph.x).abs(), float(1e-6));
+              return phaseDistWgsl(ph, u.mul(gap));
+            };
+            If(slot.morph.greaterThan(0.999), () => {
+              alpha.assign(strokeAlpha(slide(phase)));
+            }).Else(() => {
+              alpha.assign(
+                strokeAlpha(mix(slide(phaseFrom), slide(phase), slot.morph))
+              );
+            });
           });
-          return ink;
-        };
-
-        const alpha = float(0).toVar();
-        If(slot.morph.greaterThan(0.999), () => {
-          alpha.assign(inkOf(slot.type));
-        }).Else(() => {
-          // A morph mixes two distances, so both need to stay measured out to a
-          // full period or the blend inks early where one side had saturated.
-          const wide = max(reject, slot.spacing);
-          alpha.assign(
-            strokeAlpha(mix(distOf(slot.typeFrom, wide), distOf(slot.type, wide), slot.morph))
-          );
+          color.assign(mix(color, slot.color, alpha.clamp(0, 1)));
         });
-        color.assign(mix(color, slot.color, alpha.clamp(0, 1)));
-      });
-    }
+      }
+      sum.addAssign(color);
+    });
 
-    return color;
+    // Contrast expands about the stack's nominal mean coverage, so the pivot does
+    // not drift as the fringes move. At contrast 1 this returns the average
+    // untouched, and with one tap and no sweep that is the render itself.
+    const mean = sum.div(float(view.taps));
+    return mix(view.pivot, mean, view.contrast).clamp(0, 1);
   })();
 }
 

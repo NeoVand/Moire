@@ -20,11 +20,28 @@ export type LayerPatch = Omit<Partial<PatternLayer>, 'position' | 'offset' | 'sc
   scale?: Partial<Vec2>;
 };
 
+/**
+ * How the frame is shown, not what is in it. The envelope is the mean ink of the
+ * same fields over one period of their common phase — the fringe system on its
+ * own, with the carrier gone. It averages phase, not space, so it blurs nothing.
+ */
+export interface ViewState {
+  envelope: boolean;
+  /** Gain about the stack's nominal coverage. 1 shows the average untouched. */
+  envelopeContrast: number;
+}
+
+export const VIEW_DEFAULTS: ViewState = {
+  envelope: false,
+  envelopeContrast: 3,
+};
+
 export interface ProjectStore {
   layers: PatternLayer[];
   selectedLayerId: string | null;
   camera: CameraState;
   backgroundColor: string;
+  view: ViewState;
   selectLayer: (id: string | null) => void;
   updateLayer: (id: string, patch: LayerPatch) => void;
   toggleVisibility: (id: string) => void;
@@ -39,6 +56,7 @@ export interface ProjectStore {
   setCamera: (camera: Partial<CameraState>) => void;
   resetView: () => void;
   setBackgroundColor: (color: string) => void;
+  setView: (patch: Partial<ViewState>) => void;
   playIntro: () => void;
   cancelIntro: () => void;
 }
@@ -91,6 +109,13 @@ function mixLayer(from: PatternLayer, to: PatternLayer, t: number): PatternLayer
     lineCount: lerp(from.lineCount, to.lineCount, t),
     bend: lerp(from.bend, to.bend, t),
     frequency: lerp(from.frequency, to.frequency, t),
+    // The expression cannot be interpolated, so the field's strength carries the
+    // ease: at t = 0 the target's field is present but flat.
+    field: {
+      ...to.field,
+      amount: lerp(from.field.source === to.field.source ? from.field.amount : 0, to.field.amount, t),
+      scale: lerp(from.field.scale, to.field.scale, t),
+    },
     opacity: lerp(from.opacity, to.opacity, t),
   };
 }
@@ -143,6 +168,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   selectedLayerId: initial.selectedLayerId,
   camera: initial.camera,
   backgroundColor: initial.backgroundColor,
+  view: { ...VIEW_DEFAULTS },
 
   selectLayer: (id) => set({ selectedLayerId: id }),
 
@@ -276,6 +302,8 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   resetView: () => set({ camera: { zoom: 1, pan: { x: 0, y: 0 } } }),
 
   setBackgroundColor: (backgroundColor) => set({ backgroundColor }),
+
+  setView: (patch) => set((s) => ({ view: { ...s.view, ...patch } })),
 
   cancelIntro: () => stopIntro(),
 

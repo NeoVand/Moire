@@ -1,20 +1,75 @@
 import * as THREE from 'three/webgpu';
 import { MeshBasicNodeMaterial } from 'three/webgpu';
-import { MAX_LAYERS, type PatternLayer } from '../types/moire';
+import { MAX_LAYERS, type PatternLayer, type PatternType } from '../types/moire';
 import {
+  ENVELOPE_TAPS,
   buildColorNode,
+  compileFieldCached,
   createCameraUniforms,
   createSlots,
+  createViewUniforms,
+  fieldSource,
   writeLayerSlot,
   type CameraUniforms,
   type LayerSlot,
+  type ViewUniforms,
 } from './composite';
 import { clearLayerMorphs, hasLayerMorphs } from './typeMorph';
+import type { ViewState } from '../store/project';
 
 export interface RendererSync {
   layers: PatternLayer[];
   camera: { zoom: number; pan: { x: number; y: number } };
   backgroundColor: string;
+  view: ViewState;
+}
+
+/** How many line families a layer draws at once. A lattice draws several. */
+function familyCount(type: PatternType): number {
+  if (type === 'grid-square') return 2;
+  if (type === 'grid-hex' || type === 'grid-triangle') return 3;
+  return 1;
+}
+
+/**
+ * Coverage a layer would average over one of its own periods: a stroke of
+ * half-width `h` on a pitch `s` inks `2h/s` of the paper, and a lattice inks that
+ * much once per family it draws. It is the pivot the envelope's contrast expands
+ * about — a display constant, not a measurement, so the eikonal factor is left out
+ * and the layer's own spacing stands in for the local member gap.
+ *
+ * Counting the families matters: a grid at a tenth of its pitch covers a fifth of
+ * the paper, and calling that a tenth puts the pivot far brighter than the picture
+ * it is expanding about, which at any real contrast drives the whole frame to
+ * black.
+ */
+function nominalCoverage(layer: PatternLayer, pixel: number): number {
+  const halfT = Math.max(layer.thickness * 0.5, pixel * 1.15);
+  const perFamily = Math.min(1, (2 * halfT) / Math.max(layer.spacing, 1e-3));
+  const open = (1 - perFamily) ** familyCount(layer.type);
+  return (1 - open) * layer.opacity;
+}
+
+/**
+ * How long an expression has to stand still before it becomes a shader.
+ *
+ * Field expressions are compiled into the material, so each new one is a pipeline
+ * build — fast, but not per keystroke fast. The editor's own preview is CPU-drawn
+ * and live, so what this delays is the canvas catching up, not the feedback.
+ */
+const FIELD_SETTLE_MS = 220;
+
+const scratch = new THREE.Color();
+
+function envelopePivot(state: RendererSync): THREE.Color {
+  const pivot = new THREE.Color(state.backgroundColor);
+  const pixel = 1 / Math.max(state.camera.zoom, 0.08);
+  for (const layer of state.layers) {
+    if (!layer.visible) continue;
+    scratch.set(layer.color);
+    pivot.lerp(scratch, nominalCoverage(layer, pixel));
+  }
+  return pivot;
 }
 
 async function encodeCanvasPng(source: HTMLCanvasElement): Promise<Blob> {
@@ -47,11 +102,16 @@ export class MoireRenderer {
   private observer: ResizeObserver | null = null;
   private slots: LayerSlot[] = [];
   private cameraUniforms: CameraUniforms | null = null;
+  private viewUniforms: ViewUniforms | null = null;
   private ready = false;
   private disposed = false;
   private lossHooked = false;
   private raf = 0;
   private morphRaf = 0;
+  private fieldTimer = 0;
+  private building: Promise<void> | null = null;
+  /** The expressions the live material was built for, one per slot. */
+  private fieldSources: string[] = [];
   private lastState: RendererSync | null = null;
   private lastWidth = 0;
   private lastHeight = 0;
@@ -128,12 +188,11 @@ export class MoireRenderer {
     if (!this.renderer) return;
 
     this.cameraUniforms = createCameraUniforms();
+    this.viewUniforms = createViewUniforms();
     this.slots = createSlots(MAX_LAYERS);
+    this.fieldSources = this.slots.map(() => '');
 
-    const material = new MeshBasicNodeMaterial();
-    material.colorNode = buildColorNode(this.cameraUniforms, this.slots);
-    material.side = THREE.DoubleSide;
-    material.toneMapped = false;
+    const material = this.buildMaterial();
     this.material = material;
 
     const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
@@ -148,19 +207,93 @@ export class MoireRenderer {
     this.camera.position.z = 1;
   }
 
+  /** One material for the current set of field expressions. */
+  private buildMaterial(): MeshBasicNodeMaterial {
+    const material = new MeshBasicNodeMaterial();
+    material.colorNode = buildColorNode(
+      this.cameraUniforms!,
+      this.viewUniforms!,
+      this.slots,
+      this.fieldSources.map((source) => (source ? compileFieldCached(source) : null))
+    );
+    material.side = THREE.DoubleSide;
+    material.toneMapped = false;
+    return material;
+  }
+
   sync(state: RendererSync) {
     this.lastState = state;
     this.writeSlots();
+    this.watchFields();
     if (hasLayerMorphs()) this.ensureMorphLoop();
+  }
+
+  /**
+   * Field expressions are the one part of a layer the shader is built around, so a
+   * new one needs a new material. Waiting for the source to stand still keeps a
+   * pipeline build off the keystroke, and a source that comes back to what is
+   * already compiled — typing a character and deleting it — cancels instead of
+   * rebuilding to the same thing.
+   */
+  private watchFields() {
+    const state = this.lastState;
+    if (!state || !this.ready) return;
+    const settled = this.fieldSources.every(
+      (source, i) => source === fieldSource(state.layers[i]?.field)
+    );
+    if (this.fieldTimer) clearTimeout(this.fieldTimer);
+    this.fieldTimer = settled
+      ? 0
+      : window.setTimeout(() => {
+          this.fieldTimer = 0;
+          void this.rebuildFields();
+        }, FIELD_SETTLE_MS);
+  }
+
+  private async rebuildFields() {
+    const state = this.lastState;
+    if (!this.ready || !this.renderer || !this.scene || !this.camera || !this.mesh || !state) return;
+    const wanted = this.slots.map((_, i) => fieldSource(state.layers[i]?.field));
+    if (wanted.every((source, i) => source === this.fieldSources[i])) return;
+
+    this.fieldSources = wanted;
+    const previous = this.material;
+    const material = this.buildMaterial();
+    this.material = material;
+    this.mesh.material = material;
+
+    // Hold the last frame instead of drawing through the build. A pipeline this
+    // size takes long enough that compiling it inside a draw call reads as a
+    // freeze, and the uniforms are shared, so the frame after it is current.
+    this.ready = false;
+    this.building = this.renderer.compileAsync(this.scene, this.camera).then(() => undefined);
+    try {
+      await this.building;
+    } finally {
+      this.building = null;
+      this.ready = !this.disposed;
+    }
+    if (this.disposed) return;
+    this.renderer.render(this.scene, this.camera);
+    previous?.dispose();
+    // Nothing syncs while a build is in flight, so an edit made during one is only
+    // noticed here.
+    this.watchFields();
   }
 
   private writeSlots() {
     const state = this.lastState;
-    if (!this.cameraUniforms || !state) return;
+    if (!this.cameraUniforms || !this.viewUniforms || !state) return;
     this.cameraUniforms.zoom.value = state.camera.zoom;
     this.cameraUniforms.pan.value.set(state.camera.pan.x, state.camera.pan.y);
     this.cameraUniforms.background.value.set(state.backgroundColor);
     this.renderer?.setClearColor(state.backgroundColor, 1);
+
+    const envelope = state.view.envelope;
+    this.viewUniforms.taps.value = envelope ? ENVELOPE_TAPS : 1;
+    this.viewUniforms.sweep.value = envelope ? 1 : 0;
+    this.viewUniforms.contrast.value = envelope ? state.view.envelopeContrast : 1;
+    this.viewUniforms.pivot.value.copy(envelope ? envelopePivot(state) : scratch.set(0xffffff));
 
     for (let i = 0; i < this.slots.length; i++) {
       writeLayerSlot(this.slots[i], state.layers[i]);
@@ -189,6 +322,8 @@ export class MoireRenderer {
   }
 
   async snapshot(): Promise<Blob> {
+    // An export that lands inside a field rebuild waits for it rather than failing.
+    await this.building;
     if (!this.ready || !this.renderer || !this.scene || !this.camera || !this.canvas) {
       throw new Error('Renderer is not ready');
     }
@@ -219,8 +354,10 @@ export class MoireRenderer {
     this.ready = false;
     if (this.raf) cancelAnimationFrame(this.raf);
     if (this.morphRaf) cancelAnimationFrame(this.morphRaf);
+    if (this.fieldTimer) clearTimeout(this.fieldTimer);
     this.raf = 0;
     this.morphRaf = 0;
+    this.fieldTimer = 0;
     this.lastState = null;
     clearLayerMorphs();
     this.observer?.disconnect();
@@ -240,6 +377,7 @@ export class MoireRenderer {
     this.container = null;
     this.slots = [];
     this.cameraUniforms = null;
+    this.viewUniforms = null;
     this.lossHooked = false;
   }
 }

@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type Ref } from 'react';
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
   Add01Icon,
   ArrowLeft01Icon,
+  AudioWave02Icon,
   Copy01Icon,
   Delete02Icon,
   DragDropVerticalIcon,
@@ -19,6 +20,7 @@ import {
   PATTERN_FAMILIES,
   PATTERN_META,
   familyOf,
+  hasField,
   isConcentric,
   isCurves,
   isGrid,
@@ -26,11 +28,13 @@ import {
   type PatternFamily,
   type PatternType,
 } from '../types/moire';
-import { useProjectStore, useSelectedLayer } from '../store/project';
+import { VIEW_DEFAULTS, useProjectStore, useSelectedLayer } from '../store/project';
+import { FieldEditor } from './FieldEditor';
 import { FAMILY_ICONS, PATTERN_ICONS } from './patternIcons';
 import { ColorField } from './ui/ColorField';
 import { Icon, type HugeIcon } from './ui/Icon';
 import { IconButton } from './ui/IconButton';
+import { Popover } from './ui/Popover';
 import { Slider } from './ui/Slider';
 
 const STUDIO_KEY = 'moire-studio-open';
@@ -81,6 +85,88 @@ function ShapeChip({
       <span className={iconClassName ? `inline-block ${iconClassName}` : undefined}>
         <Icon icon={icon} size={16} />
       </span>
+    </button>
+  );
+}
+
+/**
+ * The envelope, in the header beside zoom and background: it is a way of looking
+ * at the whole stack, not a property of a layer.
+ *
+ * The view is the same stack averaged over one period of the phase every layer
+ * shares — the fringe system with the carrier taken out. Because the average is
+ * over phase and not over space, nothing is blurred and the result is the same at
+ * any zoom. Contrast lives behind the icon the way a colour lives behind its
+ * swatch, so the header stays one row of icons.
+ */
+function EnvelopeControl() {
+  const envelope = useProjectStore((s) => s.view.envelope);
+  const contrast = useProjectStore((s) => s.view.envelopeContrast);
+  const setView = useProjectStore((s) => s.setView);
+  const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+
+  return (
+    <>
+      <IconButton
+        buttonRef={triggerRef}
+        icon={AudioWave02Icon}
+        label={envelope ? 'Envelope · right-click for contrast' : 'Envelope'}
+        active={envelope}
+        onClick={() => {
+          setView({ envelope: !envelope });
+          setOpen(!envelope);
+        }}
+        onAlternate={() => {
+          if (!envelope) setView({ envelope: true });
+          setOpen(true);
+        }}
+        size={14}
+        dense
+      />
+      <Popover open={open} width={188} triggerRef={triggerRef} onClose={() => setOpen(false)}>
+        <Slider
+          label="Contrast"
+          value={contrast}
+          min={1}
+          max={12}
+          step={0.1}
+          defaultValue={VIEW_DEFAULTS.envelopeContrast}
+          onChange={(envelopeContrast) => setView({ envelopeContrast })}
+        />
+      </Popover>
+    </>
+  );
+}
+
+/**
+ * The calligraphic f on a layer row: a field displaces that layer's index, and
+ * against an unmodulated twin the fringes become the field's level sets. Filled
+ * when the layer carries one.
+ */
+function FieldMark({
+  active,
+  onClick,
+  buttonRef,
+}: {
+  active: boolean;
+  onClick: () => void;
+  buttonRef?: Ref<HTMLButtonElement>;
+}) {
+  return (
+    <button
+      ref={buttonRef}
+      type="button"
+      title={active ? 'Edit field' : 'Add a field'}
+      aria-label={active ? 'Edit field' : 'Add a field'}
+      onClick={onClick}
+      className={`grid size-[22px] shrink-0 place-items-center rounded-md font-serif text-[14px] leading-none italic ${
+        active
+          ? 'bg-[var(--bg-hover)] text-[var(--text-primary)]'
+          : 'text-current opacity-45 hover:bg-[var(--bg-hover)] hover:opacity-100'
+      }`}
+    >
+      f
     </button>
   );
 }
@@ -206,7 +292,7 @@ async function savePng() {
   }
 }
 
-function LayerStack() {
+function LayerStack({ onEditField }: { onEditField: (id: string) => void }) {
   const layers = useProjectStore((s) => s.layers);
   const selectedLayerId = useProjectStore((s) => s.selectedLayerId);
   const selectLayer = useProjectStore((s) => s.selectLayer);
@@ -293,6 +379,13 @@ function LayerStack() {
                   onCommit={(name) => renameLayer(layer.id, name)}
                 />
               </div>
+              <FieldMark
+                active={hasField(layer)}
+                onClick={() => {
+                  selectLayer(layer.id);
+                  onEditField(layer.id);
+                }}
+              />
               <IconButton
                 icon={layer.visible ? ViewIcon : ViewOffSlashIcon}
                 label={layer.visible ? 'Hide' : 'Show'}
@@ -637,6 +730,7 @@ function Chrome({ onToggle }: { onToggle: () => void }) {
         {Math.round(zoom * 100)}%
       </button>
       <ColorField value={backgroundColor} onChange={setBackgroundColor} />
+      <EnvelopeControl />
       <IconButton
         icon={KeyboardIcon}
         label="Shortcuts"
@@ -652,6 +746,10 @@ function Chrome({ onToggle }: { onToggle: () => void }) {
 
 export function Studio() {
   const [open, setOpen] = useState(readOpen);
+  const [fieldLayerId, setFieldLayerId] = useState<string | null>(null);
+  const layers = useProjectStore((s) => s.layers);
+  const updateLayer = useProjectStore((s) => s.updateLayer);
+  const fieldLayer = layers.find((layer) => layer.id === fieldLayerId) ?? null;
 
   useEffect(() => {
     try {
@@ -687,27 +785,39 @@ export function Studio() {
   }
 
   return (
-    <div className="pointer-events-none absolute top-3 right-auto bottom-5 left-5 z-20 flex max-h-[calc(100dvh-2rem)]">
-      <aside
-        className="hud-card pointer-events-auto flex h-fit max-h-full w-[18.5rem] flex-col"
-        onWheel={(e) => e.stopPropagation()}
-      >
-        <div className="flex min-h-0 max-h-full flex-col overflow-hidden rounded-[inherit]">
-          <header className="shrink-0 px-4 pt-3 pb-2">
-            <Chrome onToggle={() => setOpen(false)} />
-          </header>
+    <>
+      <div className="pointer-events-none absolute top-3 right-auto bottom-5 left-5 z-20 flex max-h-[calc(100dvh-2rem)]">
+        <aside
+          className="hud-card pointer-events-auto flex h-fit max-h-full w-[18.5rem] flex-col"
+          onWheel={(e) => e.stopPropagation()}
+        >
+          <div className="flex min-h-0 max-h-full flex-col overflow-hidden rounded-[inherit]">
+            <header className="shrink-0 px-4 pt-3 pb-2">
+              <Chrome onToggle={() => setOpen(false)} />
+            </header>
 
-          <Rule />
+            <Rule />
 
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-2 pb-4">
-            <div className="grid gap-2.5">
-              <LayerStack />
-              <Rule />
-              <LayerFields />
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-2 pb-4">
+              <div className="grid gap-2.5">
+                <LayerStack onEditField={setFieldLayerId} />
+                <Rule />
+                <LayerFields />
+              </div>
             </div>
           </div>
-        </div>
-      </aside>
-    </div>
+        </aside>
+      </div>
+      {fieldLayer && (
+        <FieldEditor
+          layerName={fieldLayer.name}
+          field={fieldLayer.field}
+          onChange={(patch) =>
+            updateLayer(fieldLayer.id, { field: { ...fieldLayer.field, ...patch } })
+          }
+          onClose={() => setFieldLayerId(null)}
+        />
+      )}
+    </>
   );
 }

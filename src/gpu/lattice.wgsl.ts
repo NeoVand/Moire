@@ -61,6 +61,43 @@ fn hexRoundWgsl(uv: vec2<f32>) -> vec2<f32> {
 }
 `);
 
+/**
+ * The two translations a lattice is invariant under, packed as `(a.xy, b.xy)`.
+ *
+ * Every other family here is the level set of a scalar phase, so the envelope can
+ * average over the carrier by sliding a residual — one solve, no resampling. A
+ * lattice has no such scalar: its members are indexed by a pair of integers, and
+ * a honeycomb is not a union of line families at all, so advancing a "phase"
+ * would shrink each cell towards its own centre rather than slide the pattern.
+ * What a lattice does have is this translation group, so the envelope averages a
+ * lattice layer over its own unit cell instead. Lattice distance is a closed-form
+ * cell lookup, so resampling it per tap costs what resampling the ring solver
+ * cannot.
+ */
+export const latticeCellWgsl = wgslFn(`
+fn latticeCellWgsl(kind: f32, spacing: f32, scaleX: f32, scaleY: f32) -> vec4<f32> {
+  let s = max(spacing, 1e-4);
+  var sx = scaleX;
+  var sy = scaleY;
+  if (abs(sx) < 1e-4) {
+    sx = 1e-4;
+  }
+  if (abs(sy) < 1e-4) {
+    sy = 1e-4;
+  }
+  let k = i32(kind + 0.5);
+  if (k <= 0) {
+    return vec4<f32>(s * sx, 0.0, 0.0, s * sy);
+  }
+  // Honeycomb cell centres sit on a triangular lattice of pitch sqrt(3) s.
+  if (k == 1) {
+    let h = s * 1.73205080757;
+    return vec4<f32>(h * sx, 0.0, h * 0.5 * sx, 1.5 * s * sy);
+  }
+  return vec4<f32>(s * sx, 0.0, 0.5 * s * sx, s * 0.86602540378 * sy);
+}
+`);
+
 export const gridDistance = wgslFn(
   `
 fn gridDistance(p: vec2<f32>, kind: f32, spacing: f32, wantVertex: f32, scaleX: f32, scaleY: f32) -> f32 {

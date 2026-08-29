@@ -3,14 +3,27 @@ import {
   centeredMod,
   circleQuadratic,
   curveDistanceCpu,
+  curvePhaseCpu,
+  facetCount,
+  fieldWarpCpu,
+  linePhaseCpu,
+  phaseDistance,
+  phaseGap,
+  ringPhaseCpu,
+  type PhaseSample,
   lineDistanceCpu,
   radialLineDistanceCpu,
+  radialLinePhaseCpu,
   RING_BUDGET,
+  RING_SPAN_CAP,
   ringDistanceCpu,
+  ringDrift,
   ringIndexWindow,
   shapeKappa,
   shapeRadius,
+  type FieldCode,
 } from './inverseCpu.ts';
+import { gridDistanceCpu, latticeCell } from './latticeCpu.ts';
 import { concentricSideCount, mixInvN } from '../types/moire.ts';
 
 function approx(actual: number, expected: number, tol = 1e-3) {
@@ -77,6 +90,35 @@ assert.ok(d < 2, `spiraled ring 20 should be found, dist=${d}`);
 // Polygon n=4 matches L∞; many-gon matches Euclidean (circle stand-in)
 approx(shapeRadius({ x: 10, y: 4 }, 4, 4), shapeRadius({ x: 10, y: 4 }, 2, 4), 1e-6);
 approx(shapeRadius({ x: 10, y: 0 }, 4, 64), 10, 0.02);
+
+// Support forms must equal the atan2 form they replaced, all the way round.
+function radialForm(q: { x: number; y: number }, n: number) {
+  const seg = (Math.PI * 2) / n;
+  let a = ((Math.atan2(q.y, q.x) + seg * 0.5) % seg) - seg * 0.5;
+  if (a < -seg * 0.5) a += seg;
+  return Math.hypot(q.x, q.y) * Math.cos(a);
+}
+for (let i = 0; i < 41; i++) {
+  const a = (i * Math.PI * 2) / 41 + 0.03;
+  for (const r of [1, 17, 940]) {
+    const q = { x: r * Math.cos(a), y: r * Math.sin(a) };
+    for (const n of [3, 4, 6]) {
+      approx(shapeRadius(q, 4, n), radialForm(q, n), 1e-4 * r);
+    }
+    approx(shapeRadius(q, 3, 3), radialForm(q, 3), 1e-4 * r);
+    approx(shapeRadius(q, 2, 4), radialForm(q, 4), 1e-4 * r);
+  }
+}
+
+// Drift is the exact per-index reach: |δ| for circles, max|δ| for squares, and
+// less than |δ| for a triangle whose corner does not face the offset.
+approx(ringDrift({ x: 3, y: 4 }, 1, 6), 5, 1e-6);
+approx(ringDrift({ x: 3, y: -4 }, 2, 4), 4, 1e-6);
+assert.ok(
+  ringDrift({ x: 2.5, y: 2.5 }, 3, 3) < Math.hypot(2.5, 2.5),
+  'triangle drift should be tighter than |δ|'
+);
+assert.ok(ringDrift({ x: -4, y: 0 }, 3, 3) > 3.9, 'a corner-on offset drifts at nearly |δ|');
 approx(mixInvN(64, 4, 0), 64, 1e-6);
 approx(mixInvN(64, 4, 1), 4, 1e-6);
 approx(concentricSideCount('concentric-circles', 6), 64);
@@ -260,6 +302,7 @@ for (const shape of [1, 2, 3, 4] as const) {
                   ringIndexWindow(
                     Math.hypot(p.x, p.y),
                     offLen,
+                    ringDrift(offset, shape, 6),
                     Math.max(spacing, 1e-4),
                     phase,
                     kappa,
@@ -294,11 +337,95 @@ console.log(
   `  window: ${exactCases} exact, ${subsampled} subsampled (window > ${RING_BUDGET})`
 );
 
-// The envelope the UI can actually reach must fit the budget, so the scan is
-// exact there rather than subsampling. Guard mirrors the renderer's halfT + aa.
+// Translated polygons take the closed form, so there is no budget to hide behind:
+// every side count, every offset up to and including the marginal one where the
+// drift exactly cancels the spacing, has to match brute force outright. The
+// marginal band is the point of this test — that is where a scan of any finite
+// budget walks off the end before reaching the indices that carry the answer.
+assert.equal(facetCount(2, 4), 4);
+assert.equal(facetCount(3, 3), 3);
+assert.equal(facetCount(4, 9), 9);
+assert.equal(facetCount(1, 6), 0, 'circles are not a polygon support function');
+assert.equal(facetCount(4, 6.5), 0, 'a morph through fractional sides must not solve for facets');
+
+let closedCases = 0;
+let closedMiss = 0;
+let closedDetail = '';
+let marginalCases = 0;
+
+for (const [shape, sides] of [
+  [2, 4],
+  [3, 3],
+  [4, 5],
+  [4, 6],
+  [4, 9],
+] as const) {
+  for (const spacing of [3, 6, 20]) {
+    for (const phase of [0, 14]) {
+      // The last two are exactly marginal: shapeRadius(-delta) == spacing, so the
+      // leading facet's slope cancels and h is flat past the crossover.
+      const unit = ringDrift({ x: 1, y: 0 }, shape, sides);
+      const offsets = [
+        { x: 0.4, y: 0.9 },
+        { x: 2, y: -1 },
+        { x: spacing * 0.5, y: 0 },
+        { x: spacing / unit, y: 0 },
+        { x: -spacing / ringDrift({ x: -1, y: 0 }, shape, sides), y: 0 },
+      ];
+      for (const offset of offsets) {
+        const drift = ringDrift(offset, shape, sides);
+        if (drift > spacing + 1e-4) continue;
+        const marginal = Math.abs(drift - spacing) < 1e-4;
+        for (const r of [40, 300, 1500, 6000]) {
+          for (let i = 0; i < 9; i++) {
+            const a = (i * Math.PI * 2) / 9 + 0.31;
+            const p = { x: r * Math.cos(a), y: r * Math.sin(a) };
+            const guard = Math.max(spacing * 0.75, 4);
+            const got = ringDistanceCpu(p, offset, 0, spacing, phase, shape, sides, 0, guard);
+            // Reach past the facet crossover, which sits near |p| over the spread
+            // of the facet projections of the offset.
+            const reach = Math.ceil((4 * (r + phase + guard)) / spacing) + 128;
+            const want = bruteRing(p, offset, 0, spacing, phase, shape, sides, reach);
+            closedCases += 1;
+            if (marginal) marginalCases += 1;
+            if (Math.min(want, guard) - got > 1e-6) {
+              phantom += 1;
+              phantomDetail = `closed form under brute force: shape=${shape}/${sides} s=${spacing} off=(${offset.x},${offset.y}) r=${r}`;
+            }
+            if (want <= guard && got - want > 1e-3) {
+              closedMiss += 1;
+              closedDetail =
+                `shape=${shape}/${sides} s=${spacing} phase=${phase} off=(${offset.x.toFixed(3)},${offset.y}) ` +
+                `drift=${drift.toFixed(3)} r=${r} i=${i} got=${got.toFixed(4)} want=${want.toFixed(4)}`;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+assert.ok(marginalCases > 200, `expected the marginal band to be covered, got ${marginalCases}`);
+assert.ok(
+  closedMiss === 0,
+  `translated polygon closed form missed the nearest ring in ${closedMiss}/${closedCases} (${closedDetail})`
+);
+console.log(`  translated polygons: ${closedCases} closed-form cases exact, ${marginalCases} of them marginal`);
+
+// Exactness is exactly the property "window fits the budget", so pin down where
+// that holds: rings at least two device pixels apart, and an offset no more than
+// a quarter of the spacing. Both edges are real. Below two pixels of pitch the
+// strokes already overlap into a fill, and as the offset approaches the spacing
+// the drift cancels the growth so unboundedly many rings genuinely crowd every
+// point. Outside the envelope the scan thins the family on an anchored lattice
+// rather than pretending to be exact. Guard mirrors the renderer's halfT + aa.
 let overBudget = 0;
 let overDetail = '';
-let widest = 0;
+let widestResolvable = 0;
+let widestAny = 0;
+let widestDetail = '';
+let capped = 0;
+let cappedDetail = '';
 for (const zoom of [0.1, 0.2, 0.35, 0.5, 1, 2, 4, 10]) {
   const pixel = 1 / Math.max(zoom, 0.08);
   for (const thickness of [0.01, 3.5, 20]) {
@@ -307,24 +434,44 @@ for (const zoom of [0.1, 0.2, 0.35, 0.5, 1, 2, 4, 10]) {
     // Half-diagonal of a generous viewport at this zoom.
     const reach = Math.hypot(1920, 1200) / (2 * zoom);
     for (const shape of [1, 2, 3, 4] as const) {
-      for (const spacing of [6, 10, 16, 24, 40, 80]) {
-        // Triangles at the zoom-out limit have the widest fan (κ = 1/2); past
-        // |δ| ≈ 1.5 there the window outgrows the budget and the scan subsamples.
-        for (const offLen of [0, 0.7, 1.5]) {
+      for (const spacing of [1, 6, 10, 16, 24, 40, 120]) {
+        for (const offset of [
+          { x: 0, y: 0 },
+          { x: 0, y: -0.5 },
+          { x: 0.7, y: 0.7 },
+          { x: 1.06, y: 1.06 },
+          { x: -4, y: 4 },
+          { x: 4, y: 4 },
+          { x: -4, y: 0 },
+        ]) {
+          const offLen = Math.hypot(offset.x, offset.y);
           const guard = Math.max(guardZoom, spacing * 0.75);
           const { lo, hi } = ringIndexWindow(
             reach,
             offLen,
+            ringDrift(offset, shape, 6),
             spacing,
             0,
             shapeKappa(shape, 6),
             guard
           );
           const span = hi - lo + 1;
-          if (span > widest) widest = span;
+          const label =
+            `zoom=${zoom} t=${thickness} shape=${shape} s=${spacing} ` +
+            `off=(${offset.x},${offset.y}) span=${span}`;
+          if (span > widestAny) {
+            widestAny = span;
+            widestDetail = label;
+          }
+          if (span > RING_SPAN_CAP) {
+            capped += 1;
+            cappedDetail = label;
+          }
+          if (spacing * zoom < 2 || offLen > spacing * 0.25) continue;
+          if (span > widestResolvable) widestResolvable = span;
           if (span > RING_BUDGET) {
             overBudget += 1;
-            overDetail = `zoom=${zoom} t=${thickness} shape=${shape} s=${spacing} |d|=${offLen} span=${span}`;
+            overDetail = label;
           }
         }
       }
@@ -333,9 +480,40 @@ for (const zoom of [0.1, 0.2, 0.35, 0.5, 1, 2, 4, 10]) {
 }
 assert.ok(
   overBudget === 0,
-  `${overBudget} reachable settings need more than ${RING_BUDGET} indices (${overDetail})`
+  `${overBudget} resolvable settings need more than ${RING_BUDGET} indices (${overDetail})`
 );
-console.log(`  envelope: widest window ${widest} of ${RING_BUDGET} budget`);
+console.log(
+  `  envelope: widest exact window ${widestResolvable} of ${RING_BUDGET} budget; ` +
+    `widest anywhere ${widestAny} (${widestDetail}); ${capped} settings hit the span cap` +
+    (capped ? ` (${cappedDetail})` : '')
+);
+
+// The drift bound is what earns that: κ|δ| ≤ s ≤ |δ| used to be declared
+// unbounded wholesale, but a triangle only drifts at shapeRadius(−δ) per index,
+// so these windows are finite and the scan stays exact inside them.
+for (const spacing of [4, 5, 5.5]) {
+  const offset = { x: 4, y: 4 };
+  const { lo, hi } = ringIndexWindow(
+    1500,
+    Math.hypot(offset.x, offset.y),
+    ringDrift(offset, 3, 3),
+    spacing,
+    0,
+    shapeKappa(3, 3),
+    4
+  );
+  assert.ok(
+    hi - lo + 1 < RING_SPAN_CAP,
+    `triangle at s=${spacing}, |δ|=5.66 should be bounded, got ${hi - lo + 1}`
+  );
+}
+// Only true equality is unbounded, and then unboundedly many rings really do
+// pass near p: every ring runs through the origin.
+{
+  const offset = { x: -4, y: 0 };
+  const { lo, hi } = ringIndexWindow(1500, 4, ringDrift(offset, 1, 6), 4, 0, 1, 4);
+  assert.ok(hi - lo + 1 > RING_SPAN_CAP, 'drift == spacing should hit the cap');
+}
 
 // n-gon side counts other than 6, including the fractional ones a morph produces.
 let gonMiss = 0;
@@ -385,6 +563,7 @@ for (const shape of [1, 2, 3, 4] as const) {
           const { lo, hi } = ringIndexWindow(
             Math.hypot(p.x, p.y),
             offLen,
+            ringDrift(offset, shape, 6),
             spacing,
             0,
             shapeKappa(shape, 6),
@@ -472,5 +651,370 @@ assert.ok(
 const dCutA = curveDistanceCpu({ x: -80, y: 0.2 }, 3, 16, 0, 20);
 const dCutB = curveDistanceCpu({ x: -80, y: -0.2 }, 3, 16, 0, 20);
 assert.ok(Math.abs(dCutA - dCutB) < 0.6, `spiral branch cut, ${dCutA} vs ${dCutB}`);
+
+// ---------------------------------------------------------------- field warp
+//
+// A field enters as a shift of the phase residual. Three things have to hold, and
+// each of them is a way the feature could be silently wrong:
+//
+//   1. no field is exactly no change,
+//   2. the gradient the shift reports is the gradient of the shift,
+//   3. the modulated distance is still a distance.
+
+const FIELD_KINDS: FieldCode[] = [1, 2, 3, 4, 5, 6];
+const FIELD_SCALE = 200;
+
+// 1. Kind 0 is the identity, and the six others actually do something.
+for (const p of [{ x: 0, y: 0 }, { x: 37, y: -91 }, { x: -180, y: 60 }]) {
+  const off = fieldWarpCpu(p, 0, FIELD_SCALE);
+  assert.equal(off.f, 0);
+  assert.equal(off.gx, 0);
+  assert.equal(off.gy, 0);
+}
+for (const kind of FIELD_KINDS) {
+  let span = 0;
+  for (let i = 0; i < 96; i++) {
+    const a = (i / 96) * Math.PI * 2;
+    const r = (0.15 + (i % 8) * 0.15) * FIELD_SCALE;
+    span = Math.max(
+      span,
+      Math.abs(fieldWarpCpu({ x: r * Math.cos(a), y: r * Math.sin(a) }, kind, FIELD_SCALE).f)
+    );
+  }
+  // Normalised to O(1) over the extent, so `amount` reads as a fringe count.
+  assert.ok(span > 0.05 && span < 6, `field ${kind} is off scale, span=${span}`);
+}
+
+// 2. Analytic gradient against central differences. Getting this wrong is the
+// eikonal bug of Section 4.2 all over again: strokes would thin wherever the
+// field steepens, and the hairline floor would stop meaning anything on screen.
+let gradWorst = 0;
+for (const kind of FIELD_KINDS) {
+  for (let i = 0; i < 240; i++) {
+    const a = i * 0.7391;
+    const r = 8 + (i % 24) * 11;
+    const p = { x: r * Math.cos(a), y: r * Math.sin(a) };
+    const h = 0.05;
+    const got = fieldWarpCpu(p, kind, FIELD_SCALE);
+    const fd = {
+      x:
+        (fieldWarpCpu({ x: p.x + h, y: p.y }, kind, FIELD_SCALE).f -
+          fieldWarpCpu({ x: p.x - h, y: p.y }, kind, FIELD_SCALE).f) /
+        (2 * h),
+      y:
+        (fieldWarpCpu({ x: p.x, y: p.y + h }, kind, FIELD_SCALE).f -
+          fieldWarpCpu({ x: p.x, y: p.y - h }, kind, FIELD_SCALE).f) /
+        (2 * h),
+    };
+    const scale = Math.max(Math.hypot(fd.x, fd.y), 1e-4);
+    gradWorst = Math.max(gradWorst, Math.hypot(got.gx - fd.x, got.gy - fd.y) / scale);
+  }
+}
+assert.ok(gradWorst < 0.02, `field gradient disagrees with finite differences, ${gradWorst}`);
+
+// Modulation at amount 0 leaves both residual families untouched.
+for (const kind of FIELD_KINDS) {
+  const p = { x: 41, y: -63 };
+  const w = fieldWarpCpu(p, kind, FIELD_SCALE);
+  approx(lineDistanceCpu(p, 0, 16, 0, 0, 0, { x: 0, y: 0 }), lineDistanceCpu(p, 0, 16, 0, 0), 1e-9);
+  for (const k of [0, 1, 2, 3]) {
+    approx(
+      curveDistanceCpu(p, k, 16, 0, k === 3 ? 32 : 4, 1, 0 * w.f, { x: 0, y: 0 }),
+      curveDistanceCpu(p, k, 16, 0, k === 3 ? 32 : 4, 1),
+      1e-9
+    );
+  }
+}
+
+// 3. Still a distance. Step from p by the reported distance along the phase
+// normal; the residual there has to be an integer multiple of the spacing, i.e.
+// a member of the family really is that far away. This is the check that fails if
+// `warpGrad` is dropped: the step lands short by the factor the field is steep by.
+const AMOUNT = 3;
+const PITCH = 6;
+function encoded(p: { x: number; y: number }, kind: FieldCode) {
+  const w = fieldWarpCpu(p, kind, FIELD_SCALE);
+  const gain = AMOUNT * PITCH;
+  return { warp: w.f * gain, grad: { x: w.gx * gain, y: w.gy * gain } };
+}
+let stepWorst = 0;
+let stepChecked = 0;
+for (const kind of FIELD_KINDS) {
+  for (let i = 0; i < 300; i++) {
+    const a = i * 1.1071;
+    const r = 14 + (i % 25) * 10;
+    const p = { x: r * Math.cos(a), y: r * Math.sin(a) };
+    const { warp, grad } = encoded(p, kind);
+    const d = lineDistanceCpu(p, 0, PITCH, 0, 0, warp, grad);
+    // Where the fringe is finer than three carrier periods the family folds over
+    // itself within a stroke width and there is no single nearest member to walk
+    // to. That is the sampling limit of Eq. (contour-nyquist), not an error, and
+    // |warpGrad| <= 1/3 is exactly that inequality.
+    if (Math.hypot(grad.x, grad.y) > 1 / 3) continue;
+    const gx = 1 - grad.x;
+    const gy = -grad.y;
+    const gl = Math.hypot(gx, gy);
+    let best = Infinity;
+    for (const sign of [1, -1]) {
+      const q = { x: p.x + (sign * d * gx) / gl, y: p.y + (sign * d * gy) / gl };
+      best = Math.min(best, lineDistanceCpu(q, 0, PITCH, 0, 0, encoded(q, kind).warp, encoded(q, kind).grad));
+    }
+    stepChecked += 1;
+    stepWorst = Math.max(stepWorst, best);
+  }
+}
+assert.ok(stepChecked > 800, `too few modulated probes admissible, ${stepChecked}`);
+assert.ok(stepWorst < 0.06 * PITCH, `modulated distance is not Euclidean, worst=${stepWorst}`);
+console.log(
+  `  field warp: gradient within ${(gradWorst * 100).toFixed(2)}% of finite differences; ` +
+    `${stepChecked} modulated probes land within ${stepWorst.toFixed(4)} of a member`
+);
+
+// The contouring identity itself. Two carriers of the same pitch, one modulated,
+// have index difference D = amount · f, so the light fringes are the level sets of
+// the field at interval 1/amount. That is checkable without rendering anything:
+// walk a point onto {D in Z} by Newton steps along the field gradient, and the two
+// families' phase residuals there have to agree — one stroke sitting on the other.
+let fringeWorst = 0;
+let fringeChecked = 0;
+for (const kind of FIELD_KINDS) {
+  for (let i = 0; i < 300; i++) {
+    const a = i * 0.5717;
+    const r = 14 + (i % 25) * 10;
+    let q = { x: r * Math.cos(a), y: r * Math.sin(a) };
+    let landed = false;
+    for (let it = 0; it < 40; it++) {
+      const w = fieldWarpCpu(q, kind, FIELD_SCALE);
+      const D = AMOUNT * w.f;
+      const gx = AMOUNT * w.gx;
+      const gy = AMOUNT * w.gy;
+      const g2 = gx * gx + gy * gy;
+      if (!(g2 > 1e-14)) break;
+      const resid = D - Math.round(D);
+      if (Math.abs(resid) < 1e-9) {
+        landed = true;
+        break;
+      }
+      q = { x: q.x - (resid * gx) / g2, y: q.y - (resid * gy) / g2 };
+      if (!Number.isFinite(q.x) || Math.hypot(q.x, q.y) > 4 * FIELD_SCALE) break;
+    }
+    if (!landed) continue;
+    fringeChecked += 1;
+    const { warp } = encoded(q, kind);
+    const bare = lineDistanceCpu(q, 0, PITCH, 0, 0);
+    const mod = lineDistanceCpu(q, 0, PITCH, 0, 0, warp, { x: 0, y: 0 });
+    fringeWorst = Math.max(fringeWorst, Math.abs(bare - mod));
+  }
+}
+assert.ok(fringeChecked > 600, `too few level-set points reached, ${fringeChecked}`);
+assert.ok(fringeWorst < 1e-5 * PITCH, `light fringes are not the level sets, worst=${fringeWorst}`);
+console.log(
+  `  contouring: ${fringeChecked} points solved onto {D in Z}; ` +
+    `the two carriers coincide there to ${fringeWorst.toExponential(1)} world units`
+);
+
+// The phase identity the envelope rests on. Every family reports a signed
+// residual `r` and a local member gap `g` alongside its distance, and the claim
+// is that advancing the family's own phase by `u` periods is the same as sliding
+// the residual: `d(phase + u·s) == periodicDist(r − u·g, g)`. If that holds, one
+// solve yields the whole carrier sweep, and the envelope costs a pass rather than
+// a pass per sample.
+const SWEEP_US = [0.07, 0.23, 0.5, 0.61, 0.88];
+const PHASE_FAMILIES: {
+  label: string;
+  spacing: number;
+  at: (p: { x: number; y: number }, phase: number) => PhaseSample;
+}[] = [
+  {
+    label: 'lines',
+    spacing: 13,
+    at: (p, phase) => linePhaseCpu(p, 0.4, 13, phase, 0),
+  },
+  {
+    label: 'lines + field',
+    spacing: 13,
+    at: (p, phase) => {
+      const w = fieldWarpCpu(p, 1, 260);
+      const gain = 0.9 * 13;
+      return linePhaseCpu(p, 0.4, 13, phase, 0, w.f * gain, { x: w.gx * gain, y: w.gy * gain });
+    },
+  },
+  // The wave's `phase` is the sinusoid's own argument, not an index offset, so
+  // its carrier is advanced through the same channel a field uses.
+  { label: 'wave', spacing: 11, at: (p, shift) => curvePhaseCpu(p, 0, 11, 0.7, 9, 1.3, shift) },
+  { label: 'parabola', spacing: 15, at: (p, phase) => curvePhaseCpu(p, 1, 15, phase, 22) },
+  { label: 'spiral', spacing: 12, at: (p, phase) => curvePhaseCpu(p, 3, 12, phase, 48) },
+  {
+    label: 'circles centered',
+    spacing: 14,
+    at: (p, phase) => ringPhaseCpu(p, { x: 0, y: 0 }, 0, 14, phase, 1, 6, 0, 40),
+  },
+  {
+    label: 'circles translated',
+    spacing: 14,
+    at: (p, phase) => ringPhaseCpu(p, { x: 0.6, y: -0.3 }, 0, 14, phase, 1, 6, 0, 40),
+  },
+  {
+    label: 'hexagons rotated',
+    spacing: 16,
+    at: (p, phase) => ringPhaseCpu(p, { x: 0.4, y: 0.2 }, 0.02, 16, phase, 4, 6, 0, 40),
+  },
+  {
+    label: 'squares translated',
+    spacing: 18,
+    at: (p, phase) => ringPhaseCpu(p, { x: 1.1, y: 0.7 }, 0, 18, phase, 2, 4, 0, 40),
+  },
+];
+
+let sweepWorst = 0;
+let sweepDetail = '';
+let sweepChecked = 0;
+for (const family of PHASE_FAMILIES) {
+  for (let i = 0; i < 220; i++) {
+    const a = i * 0.9127;
+    const rad = 22 + (i % 22) * 13;
+    const p = { x: rad * Math.cos(a), y: rad * Math.sin(a) };
+    const base = family.at(p, 0);
+    const gap = phaseGap(base);
+    const baseD = phaseDistance(base);
+    // A saturated solve found no member inside the guard, so there is no residual
+    // to slide.
+    if (baseD > gap * 0.5 + 1e-3) continue;
+    // How much world residual one unit of phase buys. It is 1 for a bare family
+    // and `1/|∇ψ|` for a modulated one, and rather than hand each family its own
+    // constant, read it off a short step — which also catches a family reporting
+    // its residual and its members in different units.
+    const eps = 1e-4 * family.spacing;
+    const slope = (base.r - family.at(p, eps).r) / eps;
+    if (!(slope > 0.2) || !(slope < 5)) continue;
+    for (const u of SWEEP_US) {
+      const delta = u * (base.rUp - base.r);
+      const want = phaseDistance(family.at(p, delta / slope));
+      const got = phaseDistance(base, delta);
+      sweepChecked += 1;
+      const err = Math.abs(want - got);
+      if (err > sweepWorst) {
+        sweepWorst = err;
+        sweepDetail = `${family.label} u=${u} p=(${p.x.toFixed(1)},${p.y.toFixed(1)}) want=${want.toFixed(5)} got=${got.toFixed(5)}`;
+      }
+    }
+  }
+}
+assert.ok(sweepChecked > 6000, `too few phase probes admissible, ${sweepChecked}`);
+assert.ok(
+  sweepWorst < 1e-3,
+  `sliding the residual is not the same as advancing the phase: ${sweepDetail}`
+);
+
+// The phase at rest is the distance. Everything the renderer draws now goes
+// through `phaseDistance`, so if this drifts the ordinary view changes, and it has
+// to hold in the awkward places too: the hole inside a radial family, inside the
+// innermost ring, and inside the n = 1 hyperbola, where the member one pitch
+// further in does not exist to slide onto.
+let restWorst = 0;
+let restDetail = '';
+const REST_CASES: { label: string; d: () => number; p: () => PhaseSample }[] = [];
+for (let i = 0; i < 400; i++) {
+  const a = i * 0.7351;
+  const rad = (i % 40) * 4;
+  const p = { x: rad * Math.cos(a), y: rad * Math.sin(a) };
+  REST_CASES.push(
+    { label: 'lines', d: () => lineDistanceCpu(p, 0.3, 14, 3, 0), p: () => linePhaseCpu(p, 0.3, 14, 3, 0) },
+    { label: 'radial hole', d: () => radialLineDistanceCpu(p, 7, 40), p: () => radialLinePhaseCpu(p, 7, 40) },
+    { label: 'hyperbola', d: () => curveDistanceCpu(p, 2, 16, 0, 0), p: () => curvePhaseCpu(p, 2, 16, 0, 0) },
+    { label: 'spiral', d: () => curveDistanceCpu(p, 3, 12, 5, 48), p: () => curvePhaseCpu(p, 3, 12, 5, 48) },
+    { label: 'wave', d: () => curveDistanceCpu(p, 0, 11, 0.7, 9, 1.3), p: () => curvePhaseCpu(p, 0, 11, 0.7, 9, 1.3) },
+    {
+      label: 'rings start',
+      d: () => ringDistanceCpu(p, { x: 0, y: 0 }, 0, 14, 37, 1, 6, 0, 40),
+      p: () => ringPhaseCpu(p, { x: 0, y: 0 }, 0, 14, 37, 1, 6, 0, 40),
+    },
+    {
+      label: 'squares walking',
+      d: () => ringDistanceCpu(p, { x: 1.1, y: 0.7 }, 0, 18, 0, 2, 4, 0, 40),
+      p: () => ringPhaseCpu(p, { x: 1.1, y: 0.7 }, 0, 18, 0, 2, 4, 0, 40),
+    },
+    {
+      label: 'hexagons rotated',
+      d: () => ringDistanceCpu(p, { x: 0.4, y: 0.2 }, 0.02, 16, 0, 4, 6, 0, 40),
+      p: () => ringPhaseCpu(p, { x: 0.4, y: 0.2 }, 0.02, 16, 0, 4, 6, 0, 40),
+    }
+  );
+}
+for (const c of REST_CASES) {
+  const err = Math.abs(phaseDistance(c.p()) - c.d());
+  if (err > restWorst) {
+    restWorst = err;
+    restDetail = `${c.label} phase=${phaseDistance(c.p()).toFixed(5)} dist=${c.d().toFixed(5)}`;
+  }
+}
+assert.ok(restWorst < 1e-9, `the phase at rest is not the distance: ${restDetail}`);
+
+// And the residual really is the distance, on every family.
+let signWorst = 0;
+for (const family of PHASE_FAMILIES) {
+  for (let i = 0; i < 120; i++) {
+    const a = i * 1.7231;
+    const rad = 18 + (i % 19) * 17;
+    const p = { x: rad * Math.cos(a), y: rad * Math.sin(a) };
+    const s = family.at(p, 0);
+    const d = phaseDistance(s);
+    if (d > phaseGap(s) * 0.5 + 1e-3) continue;
+    signWorst = Math.max(signWorst, Math.abs(Math.abs(s.r) - d));
+  }
+}
+assert.ok(signWorst < 1e-9, `|r| is not d, worst=${signWorst}`);
+console.log(
+  `  phase: ${sweepChecked} probes across ${PHASE_FAMILIES.length} families; ` +
+    `sliding the residual matches a re-solve to ${sweepWorst.toExponential(1)} world units`
+);
+
+// Lattices have no scalar phase, so the envelope averages them by translation
+// instead. That is only an average over the carrier if the reported cell really is
+// a period of the lattice, in both generators and for edges and vertices alike.
+let cellWorst = 0;
+let cellDetail = '';
+for (const [kind, label] of [
+  [0, 'square'],
+  [1, 'hexagon'],
+  [2, 'triangle'],
+] as const) {
+  for (const [sx, sy] of [
+    [1, 1],
+    [1.7, 0.6],
+  ] as const) {
+    const cell = latticeCell(kind, 15, sx, sy);
+    for (let i = 0; i < 200; i++) {
+      const a = i * 0.9137;
+      const rad = (i % 23) * 6;
+      const p = { x: rad * Math.cos(a), y: rad * Math.sin(a) };
+      for (const wantVertex of [false, true]) {
+        const base = gridDistanceCpu(p, kind, 15, wantVertex, sx, sy);
+        for (const [dx, dy] of [
+          [cell.ax, cell.ay],
+          [cell.bx, cell.by],
+          [-cell.bx, -cell.by],
+          [cell.ax + cell.bx, cell.ay + cell.by],
+        ]) {
+          const moved = gridDistanceCpu(
+            { x: p.x + dx, y: p.y + dy },
+            kind,
+            15,
+            wantVertex,
+            sx,
+            sy
+          );
+          const err = Math.abs(moved - base);
+          if (err > cellWorst) {
+            cellWorst = err;
+            cellDetail = `${label} ${sx}x${sy} ${wantVertex ? 'vertex' : 'edge'} by (${dx.toFixed(2)}, ${dy.toFixed(2)}): ${base.toFixed(5)} vs ${moved.toFixed(5)}`;
+          }
+        }
+      }
+    }
+  }
+}
+assert.ok(cellWorst < 1e-4, `the lattice cell is not a period: ${cellDetail}`);
+console.log(`  lattice cell: a period of every grid to ${cellWorst.toExponential(1)} world units`);
 
 console.log('inverseCpu checks passed');

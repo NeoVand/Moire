@@ -34,9 +34,21 @@ Ring `n`: shape of radius `n * spacing + phase`, center `rotate(n * δ, n * θ)`
   - Spiral: Archimedean. Spacing is the arm gap. Starts `M = max(1, round(B / s))`, used pitch `M s` so the cut stays closed. `periodicDist(r − (M s / 2π) θ − phase, s)`. Pitch 0 is concentric.
 - Files: `src/gpu/inverseCpu.ts` and `src/gpu/inverse.wgsl.ts`. Tests: `node --experimental-strip-types src/gpu/inverseCpu.test.ts`.
 
+## Fields
+
+A field is a displacement of a layer's *index*: `shift` many members, wherever you stand. Every family spends it in its own currency — phase for the level-set families, a rotation for the radial fan, a translation along the first generator for lattices — so the fringes against an unmodulated twin are the level sets of the field.
+
+- `src/fields/expr.ts` parses `f(x, y)` to stack bytecode. Guards (`EXPR_EPS`), opcodes and limits live there and are shared, so no evaluator can drift on numbering or on where a singularity is clamped.
+- `src/fields/emit.ts` unrolls that bytecode into **straight-line code**: no loop, no dispatch, no stack, nothing passed in. It is backend-agnostic; `wgslBackend` ships and the JS backend in the test exists so the unrolling can be checked against the interpreter without a browser. Do not put an interpreter back in the shader — that was 50 ms a frame, and nearly as much for an *empty* program, because the call had to hand the program over first.
+- `src/fields/evalExpr.ts` is the CPU twin (dual numbers, forward-mode AD), used by the editor's preview and the paper's CPU mirror.
+- Chain rule: a term with an exactly-zero factor contributes nothing, even against an overflowed partial. `evalExpr.ts` does that in `term`; `emit.ts` folds the same zeros while generating code. A plain multiply gives `0 · ∞ = NaN` and poisons the gradient.
+- One generated `fn moireField{slot}` per layer that carries a field, so **a new expression is a new material**. `MoireRenderer` debounces that on `FIELD_SETTLE_MS` (220 ms) and holds the last frame across the build. Amount and extent are uniforms and never rebuild.
+- Tests: `node --experimental-strip-types src/fields/expr.test.ts`.
+
 ## Renderer
 
-- Fixed `MAX_LAYERS` (12) slots compiled once. Hide/delete writes `active = 0` into the same uniforms. Never allocate a new slot array on count change.
+- Fixed `MAX_LAYERS` (12) slots compiled once. Hide/delete writes `active = 0` into the same uniforms. Never allocate a new slot array on count change. A field expression is the one thing that does rebuild the material, and only after it settles.
+- Envelope view is the continuous-domain mean ink: one pass with `ENVELOPE_TAPS` taps sliding each family through exactly one of its own local periods. Level-set families slide their residual with `phaseDistWgsl` on the `(r, rUp, rDown, floor)` phase sample — no re-solve per tap. Lattices resample instead, advancing generator one by `u` and generator two by the golden ratio (a rank-1 rule); in lockstep a lattice beats against itself. Contrast expands about `nominalCoverage`, which must count a lattice's families or the pivot drives the frame black.
 - Stroke: `halfT = max(thickness/2, 1.15 * pixel)` so hairlines and small geometric gaps do not pepper at zoom-out. `pixel = 1/zoom`.
 - `devicePixelRatio` clamped to 2. Camera at `z = 1`, `near = 0.1`. `toneMapped = false`.
 - First paint waits on `compileAsync`. `MoireStage` shows a Jupiter “Compiling” mark until the first frame. The first load then eases two default concentric layers into the preset.
@@ -47,6 +59,7 @@ Ring `n`: shape of radius `n * spacing + phase`, center `rotate(n * δ, n * θ)`
 - PNG export is `exportPng()` in `src/gpu/capture.ts`. The stage registers `MoireRenderer.snapshot()`.
 - Frosted HUD: `--hud-bg` + `backdrop-filter`. Selected layer is a quiet ring, not an inverted overlay.
 - Every slider has a reset affordance next to its label when dirty. Defaults live in `LAYER_DEFAULTS`.
+- Envelope is a header icon toggle; its contrast lives in a popover on that icon, like the colour swatch. Fields are a calligraphic `f` on each layer row that opens the `FieldEditor` modal (presets, typed expression, live CPU preview of the level sets, amount, extent, reference). Active buttons are marked by fill and colour, never a ring. No `View` section, no field controls inline in the layer panel.
 - Switching a layer to lines, grid, or curves zeros `offset` and `rotationOffset`. Type changes ease on the GPU (~280 ms): one stroke, mixed distances. The store snaps to the target.
 
 ## Git

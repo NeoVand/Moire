@@ -40,11 +40,28 @@ function evalRing(p, n, offset, theta, spacing, phase, shape, sides) {
 }
 ```
 
-`shapeRadius` is the metric for that family: Euclidean length for circles, `max(|x|, |y|)` for squares, the regular-polygon radial metric for triangles and n-gons. Centered layers collapse to a `mod`. Circles with no translation stay on that path even with a rotation offset — spinning a radial metric is a no-op. Circles with a pure translation solve a quadratic. Squares with a translation have a closed L∞ form. Rotation on a polygon — or a translated polygon — needs Newton, plus a sweep of `n` over the range the orientation can actually occupy. Cap that range and whole sides vanish when you zoom out (the white holes). That sweep is the expensive path: each window is only as wide as it needs to be, and a pixel already inside the stroke stops looking. There is no `maxRings`.
+`shapeRadius` is the metric for that family: Euclidean length for circles, `max(|x|, |y|)` for squares, the regular-polygon radial metric for triangles and n-gons.
 
-The same functions exist twice, on purpose: TypeScript in `src/gpu/inverseCpu.ts` and WGSL in `src/gpu/inverse.wgsl.ts`. Three.js `wgslFn` only parses the first `fn` in a string, so each helper is its own include. Tests lock the twins: `node --experimental-strip-types src/gpu/inverseCpu.test.ts`.
+## Which ring?
 
-Stroke width is also a field test. `halfT = max(thickness / 2, 1.15 · pixel)` so a hairline stays a hairline at any zoom, instead of peppering into gaps. Twelve layer slots are compiled once; hide or delete writes `active = 0` into the same uniforms.
+`evalRing` answers one ring. The real question is *which* `n` is nearest, and that is where offsets used to cost you the frame. Guess `n ≈ |p| / spacing` and sweep a fixed number of neighbours, and you are wrong twice: the true nearest ring can be dozens of indices away, and you pay the full sweep at every pixel anyway. Wrong in a specific, ugly way — the pixels that miss form arcs, so whole sides of whole rings go white when you zoom out.
+
+Every one of those metrics is a **support function**, `shapeRadius(q) = max_k q·n_k` over the shape's outward normals, and that single fact hands you the four constants the problem needs:
+
+- **1-Lipschitz**, so the residual `h(n) = shapeRadius(qₙ) − (n·s + φ)` can only change by `Λ = s + |δ| + |θ|·|p|` per index. From a sample `v` away, a whole run of `(v − best)/Λ` indices is provably not the answer — sphere tracing, in index space.
+- **`shapeRadius(q) ≥ κ·|q|` with `κ = cos(π/N)` exactly**, which bounds how far a rotation can fan the nearest index away from `|p| / spacing`.
+- **Subadditive**, so a ring's boundary outruns its own radius at exactly `m = shapeRadius(−δ)` per index — not `|δ|`. For a triangle that is a factor of two, and the loose version declares whole bands of ordinary settings unsolvable.
+- **A max of linear forms**, so with `θ = 0` the residual is convex and piecewise linear in `n`: one segment per facet. The crossing is a linear solve on one facet, for any side count. When `m == s` that segment goes *flat* — every far ring is equally close — and no sweep of any length can find it. One comparison can.
+
+Together the first three give a closed interval `[nLo, nHi]` that provably contains every ring passing within half a stroke of the pixel, so the minimum over the interval *is* the answer. Notably `θ` does not appear in it: rotation destroys the closed form but does not widen the search. The scan then skips most of the interval, carries `cos`/`sin` and the offset incrementally instead of recomputing them, and calls no transcendental in the loop at all.
+
+Net effect: rotation and translation offsets are 10–40× cheaper on the GPU than the sweep they replaced, and agree with brute force pixel-for-pixel. Drag them freely. `paper/` has the write-up, the proofs, and the experiments.
+
+Dispatch is cheapest-sufficient: centered layers collapse to a `mod`; circles ignore `θ` when `δ = 0`, since spinning a radial metric is a no-op; translated circles solve a quadratic; translated polygons take the closed form; everything else takes the bounded scan. There is no `maxRings`.
+
+The same functions exist twice, on purpose: TypeScript in `src/gpu/inverseCpu.ts` and WGSL in `src/gpu/inverse.wgsl.ts`. Three.js `wgslFn` only parses the first `fn` in a string, so each helper is its own include. Tests lock the twins against brute force, including the marginal drift: `node --experimental-strip-types src/gpu/inverseCpu.test.ts`.
+
+Stroke width is also a field test. `halfT = max(thickness / 2, 1.15 · pixel)` so a hairline stays a hairline at any zoom, instead of peppering into gaps. It doubles as the solver's guard: any distance past it renders identically, which is what makes the interval finite. Twelve layer slots are compiled once; hide or delete writes `active = 0` into the same uniforms.
 
 ## Patterns
 
@@ -79,6 +96,10 @@ npm run dev
 Open `http://localhost:5173`. `npm run build` writes `dist/`.
 
 Needs a browser with [WebGPU](https://gpuweb.github.io/gpuweb/). Inverse math is kept as CPU and WGSL twins; run `node --experimental-strip-types src/gpu/inverseCpu.test.ts`.
+
+## Paper
+
+`paper/` holds a write-up of the ring-inversion method — the support-function bound, the index interval, the Lipschitz skip, the closed form for translated polygons — with every figure and number generated from this repository. `paper/README.md` has the build and reproduction steps. Nothing in `paper/` is imported by the app.
 
 ## License
 

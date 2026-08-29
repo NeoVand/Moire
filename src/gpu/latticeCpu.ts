@@ -151,3 +151,35 @@ export function gridDistanceCpu(
   const hits = latticeHits(p, kind, spacing, scaleX, scaleY);
   return wantVertex ? hits.vertex : hits.edge;
 }
+
+/**
+ * The two translations a lattice is invariant under, in world units.
+ *
+ * The other families here are level sets of a scalar phase, so the envelope can
+ * average over the carrier by sliding a residual — one solve, no resampling. A
+ * lattice has no such scalar: its members are indexed by a pair of integers, and
+ * a honeycomb in particular is not a union of line families at all, so advancing
+ * a "phase" would shrink every cell towards its own centre rather than slide the
+ * pattern. What a lattice does have is this translation group, so the envelope
+ * averages a lattice layer over its own unit cell instead. Lattice distance is a
+ * closed-form cell lookup, so resampling it per tap is affordable in a way that
+ * resampling the ring solver is not.
+ */
+export function latticeCell(
+  kind: number,
+  spacing: number,
+  scaleX = 1,
+  scaleY = 1
+): { ax: number; ay: number; bx: number; by: number } {
+  const s = Math.max(spacing, 1e-4);
+  const sx = clampScale(scaleX);
+  const sy = clampScale(scaleY);
+  const k = Math.round(kind);
+  if (k <= 0) return { ax: s * sx, ay: 0, bx: 0, by: s * sy };
+  // Honeycomb cell centres sit on a triangular lattice of pitch √3·s.
+  if (k === 1) {
+    const h = s * SQRT3;
+    return { ax: h * sx, ay: 0, bx: h * 0.5 * sx, by: 1.5 * s * sy };
+  }
+  return { ax: s * sx, ay: 0, bx: 0.5 * s * sx, by: s * HEX_Y * sy };
+}
