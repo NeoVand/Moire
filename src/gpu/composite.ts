@@ -426,18 +426,28 @@ export function buildColorNode(
     // survives the average changes, and it should be the one the eye sees.
     const flipB = etaSum.lessThan(etaDiff);
 
-    // A lattice joins the sweep by translation, one generator's step per unit of
-    // u — but which generator, and stepped which way? Wrong either way and the
-    // beat its lines make with the rest of the stack averages out while the
-    // lattice's own carrier washes clean: fringes that are plainly in the
-    // pattern vanish from its envelope. The beating system is a per-pixel fact
-    // (a ring family's counting direction rotates around its centre), so it is
-    // chosen per pixel: each generator's continuous index is linear in the
-    // layer point, its screen gradient is exact, and whichever generator —
-    // stepped forward or backward — best matches the ranked partner's index
-    // gradient is the one that rides u coherently. The other generator is
-    // scrambled by the golden ratio, which keeps the lattice from beating with
-    // itself: the self-hatch would need both generators coherent at once.
+    // A lattice joins the sweep by translation — but along what, and stepped
+    // which way? Wrong either way and the beat its lines make with the rest of
+    // the stack averages out while the lattice's own carrier washes clean:
+    // fringes that are plainly in the pattern vanish from its envelope. The
+    // beating system is a per-pixel fact (a ring family's counting direction
+    // rotates around its centre, taking turns against each lattice direction),
+    // so it is chosen per pixel among the lattice's four beat-capable index
+    // combinations — each generator alone, their sum, and their difference,
+    // which for a hex or triangle lattice is where the third row direction
+    // lives. Each combination's continuous index is linear in the layer point,
+    // so its screen gradient is exact; whichever combination, stepped forward
+    // or backward, best matches the ranked partner's index gradient is held
+    // coherent by the tap schedule below, and everything else is golden-ratio
+    // scrambled so the lattice never beats with itself: any self-hatch would
+    // need two combinations coherent at once, which no schedule provides.
+    //
+    // The schedules, as (generator-1, generator-2) offsets with g the golden
+    // scramble and su the signed sweep:
+    //   gen1  (su, g)        — index 1 coherent, 2 scrambled
+    //   gen2  (g, su)        — index 2 coherent, 1 scrambled
+    //   sum   (g, su - g)    — indices 1, 2 each pure noise; 1+2 rides su
+    //   diff  (g, g - su)    — likewise, 1-2 rides su
     const latCoh = solved.map(({ cell, local }) => {
       // step keeps the guard non-zero at d = 0 (a non-lattice slot's empty
       // cell), where sign() would return 0 and divide by zero.
@@ -450,15 +460,22 @@ export function buildColorNode(
       const xi2 = local.dot(b2);
       const g1 = vec2(dFdx(xi1), dFdy(xi1));
       const g2 = vec2(dFdx(xi2), dFdy(xi2));
-      const e1p = length(g1.sub(gradA));
-      const e1m = length(g1.add(gradA));
-      const e2p = length(g2.sub(gradA));
-      const e2m = length(g2.add(gradA));
-      // step(a, b) = 1 where b >= a, so each pick keeps the smaller error.
-      const s1 = step(e1p, e1m).mul(2).sub(1);
-      const s2 = step(e2p, e2m).mul(2).sub(1);
-      const genOne = step(min(e1p, e1m), min(e2p, e2m));
-      return { sign: mix(s2, s1, genOne), genOne };
+      const cand = [g1, g2, g1.add(g2), g1.sub(g2)];
+      const best = float(1e6).toVar();
+      const sign = float(1).toVar();
+      const mode = float(0).toVar();
+      cand.forEach((g, k) => {
+        const ep = length(g.sub(gradA));
+        const em = length(g.add(gradA));
+        const e = min(ep, em);
+        If(e.lessThan(best), () => {
+          best.assign(e);
+          // step(a, b) = 1 where b >= a: forward when its error is not larger.
+          sign.assign(step(ep, em).mul(2).sub(1));
+          mode.assign(k);
+        });
+      });
+      return { sign, mode };
     });
 
     const sum = vec3(0).toVar();
@@ -488,9 +505,19 @@ export function buildColorNode(
             // A lattice has no scalar phase to slide, so it resamples: each
             // generator is a translation, and stepping along one is exactly one step
             // of the index it counts. The field rides in on the first of them.
-            const coh = u.mul(latCoh[index].sign);
-            const uLat = mix(v, coh, latCoh[index].genOne);
-            const vLat = mix(coh, v, latCoh[index].genOne);
+            // The chosen combination's schedule, from the table above: one-hot
+            // masks over {gen1, gen2, sum, diff}.
+            const su = u.mul(latCoh[index].sign);
+            const mode = latCoh[index].mode;
+            const isK = (k) => float(1).sub(min(mode.sub(k).abs(), 1));
+            const w1 = isK(0);
+            const w2 = isK(1);
+            const w3 = isK(2);
+            const w4 = isK(3);
+            const uLat = su.mul(w1).add(v.mul(float(1).sub(w1)));
+            const vLat = su
+              .mul(w2.add(w3).sub(w4))
+              .add(v.mul(w1.add(w4).sub(w3)));
             const shifted = local.sub(cell.xy.mul(uLat.add(shift))).sub(cell.zw.mul(vLat));
             // Both lookups sit behind what asks for them: a lattice resample is the
             // most expensive thing a tap can do, and the sweep does it two dozen

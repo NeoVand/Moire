@@ -65,6 +65,24 @@ function ratioPair(layers: PatternLayer[]): [number, number] | null {
 }
 
 /**
+ * The envelope's ranked pair, unlike the ratio view's, falls back to the topmost
+ * eligible layer alone. The lattice sweep orients itself against the ranked
+ * partner's index gradient, and a lattice's most common companion is a single
+ * scalar family — with no fallback that gradient is the zero vector and the
+ * orientation choice degrades to noise. A == B costs nothing else: eta collapses
+ * to zero, which only quiets the optional regime mask, and the sum-flip stays
+ * off, which is right for a family against itself.
+ */
+function envelopePair(layers: PatternLayer[]): [number, number] | null {
+  const pair = ratioPair(layers);
+  if (pair) return pair;
+  for (let i = Math.min(layers.length, MAX_LAYERS) - 1; i >= 0; i--) {
+    if (layers[i].visible && !isGrid(layers[i].type)) return [i, i];
+  }
+  return null;
+}
+
+/**
  * How long an expression has to stand still before it becomes a shader.
  *
  * Field expressions are compiled into the material, so each new one is a pipeline
@@ -310,7 +328,7 @@ export class MoireRenderer {
     // The regime mask and the orientation-aware sweep both read the same ranked
     // pair the ratio view compares, so an enveloped stack keeps those uniforms
     // warm even with the ratio view off.
-    const maskPair = envelope ? ratioPair(state.layers) : null;
+    const maskPair = envelope ? envelopePair(state.layers) : null;
     this.viewUniforms.taps.value = envelope
       ? Math.max(2, Math.round(state.view.envelopeTaps))
       : 1;
