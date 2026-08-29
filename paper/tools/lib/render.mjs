@@ -39,6 +39,36 @@ function worldOf(v, x, y, ss) {
 }
 
 /**
+ * The GPU envelope's sweep for a solver-backed layer, mirrored on the CPU: one
+ * solve per pixel yields the winning member and both neighbours (the
+ * `ringPhaseCpu` trio), and each tap slides that residual by u of the *measured*
+ * local gap, exactly `phaseDistWgsl`. Re-solving with the phase advanced by
+ * u*spacing -- the old `distAt` sweep -- is wrong for a walking family: one
+ * period of solver phase advances the local index by 1/(1 + drift/gap), so the
+ * sweep covers a non-integer number of carrier cycles and the carrier survives
+ * the average as a drift-proportional ripple.
+ */
+function phaseSampler(L) {
+  let kx = NaN;
+  let ky = NaN;
+  let ph = null;
+  return (p) => {
+    if (p.x !== kx || p.y !== ky) {
+      kx = p.x;
+      ky = p.y;
+      ph = L.phaseAt(p);
+    }
+    return ph;
+  };
+}
+
+const trioDist = (ph, d) =>
+  Math.max(
+    Math.min(Math.abs(ph.r - d), Math.abs(ph.rUp - d), Math.abs(ph.rDown - d)),
+    ph.floor
+  );
+
+/**
  * Resolve layer configs once. Each entry is `{ ...familyCfg, thickness, color,
  * opacity, useGrad }`; `useGrad = false` reproduces the shipped shader for the
  * families that omit the gradient divide.
@@ -49,24 +79,35 @@ function worldOf(v, x, y, ss) {
 function build(layers, taps = 0) {
   return layers.map((L) => {
     const spacing = L.spacing ?? 20;
+    // `phaseAt` is the preferred hook for a solver-backed layer: (p) => the
+    // solver's {r, rUp, rDown, floor} trio, swept by sliding the residual within
+    // the measured local gap (see phaseSampler above). The one-point memo makes
+    // the whole sweep cost a single solve per pixel.
+    const sample = L.phaseAt ? phaseSampler(L) : null;
     return {
       // `dist` lets a caller substitute a distance the field library cannot supply
-      // -- the walking solver, say -- without duplicating the composite. `distAt`
-      // is its phase-advanced form, (p, halfT, aa, u) with u in periods, so a
-      // solver-backed layer can join the envelope's sweep: advancing the walking
-      // family's phase by u*spacing advances every member by u, exactly as
-      // phaseShift does for the closed forms.
-      fam: L.dist ? null : family(L),
+      // without duplicating the composite. `distAt`, its phase-advanced form
+      // (p, halfT, aa, u), survives for layers that genuinely repeat under a
+      // phase advance; a walking family does not -- give it `phaseAt` instead.
+      fam: L.dist || sample ? null : family(L),
       swept:
         taps <= 0
           ? null
-          : L.distAt
+          : sample
             ? Array.from({ length: taps }, (_, k) => ({
-                dist: (p, halfT, aa) => L.distAt(p, halfT, aa, k / taps),
+                dist: (p) => {
+                  const ph = sample(p);
+                  const gap = Math.max(Math.abs(ph.rUp - ph.r), 1e-6);
+                  return trioDist(ph, (k / taps) * gap);
+                },
               }))
-            : L.dist
-              ? null
-              : L.kind === 'radial'
+            : L.distAt
+              ? Array.from({ length: taps }, (_, k) => ({
+                  dist: (p, halfT, aa) => L.distAt(p, halfT, aa, k / taps),
+                }))
+              : L.dist
+                ? null
+                : L.kind === 'radial'
                 ? // A radial pencil spends the advancing index as a rotation:
                   // one index period is one line gap, 180/N degrees.
                   Array.from({ length: taps }, (_, k) =>
@@ -79,7 +120,13 @@ function build(layers, taps = 0) {
                 : Array.from({ length: taps }, (_, k) =>
                     family({ ...L, phaseShift: (L.phaseShift ?? 0) + (k / taps) * spacing })
                   ),
-      dist: L.dist ?? (L.distAt ? (p, halfT, aa) => L.distAt(p, halfT, aa, 0) : null),
+      dist:
+        L.dist ??
+        (sample
+          ? (p) => trioDist(sample(p), 0)
+          : L.distAt
+            ? (p, halfT, aa) => L.distAt(p, halfT, aa, 0)
+            : null),
       thickness: L.thickness ?? 1.8,
       color: hexToRgb(L.color ?? '#000000'),
       opacity: L.opacity ?? 1,

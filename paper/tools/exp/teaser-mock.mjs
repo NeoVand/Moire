@@ -22,22 +22,26 @@ const SIZE = 480;
 
 const solver = await loadSolver('final');
 
+// The envelope sweeps the solver's {r, rUp, rDown} trio through the measured
+// local gap (phaseAt), not the solver phase through u*spacing: a walking
+// family's phase period is not a local carrier period, and the old sweep left
+// a drift-proportional carrier ripple in every envelope half.
 function walking({ offset, theta = 0, spacing, phase = 0, shape = 'circle', sides = 6, position = { x: 0, y: 0 } }) {
   return {
     thickness: T,
     color: INK,
     spacing,
-    distAt: (p, halfT, aa, u) =>
-      solver.ringDistance(
+    phaseAt: (p) =>
+      solver.ringPhase(
         { x: p.x - position.x, y: p.y - position.y },
         offset,
         theta,
         spacing,
-        phase + u * spacing,
+        phase,
         SHAPE_CODE[shape],
         sides,
-        Math.max(halfT - aa, 0),
-        halfT + aa
+        0,
+        spacing * 2
       ),
   };
 }

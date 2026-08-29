@@ -69,6 +69,9 @@ export async function loadSolver(name, patches = [], label = name) {
     mod,
     COUNT: mod.COUNT,
     ringDistance: mod.ringDistanceCpu,
+    /** The {r, rUp, rDown, floor} trio, for the envelope's residual sweep. Only
+     * the shipping solver exports it; ablations predate the phase view. */
+    ringPhase: mod.ringPhaseCpu ?? null,
     /** B0 predates the reject-above guard, so it simply ignores the extra argument. */
     accepts: { reject: mod.ringDistanceCpu.length >= 9 },
   };

@@ -26,24 +26,27 @@ const TAPS = 16;
 
 const solver = await loadSolver('final');
 
-/** A walking layer the composite and the envelope can both drive: re-solved per
- * tap with the phase advanced by u periods. */
+/** A walking layer the composite and the envelope can both drive. The envelope
+ * sweeps the solver's {r, rUp, rDown} trio through the measured local gap
+ * (phaseAt), mirroring the GPU: advancing the solver phase by u*spacing is not
+ * a local carrier period for a walking family, and sweeping it that way leaves
+ * a drift-proportional carrier ripple in the average. */
 function walking({ offset, theta = 0, spacing, phase = 0, shape = 'circle', sides = 6, position = { x: 0, y: 0 } }) {
   return {
     thickness: T,
     color: INK,
     spacing,
-    distAt: (p, halfT, aa, u) =>
-      solver.ringDistance(
+    phaseAt: (p) =>
+      solver.ringPhase(
         { x: p.x - position.x, y: p.y - position.y },
         offset,
         theta,
         spacing,
-        phase + u * spacing,
+        phase,
         SHAPE_CODE[shape],
         sides,
-        Math.max(halfT - aa, 0),
-        halfT + aa
+        0,
+        spacing * 2
       ),
   };
 }
