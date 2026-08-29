@@ -100,6 +100,38 @@ function ShapeChip({
  * any zoom. Contrast lives behind the icon the way a colour lives behind its
  * swatch, so the header stays one row of icons.
  */
+function ToggleRow({
+  label,
+  info,
+  on,
+  onToggle,
+}: {
+  label: string;
+  info: string;
+  on: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <span className="flex items-center gap-1 text-[11px] text-[var(--text-secondary)]">
+        {label}
+        <InfoTip text={info} label={label} />
+      </span>
+      <button
+        type="button"
+        className={`quiet-edit rounded-md px-2 py-0.5 text-[11px] ${
+          on
+            ? 'text-[var(--text-primary)] ring-1 ring-inset ring-[color-mix(in_srgb,var(--text-primary)_40%,transparent)]'
+            : 'text-[var(--text-muted)]'
+        }`}
+        onClick={onToggle}
+      >
+        {on ? 'On' : 'Off'}
+      </button>
+    </div>
+  );
+}
+
 function EnvelopeControl() {
   const envelope = useProjectStore((s) => s.view.envelope);
   const view = useProjectStore((s) => s.view);
@@ -132,7 +164,15 @@ function EnvelopeControl() {
           mark={<Icon icon={AudioWave02Icon} size={14} />}
           title="Envelope"
         >
-          <div className={`grid gap-3 ${view.ratio ? 'pointer-events-none opacity-40' : ''}`}>
+          <div className="mb-3 grid gap-3">
+            <ToggleRow
+              label="Envelope"
+              info="The stack averaged over its own phase — the fringe field with the carrier removed. Nothing is blurred; the average is over phase, not space."
+              on={envelope}
+              onToggle={() => setView({ envelope: !envelope })}
+            />
+          </div>
+          <div className={`grid gap-3 ${envelope ? '' : 'pointer-events-none opacity-40'}`}>
             <Slider
               label="Contrast"
               value={view.envelopeContrast}
@@ -186,26 +226,12 @@ function EnvelopeControl() {
             />
           </div>
           <div className="mt-3 grid gap-3 border-t border-[var(--border)] pt-2.5">
-            <div className="flex items-center justify-between gap-3">
-              <span className="flex items-center gap-1 text-[11px] text-[var(--text-secondary)]">
-                Fringe ratio
-                <InfoTip
-                  text="A map of where fringes can exist: dark where the two topmost layers' carriers are close enough to beat, light where they are too different to interfere. Check it before committing to parameters."
-                  label="Fringe ratio"
-                />
-              </span>
-              <button
-                type="button"
-                className={`quiet-edit rounded-md px-2 py-0.5 text-[11px] ${
-                  view.ratio
-                    ? 'text-[var(--text-primary)] ring-1 ring-inset ring-[color-mix(in_srgb,var(--text-primary)_40%,transparent)]'
-                    : 'text-[var(--text-muted)]'
-                }`}
-                onClick={() => setView({ ratio: !view.ratio })}
-              >
-                {view.ratio ? 'On' : 'Off'}
-              </button>
-            </div>
+            <ToggleRow
+              label="Fringe ratio"
+              info="A map of where fringes can exist: dark where the two topmost layers' carriers are close enough to beat, light where they are too different to interfere. Check it before committing to parameters."
+              on={view.ratio}
+              onToggle={() => setView({ ratio: !view.ratio })}
+            />
             {view.ratio && (
               <>
                 <Slider
