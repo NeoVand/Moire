@@ -54,12 +54,12 @@ const SCENES = [
   {
     id: 1,
     name: 'rings',
-    note: 'circles about two centres: hyperbolae, and ellipses where the sum beat wins',
+    note: 'circles about two centres, tighter carrier: hyperbolae and ellipses',
     layers: [
-      L({ kind: 'concentric', shape: 'circle', spacing: 8, position: { x: -72, y: 0 } }),
-      L({ kind: 'concentric', shape: 'circle', spacing: 8, position: { x: 72, y: 0 } }),
+      L({ kind: 'concentric', shape: 'circle', spacing: 5.5, position: { x: -72, y: 0 } }),
+      L({ kind: 'concentric', shape: 'circle', spacing: 5.5, position: { x: 72, y: 0 } }),
     ],
-    contrast: 4,
+    contrast: 4.5,
   },
   {
     id: 2,
@@ -192,22 +192,22 @@ const SCENES = [
   {
     id: 15,
     name: 'triangle-star',
-    note: 'concentric triangles, detuned and turned',
+    note: 'concentric triangles, tighter carrier, detuned and turned',
     layers: [
-      L({ kind: 'concentric', shape: 'triangle', spacing: 8 }),
-      L({ kind: 'concentric', shape: 'triangle', spacing: 8.6, rotation: 6 }),
+      L({ kind: 'concentric', shape: 'triangle', spacing: 5 }),
+      L({ kind: 'concentric', shape: 'triangle', spacing: 5.4, rotation: 6 }),
     ],
-    contrast: 4,
+    contrast: 4.4,
   },
   {
     id: 16,
-    name: 'ripple',
-    note: 'a chosen field: the bullseye, cos(tau r)',
+    name: 'terrain',
+    note: 'a chosen field: band-limited terrain on one of two identical line families',
     layers: [
-      L({ kind: 'parallel', spacing: 5, angle: 0.35 }),
-      L({ kind: 'parallel', spacing: 5, angle: 0.35, field: 'ripple', fieldAmount: 2.4, fieldScale: 150 }),
+      L({ kind: 'parallel', spacing: 5, angle: 0, thickness: 3, field: 'terrain', fieldAmount: 6, fieldScale: 300 }),
+      L({ kind: 'parallel', spacing: 5, angle: 0, thickness: 3 }),
     ],
-    contrast: 3.6,
+    contrast: 3.8,
   },
 ];
 
