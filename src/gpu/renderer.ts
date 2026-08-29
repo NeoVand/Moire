@@ -307,10 +307,10 @@ export class MoireRenderer {
     // so the flag stays down and the ordinary composite shows through.
     const pair = state.view.ratio ? ratioPair(state.layers) : null;
     const envelope = state.view.envelope && !pair;
-    // The regime mask reads the same ranked pair the ratio view compares, so an
-    // enveloped stack keeps those uniforms warm even with the ratio view off.
-    const maskPair =
-      envelope && state.view.envelopeMask > 0 ? ratioPair(state.layers) : null;
+    // The regime mask and the orientation-aware sweep both read the same ranked
+    // pair the ratio view compares, so an enveloped stack keeps those uniforms
+    // warm even with the ratio view off.
+    const maskPair = envelope ? ratioPair(state.layers) : null;
     this.viewUniforms.taps.value = envelope
       ? Math.max(2, Math.round(state.view.envelopeTaps))
       : 1;

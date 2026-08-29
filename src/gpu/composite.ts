@@ -387,6 +387,44 @@ export function buildColorNode(
       return { slot, local, halfT, aa, isLattice, cell, shift, phase, phaseFrom };
     });
 
+    // The heterodyne ratio of the two ranked layers, computed before the sweep
+    // because the sweep needs it. eta = |grad D| / |mean index gradient|, D the
+    // difference of continuous indices; eta << 1 is the fringe regime and past
+    // 1/4 no fringe forms. A family's index sign is a convention -- relabel its
+    // members n -> -n and the layer is unchanged -- so the beat lives in
+    // whichever of phi1 - phi2 and phi1 + phi2 is the slower: the classical
+    // difference and sum moires. The criterion is the minimum of the two.
+    const xiA = float(0).toVar();
+    const xiB = float(0).toVar();
+    solved.forEach(({ phase }, index) => {
+      // Continuous index, modulo its integer part: signed residual over the
+      // local member gap, oriented at the neighbour with the smaller residual so
+      // the index counts the same way whichever family produced the trio.
+      const toward = min(phase.y, phase.z);
+      const xi = phase.x.div(max(phase.x.sub(toward), float(1e-6)));
+      If(view.ratioA.equal(int(index)), () => xiA.assign(xi));
+      If(view.ratioB.equal(int(index)), () => xiB.assign(xi));
+    });
+    // Screen-space index gradients. xi wraps by one whole unit where the nearest
+    // member changes; rounding the per-pixel delta away unwraps every unit
+    // boundary, sound while the carrier spans a couple of pixels. What survives
+    // the unwrap, the clamp turns into bright lines rather than garbage.
+    const unwrap = (v) => v.sub(round(v));
+    const gradA = vec2(unwrap(dFdx(xiA)), unwrap(dFdy(xiA)));
+    const gradB = vec2(unwrap(dFdx(xiB)), unwrap(dFdy(xiB)));
+    const gd = gradA.sub(gradB);
+    const gs = gradA.add(gradB);
+    const etaDiff = length(gd).div(max(length(gs).mul(0.5), float(1e-6)));
+    const etaSum = length(gs).div(max(length(gd).mul(0.5), float(1e-6)));
+    const eta = min(etaDiff, etaSum).clamp(0, 1);
+    // Where the sum beat is the slower one, the envelope's diagonal sweep would
+    // average it away -- advancing both phases together holds phi1 - phi2 fixed
+    // and washes phi1 + phi2 out. Sweeping the second layer backwards there
+    // holds the sum fixed instead. Either direction covers the same period of
+    // that family, so each layer's own average is untouched; only which beat
+    // survives the average changes, and it should be the one the eye sees.
+    const flipB = etaSum.lessThan(etaDiff);
+
     const sum = vec3(0).toVar();
     Loop(view.taps, ({ i }) => {
       // Centred on zero so that a single tap is the pattern itself, and so that
@@ -404,8 +442,12 @@ export function buildColorNode(
       const v = float(i).mul(GOLDEN).fract().sub(0.5).mul(view.sweep);
 
       const color = camera.background.toVar();
-      for (const { slot, local, halfT, aa, isLattice, cell, shift, phase, phaseFrom } of solved) {
+      solved.forEach(({ slot, local, halfT, aa, isLattice, cell, shift, phase, phaseFrom }, index) => {
         If(slot.active.greaterThan(0.5), () => {
+          // The ranked second layer sweeps backwards where the sum beat is the
+          // slower one; everything else rides the diagonal.
+          const sign = float(1).toVar();
+          If(view.ratioB.equal(int(index)).and(flipB), () => sign.assign(-1));
           const strokeAlpha = (d) =>
             float(1).sub(smoothstep(halfT.sub(aa), halfT.add(aa), d)).mul(slot.opacity);
 
@@ -451,7 +493,7 @@ export function buildColorNode(
             // carrier cycle whatever the family's pitch happens to be here.
             const slide = (ph) => {
               const gap = max(ph.y.sub(ph.x).abs(), float(1e-6));
-              return phaseDistWgsl(ph, u.mul(gap));
+              return phaseDistWgsl(ph, u.mul(sign).mul(gap));
             };
             If(slot.morph.greaterThan(0.999), () => {
               alpha.assign(strokeAlpha(slide(phase)));
@@ -463,43 +505,9 @@ export function buildColorNode(
           });
           color.assign(mix(color, slot.color, alpha.clamp(0, 1)));
         });
-      }
+      });
       sum.addAssign(color);
     });
-
-    // The heterodyne ratio, eta = |grad D| / |mean index gradient|, D the
-    // difference of the two chosen layers' continuous indices. eta << 1 is the
-    // fringe regime — the index difference is nearly constant over a carrier
-    // period, so a fringe forms — and past 1/4 the carriers are too different to
-    // interfere. The pair is ranked on the CPU; lattices index by a pair of
-    // integers and so have no scalar index to difference.
-    const xiA = float(0).toVar();
-    const xiB = float(0).toVar();
-    solved.forEach(({ phase }, index) => {
-      // Continuous index, modulo its integer part: signed residual over the local
-      // member gap. Every solver measures a residual as phase-at-p minus member,
-      // so the neighbour with the smaller residual is always the next member up
-      // in index — orienting the gap at that neighbour keeps the index counting
-      // the same way whichever family produced the trio.
-      const toward = min(phase.y, phase.z);
-      const xi = phase.x.div(max(phase.x.sub(toward), float(1e-6)));
-      If(view.ratioA.equal(int(index)), () => xiA.assign(xi));
-      If(view.ratioB.equal(int(index)), () => xiB.assign(xi));
-    });
-
-    // Screen-space index gradients. xi wraps by one whole unit where the nearest
-    // member changes, so the integer part of a per-pixel delta is the wrap, not
-    // the index moving: rounding it away unwraps every unit boundary — sound as
-    // long as the carrier spans a couple of pixels, which is also when the render
-    // itself resolves it. What survives — neighbour substitutions, saturated
-    // solves, one-sided families — the clamp turns into bright lines rather than
-    // garbage.
-    const unwrap = (v) => v.sub(round(v));
-    const gradA = vec2(unwrap(dFdx(xiA)), unwrap(dFdy(xiA)));
-    const gradB = vec2(unwrap(dFdx(xiB)), unwrap(dFdy(xiB)));
-    const eta = length(gradA.sub(gradB))
-      .div(max(length(gradA.add(gradB)).mul(0.5), float(1e-6)))
-      .clamp(0, 1);
 
     // Ink for the fringe regime, paper for failure, with a soft step at the 1/4
     // threshold so the boundary reads without a legend.

@@ -260,6 +260,14 @@ of it, so a handful of taps carry the answer and the rest carry noise. Sixty-fou
 of them left the carrier standing and the fringes mottled. The diagonal's fiction
 is what makes it exact.
 
+The diagonal also inherits the sign convention of \S\ref{sec:visibility}:
+advancing every index together preserves $\idx_1-\idx_2$ and averages
+$\idx_1+\idx_2$ away, so a sum moir\'e --- bold in the render wherever the two
+index gradients anti-align --- would vanish from the view. Where the sum beat is
+the slower of the two, the Studio sweeps the second family backwards instead,
+which preserves it; either direction covers the same period of that family, so
+nothing else about the average changes.
+
 \paragraph{One solve, many taps.}
 The cost, done naively, is $M$ full evaluations of every layer --- and for a
 walking family one evaluation is the search of \S\ref{sec:inverse}, so $\envTaps$
@@ -323,9 +331,14 @@ $D$ changes by $\het$ across one carrier period, so $\het\ll1$ is exactly the
 condition that a fringe be large compared with the carrier. It is the field-space
 form of the classical requirement that the two frequencies be close --- and it is a
 \emph{field}, so it varies over the frame, and it can be drawn
-(Figure~\ref{fig:visibility}). The Studio draws it live, as a view toggled beside
-the envelope, so an author sees where a fringe will form before committing to the
-parameters.
+(Figure~\ref{fig:visibility}). One convention hides in \eqref{eq:ratio}: a
+family's index sign is arbitrary --- relabel its members $n\to-n$ and the layer
+is unchanged --- so the operative criterion is the smaller of the ratios for
+$\idx_1-\idx_2$ and for $\idx_1+\idx_2$, the classical difference and sum
+moir\'es~\cite{Oster1964, Amidror2009Theory}. Where the two gradients anti-align
+the difference ratio diverges while a bold sum fringe stands in plain sight.
+The Studio draws the minimum live, as a view toggled beside the envelope, so an
+author sees where a fringe will form before committing to the parameters.
 
 \begin{figure*}[t]
   \centering
@@ -376,7 +389,10 @@ compare it against $\Phi$ evaluated at the window centre. There is no fitting an
 parameter. Points are excluded on three stated grounds: strokes merged
 ($w_i+b_i>0.45$, so no gaps remain to beat), carrier bending more than $0.15$\,rad
 across its own period, and gradient varying more than $15\%$ across a period, which
-is the eikonal condition of Section~\ref{sec:eikonal}.
+is the eikonal condition of Section~\ref{sec:eikonal}. The regime filter uses the
+difference ratio alone, which is conservative: points where only the sum beat of
+\S\ref{sec:visibility} is slow are excluded rather than tested, and extending the
+verification to the relabeled convention is left open.
 
 \input{tab-fringe}
 
