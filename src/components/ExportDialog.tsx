@@ -20,17 +20,32 @@ import { Icon } from './ui/Icon';
  * that loads back exactly.
  */
 
-const ASPECTS: { label: string; value: number }[] = [
-  { label: 'Canvas', value: 0 },
-  { label: '1:1', value: 1 },
-  { label: '4:5', value: 4 / 5 },
-  { label: '2:3', value: 2 / 3 },
-  { label: '9:16', value: 9 / 16 },
-  { label: '3:2', value: 3 / 2 },
-  { label: '16:9', value: 16 / 9 },
+const ASPECTS: { label: string; ratio: string; value: number }[] = [
+  { label: 'Canvas', ratio: '', value: 0 },
+  { label: 'Square', ratio: '1:1', value: 1 },
+  { label: 'Portrait', ratio: '4:5', value: 4 / 5 },
+  { label: 'Portrait', ratio: '2:3', value: 2 / 3 },
+  { label: 'Story', ratio: '9:16', value: 9 / 16 },
+  { label: 'Landscape', ratio: '3:2', value: 3 / 2 },
+  { label: 'Wide', ratio: '16:9', value: 16 / 9 },
 ];
 
 const SCALES = [1, 2, 4];
+
+/** A little outlined rectangle in the option's own proportions. */
+function AspectShape({ value, fallback }: { value: number; fallback: number }) {
+  const a = value || fallback || 1;
+  const w = a >= 1 ? 16 : Math.max(7, 14 * a);
+  const h = a >= 1 ? Math.max(7, 16 / a) : 14;
+  return (
+    <span className="flex w-[18px] shrink-0 items-center justify-center">
+      <span
+        className="rounded-[2px] border border-current opacity-80"
+        style={{ width: w, height: h }}
+      />
+    </span>
+  );
+}
 
 function downloadText(name: string, text: string) {
   const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
@@ -55,14 +70,29 @@ const button =
 export function ExportDialog({ onClose }: { onClose: () => void }) {
   const [aspect, setAspect] = useState(0);
   const [scale, setScale] = useState(2);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [status, setStatus] = useState<{ text: string; error: boolean } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const previewUrl = useRef<string | null>(null);
   const rendering = useRef(false);
   const again = useRef(false);
   const aspectRef = useRef(aspect);
   aspectRef.current = aspect;
+
+  const current = ASPECTS.find((a) => a.value === aspect) ?? ASPECTS[0];
+  const canvasSize = captureSize({ scale: 1 });
+  const canvasAspect = canvasSize ? canvasSize.width / canvasSize.height : 1;
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onPointer = (e: PointerEvent) => {
+      if (!menuRef.current?.contains(e.target as Node)) setMenuOpen(false);
+    };
+    window.addEventListener('pointerdown', onPointer);
+    return () => window.removeEventListener('pointerdown', onPointer);
+  }, [menuOpen]);
 
   const refreshPreview = useCallback(async () => {
     // One preview at a time; a request that lands mid-render queues one more.
@@ -74,7 +104,10 @@ export function ExportDialog({ onClose }: { onClose: () => void }) {
     try {
       do {
         again.current = false;
-        const blob = await capturePng({ scale: 0.25, aspect: aspectRef.current });
+        // Full canvas density, downscaled by the <img>: a low-resolution render
+        // is not a faithful thumbnail here, because the stroke floor fattens
+        // every hairline and the preview floods with ink.
+        const blob = await capturePng({ scale: 1, aspect: aspectRef.current });
         const url = URL.createObjectURL(blob);
         if (previewUrl.current) URL.revokeObjectURL(previewUrl.current);
         previewUrl.current = url;
@@ -167,28 +200,58 @@ export function ExportDialog({ onClose }: { onClose: () => void }) {
           if (file) void loadScene(file);
         }}
       >
-        <div className="flex h-[176px] items-center justify-center overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--bg-primary)]">
+        <div className="flex h-[190px] items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] p-2">
           {preview ? (
             <img
               src={preview}
               alt="Export preview"
-              className="max-h-full max-w-full rounded-[2px] shadow-[0_0_0_1px_var(--border)]"
+              className="border border-[var(--border)]"
+              style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto', objectFit: 'contain' }}
             />
           ) : (
             <span className="text-[10px] text-[var(--text-muted)]">Rendering preview…</span>
           )}
         </div>
-        <div className="flex flex-wrap items-center gap-x-0.5 gap-y-1">
-          {ASPECTS.map((a) => (
-            <button
-              key={a.label}
-              type="button"
-              onClick={() => setAspect(a.value)}
-              className={chip(aspect === a.value)}
-            >
-              {a.label}
-            </button>
-          ))}
+        <div className="relative" ref={menuRef}>
+          <button
+            type="button"
+            onClick={() => setMenuOpen((v) => !v)}
+            className="flex w-full items-center gap-2 rounded-lg border border-[var(--border)] px-2.5 py-1.5 text-[11px] text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
+          >
+            <AspectShape value={current.value} fallback={canvasAspect} />
+            <span>{current.label}</span>
+            {current.ratio && (
+              <span className="font-mono text-[10px] text-[var(--text-muted)]">{current.ratio}</span>
+            )}
+            <span className="min-w-0 flex-1" />
+            <span className="text-[9px] text-[var(--text-muted)]">▾</span>
+          </button>
+          {menuOpen && (
+            <div className="absolute top-full right-0 left-0 z-10 mt-1 rounded-lg bg-[var(--bg-secondary)] p-1 shadow-[0_0_0_1px_color-mix(in_srgb,var(--text-primary)_30%,transparent),var(--hud-shadow)]">
+              {ASPECTS.map((a) => (
+                <button
+                  key={a.label + a.ratio}
+                  type="button"
+                  onClick={() => {
+                    setAspect(a.value);
+                    setMenuOpen(false);
+                  }}
+                  className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-[11px] ${
+                    aspect === a.value
+                      ? 'bg-[var(--bg-hover)] text-[var(--text-primary)]'
+                      : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'
+                  }`}
+                >
+                  <AspectShape value={a.value} fallback={canvasAspect} />
+                  <span>{a.label}</span>
+                  <span className="min-w-0 flex-1" />
+                  {a.ratio && (
+                    <span className="font-mono text-[10px] text-[var(--text-muted)]">{a.ratio}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         <div className="flex items-center justify-between">
           <div className="flex gap-0.5">
