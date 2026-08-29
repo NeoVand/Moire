@@ -2,7 +2,6 @@ import * as THREE from 'three/webgpu';
 import { MeshBasicNodeMaterial } from 'three/webgpu';
 import { MAX_LAYERS, isGrid, type PatternLayer, type PatternType } from '../types/moire';
 import {
-  ENVELOPE_TAPS,
   buildColorNode,
   compileFieldCached,
   createCameraUniforms,
@@ -308,9 +307,12 @@ export class MoireRenderer {
     // so the flag stays down and the ordinary composite shows through.
     const pair = state.view.ratio ? ratioPair(state.layers) : null;
     const envelope = state.view.envelope && !pair;
-    this.viewUniforms.taps.value = envelope ? ENVELOPE_TAPS : 1;
-    this.viewUniforms.sweep.value = envelope ? 1 : 0;
+    this.viewUniforms.taps.value = envelope
+      ? Math.max(2, Math.round(state.view.envelopeTaps))
+      : 1;
+    this.viewUniforms.sweep.value = envelope ? Math.max(0, state.view.envelopeSweep) : 0;
     this.viewUniforms.contrast.value = envelope ? state.view.envelopeContrast : 1;
+    this.viewUniforms.lift.value = envelope ? state.view.envelopeLift : 0;
     this.viewUniforms.pivot.value.copy(envelope ? envelopePivot(state) : scratch.set(0xffffff));
     this.viewUniforms.ratio.value = pair ? 1 : 0;
     this.viewUniforms.ratioA.value = pair ? pair[0] : -1;

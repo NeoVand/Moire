@@ -103,6 +103,11 @@ const NAMED_CONSTANTS: Record<string, number> = {
   e: Math.E,
 };
 
+/** The language's name tables, for the editor's highlighter. Derived, not copied,
+ * so a new function or constant cannot leave the colours behind. */
+export const EXPR_CONSTANT_NAMES = () => Object.keys(NAMED_CONSTANTS);
+export const EXPR_FUNCTION_NAMES = () => Object.keys(FUNCTION_OPS);
+
 const FUNCTION_OPS: Record<string, number> = {
   abs: EXPR_OPS.abs,
   floor: EXPR_OPS.floor,

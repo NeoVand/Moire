@@ -30,6 +30,12 @@ export interface FieldSpec {
   amount: number;
   /** Field extent in world units. The field is O(1) inside it. */
   scale: number;
+  /**
+   * Muted, not removed: the expression stays compiled into the material and only
+   * the amount uniform goes to zero, so A/B-ing a field is instant. Absent means
+   * on, so older layers need no migration.
+   */
+  enabled?: boolean;
 }
 
 export const FIELD_NONE: FieldSpec = { source: '', amount: 3, scale: 200 };
@@ -40,7 +46,11 @@ export const FIELD_NONE: FieldSpec = { source: '', amount: 3, scale: 200 };
  * lattice on a translation along one of its generators.
  */
 export function hasField(layer: Pick<PatternLayer, 'field'>): boolean {
-  return layer.field.source.trim().length > 0 && layer.field.amount !== 0;
+  return (
+    layer.field.enabled !== false &&
+    layer.field.source.trim().length > 0 &&
+    layer.field.amount !== 0
+  );
 }
 
 /**
@@ -209,7 +219,8 @@ export function defaultCurveSpacing(type: PatternType): number {
 export function createLayer(
   partial: Partial<PatternLayer> & Pick<PatternLayer, 'id' | 'name'>
 ): PatternLayer {
-  const { position, offset, scale, field: _field, ...rest } = partial;
+  // `field` needs no exclusion from the spread: the literal below overrides it.
+  const { position, offset, scale, ...rest } = partial;
   return {
     type: 'concentric-circles',
     visible: true,

@@ -139,7 +139,9 @@ export function fieldSource(field: FieldSpec | undefined): string {
 
 function writeField(slot: LayerSlot, field: FieldSpec | undefined) {
   const spec = field ?? FIELD_NONE;
-  slot.fieldAmount.value = fieldSource(field) ? spec.amount : 0;
+  // Muting keeps the compiled program and zeroes the uniform, so the toggle is
+  // instant where clearing the source would be a rebuild.
+  slot.fieldAmount.value = fieldSource(field) && spec.enabled !== false ? spec.amount : 0;
   slot.fieldScale.value = spec.scale || 200;
 }
 
@@ -189,6 +191,9 @@ export function createViewUniforms() {
     taps: uniform(1, 'int'),
     sweep: uniform(0),
     contrast: uniform(1),
+    // A flat exposure shift after the contrast expansion, for reading a fringe
+    // field whose pivot sits too dark or too bright to print well.
+    lift: uniform(0),
     pivot: uniform(new THREE.Color(0xffffff)),
     // The ratio view: slot indices of the two layers to compare, ranked on the
     // CPU so the shader never orders layers, or -1 for none. `ratio` swaps the
@@ -505,7 +510,7 @@ export function buildColorNode(
     // not drift as the fringes move. At contrast 1 this returns the average
     // untouched, and with one tap and no sweep that is the render itself.
     const mean = sum.div(float(view.taps));
-    const out = mix(view.pivot, mean, view.contrast).clamp(0, 1).toVar();
+    const out = mix(view.pivot, mean, view.contrast).add(view.lift).clamp(0, 1).toVar();
     If(view.ratio.greaterThan(0.5), () => out.assign(heat));
     return out;
   })();

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { CameraState, PatternLayer, PatternType, Vec2 } from '../types/moire';
 import {
+  ENVELOPE_TAPS,
   MAX_LAYERS,
   createDefaultProject,
   createIntroRestProject,
@@ -29,6 +30,16 @@ export interface ViewState {
   envelope: boolean;
   /** Gain about the stack's nominal coverage. 1 shows the average untouched. */
   envelopeContrast: number;
+  /** Quadrature taps per pixel. More is smoother; two dozen is exact in practice. */
+  envelopeTaps: number;
+  /**
+   * How many of each family's own periods the average spans. 1 removes the
+   * carrier exactly; below 1 it fades back in, so the slider crossfades between
+   * the pattern and its fringe field; above 1 higher-order beats smooth away too.
+   */
+  envelopeSweep: number;
+  /** Flat exposure shift after the contrast expansion, in coverage units. */
+  envelopeLift: number;
   /**
    * The heterodyne ratio map: where a fringe can form at all. Dark where the two
    * topmost comparable layers' index gradients nearly agree, bright past the 1/4
@@ -41,6 +52,9 @@ export interface ViewState {
 export const VIEW_DEFAULTS: ViewState = {
   envelope: false,
   envelopeContrast: 3,
+  envelopeTaps: ENVELOPE_TAPS,
+  envelopeSweep: 1,
+  envelopeLift: 0,
   ratio: false,
 };
 

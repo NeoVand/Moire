@@ -33,9 +33,9 @@ import { VIEW_DEFAULTS, useProjectStore, useSelectedLayer } from '../store/proje
 import { FieldEditor } from './FieldEditor';
 import { FAMILY_ICONS, PATTERN_ICONS } from './patternIcons';
 import { ColorField } from './ui/ColorField';
+import { FloatingPanel } from './ui/FloatingPanel';
 import { Icon, type HugeIcon } from './ui/Icon';
 import { IconButton } from './ui/IconButton';
-import { Popover } from './ui/Popover';
 import { Slider } from './ui/Slider';
 
 const STUDIO_KEY = 'moire-studio-open';
@@ -102,17 +102,15 @@ function ShapeChip({
  */
 function EnvelopeControl() {
   const envelope = useProjectStore((s) => s.view.envelope);
-  const contrast = useProjectStore((s) => s.view.envelopeContrast);
+  const view = useProjectStore((s) => s.view);
   const setView = useProjectStore((s) => s.setView);
   const [open, setOpen] = useState(false);
-  const triggerRef = useRef<HTMLButtonElement>(null);
 
   return (
     <>
       <IconButton
-        buttonRef={triggerRef}
         icon={AudioWave02Icon}
-        label={envelope ? 'Envelope · right-click for contrast' : 'Envelope'}
+        label={envelope ? 'Envelope · right-click for options' : 'Envelope'}
         active={envelope}
         onClick={() => {
           setView({ envelope: !envelope });
@@ -125,17 +123,61 @@ function EnvelopeControl() {
         size={14}
         dense
       />
-      <Popover open={open} width={188} triggerRef={triggerRef} onClose={() => setOpen(false)}>
-        <Slider
-          label="Contrast"
-          value={contrast}
-          min={1}
-          max={12}
-          step={0.1}
-          defaultValue={VIEW_DEFAULTS.envelopeContrast}
-          onChange={(envelopeContrast) => setView({ envelopeContrast })}
-        />
-      </Popover>
+      {open && (
+        <FloatingPanel
+          id="envelope"
+          width={236}
+          defaultPosition={{ x: window.innerWidth - 260, y: 56 }}
+          onClose={() => setOpen(false)}
+          mark={<Icon icon={AudioWave02Icon} size={14} />}
+          title="Envelope"
+        >
+          <div className="grid gap-3">
+            <Slider
+              label="Contrast"
+              value={view.envelopeContrast}
+              min={1}
+              max={12}
+              step={0.1}
+              defaultValue={VIEW_DEFAULTS.envelopeContrast}
+              onChange={(envelopeContrast) => setView({ envelopeContrast })}
+            />
+            <Slider
+              label="Sweep"
+              value={view.envelopeSweep}
+              min={0}
+              max={3}
+              step={0.05}
+              defaultValue={VIEW_DEFAULTS.envelopeSweep}
+              onChange={(envelopeSweep) => setView({ envelopeSweep })}
+            />
+            <Slider
+              label="Exposure"
+              value={view.envelopeLift}
+              min={-0.5}
+              max={0.5}
+              step={0.01}
+              defaultValue={VIEW_DEFAULTS.envelopeLift}
+              onChange={(envelopeLift) => setView({ envelopeLift })}
+            />
+            <Slider
+              label="Quality"
+              value={view.envelopeTaps}
+              min={4}
+              max={64}
+              step={1}
+              unit=" taps"
+              defaultValue={VIEW_DEFAULTS.envelopeTaps}
+              onChange={(envelopeTaps) => setView({ envelopeTaps })}
+            />
+            <p className="border-t border-[var(--border)] pt-2 text-[10.5px] leading-[1.5] text-[var(--text-muted)]">
+              The stack averaged over its own phase — the fringe field, carrier removed. Sweep
+              1 removes the carrier exactly; below it the pattern fades back in, beyond it
+              higher-order beats smooth away too.
+            </p>
+          </div>
+        </FloatingPanel>
+      )}
     </>
   );
 }
@@ -169,24 +211,30 @@ function RatioControl() {
  */
 function FieldMark({
   active,
+  muted,
   onClick,
   buttonRef,
 }: {
   active: boolean;
+  /** A field is present but switched off: filled, in the muted ink. */
+  muted?: boolean;
   onClick: () => void;
   buttonRef?: Ref<HTMLButtonElement>;
 }) {
+  const title = active ? 'Edit field' : muted ? 'Edit field (off)' : 'Add a field';
   return (
     <button
       ref={buttonRef}
       type="button"
-      title={active ? 'Edit field' : 'Add a field'}
-      aria-label={active ? 'Edit field' : 'Add a field'}
+      title={title}
+      aria-label={title}
       onClick={onClick}
       className={`grid size-[22px] shrink-0 place-items-center rounded-md font-serif text-[14px] leading-none italic ${
         active
           ? 'bg-[var(--bg-hover)] text-[var(--text-primary)]'
-          : 'text-current opacity-45 hover:bg-[var(--bg-hover)] hover:opacity-100'
+          : muted
+            ? 'bg-[var(--bg-hover)] text-[var(--text-muted)]'
+            : 'text-current opacity-45 hover:bg-[var(--bg-hover)] hover:opacity-100'
       }`}
     >
       f
@@ -404,6 +452,7 @@ function LayerStack({ onEditField }: { onEditField: (id: string) => void }) {
               </div>
               <FieldMark
                 active={hasField(layer)}
+                muted={!hasField(layer) && layer.field.source.trim().length > 0}
                 onClick={() => {
                   selectLayer(layer.id);
                   onEditField(layer.id);
