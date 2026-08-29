@@ -367,35 +367,72 @@ export class MoireRenderer {
     });
   }
 
-  async snapshot(scale = 1): Promise<Blob> {
+  /**
+   * The export frame for a scale and target aspect (width/height; 0 keeps the
+   * canvas's own). The rule is cover, never crop: the export always contains at
+   * least the current view, and a different aspect extends it — the pattern is
+   * defined everywhere, so there is always more picture past the frame. zScale
+   * multiplies the zoom uniform so the framing is identical by construction:
+   * world extent is buffer over zoom, and both scale together.
+   */
+  private exportFrame(opts: { scale?: number; aspect?: number } = {}) {
+    const scale = Math.max(opts.scale ?? 1, 0.05);
+    const bufW = Math.max(1, Math.round(this.lastWidth * (this.lastDpr || 1)));
+    const bufH = Math.max(1, Math.round(this.lastHeight * (this.lastDpr || 1)));
+    const aspect = opts.aspect || bufW / bufH;
+    const coverByWidth = aspect <= bufW / bufH;
+    let width = coverByWidth ? bufW * scale : bufH * scale * aspect;
+    let height = width / aspect;
+    const cap = 8192 / Math.max(width, height);
+    if (cap < 1) {
+      width *= cap;
+      height *= cap;
+    }
+    width = Math.max(2, Math.round(width));
+    height = Math.max(2, Math.round(height));
+    const zScale = coverByWidth ? width / bufW : height / bufH;
+    return { width, height, zScale };
+  }
+
+  /** The pixel size `snapshot` would render for these options, without rendering. */
+  snapshotSize(opts: { scale?: number; aspect?: number } = {}): { width: number; height: number } {
+    const { width, height } = this.exportFrame(opts);
+    return { width, height };
+  }
+
+  async snapshot(opts: { scale?: number; aspect?: number } = {}): Promise<Blob> {
     // An export that lands inside a field rebuild waits for it rather than failing.
     await this.building;
-    if (!this.ready || !this.renderer || !this.scene || !this.camera || !this.canvas) {
+    if (
+      !this.ready ||
+      !this.renderer ||
+      !this.scene ||
+      !this.camera ||
+      !this.canvas ||
+      !this.cameraUniforms
+    ) {
       throw new Error('Renderer is not ready');
     }
     if (this.raf) {
       cancelAnimationFrame(this.raf);
       this.raf = 0;
     }
-    // A high-resolution export renders once at a raised pixel ratio, capped so
-    // the backing texture stays inside common GPU limits, then puts the ratio
-    // back. The pattern is resolution-free, so the pixels are simply asked again.
-    const dpr = this.lastDpr || 1;
-    const side = Math.max(this.lastWidth, this.lastHeight, 1) * dpr;
-    const factor = Math.min(Math.max(scale, 1), 8192 / side);
-    if (factor > 1.001) {
-      this.renderer.setPixelRatio(dpr * factor);
-      this.renderer.setSize(this.lastWidth, this.lastHeight, false);
-    }
+    // One render at an explicit framebuffer size, with the zoom uniform scaled
+    // to match — the pattern is resolution-free, so the pixels are simply asked
+    // again, and the stroke floor keeps hairlines printable at any size.
+    const { width, height, zScale } = this.exportFrame(opts);
+    const zoom0 = this.cameraUniforms.zoom.value;
     try {
+      this.renderer.setPixelRatio(1);
+      this.renderer.setSize(width, height, false);
+      this.cameraUniforms.zoom.value = zoom0 * zScale;
       this.renderer.render(this.scene, this.camera);
       return await encodeCanvasPng(this.canvas);
     } finally {
-      if (factor > 1.001) {
-        this.renderer.setPixelRatio(dpr);
-        this.renderer.setSize(this.lastWidth, this.lastHeight, false);
-        this.render();
-      }
+      this.cameraUniforms.zoom.value = zoom0;
+      this.renderer.setPixelRatio(this.lastDpr || 1);
+      this.renderer.setSize(this.lastWidth, this.lastHeight, false);
+      this.render();
     }
   }
 

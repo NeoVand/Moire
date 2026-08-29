@@ -49,7 +49,10 @@ export function MoireStage() {
         const state = useProjectStore.getState();
         gpu.sync(state);
         gpu.render();
-        registerCapture((scale) => gpu.snapshot(scale));
+        registerCapture(
+          (opts) => gpu.snapshot(opts),
+          (opts) => gpu.snapshotSize(opts)
+        );
         setReady(true);
         useProjectStore.getState().playIntro();
       })
