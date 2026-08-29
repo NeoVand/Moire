@@ -3,6 +3,7 @@ import {
   BlurIcon,
   Copy01Icon,
   Delete02Icon,
+  GaugeIcon,
   ImageDownloadIcon,
   KeyboardIcon,
   Move01Icon,
@@ -27,6 +28,7 @@ const ROWS: { icon: typeof KeyboardIcon; keys: string; detail: string }[] = [
   { icon: ZoomInAreaIcon, keys: 'F', detail: 'Reset view' },
   { icon: ImageDownloadIcon, keys: 'E', detail: 'Export a PNG' },
   { icon: BlurIcon, keys: 'V', detail: 'Pattern or envelope' },
+  { icon: GaugeIcon, keys: 'R', detail: 'Fringe ratio map' },
   { icon: KeyboardIcon, keys: 'I', detail: 'Hide or show the studio' },
 ];
 

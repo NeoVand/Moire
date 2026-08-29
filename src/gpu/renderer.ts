@@ -1,6 +1,6 @@
 import * as THREE from 'three/webgpu';
 import { MeshBasicNodeMaterial } from 'three/webgpu';
-import { MAX_LAYERS, type PatternLayer, type PatternType } from '../types/moire';
+import { MAX_LAYERS, isGrid, type PatternLayer, type PatternType } from '../types/moire';
 import {
   ENVELOPE_TAPS,
   buildColorNode,
@@ -48,6 +48,21 @@ function nominalCoverage(layer: PatternLayer, pixel: number): number {
   const perFamily = Math.min(1, (2 * halfT) / Math.max(layer.spacing, 1e-3));
   const open = (1 - perFamily) ** familyCount(layer.type);
   return (1 - open) * layer.opacity;
+}
+
+/**
+ * The slot indices the ratio view compares — the two topmost visible layers with
+ * a scalar index — or null when there are not two. Lattices index their members
+ * by a pair of integers, so they carry no scalar index to difference; everything
+ * else qualifies, radial lines included, whose index is a sector count and still
+ * a scalar the ratio can differentiate.
+ */
+function ratioPair(layers: PatternLayer[]): [number, number] | null {
+  const pair: number[] = [];
+  for (let i = Math.min(layers.length, MAX_LAYERS) - 1; i >= 0 && pair.length < 2; i--) {
+    if (layers[i].visible && !isGrid(layers[i].type)) pair.push(i);
+  }
+  return pair.length === 2 ? [pair[0], pair[1]] : null;
 }
 
 /**
@@ -289,11 +304,17 @@ export class MoireRenderer {
     this.cameraUniforms.background.value.set(state.backgroundColor);
     this.renderer?.setClearColor(state.backgroundColor, 1);
 
-    const envelope = state.view.envelope;
+    // With fewer than two comparable layers the ratio view has nothing to say,
+    // so the flag stays down and the ordinary composite shows through.
+    const pair = state.view.ratio ? ratioPair(state.layers) : null;
+    const envelope = state.view.envelope && !pair;
     this.viewUniforms.taps.value = envelope ? ENVELOPE_TAPS : 1;
     this.viewUniforms.sweep.value = envelope ? 1 : 0;
     this.viewUniforms.contrast.value = envelope ? state.view.envelopeContrast : 1;
     this.viewUniforms.pivot.value.copy(envelope ? envelopePivot(state) : scratch.set(0xffffff));
+    this.viewUniforms.ratio.value = pair ? 1 : 0;
+    this.viewUniforms.ratioA.value = pair ? pair[0] : -1;
+    this.viewUniforms.ratioB.value = pair ? pair[1] : -1;
 
     for (let i = 0; i < this.slots.length; i++) {
       writeLayerSlot(this.slots[i], state.layers[i]);

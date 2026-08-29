@@ -7,6 +7,7 @@ import {
   Copy01Icon,
   Delete02Icon,
   DragDropVerticalIcon,
+  GaugeIcon,
   ImageDownloadIcon,
   JupiterIcon,
   KeyboardIcon,
@@ -136,6 +137,28 @@ function EnvelopeControl() {
         />
       </Popover>
     </>
+  );
+}
+
+/**
+ * The heterodyne ratio beside the envelope: dark where the two topmost
+ * comparable layers' carriers are close enough to beat, bright past 1/4 where no
+ * fringe survives — where fringes will form, before any parameter is committed.
+ * With fewer than two comparable layers the toggle stays lit and the canvas
+ * quietly shows the ordinary composite.
+ */
+function RatioControl() {
+  const ratio = useProjectStore((s) => s.view.ratio);
+  const setView = useProjectStore((s) => s.setView);
+  return (
+    <IconButton
+      icon={GaugeIcon}
+      label="Fringe ratio"
+      active={ratio}
+      onClick={() => setView({ ratio: !ratio })}
+      size={14}
+      dense
+    />
   );
 }
 
@@ -731,6 +754,7 @@ function Chrome({ onToggle }: { onToggle: () => void }) {
       </button>
       <ColorField value={backgroundColor} onChange={setBackgroundColor} />
       <EnvelopeControl />
+      <RatioControl />
       <IconButton
         icon={KeyboardIcon}
         label="Shortcuts"

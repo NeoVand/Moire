@@ -4,15 +4,21 @@ import {
   Fn,
   If,
   Loop,
+  dFdx,
+  dFdy,
+  int,
+  length,
   screenCoordinate,
   screenSize,
   vec2,
   vec3,
   vec4,
   float,
+  round,
   uniform,
   mix,
   max,
+  min,
   smoothstep,
 } from 'three/tsl';
 import {
@@ -184,6 +190,14 @@ export function createViewUniforms() {
     sweep: uniform(0),
     contrast: uniform(1),
     pivot: uniform(new THREE.Color(0xffffff)),
+    // The ratio view: slot indices of the two layers to compare, ranked on the
+    // CPU so the shader never orders layers, or -1 for none. `ratio` swaps the
+    // composite for the heat map and widens the solver guard the way `sweep`
+    // does, since the ratio needs the phase measured everywhere, not just under
+    // the strokes.
+    ratio: uniform(0),
+    ratioA: uniform(-1, 'int'),
+    ratioB: uniform(-1, 'int'),
   };
 }
 
@@ -276,8 +290,9 @@ export function buildColorNode(
         const accept = max(halfT.sub(aa), float(0));
         // Past halfT + aa the stroke is fully transparent, so the ring solver is
         // free to prove indices away instead of measuring them. Under the sweep the
-        // stroke visits every phase, so it has to be measured a whole pitch out.
-        const reject = max(halfT.add(aa), view.sweep.mul(slot.spacing));
+        // stroke visits every phase, and under the ratio view the index has to be
+        // differentiable between strokes, so both measure a whole pitch out.
+        const reject = max(halfT.add(aa), max(view.sweep, view.ratio).mul(slot.spacing));
 
         // A field is a displacement of the layer's *index*: `shift` many members,
         // wherever you stand. That is the one description every family shares, and
@@ -441,11 +456,58 @@ export function buildColorNode(
       sum.addAssign(color);
     });
 
+    // The heterodyne ratio, eta = |grad D| / |mean index gradient|, D the
+    // difference of the two chosen layers' continuous indices. eta << 1 is the
+    // fringe regime — the index difference is nearly constant over a carrier
+    // period, so a fringe forms — and past 1/4 the carriers are too different to
+    // interfere. The pair is ranked on the CPU; lattices index by a pair of
+    // integers and so have no scalar index to difference.
+    const xiA = float(0).toVar();
+    const xiB = float(0).toVar();
+    solved.forEach(({ phase }, index) => {
+      // Continuous index, modulo its integer part: signed residual over the local
+      // member gap. Every solver measures a residual as phase-at-p minus member,
+      // so the neighbour with the smaller residual is always the next member up
+      // in index — orienting the gap at that neighbour keeps the index counting
+      // the same way whichever family produced the trio.
+      const toward = min(phase.y, phase.z);
+      const xi = phase.x.div(max(phase.x.sub(toward), float(1e-6)));
+      If(view.ratioA.equal(int(index)), () => xiA.assign(xi));
+      If(view.ratioB.equal(int(index)), () => xiB.assign(xi));
+    });
+
+    // Screen-space index gradients. xi wraps by one whole unit where the nearest
+    // member changes, so the integer part of a per-pixel delta is the wrap, not
+    // the index moving: rounding it away unwraps every unit boundary — sound as
+    // long as the carrier spans a couple of pixels, which is also when the render
+    // itself resolves it. What survives — neighbour substitutions, saturated
+    // solves, one-sided families — the clamp turns into bright lines rather than
+    // garbage.
+    const unwrap = (v) => v.sub(round(v));
+    const gradA = vec2(unwrap(dFdx(xiA)), unwrap(dFdy(xiA)));
+    const gradB = vec2(unwrap(dFdx(xiB)), unwrap(dFdy(xiB)));
+    const eta = length(gradA.sub(gradB))
+      .div(max(length(gradA.add(gradB)).mul(0.5), float(1e-6)))
+      .clamp(0, 1);
+
+    // Ink for the fringe regime, paper for failure, with a soft step at the 1/4
+    // threshold so the boundary reads without a legend.
+    const heat = mix(
+      vec3(0.07, 0.075, 0.09),
+      camera.background,
+      smoothstep(float(0), float(0.25), eta)
+        .mul(0.45)
+        .add(smoothstep(float(0.23), float(0.27), eta).mul(0.2))
+        .add(smoothstep(float(0.25), float(1), eta).mul(0.35))
+    );
+
     // Contrast expands about the stack's nominal mean coverage, so the pivot does
     // not drift as the fringes move. At contrast 1 this returns the average
     // untouched, and with one tap and no sweep that is the render itself.
     const mean = sum.div(float(view.taps));
-    return mix(view.pivot, mean, view.contrast).clamp(0, 1);
+    const out = mix(view.pivot, mean, view.contrast).clamp(0, 1).toVar();
+    If(view.ratio.greaterThan(0.5), () => out.assign(heat));
+    return out;
   })();
 }
 
