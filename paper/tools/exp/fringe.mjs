@@ -151,7 +151,10 @@ function phi(gap, w1, b1, w2, b2) {
 
 /** Ideal hard-edge tent, for the "it is a tent" claim. */
 function tent(gap, w1, w2) {
-  return 2 * w1 + 2 * w2 - Math.max(0, w1 + w2 - periodicDist(gap, 1));
+  // Overlap of two arcs saturates once one stroke lies inside the other, so the
+  // profile has a flat floor at 2*max(w1,w2) as well as the flat top.
+  const overlap = Math.min(2 * Math.min(w1, w2), Math.max(0, w1 + w2 - periodicDist(gap, 1)));
+  return 2 * w1 + 2 * w2 - overlap;
 }
 
 /**

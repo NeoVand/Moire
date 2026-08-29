@@ -67,37 +67,42 @@ content of the theorem.
 \paragraph{Step 4: the hard-edged limit.}
 Let $b_i\to0$, so $A_i$ becomes the indicator of
 $\{\mathrm{pd}(v,1)\le w_i\}$, an interval of length $2w_i$ per period. Then
-$\int_0^1 A_i=2w_i$, and $\int_0^1A_1(v)A_2(v-g)\,\mathrm{d}v$ is the overlap of
-two intervals of half-widths $w_1$ and $w_2$ whose centres are $\mathrm{pd}(g,1)$
-apart, which is $\max(0,\,w_1+w_2-\mathrm{pd}(g,1))$. Hence
+$\int_0^1 A_i=2w_i$, and $\int_0^1A_1(v)A_2(v-\Delta)\,\mathrm{d}v$ is the
+overlap of two arcs of half-widths $w_1$ and $w_2$ whose centres are
+$t=\mathrm{pd}(\Delta,1)$ apart. That overlap is $w_1+w_2-t$ only while the arcs
+partially overlap; once one lies inside the other ($t\le|w_1-w_2|$) it saturates
+at $2\min(w_1,w_2)$, and once they separate it is zero, so
+$\mathrm{overlap}=\min\big(2\min(w_1,w_2),\,\max(0,\,w_1+w_2-t)\big)$. (A second
+overlap across the far side of the period would need $w_1+w_2>1-t\ge\tfrac12$,
+which the merged-stroke exclusion rules out.) Hence
 \begin{equation}
-  \Phi(g)=2w_1+2w_2-\max\!\big(0,\;w_1+w_2-\mathrm{pd}(g,1)\big),
+  \Phi(\Delta)=2w_1+2w_2-\min\!\big(2\min(w_1,w_2),\;\max\big(0,\;w_1+w_2-t\big)\big),
 \end{equation}
-which is \eqref{eq:tent}. It is piecewise linear in $\mathrm{pd}(g,1)$ with slope
-$1$ while the strokes overlap and slope $0$ after they separate, so it is a tent
-with a plateau, minimised at $g\in\Z$ at the value $2\max(w_1,w_2)$ and maximised
-at $2w_1+2w_2$ wherever $\mathrm{pd}(g,1)\ge w_1+w_2$. Note that the plateau is
-reached strictly inside the period whenever $w_1+w_2<\tfrac12$, which is the
-regime the tool operates in and the reason thickening strokes eventually stops
-changing the fringe.
+which is \eqref{eq:tent}. It is piecewise linear in $t$: slope $0$ while one
+stroke lies inside the other, slope $1$ while they partially overlap, slope $0$
+after they separate --- a tent with a flat floor and a flat top, minimised at
+$\Delta\in\Z$ at the value $2\max(w_1,w_2)$ and maximised at $2w_1+2w_2$ wherever
+$t\ge w_1+w_2$. Note that the plateau is reached strictly inside the period
+whenever $w_1+w_2<\tfrac12$, which is the regime the tool operates in and the
+reason thickening strokes eventually stops changing the fringe.
 
 \paragraph{Step 5: the affine case, and why the error is first order.}
 Suppose now that $D$ is affine on $S$ rather than constant. In the index variable
-write $D=D(p)+\kappa\,(v-v_p)$, where $\kappa$ is the change in $D$ per unit index,
-so that $\lvert\kappa\rvert=\het+O(\het^2)$ by the definition of $\het$. Put
-$F(v,\gamma)=A_1(v)+A_2(v-\gamma)-A_1(v)A_2(v-\gamma)$, so that
-$\Phi(\gamma)=\int_0^1F(v,\gamma)\,\mathrm{d}v$. Averaging over the period and
-expanding in $\kappa$,
+write $D=D(p)+\mu\,(v-v_p)$, where $\mu$ is the change in $D$ per unit index,
+so that $\lvert\mu\rvert=\het+O(\het^2)$ by the definition of $\het$. Put
+$F(v,\Delta)=A_1(v)+A_2(v-\Delta)-A_1(v)A_2(v-\Delta)$, so that
+$\Phi(\Delta)=\int_0^1F(v,\Delta)\,\mathrm{d}v$. Averaging over the period and
+expanding in $\mu$,
 \begin{equation}
   \bar\alpha(p)=\Phi\big(D(p)\big)
-  +\kappa\int_{-1/2}^{1/2}\!\! (v-v_p)\,\partial_\gamma F\big(v,D(p)\big)\,\mathrm{d}v
-  +O(\kappa^2).
+  +\mu\int_{-1/2}^{1/2}\!\! (v-v_p)\,\partial_\Delta F\big(v,D(p)\big)\,\mathrm{d}v
+  +O(\mu^2).
   \label{eq:appfirst}
 \end{equation}
-The integral is bounded: $\partial_\gamma F(v,\gamma)=A_2'(v-\gamma)\,(A_1(v)-1)$,
-and $\lvert A_1-1\rvert\le1$ while $\int_0^1\lvert A_2'\rvert=2$ for the
-single-bump profile \eqref{eq:appprofile}, so the correction is at most
-$\lvert\kappa\rvert/2$ in absolute value. Hence
+The integral is bounded: $\partial_\Delta F(v,\Delta)=A_2'(v-\Delta)\,(A_1(v)-1)$,
+$\lvert v-v_p\rvert\le\tfrac12$ on the period, $\lvert A_1-1\rvert\le1$, and
+$\int_0^1\lvert A_2'\rvert=2$ for the single-bump profile \eqref{eq:appprofile},
+so the correction is at most $\lvert\mu\rvert$ in absolute value. Hence
 $\bar\alpha(p)=\Phi(D(p))+O(\het)$, as claimed.
 
 We stress that the first-order term does not vanish identically. It is odd in

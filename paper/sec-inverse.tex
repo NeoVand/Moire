@@ -9,12 +9,12 @@ $1-\mathrm{smoothstep}(t-a,\,t+a,\,d)$ for stroke half-width $t$ and
 antialiasing width $a$, so any $d$ above $t+a$ produces identical output. We
 therefore fix a \emph{guard}
 \begin{equation}
-  g \;=\; \max\bigl(t+a,\ \tfrac{3}{4}s\bigr)
+  G \;=\; \max\bigl(t+a,\ \tfrac{3}{4}s\bigr)
   \label{eq:guard}
 \end{equation}
 and require only
 \begin{equation}
-  \tilde d(p) \;=\; \min\bigl(d(p),\, g\bigr).
+  \tilde d(p) \;=\; \min\bigl(d(p),\, G\bigr).
   \label{eq:clamped}
 \end{equation}
 Everything below is exact with respect to~\eqref{eq:clamped}, which is exact with
@@ -24,7 +24,7 @@ and it is a change of nothing: the renderer's own quantisation.
 Two smaller consequences of the same observation are worth naming because they
 are free. The solver takes an \emph{accept} threshold $t-a$: once a residual falls
 below it the pixel is fully inked and the loop can stop, whatever else is nearby.
-And it takes $g$ itself as a \emph{reject} threshold, which is what makes the
+And it takes $G$ itself as a \emph{reject} threshold, which is what makes the
 interval below finite.
 
 \subsection{The drift constant}
@@ -95,7 +95,7 @@ is merely loose rather than wrong.
     nearest ring is $\figTrue$, $\figGap$ rings away and outside any small
     neighbourhood. The two envelopes of Lemma~\ref{lem:envelope} cross the guard
     band (pink) at $\figLo$ and $\figHi$, proving that no ring outside those
-    $\figSpan$ indices comes within $g$. The Lipschitz rule then visits
+    $\figSpan$ indices comes within $G$. The Lipschitz rule then visits
     $\figEvals$ of them (dots), taking long strides while $|h|$ is large and
     closing in only near the crossing.}
     \label{fig:residual}
@@ -167,36 +167,36 @@ $\rad(q_n) \ge nm - r$. Subtract $ns+\varphi$ throughout.
 \end{proof}
 
 Both bounds are affine in $n$ (the first piecewise so), so intersecting them with
-the guard band $|h|\le g$ yields an interval by inspection.
+the guard band $|h|\le G$ yields an interval by inspection.
 
 \begin{theorem}[Sufficient interval]
 \label{thm:window}
 Let
 \begin{equation}
-  n_{\mathrm{lo}} = \max\left(0,\ \left\lfloor \frac{\kappa r - \varphi - g}{s + \kappa L} \right\rfloor\right),
+  n_{\mathrm{lo}} = \max\left(0,\ \left\lfloor \frac{\kappa r - \varphi - G}{s + \kappa L} \right\rfloor\right),
   \qquad
-  n_{\mathrm{hi}} = \left\lceil \frac{r + \varphi + g}{|s - m|} \right\rceil .
+  n_{\mathrm{hi}} = \left\lceil \frac{r + \varphi + G}{|s - m|} \right\rceil .
   \label{eq:window}
 \end{equation}
-If $m \neq s$, then every $n$ with $|h_p(n)| \le g$ satisfies
+If $m \neq s$, then every $n$ with $|h_p(n)| \le G$ satisfies
 $n_{\mathrm{lo}} \le n \le n_{\mathrm{hi}}$, and consequently
 \begin{equation}
-  \tilde d(p) \;=\; \min\Bigl(g,\ \min_{n_{\mathrm{lo}} \le n \le n_{\mathrm{hi}}} |h_p(n)|\Bigr).
+  \tilde d(p) \;=\; \min\Bigl(G,\ \min_{n_{\mathrm{lo}} \le n \le n_{\mathrm{hi}}} |h_p(n)|\Bigr).
   \label{eq:exact}
 \end{equation}
 \end{theorem}
 
 \begin{proof}
-For the lower end, $|h_p(n)|\le g$ requires $h_p(n)\le g$, and by
+For the lower end, $|h_p(n)|\le G$ requires $h_p(n)\le G$, and by
 \eqref{eq:envelope} $\kappa|r-nL| - ns - \varphi \le h_p(n)$. On the branch
-$nL\le r$ this reads $\kappa r - \kappa nL - ns - \varphi \le g$, i.e.
-$n \ge (\kappa r - \varphi - g)/(s+\kappa L)$; on the branch $nL>r$ the left side
+$nL\le r$ this reads $\kappa r - \kappa nL - ns - \varphi \le G$, i.e.
+$n \ge (\kappa r - \varphi - G)/(s+\kappa L)$; on the branch $nL>r$ the left side
 of~\eqref{eq:envelope} is increasing in $n$ while the requirement is unchanged, so
 no smaller $n$ is admitted. For the upper end, if $s>m$ then
-$h_p(n) \le r + n(m-s) - \varphi$, and $h_p(n)\ge -g$ forces
-$n \le (r - \varphi + g)/(s-m)$; if $m>s$ then $h_p(n) \ge n(m-s) - r - \varphi$,
-and $h_p(n)\le g$ forces $n \le (r + \varphi + g)/(m-s)$. Both are bounded
-by~\eqref{eq:window}. Every excluded index has $|h_p(n)|>g$, so it cannot lower
+$h_p(n) \le r + n(m-s) - \varphi$, and $h_p(n)\ge -G$ forces
+$n \le (r - \varphi + G)/(s-m)$; if $m>s$ then $h_p(n) \ge n(m-s) - r - \varphi$,
+and $h_p(n)\le G$ forces $n \le (r + \varphi + G)/(m-s)$. Both are bounded
+by~\eqref{eq:window}. Every excluded index has $|h_p(n)|>G$, so it cannot lower
 the clamped minimum, giving~\eqref{eq:exact}.
 \end{proof}
 
@@ -207,7 +207,7 @@ $p$ along a vertex direction. Second, the interval is tight in the sense that bo
 envelope constants are attained, so it cannot be narrowed without using more than
 $\rad$'s convexity class. Third, the interval degenerates only on the single locus
 $m=s$: there, the two envelopes are parallel to the guard band and infinitely many
-rings genuinely pass within $g$ of a generic point. That is not a failure of the
+rings genuinely pass within $G$ of a generic point. That is not a failure of the
 bound but a property of the family, and we return to it in
 Sections~\ref{sec:closed} and~\ref{sec:limits}.
 
@@ -257,7 +257,7 @@ index axis. The loop is Algorithm~\ref{alg:scan}.
 \begin{algorithmic}[1]
 \State $[n_{\mathrm{lo}}, n_{\mathrm{hi}}] \gets$ interval from \eqref{eq:window};
        $\Lambda \gets s + L + |\theta| r$
-\State $\sigma \gets 2^{\lceil \log_2(\mathrm{span}/B) \rceil}$ \Comment{$1$ when the interval fits}
+\State $\sigma \gets 2^{\max(0,\,\lceil \log_2(\mathrm{span}/B) \rceil)}$ \Comment{$1$ when the interval fits}
 \State $n \gets \sigma\lceil n_{\mathrm{lo}}/\sigma \rceil$ \Comment{anchored to the global lattice, not to $p$}
 \State carry $\cos(n\theta-\arg p)$, $\sin(n\theta-\arg p)$, $n\delta$, $ns+\varphi$
 \State $b \gets \infty$
@@ -265,10 +265,10 @@ index axis. The loop is Algorithm~\ref{alg:scan}.
   \State $v \gets |\rad(q_n) - (ns+\varphi)|$ \Comment{no transcendentals}
   \State $b \gets \min(b, v)$
   \State \textbf{if} $b \le$ accept \textbf{then return} $b$
-  \State $j \gets \sigma\max\bigl(1, \lceil (\lfloor (v - \min(b,g))/\Lambda \rfloor + 1)/\sigma \rceil\bigr)$
+  \State $j \gets \sigma\max\bigl(1, \lceil (\lfloor (v - \min(b,G))/\Lambda \rfloor + 1)/\sigma \rceil\bigr)$
   \State advance the carried quantities by $j$; $n \gets n + j$
 \EndFor
-\State \Return $\min(b, g)$
+\State \Return $\min(b, G)$
 \end{algorithmic}
 \end{algorithm}
 
@@ -350,10 +350,10 @@ Let $\theta=0$ and let the shape be a polygon with $N$ facets.
   \item If $m < s$, $h_p$ is strictly decreasing and has exactly one zero, which
   lies on some facet's own linear segment. That zero is one of the $N$ solves
   $n_k = (a_k-\varphi)/(s+b_k)$, and
-  $\tilde d(p) = \min(g,\min_k \min_{j\in\{\lfloor n_k\rfloor, \lfloor n_k\rfloor+1\}} |h_p(j)|)$.
+  $\tilde d(p) = \min(G,\min_k \min_{j\in\{\lfloor n_k\rfloor, \lfloor n_k\rfloor+1\}} |h_p(j)|)$.
   \item If $m = s$, the facet $k^\star$ attaining $m$ has $s + b_{k^\star} = 0$, so
   $h_p \equiv a_{k^\star} - \varphi$ on the terminal segment. The distance is
-  $\min(g, |a_{k^\star}-\varphi|)$ there, attained at every index past the
+  $\min(G, |a_{k^\star}-\varphi|)$ there, attained at every index past the
   crossover.
 \end{enumerate}
 In both cases the cost is $2N+2$ evaluations of~\eqref{eq:convex}, independent of

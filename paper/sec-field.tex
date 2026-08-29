@@ -55,10 +55,11 @@ residual into a length. It is easy to omit, and we omitted it. Our shader applie
 it for the parabola family and not for the wave, hyperbola or spiral, with two
 consequences.
 
-The first is cosmetic but severe. Where $\lVert\nabla\ph\rVert=g>1$, the reported
-distance is $g$ times too large, so the stroke is $g$ times too thin. Sweeping each
+The first is cosmetic but severe. Where $\lVert\nabla\ph\rVert>1$, the reported
+distance is $\lVert\nabla\ph\rVert$ times too large, so the stroke is thinner by
+the same factor. Sweeping each
 family over its own slider range on a $1400\times880$ frame
-(Appendix~\ref{app:atlas}, Table~\ref{tab:gradient}) we measure $g$ up to
+(Appendix~\ref{app:atlas}, Table~\ref{tab:gradient}) we measure factors up to
 $\gradWorstWave$ for the wave and $\gradWorstHyp$ for the hyperbola, with more than
 half the frame off by over $10\%$ in both cases. Visually the family pales out
 exactly where it steepens and crowds --- the opposite of what the geometry does
@@ -69,7 +70,7 @@ $\mathrm{halfT}=\max(t/2,\,1.15\,\mathrm{px})$, and the floor exists so that a
 hairline stays a hairline instead of breaking into speckle when zoomed out
 (Section~\ref{sec:zoom}). That floor is a statement about \emph{screen} distance.
 Compared against an undivided phase residual it is a statement about phase, and it
-guarantees nothing wherever $g\neq1$. The families that most need the floor --- the
+guarantees nothing wherever $\lVert\nabla\ph\rVert\neq1$. The families that most need the floor --- the
 steep ones --- are precisely the ones that were not getting it.
 
 We adopt Eq.~\ref{eq:eikonal} everywhere. One honest cost: a wave at high amplitude
@@ -79,8 +80,9 @@ the previous behaviour was hiding it.
 
 Eq.~\ref{eq:eikonal} is an eikonal approximation and it is exact only where the
 family is locally a foliation with steady gradient. The one family in our
-catalogue that violates this is the hyperbola, whose level sets cross on its
-asymptote cross; we return to it in Section~\ref{sec:limits}.
+catalogue that violates this is the hyperbola, whose gradient blows up on the
+asymptote pair --- the degenerate $n=0$ level set, where the foliation folds; we
+return to it in Section~\ref{sec:limits}.
 
 \subsection{Compositing}
 
@@ -133,18 +135,20 @@ foliations and that $D$ is constant. Then the mean ink over $S$ is
   \label{eq:phi}
   \begin{gathered}
     \bar\alpha(p) \;=\; \Phi\big(D(p)\big), \qquad\text{where}\\
-    \Phi(g) \;=\; \int_0^1 \Big[A_1(v)+A_2(v-g)-A_1(v)A_2(v-g)\Big]\,\mathrm{d}v,
+    \Phi(\Delta) \;=\; \int_0^1 \Big[A_1(v)+A_2(v-\Delta)-A_1(v)A_2(v-\Delta)\Big]\,\mathrm{d}v,
   \end{gathered}
 \end{equation}
 which depends on $p$ only through $D(p)$. If instead $D$ is merely affine on $S$,
 the same expression holds up to an error $O(\het)$ in the ratio \eqref{eq:ratio}
 below. In the hard-edged limit $b_i\to0$,
 \begin{equation}
-  \Phi(g) = 2w_1+2w_2-\max\!\big(0,\;w_1+w_2-\mathrm{pd}(g,1)\big):
+  \Phi(\Delta) = 2w_1+2w_2-\min\!\big(2\min(w_1,w_2),\;\max\big(0,\;w_1+w_2-\mathrm{pd}(\Delta,1)\big)\big):
   \label{eq:tent}
 \end{equation}
-a tent in $D$, rising from $2\max(w_1,w_2)$ at $D\in\Z$ to a plateau of
-$2w_1+2w_2$ once the strokes clear each other.
+a saturating tent in $D$ --- flat at $2\max(w_1,w_2)$ while one stroke lies
+inside the other ($\mathrm{pd}(D,1)\le|w_1-w_2|$), rising with unit slope, and
+saturating at $2w_1+2w_2$ once the strokes clear each other. For equal widths
+the floor is a single point and the profile is the familiar tent.
 \end{theorem}
 
 The proof is a change of variables and is given in Appendix~\ref{app:fringe}; the
@@ -258,23 +262,23 @@ It need not, and the reason is that advancing an index by less than one does not
 change \emph{which} members are nearby. So the solver is asked once per pixel for
 a \emph{phase sample}
 \begin{equation}
-  \Pi(p) \;=\; \big(\,\rho,\; \rho^{\uparrow},\; \rho^{\downarrow},\; \ell\,\big),
+  \Pi(p) \;=\; \big(\,z,\; z^{\uparrow},\; z^{\downarrow},\; \ell\,\big),
   \label{eq:phasesample}
 \end{equation}
 the signed distances to the nearest member and to the two flanking it, together
 with a floor $\ell$ that does not participate. A tap at $u$ then reads
 \begin{equation}
-  d(p;u) \;=\; \max\Big(\min_{k\in\{\rho,\rho^{\uparrow},\rho^{\downarrow}\}} \lvert k - u\,g \rvert,\; \ell\Big),
+  d(p;u) \;=\; \max\Big(\min_{k\in\{z,z^{\uparrow},z^{\downarrow}\}} \lvert k - u\,\mathrm{gap} \rvert,\; \ell\Big),
   \label{eq:slide}
 \end{equation}
-where $g=\lvert\rho^{\uparrow}-\rho\rvert$ is the \emph{local} member gap. Because
+where $\mathrm{gap}=\lvert z^{\uparrow}-z\rvert$ is the \emph{local} member gap. Because
 the sweep is centred on $u=0$, the triple brackets every phase it visits, so
 \eqref{eq:slide} is not an approximation of the re-solved distance --- it is that
 distance, in nine instructions. The search runs once per pixel and the sweep is
 arithmetic. Median frame times in the envelope view went from hundreds of
 milliseconds to inside the frame.
 
-Two things fall out of writing the sample this way. The gap $g$ is local, so a
+Two things fall out of writing the sample this way. The gap is local, so a
 tap covers exactly one period of \emph{this} family at \emph{this} point, whatever
 the pitch does across the frame --- which is what the radial pencil needs, since
 its member gap $2r\sin(\pi/2N)$ grows with radius. And $\ell$ is where the
@@ -388,9 +392,12 @@ is the eikonal condition of Section~\ref{sec:eikonal}.
 Table~\ref{tab:fringe} reports the result. Across $\fringeSamples$ admissible
 in-regime samples the mean absolute coverage error is $\fringeMeanErr$ and the
 worst $99$th percentile over any scene is $\fringeWorstP$, against a fringe swing of
-$0.24$--$0.64$ in coverage. The measured light fringes sit at mean index-gap
-$\fringeLight$ from an integer and the dark fringes at $\fringeDark$ from a
-half-integer, against ideals of $0$ and $0.5$.
+$0.24$--$0.64$ in coverage. Measured as index-gap from the nearest integer, the
+lightest deciles sit at a mean of $\fringeLight$ and the darkest at $\fringeDark$,
+against ideals of $0$ and $0.5$. The darkest-decile figure is diluted by the
+scenes whose profile plateaus: on a flat top every phase is equally dark, so the
+decile spreads across it and its mean distance falls below $0.5$ without any
+fringe being out of place.
 
 The last row is the informative one. \texttt{hyperbola-parallel} has \emph{no}
 in-regime samples anywhere in the frame: $\het>1/4$ everywhere, because a hyperbola
