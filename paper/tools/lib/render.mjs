@@ -5,7 +5,7 @@
 // distance, a solver that no longer exists) and it can count work per pixel.
 
 import { ENVELOPE_TAPS } from '../../../src/types/moire.ts';
-import { family, periodicDist } from './fields.mjs';
+import { family, gradIndex, periodicDist } from './fields.mjs';
 import { ramp } from './png.mjs';
 
 export { ENVELOPE_TAPS };
@@ -97,13 +97,19 @@ function build(layers, taps = 0) {
  * `u` advances every layer's phase by that fraction of its own period, which is
  * the one parameter the envelope averages over; at `u = 0` this is the render.
  */
-function inkAt(built, p, pixel, aa, bg, out, tap = -1) {
+function inkAt(built, p, pixel, aa, bg, out, tap = -1, flip = null) {
   out[0] = bg[0];
   out[1] = bg[1];
   out[2] = bg[2];
-  for (const L of built) {
+  for (let li = 0; li < built.length; li++) {
+    const L = built[li];
     const halfT = Math.max(L.thickness * 0.5, pixel * L.floor);
-    const swept = tap < 0 || !L.swept ? null : L.swept[tap];
+    // The sum-aware sweep: the flipped layer takes the mirrored tap, which is
+    // the same period walked backwards -- its own average is unchanged, but the
+    // correlation with the other layer preserves phi1 + phi2 instead of
+    // phi1 - phi2, so a sum moire survives the average.
+    const useTap = flip && li === flip.index && flip.on ? flip.taps - 1 - tap : tap;
+    const swept = tap < 0 || !L.swept ? null : L.swept[useTap];
     const d = swept
       ? swept.dist
         ? swept.dist(p, halfT, aa)
@@ -171,6 +177,25 @@ export function envelope(v, layers, opts = {}) {
   const built = build(layers, taps);
   const hit = [0, 0, 0];
 
+  // The tool's orientation-aware sweep, mirrored here: a family's index sign is
+  // a convention, so between the last two closed-form layers the beat lives in
+  // whichever of the difference and the sum is slower, and where the sum wins
+  // the second layer walks its period backwards. Solver-backed layers carry no
+  // index function on this path, so pairs involving one keep the diagonal.
+  const withFam = built.map((L, i) => (L.fam ? i : -1)).filter((i) => i >= 0);
+  const pair = withFam.length >= 2 ? withFam.slice(-2) : null;
+  const flip = pair ? { index: pair[1], taps, on: false } : null;
+  const famA = pair ? built[pair[0]].fam : null;
+  const famB = pair ? built[pair[1]].fam : null;
+  const flipAt = (p) => {
+    if (!pair) return false;
+    const a = gradIndex(famA, p);
+    const b = gradIndex(famB, p);
+    const gd = Math.hypot(a.x - b.x, a.y - b.y);
+    const gs = Math.hypot(a.x + b.x, a.y + b.y);
+    return gs < gd;
+  };
+
   // Coverage a family averages over one of its own periods: a stroke of
   // half-width h on pitch s inks 2h/s. The pivot the contrast expands about.
   const pivot = [...bg];
@@ -184,11 +209,12 @@ export function envelope(v, layers, opts = {}) {
   for (let y = 0; y < v.height; y++) {
     for (let x = 0; x < v.width; x++) {
       const p = worldOf(v, x, y, 1);
+      if (flip) flip.on = flipAt(p);
       let r = 0;
       let g = 0;
       let b = 0;
       for (let tap = 0; tap < taps; tap++) {
-        inkAt(built, p, pixel, aa, bg, hit, tap);
+        inkAt(built, p, pixel, aa, bg, hit, tap, flip);
         r += hit[0];
         g += hit[1];
         b += hit[2];

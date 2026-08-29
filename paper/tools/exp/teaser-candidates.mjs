@@ -18,10 +18,10 @@ const OUT = new URL('../../figures/teaser-candidates/', import.meta.url);
 mkdirSync(OUT, { recursive: true });
 
 const SHAPE_CODE = { circle: 1, square: 2, triangle: 3, polygon: 4 };
-const INK = '#14171b';
-const T = 1.5;
+const INK = '#0e1013';
+const T = 1.6;
 
-const V = view({ width: 400, height: 600, zoom: 1.15, superSample: 2 });
+const V = view({ width: 400, height: 600, zoom: 1.3, superSample: 2 });
 const TAPS = 16;
 
 const solver = await loadSolver('final');
@@ -53,157 +53,168 @@ const L = (cfg) => ({ thickness: T, color: INK, ...cfg });
 const SCENES = [
   {
     id: 1,
-    name: 'combs',
-    note: 'two line combs, 3.4 degrees',
+    name: 'rings',
+    note: 'circles about two centres: hyperbolae, and ellipses where the sum beat wins',
     layers: [
-      L({ kind: 'parallel', spacing: 6.5, angle: 0.44 }),
-      L({ kind: 'parallel', spacing: 6.5, angle: 0.5 }),
+      L({ kind: 'concentric', shape: 'circle', spacing: 8, position: { x: -72, y: 0 } }),
+      L({ kind: 'concentric', shape: 'circle', spacing: 8, position: { x: 72, y: 0 } }),
     ],
+    contrast: 4,
   },
   {
     id: 2,
-    name: 'rings',
-    note: 'circles about two centres; hyperbola fringes',
-    layers: [
-      L({ kind: 'concentric', shape: 'circle', spacing: 8, position: { x: -78, y: 0 } }),
-      L({ kind: 'concentric', shape: 'circle', spacing: 8, position: { x: 78, y: 0 } }),
-    ],
-  },
-  {
-    id: 3,
     name: 'walking-triangle',
     note: 'one self-interfering walking triangle family',
     layers: [
       walking({ offset: { x: 1.2, y: 0 }, theta: 0.03, spacing: 3.5, phase: 2, shape: 'triangle' }),
     ],
-    contrast: 3.4,
+    contrast: 4.2,
   },
   {
-    id: 4,
+    id: 3,
     name: 'nautilus',
     note: 'walking squares near the marginal drift',
     layers: [
       walking({ offset: { x: 4.8, y: 0 }, theta: 0.02, spacing: 6, phase: 3, shape: 'square' }),
     ],
-    contrast: 3.4,
+    contrast: 4.2,
+  },
+  {
+    id: 4,
+    name: 'walking-hexagon',
+    note: 'a walking hexagon pinwheel',
+    layers: [
+      walking({ offset: { x: 0.9, y: 0.25 }, theta: 0.025, spacing: 4, phase: 2, shape: 'polygon', sides: 6 }),
+    ],
+    contrast: 4.2,
   },
   {
     id: 5,
     name: 'mirrored-spirals',
-    note: 'a spiral against its own reflection; 36 rays',
+    note: 'a spiral against its own reflection: 36 rays',
     layers: [
       L({ kind: 'spiral', spacing: 5, bend: 90 }),
       L({ kind: 'spiral', spacing: 5, bend: 90, warp: (q) => ({ x: q.x, y: -q.y }) }),
     ],
+    contrast: 3.8,
   },
   {
     id: 6,
+    name: 'counter-spirals',
+    note: 'two spirals, opposite chirality, different arm counts',
+    layers: [
+      L({ kind: 'spiral', spacing: 5, bend: 90 }),
+      L({ kind: 'spiral', spacing: 5, bend: -60 }),
+    ],
+    contrast: 3.8,
+  },
+  {
+    id: 7,
     name: 'swirl-flow',
-    note: 'a chosen field: streamlines of four vortices',
+    note: 'a chosen field: streamlines of four point vortices',
     layers: [
       L({ kind: 'parallel', spacing: 5, angle: 0 }),
       L({ kind: 'parallel', spacing: 5, angle: 0, field: 'swirl', fieldAmount: 3.5, fieldScale: 130 }),
     ],
+    contrast: 3.6,
   },
   {
-    id: 7,
+    id: 8,
     name: 'dipole',
     note: 'a chosen field: equipotentials of a dipole',
     layers: [
       L({ kind: 'parallel', spacing: 5, angle: 0 }),
       L({ kind: 'parallel', spacing: 5, angle: 0, field: 'dipole', fieldAmount: 8, fieldScale: 175 }),
     ],
-    contrast: 2.6,
+    contrast: 3.2,
   },
   {
-    id: 8,
+    id: 9,
     name: 'saddle',
     note: 'a chosen field: the saddle, contoured',
     layers: [
       L({ kind: 'parallel', spacing: 5, angle: 0 }),
       L({ kind: 'parallel', spacing: 5, angle: 0, field: 'saddle', fieldAmount: 3, fieldScale: 165 }),
     ],
-  },
-  {
-    id: 9,
-    name: 'hex-star',
-    note: 'hexagons against detuned, turned hexagons',
-    layers: [
-      L({ kind: 'concentric', shape: 'polygon', sides: 6, spacing: 8 }),
-      L({ kind: 'concentric', shape: 'polygon', sides: 6, spacing: 8.5, rotation: 4 }),
-    ],
+    contrast: 3.8,
   },
   {
     id: 10,
-    name: 'spiral-rings',
-    note: 'an Archimedean spiral over concentric circles',
-    layers: [
-      L({ kind: 'spiral', spacing: 8, bend: 8 }),
-      L({ kind: 'concentric', shape: 'circle', spacing: 8, position: { x: 30, y: 0 } }),
-    ],
-  },
-  {
-    id: 11,
-    name: 'wave-sea',
-    note: 'two wave trains, bends mismatched',
-    layers: [
-      L({ kind: 'wave', spacing: 7, bend: 1.2, frequency: 0.6 }),
-      L({ kind: 'wave', spacing: 7, bend: 1.45, frequency: 0.62, rotation: 2 }),
-    ],
-  },
-  {
-    id: 12,
-    name: 'ring-triplet',
-    note: 'three circle families; three fringe systems at once',
-    layers: [
-      L({ kind: 'concentric', shape: 'circle', spacing: 8, position: { x: 0, y: 88 } }),
-      L({ kind: 'concentric', shape: 'circle', spacing: 8, position: { x: -76, y: -44 } }),
-      L({ kind: 'concentric', shape: 'circle', spacing: 8, position: { x: 76, y: -44 } }),
-    ],
-  },
-  {
-    id: 13,
-    name: 'vortex-pair',
-    note: 'two walking circle families: the studio opening',
-    layers: [
-      walking({ offset: { x: 0, y: -0.5 }, spacing: 6, position: { x: 20, y: 50 } }),
-      walking({ offset: { x: 0, y: -0.5 }, spacing: 6, position: { x: 0, y: 0 } }),
-    ],
-    contrast: 3.4,
-  },
-  {
-    id: 14,
     name: 'hyperbolae',
     note: 'two hyperbola families, spacing mismatched',
     layers: [
       L({ kind: 'hyperbola', spacing: 9, phase: 20 }),
       L({ kind: 'hyperbola', spacing: 9.36, phase: 20 }),
     ],
+    contrast: 3.6,
+  },
+  {
+    id: 11,
+    name: 'spiral-rings',
+    note: 'an Archimedean spiral over concentric circles',
+    layers: [
+      L({ kind: 'spiral', spacing: 8, bend: 8 }),
+      L({ kind: 'concentric', shape: 'circle', spacing: 8, position: { x: 30, y: 0 } }),
+    ],
+    contrast: 4,
+  },
+  {
+    id: 12,
+    name: 'vortex-pair',
+    note: 'two walking circle families: the studio opening',
+    layers: [
+      walking({ offset: { x: 0, y: -0.5 }, spacing: 6, position: { x: 20, y: 50 } }),
+      walking({ offset: { x: 0, y: -0.5 }, spacing: 6, position: { x: 0, y: 0 } }),
+    ],
+    contrast: 4.4,
+  },
+  {
+    id: 13,
+    name: 'clash',
+    note: 'two walking circle families marching into each other',
+    layers: [
+      walking({ offset: { x: 0.9, y: 0 }, spacing: 6, phase: 3, position: { x: -46, y: 0 } }),
+      walking({ offset: { x: -0.9, y: 0 }, spacing: 6, phase: 3, position: { x: 46, y: 0 } }),
+    ],
+    contrast: 4.2,
+  },
+  {
+    id: 14,
+    name: 'ring-triplet',
+    note: 'three circle families: three fringe systems at once',
+    layers: [
+      L({ kind: 'concentric', shape: 'circle', spacing: 8, position: { x: 0, y: 84 } }),
+      L({ kind: 'concentric', shape: 'circle', spacing: 8, position: { x: -73, y: -42 } }),
+      L({ kind: 'concentric', shape: 'circle', spacing: 8, position: { x: 73, y: -42 } }),
+    ],
+    contrast: 4.2,
   },
   {
     id: 15,
-    name: 'radial-web',
-    note: 'a radial pencil over rings: the cobweb',
+    name: 'triangle-star',
+    note: 'concentric triangles, detuned and turned',
     layers: [
-      L({ kind: 'radial', lineCount: 44, phase: 12 }),
-      L({ kind: 'concentric', shape: 'circle', spacing: 7 }),
+      L({ kind: 'concentric', shape: 'triangle', spacing: 8 }),
+      L({ kind: 'concentric', shape: 'triangle', spacing: 8.6, rotation: 6 }),
     ],
+    contrast: 4,
   },
   {
     id: 16,
-    name: 'shadow-bumps',
-    note: 'shadow moire: a carrier against its warped self',
+    name: 'ripple',
+    note: 'a chosen field: the bullseye, cos(tau r)',
     layers: [
-      L({ kind: 'parallel', spacing: 5, angle: 1.5708 }),
-      L({ kind: 'parallel', spacing: 5, angle: 1.5708, field: 'bumps', fieldAmount: 2.6, fieldScale: 165 }),
+      L({ kind: 'parallel', spacing: 5, angle: 0.35 }),
+      L({ kind: 'parallel', spacing: 5, angle: 0.35, field: 'ripple', fieldAmount: 2.4, fieldScale: 150 }),
     ],
+    contrast: 3.6,
   },
 ];
 
 /** Top half pattern, bottom half envelope, crossfaded over a short band. */
 function splitPanel(scene) {
   const top = compose(V, scene.layers);
-  const bottom = envelope(V, scene.layers, { contrast: scene.contrast ?? 3, taps: TAPS });
+  const bottom = envelope(V, scene.layers, { contrast: scene.contrast ?? 4, taps: TAPS });
   const rgb = new Uint8Array(top.length);
   const seam = Math.round(V.height * 0.5);
   const band = Math.round(V.height * 0.045);
