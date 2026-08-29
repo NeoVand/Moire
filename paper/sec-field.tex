@@ -208,12 +208,20 @@ $(w_1{+}w_2)$-wide sliver of each period. It also explains a design behaviour we
 had noticed but not understood --- past a certain stroke thickness, thickening the
 strokes stops changing the fringe and only darkens the whole frame.
 
-\paragraph{No periodicity is required.}
+\paragraph{No periodicity is required --- and no closed form either.}
 $\idx_1$ and $\idx_2$ are arbitrary. The theorem's hypotheses are local
 (affineness of $D$ over one carrier period, and the eikonal condition) and say
 nothing about global structure. A spiral is admissible. Two hyperbola families are
-admissible. A pencil of rings each rotated by $n\theta$, which is not a geometric
-transform of any periodic layer, is admissible.
+admissible. So, more delicately, is a \emph{walking} family
+(\S\ref{sec:walking}), whose index field exists without having a formula.
+Wherever consecutive members bracket the point --- everywhere, when the drift
+stays below the spacing, and away from the family's envelope curves otherwise ---
+the nearest index $n^\star$ plus the fractional residual
+$h_p(n^\star)/(h_p(n^\star)-h_p(n^\star{+}1))$ is a continuous scalar field whose
+level sets are exactly the members. It is an index field computed by search
+rather than written down, the theorem does not care about the difference, and
+the \texttt{walking-circle} row of Table~\ref{tab:fringe} measures the law
+holding on it.
 
 \subsection{The envelope view}
 \label{sec:envelope}
@@ -378,10 +386,11 @@ We take $\het\le1/4$ as the operational definition of the fringe regime.
 \subsection{Verification}
 
 Theorem~\ref{thm:fringe} is a claim about a rendered image, so we measured it.
-For ten scene pairs spanning straight, curved, isotropic, anisotropic, periodic and
-aperiodic families, we compute the exact one-period directional mean of the union
-from the fields themselves --- no raster, so no sampler error --- and compare it
-against $\Phi$ evaluated at the window centre. There is no fitting and no free
+For eleven scene pairs spanning straight, curved, isotropic, anisotropic, periodic
+and aperiodic families --- one of them a walking family, whose index field is the
+searched-for local one above --- we compute the exact one-period directional mean
+of the union from the fields themselves --- no raster, so no sampler error --- and
+compare it against $\Phi$ evaluated at the window centre. There is no fitting and no free
 parameter. Points are excluded on three stated grounds: strokes merged
 ($w_i+b_i>0.45$, so no gaps remain to beat), carrier bending more than $0.15$\,rad
 across its own period, and gradient varying more than $15\%$ across a period, which
@@ -392,7 +401,7 @@ is the eikonal condition of Section~\ref{sec:eikonal}.
 Table~\ref{tab:fringe} reports the result. Across $\fringeSamples$ admissible
 in-regime samples the mean absolute coverage error is $\fringeMeanErr$ and the
 worst $99$th percentile over any scene is $\fringeWorstP$, against a fringe swing of
-$0.24$--$0.64$ in coverage. Measured as index-gap from the nearest integer, the
+$0.12$--$0.64$ in coverage. Measured as index-gap from the nearest integer, the
 lightest deciles sit at a mean of $\fringeLight$ and the darkest at $\fringeDark$,
 against ideals of $0$ and $0.5$. The darkest-decile figure is diluted by the
 scenes whose profile plateaus: on a flat top every phase is equally dark, so the

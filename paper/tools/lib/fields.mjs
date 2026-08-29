@@ -302,6 +302,46 @@ export function family(cfg = {}) {
       };
       break;
     }
+    case 'walking': {
+      // Member n is the circle ||q - n*offset|| = n*spacing + phase: each ring
+      // in its own frame, so no closed-form phase function exists. But with the
+      // drift below the spacing the residual h(n) = ||q - n*offset|| - (n s + phi)
+      // is strictly decreasing in n, so the bracketing pair (h(n) >= 0 > h(n+1))
+      // is unique and the fractional index n + h(n)/(h(n) - h(n+1)) is a
+      // continuous scalar field whose level sets are exactly the members -- the
+      // local index field the fringe law needs, found by search rather than in
+      // closed form. Scaled by the spacing it plays the role of psi.
+      const off = cfg.offset ?? { x: 0, y: 0 };
+      if (Math.hypot(off.x, off.y) >= spacing) {
+        throw new Error('walking family: drift must stay below the spacing');
+      }
+      const hh = (q, n) => Math.hypot(q.x - n * off.x, q.y - n * off.y) - (n * spacing + phase);
+      const idxLocal = (q) => {
+        const h0 = hh(q, 0);
+        if (h0 <= 0) return h0 / (h0 - hh(q, 1));
+        let lo = 0;
+        let hi = 1;
+        while (hh(q, hi) > 0 && hi < 1 << 20) {
+          lo = hi;
+          hi *= 2;
+        }
+        while (hi - lo > 1) {
+          const mid = (lo + hi) >> 1;
+          if (hh(q, mid) > 0) lo = mid;
+          else hi = mid;
+        }
+        return lo + hh(q, lo) / (hh(q, lo) - hh(q, hi));
+      };
+      psiLocal = (q) => idxLocal(q) * spacing + phase;
+      gradVecLocal = (q) => {
+        const h = 0.05;
+        return {
+          x: (psiLocal({ x: q.x + h, y: q.y }) - psiLocal({ x: q.x - h, y: q.y })) / (2 * h),
+          y: (psiLocal({ x: q.x, y: q.y + h }) - psiLocal({ x: q.x, y: q.y - h })) / (2 * h),
+        };
+      };
+      break;
+    }
     case 'custom': {
       // An arbitrary phase function, for encoding a field in an index difference.
       // `psiFn` is in world units like every other family; `gradFn` is optional

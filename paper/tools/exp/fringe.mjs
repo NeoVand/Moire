@@ -115,6 +115,13 @@ const SCENES = [
     thickness: 1.8,
   },
   {
+    name: 'walking-circle',
+    note: 'a walking family (member n displaced by n-delta) over concentric circles',
+    a: { kind: 'walking', spacing: 8, offset: { x: 1.1, y: 0.45 }, phase: 4, position: { x: -30, y: 0 } },
+    b: { kind: 'concentric', shape: 'circle', spacing: 8, position: { x: 30, y: 0 } },
+    thickness: 1.8,
+  },
+  {
     name: 'hyperbola-parallel',
     note: 'hyperbolae under lines: almost no fringe regime exists',
     a: { kind: 'hyperbola', spacing: 9, phase: 4 },

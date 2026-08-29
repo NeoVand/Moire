@@ -1,6 +1,6 @@
 {
   "quadrature": 512,
-  "pooled": 133540,
+  "pooled": 147198,
   "order": [
     {
       "band": 0.005,
@@ -25,37 +25,37 @@
     },
     {
       "band": 0.05,
-      "n": 30115,
-      "mean": 0.00578,
-      "p90": 0.015467,
-      "max": 0.02274
+      "n": 30325,
+      "mean": 0.005803,
+      "p90": 0.015615,
+      "max": 0.025176
     },
     {
       "band": 0.1,
-      "n": 20458,
-      "mean": 0.000468,
-      "p90": 0.000442,
-      "max": 0.032924
+      "n": 22524,
+      "mean": 0.001239,
+      "p90": 0.000809,
+      "max": 0.050994
     },
     {
       "band": 0.2,
-      "n": 27260,
-      "mean": 0.000105,
-      "p90": 0.000471,
-      "max": 0.001084
+      "n": 34537,
+      "mean": 0.003792,
+      "p90": 0.01207,
+      "max": 0.087239
     },
     {
       "band": 0.4,
-      "n": 12278,
-      "mean": 0.000037,
-      "p90": 0.000085,
-      "max": 0.000342
+      "n": 15596,
+      "mean": 0.003547,
+      "p90": 0.010162,
+      "max": 0.086686
     },
     {
       "band": 1,
-      "n": 20078,
-      "mean": 0.004943,
-      "p90": 0.003243,
+      "n": 20865,
+      "mean": 0.005279,
+      "p90": 0.00691,
       "max": 0.356949
     }
   ],
@@ -349,6 +349,35 @@
       "regimeShare": 1,
       "singularSkipped": 480,
       "bentSkipped": 324
+    },
+    {
+      "name": "walking-circle",
+      "note": "a walking family (member n displaced by n-delta) over concentric circles",
+      "all": {
+        "n": 13658,
+        "mean": 0.0157,
+        "p99": 0.0728,
+        "max": 0.0872,
+        "awayFromCorner": 0.087,
+        "cornerN": 3324,
+        "swing": 0.3883,
+        "lightGap": 0.036,
+        "darkGap": 0.4032
+      },
+      "regime": {
+        "n": 11231,
+        "mean": 0.0159,
+        "p99": 0.0731,
+        "max": 0.0872,
+        "awayFromCorner": 0.087,
+        "cornerN": 2713,
+        "swing": 0.3882,
+        "lightGap": 0.037,
+        "darkGap": 0.4032
+      },
+      "regimeShare": 0.822,
+      "singularSkipped": 0,
+      "bentSkipped": 983
     },
     {
       "name": "hyperbola-parallel",
