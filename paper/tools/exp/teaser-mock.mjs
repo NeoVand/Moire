@@ -126,28 +126,45 @@ const SCENES = [
     contrast: 3.8,
   },
   {
-    // The studio's opening preset, verbatim (createDefaultProject): two walking
-    // circle families drifting against each other, chunky strokes.
+    // The author's own preset for this panel (moire-scene-2026-08-29T18-34-49):
+    // two walking circle families drifting against each other, chunky strokes,
+    // framed by the scene file's own camera.
     name: 'vortex-pair',
+    zoom: 1.0908966797182833,
+    pan: { x: 28.943107685316058, y: -19.537783490484912 },
     layers: [
       walking({
         offset: { x: 0, y: -0.5 },
-        spacing: 6,
+        spacing: 8.3,
         thickness: 3.5,
-        position: { x: 20, y: 50 },
+        position: { x: 0, y: 0 },
         rotation: 50,
       }),
       walking({
         offset: { x: 0, y: 0.5 },
-        spacing: 6,
+        spacing: 8.3,
         thickness: 3.5,
-        position: { x: 10, y: -20 },
+        position: { x: 9.61, y: -54.4 },
         rotation: -5.8,
       }),
     ],
-    contrast: 4.4,
+    contrast: 3,
   },
 ];
+
+// Alternating textures so no two neighbours read alike: fans beside band
+// systems, weaves beside smooth envelopes, across rows and down columns.
+const ORDER = [
+  'rings',
+  'terrain',
+  'counter-spirals',
+  'saddle',
+  'swirl-flow',
+  'walking-hexagon',
+  'triangle-star',
+  'vortex-pair',
+];
+SCENES.sort((a, b) => ORDER.indexOf(a.name) - ORDER.indexOf(b.name));
 
 /** Left half pattern, right half envelope, cut hard at the seam. */
 function splitPanelLR(scene, V) {
@@ -199,7 +216,13 @@ const SEAM_STYLE = 'duo';
 
 const panels = [];
 for (const scene of SCENES) {
-  const V = view({ width: SIZE, height: SIZE, zoom: scene.zoom ?? 1.3, superSample: 2 });
+  const V = view({
+    width: SIZE,
+    height: SIZE,
+    zoom: scene.zoom ?? 1.3,
+    pan: scene.pan ?? { x: 0, y: 0 },
+    superSample: 2,
+  });
   const started = Date.now();
   const rgb = splitPanelLR(scene, V);
   // The seam-style tryout: one bold scene, all four rules side by side.
