@@ -42,8 +42,9 @@ export interface ViewState {
   envelopeLift: number;
   /**
    * Fade the envelope to its pivot where the heterodyne ratio passes 1/4 and no
-   * fringe can exist -- there the mean is a faithful but carrier-fine Phi(D)
-   * that reads as a failed average. 1 masks fully; 0 shows the raw mean.
+   * fringe can exist -- there the mean is a faithful but carrier-fine Phi(D).
+   * Off by default: the raw mean is the honest view, and the fine structure is
+   * often the interesting part. 1 masks fully.
    */
   envelopeMask: number;
   /**
@@ -61,7 +62,7 @@ export const VIEW_DEFAULTS: ViewState = {
   envelopeTaps: ENVELOPE_TAPS,
   envelopeSweep: 1,
   envelopeLift: 0,
-  envelopeMask: 1,
+  envelopeMask: 0,
   ratio: false,
 };
 
