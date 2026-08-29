@@ -34,20 +34,13 @@ costs a few branches per pixel and makes layer count free. Frames are then drive
 by a dirty flag on the store, coalesced to one render per animation frame.
 
 \paragraph{The one exception, and how it is paid for.}
-Exactly one edit changes the program: a layer's field \emph{expression}
-(\S\ref{sec:exprs}). Since the expression is compiled into the shader rather than
-interpreted by it, a new expression is a new material --- that is the whole of the
-trade, and \S\ref{sec:exprs} prices both sides of it. Everything else about a
-field stays a uniform: gain, extent, which layer carries it, and turning it off.
-So the rebuild happens only when a \emph{character} of the expression changes, and
-we make it invisible in three steps. The material is rebuilt per slot, so eleven
-layers are undisturbed. The rebuild is debounced by $220$\,ms, which is longer
-than the gap between two keystrokes, so typing \texttt{sin(3 * x)} costs one
-compile and not eleven. And the renderer holds the last presented frame across the
-build instead of clearing, so the canvas shows a stale picture for a few frames
-rather than a blank one. Meanwhile the field editor's live preview is drawn by the
-CPU evaluator, which needs no compile at all, so the author is never actually
-waiting on the GPU to see what they typed.
+Exactly one edit changes the program: a layer's field \emph{expression}, which is
+compiled into the shader rather than interpreted by it (\S\ref{sec:exprs}).
+Three things hide the rebuild: it is per slot, so eleven layers are undisturbed;
+it is debounced by $220$\,ms, longer than the gap between keystrokes; and the
+renderer holds the last presented frame across the build while the field editor's
+live preview runs on the CPU evaluator, so the author never waits on the GPU to
+see what they typed.
 
 \subsection{The stroke has a floor, and the floor is in world units}
 \label{sec:zoom}
@@ -169,22 +162,12 @@ sliders visibly do nothing.
 
 \subsection{Direct manipulation of a field}
 
-World $Y$ is up, and the flip to device coordinates happens in exactly one
-place~\cite{Nehab2008}. Dragging moves the selected layer, in screen space, which
-requires inverting the layer's own rotation onto the drag delta or the layer walks
-away from the cursor. Holding \textsc{alt} rotates the layer about the world
-origin rather than its own centre, which is the operation that makes a walking
-family unwind; degrees in the interface, radians in the uniform, and a separate
-field from the per-member rotation. Space or the middle button pans, the wheel
-zooms to the cursor, and \textsc{shift} on any slider divides its rate.
-
-The first paint waits on \texttt{compileAsync}, because presenting a blank canvas
-and then a picture reads as a bug. During the wait the stage shows a mark; when the
-program is ready, the tool eases two default concentric layers into the loaded
-preset, using the same morph machinery. The first thing an author sees is therefore
-not a static result but the mechanism moving into place, which turns out to be a
-better explanation of what the tool is than the panel of sliders next to it.
-
-Everything else is deliberately thin: one chrome panel on the left, collapsible to
-a pill, and a PNG export that reads the canvas back. There is no document format,
-no layer effects, and no inspector. The pattern is the document.
+Dragging moves the selected layer in screen space, which requires inverting the
+layer's own rotation onto the drag delta or the layer walks away from the cursor;
+holding \textsc{alt} rotates the layer about the world origin, the operation that
+makes a walking family unwind. The wheel zooms to the cursor, and the first paint
+waits on \texttt{compileAsync}, easing two default concentric layers into the
+loaded preset with the same morph machinery, so the first thing an author sees is
+the mechanism moving into place. Everything else is deliberately thin: one
+collapsible panel, and a PNG export. There is no document format, no layer
+effects, and no inspector. The pattern is the document.

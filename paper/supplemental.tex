@@ -1,0 +1,109 @@
+% Moire Fields -- supplemental material.
+% Build AFTER the main paper (it reads build/paper.aux for cross-references):
+%   tectonic -X compile paper.tex --outdir build --keep-intermediates
+%   tectonic -X compile supplemental.tex --outdir build
+\documentclass[acmtog, nonacm]{acmart}
+
+\usepackage{amsmath}
+\let\Bbbk\relax
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+% Cross-references into the main paper: \ref{sec:...} etc. resolve against the
+% aux file the main build leaves behind.
+\usepackage{xr}
+\externaldocument{build/paper}
+
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{calc, arrows.meta, decorations.pathreplacing, patterns, positioning, fit}
+
+\definecolor{ink}{HTML}{15181C}
+\definecolor{accent}{HTML}{C81E5A}
+\definecolor{cool}{HTML}{1B6CA8}
+\definecolor{warm}{HTML}{D4761A}
+\definecolor{soft}{HTML}{8A94A0}
+\definecolor{paperbg}{HTML}{F7F7F5}
+
+\pgfplotsset{
+  paperaxis/.style={
+    width=\linewidth, height=4.4cm,
+    tick align=outside, tick pos=left,
+    axis line style={gray!60},
+    grid=major, grid style={gray!18, very thin},
+    label style={font=\small}, tick label style={font=\footnotesize},
+    legend style={font=\footnotesize, draw=gray!40, fill=white, fill opacity=0.92,
+                  text opacity=1, inner sep=2pt, row sep=-1pt},
+  },
+  smallaxis/.style={paperaxis, height=3.6cm},
+}
+
+\newcommand{\figlead}[1]{\textbf{#1}\ }
+\setlength{\emergencystretch}{1.2em}
+\newcommand{\pslash}{\discretionary{/}{}{/}}
+\AtBeginEnvironment{thebibliography}{\sloppy}
+
+\newcommand{\panelrow}[3]{%
+  \par\nointerlineskip\vskip 2.5pt%
+  \noindent\makebox[\linewidth][l]{\footnotesize
+    \foreach \panellabel [count=\panelno] in {#3}{%
+      \ifnum\panelno>1\hspace{#2\linewidth}\fi
+      \makebox[#1\linewidth][c]{\panellabel}%
+    }\hss}%
+  \par
+}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Rot}[1]{\mathbf{R}_{#1}}
+\newcommand{\rad}{\rho}
+\newcommand{\idx}{\phi}
+\newcommand{\ph}{\psi}
+\newcommand{\het}{\eta}
+\newcommand{\Moire}{\textsc{Moir\'e}}
+\newcommand{\ours}{\textsc{Window}}
+\newcommand{\sweep}{\textsc{Sweep}}
+\newcommand{\loose}{\textsc{Loose}}
+
+\input{numbers}
+
+% Sections number as S1, S2, ... so the main text can point at them statically;
+% floats carry the same prefix so a bare "Table 8" cannot be confused with the
+% main paper's.
+\renewcommand{\thesection}{S\arabic{section}}
+\renewcommand{\thetable}{S\arabic{table}}
+\renewcommand{\thefigure}{S\arabic{figure}}
+
+\begin{document}
+
+\title{Moir\'e Fields: Supplemental Material}
+\author{Neo Mohsenvand}
+\affiliation[obeypunctuation=true]{\institution{Independent}\city{\ }\country{\ }}
+\authorsaddresses{}
+
+\maketitle
+
+\input{app-catalog}
+\input{app-atlas}
+\input{supp-details}
+\input{app-gallery}
+\input{app-repro}
+
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{refs}
+
+\end{document}

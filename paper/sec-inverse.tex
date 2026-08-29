@@ -21,8 +21,7 @@ Everything below is exact with respect to~\eqref{eq:clamped}, which is exact wit
 respect to the image. This is the only approximation in the exactness argument,
 and it is a change of nothing: the renderer's own quantisation.
 
-Two smaller consequences of the same observation are worth naming because they
-are free. The solver takes an \emph{accept} threshold $t-a$: once a residual falls
+Two smaller consequences of the same observation come free. The solver takes an \emph{accept} threshold $t-a$: once a residual falls
 below it the pixel is fully inked and the loop can stop, whatever else is nearby.
 And it takes $G$ itself as a \emph{reject} threshold, which is what makes the
 interval below finite.

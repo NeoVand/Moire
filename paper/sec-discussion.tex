@@ -24,8 +24,8 @@ motion is Lipschitz in $n$, so Algorithm~\ref{alg:scan} would still run, only
 without a certificate.
 
 \paragraph{Why the discrete setting is favourable.}
-It is worth naming why this problem admits a stronger guarantee than the
-continuous analogues in Section~\ref{sec:related}. Range analysis on a spatial
+Why does this problem admit a stronger guarantee than the
+continuous analogues in Section~\ref{sec:related}? Range analysis on a spatial
 domain must subdivide, because the domain is uncountable and the bound is
 conservative; it terminates on a tolerance. Here the domain is $\N_0$, the interval
 is exact rather than conservative, and ``enumerate the interval'' is a terminating
@@ -35,43 +35,21 @@ converts a tolerance into a proof. We suspect other rendering problems phrased a
 Yan2016}, tiled or stamped patterns~\cite{Lagae2010}, layered fibres --- have the
 same structure available and are being solved with budgets instead.
 
-\paragraph{On the value of a tight constant.}
-The most transferable practical lesson is Section~\ref{sec:drift}. \loose{}
-differs from \ours{} by one expression: $\lVert\delta\rVert$ instead of
-$\rad(-\delta)$. Both are valid bounds. Both give a correct algorithm in the sense
-that the interval contains the answer. But the loose one makes the interval too
-wide to walk on a band of ordinary settings, and the fallback for a too-wide
-interval is subsampling, so a bound that is merely \emph{loose} produces an image
-that is visibly \emph{wrong} (Figure~\ref{fig:drift}: $\artDriftLooseDiff\%$ of
-pixels, the largest fidelity error in the paper). When correctness is contingent
-on a budget, the tightness of a bound is not a performance question.
-
 \paragraph{What the representation bought, besides speed.}
 We began with the field formulation as a way to get resolution independence, and
 that is what it delivered. What we did not expect is that it would function as a
-debugging method. Three of the four curve families in the shipped shader were
-thresholding a phase residual against a length, and the bug had survived because
-its signature --- strokes thinning where a family steepens --- looks like a design
-choice rather than an error. Writing $d=\mathrm{pd}(\ph-\varphi,s)/\lVert\nabla
-\ph\rVert$ down as the definition of a layer made the missing divide a type error
-rather than a matter of taste (\S\ref{sec:eikonal}, Appendix~\ref{app:atlas}). The
-same thing happened three more times: the stroke floor turned out to be applied in
-the wrong units for the same reason; the subsampling fallback turned out to have a
-choice of anchor nobody had noticed was a choice (\S\ref{sec:results}); and writing
-the envelope's contrast as an expansion about the stack's own mean coverage
-(\S\ref{sec:envelope}) exposed that we were counting a lattice as one family when
-it draws three, which put the pivot brighter than the picture and drove the frame
-black at any real contrast. We would put it this way. A representation that names
-the quantities forces the units to agree, and most of our bugs were units --- or,
-in that last case, a count.
-
-Naming them also tells you which quantities should never be written twice. Each of
-our first six fields carried a gradient we had derived by hand and transcribed
-into two languages, and the definition of a layer says that gradient is not an
-attribute of the field but a consequence of it. Once that is admitted the
-transcriptions are indefensible, and forward-mode differentiation
-(\S\ref{sec:exprs}) removes them along with the class of bug they were the only
-source of.
+debugging method. Four shipped bugs --- the missing eikonal divide
+(\S\ref{sec:eikonal}; supplemental \S S2), a stroke floor applied in phase units,
+a subsampling anchor nobody had noticed was a choice (\S\ref{sec:results}), and
+an envelope pivot that counted a hex lattice as one family when it draws three
+(\S\ref{sec:envelope}) --- were found the same way: writing the layer's
+definition down and watching a unit fail to agree. A representation that names
+the quantities forces the units to agree, and most of our bugs were units. It
+also says which quantities must never be written twice. Each of our first six
+fields carried a gradient derived by hand and transcribed into two languages;
+the definition of a layer says that gradient is a consequence of the field, not
+an attribute of it, and forward-mode differentiation (\S\ref{sec:exprs}) removes
+the transcriptions along with the class of bug they were the only source of.
 
 \paragraph{Where the ink runs out.}
 The formulation's real budget is not arithmetic, it is coverage. A layer costs one
@@ -82,9 +60,8 @@ fields at once (\S\ref{sec:beyond}) needs four families, and four families of
 strokes at a pitch fine enough to carry fringes saturates. Hue and pitch separation
 help and are not enough. We think the missing piece is a compositing rule for
 fields that is not union-of-ink --- something that spends contrast rather than
-coverage --- and we do not have one. It is the open problem in this paper we would
-most like solved, because it is what stands between a moir\'e and a display with
-more than one channel.
+coverage --- and we do not have one. Of the open problems in this paper it is the one that matters most, because it
+is what stands between a moir\'e and a display with more than one channel.
 
 \paragraph{Limitations.}
 Four, in order of how much they bother us. \emph{The marginal band.} On
@@ -132,8 +109,8 @@ We have argued that a moir\'e layer is better described by two scalar fields, an
 index and a distance, and that with those in hand the fringes stop being an
 accident. They are the unit level sets of the difference of the index fields
 (Theorem~\ref{thm:fringe}), a statement that needs no periodicity, no lattice,
-and no Fourier transform, and that holds for every family we could write a phase
-function for.
+and no Fourier transform, and that we measured holding on every family we tested
+--- including one whose index field exists only as the answer to a search.
 
 Three things follow. The pattern becomes a document rather than a raster:
 resolution-independent, so that one description is a thumbnail, a screen, and a

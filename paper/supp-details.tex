@@ -1,0 +1,49 @@
+\section{Envelope and solver details}
+\label{supp:details}
+
+Two implementation notes referenced from the main text: how each family spends
+the envelope's advancing index, and how to read the two below-unity rows of the
+ablation.
+
+\subsection{Every family has a currency}
+
+The envelope view advances every layer's index together by $u$ and averages over
+$u\in[0,1)$, and each family spends that advance in its own coin. The level-set
+families shift a phase. The radial pencil turns: advancing its index by $u$
+rotates the fan by $u\pi/N$, which is how a family whose index is an angle joins
+an average built for scalars. A lattice indexes its members by a \emph{pair} of
+integers, so it translates along its two generators --- and here the diagonal is
+exactly wrong. Stepping both generators in lockstep keeps their two indices
+correlated, and a lattice then beats against itself: a fine diagonal hatch at the
+carrier's own scale that no amount of contrast can be read through. So we take
+the $i$th tap along the first generator to $u_i$ and along the second to
+$\{i\varphi\}$, $\varphi$ the golden ratio --- the Fibonacci lattice, a rank-1
+rule on the two-torus~\cite{Sloan1994Lattice, Keller2013Quasi}. It decorrelates a
+lattice from itself while leaving it in step with every other layer's matching
+generator, which is where the fringes an author wants actually are.
+
+\subsection{A pivot, not a gain}
+
+The view exposes a contrast, because a fringe field is a small excursion about
+the stack's mean coverage and the interesting part is the excursion. Expanding
+about $0$ would ride the mean up and down as the fringes move, so the expansion
+is about the coverage the stack would average over its own periods: $2h/s$ per
+family, composited. Counting a lattice's families is not optional. A hex lattice
+draws three, and calling its coverage that of one puts the pivot far brighter
+than the picture it is expanding about, which at any real contrast drives the
+whole frame black --- which is how we found the bug.
+
+\subsection{Reading the ablation's negative rows}
+
+Removing the carried rotation or the accept-early-exit makes the dense ablation
+scenes $8$--$19\%$ \emph{faster}. Removing the accept exit is faster because in a
+heavily inked region almost every lane would exit anyway, and the branch only
+adds divergence: with $32$ lanes in lockstep, one slow lane sets the pace, so an
+early exit that helps $31$ of them helps nobody. Both mechanisms stay because
+they are what make sparse and mid-density scenes cheap, and because a solver
+tuned only for saturated fields is tuned for the case where the image carries
+least information. The same wavefront-divergence argument says why narrowing the
+interval, rather than exiting the loop sooner, is the productive lever in this
+problem: the interval is computed per pixel before the loop and shrinks the work
+of \emph{every} lane, while an exit condition only helps whichever lane is
+already done.

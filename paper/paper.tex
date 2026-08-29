@@ -108,49 +108,23 @@
 
 \begin{abstract}
 Moir\'e is the oldest computational image: two dense families of curves, and a
-third pattern that belongs to neither. Graphics has treated it twice, and both
-times as something that happens to \emph{rasters} --- an aliasing artifact to
-filter away, or a printed pair of gratings to be solved for offline and then slid
-by hand. Neither treatment lets an artist hold a moir\'e and move it.
-
-We propose representing a moir\'e layer not as an image but as a \emph{question}:
-for this pixel, how far is the nearest member of this family, and which one is
-it? A layer becomes a pair of scalar fields --- an index field and a distance
-field --- superposition becomes compositing of fields rather than of pixels, and
-the pattern becomes resolution-independent, zoom-stable, and editable at
-interactive rates. Within this model we prove that the fringes of a superposition
-are exactly the unit level sets of the difference of the two index fields, with a
-saturating tent profile, and that the classical requirement that the two carriers
-be ``close'' is a bound on a single local quantity we can map over the frame.
-Neither family need be periodic, nor a geometric transform of a periodic one, so
-the statement covers spirals, hyperbolae and rotating pencils that Fourier moir\'e
-theory does not reach.
-
-The model has one hard case, and it is the interesting one. When each member of a
-family carries its own rigid motion --- ring $n$ translated by $n\delta$ and
-turned by $n\theta$ --- the family admits no global index field, and the nearest
-member has to be found by search. We show that a single classical object, the
-support function of the generating shape, supplies the four constants the search
-needs: a Lipschitz modulus, an anisotropy floor $\kappa=\cos(\pi/N)$, an exact
-drift rate $\rad(-\delta)$, and convexity when $\theta=0$. From these we derive a
-provably sufficient interval of integers, a skip rule that visits a single-digit
-number of them, and an exact closed form for translated polygons of any side
-count. The result is $\gpuSpeedLo$--$\gpuSpeedHi\times$ faster than the fixed
-enumeration it replaces, at strictly better fidelity, which is what made these
-parameters usable in an interactive tool at all.
-
-We describe \Moire{}, a browser tool built on this model with thirteen families,
-twelve live layers and no rasterisation step anywhere, and close with an
-application the field view makes almost free. Because fringes are the level sets
-of an index difference, and the difference is a line of shader code, a moir\'e can
-be made a contour plot of any field one cares to encode --- no marching squares,
-no polylines, no topology. The field is an expression the author types,
-differentiated automatically and compiled into the shader rather than interpreted
-per pixel, which is a $\fieldGainLo$--$\fieldGainHi\times$ difference and the
-reason it can be arbitrary. Measured against the true level sets, the fringes land
-within $\contourWorstErr$ pixels --- \contourAtFloor{} of \contourFieldCount{}
-fields at our measurement floor --- and the method's entire sampling limit is a
-single inequality between the contour interval and the carrier pitch.
+third pattern that belongs to neither. Graphics treats it as an aliasing artifact
+to filter away, or as a printed pair of gratings solved offline and slid by hand;
+neither lets an artist hold a moir\'e and move it. We represent a layer instead
+as two scalar fields --- an index field naming the nearest member of a curve
+family, fractionally, and a distance field to it --- so superposition composites
+fields rather than pixels and the pattern has no resolution. In this model the
+fringes of a superposition are exactly the unit level sets of the index-field
+difference, with a saturating tent profile and a per-pixel validity criterion; no
+periodicity is required. The hard case is a family whose members each carry their
+own rigid motion: its index field has no closed form, and the nearest member must
+be searched for. The support function of the generating shape supplies a provably
+sufficient search interval, a Lipschitz skip rule, and an exact closed form for
+translated polygons --- $\gpuSpeedLo$--$\gpuSpeedHi\times$ faster than the fixed
+enumeration it replaces, at equal or better fidelity. We present \Moire{}, a
+browser studio built on the model, and show that choosing the index difference
+turns a moir\'e into a live contour plot of any authored field, within
+$\contourWorstErr$\,px of the true level sets.
 \end{abstract}
 
 \begin{CCSXML}
@@ -209,7 +183,7 @@ patterns, interactive authoring, {GPU} rendering}
   is \emph{chosen}, here to be the stream function of four point vortices, so the
   fringes are streamlines of the flow (\S\ref{sec:beyond}). No curve was traced and
   no trajectory integrated --- it is one setting on an ordinary layer.
-  Settings in Appendix~\ref{app:gallery}.}
+  Settings in the supplemental material (\S S4).}
   \label{fig:teaser}
 \end{teaserfigure}
 
@@ -231,9 +205,5 @@ patterns, interactive authoring, {GPU} rendering}
 
 \appendix
 \input{app-proofs}
-\input{app-catalog}
-\input{app-atlas}
-\input{app-gallery}
-\input{app-repro}
 
 \end{document}

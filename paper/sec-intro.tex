@@ -106,7 +106,7 @@ $\{\gamma_n\}$ --- the $n$th line, the $n$th ring, the $n$th turn of a spiral.
 A pixel does not need the family. It needs one number: how far away is the
 nearest member? Give it that, threshold it against a stroke width, and you have
 ink. Do it for several families and composite. The moir\'e is not computed at all;
-it is what the eye does with the composite, exactly as it is with paper.
+it is what the eye does with the composite, just as it is with paper.
 
 So we represent a layer by two scalar fields. The \emph{index field} $\idx(p)$
 says which member $p$ sits on, fractionally, so that $\gamma_n=\idx^{-1}(n)$. The
@@ -212,33 +212,6 @@ would most like implementors to take is that the choice of \emph{how} to subsamp
 matters more than how much: anchored to the family, you get a thinner but
 structurally whole pattern; anchored to the pixel, you get shattered dashes at
 identical cost.
-
-\subsection{Writing this paper changed the tool}
-
-Taking the field view seriously turned out to be a debugging method. Once a layer
-is ``the level sets of a phase function $\ph$,'' the stroke width has to be
-$\mathrm{periodicDist}(\ph-\varphi, s)/|\nabla \ph|$, because a phase residual is
-not a distance. Our shader applied that divide for one family and omitted it for
-three. The visible consequence is that strokes thin out by exactly the factor the
-family is steep by --- up to $\gradWorstWave\times$ for a wave at the top of its
-amplitude range --- so patterns faded precisely where they should have become
-dense, and the hairline floor that protects against zoom-out speckle was being
-applied in phase units where it guarantees nothing. Section~\ref{sec:eikonal}
-reports the measurement and the fix. Two further consequences of the same kind,
-one about which anchor a subsampled scan should use and one about stroke
-saturation, are in Section~\ref{sec:results} and Appendix~\ref{app:atlas}.
-
-Writing it also changed what the tool is. Two of the sections below describe
-things that did not exist when we started and exist because trying to explain the
-theory made their absence obvious. Section~\ref{sec:envelope} draws
-Theorem~\ref{thm:fringe}'s averaged ink as a view, which turned out to require
-averaging over \emph{index} rather than over space, and then required a way to
-take many taps from one solve or it would not have run at frame rate.
-Section~\ref{sec:exprs} replaces the six built-in fields we had --- each with a
-gradient we had differentiated by hand, twice, in two languages --- with an
-expression the author types, differentiated automatically and compiled into the
-shader. That last one is the difference between a menu and a primitive, and the
-paper is a claim about a primitive.
 
 \subsection{Contributions}
 

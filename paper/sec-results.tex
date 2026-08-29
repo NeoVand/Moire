@@ -206,19 +206,12 @@ $\ablClosedMarginal\times$, because without it the scan must walk a $2^{16}$-wid
 interval to find an answer that Proposition~\ref{prop:closed} reads off in one
 comparison.
 
-Two entries are below $1$, and we report them because they are instructive.
-Removing the carried rotation or the accept-early-exit is
-$\ablCostLo$--$\ablCostHi\%$ \emph{faster} in these dense scenes. Removing the
-accept exit is faster because in a heavily inked region
-almost every lane would exit anyway, and the branch only adds divergence: with
-$32$ lanes in lockstep, one slow lane sets the pace, so an early exit that helps
-$31$ of them helps nobody. We keep both because they are what make sparse and
-mid-density scenes cheap, and because a solver tuned only for saturated fields is
-tuned for the case where the image carries least information. The same
-wavefront-divergence argument explains why narrowing the interval, rather than
-exiting the loop sooner, is the productive lever in this problem: the interval is
-computed per pixel before the loop and shrinks the work of \emph{every} lane, while
-an exit condition only helps whichever lane is already done.
+Two entries are below $1$: removing the carried rotation or the accept-early-exit
+is $\ablCostLo$--$\ablCostHi\%$ \emph{faster} in these dense scenes, a wavefront-%
+divergence effect. We keep both because they are what make sparse and mid-density
+scenes cheap; the divergence reading, and why narrowing the interval rather than
+exiting sooner is the productive lever on a GPU, are in the supplemental
+material (\S S3).
 
 \subsection{Where the guarantee ends}
 \label{sec:limits}
@@ -327,7 +320,8 @@ limitation, confined to a $\satStridedLegiblePct\%$ band of parameter space, and
 is the obvious target for future work (Section~\ref{sec:future}).
 
 \emph{What we do about it.} What we can control is the \emph{structure} of the
-error, and Figure~\ref{fig:anchor} is the result we would most like to pass on.
+error, and Figure~\ref{fig:anchor} is the one finding here we would ask an
+implementor to keep.
 Both panels subsample by the same stride, spend the same $\artAnchorEv$ evaluations
 per pixel, and retain statistically the same ink. Anchoring the stride to
 $n_{\mathrm{lo}}$ --- which depends on the pixel --- makes adjacent pixels sample

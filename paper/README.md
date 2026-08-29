@@ -18,10 +18,15 @@ imported by the app, and no experiment touches `src/`.
 ```bash
 brew install tectonic          # or any XeLaTeX with acmart + pgfplots
 mkdir -p build
-tectonic -X compile paper.tex --outdir build
+tectonic -X compile paper.tex --outdir build --keep-intermediates
+tectonic -X compile supplemental.tex --outdir build
 ```
 
-Writes `build/paper.pdf`. First run downloads the ACM class and fonts. Tectonic
+Writes `build/paper.pdf` and `build/supplemental.pdf`. The supplemental
+(catalog plate, gradient atlas, envelope and ablation details, gallery
+settings, reproduction guide) resolves references into the main paper through
+`build/paper.aux`, so build the paper first, with intermediates kept. First run
+downloads the ACM class and fonts. Tectonic
 does not keep `build/paper.log` by default; pass `--print` to see TeX warnings.
 
 `paper.tex` is a shell; the prose is in `sec-*.tex` and `app-*.tex`, and every

@@ -46,7 +46,7 @@ lattice $s\Z$. Both are one line of shader code.
   Strokes thin by exactly the factor the family is steep by, so the pattern fades
   where it should saturate and the hyperbola's asymptotes disappear. Bottom: the
   same settings with Eq.~\ref{eq:eikonal}. The parabola family always divided; these
-  three did not, and the failure is worst exactly where the family is densest.}
+  three did not, and the failure is worst where the family is densest.}
   \label{fig:gradient}
 \end{figure}
 
@@ -59,10 +59,10 @@ The first is cosmetic but severe. Where $\lVert\nabla\ph\rVert>1$, the reported
 distance is $\lVert\nabla\ph\rVert$ times too large, so the stroke is thinner by
 the same factor. Sweeping each
 family over its own slider range on a $1400\times880$ frame
-(Appendix~\ref{app:atlas}, Table~\ref{tab:gradient}) we measure factors up to
+(supplemental material, \S S2) we measure factors up to
 $\gradWorstWave$ for the wave and $\gradWorstHyp$ for the hyperbola, with more than
 half the frame off by over $10\%$ in both cases. Visually the family pales out
-exactly where it steepens and crowds --- the opposite of what the geometry does
+where it steepens and crowds --- the opposite of what the geometry does
 (Figure~\ref{fig:gradient}).
 
 The second is a correctness bug. Our stroke half-width is
@@ -73,7 +73,7 @@ Compared against an undivided phase residual it is a statement about phase, and 
 guarantees nothing wherever $\lVert\nabla\ph\rVert\neq1$. The families that most need the floor --- the
 steep ones --- are precisely the ones that were not getting it.
 
-We adopt Eq.~\ref{eq:eikonal} everywhere. One honest cost: a wave at high amplitude
+We adopt Eq.~\ref{eq:eikonal} everywhere. One cost, stated plainly: a wave at high amplitude
 and frequency now saturates to solid ink, because at those settings its members
 genuinely are closer together than a stroke width. That is the correct answer, and
 the previous behaviour was hiding it.
@@ -152,8 +152,8 @@ the floor is a single point and the profile is the familiar tent.
 \end{theorem}
 
 The proof is a change of variables and is given in Appendix~\ref{app:fringe}; the
-content is entirely in the statement. It is worth being exact about the two
-hypotheses, because they are not interchangeable. ``Both families are local
+content is entirely in the statement. The two hypotheses are not
+interchangeable, and it pays to be exact about them. ``Both families are local
 foliations on $S$'' is what lets us reparameterise the segment by index instead of
 by arclength. ``$D$ is constant on $S$'' is what makes the answer a function of
 $D(p)$ alone, and it is the strong one: exact constancy means the two carriers
@@ -164,7 +164,7 @@ correction is first order in $\het$, which is the same small parameter
 theorem is exact in the limit that a fringe becomes infinitely broad, and
 degrades in the parameter that measures how far from that limit we are --- which is
 why the verification below both restricts to $\het\le1/4$ and reports the residual
-rather than claiming zero. Three further things are worth saying.
+rather than claiming zero. Three further remarks.
 
 \paragraph{The locus is classical; the profile is not.}
 $\Phi$ is periodic with period $1$ and extremal at $D\in\Z$ and
@@ -252,8 +252,8 @@ the Studio, not a post-process.
 Written that way, \eqref{eq:meanink} is an integral over the diagonal of the
 \emph{index torus} $[0,1)^K$ --- one circle per family --- and the choice of the
 diagonal is exactly Theorem~\ref{thm:fringe}'s hypothesis rather than a
-convenience. It is worth saying what the honest alternative is, because we
-implemented it first. Sweeping a rigid translation of the whole stack is
+convenience. The alternative deserves stating, because we implemented it
+first. Sweeping a rigid translation of the whole stack is
 geometrically exact where advancing an index is bookkeeping, and it is unusable:
 the taps then sample a two-dimensional disc for strokes that cover a few percent
 of it, so a handful of taps carry the answer and the rest carry noise. Sixty-four
@@ -292,35 +292,15 @@ the pitch does across the frame --- which is what the radial pencil needs, since
 its member gap $2r\sin(\pi/2N)$ grows with radius. And $\ell$ is where the
 non-sliding parts of a family live: the guard returned by a saturated solve, the
 hole at the centre of a pencil, the missing inner neighbour of the innermost
-hyperbola. Those are the places where there is genuinely nothing to slide onto,
+hyperbola. Those are the places where there is nothing to slide onto,
 and separating them from the residual is what keeps the average from inventing
 ink there.
 
-\paragraph{Every family has a currency.}
-Equation~\ref{eq:meanink} advances an index, and each family spends that in its
-own coin. The level-set families of \S\ref{sec:catalog} shift a phase. The radial
-pencil turns: advancing its index by $u$ rotates the fan by $u\pi/N$, which is
-how a family whose index is an angle joins an average built for scalars. A lattice
-indexes its members by a \emph{pair} of integers, so it translates along its two
-generators --- and here the diagonal is exactly wrong. Stepping both generators in
-lockstep keeps their two indices correlated, and a lattice then beats against
-itself: a fine diagonal hatch at the carrier's own scale that no amount of
-contrast can be read through. So we take the $i$th tap along the first generator
-to $u_i$ and along the second to $\{i\varphi\}$, $\varphi$ the golden ratio ---
-the Fibonacci lattice, a rank-1 rule on the
-two-torus~\cite{Sloan1994Lattice, Keller2013Quasi}. It decorrelates a lattice from
-itself while leaving it in step with every other layer's matching generator, which
-is where the fringes an author wants actually are.
-
-\paragraph{A pivot, not a gain.}
-The view exposes a contrast, because a fringe field is a small excursion about the
-stack's mean coverage and the interesting part is the excursion. Expanding about
-$0$ would ride the mean up and down as the fringes move, so the expansion is about
-the coverage the stack would average over its own periods: $2h/s$ per family,
-composited. Counting a lattice's families is not optional. A hex lattice draws
-three, and calling its coverage that of one puts the pivot far brighter than the
-picture it is expanding about, which at any real contrast drives the whole frame
-black --- which is precisely how we found the bug.
+Each family spends the advancing index in its own coin --- a phase shift for the
+level-set families, a rotation for the radial pencil, a translation along its
+generators for a lattice, where the diagonal must be decorrelated or the lattice
+beats against itself. Those details, and the contrast pivot the view expands
+about, are in the supplemental material (\S S3).
 
 One caveat remains, and it is structural rather than a matter of implementation.
 The average is over the diagonal, so where Theorem~\ref{thm:fringe}'s hypothesis
@@ -343,7 +323,9 @@ $D$ changes by $\het$ across one carrier period, so $\het\ll1$ is exactly the
 condition that a fringe be large compared with the carrier. It is the field-space
 form of the classical requirement that the two frequencies be close --- and it is a
 \emph{field}, so it varies over the frame, and it can be drawn
-(Figure~\ref{fig:visibility}).
+(Figure~\ref{fig:visibility}). The Studio draws it live, as a view toggled beside
+the envelope, so an author sees where a fringe will form before committing to the
+parameters.
 
 \begin{figure*}[t]
   \centering

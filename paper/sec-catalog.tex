@@ -6,9 +6,9 @@ level sets are the members, and its gradient magnitude, which converts a phase
 residual into a distance. This section is the list. It is short, and its shortness
 is the point --- thirteen families, of which nine are one line of algebra each.
 The two that are not, and the reason they are not, set up the rest of the paper.
-Appendix~\ref{app:catalog} draws all thirteen, each alone and then beating against
-a perturbed copy of itself (Figure~\ref{fig:plate}), which is the fastest way to
-see what the algebra below buys.
+The supplemental material (\S S1) draws all thirteen, each alone and then beating
+against a perturbed copy of itself, which is the fastest way to see what the
+algebra below buys.
 
 \subsection{Nine closed forms}
 
@@ -88,7 +88,7 @@ Three remarks on the table, each of which cost us a bug.
 
 \paragraph{The gradient column is not decoration.} For the first six rows it is
 $1$ and can be dropped. For the last four it is not, and dropping it thins every
-stroke by exactly the factor the family is steep by. We had shipped that bug in
+stroke by the same factor the family is steep by. We had shipped that bug in
 three of the four; \S\ref{sec:eikonal} reports the measurement.
 
 \paragraph{Some families exclude an index.} The hyperbola's $n=0$ member would be
@@ -138,11 +138,11 @@ pattern with the wrong symmetry. Both distances take an anisotropic scale
 $(s_x,s_y)$, applied by dividing by $\lVert(n_x/s_x,n_y/s_y)\rVert$ per facet so
 that stretching a lattice keeps its strokes metrically correct.
 
-The consequence for the theory is worth stating plainly. Theorem~\ref{thm:fringe}
+The consequence for the theory is plain. Theorem~\ref{thm:fringe}
 is about the difference of two \emph{scalar} index fields. A lattice's index is in
 $\Z^2$, so the difference of two lattice indices is in $\Z^2$ as well, and the
 theorem applies to it componentwise --- once per generating line family. This is
-exactly the classical situation, where a $2$-D screen superposition has a fringe
+the classical situation, where a $2$-D screen superposition has a fringe
 system per pair of generating frequency vectors and the visible moir\'e is whichever
 pair beats slowest~\cite{Amidror2009Theory, Amidror1998Fourier}. The field
 formulation does not remove that bookkeeping. It localises it: each component is a

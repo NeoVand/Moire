@@ -26,7 +26,7 @@ $\{f=n/a\}$: the contours of $f$ at interval $c=1/a$. Not an approximation of
 them, and not a discretisation of them --- the same curves a contour tracer would
 be trying to find.
 
-What is worth noticing is everything that does \emph{not} appear. There is no
+Notice everything that does \emph{not} appear. There is no
 marching squares, no cell table, no ambiguous saddle, no polyline, no stitching
 of segments into curves, no decision about topology, and no resolution at which
 any of that would have happened. The contour is never computed. It is a place
@@ -41,7 +41,7 @@ subtracts $a s f$ inside that residual and adds $a s \nabla f$ to the gradient i
 divides by. Two extra terms, one shared by all thirteen families.
 
 The gradient term is not optional. Omit it and the modulated family's strokes
-thin wherever the field is steep --- by exactly the factor $|\nabla\ph_2|$ ---
+thin wherever the field is steep --- by the factor $|\nabla\ph_2|$ ---
 which is the same eikonal bug \S\ref{sec:catalog} found in the curve families,
 reintroduced through the back door. So a field is not usable unless $\nabla f$
 comes with it, which is the whole of the next subsection.
@@ -59,7 +59,7 @@ could extend either: adding a seventh field meant editing the renderer.
 
 So the tool takes an expression. \texttt{x\^{}2 - y\^{}2} is the saddle,
 \texttt{cos(tau * r)} is the bullseye, and $\fieldCount$ presets
-(Appendix~\ref{app:atlas}, Table~\ref{tab:exprs}) are starting points rather than
+(supplemental material, \S S2) are starting points rather than
 the offering. The language is deliberately small: the two coordinates, the polar
 sugar \texttt{r} and \texttt{theta}, $\pi$, $\tau$ and $e$, the arithmetic
 operators with \texttt{\^{}} right-associative, and sixteen functions. There are
@@ -78,7 +78,7 @@ are gone. Singular points are handled by clamps shared between the two
 evaluators, so a pole is the same finite number on both sides rather than a
 \texttt{NaN} on one.
 
-One rule in that traversal is worth stating because getting it wrong cost us a
+One rule in that traversal deserves stating, because getting it wrong cost us a
 day. In the chain rule $\partial(g\circ h)=g'(h)\,\partial h$, a factor that is
 \emph{exactly} zero contributes nothing --- even when the other factor
 overflowed. A plain multiply gives $0\cdot\infty=\mathrm{NaN}$, and one
@@ -219,9 +219,9 @@ where the fringe is.
   Every pattern above is two \textsc{parallel} layers of pitch
   $\contourCarrier$\,px differing only in one layer's field expression; the labels
   are the presets of \S\ref{sec:exprs}, whose sources are in
-  Table~\ref{tab:exprs}. The dipole is instructive: towards each pole the
+  the supplemental material (\S S2). The dipole is instructive: towards each pole the
   equipotentials crowd, and past the limit \eqref{eq:contournyquist} no carrier can
-  resolve them --- so the render collapses into a dense scribble exactly where the
+  resolve them --- so the render collapses into a dense scribble where the
   field is steepest, which is an honest report. A contour tracer would have emitted
   confident polylines there.}
   \label{fig:contourfields}
@@ -243,7 +243,7 @@ about the \emph{carrier}, not about the display, which is why raising the zoom
 does not help but lowering $s$ does.
 
 Two things about \eqref{eq:contournyquist} we like. First, it is a field, so it
-can be drawn, exactly as the heterodyne ratio of \S\ref{sec:visibility} can:
+can be drawn, as the heterodyne ratio of \S\ref{sec:visibility} can:
 before committing to $c$, an author can be shown which parts of the frame will
 resolve. Second, when it is violated the picture degrades \emph{loudly}. The
 unresolvable region fills with visible high-frequency structure --- the dipole's
@@ -294,7 +294,7 @@ against its own shadow on a bumpy surface (Figure~\ref{fig:instrument}, bottom).
 \paragraph{Error and disagreement.} Nothing requires $f$ to be a physical field.
 Encoding the difference between an approximation and a reference makes the
 fringes the contours of the error, at an interval the author sets, in a display
-whose ink is legible at any zoom. We have found this genuinely useful while
+whose ink is legible at any zoom. We found this useful while
 debugging the renderer in this paper, which is a small and self-referential
 endorsement, but an endorsement.
 
