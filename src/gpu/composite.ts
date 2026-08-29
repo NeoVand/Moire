@@ -194,6 +194,12 @@ export function createViewUniforms() {
     // A flat exposure shift after the contrast expansion, for reading a fringe
     // field whose pivot sits too dark or too bright to print well.
     lift: uniform(0),
+    // Fade the envelope toward its pivot where the heterodyne ratio is past 1/4.
+    // Where the two carriers are too different to fringe, Phi(D) is a faithful
+    // but carrier-fine stripe field that reads as "the average failed"; masking
+    // it makes the view assert fringes only where fringes exist. 0 shows the
+    // raw Phi(D); 1 masks the out-of-regime region entirely.
+    envMask: uniform(0),
     pivot: uniform(new THREE.Color(0xffffff)),
     // The ratio view: slot indices of the two layers to compare, ranked on the
     // CPU so the shader never orders layers, or -1 for none. `ratio` swaps the
@@ -511,6 +517,21 @@ export function buildColorNode(
     // untouched, and with one tap and no sweep that is the render itself.
     const mean = sum.div(float(view.taps));
     const out = mix(view.pivot, mean, view.contrast).add(view.lift).clamp(0, 1).toVar();
+    // The regime mask, for the envelope: outside the fringe regime Phi(D) is a
+    // carrier-fine stripe field that reads as a failed average, so fade it to
+    // the pivot there. The eta of the two ranked layers is already in hand; with
+    // no eligible pair the uniforms sit at -1 and the mask never engages.
+    If(
+      view.envMask
+        .greaterThan(0.001)
+        .and(view.ratio.lessThan(0.5))
+        .and(view.ratioA.greaterThanEqual(int(0)))
+        .and(view.ratioB.greaterThanEqual(int(0))),
+      () => {
+        const fade = smoothstep(float(0.22), float(0.3), eta).mul(view.envMask);
+        out.assign(mix(out, view.pivot.add(view.lift).clamp(0, 1), fade));
+      }
+    );
     If(view.ratio.greaterThan(0.5), () => out.assign(heat));
     return out;
   })();

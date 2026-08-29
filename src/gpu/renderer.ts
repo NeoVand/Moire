@@ -307,16 +307,21 @@ export class MoireRenderer {
     // so the flag stays down and the ordinary composite shows through.
     const pair = state.view.ratio ? ratioPair(state.layers) : null;
     const envelope = state.view.envelope && !pair;
+    // The regime mask reads the same ranked pair the ratio view compares, so an
+    // enveloped stack keeps those uniforms warm even with the ratio view off.
+    const maskPair =
+      envelope && state.view.envelopeMask > 0 ? ratioPair(state.layers) : null;
     this.viewUniforms.taps.value = envelope
       ? Math.max(2, Math.round(state.view.envelopeTaps))
       : 1;
     this.viewUniforms.sweep.value = envelope ? Math.max(0, state.view.envelopeSweep) : 0;
     this.viewUniforms.contrast.value = envelope ? state.view.envelopeContrast : 1;
     this.viewUniforms.lift.value = envelope ? state.view.envelopeLift : 0;
+    this.viewUniforms.envMask.value = envelope && maskPair ? state.view.envelopeMask : 0;
     this.viewUniforms.pivot.value.copy(envelope ? envelopePivot(state) : scratch.set(0xffffff));
     this.viewUniforms.ratio.value = pair ? 1 : 0;
-    this.viewUniforms.ratioA.value = pair ? pair[0] : -1;
-    this.viewUniforms.ratioB.value = pair ? pair[1] : -1;
+    this.viewUniforms.ratioA.value = pair ? pair[0] : maskPair ? maskPair[0] : -1;
+    this.viewUniforms.ratioB.value = pair ? pair[1] : maskPair ? maskPair[1] : -1;
 
     for (let i = 0; i < this.slots.length; i++) {
       writeLayerSlot(this.slots[i], state.layers[i]);

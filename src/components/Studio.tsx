@@ -170,10 +170,20 @@ function EnvelopeControl() {
               defaultValue={VIEW_DEFAULTS.envelopeTaps}
               onChange={(envelopeTaps) => setView({ envelopeTaps })}
             />
+            <Slider
+              label="Mask"
+              value={view.envelopeMask}
+              min={0}
+              max={1}
+              step={0.05}
+              defaultValue={VIEW_DEFAULTS.envelopeMask}
+              onChange={(envelopeMask) => setView({ envelopeMask })}
+            />
             <p className="border-t border-[var(--border)] pt-2 text-[10.5px] leading-[1.5] text-[var(--text-muted)]">
               The stack averaged over its own phase — the fringe field, carrier removed. Sweep
               1 removes the carrier exactly; below it the pattern fades back in, beyond it
-              higher-order beats smooth away too.
+              higher-order beats smooth away too. Mask quiets the regions where the two
+              carriers are too far apart to fringe at all.
             </p>
           </div>
         </FloatingPanel>

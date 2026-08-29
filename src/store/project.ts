@@ -41,6 +41,12 @@ export interface ViewState {
   /** Flat exposure shift after the contrast expansion, in coverage units. */
   envelopeLift: number;
   /**
+   * Fade the envelope to its pivot where the heterodyne ratio passes 1/4 and no
+   * fringe can exist -- there the mean is a faithful but carrier-fine Phi(D)
+   * that reads as a failed average. 1 masks fully; 0 shows the raw mean.
+   */
+  envelopeMask: number;
+  /**
    * The heterodyne ratio map: where a fringe can form at all. Dark where the two
    * topmost comparable layers' index gradients nearly agree, bright past the 1/4
    * threshold where the carriers are too different to interfere — so an author
@@ -55,6 +61,7 @@ export const VIEW_DEFAULTS: ViewState = {
   envelopeTaps: ENVELOPE_TAPS,
   envelopeSweep: 1,
   envelopeLift: 0,
+  envelopeMask: 1,
   ratio: false,
 };
 
