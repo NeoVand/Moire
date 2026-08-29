@@ -149,20 +149,19 @@ const SCENES = [
   },
 ];
 
-/** Left half pattern, right half envelope, crossfaded over a short band. */
+/** Left half pattern, right half envelope, cut hard at the seam. */
 function splitPanelLR(scene, V) {
   const left = compose(V, scene.layers);
   const right = envelope(V, scene.layers, { contrast: scene.contrast ?? 4, taps: TAPS });
   const rgb = new Uint8Array(left.length);
   const seam = Math.round(V.width * 0.5);
-  const band = Math.round(V.width * 0.045);
   for (let y = 0; y < V.height; y++) {
     for (let x = 0; x < V.width; x++) {
-      const t = Math.min(1, Math.max(0, (x - (seam - band)) / (2 * band)));
       const i = (y * V.width + x) * 3;
-      for (let k = 0; k < 3; k++) {
-        rgb[i + k] = Math.round(left[i + k] * (1 - t) + right[i + k] * t);
-      }
+      const src = x < seam ? left : right;
+      rgb[i] = src[i];
+      rgb[i + 1] = src[i + 1];
+      rgb[i + 2] = src[i + 2];
     }
   }
   return rgb;
