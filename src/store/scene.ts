@@ -106,6 +106,8 @@ const VIEW_KEYS: (keyof ViewState)[] = [
   'envelopeLift',
   'envelopeMask',
   'ratio',
+  'ratioBlend',
+  'ratioThreshold',
 ];
 
 export function parseScene(text: string): SceneData {

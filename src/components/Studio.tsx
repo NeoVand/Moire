@@ -7,7 +7,6 @@ import {
   Copy01Icon,
   Delete02Icon,
   DragDropVerticalIcon,
-  GaugeIcon,
   ImageDownloadIcon,
   JupiterIcon,
   KeyboardIcon,
@@ -112,13 +111,13 @@ function EnvelopeControl() {
       <IconButton
         icon={AudioWave02Icon}
         label={envelope ? 'Envelope · right-click for options' : 'Envelope'}
-        active={envelope}
+        active={envelope || view.ratio}
         onClick={() => {
           setView({ envelope: !envelope });
           setOpen(!envelope);
         }}
         onAlternate={() => {
-          if (!envelope) setView({ envelope: true });
+          if (!envelope && !view.ratio) setView({ envelope: true });
           setOpen(true);
         }}
         size={14}
@@ -133,7 +132,7 @@ function EnvelopeControl() {
           mark={<Icon icon={AudioWave02Icon} size={14} />}
           title="Envelope"
         >
-          <div className="grid gap-3">
+          <div className={`grid gap-3 ${view.ratio ? 'pointer-events-none opacity-40' : ''}`}>
             <Slider
               label="Contrast"
               value={view.envelopeContrast}
@@ -186,31 +185,55 @@ function EnvelopeControl() {
               onChange={(envelopeMask) => setView({ envelopeMask })}
             />
           </div>
+          <div className="mt-3 grid gap-3 border-t border-[var(--border)] pt-2.5">
+            <div className="flex items-center justify-between gap-3">
+              <span className="flex items-center gap-1 text-[11px] text-[var(--text-secondary)]">
+                Fringe ratio
+                <InfoTip
+                  text="A map of where fringes can exist: dark where the two topmost layers' carriers are close enough to beat, light where they are too different to interfere. Check it before committing to parameters."
+                  label="Fringe ratio"
+                />
+              </span>
+              <button
+                type="button"
+                className={`quiet-edit rounded-md px-2 py-0.5 text-[11px] ${
+                  view.ratio
+                    ? 'text-[var(--text-primary)] ring-1 ring-inset ring-[color-mix(in_srgb,var(--text-primary)_40%,transparent)]'
+                    : 'text-[var(--text-muted)]'
+                }`}
+                onClick={() => setView({ ratio: !view.ratio })}
+              >
+                {view.ratio ? 'On' : 'Off'}
+              </button>
+            </div>
+            {view.ratio && (
+              <>
+                <Slider
+                  label="Overlay"
+                  value={view.ratioBlend}
+                  min={0.2}
+                  max={1}
+                  step={0.01}
+                  defaultValue={VIEW_DEFAULTS.ratioBlend}
+                  info="How much the map covers the drawing. 1 replaces the picture; less lets you see where on it fringes will live."
+                  onChange={(ratioBlend) => setView({ ratioBlend })}
+                />
+                <Slider
+                  label="Threshold"
+                  value={view.ratioThreshold}
+                  min={0.05}
+                  max={0.6}
+                  step={0.01}
+                  defaultValue={VIEW_DEFAULTS.ratioThreshold}
+                  info="Where the map draws its boundary. ¼ is the theory's line — move it only to read the gradations either side."
+                  onChange={(ratioThreshold) => setView({ ratioThreshold })}
+                />
+              </>
+            )}
+          </div>
         </FloatingPanel>
       )}
     </>
-  );
-}
-
-/**
- * The heterodyne ratio beside the envelope: dark where the two topmost
- * comparable layers' carriers are close enough to beat, bright past 1/4 where no
- * fringe survives — where fringes will form, before any parameter is committed.
- * With fewer than two comparable layers the toggle stays lit and the canvas
- * quietly shows the ordinary composite.
- */
-function RatioControl() {
-  const ratio = useProjectStore((s) => s.view.ratio);
-  const setView = useProjectStore((s) => s.setView);
-  return (
-    <IconButton
-      icon={GaugeIcon}
-      label="Fringe ratio"
-      active={ratio}
-      onClick={() => setView({ ratio: !ratio })}
-      size={14}
-      dense
-    />
   );
 }
 
@@ -853,7 +876,6 @@ function Chrome({ onToggle }: { onToggle: () => void }) {
       </button>
       <ColorField value={backgroundColor} onChange={setBackgroundColor} />
       <EnvelopeControl />
-      <RatioControl />
       <IconButton
         icon={KeyboardIcon}
         label="Shortcuts"

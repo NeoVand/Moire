@@ -18,9 +18,15 @@ interface DragState {
   mode: DragMode;
   lastX: number;
   lastY: number;
-  originAngle: number;
-  startRotation: number;
+  lastAngle: number;
 }
+
+/**
+ * Shift slows any canvas gesture to 12% — the same fine-adjust the sliders
+ * have, so precision is one held key everywhere. Deltas are applied
+ * incrementally, which is what lets the factor engage mid-drag.
+ */
+const FINE = 0.12;
 
 export function MoireStage() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -139,8 +145,7 @@ export function MoireStage() {
       mode,
       lastX: e.clientX,
       lastY: e.clientY,
-      originAngle: Math.atan2(world.y, world.x),
-      startRotation: layer?.rotation ?? 0,
+      lastAngle: Math.atan2(world.y, world.x),
     };
     setCursor(mode === 'pan' ? 'grabbing' : mode === 'rotate' ? 'crosshair' : 'move');
     container.setPointerCapture(e.pointerId);
@@ -173,6 +178,8 @@ export function MoireStage() {
     const layer = store.layers.find((item) => item.id === store.selectedLayerId);
     if (!layer) return;
 
+    const fine = e.shiftKey ? FINE : 1;
+
     if (drag.mode === 'move') {
       const delta = worldDeltaToLayerPosition(
         screenDeltaToWorld(e.clientX - drag.lastX, e.clientY - drag.lastY, zoom),
@@ -180,8 +187,8 @@ export function MoireStage() {
       );
       store.updateLayer(layer.id, {
         position: {
-          x: layer.position.x + delta.x,
-          y: layer.position.y + delta.y,
+          x: layer.position.x + delta.x * fine,
+          y: layer.position.y + delta.y * fine,
         },
       });
       drag.lastX = e.clientX;
@@ -199,8 +206,12 @@ export function MoireStage() {
       store.camera.pan
     );
     const angle = Math.atan2(world.y, world.x);
-    const degrees = ((angle - drag.originAngle) * 180) / Math.PI;
-    store.updateLayer(layer.id, { rotation: drag.startRotation + degrees });
+    let degrees = ((angle - drag.lastAngle) * 180) / Math.PI;
+    if (degrees > 180) degrees -= 360;
+    if (degrees < -180) degrees += 360;
+    drag.lastAngle = angle;
+    const turned = layer.rotation + degrees * fine;
+    store.updateLayer(layer.id, { rotation: ((((turned + 180) % 360) + 360) % 360) - 180 });
   };
 
   const onPointerUp = (e: React.PointerEvent) => {

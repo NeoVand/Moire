@@ -20,7 +20,7 @@ const ROWS: { icon: typeof KeyboardIcon; keys: string; detail: string }[] = [
   { icon: Rotate01Icon, keys: '⌥-drag', detail: 'Rotate around the origin' },
   { icon: Move01Icon, keys: 'Space-drag', detail: 'Pan the canvas' },
   { icon: ZoomInAreaIcon, keys: 'Scroll', detail: 'Zoom to the cursor' },
-  { icon: SlidersHorizontalIcon, keys: 'Shift-drag', detail: 'Fine-tune a slider' },
+  { icon: SlidersHorizontalIcon, keys: 'Shift-drag', detail: 'Fine-tune — sliders, moves, rotations' },
   { icon: ViewOffIcon, keys: 'H', detail: 'Hide or show' },
   { icon: Copy01Icon, keys: 'D', detail: 'Duplicate' },
   { icon: Delete02Icon, keys: '⌫', detail: 'Remove' },

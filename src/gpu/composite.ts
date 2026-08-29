@@ -210,6 +210,10 @@ export function createViewUniforms() {
     ratio: uniform(0),
     ratioA: uniform(-1, 'int'),
     ratioB: uniform(-1, 'int'),
+    /** How much of the heat map covers the composite: 1 replaces, less overlays. */
+    ratioBlend: uniform(1),
+    /** Centre of the map's marked boundary. 1/4 is the theory's line. */
+    ratioThreshold: uniform(0.25),
   };
 }
 
@@ -571,15 +575,17 @@ export function buildColorNode(
       sum.addAssign(color);
     });
 
-    // Ink for the fringe regime, paper for failure, with a soft step at the 1/4
-    // threshold so the boundary reads without a legend.
+    // Ink for the fringe regime, paper for failure, with a soft step at the
+    // marked threshold so the boundary reads without a legend. 1/4 is the
+    // theory's line; the uniform lets an author read the map's gradations.
+    const thr = max(view.ratioThreshold, float(0.02));
     const heat = mix(
       vec3(0.07, 0.075, 0.09),
       camera.background,
-      smoothstep(float(0), float(0.25), eta)
+      smoothstep(float(0), thr, eta)
         .mul(0.45)
-        .add(smoothstep(float(0.23), float(0.27), eta).mul(0.2))
-        .add(smoothstep(float(0.25), float(1), eta).mul(0.35))
+        .add(smoothstep(thr.sub(0.02), thr.add(0.02), eta).mul(0.2))
+        .add(smoothstep(thr, float(1), eta).mul(0.35))
     );
 
     // Contrast expands about the stack's nominal mean coverage, so the pivot does
@@ -602,7 +608,9 @@ export function buildColorNode(
         out.assign(mix(out, view.pivot.add(view.lift).clamp(0, 1), fade));
       }
     );
-    If(view.ratio.greaterThan(0.5), () => out.assign(heat));
+    // At blend 1 the map replaces the picture; below it the map reads over the
+    // drawing, so an author sees where on the picture fringes will live.
+    If(view.ratio.greaterThan(0.5), () => out.assign(mix(out, heat, view.ratioBlend.clamp(0, 1))));
     return out;
   })();
 }

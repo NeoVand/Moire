@@ -340,6 +340,8 @@ export class MoireRenderer {
     this.viewUniforms.ratio.value = pair ? 1 : 0;
     this.viewUniforms.ratioA.value = pair ? pair[0] : maskPair ? maskPair[0] : -1;
     this.viewUniforms.ratioB.value = pair ? pair[1] : maskPair ? maskPair[1] : -1;
+    this.viewUniforms.ratioBlend.value = state.view.ratioBlend;
+    this.viewUniforms.ratioThreshold.value = state.view.ratioThreshold;
 
     for (let i = 0; i < this.slots.length; i++) {
       writeLayerSlot(this.slots[i], state.layers[i]);

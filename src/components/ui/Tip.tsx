@@ -44,13 +44,13 @@ export function InfoTip({ text, label }: { text: string; label: string }) {
         onClick={() =>
           setRect((open) => (open ? null : (btnRef.current?.getBoundingClientRect() ?? null)))
         }
-        className={`grid size-3.5 shrink-0 place-items-center rounded-full text-[8px] leading-none font-semibold ${
+        className={`grid size-3.5 shrink-0 place-items-center rounded-full text-[7px] leading-none font-medium ${
           rect
             ? 'text-[var(--text-primary)]'
-            : 'text-[var(--text-muted)] opacity-60 hover:text-[var(--text-primary)] hover:opacity-100'
+            : 'text-[var(--text-muted)] opacity-55 hover:text-[var(--text-primary)] hover:opacity-100'
         }`}
       >
-        <span className="grid size-3 place-items-center rounded-full border border-current">i</span>
+        <span className="grid size-2.5 place-items-center rounded-full border border-current">i</span>
       </button>
       {rect &&
         createPortal(

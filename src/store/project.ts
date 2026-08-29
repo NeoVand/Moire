@@ -55,6 +55,10 @@ export interface ViewState {
    * sees where fringes will live before committing to parameters.
    */
   ratio: boolean;
+  /** How much of the map covers the drawing: 1 replaces it, less overlays. */
+  ratioBlend: number;
+  /** The map's marked boundary. 1/4 is the theory's line. */
+  ratioThreshold: number;
 }
 
 export const VIEW_DEFAULTS: ViewState = {
@@ -65,6 +69,8 @@ export const VIEW_DEFAULTS: ViewState = {
   envelopeLift: 0,
   envelopeMask: 0,
   ratio: false,
+  ratioBlend: 1,
+  ratioThreshold: 0.25,
 };
 
 export interface ProjectStore {
