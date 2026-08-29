@@ -10,35 +10,50 @@ $\theta$.
 
 \subsection{Teaser (Figure~\ref{fig:teaser})}
 
-Five panels, each $620\times956$ device pixels at zoom $1.5$ on white ---
-so $413\times637$ world units --- stroke thickness $1.5$ world units throughout,
-$3\times3$ supersampling. At the printed panel width of $1.36$\,in that is $456$\,dpi
-and a stroke a third of a point wide, which is the finest hairline that survives
-the press; it is also what lets each panel carry sixty members across instead of
-thirty. Both families of a pair are the same ink, \texttt{\#14171b}.
+Eight square panels, each $960\times960$ device pixels on white with $3\times3$
+supersampling; the default framing is $369$ world units across (some panels pull
+back, see the table), stroke thickness $1.6$ world units unless stated, one ink
+throughout, \texttt{\#0e1013}. At the printed panel width of about $1.7$\,in
+that is over $550$\,dpi and a hairline well under half a point --- fine enough to
+survive the press, and what lets a panel carry sixty members across. Each panel
+is cut at the dashed rule: composite to the left, the envelope view to the
+right at the per-panel contrast $c$ below, $24$ taps.
 
 \begin{center}\footnotesize
-\begin{tabular}{@{}llll@{}}
+\begin{tabular}{@{}lllll@{}}
   \toprule
-  Panel & Family A & Family B & Fringes \\
+  Panel & Family A & Family B & $c$ & Fringes \\
   \midrule
-  1 combs   & lines, $s{=}6.5$, $\alpha{=}0.44$ & lines, $s{=}6.5$, $\alpha{=}0.50$ & lines \\
-  2 rings   & circles, $s{=}8$ at $x{=}{-}90$ & circles, $s{=}8$ at $x{=}90$ & hyperbolae \\
-  3 walking & triangles, $s{=}3.5$, $\varphi{=}2$, & --- & envelopes \\
-            & $\delta{=}(1.2,0)$, $\theta{=}0.03$ & & \\
-  4 spirals & spiral, $s{=}5$, $B{=}90$ & the same, mirrored in $y$ & rays \\
-  5 flow    & lines, $s{=}5$ & the same $+$ \textsc{swirl}, $a{=}3.5$ & streamlines \\
+  1 rings     & circles, $s{=}5.5$ at $x{=}{-}72$ & circles, $s{=}5.5$ at $x{=}72$ & $4.5$ & hyperbolae, ellipses \\
+  2 terrain   & lines, $s{=}5$, $t{=}3$ & the same $+$ \textsc{terrain}, $a{=}6$, ext.\ $300$ & $3.8$ & contours \\
+  3 spirals   & spiral, $s{=}5$, $B{=}90$ & spiral, $s{=}5$, $B{=}{-}60$ & $3.8$ & rays \\
+  4 saddle    & lines, $s{=}5$ & the same $+$ \textsc{saddle}, $a{=}3$, ext.\ $165$ & $3.8$ & saddle bands \\
+  5 flow      & lines, $s{=}5$ & the same $+$ \textsc{swirl}, $a{=}3.5$, ext.\ $130$ & $3.6$ & streamlines \\
+  6 walking   & hexagons, $s{=}4$, $\varphi{=}2$, & --- & $4.2$ & envelopes \\
+              & $\delta{=}(0.9,0.25)$, $\theta{=}0.025$ & & & \\
+  7 triangles & triangles, $s{=}5$ & triangles, $s{=}5.4$, turned $6^\circ$ & $4.4$ & stripes \\
+  8 vortex    & circles, $s{=}8.3$, $t{=}3.5$, & the same, $\delta{=}(0,0.5)$, pose $-5.8^\circ$, & $3$ & rosettes, arms \\
+    \ pair    & $\delta{=}(0,{-}0.5)$, pose $50^\circ$ & at $(9.61,-54.4)$ & & \\
   \bottomrule
 \end{tabular}
 \end{center}
 
-\noindent Here $\alpha$ is the direction of $\nabla\ph$, in radians.
+\noindent Panels 2 and 8 frame $565$ and $600$ world units across, panel 5
+frames $480$. Panel 8 is the instrument's opening scene, kept as its author
+exported it from the Studio --- the scene file, camera included, is in the
+repository.
 
-Four observations, since this is the first thing a reader sees.
+Three observations, since this is the first thing a reader sees.
 
-Panel~3 is a \emph{single} family, not a pair. Its fringes come from its own
+The split is the claim of \S\ref{sec:envelope} made checkable by eye: every
+band that crosses a rule continues on the other side, carrier-textured on the
+left and smooth on the right, because the right half is the same two fields
+averaged over one shared period of phase --- not a blur, and not a filter
+applied to the left half.
+
+Panel~6 is a \emph{single} family, not a pair. Its fringes come from its own
 members running near-tangent to one another, which happens because $\theta\ne0$
-turns each successive triangle a little further than the last. The classical
+turns each successive hexagon a little further than the last. The classical
 two-grating account has nothing to say about this configuration; the
 index-difference account handles it without modification, because $D$ is a
 difference of index fields and nothing requires the two fields to come from
@@ -46,20 +61,16 @@ different layers. The dark curves sweeping through that panel are the family's
 \emph{envelope} --- the locus where consecutive members touch, where the residual
 $h_p(\cdot)$ acquires a double root and the local index field of \S\ref{sec:fringe}
 tears. That locus is also why the sufficient interval of Theorem~\ref{thm:window}
-has to be as wide as it is: near an envelope the nearest index changes fast. Its $\rad(-\delta)/s$ is
-close to but below $1$, which by \S\ref{sec:limits} puts it in the wide-interval
-band near the degenerate locus. This is not an accident of taste. The settings that
-look most alive are the ones nearest the case where the guarantee runs out, which
-is the practical reason the bound had to be exact rather than merely safe.
+has to be as wide as it is: near an envelope the nearest index changes fast.
 
-Panel~4 is worth a line of arithmetic. Reflecting an Archimedean spiral negates
-the $\theta$ term, so $D=-2\hat b\arg(p)/s$ with $\hat b=Ms/2\pi$ the used
-pitch --- a function of the
-polar angle alone: the fringes are exactly $2M$ rays, here thirty-six. Note what
-this predicts and the picture confirms --- \emph{rotating} a spiral produces no
-fringes at all, since a rotation only adds a constant to $D$. That is the
-zoetrope property, and it falls out of the theorem rather than needing a separate
-argument.
+Panel~3 is worth a line of arithmetic. The two spirals share their spacing, so
+the radial parts of their indices cancel and $D=(M_A-M_B)\arg(p)/2\pi$ with
+$M$ the signed arm counts --- a function of the polar angle alone: the fringes
+are exactly $M_A-M_B$ rays, here $18-(-12)=30$.
+Note what this predicts and the picture confirms ---
+\emph{rotating} either spiral produces no new fringes, since a rotation only
+adds a constant to $D$. That is the zoetrope property, and it falls out of the
+theorem rather than needing a separate argument.
 
 \subsection{Catalog plate (Figure~\ref{fig:plate})}
 
