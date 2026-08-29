@@ -135,7 +135,7 @@ writeFileSync(
 // Renders: shipped versus corrected, for the three families that drop the term.
 const V = view({ width: 300, height: 300, zoom: 0.62, superSample: 3 });
 const PANELS = [
-  { name: 'wave', cfg: { kind: 'wave', spacing: 16, bend: 26, frequency: 2.5, thickness: 2.4 } },
+  { name: 'wave', cfg: { kind: 'wave', spacing: 16, bend: 10, frequency: 1.5, thickness: 2.4 } },
   { name: 'hyperbola', cfg: { kind: 'hyperbola', spacing: 22, phase: 10, thickness: 2.4 } },
   { name: 'spiral', cfg: { kind: 'spiral', spacing: 18, bend: 90, thickness: 2.4 } },
 ];
