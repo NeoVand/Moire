@@ -40,10 +40,13 @@ function drawPreview(
   const perPixel = PREVIEW_WORLD / side;
   const L = Math.max(Math.abs(scale), 1e-3);
 
-  // Warm for positive field, cool for negative, both toward the paper white.
-  const washUp = [244, 224, 194];
-  const washDown = [199, 216, 240];
-  const washGain = mode === 'field' ? 0.85 : 0.3;
+  // Warm for positive field, cool for negative, both rising out of the panel's
+  // dark ground — the preview lives among dark chrome, so it reads as a plate,
+  // not a hole in the theme.
+  const GROUND = 18;
+  const washUp = [108, 82, 46];
+  const washDown = [50, 72, 112];
+  const washGain = mode === 'field' ? 0.9 : 0.38;
 
   for (let py = 0; py < side; py++) {
     const wy = (side * 0.5 - py - 0.5) * perPixel;
@@ -85,10 +88,10 @@ function drawPreview(
       const washTo = wash >= 0 ? washUp : washDown;
       const w = Math.abs(wash) * washGain;
       for (let c = 0; c < 3; c++) {
-        const ground = 255 * (1 - w) + washTo[c] * w;
-        // Ordinary contours sit at ink #2a2a2a; the zero set goes to full black.
-        const inked = ground * (1 - ink) + 42 * ink;
-        data[at + c] = Math.round(inked * (1 - heavy * 0.35));
+        const ground = GROUND * (1 - w) + washTo[c] * w;
+        // Ordinary contours sit at a light grey; the zero set lifts to white.
+        const inked = ground * (1 - ink) + 208 * ink;
+        data[at + c] = Math.round(inked + (255 - inked) * heavy * 0.4);
       }
       data[at + 3] = 255;
     }
@@ -135,7 +138,7 @@ function Preview({
     <div className="relative">
       <canvas
         ref={canvasRef}
-        className="block w-full rounded-lg bg-white"
+        className="block w-full rounded-lg border border-[var(--border)] bg-[#121212]"
         style={{ aspectRatio: '1 / 1' }}
         aria-label="Field preview"
       />
