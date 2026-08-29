@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { RefreshCwIcon } from '@hugeicons/core-free-icons';
 import { Icon } from './Icon';
+import { InfoTip } from './Tip';
 
 interface SliderProps {
   label: string;
@@ -10,6 +11,8 @@ interface SliderProps {
   step: number;
   unit?: string;
   defaultValue?: number;
+  /** One sentence on what the knob does, behind a little circled i. */
+  info?: string;
   onChange: (value: number) => void;
 }
 
@@ -36,6 +39,7 @@ export function Slider({
   step,
   unit = '',
   defaultValue,
+  info,
   onChange,
 }: SliderProps) {
   const trackRef = useRef<HTMLDivElement>(null);
@@ -117,6 +121,7 @@ export function Slider({
       <div className="flex h-3.5 items-center justify-between gap-2">
         <span className="flex min-w-0 items-center gap-1 text-[11px] text-[var(--text-secondary)]">
           <span className="min-w-0 truncate">{label}</span>
+          {info && <InfoTip text={info} label={label} />}
           {isDirty && (
             <button
               type="button"

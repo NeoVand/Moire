@@ -1,5 +1,6 @@
 import type { Ref } from 'react';
 import { Icon, type HugeIcon } from './Icon';
+import { useHoverTip } from './useHoverTip';
 
 interface IconButtonProps {
   icon: HugeIcon;
@@ -34,13 +35,17 @@ export function IconButton({
         ? 'bg-[var(--bg-hover)] text-[var(--text-primary)]'
         : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]';
 
+  // A prompt styled tooltip, because an icon is the whole label and the native
+  // title takes a second nobody waits for.
+  const tip = useHoverTip(label);
+
   return (
     <button
       ref={buttonRef}
       type="button"
-      title={label}
       aria-label={label}
       disabled={disabled}
+      {...tip.handlers}
       onClick={(e) => {
         e.stopPropagation();
         if (onAlternate && (e.altKey || e.metaKey)) {
@@ -61,10 +66,12 @@ export function IconButton({
       onMouseDown={(e) => {
         e.stopPropagation();
         e.currentTarget.blur();
+        tip.clear();
       }}
       className={`grid place-items-center rounded-md transition-opacity disabled:opacity-30 ${dense ? 'size-6' : 'size-7'} ${palette}`}
     >
       <Icon icon={icon} size={dense ? Math.min(size, 14) : size} />
+      {tip.bubble}
     </button>
   );
 }

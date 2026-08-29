@@ -34,6 +34,7 @@ import { FieldEditor } from './FieldEditor';
 import { FAMILY_ICONS, PATTERN_ICONS } from './patternIcons';
 import { ColorField } from './ui/ColorField';
 import { FloatingPanel } from './ui/FloatingPanel';
+import { InfoTip } from './ui/Tip';
 import { Icon, type HugeIcon } from './ui/Icon';
 import { IconButton } from './ui/IconButton';
 import { Slider } from './ui/Slider';
@@ -140,6 +141,7 @@ function EnvelopeControl() {
               max={12}
               step={0.1}
               defaultValue={VIEW_DEFAULTS.envelopeContrast}
+              info="The fringe field is a small excursion about the stack's mean coverage; this expands it until it reads. 1 shows the raw average."
               onChange={(envelopeContrast) => setView({ envelopeContrast })}
             />
             <Slider
@@ -149,6 +151,7 @@ function EnvelopeControl() {
               max={3}
               step={0.05}
               defaultValue={VIEW_DEFAULTS.envelopeSweep}
+              info="How many of its own periods each family is averaged over. 1 removes the carrier exactly; below it the pattern fades back in; beyond it higher-order beats smooth away too."
               onChange={(envelopeSweep) => setView({ envelopeSweep })}
             />
             <Slider
@@ -158,6 +161,7 @@ function EnvelopeControl() {
               max={0.5}
               step={0.01}
               defaultValue={VIEW_DEFAULTS.envelopeLift}
+              info="Flat brightness shift after the contrast expansion, for centring the fringes on the page."
               onChange={(envelopeLift) => setView({ envelopeLift })}
             />
             <Slider
@@ -168,6 +172,7 @@ function EnvelopeControl() {
               step={1}
               unit=" taps"
               defaultValue={VIEW_DEFAULTS.envelopeTaps}
+              info="Averaging samples per pixel. Two dozen is exact in practice; fewer is faster and grainier."
               onChange={(envelopeTaps) => setView({ envelopeTaps })}
             />
             <Slider
@@ -177,14 +182,9 @@ function EnvelopeControl() {
               max={1}
               step={0.05}
               defaultValue={VIEW_DEFAULTS.envelopeMask}
+              info="Fades the view to its mean where the two carriers are too far apart to fringe at all. Off shows the honest average everywhere."
               onChange={(envelopeMask) => setView({ envelopeMask })}
             />
-            <p className="border-t border-[var(--border)] pt-2 text-[10.5px] leading-[1.5] text-[var(--text-muted)]">
-              The stack averaged over its own phase — the fringe field, carrier removed. Sweep
-              1 removes the carrier exactly; below it the pattern fades back in, beyond it
-              higher-order beats smooth away too. Mask quiets the regions where the two
-              carriers are too far apart to fringe at all.
-            </p>
           </div>
         </FloatingPanel>
       )}
@@ -543,6 +543,7 @@ function LayerFields() {
         max={20}
         step={0.01}
         defaultValue={LAYER_DEFAULTS.thickness}
+        info="Stroke width of every member, in world units — it zooms with the pattern."
         onChange={(thickness) => updateLayer(layer.id, { thickness })}
       />
       {isRadialLines(layer.type) ? (
@@ -553,6 +554,7 @@ function LayerFields() {
           max={360}
           step={1}
           defaultValue={LAYER_DEFAULTS.lineCount}
+          info="How many lines pass through the centre — the fan's angular pitch is 180° over this."
           onChange={(lineCount) => updateLayer(layer.id, { lineCount })}
         />
       ) : (
@@ -563,6 +565,7 @@ function LayerFields() {
           max={120}
           step={0.1}
           defaultValue={spacingDefault}
+          info="Gap between neighbouring members. Fringes form where two layers' spacings and directions nearly agree."
           onChange={(spacing) => updateLayer(layer.id, { spacing })}
         />
       )}
@@ -575,6 +578,7 @@ function LayerFields() {
             max={80}
             step={0.1}
             defaultValue={LAYER_DEFAULTS.bendWave}
+            info="How far the wave swings from its centreline."
             onChange={(bend) => updateLayer(layer.id, { bend })}
           />
           <Slider
@@ -584,6 +588,7 @@ function LayerFields() {
             max={8}
             step={0.01}
             defaultValue={LAYER_DEFAULTS.frequency}
+            info="How fast the wave oscillates along its length."
             onChange={(frequency) => updateLayer(layer.id, { frequency })}
           />
           <Slider
@@ -594,6 +599,7 @@ function LayerFields() {
             step={0.1}
             unit="°"
             defaultValue={LAYER_DEFAULTS.phase}
+            info="Slides the wave along its own oscillation."
             onChange={(deg) => updateLayer(layer.id, { phase: (deg * Math.PI) / 180 })}
           />
         </>
@@ -606,6 +612,7 @@ function LayerFields() {
           max={8}
           step={0.01}
           defaultValue={LAYER_DEFAULTS.bendParabola}
+          info="How sharply the parabolas bend; negative flips them."
           onChange={(bend) => updateLayer(layer.id, { bend })}
         />
       )}
@@ -617,6 +624,7 @@ function LayerFields() {
           max={80}
           step={0.1}
           defaultValue={LAYER_DEFAULTS.bendSpiral}
+          info="Radius the spiral gains per turn."
           onChange={(bend) => updateLayer(layer.id, { bend })}
         />
       )}
@@ -628,6 +636,7 @@ function LayerFields() {
           max={400}
           step={0.1}
           defaultValue={LAYER_DEFAULTS.positionX}
+          info="Moves the layer's centre horizontally, in world units."
           onChange={(x) => updateLayer(layer.id, { position: { x } })}
         />
         <Slider
@@ -637,6 +646,7 @@ function LayerFields() {
           max={400}
           step={0.1}
           defaultValue={LAYER_DEFAULTS.positionY}
+          info="Moves the layer's centre vertically, in world units."
           onChange={(y) => updateLayer(layer.id, { position: { y } })}
         />
       </div>
@@ -648,6 +658,7 @@ function LayerFields() {
         step={0.1}
         unit="°"
         defaultValue={LAYER_DEFAULTS.rotation}
+        info="Turns the whole layer about its centre. Small angles between similar layers make the boldest fringes."
         onChange={(rotation) => updateLayer(layer.id, { rotation })}
       />
       {isGrid(layer.type) ? (
@@ -660,6 +671,7 @@ function LayerFields() {
               max={5}
               step={0.01}
               defaultValue={LAYER_DEFAULTS.scaleX}
+              info="Stretches the lattice along its own x. Strokes keep their true width."
               onChange={(x) => updateLayer(layer.id, { scale: { x } })}
             />
             <Slider
@@ -669,6 +681,7 @@ function LayerFields() {
               max={5}
               step={0.01}
               defaultValue={LAYER_DEFAULTS.scaleY}
+              info="Stretches the lattice along its own y. Strokes keep their true width."
               onChange={(y) => updateLayer(layer.id, { scale: { y } })}
             />
           </div>
@@ -679,10 +692,17 @@ function LayerFields() {
             max={16}
             step={0.1}
             defaultValue={LAYER_DEFAULTS.vertexSize}
+            info="Radius of the dot at every lattice point. Zero hides the dots."
             onChange={(vertexSize) => updateLayer(layer.id, { vertexSize })}
           />
           <div className="flex items-center justify-between gap-3">
-            <span className="text-[11px] text-[var(--text-secondary)]">Edges</span>
+            <span className="flex items-center gap-1 text-[11px] text-[var(--text-secondary)]">
+              Edges
+              <InfoTip
+                text="Draws the cell edges. A hexagonal grid's edges are hexagon sides, not three line families — the symmetry is different."
+                label="Edges"
+              />
+            </span>
             <button
               type="button"
               className={`quiet-edit rounded-md px-2 py-0.5 text-[11px] ${
@@ -704,6 +724,7 @@ function LayerFields() {
           max={400}
           step={1}
           defaultValue={LAYER_DEFAULTS.phase}
+          info="Advances the fan through its own line gap — a rotation, since this family's index is an angle."
           onChange={(phase) => updateLayer(layer.id, { phase })}
         />
       ) : layer.type === 'curve-wave' ? null : (
@@ -714,6 +735,11 @@ function LayerFields() {
           max={isConcentric(layer.type) ? 400 : Math.max(layer.spacing, 1)}
           step={1}
           defaultValue={LAYER_DEFAULTS.phase}
+          info={
+            isConcentric(layer.type)
+              ? 'Where counting starts: grows every ring outward from the centre.'
+              : 'Slides the family sideways, up to one spacing.'
+          }
           onChange={(phase) => updateLayer(layer.id, { phase })}
         />
       )}
@@ -725,6 +751,7 @@ function LayerFields() {
           max={8}
           step={0.01}
           defaultValue={LAYER_DEFAULTS.offsetX}
+          info="Walking drift for lines: line n slides n of these, so the spacing chirps across the family and it beats with itself."
           onChange={(x) => updateLayer(layer.id, { offset: { x } })}
         />
       ) : (
@@ -737,6 +764,7 @@ function LayerFields() {
               max={4}
               step={0.01}
               defaultValue={LAYER_DEFAULTS.offsetX}
+              info="Walking drift: ring n is displaced n of these, so the family marches and interferes with itself."
               onChange={(x) => updateLayer(layer.id, { offset: { x } })}
             />
             <Slider
@@ -746,6 +774,7 @@ function LayerFields() {
               max={4}
               step={0.01}
               defaultValue={LAYER_DEFAULTS.offsetY}
+              info="The vertical half of the walking drift."
               onChange={(y) => updateLayer(layer.id, { offset: { y } })}
             />
           </div>
@@ -757,6 +786,7 @@ function LayerFields() {
             step={0.001}
             unit=" rad"
             defaultValue={LAYER_DEFAULTS.rotationOffset}
+            info="Walking twist: ring n turns n of these. A few hundredths of a radian makes a pinwheel."
             onChange={(rotationOffset) => updateLayer(layer.id, { rotationOffset })}
           />
         </>
@@ -769,6 +799,7 @@ function LayerFields() {
           max={16}
           step={1}
           defaultValue={LAYER_DEFAULTS.sides}
+          info="How many sides each ring polygon has."
           onChange={(sides) => updateLayer(layer.id, { sides })}
         />
       )}

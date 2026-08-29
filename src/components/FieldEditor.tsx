@@ -399,6 +399,7 @@ export function FieldEditor({
             max={40}
             step={0.1}
             defaultValue={FIELD_NONE.amount}
+            info="Fringes per unit of the field — the contour interval is one over this. Negative counts the other way."
             onChange={(amount) => onChange({ amount })}
           />
           <Slider
@@ -408,6 +409,7 @@ export function FieldEditor({
             max={600}
             step={1}
             defaultValue={FIELD_NONE.scale}
+            info="The field's spatial size, in world units: how far it spreads across the canvas."
             onChange={(scale) => onChange({ scale })}
           />
 

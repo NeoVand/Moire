@@ -9,6 +9,7 @@ import { useProjectStore } from '../store/project';
 import { parseScene, serializeScene } from '../store/scene';
 import { FloatingPanel } from './ui/FloatingPanel';
 import { Icon } from './ui/Icon';
+import { InfoTip } from './ui/Tip';
 
 /**
  * Export and share — the artwork end of the tool. The image side previews the
@@ -212,7 +213,8 @@ export function ExportDialog({ onClose }: { onClose: () => void }) {
             <span className="text-[10px] text-[var(--text-muted)]">Rendering preview…</span>
           )}
         </div>
-        <div className="relative" ref={menuRef}>
+        <div className="flex items-center gap-1.5">
+        <div className="relative min-w-0 flex-1" ref={menuRef}>
           <button
             type="button"
             onClick={() => setMenuOpen((v) => !v)}
@@ -253,13 +255,22 @@ export function ExportDialog({ onClose }: { onClose: () => void }) {
             </div>
           )}
         </div>
+        <InfoTip
+          text="The output's shape. A wider or taller aspect extends the frame about its centre — the pattern continues past every edge, so nothing is ever cropped."
+          label="Aspect"
+        />
+        </div>
         <div className="flex items-center justify-between">
-          <div className="flex gap-0.5">
+          <div className="flex items-center gap-0.5">
             {SCALES.map((s) => (
               <button key={s} type="button" onClick={() => setScale(s)} className={chip(scale === s)}>
                 {s}×
               </button>
             ))}
+            <InfoTip
+              text="The same frame at more pixels. Hairlines keep their width, so large exports stay crisp for print."
+              label="Resolution"
+            />
           </div>
           {size && (
             <span className="font-mono text-[10px] tabular-nums text-[var(--text-muted)]">
@@ -271,8 +282,12 @@ export function ExportDialog({ onClose }: { onClose: () => void }) {
           <Icon icon={ImageDownloadIcon} size={13} />
           Download image
         </button>
-        <div className="mt-0.5 border-t border-[var(--border)] pt-2 text-[11px] text-[var(--text-secondary)]">
+        <div className="mt-0.5 flex items-center gap-1 border-t border-[var(--border)] pt-2 text-[11px] text-[var(--text-secondary)]">
           Scene
+          <InfoTip
+            text="The whole construction as a JSON — layers, fields, camera, and view — loading back exactly. Drop a scene file anywhere on this panel to open it."
+            label="Scene"
+          />
         </div>
         <div className="flex gap-2">
           <button type="button" className={button} onClick={saveScene}>
@@ -304,11 +319,6 @@ export function ExportDialog({ onClose }: { onClose: () => void }) {
             {status.text}
           </p>
         )}
-        <p className="border-t border-[var(--border)] pt-2 text-[10.5px] leading-[1.5] text-[var(--text-muted)]">
-          A wider or taller aspect extends the frame — the pattern continues past every
-          edge. The JSON carries the whole construction and loads back exactly; drop one
-          anywhere on this panel.
-        </p>
       </div>
     </FloatingPanel>
   );
