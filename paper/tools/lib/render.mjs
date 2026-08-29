@@ -51,15 +51,35 @@ function build(layers, taps = 0) {
     const spacing = L.spacing ?? 20;
     return {
       // `dist` lets a caller substitute a distance the field library cannot supply
-      // -- the walking solver, say -- without duplicating the composite.
+      // -- the walking solver, say -- without duplicating the composite. `distAt`
+      // is its phase-advanced form, (p, halfT, aa, u) with u in periods, so a
+      // solver-backed layer can join the envelope's sweep: advancing the walking
+      // family's phase by u*spacing advances every member by u, exactly as
+      // phaseShift does for the closed forms.
       fam: L.dist ? null : family(L),
       swept:
-        L.dist || taps <= 0
+        taps <= 0
           ? null
-          : Array.from({ length: taps }, (_, k) =>
-              family({ ...L, phaseShift: (L.phaseShift ?? 0) + (k / taps) * spacing })
-            ),
-      dist: L.dist ?? null,
+          : L.distAt
+            ? Array.from({ length: taps }, (_, k) => ({
+                dist: (p, halfT, aa) => L.distAt(p, halfT, aa, k / taps),
+              }))
+            : L.dist
+              ? null
+              : L.kind === 'radial'
+                ? // A radial pencil spends the advancing index as a rotation:
+                  // one index period is one line gap, 180/N degrees.
+                  Array.from({ length: taps }, (_, k) =>
+                    family({
+                      ...L,
+                      rotation:
+                        (L.rotation ?? 0) + (k / taps) * (180 / Math.max(1, Math.round(L.lineCount ?? 8))),
+                    })
+                  )
+                : Array.from({ length: taps }, (_, k) =>
+                    family({ ...L, phaseShift: (L.phaseShift ?? 0) + (k / taps) * spacing })
+                  ),
+      dist: L.dist ?? (L.distAt ? (p, halfT, aa) => L.distAt(p, halfT, aa, 0) : null),
       thickness: L.thickness ?? 1.8,
       color: hexToRgb(L.color ?? '#000000'),
       opacity: L.opacity ?? 1,
@@ -83,12 +103,18 @@ function inkAt(built, p, pixel, aa, bg, out, tap = -1) {
   out[2] = bg[2];
   for (const L of built) {
     const halfT = Math.max(L.thickness * 0.5, pixel * L.floor);
-    const fam = tap < 0 || !L.swept ? L.fam : L.swept[tap];
-    const d = L.dist
-      ? L.dist(p, halfT, aa)
-      : L.useGrad
-        ? fam.distance(p)
-        : fam.distanceNoGrad(p);
+    const swept = tap < 0 || !L.swept ? null : L.swept[tap];
+    const d = swept
+      ? swept.dist
+        ? swept.dist(p, halfT, aa)
+        : L.useGrad
+          ? swept.distance(p)
+          : swept.distanceNoGrad(p)
+      : L.dist
+        ? L.dist(p, halfT, aa)
+        : L.useGrad
+          ? L.fam.distance(p)
+          : L.fam.distanceNoGrad(p);
     const alpha = (1 - smoothstep(halfT - aa, halfT + aa, d)) * L.opacity;
     if (alpha <= 0) continue;
     out[0] += (L.color[0] - out[0]) * alpha;
