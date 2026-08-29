@@ -1,0 +1,352 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Third Pattern</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..600&family=Inconsolata:wght@400;600&display=swap">
+<style>
+  :root {
+    --ground: #F7F7F5; --ink: #15181C; --ink-soft: #4A5058; --accent: #C81E5A;
+    --cool: #1B6CA8; --soft: #8A94A0; --hairline: #DCDEDA; --card: #FFFFFF;
+    --code-bg: #ECEDEA;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #101317; --ink: #E6E8EB; --ink-soft: #A9B0B8; --accent: #E8558A;
+      --cool: #6FAEDF; --soft: #6B7580; --hairline: #2A2F36; --card: #171B21;
+      --code-bg: #1D2229;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #101317; --ink: #E6E8EB; --ink-soft: #A9B0B8; --accent: #E8558A;
+    --cool: #6FAEDF; --soft: #6B7580; --hairline: #2A2F36; --card: #171B21;
+    --code-bg: #1D2229;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--ground); color: var(--ink);
+    font-family: "Newsreader", Georgia, serif; font-size: 1.08rem; line-height: 1.66;
+    margin: 0; padding-bottom: 6rem;
+  }
+  main { max-width: 42rem; margin: 0 auto; padding: 0 1.3rem; }
+  .eyebrow {
+    font-family: "Inconsolata", monospace; font-size: 0.78rem; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--soft);
+  }
+  h1 { font-size: clamp(2.2rem, 8.5vw, 3rem); font-weight: 500; line-height: 1.05; margin: 0.4rem 0 0.6rem; text-wrap: balance; }
+  .standfirst { font-size: 1.25rem; font-style: italic; color: var(--ink-soft); margin: 0 0 1rem; }
+  h2 { font-size: 1.6rem; font-weight: 600; margin: 3rem 0 0.5rem; text-wrap: balance; }
+  p { margin: 0.8rem 0; }
+  em { font-style: italic; }
+  .math {
+    font-family: "Inconsolata", monospace; font-size: 0.95em;
+    background: var(--code-bg); padding: 0.05em 0.35em; border-radius: 3px; white-space: nowrap;
+  }
+  .thm {
+    border-left: 3px solid var(--accent);
+    padding: 0.15rem 0 0.15rem 1.1rem; margin: 1.4rem 0; font-style: italic; color: var(--ink-soft);
+  }
+  .thm strong { font-style: normal; color: var(--ink); }
+  figure { margin: 1.8rem 0; }
+  figure img {
+    width: 100%; display: block; border-radius: 4px;
+    border: 1px solid var(--hairline); background: #fff;
+  }
+  figcaption { font-size: 0.86rem; color: var(--soft); padding-top: 0.45rem; line-height: 1.5; }
+  .duo { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; }
+  @media (max-width: 560px) { .duo { grid-template-columns: 1fr; } }
+
+  /* ------- the interactive combs demo ------- */
+  .demo {
+    margin: 2.2rem 0; border: 1px solid var(--hairline); border-radius: 6px;
+    overflow: hidden; background: #fff;
+  }
+  .stage { position: relative; height: 300px; overflow: hidden; background: #fff; }
+  .comb {
+    position: absolute; inset: -35%;
+    background: repeating-linear-gradient(90deg, #14171b 0 2px, transparent 2px 8px);
+  }
+  #combTop { transform: rotate(5deg); }
+  .demo-bar {
+    display: flex; align-items: center; gap: 0.9rem; padding: 0.7rem 1rem;
+    border-top: 1px solid var(--hairline); background: var(--card);
+    font-family: "Inconsolata", monospace; font-size: 0.82rem; color: var(--ink-soft);
+  }
+  .demo-bar input[type="range"] { flex: 1; accent-color: var(--accent); }
+  .demo-bar .readout { min-width: 12.5rem; text-align: right; color: var(--ink); }
+  .demo-bar .readout b { color: var(--accent); font-weight: 600; }
+
+  a { color: var(--cool); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  .footer-note {
+    margin-top: 3.5rem; padding-top: 1.2rem; border-top: 3px double var(--hairline);
+    font-size: 0.92rem; color: var(--ink-soft);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .comb { transition: transform 80ms linear; }
+  }
+</style>
+
+<main>
+  <header style="padding-top: 3rem;">
+    <p class="eyebrow">Moiré Fields · a gentle introduction</p>
+    <h1>The Third Pattern</h1>
+    <p class="standfirst">You draw two things. A third thing appears that you never drew.
+    This page is about taking that third thing seriously — seriously enough to prove
+    theorems about it, build an instrument for it, and draw with it on purpose.</p>
+  </header>
+
+  <div class="demo">
+    <div class="stage">
+      <div class="comb"></div>
+      <div class="comb" id="combTop"></div>
+    </div>
+    <div class="demo-bar">
+      <span>twist</span>
+      <input id="angle" type="range" min="0.4" max="14" step="0.1" value="5">
+      <span class="readout"><span id="deg">3.0&deg;</span> &middot; bands every <b id="pred">153</b> px</span>
+    </div>
+  </div>
+
+  <p>Drag the slider. The two line combs are identical — same spacing, same thickness —
+  and neither of them contains those broad dark bands sweeping across the box. The bands
+  live in the <em>relationship</em> between the combs. Turn one comb a little and the bands
+  swing a lot; that number under the slider is a prediction, not a measurement, and you can
+  watch it stay honest as you drag.</p>
+
+  <p>This effect is called <strong>moiré</strong>, after a rippling silk fabric. You have seen
+  it on a screen door behind a second screen door, on a striped shirt destroying a TV camera,
+  in the shimmer of two chain-link fences. Lord Rayleigh used it in 1874 to test the quality
+  of ruled diffraction gratings; op-artists like Bridget Riley built careers on it; and in
+  2018 physicists discovered that two sheets of graphene, twisted by exactly 1.1&deg;, make a
+  moiré at the atomic scale that turns the material superconducting. Same mathematics,
+  eleven orders of magnitude apart.</p>
+
+  <h2>Why a third pattern appears at all</h2>
+
+  <figure>
+    <img src="{{ex-combs}}" alt="Two identical line combs shown separately, then overlaid, producing broad diagonal bands that exist in neither comb alone.">
+    <figcaption>Left, middle: two identical combs, one turned by three and a half degrees.
+    Right: their superposition. The broad bands belong to neither sheet.</figcaption>
+  </figure>
+
+  <p>Here is the whole mechanism, in one sentence: <em>where the lines of the two combs land
+  on top of each other, their ink overlaps and the paper stays relatively light; where the
+  lines of one comb fall into the gaps of the other, they blacken the page together.</em>
+  Whether the lines currently align or interleave changes slowly as you move across the page
+  — much more slowly than the lines themselves repeat — so you see slow, fat bands built out
+  of fast, thin lines. Engineers know this as a <em>beat</em>: two guitar strings tuned
+  almost together produce a slow throb at the difference of their frequencies. Moiré is a
+  beat you can look at.</p>
+
+  <p>That is the folklore version. The interesting question is what the bands are,
+  <em>exactly</em> — exactly enough to compute with. That question is what the paper this
+  page introduces, <em>Moiré Fields</em>, is about.</p>
+
+  <h2>A layer is a question, not a picture</h2>
+
+  <p>Every previous way of making moiré on a computer treats a layer as an image: draw the
+  lines into pixels, draw the other lines into pixels, multiply. The paper's first move is
+  to refuse to do that. A family of curves — the 7th line, the 12th ring, the 40th turn of a
+  spiral — is described instead by two <em>functions</em> that can be asked at any point
+  <span class="math">p</span> of the plane:</p>
+
+  <p style="margin-left: 1.2rem;">
+    <span class="math">&phi;(p)</span> — the <strong>index field</strong>: <em>which member of
+    the family are you nearest, fractionally?</em> If <span class="math">&phi;(p) = 7.3</span>,
+    you are three tenths of the way from ring 7 to ring 8.<br>
+    <span class="math">d(p)</span> — the <strong>distance field</strong>: <em>how far is that
+    nearest member?</em> Compare it to a stroke width, and you have ink.
+  </p>
+
+  <p>For concentric circles of spacing <span class="math">s</span>, the index field is just
+  <span class="math">&phi;(p) = ‖p‖ / s</span> — distance from the center, counted in rings.
+  Nothing is ever rasterized: at every pixel, at every zoom, the two functions are simply
+  asked again. The pattern has no resolution, the way a parabola has no resolution.</p>
+
+  <p>This sounds like bookkeeping. It is not, because of what happens when you superpose two
+  layers and subtract their index fields.</p>
+
+  <h2>The one-line theorem</h2>
+
+  <p>Call the two layers' index fields <span class="math">&phi;&#8321;</span> and
+  <span class="math">&phi;&#8322;</span>, and define
+  <span class="math">D = &phi;&#8321; &minus; &phi;&#8322;</span>. At some points
+  <span class="math">D</span> is a whole number — you are, say, on member 12 of one family
+  and member 9 of the other, so the two curves pass through the same spot and their ink
+  overlaps. The central theorem of the paper says that is the whole story:</p>
+
+  <p class="thm"><strong>The fringe law.</strong> The light bands of the superposition are
+  exactly the level sets <span class="math">D &isin; &#8484;</span> — the curves where the
+  index difference is a whole number. The dark bands sit at
+  <span class="math">D &isin; &#8484; + &frac12;</span>, where the two families interleave
+  and spread their ink furthest. Nothing else about either family survives.
+  <strong>The moiré is a contour plot of&nbsp;D.</strong></p>
+
+  <figure>
+    <img src="{{ex-rings-D}}" alt="Two overlapping ring families with crimson curves drawn along the light fringes; the curves are computed from the index difference alone and stop near the middle where no fringe exists.">
+    <figcaption>Two ring families, slightly detuned. The crimson curves are computed from
+    <span class="math">D = &phi;&#8321; &minus; &phi;&#8322;</span> alone — no image
+    processing, just the two functions — and they land on the light fringes. They are not
+    drawn in the middle, and that restraint is the next section.</figcaption>
+  </figure>
+
+  <p>The locus itself was known in 1964 — physicists called it the <em>indicial equation</em>
+  and used it to read strain off deformed gratings. What the paper adds is everything around
+  it: an exact formula for how much ink the eye averages <em>between</em> the fringes (it is
+  a tent-shaped profile with a flat top, not a sine wave — which is why moiré fringes look
+  so much crisper than a blur would suggest, and why thickening your strokes past a point
+  stops changing the fringes and just darkens the page), a proof that none of it needs the
+  layers to be periodic (spirals count; so do families no formula describes), and a
+  criterion for the question every artist actually has:</p>
+
+  <h2>Will a fringe even form here?</h2>
+
+  <p>Two carriers only beat if they are <em>almost the same</em>. Make them too different —
+  cross them at ninety degrees, or give one twice the pitch — and you get a woven texture,
+  not bands. The paper compresses "almost the same" into one number you can compute at every
+  pixel: the <strong>heterodyne ratio</strong> <span class="math">&eta;</span>, which asks how
+  fast <span class="math">D</span> changes compared with the carriers themselves. Below about
+  &frac14;, fringes; above it, weave. Because <span class="math">&eta;</span> is itself a
+  field, the instrument can paint a map of it — it can tell you where on the canvas fringes
+  will live <em>before you commit to the parameters</em>. In the ring figure above, the
+  crimson curves stop where <span class="math">&eta;</span> passes &frac14;: the theorem
+  politely declines to describe the middle, and the middle is indeed where the picture stops
+  being bands and becomes a rosette.</p>
+
+  <p>One honest wrinkle, discovered by dragging a slider the day before this page was
+  written. Counting is a convention: you can number a family's members left-to-right or
+  right-to-left and the curves do not care. So the beat between two layers lives in
+  <em>whichever</em> of <span class="math">&phi;&#8321; &minus; &phi;&#8322;</span> and
+  <span class="math">&phi;&#8321; + &phi;&#8322;</span> changes more slowly — the classical
+  <em>difference</em> and <em>sum</em> moirés. Where two families' counting directions
+  oppose, the difference ratio screams "no fringe possible!" while a bold sum fringe sits in
+  plain sight. The criterion, correctly stated, takes the minimum of the two. The author of
+  the tool found this because a fringe he could <em>see</em> was being flagged as impossible
+  — which is what instruments are for.</p>
+
+  <h2>Photographing the ghost</h2>
+
+  <p>If the fringe field is the real object, you should be able to look at it without the
+  carrier lines in the way. Blurring the image is the obvious move and the wrong one — blur
+  softens the fringes too, and how much blur depends on zoom. The right move is stranger:
+  <em>slide every family through one full period of its own phase and average</em>. Each
+  family sweeps over its own lines — so the lines vanish — but the <em>difference</em>
+  between two families never changes during the slide, so the fringes stand perfectly
+  still while the carrier washes away. Nothing is blurred; the average is over phase, not
+  space.</p>
+
+  <figure>
+    <img src="{{ex-rings-env}}" alt="The same two ring families averaged over their phase: the carrier is gone and only the smooth fringe field remains.">
+    <figcaption>The same two ring families as above, phase-averaged. The rings are gone;
+    what remains is the thing your eye was constructing all along. The crimson curves of the
+    previous figure trace exactly these bright bands.</figcaption>
+  </figure>
+
+  <p>The tool ships this as a live view called the <em>envelope</em>, and the split images
+  further down this page use it: pattern on top, envelope below, the carrier dissolving into
+  its own ghost at the seam.</p>
+
+  <h2>The hard case, and the theorem that pays rent</h2>
+
+  <figure>
+    <img src="{{cand-walking}}" alt="A single family of triangles, each rotated and shifted from the last, producing pinwheel fringes; below the seam, its envelope.">
+    <figcaption>One family — not two. Each triangle is turned and shifted a little more than
+    the last. It interferes with itself, and below the waist the pattern dissolves into its
+    envelope.</figcaption>
+  </figure>
+
+  <p>Everything so far had a formula: ask <span class="math">&phi;</span>, get an answer.
+  Now give ring number <span class="math">n</span> its own personal motion — shift it by
+  <span class="math">n&delta;</span>, turn it by <span class="math">n&theta;</span> — which
+  is what op-art actually does. The nest of shapes shears and unwinds into a pinwheel, and
+  the formula dies: no closed-form expression of position tells you which ring is nearest,
+  because every ring lives in its own coordinate frame. The nearest ring must be
+  <em>searched for</em>, over infinitely many candidates, at every pixel, sixty times a
+  second.</p>
+
+  <p>Guessing "the ring whose radius matches mine, give or take a few" fails in a spectacular
+  way: the pixels where the guess is wrong are not scattered noise but whole arcs, so whole
+  sides of rings silently vanish from the picture. The paper's answer is a small piece of
+  classical geometry. The "radius" of a square or triangle is a <em>support function</em>,
+  and support functions come with gifts: they can't change faster than distance (a Lipschitz
+  bound), they can't dip below a known fraction of the true radius
+  (<span class="math">cos(&pi;/N)</span>, exactly), and they drift per ring at a rate you can
+  compute exactly. Feed those three facts through two inequalities and out comes an
+  <strong>interval of ring numbers that provably contains every ring that could possibly
+  matter</strong>. Check those; skip the rest of infinity. A second trick skips most of the
+  interval too. The result is <em>certified</em>: the searched answer equals brute force at
+  every single pixel tested — two thousand four hundred parameter settings, zero
+  disagreements — while doing less work than brute force told in advance where to stop.
+  A guarantee, not a budget.</p>
+
+  <h2>Now run it backwards</h2>
+
+  <p>Here is the payoff for taking <span class="math">D</span> seriously. The fringe law says
+  fringes are the contours of <span class="math">D</span>. Nobody said <span class="math">D</span>
+  had to be an accident. Type any function <span class="math">f(x, y)</span> — the tool has a
+  little language for this, with automatic differentiation so you never supply a derivative —
+  subtract it from one layer's phase, and the fringes become <em>the contour plot of your
+  function</em>. No contouring algorithm, no marching squares, no polylines: the contours
+  appear because two families of ink coincide there, drawn by the same two distance queries
+  as everything else.</p>
+
+  <figure>
+    <span class="duo">
+      <img src="{{cand-swirl}}" alt="A line carrier with the stream function of four vortices encoded; the fringes are the streamlines, dissolving into their envelope below.">
+      <img src="{{cand-hyper}}" alt="Two hyperbola families producing a dramatic X of fringes, dissolving into their envelope below.">
+    </span>
+    <figcaption>
+      Left: the stream function of four vortices, typed into a text box — the fringes are the
+      flow's streamlines, no trajectory ever integrated. Right: two hyperbola families, far
+      outside anything periodic — the fringe law does not notice.
+    </figcaption>
+  </figure>
+
+  <p>Streamlines of a flow, equipotentials of a dipole, height contours of a surface — if
+  you can write it, the moiré will draw it, live, at any zoom. A century of measurement
+  science used this direction in reverse (interferometers read surface height <em>off</em>
+  fringes); putting it in a drawing tool turns a measurement principle into a pencil.</p>
+
+  <h2>Why this is worth a paper</h2>
+
+  <p>Because it is the cleanest small example I know of a big idea: <strong>emergence with a
+  complete theory</strong>. The bands are not in either layer; they are born from the
+  relationship between layers — and yet, unlike most emergent things, here the emergent
+  object has an exact address (<span class="math">D &isin; &#8484;</span>), an exact profile
+  (the tent), an exact existence criterion (<span class="math">&eta; &le; &frac14;</span>,
+  minimized over a convention), and an exact price (a certified search interval). You get
+  the wonder <em>and</em> the receipts. The same difference-of-structures is currently the
+  hottest object in condensed-matter physics; here you can hold it, drag it, and watch it
+  answer.</p>
+
+  <p>In the paper's own terms, the contributions stack like this: a representation (a layer
+  is two fields, so the pattern has no resolution), a law (fringes are unit level sets of
+  the index difference, tent profile, computable validity map), an algorithm (the
+  support-function certificate that makes the formula-less families interactive), an
+  instrument (a browser studio where all of it is live under the cursor), and an inversion
+  (choose the difference, and the moiré becomes a plotter for arbitrary fields). Each one is
+  ordinary; the loop they close is not.</p>
+
+  <p class="footer-note">The patterns on this page were rendered by the paper's own figure
+  pipeline — the same code path that produces every measured claim in it. The interactive
+  combs at the top are two CSS gradients and one rotation, which is the entire point: moiré
+  asks almost nothing of the machinery. The theorems are Theorem&nbsp;1 (the fringe law),
+  Theorem&nbsp;4 (the sufficient interval), and Proposition&nbsp;6 (translated polygons in
+  closed form) in <em>Moiré Fields</em>.</p>
+</main>
+
+<script>
+  const angle = document.getElementById('angle');
+  const combTop = document.getElementById('combTop');
+  const deg = document.getElementById('deg');
+  const pred = document.getElementById('pred');
+  const PITCH = 8; // px, must match the CSS gradient period
+  function update() {
+    const a = parseFloat(angle.value);
+    combTop.style.transform = `rotate(${a}deg)`;
+    deg.textContent = a.toFixed(1) + '°';
+    // Equal-pitch fringe spacing: s / (2 sin(theta/2)).
+    const rad = (a * Math.PI) / 180;
+    pred.textContent = Math.round(PITCH / (2 * Math.sin(rad / 2)));
+  }
+  angle.addEventListener('input', update);
+  update();
+</script>
