@@ -20,6 +20,7 @@ import {
   max,
   min,
   smoothstep,
+  step,
 } from 'three/tsl';
 import {
   FIELD_NONE,
@@ -425,6 +426,41 @@ export function buildColorNode(
     // survives the average changes, and it should be the one the eye sees.
     const flipB = etaSum.lessThan(etaDiff);
 
+    // A lattice joins the sweep by translation, one generator's step per unit of
+    // u — but which generator, and stepped which way? Wrong either way and the
+    // beat its lines make with the rest of the stack averages out while the
+    // lattice's own carrier washes clean: fringes that are plainly in the
+    // pattern vanish from its envelope. The beating system is a per-pixel fact
+    // (a ring family's counting direction rotates around its centre), so it is
+    // chosen per pixel: each generator's continuous index is linear in the
+    // layer point, its screen gradient is exact, and whichever generator —
+    // stepped forward or backward — best matches the ranked partner's index
+    // gradient is the one that rides u coherently. The other generator is
+    // scrambled by the golden ratio, which keeps the lattice from beating with
+    // itself: the self-hatch would need both generators coherent at once.
+    const latCoh = solved.map(({ cell, local }) => {
+      // step keeps the guard non-zero at d = 0 (a non-lattice slot's empty
+      // cell), where sign() would return 0 and divide by zero.
+      const safe = (d) => step(0, d).mul(2).sub(1).mul(d.abs().max(1e-6));
+      const perp1 = vec2(cell.w.negate(), cell.z);
+      const perp2 = vec2(cell.y.negate(), cell.x);
+      const b1 = perp1.div(safe(cell.xy.dot(perp1)));
+      const b2 = perp2.div(safe(cell.zw.dot(perp2)));
+      const xi1 = local.dot(b1);
+      const xi2 = local.dot(b2);
+      const g1 = vec2(dFdx(xi1), dFdy(xi1));
+      const g2 = vec2(dFdx(xi2), dFdy(xi2));
+      const e1p = length(g1.sub(gradA));
+      const e1m = length(g1.add(gradA));
+      const e2p = length(g2.sub(gradA));
+      const e2m = length(g2.add(gradA));
+      // step(a, b) = 1 where b >= a, so each pick keeps the smaller error.
+      const s1 = step(e1p, e1m).mul(2).sub(1);
+      const s2 = step(e2p, e2m).mul(2).sub(1);
+      const genOne = step(min(e1p, e1m), min(e2p, e2m));
+      return { sign: mix(s2, s1, genOne), genOne };
+    });
+
     const sum = vec3(0).toVar();
     Loop(view.taps, ({ i }) => {
       // Centred on zero so that a single tap is the pattern itself, and so that
@@ -432,13 +468,9 @@ export function buildColorNode(
       const along = float(i).add(0.5).div(float(view.taps));
       const u = along.sub(0.5).mul(view.sweep);
 
-      // A lattice's second generator, swept against the first rather than with it.
-      // In lockstep the two indices stay correlated and the lattice beats against
-      // itself: a fine diagonal hatch, at the carrier's own scale, that no amount
-      // of contrast can be read through. Advancing this one by the golden ratio
-      // instead is a rank-1 lattice rule over the two-torus — it decorrelates a
-      // lattice from itself while keeping it in step with every other layer's
-      // matching generator, which is where the fringes people want actually live.
+      // The scrambled generator's offsets: a rank-1 golden-ratio rule over the
+      // taps, quasi-uniform over the cell whichever parity or count the taps
+      // have. Which generator it scrambles is the per-pixel choice above.
       const v = float(i).mul(GOLDEN).fract().sub(0.5).mul(view.sweep);
 
       const color = camera.background.toVar();
@@ -456,7 +488,10 @@ export function buildColorNode(
             // A lattice has no scalar phase to slide, so it resamples: each
             // generator is a translation, and stepping along one is exactly one step
             // of the index it counts. The field rides in on the first of them.
-            const shifted = local.sub(cell.xy.mul(u.add(shift))).sub(cell.zw.mul(v));
+            const coh = u.mul(latCoh[index].sign);
+            const uLat = mix(v, coh, latCoh[index].genOne);
+            const vLat = mix(coh, v, latCoh[index].genOne);
+            const shifted = local.sub(cell.xy.mul(uLat.add(shift))).sub(cell.zw.mul(vLat));
             // Both lookups sit behind what asks for them: a lattice resample is the
             // most expensive thing a tap can do, and the sweep does it two dozen
             // times over.
