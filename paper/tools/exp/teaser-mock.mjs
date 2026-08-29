@@ -87,6 +87,7 @@ const SCENES = [
   },
   {
     name: 'terrain',
+    zoom: 0.85,
     layers: [
       L({ kind: 'parallel', spacing: 5, angle: 0, thickness: 3, field: 'terrain', fieldAmount: 6, fieldScale: 300 }),
       L({ kind: 'parallel', spacing: 5, angle: 0, thickness: 3 }),
@@ -130,7 +131,7 @@ const SCENES = [
     // two walking circle families drifting against each other, chunky strokes,
     // framed by the scene file's own camera.
     name: 'vortex-pair',
-    zoom: 1.0908966797182833,
+    zoom: 0.8,
     pan: { x: 28.943107685316058, y: -19.537783490484912 },
     layers: [
       walking({
