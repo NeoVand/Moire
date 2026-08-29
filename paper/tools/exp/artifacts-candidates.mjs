@@ -28,10 +28,10 @@ const Z = 2 / 3;
 // and the L-infinity norm, circles and the Euclidean one -- because that is
 // the regime where a fixed enumeration actually fails.
 const CANDIDATES = [
-  { id: 1, note: 'far-field fan', pan: { x: 420, y: 280 }, layers: [{ shape: 'square', spacing: 20, thickness: 2, offset: { x: 16, y: 16 }, rotationOffset: 0.018 }] },
-  { id: 2, note: 'horizontal sweep', pan: { x: 560, y: 60 }, layers: [{ shape: 'square', spacing: 20, thickness: 2, offset: { x: 16, y: 16 }, rotationOffset: 0.015 }] },
-  { id: 3, note: 'calm coarse fan', pan: { x: 400, y: 400 }, layers: [{ shape: 'square', spacing: 22, thickness: 2.2, offset: { x: 17.6, y: 17.6 }, rotationOffset: 0.012 }] },
-  { id: 4, note: 'fine feathers', pan: { x: 520, y: 330 }, layers: [{ shape: 'square', spacing: 18, thickness: 1.7, offset: { x: 14.4, y: 14.4 }, rotationOffset: 0.02 }] },
+  { id: 1, note: 'hex 0.97 mid-field', pan: { x: 700, y: 450 }, layers: [{ shape: 'polygon', sides: 6, spacing: 16, thickness: 1.9, offset: { x: 13.441, y: 7.76 }, rotationOffset: 0.025 }] },
+  { id: 2, note: 'hex 0.95 farther', pan: { x: 1000, y: 650 }, layers: [{ shape: 'polygon', sides: 6, spacing: 16, thickness: 1.9, offset: { x: 13.164, y: 7.6 }, rotationOffset: 0.025 }] },
+  { id: 3, note: 'hex 0.97 high pan', pan: { x: 500, y: 800 }, layers: [{ shape: 'polygon', sides: 6, spacing: 16, thickness: 1.9, offset: { x: 13.441, y: 7.76 }, rotationOffset: 0.02 }] },
+  { id: 4, note: 'hex 0.98 fast twist', pan: { x: 850, y: 350 }, layers: [{ shape: 'polygon', sides: 6, spacing: 16, thickness: 1.9, offset: { x: 13.579, y: 7.84 }, rotationOffset: 0.03 }] },
 ];
 
 const rows = [];
