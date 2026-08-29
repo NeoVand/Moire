@@ -39,19 +39,20 @@ const thinPixel = await loadSolver(
 );
 
 const CASES = {
-  // A legible field where the fixed-sample sweep loses whole arcs. The drift is
-  // deliberately near marginal -- rad(-delta)/s = 0.8 -- because that is the only
-  // regime where a fixed window is not enough; the pitch is then chosen as coarse
-  // as that regime allows, so the panel reads as curves at a quarter of the text
-  // width rather than as a smudge. The budget never binds, so this is a bound
-  // failure and not a truncation.
+  // A legible field where the fixed-sample sweep loses whole arcs. The drift
+  // aims at a hexagon edge, so it is nearly a full spacing long while the
+  // support ratio stays at rad(-delta)/s = 0.82 -- the regime where a fixed
+  // window is not enough -- and the frame sits in the family's far field,
+  // where the deviation is largest and the drawing is calm woven arcs. The
+  // budget never binds, so this is a bound failure and not a truncation.
   holes: {
-    label: 'Squares, spacing 12, offset (9.6,9.6), rotation offset 0.06, zoom 1',
+    label: 'Hexagons, spacing 16, offset (13.164,7.6), rotation offset 0.025, pan (1000,650), zoom 1',
     width: 1200,
     height: 800,
     zoom: 1,
+    pan: { x: 1000, y: 650 },
     layers: [
-      { shape: 'square', spacing: 12, thickness: 1.5, offset: { x: 9.6, y: 9.6 }, rotationOffset: 0.06 },
+      { shape: 'polygon', sides: 6, spacing: 16, thickness: 1.9, offset: { x: 13.164, y: 7.6 }, rotationOffset: 0.025 },
     ],
     solvers: { reference: referenceSolver(), sweep, final },
   },
@@ -89,6 +90,7 @@ for (const [key, spec] of Object.entries(CASES)) {
     width: spec.width,
     height: spec.height,
     zoom: spec.zoom,
+    pan: spec.pan ?? { x: 0, y: 0 },
     layers: spec.layers,
   });
   const images = {};

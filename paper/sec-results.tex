@@ -76,19 +76,22 @@ cleanest summary of the method we can offer.
     \includegraphics[width=\linewidth]{figures/artifact-holes-final.png}
     \caption{\ours{}, $\artHolesOursEv$ ev/px}
   \end{subfigure}
-  \Description{Four wide panels of the same black-on-white nautilus of walking
-  squares, drawn as a spiral of straight segments crossing in a fine hatch. The
-  first and fourth are identical. The second is visibly paler, with whole
-  crosshatched regions of the pattern missing. The third is a pale grey copy of the
-  pattern in which only the lost segments are drawn, in magenta, showing that the
-  losses form large coherent lobes rather than scattered pixels.}
-  \caption{Fixed enumeration deletes arcs, not pixels. A walking square family
-  whose drift is near marginal, $\rad(-\delta)/s=0.8$; \sweep{} loses
-  $\artHolesSweepDiff\%$ of pixels and a fifth of the ink, and because the failure
-  condition varies smoothly with $p$ the losses organise into coherent lobes that
-  read as missing rings. \ours{} is pixel-identical to the reference
-  using $\artHolesSaving\times$ less work than \sweep{}. Insets in
-  Figure~\ref{fig:insets}.}
+  \Description{Four wide panels of the same black-on-white field of walking
+  hexagons, seen far from the family's centre: layers of finely woven arcs
+  sweeping across the frame like drapery, with smooth dark bands between them.
+  The first and fourth are identical. The second is visibly paler, with whole
+  bands of the weave missing. The third is a pale grey copy of the pattern in
+  which only the lost segments are drawn, in magenta, showing that the losses
+  form broad coherent ribbons that follow the bands rather than scattered
+  pixels.}
+  \caption{Fixed enumeration deletes arcs, not pixels. The far field of a
+  walking hexagon family whose drift aims at an edge --- almost a full spacing
+  long, $\lVert\delta\rVert=0.95s$, while the support ratio stays at
+  $\rad(-\delta)/s=0.82$; \sweep{} loses $\artHolesSweepDiff\%$ of the frame's
+  pixels, and because the failure condition varies smoothly with $p$ the losses
+  organise into coherent ribbons that read as missing bands. \ours{} is
+  pixel-identical to the reference using $\artHolesSaving\times$ less work than
+  \sweep{}. Insets in Figure~\ref{fig:insets}.}
   \label{fig:holes}
 \end{figure*}
 
