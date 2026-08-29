@@ -1,0 +1,14 @@
+{
+  "budget": 1024,
+  "settings": 55692,
+  "fitting": 45774,
+  "strided": 9918,
+  "minInkWhenStrided": 0.049,
+  "medianInkWhenStrided": 0.891,
+  "strideBelowHalfInk": 1472,
+  "worstFittingSpan": 1022,
+  "driftRatioRangeWhenStrided": [
+    0,
+    4.165
+  ]
+}

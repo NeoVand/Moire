@@ -1,0 +1,284 @@
+{
+  "megapixels": 3.84,
+  "reps": 32,
+  "triangle rot+off @1": {
+    "full": {
+      "wallMs": 2.653,
+      "passMs": 2.556,
+      "megapixels": 3.84,
+      "nsPerPixel": 0.67
+    },
+    "no carried rotation": {
+      "wallMs": 2.381,
+      "passMs": 2.359,
+      "megapixels": 3.84,
+      "nsPerPixel": 0.61
+    },
+    "no support fast path": {
+      "wallMs": 3.441,
+      "passMs": 3.408,
+      "megapixels": 3.84,
+      "nsPerPixel": 0.89
+    },
+    "no accept exit": {
+      "wallMs": 2.144,
+      "passMs": 2.163,
+      "megapixels": 3.84,
+      "nsPerPixel": 0.56
+    },
+    "no Lipschitz skip": {
+      "wallMs": 5.306,
+      "passMs": 5.243,
+      "megapixels": 3.84,
+      "nsPerPixel": 1.37
+    },
+    "no reject guard": {
+      "wallMs": 2.547,
+      "passMs": 2.556,
+      "megapixels": 3.84,
+      "nsPerPixel": 0.67
+    },
+    "loose drift bound": {
+      "wallMs": 2.569,
+      "passMs": 2.556,
+      "megapixels": 3.84,
+      "nsPerPixel": 0.67
+    },
+    "pixel-anchored stride": {
+      "wallMs": 2.547,
+      "passMs": 2.556,
+      "megapixels": 3.84,
+      "nsPerPixel": 0.67
+    },
+    "no polygon closed form": {
+      "wallMs": 2.531,
+      "passMs": 2.49,
+      "megapixels": 3.84,
+      "nsPerPixel": 0.65
+    }
+  },
+  "hexagon rot+off @0.15": {
+    "full": {
+      "wallMs": 11.356,
+      "passMs": 11.403,
+      "megapixels": 3.84,
+      "nsPerPixel": 2.97
+    },
+    "no carried rotation": {
+      "wallMs": 10.072,
+      "passMs": 10.027,
+      "megapixels": 3.84,
+      "nsPerPixel": 2.61
+    },
+    "no support fast path": {
+      "wallMs": 13.266,
+      "passMs": 13.238,
+      "megapixels": 3.84,
+      "nsPerPixel": 3.45
+    },
+    "no accept exit": {
+      "wallMs": 9.688,
+      "passMs": 9.634,
+      "megapixels": 3.84,
+      "nsPerPixel": 2.51
+    },
+    "no Lipschitz skip": {
+      "wallMs": 26.566,
+      "passMs": 26.477,
+      "megapixels": 3.84,
+      "nsPerPixel": 6.89
+    },
+    "no reject guard": {
+      "wallMs": 11.141,
+      "passMs": 11.141,
+      "megapixels": 3.84,
+      "nsPerPixel": 2.9
+    },
+    "loose drift bound": {
+      "wallMs": 11.328,
+      "passMs": 11.272,
+      "megapixels": 3.84,
+      "nsPerPixel": 2.94
+    },
+    "pixel-anchored stride": {
+      "wallMs": 11.325,
+      "passMs": 11.272,
+      "megapixels": 3.84,
+      "nsPerPixel": 2.94
+    },
+    "no polygon closed form": {
+      "wallMs": 11.291,
+      "passMs": 11.272,
+      "megapixels": 3.84,
+      "nsPerPixel": 2.94
+    }
+  },
+  "square rot+off, offset near spacing @1": {
+    "full": {
+      "wallMs": 9.466,
+      "passMs": 9.437,
+      "megapixels": 3.84,
+      "nsPerPixel": 2.46
+    },
+    "no carried rotation": {
+      "wallMs": 8.516,
+      "passMs": 8.52,
+      "megapixels": 3.84,
+      "nsPerPixel": 2.22
+    },
+    "no support fast path": {
+      "wallMs": 9.359,
+      "passMs": 9.372,
+      "megapixels": 3.84,
+      "nsPerPixel": 2.44
+    },
+    "no accept exit": {
+      "wallMs": 7.628,
+      "passMs": 7.602,
+      "megapixels": 3.84,
+      "nsPerPixel": 1.98
+    },
+    "no Lipschitz skip": {
+      "wallMs": 30.769,
+      "passMs": 30.736,
+      "megapixels": 3.84,
+      "nsPerPixel": 8
+    },
+    "no reject guard": {
+      "wallMs": 9.412,
+      "passMs": 9.372,
+      "megapixels": 3.84,
+      "nsPerPixel": 2.44
+    },
+    "loose drift bound": {
+      "wallMs": 11.706,
+      "passMs": 11.665,
+      "megapixels": 3.84,
+      "nsPerPixel": 3.04
+    },
+    "pixel-anchored stride": {
+      "wallMs": 9.413,
+      "passMs": 9.437,
+      "megapixels": 3.84,
+      "nsPerPixel": 2.46
+    },
+    "no polygon closed form": {
+      "wallMs": 9.375,
+      "passMs": 9.437,
+      "megapixels": 3.84,
+      "nsPerPixel": 2.46
+    }
+  },
+  "square translated @1": {
+    "full": {
+      "wallMs": 0.706,
+      "passMs": 0.655,
+      "megapixels": 3.84,
+      "nsPerPixel": 0.17
+    },
+    "no carried rotation": {
+      "wallMs": 0.713,
+      "passMs": 0.721,
+      "megapixels": 3.84,
+      "nsPerPixel": 0.19
+    },
+    "no support fast path": {
+      "wallMs": 0.659,
+      "passMs": 0.655,
+      "megapixels": 3.84,
+      "nsPerPixel": 0.17
+    },
+    "no accept exit": {
+      "wallMs": 0.728,
+      "passMs": 0.655,
+      "megapixels": 3.84,
+      "nsPerPixel": 0.17
+    },
+    "no Lipschitz skip": {
+      "wallMs": 0.713,
+      "passMs": 0.721,
+      "megapixels": 3.84,
+      "nsPerPixel": 0.19
+    },
+    "no reject guard": {
+      "wallMs": 0.703,
+      "passMs": 0.655,
+      "megapixels": 3.84,
+      "nsPerPixel": 0.17
+    },
+    "loose drift bound": {
+      "wallMs": 0.713,
+      "passMs": 0.655,
+      "megapixels": 3.84,
+      "nsPerPixel": 0.17
+    },
+    "pixel-anchored stride": {
+      "wallMs": 0.7,
+      "passMs": 0.721,
+      "megapixels": 3.84,
+      "nsPerPixel": 0.19
+    },
+    "no polygon closed form": {
+      "wallMs": 1.131,
+      "passMs": 1.114,
+      "megapixels": 3.84,
+      "nsPerPixel": 0.29
+    }
+  },
+  "triangle translated, marginal drift @1": {
+    "full": {
+      "wallMs": 0.659,
+      "passMs": 0.655,
+      "megapixels": 3.84,
+      "nsPerPixel": 0.17
+    },
+    "no carried rotation": {
+      "wallMs": 0.672,
+      "passMs": 0.59,
+      "megapixels": 3.84,
+      "nsPerPixel": 0.15
+    },
+    "no support fast path": {
+      "wallMs": 0.947,
+      "passMs": 0.983,
+      "megapixels": 3.84,
+      "nsPerPixel": 0.26
+    },
+    "no accept exit": {
+      "wallMs": 0.663,
+      "passMs": 0.655,
+      "megapixels": 3.84,
+      "nsPerPixel": 0.17
+    },
+    "no Lipschitz skip": {
+      "wallMs": 0.678,
+      "passMs": 0.655,
+      "megapixels": 3.84,
+      "nsPerPixel": 0.17
+    },
+    "no reject guard": {
+      "wallMs": 0.666,
+      "passMs": 0.655,
+      "megapixels": 3.84,
+      "nsPerPixel": 0.17
+    },
+    "loose drift bound": {
+      "wallMs": 0.669,
+      "passMs": 0.655,
+      "megapixels": 3.84,
+      "nsPerPixel": 0.17
+    },
+    "pixel-anchored stride": {
+      "wallMs": 0.669,
+      "passMs": 0.655,
+      "megapixels": 3.84,
+      "nsPerPixel": 0.17
+    },
+    "no polygon closed form": {
+      "wallMs": 59.272,
+      "passMs": 59.179,
+      "megapixels": 3.84,
+      "nsPerPixel": 15.41
+    }
+  }
+}

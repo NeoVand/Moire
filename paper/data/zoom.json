@@ -1,0 +1,171 @@
+{
+  "world": 256,
+  "thickness": 1.8,
+  "zooms": [
+    2,
+    1,
+    0.5,
+    0.25,
+    0.125
+  ],
+  "referenceSamples": 36,
+  "decades": "1.2",
+  "scene": "Archimedean spiral over displaced concentric circles",
+  "floorInkGain": [
+    {
+      "zoom": 2,
+      "periodPx": 24,
+      "inkGain": 0
+    },
+    {
+      "zoom": 1,
+      "periodPx": 12,
+      "inkGain": 0.0677
+    },
+    {
+      "zoom": 0.5,
+      "periodPx": 6,
+      "inkGain": 0.3326
+    },
+    {
+      "zoom": 0.25,
+      "periodPx": 3,
+      "inkGain": 0.6107
+    },
+    {
+      "zoom": 0.125,
+      "periodPx": 1.5,
+      "inkGain": 0.5602
+    }
+  ],
+  "worstFloorInkGain": 0.6107,
+  "ours": {
+    "perZoom": [
+      {
+        "zoom": 2,
+        "px": 512,
+        "periodPx": 24,
+        "bias": 0,
+        "noise": 0.0251
+      },
+      {
+        "zoom": 1,
+        "px": 256,
+        "periodPx": 12,
+        "bias": 0,
+        "noise": 0.0351
+      },
+      {
+        "zoom": 0.5,
+        "px": 128,
+        "periodPx": 6,
+        "bias": 0,
+        "noise": 0.0453
+      },
+      {
+        "zoom": 0.25,
+        "px": 64,
+        "periodPx": 3,
+        "bias": 0.0005,
+        "noise": 0.0459
+      },
+      {
+        "zoom": 0.125,
+        "px": 32,
+        "periodPx": 1.5,
+        "bias": -0.0002,
+        "noise": 0.0015
+      }
+    ],
+    "worstBias": 0.0005,
+    "worstNoise": 0.0459,
+    "coarsestBias": -0.0002,
+    "coarsestNoise": 0.0015
+  },
+  "noFloor": {
+    "perZoom": [
+      {
+        "zoom": 2,
+        "px": 512,
+        "periodPx": 24,
+        "bias": 0,
+        "noise": 0.0251
+      },
+      {
+        "zoom": 1,
+        "px": 256,
+        "periodPx": 12,
+        "bias": 0,
+        "noise": 0.0361
+      },
+      {
+        "zoom": 0.5,
+        "px": 128,
+        "periodPx": 6,
+        "bias": 0,
+        "noise": 0.064
+      },
+      {
+        "zoom": 0.25,
+        "px": 64,
+        "periodPx": 3,
+        "bias": -0.0001,
+        "noise": 0.0885
+      },
+      {
+        "zoom": 0.125,
+        "px": 32,
+        "periodPx": 1.5,
+        "bias": 0.0001,
+        "noise": 0.1154
+      }
+    ],
+    "worstBias": 0.0001,
+    "worstNoise": 0.1154,
+    "coarsestBias": 0.0001,
+    "coarsestNoise": 0.1154
+  },
+  "value": {
+    "perZoom": [
+      {
+        "zoom": 2,
+        "px": 512,
+        "periodPx": 24,
+        "bias": -0.0029,
+        "noise": 0.0391
+      },
+      {
+        "zoom": 1,
+        "px": 256,
+        "periodPx": 12,
+        "bias": -0.003,
+        "noise": 0.0441
+      },
+      {
+        "zoom": 0.5,
+        "px": 128,
+        "periodPx": 6,
+        "bias": -0.0028,
+        "noise": 0.0675
+      },
+      {
+        "zoom": 0.25,
+        "px": 64,
+        "periodPx": 3,
+        "bias": -0.0031,
+        "noise": 0.0907
+      },
+      {
+        "zoom": 0.125,
+        "px": 32,
+        "periodPx": 1.5,
+        "bias": -0.0036,
+        "noise": 0.1178
+      }
+    ],
+    "worstBias": 0.0036,
+    "worstNoise": 0.1178,
+    "coarsestBias": -0.0036,
+    "coarsestNoise": 0.1178
+  }
+}

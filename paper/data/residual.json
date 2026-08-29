@@ -1,0 +1,31 @@
+{
+  "p": {
+    "x": 620,
+    "y": 300
+  },
+  "offset": {
+    "x": 1.5,
+    "y": 0.8
+  },
+  "theta": 0.02,
+  "spacing": 14,
+  "phase": 0,
+  "shape": 3,
+  "sides": 3,
+  "guard": 10.5,
+  "radius": 688.77,
+  "kappa": 0.5,
+  "drift": 1.4428,
+  "window": {
+    "lo": 22,
+    "hi": 56
+  },
+  "span": 35,
+  "budget": 1024,
+  "naiveIndex": 49,
+  "trueIndex": 41,
+  "trueDistance": 6.8209,
+  "solved": 6.8209,
+  "evaluated": 9,
+  "nMax": 74
+}

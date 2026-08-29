@@ -1,0 +1,117 @@
+\section{The families, drawn}
+\label{app:catalog}
+
+Table~\ref{tab:catalog} gives the thirteen families as algebra.
+Figure~\ref{fig:plate} gives them as pictures, each one alone and then superposed
+with a copy of itself under a small perturbation, so that the fringe system each
+one generates can be seen next to the family that generates it.
+
+The perturbation differs by family, and which one is natural is itself
+informative. Families with an orientation --- the two line families, the three
+lattices, the three open curves --- fringe under a small \emph{rotation}, a few
+degrees, because rotating them changes the direction of $\nabla\idx$ without
+changing its magnitude. Closed families --- the four concentric shapes and the
+spiral --- fringe under a small \emph{detuning} of the pitch instead, five or six
+percent, because rotating a concentric family about its own centre does nothing at
+all. This is not a fact about our implementation. It is $\het$ of
+Eq.~\ref{eq:ratio} deciding what counts as a perturbation: for a family whose
+index gradient is radial, rotation about the centre leaves $\nabla\idx$ unchanged
+and so leaves $\het=0$, and there is nothing to see.
+
+\newlength{\platew}
+% Three rows of cells have to clear \textheight, or the float loses its centring
+% glue and runs into the bottom margin. A cell is the panel plus a hairline, 2pt
+% and one \footnotesize line; at 0.178 that is 198.7pt, so 3 rows and two 7pt
+% gaps come to 610pt of the 615 available.
+\setlength{\platew}{0.178\textwidth}
+% One cell of the catalog plate: a family alone above, beating below, and a label
+% naming the perturbation that produced the beat.
+\newcommand{\platecell}[3]{%
+  \begin{minipage}[t]{\platew}%
+    \vspace{0pt}% align cell tops, not first baselines
+    \centering
+    \setlength{\fboxsep}{0pt}\setlength{\fboxrule}{0.3pt}%
+    \fcolorbox{soft!45}{white}{%
+      \includegraphics[width=\dimexpr\platew-2\fboxrule\relax]{figures/plate-#2.png}}%
+    \\[2pt]
+    {\footnotesize #1\,\ #3}%
+  \end{minipage}%
+}
+\newcommand{\platedeg}[1]{\textcolor{soft}{$\cdot$\,$#1^{\circ}$}}
+\newcommand{\platedet}[1]{\textcolor{soft}{$\cdot\,\times#1$}}
+% A row is one unbreakable hbox. Left to a paragraph, a row that is a hair too wide
+% wraps its last cell and the float grows by a whole row.
+\newcommand{\platerow}[1]{\par\noindent\hbox to \linewidth{#1}}
+
+\begin{figure*}[p]
+  \Description{Thirteen cells in a grid, each a pair of stacked black-on-white line
+  drawings. The upper drawing of a cell is one curve family --- parallel lines, a
+  radial pencil with a blank disc at its hub, concentric circles, squares, triangles,
+  hexagons, a square lattice, a hexagonal lattice, a triangular lattice, a wave
+  train, a nest of parabolae, a nest of hyperbolae, a spiral. The lower drawing
+  superposes that family with a slightly rotated or slightly rescaled copy of itself,
+  and in every case a second, coarser pattern of bands appears that is not present
+  above.}
+  \centering
+  \platerow{%
+    \platecell{1}{parallel}{parallel \platedeg{4}}\hfil
+    \platecell{2}{radial}{radial \platedeg{5}}\hfil
+    \platecell{3}{circles}{circles \platedet{1.06}}\hfil
+    \platecell{4}{squares}{squares \platedet{1.06}}\hfil
+    \platecell{5}{triangles}{triangles \platedet{1.06}}}
+
+  \vskip 7pt
+  \platerow{%
+    \platecell{6}{hexagons}{hexagons \platedet{1.06}}\hfil
+    \platecell{7}{grid-square}{square grid \platedeg{5}}\hfil
+    \platecell{8}{grid-hex}{hex grid \platedeg{5}}\hfil
+    \platecell{9}{grid-triangle}{tri.\ grid \platedeg{5}}\hfil
+    \platecell{10}{wave}{wave \platedeg{3}}}
+
+  \vskip 7pt
+  \platerow{%
+    \platecell{11}{parabola}{parabola \platedeg{3}}\hfil
+    \platecell{12}{hyperbola}{hyperbola \platedeg{4}}\hfil
+    \platecell{13}{spiral}{spiral \platedet{1.05}}\hfil
+    \begin{minipage}[t]{0.44\textwidth}
+    \vspace{0pt}
+    \caption{\figlead{Thirteen families, alone and beating.} Each cell is one
+    family: above, rendered by itself from its distance field; below, superposed
+    with a perturbed copy of itself, so the fringe system sits directly under the
+    family that generates it. The label gives the perturbation --- a rotation in
+    degrees for families with an orientation, a multiplier on the pitch for the
+    closed ones, which as \S\ref{app:catalog} explains is $\het$ deciding what
+    counts as a perturbation rather than a choice of ours. Every panel is
+    $250$ world units across at the same stroke width; none is a crop or a
+    resample of another.
+    \ Three details worth a second look. The radial pencil's core is genuinely
+    dense, and \emph{Start} cuts a disc out of it rather than fading it. The
+    hexagonal grid's edges are hexagon sides, computed as a support form over six
+    normals, not three superposed line families. And the hyperbola family carries
+    no member through the origin, because its $n=0$ level set is the degenerate
+    asymptote pair.}
+    \label{fig:plate}
+    \end{minipage}}
+\end{figure*}
+
+Two families deserve a note on their parameterisation, because the natural
+parameter and the useful parameter differ.
+
+\paragraph{The parabola's bend.} The family is $y=ax^2+ns+\varphi$, and $a$ is
+exposed to the author as a slider $B$ with $a=B/100$. The scaling is not
+cosmetic. Perpendicular member spacing is $s/\lVert\nabla\ph\rVert =
+s/\sqrt{1+4a^2x^2}$, which falls off linearly in $\lvert x\rvert$, so a value of
+$a$ that looks reasonable at the origin has closed the family to nothing by the
+edge of the frame. On a $250$-unit panel, $a=0.5$ --- an unremarkable-looking
+number --- packs several hundred members into the corners. The slider therefore
+spans a range that keeps the whole frame resolvable, and the useful settings all
+have $B<1$.
+
+\paragraph{The spiral's pitch.} Archimedean spirals are $r=b\theta$, and a
+family of them at radial interval $s$ has $M=\mathrm{round}(\lvert B\rvert/s)$
+arms for a pitch slider $B$. The rounding is not laziness. $\ph=r-b\theta$ has a
+branch cut wherever $\mathrm{atan2}$ does, and the level sets close across it only
+if $b\,2\pi$ is an integer multiple of $s$ --- that is, only if $M$ is an integer.
+Pass $B$ through unrounded and every member of the family has a visible seam along
+the negative $x$ axis. Setting $B=0$ gives $M=1$ but $b=0$, which is concentric
+circles, so the slider degrades to the family it should degrade to.

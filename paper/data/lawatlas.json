@@ -1,0 +1,31 @@
+{
+  "regime": 0.25,
+  "panel": 340,
+  "scenes": [
+    {
+      "scene": "parallel-rotate",
+      "label": "two combs, 6 degrees",
+      "admitted": 1
+    },
+    {
+      "scene": "circle-parallel",
+      "label": "circles under lines",
+      "admitted": 0.3907266435986159
+    },
+    {
+      "scene": "hexagon-hexagon",
+      "label": "hexagons, 4 degrees",
+      "admitted": 0.9345328719723184
+    },
+    {
+      "scene": "circle-circle",
+      "label": "circles, two centres",
+      "admitted": 0.217439446366782
+    },
+    {
+      "scene": "hyperbola-parallel",
+      "label": "hyperbolae under lines",
+      "admitted": 0
+    }
+  ]
+}

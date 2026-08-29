@@ -1,0 +1,480 @@
+{
+  "halfWidth": 700,
+  "halfHeight": 440,
+  "step": 6,
+  "families": [
+    {
+      "family": "Wave",
+      "dividesByGradient": false,
+      "settings": 36,
+      "worstFactor": 25.153,
+      "worstSetting": {
+        "spacing": 16,
+        "bend": 32,
+        "frequency": 4
+      },
+      "meanFractionOff": 0.609,
+      "rows": [
+        {
+          "kind": "wave",
+          "spacing": 16,
+          "bend": 2,
+          "frequency": 0.25,
+          "meanFactor": 1.002,
+          "worstFactor": 1.005,
+          "fractionOff": 0
+        },
+        {
+          "kind": "wave",
+          "spacing": 16,
+          "bend": 2,
+          "frequency": 0.5,
+          "meanFactor": 1.009,
+          "worstFactor": 1.019,
+          "fractionOff": 0
+        },
+        {
+          "kind": "wave",
+          "spacing": 16,
+          "bend": 2,
+          "frequency": 1,
+          "meanFactor": 1.037,
+          "worstFactor": 1.074,
+          "fractionOff": 0
+        },
+        {
+          "kind": "wave",
+          "spacing": 16,
+          "bend": 2,
+          "frequency": 2,
+          "meanFactor": 1.14,
+          "worstFactor": 1.272,
+          "fractionOff": 0.748
+        },
+        {
+          "kind": "wave",
+          "spacing": 16,
+          "bend": 2,
+          "frequency": 3,
+          "meanFactor": 1.284,
+          "worstFactor": 1.545,
+          "fractionOff": 0.619
+        },
+        {
+          "kind": "wave",
+          "spacing": 16,
+          "bend": 2,
+          "frequency": 4,
+          "meanFactor": 1.434,
+          "worstFactor": 1.862,
+          "fractionOff": 0.503
+        },
+        {
+          "kind": "wave",
+          "spacing": 16,
+          "bend": 4,
+          "frequency": 0.25,
+          "meanFactor": 1.009,
+          "worstFactor": 1.019,
+          "fractionOff": 0
+        },
+        {
+          "kind": "wave",
+          "spacing": 16,
+          "bend": 4,
+          "frequency": 0.5,
+          "meanFactor": 1.037,
+          "worstFactor": 1.074,
+          "fractionOff": 0
+        },
+        {
+          "kind": "wave",
+          "spacing": 16,
+          "bend": 4,
+          "frequency": 1,
+          "meanFactor": 1.14,
+          "worstFactor": 1.272,
+          "fractionOff": 0.626
+        },
+        {
+          "kind": "wave",
+          "spacing": 16,
+          "bend": 4,
+          "frequency": 2,
+          "meanFactor": 1.463,
+          "worstFactor": 1.862,
+          "fractionOff": 0.748
+        },
+        {
+          "kind": "wave",
+          "spacing": 16,
+          "bend": 4,
+          "frequency": 3,
+          "meanFactor": 1.857,
+          "worstFactor": 2.56,
+          "fractionOff": 0.871
+        },
+        {
+          "kind": "wave",
+          "spacing": 16,
+          "bend": 4,
+          "frequency": 4,
+          "meanFactor": 2.156,
+          "worstFactor": 3.297,
+          "fractionOff": 0.503
+        },
+        {
+          "kind": "wave",
+          "spacing": 16,
+          "bend": 8,
+          "frequency": 0.25,
+          "meanFactor": 1.037,
+          "worstFactor": 1.074,
+          "fractionOff": 0
+        },
+        {
+          "kind": "wave",
+          "spacing": 16,
+          "bend": 8,
+          "frequency": 0.5,
+          "meanFactor": 1.138,
+          "worstFactor": 1.272,
+          "fractionOff": 0.558
+        },
+        {
+          "kind": "wave",
+          "spacing": 16,
+          "bend": 8,
+          "frequency": 1,
+          "meanFactor": 1.463,
+          "worstFactor": 1.862,
+          "fractionOff": 0.871
+        },
+        {
+          "kind": "wave",
+          "spacing": 16,
+          "bend": 8,
+          "frequency": 2,
+          "meanFactor": 2.291,
+          "worstFactor": 3.297,
+          "fractionOff": 0.748
+        },
+        {
+          "kind": "wave",
+          "spacing": 16,
+          "bend": 8,
+          "frequency": 3,
+          "meanFactor": 3.208,
+          "worstFactor": 4.817,
+          "fractionOff": 0.871
+        },
+        {
+          "kind": "wave",
+          "spacing": 16,
+          "bend": 8,
+          "frequency": 4,
+          "meanFactor": 3.699,
+          "worstFactor": 6.362,
+          "fractionOff": 0.503
+        },
+        {
+          "kind": "wave",
+          "spacing": 16,
+          "bend": 16,
+          "frequency": 0.25,
+          "meanFactor": 1.138,
+          "worstFactor": 1.272,
+          "fractionOff": 0.585
+        },
+        {
+          "kind": "wave",
+          "spacing": 16,
+          "bend": 16,
+          "frequency": 0.5,
+          "meanFactor": 1.459,
+          "worstFactor": 1.862,
+          "fractionOff": 0.81
+        },
+        {
+          "kind": "wave",
+          "spacing": 16,
+          "bend": 16,
+          "frequency": 1,
+          "meanFactor": 2.302,
+          "worstFactor": 3.297,
+          "fractionOff": 0.871
+        },
+        {
+          "kind": "wave",
+          "spacing": 16,
+          "bend": 16,
+          "frequency": 2,
+          "meanFactor": 4.115,
+          "worstFactor": 6.362,
+          "fractionOff": 0.748
+        },
+        {
+          "kind": "wave",
+          "spacing": 16,
+          "bend": 16,
+          "frequency": 3,
+          "meanFactor": 6.074,
+          "worstFactor": 9.478,
+          "fractionOff": 0.871
+        },
+        {
+          "kind": "wave",
+          "spacing": 16,
+          "bend": 16,
+          "frequency": 4,
+          "meanFactor": 6.843,
+          "worstFactor": 12.606,
+          "fractionOff": 0.503
+        },
+        {
+          "kind": "wave",
+          "spacing": 16,
+          "bend": 24,
+          "frequency": 0.25,
+          "meanFactor": 1.283,
+          "worstFactor": 1.545,
+          "fractionOff": 0.714
+        },
+        {
+          "kind": "wave",
+          "spacing": 16,
+          "bend": 24,
+          "frequency": 0.5,
+          "meanFactor": 1.858,
+          "worstFactor": 2.56,
+          "fractionOff": 0.939
+        },
+        {
+          "kind": "wave",
+          "spacing": 16,
+          "bend": 24,
+          "frequency": 1,
+          "meanFactor": 3.224,
+          "worstFactor": 4.817,
+          "fractionOff": 0.871
+        },
+        {
+          "kind": "wave",
+          "spacing": 16,
+          "bend": 24,
+          "frequency": 2,
+          "meanFactor": 5.984,
+          "worstFactor": 9.478,
+          "fractionOff": 0.748
+        },
+        {
+          "kind": "wave",
+          "spacing": 16,
+          "bend": 24,
+          "frequency": 3,
+          "meanFactor": 8.986,
+          "worstFactor": 14.172,
+          "fractionOff": 0.871
+        },
+        {
+          "kind": "wave",
+          "spacing": 16,
+          "bend": 24,
+          "frequency": 4,
+          "meanFactor": 9.999,
+          "worstFactor": 18.876,
+          "fractionOff": 0.503
+        },
+        {
+          "kind": "wave",
+          "spacing": 16,
+          "bend": 32,
+          "frequency": 0.25,
+          "meanFactor": 1.458,
+          "worstFactor": 1.862,
+          "fractionOff": 0.776
+        },
+        {
+          "kind": "wave",
+          "spacing": 16,
+          "bend": 32,
+          "frequency": 0.5,
+          "meanFactor": 2.293,
+          "worstFactor": 3.297,
+          "fractionOff": 0.939
+        },
+        {
+          "kind": "wave",
+          "spacing": 16,
+          "bend": 32,
+          "frequency": 1,
+          "meanFactor": 4.175,
+          "worstFactor": 6.362,
+          "fractionOff": 0.871
+        },
+        {
+          "kind": "wave",
+          "spacing": 16,
+          "bend": 32,
+          "frequency": 2,
+          "meanFactor": 7.865,
+          "worstFactor": 12.606,
+          "fractionOff": 0.748
+        },
+        {
+          "kind": "wave",
+          "spacing": 16,
+          "bend": 32,
+          "frequency": 3,
+          "meanFactor": 11.91,
+          "worstFactor": 18.876,
+          "fractionOff": 0.871
+        },
+        {
+          "kind": "wave",
+          "spacing": 16,
+          "bend": 32,
+          "frequency": 4,
+          "meanFactor": 13.158,
+          "worstFactor": 25.153,
+          "fractionOff": 0.503
+        }
+      ]
+    },
+    {
+      "family": "Parabola",
+      "dividesByGradient": true,
+      "settings": 6,
+      "worstFactor": 224.002,
+      "worstSetting": {
+        "spacing": 16,
+        "bend": 16
+      },
+      "meanFractionOff": 0.979,
+      "rows": [
+        {
+          "kind": "parabola",
+          "spacing": 16,
+          "bend": 0.5,
+          "meanFactor": 3.734,
+          "worstFactor": 7.071,
+          "fractionOff": 0.936
+        },
+        {
+          "kind": "parabola",
+          "spacing": 16,
+          "bend": 1,
+          "meanFactor": 7.157,
+          "worstFactor": 14.036,
+          "fractionOff": 0.966
+        },
+        {
+          "kind": "parabola",
+          "spacing": 16,
+          "bend": 2,
+          "meanFactor": 14.121,
+          "worstFactor": 28.018,
+          "fractionOff": 0.983
+        },
+        {
+          "kind": "parabola",
+          "spacing": 16,
+          "bend": 4,
+          "meanFactor": 28.126,
+          "worstFactor": 56.009,
+          "fractionOff": 0.991
+        },
+        {
+          "kind": "parabola",
+          "spacing": 16,
+          "bend": 8,
+          "meanFactor": 56.186,
+          "worstFactor": 112.004,
+          "fractionOff": 0.996
+        },
+        {
+          "kind": "parabola",
+          "spacing": 16,
+          "bend": 16,
+          "meanFactor": 112.334,
+          "worstFactor": 224.002,
+          "fractionOff": 1
+        }
+      ]
+    },
+    {
+      "family": "Hyperbola",
+      "dividesByGradient": false,
+      "settings": 1,
+      "worstFactor": 14.849,
+      "worstSetting": {
+        "spacing": 16,
+        "phase": 8
+      },
+      "meanFractionOff": 0.656,
+      "rows": [
+        {
+          "kind": "hyperbola",
+          "spacing": 16,
+          "phase": 8,
+          "meanFactor": 1.595,
+          "worstFactor": 14.849,
+          "fractionOff": 0.656
+        }
+      ]
+    },
+    {
+      "family": "Spiral",
+      "dividesByGradient": false,
+      "settings": 5,
+      "worstFactor": 7.272,
+      "worstSetting": {
+        "spacing": 16,
+        "bend": 128
+      },
+      "meanFractionOff": 0.001,
+      "rows": [
+        {
+          "kind": "spiral",
+          "spacing": 16,
+          "bend": 8,
+          "meanFactor": 1,
+          "worstFactor": 1.346,
+          "fractionOff": 0
+        },
+        {
+          "kind": "spiral",
+          "spacing": 16,
+          "bend": 16,
+          "meanFactor": 1,
+          "worstFactor": 1.346,
+          "fractionOff": 0
+        },
+        {
+          "kind": "spiral",
+          "spacing": 16,
+          "bend": 32,
+          "meanFactor": 1,
+          "worstFactor": 2.06,
+          "fractionOff": 0
+        },
+        {
+          "kind": "spiral",
+          "spacing": 16,
+          "bend": 64,
+          "meanFactor": 1.001,
+          "worstFactor": 3.738,
+          "fractionOff": 0.001
+        },
+        {
+          "kind": "spiral",
+          "spacing": 16,
+          "bend": 128,
+          "meanFactor": 1.005,
+          "worstFactor": 7.272,
+          "fractionOff": 0.005
+        }
+      ]
+    }
+  ]
+}

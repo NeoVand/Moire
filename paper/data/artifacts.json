@@ -1,0 +1,125 @@
+{
+  "holes": {
+    "label": "Squares, spacing 12, offset (9.6,9.6), rotation offset 0.06, zoom 1",
+    "zoom": 1,
+    "size": [
+      1200,
+      800
+    ],
+    "solvers": {
+      "reference": {
+        "ink": 0.489,
+        "evalsPerPixel": 166,
+        "seconds": 3.9
+      },
+      "sweep": {
+        "ink": 0.382,
+        "evalsPerPixel": 1009,
+        "seconds": 41.2,
+        "diff": {
+          "fractionDiffering": 0.1626,
+          "meanAbs": 26.69,
+          "worst": 255
+        }
+      },
+      "final": {
+        "ink": 0.489,
+        "evalsPerPixel": 55,
+        "seconds": 2.2,
+        "diff": {
+          "fractionDiffering": 0,
+          "meanAbs": 0,
+          "worst": 0
+        }
+      }
+    },
+    "inset": {
+      "x": 816,
+      "y": 0,
+      "w": 380,
+      "h": 254
+    }
+  },
+  "drift": {
+    "label": "Squares, spacing 4, offset (3,3), rotation offset 0.03, zoom 4",
+    "zoom": 4,
+    "size": [
+      1200,
+      800
+    ],
+    "solvers": {
+      "reference": {
+        "ink": 0.459,
+        "evalsPerPixel": 100,
+        "seconds": 2.4
+      },
+      "window1": {
+        "ink": 0.152,
+        "evalsPerPixel": 75,
+        "seconds": 4.3,
+        "diff": {
+          "fractionDiffering": 0.3827,
+          "meanAbs": 77.68,
+          "worst": 255
+        }
+      },
+      "final": {
+        "ink": 0.459,
+        "evalsPerPixel": 30,
+        "seconds": 1.3,
+        "diff": {
+          "fractionDiffering": 0,
+          "meanAbs": 0,
+          "worst": 0
+        }
+      }
+    },
+    "inset": {
+      "x": 504,
+      "y": 408,
+      "w": 200,
+      "h": 134
+    }
+  },
+  "anchor": {
+    "label": "Squares, spacing 12, offset (9.6,9.6), rotation 0.06, zoom 1, budget 64",
+    "zoom": 1,
+    "size": [
+      1200,
+      800
+    ],
+    "solvers": {
+      "reference": {
+        "ink": 0.489,
+        "evalsPerPixel": 166,
+        "seconds": 4
+      },
+      "lattice-anchored": {
+        "ink": 0.216,
+        "evalsPerPixel": 33,
+        "seconds": 1.5,
+        "diff": {
+          "fractionDiffering": 0.3825,
+          "meanAbs": 67.95,
+          "worst": 255
+        }
+      },
+      "pixel-anchored": {
+        "ink": 0.216,
+        "evalsPerPixel": 33,
+        "seconds": 1.5,
+        "diff": {
+          "fractionDiffering": 0.3832,
+          "meanAbs": 68.06,
+          "worst": 255
+        }
+      }
+    },
+    "inset": {
+      "x": 144,
+      "y": 0,
+      "w": 200,
+      "h": 134
+    }
+  }
+}

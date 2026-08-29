@@ -1,0 +1,373 @@
+{
+  "quadrature": 512,
+  "pooled": 133540,
+  "order": [
+    {
+      "band": 0.005,
+      "n": 2599,
+      "mean": 0.000002,
+      "p90": 0.000005,
+      "max": 0.000006
+    },
+    {
+      "band": 0.01,
+      "n": 9307,
+      "mean": 0.000004,
+      "p90": 0.00001,
+      "max": 0.000026
+    },
+    {
+      "band": 0.02,
+      "n": 2740,
+      "mean": 0.000013,
+      "p90": 0.000036,
+      "max": 0.0001
+    },
+    {
+      "band": 0.05,
+      "n": 30115,
+      "mean": 0.00578,
+      "p90": 0.015467,
+      "max": 0.02274
+    },
+    {
+      "band": 0.1,
+      "n": 20458,
+      "mean": 0.000468,
+      "p90": 0.000442,
+      "max": 0.032924
+    },
+    {
+      "band": 0.2,
+      "n": 27260,
+      "mean": 0.000105,
+      "p90": 0.000471,
+      "max": 0.001084
+    },
+    {
+      "band": 0.4,
+      "n": 12278,
+      "mean": 0.000037,
+      "p90": 0.000085,
+      "max": 0.000342
+    },
+    {
+      "band": 1,
+      "n": 20078,
+      "mean": 0.004943,
+      "p90": 0.003243,
+      "max": 0.356949
+    }
+  ],
+  "scenes": [
+    {
+      "name": "parallel-rotate",
+      "note": "two line families 6 degrees apart",
+      "all": {
+        "n": 14641,
+        "mean": 0,
+        "p99": 0,
+        "max": 0,
+        "awayFromCorner": 0,
+        "cornerN": 3521,
+        "swing": 0.3203,
+        "lightGap": 0.0235,
+        "darkGap": 0.4737
+      },
+      "regime": {
+        "n": 14641,
+        "mean": 0,
+        "p99": 0,
+        "max": 0,
+        "awayFromCorner": 0,
+        "cornerN": 3521,
+        "swing": 0.3203,
+        "lightGap": 0.0235,
+        "darkGap": 0.4737
+      },
+      "regimeShare": 1,
+      "singularSkipped": 0,
+      "bentSkipped": 0
+    },
+    {
+      "name": "parallel-pitch",
+      "note": "same direction, pitch mismatched by 4 percent",
+      "all": {
+        "n": 14641,
+        "mean": 0.0059,
+        "p99": 0.0189,
+        "max": 0.0189,
+        "awayFromCorner": 0.0147,
+        "cornerN": 3751,
+        "swing": 0.3261,
+        "lightGap": 0.0259,
+        "darkGap": 0.4698
+      },
+      "regime": {
+        "n": 14641,
+        "mean": 0.0059,
+        "p99": 0.0189,
+        "max": 0.0189,
+        "awayFromCorner": 0.0147,
+        "cornerN": 3751,
+        "swing": 0.3261,
+        "lightGap": 0.0259,
+        "darkGap": 0.4698
+      },
+      "regimeShare": 1,
+      "singularSkipped": 0,
+      "bentSkipped": 0
+    },
+    {
+      "name": "circle-circle",
+      "note": "circle families with displaced centres",
+      "all": {
+        "n": 13648,
+        "mean": 0.0001,
+        "p99": 0.0016,
+        "max": 0.0052,
+        "awayFromCorner": 0.0052,
+        "cornerN": 3066,
+        "swing": 0.2813,
+        "lightGap": 0.0235,
+        "darkGap": 0.4707
+      },
+      "regime": {
+        "n": 6118,
+        "mean": 0,
+        "p99": 0.0001,
+        "max": 0.0001,
+        "awayFromCorner": 0.0001,
+        "cornerN": 1212,
+        "swing": 0.2772,
+        "lightGap": 0.0282,
+        "darkGap": 0.4645
+      },
+      "regimeShare": 0.448,
+      "singularSkipped": 0,
+      "bentSkipped": 972
+    },
+    {
+      "name": "circle-parallel",
+      "note": "circles under lines; D is not periodic in p",
+      "all": {
+        "n": 14444,
+        "mean": 0.0002,
+        "p99": 0.0023,
+        "max": 0.0056,
+        "awayFromCorner": 0.0056,
+        "cornerN": 3856,
+        "swing": 0.2465,
+        "lightGap": 0.0277,
+        "darkGap": 0.4613
+      },
+      "regime": {
+        "n": 3952,
+        "mean": 0,
+        "p99": 0,
+        "max": 0.0001,
+        "awayFromCorner": 0.0001,
+        "cornerN": 1388,
+        "swing": 0.2425,
+        "lightGap": 0.0343,
+        "darkGap": 0.4746
+      },
+      "regimeShare": 0.274,
+      "singularSkipped": 0,
+      "bentSkipped": 197
+    },
+    {
+      "name": "hexagon-hexagon",
+      "note": "anisotropic metric, hexagons 4 degrees apart",
+      "all": {
+        "n": 14028,
+        "mean": 0,
+        "p99": 0,
+        "max": 0.0176,
+        "awayFromCorner": 0.0176,
+        "cornerN": 3476,
+        "swing": 0.2601,
+        "lightGap": 0.0241,
+        "darkGap": 0.4752
+      },
+      "regime": {
+        "n": 13382,
+        "mean": 0,
+        "p99": 0,
+        "max": 0.0176,
+        "awayFromCorner": 0.0176,
+        "cornerN": 3280,
+        "swing": 0.2601,
+        "lightGap": 0.0243,
+        "darkGap": 0.475
+      },
+      "regimeShare": 0.954,
+      "singularSkipped": 12,
+      "bentSkipped": 600
+    },
+    {
+      "name": "square-circle",
+      "note": "two different norms at the same spacing",
+      "all": {
+        "n": 13852,
+        "mean": 0.0001,
+        "p99": 0.0007,
+        "max": 0.0011,
+        "awayFromCorner": 0.0011,
+        "cornerN": 3844,
+        "swing": 0.243,
+        "lightGap": 0.01,
+        "darkGap": 0.4584
+      },
+      "regime": {
+        "n": 3524,
+        "mean": 0,
+        "p99": 0.0001,
+        "max": 0.0001,
+        "awayFromCorner": 0.0001,
+        "cornerN": 1364,
+        "swing": 0.2425,
+        "lightGap": 0.0024,
+        "darkGap": 0.4604
+      },
+      "regimeShare": 0.254,
+      "singularSkipped": 0,
+      "bentSkipped": 788
+    },
+    {
+      "name": "spiral-circle",
+      "note": "aperiodic family: Archimedean spiral over circles",
+      "all": {
+        "n": 14041,
+        "mean": 0,
+        "p99": 0.0001,
+        "max": 0.0001,
+        "awayFromCorner": 0.0001,
+        "cornerN": 2719,
+        "swing": 0.2427,
+        "lightGap": 0.0312,
+        "darkGap": 0.4607
+      },
+      "regime": {
+        "n": 14041,
+        "mean": 0,
+        "p99": 0.0001,
+        "max": 0.0001,
+        "awayFromCorner": 0.0001,
+        "cornerN": 2719,
+        "swing": 0.2427,
+        "lightGap": 0.0312,
+        "darkGap": 0.4607
+      },
+      "regimeShare": 1,
+      "singularSkipped": 0,
+      "bentSkipped": 539
+    },
+    {
+      "name": "parabola-parabola",
+      "note": "curved families, bend mismatched by 8 percent",
+      "all": {
+        "n": 484,
+        "mean": 0.0166,
+        "p99": 0.0329,
+        "max": 0.0329,
+        "awayFromCorner": 0.0329,
+        "cornerN": 0,
+        "swing": 0.1689,
+        "lightGap": 0.16,
+        "darkGap": 0.2178
+      },
+      "regime": {
+        "n": 484,
+        "mean": 0.0166,
+        "p99": 0.0329,
+        "max": 0.0329,
+        "awayFromCorner": 0.0329,
+        "cornerN": 0,
+        "swing": 0.1689,
+        "lightGap": 0.16,
+        "darkGap": 0.2178
+      },
+      "regimeShare": 1,
+      "singularSkipped": 484,
+      "bentSkipped": 847
+    },
+    {
+      "name": "wave-parallel",
+      "note": "a wave family over lines",
+      "all": {
+        "n": 14641,
+        "mean": 0.0003,
+        "p99": 0.0011,
+        "max": 0.0011,
+        "awayFromCorner": 0.0011,
+        "cornerN": 3751,
+        "swing": 0.1181,
+        "lightGap": 0.0113,
+        "darkGap": 0.1704
+      },
+      "regime": {
+        "n": 14641,
+        "mean": 0.0003,
+        "p99": 0.0011,
+        "max": 0.0011,
+        "awayFromCorner": 0.0011,
+        "cornerN": 3751,
+        "swing": 0.1181,
+        "lightGap": 0.0113,
+        "darkGap": 0.1704
+      },
+      "regimeShare": 1,
+      "singularSkipped": 0,
+      "bentSkipped": 0
+    },
+    {
+      "name": "hyperbola-hyperbola",
+      "note": "rectangular hyperbolae, spacing mismatched by 4 percent",
+      "all": {
+        "n": 11036,
+        "mean": 0.0079,
+        "p99": 0.0214,
+        "max": 0.0227,
+        "awayFromCorner": 0.0225,
+        "cornerN": 2152,
+        "swing": 0.64,
+        "lightGap": 0.1235,
+        "darkGap": 0.4299
+      },
+      "regime": {
+        "n": 11036,
+        "mean": 0.0079,
+        "p99": 0.0214,
+        "max": 0.0227,
+        "awayFromCorner": 0.0225,
+        "cornerN": 2152,
+        "swing": 0.64,
+        "lightGap": 0.1235,
+        "darkGap": 0.4299
+      },
+      "regimeShare": 1,
+      "singularSkipped": 480,
+      "bentSkipped": 324
+    },
+    {
+      "name": "hyperbola-parallel",
+      "note": "hyperbolae under lines: almost no fringe regime exists",
+      "all": {
+        "n": 8084,
+        "mean": 0.0579,
+        "p99": 0.3366,
+        "max": 0.6763,
+        "awayFromCorner": 0.6412,
+        "cornerN": 1922,
+        "swing": 0.8223,
+        "lightGap": 0.1235,
+        "darkGap": 0.3397
+      },
+      "regime": null,
+      "regimeShare": 0,
+      "singularSkipped": 2146,
+      "bentSkipped": 1610
+    }
+  ]
+}

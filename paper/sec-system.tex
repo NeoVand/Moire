@@ -1,0 +1,190 @@
+\section{\Moire{}}
+\label{sec:system}
+
+\Moire{} is a browser tool. It is also the reason the previous three sections
+exist: every bound in them was forced by something an author could do with a
+slider and we could not draw fast enough or correctly enough. This section
+describes the program, and concentrates on the four decisions that the field
+formulation makes available and that we would not have found otherwise.
+
+\subsection{One pass, twelve slots, compiled once}
+
+The whole picture is a single full-screen fragment program. There is no geometry
+beyond one quad, no texture, no render target, and no rasterisation of any layer
+into any buffer. The program is written in Three.js's shading
+language~\cite{ThreeJS} and runs through WebGPU~\cite{WebGPU}; TSL matters here
+only because it lets the same expression tree be assembled in TypeScript, which is
+how the CPU twin of \S\ref{sec:inverse} stays a twin.
+
+A layer is $19$ uniforms. Nine describe the family --- type, previous type, morph
+parameter, spacing, phase, side count, per-member offset, per-member rotation,
+line count --- and the rest describe its appearance and placement. Crucially there
+are always \emph{twelve} of these slots, allocated and compiled at startup, each
+gated by an \texttt{active} uniform. Adding a layer writes uniforms. Deleting or
+hiding one writes $\texttt{active}=0$. Neither touches the node graph.
+
+This is a small decision with a large consequence, and we got it wrong first. The
+natural way to write the renderer is to build the shader from the current layer
+list, which means every add, delete and hide rebuilds it. In WebGPU a rebuild is a
+pipeline creation, and pipeline creation is tens to hundreds of milliseconds during
+which the canvas cannot present. The result is a tool that stutters exactly when
+an author is composing --- the moment when they are most likely to be exploring
+rather than committing. Fixing the layer count and paying for twelve unconditionally
+costs a few branches per pixel and makes layer count free. Frames are then driven
+by a dirty flag on the store, coalesced to one render per animation frame.
+
+\paragraph{The one exception, and how it is paid for.}
+Exactly one edit changes the program: a layer's field \emph{expression}
+(\S\ref{sec:exprs}). Since the expression is compiled into the shader rather than
+interpreted by it, a new expression is a new material --- that is the whole of the
+trade, and \S\ref{sec:exprs} prices both sides of it. Everything else about a
+field stays a uniform: gain, extent, which layer carries it, and turning it off.
+So the rebuild happens only when a \emph{character} of the expression changes, and
+we make it invisible in three steps. The material is rebuilt per slot, so eleven
+layers are undisturbed. The rebuild is debounced by $220$\,ms, which is longer
+than the gap between two keystrokes, so typing \texttt{sin(3 * x)} costs one
+compile and not eleven. And the renderer holds the last presented frame across the
+build instead of clearing, so the canvas shows a stale picture for a few frames
+rather than a blank one. Meanwhile the field editor's live preview is drawn by the
+CPU evaluator, which needs no compile at all, so the author is never actually
+waiting on the GPU to see what they typed.
+
+\subsection{The stroke has a floor, and the floor is in world units}
+\label{sec:zoom}
+
+A family is a set of curves of zero width; ink comes from thresholding the
+distance field. Given a stroke thickness $t$, write $\mathrm{pixel}=1/\mathrm{zoom}$
+for the world size of a pixel and set
+\begin{equation}
+  h=\max\!\left(\tfrac{t}{2},\; 1.15\,\mathrm{pixel}\right),
+  \qquad
+  \varepsilon = 0.7\,\mathrm{pixel},
+  \label{eq:stroke}
+\end{equation}
+then $\alpha(d)=1-\mathrm{smoothstep}(h-\varepsilon,\,h+\varepsilon,\,d)$.
+
+The floor $1.15\,\mathrm{pixel}$ is what keeps a zoomed-out pattern from
+disintegrating. Without it, a hairline family at low zoom has strokes narrower
+than the sample spacing, and the picture breaks into speckle that looks exactly
+like the inversion failure of \S\ref{sec:inverse} but is not --- a confusion that
+cost us a week. With it, the stroke can never be thinner than about a pixel, and
+the fringes survive (Figure~\ref{fig:zoom}).
+
+Writing that paragraph made us want a number for it, and getting one changed what
+we think the floor does. Take a spiral over a displaced circle family, fix a world
+window, and render it over $\zoomDecades$ decades of zoom twice: once at one sample
+per pixel, as the shader does, and once at $\zoomRefSamples$ samples per pixel as a
+prefiltered reference. Compare each rule against the properly sampled version of
+\emph{its own} intent, so that sampling error is isolated from any difference in
+what was being drawn. At the coarsest zoom, where one carrier period is
+$\zoomCoarsestPeriod$\,px, the standard deviation of the per-pixel ink error is
+\begin{center}\small
+\begin{tabular}{@{}lrr@{}}
+  \toprule
+  & worst noise & at coarsest zoom \\
+  \midrule
+  with the floor            & $\zoomFloorNoise$   & $\zoomFloorNoiseCoarse$ \\
+  floor removed             & $\zoomNoFloorNoise$ & $\zoomNoFloorNoiseCoarse$ \\
+  phase residual, no floor  & $\zoomValueNoise$   & --- \\
+  \bottomrule
+\end{tabular}
+\end{center}
+--- a factor of $\zoomNoiseRatio$. So the floor does suppress the speckle, and by a
+lot. But the same experiment prices it: even sampled perfectly, the clamped stroke
+lays down up to $\zoomFloorInkGain$ more ink per pixel than the hairline it stands
+in for, because a stroke held at a pixel wide inside a period that is narrower than
+that must overlap itself.
+
+The floor, in other words, is not an antialiasing method. It converts an unbiased
+and very noisy estimate of the pattern into a biased and nearly noiseless one, and
+it is the right trade only because a moir\'e is read as structure rather than as
+tone: a reader forgives a frame that is too dark and does not forgive one that is
+peppered. The unbiased low-noise answer is the analytic mean of the family over the
+pixel, which for a walking family we do not have --- the open problem of
+\S\ref{sec:future}. We had shipped the floor for two years without knowing which of
+those two errors we had chosen.
+
+Two things about \eqref{eq:stroke} are only correct because of the field view.
+First, $h$ is a \emph{world} distance, so it must be compared against a world
+distance, which is why the gradient divide of Table~\ref{tab:catalog} is not
+optional: applied to a phase residual, the floor guarantees nothing, because a
+phase unit is not a length. Second, having a hard $h$ means we know in advance
+which distances cannot matter. Anything beyond $h+\varepsilon$ is fully
+transparent. The solver of \S\ref{sec:inverse} is therefore not asked for
+$\min_n d_n$; it is asked whether any $d_n$ falls below $h+\varepsilon$, and is
+free to \emph{prove} the rest away without evaluating them. The guard and the skip
+rule are the same idea seen from two ends.
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\linewidth]{figures/zoom.png}
+  \panelrow{0.24523}{0.00636}{%
+    (a) zoom $4$,
+    (b) zoom $1$,
+    (c) zoom $0.25$,
+    {(d) zoom $0.25$, no floor}}
+  \Description{Four square panels of the same black-on-white scene at falling zoom.
+  The first shows a bold open weave of a dozen ring arcs from two nearby centres;
+  the second shows the whole two-centre rosette, its rings crossing in a lens
+  pattern; the third packs the same rosette into a dense dark pinwheel of spiral
+  fringe arms; the fourth is the third panel again but washed out to pale grey and
+  visibly speckled, with the fringe arms no longer readable.}
+  \caption{\figlead{One scene, sixteen-fold of zoom, and the price of the floor.}
+  The tool's own opening view --- two walking circle families, the project
+  \Moire{} eases into on first load --- at three times its default scale.
+  \textbf{(a--c)}~zoom $4$,
+  $1$ and $0.25$. Nothing is resampled between them: each is the same pair of scalar
+  fields evaluated on its own grid, so there is no mip level to choose, no filter
+  kernel to widen, and no resolution at which the pattern was ever committed. Stroke
+  thickness is a \emph{world} quantity and is the same number in all four panels,
+  which is why the strokes get thinner on screen as the zoom falls. \textbf{(d)}~the
+  same frame as (c) with the stroke floor of \eqref{eq:stroke} removed. All four are
+  rendered at one sample per pixel, exactly as the shader does, so (c) and (d) differ
+  in one constant and nothing else. The floor is what keeps the fringe system in (c);
+  without it the sub-pixel strokes are hit or missed and the pattern goes pale and
+  grainy. It is not free --- see the ink it adds, measured, in
+  \S\ref{sec:zoom}. (The table there uses a plainer pair, a spiral over rings, since
+  the third rule under test needs a family with a closed-form phase.)}
+  \label{fig:zoom}
+\end{figure*}
+
+\subsection{Changing family without a cut}
+
+Switching a layer from circles to hexagons is a change of $\ph$, and the honest
+implementation of that is a jump. Authors read a jump as breakage, and more
+importantly they cannot see \emph{what} changed, which is precisely the thing a
+tool for studying interference should show.
+
+So the slot carries two family codes and a mix parameter: the shader evaluates the
+distance under both the old family and the new one and interpolates the
+\emph{distances}, easing the mix over $280$\,ms with a cubic. Interpolating
+distances rather than images means there is one stroke at all times, travelling
+from one geometry to the other, instead of two strokes cross-fading --- a
+difference that is obvious the first time you see both. The store snaps to the
+target immediately, so the eased value lives only in the uniform and no
+undo, export or reload can catch a half-morphed state. Switching to a family for
+which the per-member motion is meaningless --- lines, lattices, curves --- also
+zeroes the two walking parameters, because leaving them set produces a layer whose
+sliders visibly do nothing.
+
+\subsection{Direct manipulation of a field}
+
+World $Y$ is up, and the flip to device coordinates happens in exactly one
+place~\cite{Nehab2008}. Dragging moves the selected layer, in screen space, which
+requires inverting the layer's own rotation onto the drag delta or the layer walks
+away from the cursor. Holding \textsc{alt} rotates the layer about the world
+origin rather than its own centre, which is the operation that makes a walking
+family unwind; degrees in the interface, radians in the uniform, and a separate
+field from the per-member rotation. Space or the middle button pans, the wheel
+zooms to the cursor, and \textsc{shift} on any slider divides its rate.
+
+The first paint waits on \texttt{compileAsync}, because presenting a blank canvas
+and then a picture reads as a bug. During the wait the stage shows a mark; when the
+program is ready, the tool eases two default concentric layers into the loaded
+preset, using the same morph machinery. The first thing an author sees is therefore
+not a static result but the mechanism moving into place, which turns out to be a
+better explanation of what the tool is than the panel of sliders next to it.
+
+Everything else is deliberately thin: one chrome panel on the left, collapsible to
+a pill, and a PNG export that reads the canvas back. There is no document format,
+no layer effects, and no inspector. The pattern is the document.

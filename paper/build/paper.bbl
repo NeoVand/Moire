@@ -1,0 +1,969 @@
+%%% -*-BibTeX-*-
+%%% Do NOT edit. File created by BibTeX with style
+%%% ACM-Reference-Format-Journals [18-Jan-2012].
+
+\begin{thebibliography}{69}
+
+%%% ====================================================================
+%%% NOTE TO THE USER: you can override these defaults by providing
+%%% customized versions of any of these macros before the \bibliography
+%%% command.  Each of them MUST provide its own final punctuation,
+%%% except for \shownote{}, \showDOI{}, and \showURL{}.  The latter two
+%%% do not use final punctuation, in order to avoid confusing it with
+%%% the Web address.
+%%%
+%%% To suppress output of a particular field, define its macro to expand
+%%% to an empty string, or better, \unskip, like this:
+%%%
+%%% \newcommand{\showDOI}[1]{\unskip}   % LaTeX syntax
+%%%
+%%% \def \showDOI #1{\unskip}           % plain TeX syntax
+%%%
+%%% ====================================================================
+
+\ifx \showCODEN    \undefined \def \showCODEN     #1{\unskip}     \fi
+\ifx \showDOI      \undefined \def \showDOI       #1{#1}\fi
+\ifx \showISBNx    \undefined \def \showISBNx     #1{\unskip}     \fi
+\ifx \showISBNxiii \undefined \def \showISBNxiii  #1{\unskip}     \fi
+\ifx \showISSN     \undefined \def \showISSN      #1{\unskip}     \fi
+\ifx \showLCCN     \undefined \def \showLCCN      #1{\unskip}     \fi
+\ifx \shownote     \undefined \def \shownote      #1{#1}          \fi
+\ifx \showarticletitle \undefined \def \showarticletitle #1{#1}   \fi
+\ifx \showURL      \undefined \def \showURL       {\relax}        \fi
+% The following commands are used for tagged output and should be
+% invisible to TeX
+\providecommand\bibfield[2]{#2}
+\providecommand\bibinfo[2]{#2}
+\providecommand\natexlab[1]{#1}
+\providecommand\showeprint[2][]{arXiv:#2}
+
+\bibitem[Amanatides and Woo(1987)]%
+        {Amanatides1987}
+\bibfield{author}{\bibinfo{person}{John Amanatides} {and}
+  \bibinfo{person}{Andrew Woo}.} \bibinfo{year}{1987}\natexlab{}.
+\newblock \showarticletitle{A fast voxel traversal algorithm for ray tracing}.
+  In \bibinfo{booktitle}{\emph{Proceedings of {E}urographics '87}}.
+  \bibinfo{pages}{3--10}.
+\newblock
+
+
+\bibitem[Amidror(2003)]%
+        {Amidror2003Moire}
+\bibfield{author}{\bibinfo{person}{Isaac Amidror}.}
+  \bibinfo{year}{2003}\natexlab{}.
+\newblock \showarticletitle{{M}oir\'e patterns between aperiodic layers:
+  quantitative analysis and synthesis}.
+\newblock \bibinfo{journal}{\emph{Journal of the Optical Society of America A}}
+  \bibinfo{volume}{20}, \bibinfo{number}{10} (\bibinfo{year}{2003}),
+  \bibinfo{pages}{1900--1919}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1364/JOSAA.20.001900}
+\showDOI{\tempurl}
+
+
+\bibitem[Amidror(2007)]%
+        {AmidrorII}
+\bibfield{author}{\bibinfo{person}{Isaac Amidror}.}
+  \bibinfo{year}{2007}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{The Theory of the {M}oir\'e Phenomenon,
+  Volume {II}: Aperiodic Layers}}.
+\newblock \bibinfo{publisher}{Springer}, \bibinfo{address}{Dordrecht, The
+  Netherlands}.
+\newblock
+
+
+\bibitem[Amidror(2009)]%
+        {Amidror2009Theory}
+\bibfield{author}{\bibinfo{person}{Isaac Amidror}.}
+  \bibinfo{year}{2009}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{The Theory of the {M}oir\'e Phenomenon,
+  Volume {I}: Periodic Layers} (\bibinfo{edition}{2nd} ed.)}.
+\newblock \bibinfo{publisher}{Springer}, \bibinfo{address}{London, UK}.
+\newblock
+
+
+\bibitem[Amidror and Hersch(1996)]%
+        {Amidror1996Fourier}
+\bibfield{author}{\bibinfo{person}{Isaac Amidror} {and}
+  \bibinfo{person}{Roger~D. Hersch}.} \bibinfo{year}{1996}\natexlab{}.
+\newblock \showarticletitle{{F}ourier-based analysis of phase shifts in the
+  superposition of periodic layers and their moir\'e effects}.
+\newblock \bibinfo{journal}{\emph{Journal of the Optical Society of America A}}
+  \bibinfo{volume}{13}, \bibinfo{number}{5} (\bibinfo{year}{1996}),
+  \bibinfo{pages}{974--987}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1364/JOSAA.13.000974}
+\showDOI{\tempurl}
+
+
+\bibitem[Amidror and Hersch(1998)]%
+        {Amidror1998Fourier}
+\bibfield{author}{\bibinfo{person}{Isaac Amidror} {and}
+  \bibinfo{person}{Roger~D. Hersch}.} \bibinfo{year}{1998}\natexlab{}.
+\newblock \showarticletitle{{F}ourier-based analysis and synthesis of moir\'es
+  in the superposition of geometrically transformed periodic structures}.
+\newblock \bibinfo{journal}{\emph{Journal of the Optical Society of America A}}
+  \bibinfo{volume}{15}, \bibinfo{number}{5} (\bibinfo{year}{1998}),
+  \bibinfo{pages}{1100--1113}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1364/JOSAA.15.001100}
+\showDOI{\tempurl}
+
+
+\bibitem[Amidror et~al\mbox{.}(1994)]%
+        {Amidror1994Spectral}
+\bibfield{author}{\bibinfo{person}{Isaac Amidror}, \bibinfo{person}{Roger~D.
+  Hersch}, {and} \bibinfo{person}{Victor Ostromoukhov}.}
+  \bibinfo{year}{1994}\natexlab{}.
+\newblock \showarticletitle{Spectral analysis and minimization of moir\'e
+  patterns in color separation}.
+\newblock \bibinfo{journal}{\emph{Journal of Electronic Imaging}}
+  \bibinfo{volume}{3}, \bibinfo{number}{3} (\bibinfo{year}{1994}),
+  \bibinfo{pages}{295--317}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1117/12.179355}
+\showDOI{\tempurl}
+
+
+\bibitem[Barron et~al\mbox{.}(2021)]%
+        {Barron2021MipNeRF}
+\bibfield{author}{\bibinfo{person}{Jonathan~T. Barron}, \bibinfo{person}{Ben
+  Mildenhall}, \bibinfo{person}{Matthew Tancik}, \bibinfo{person}{Peter
+  Hedman}, \bibinfo{person}{Ricardo Martin-Brualla}, {and}
+  \bibinfo{person}{Pratul~P. Srinivasan}.} \bibinfo{year}{2021}\natexlab{}.
+\newblock \showarticletitle{{Mip-NeRF}: A Multiscale Representation for
+  Anti-Aliasing Neural Radiance Fields}. In
+  \bibinfo{booktitle}{\emph{Proceedings of the {IEEE}/{CVF} International
+  Conference on Computer Vision ({ICCV})}}. \bibinfo{publisher}{IEEE},
+  \bibinfo{address}{Piscataway, NJ, USA}, \bibinfo{pages}{5835--5844}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1109/ICCV48922.2021.00580}
+\showDOI{\tempurl}
+
+
+\bibitem[Bruneton and Neyret(2012)]%
+        {Bruneton2012}
+\bibfield{author}{\bibinfo{person}{Eric Bruneton} {and}
+  \bibinfo{person}{Fabrice Neyret}.} \bibinfo{year}{2012}\natexlab{}.
+\newblock \showarticletitle{A survey of nonlinear prefiltering methods for
+  efficient and accurate surface shading}.
+\newblock \bibinfo{journal}{\emph{IEEE Transactions on Visualization and
+  Computer Graphics}} \bibinfo{volume}{18}, \bibinfo{number}{2}
+  (\bibinfo{year}{2012}), \bibinfo{pages}{242--260}.
+\newblock
+
+
+\bibitem[Cabello and {Three.js contributors}(2026)]%
+        {ThreeJS}
+\bibfield{author}{\bibinfo{person}{Ricardo Cabello} {and}
+  \bibinfo{person}{{Three.js contributors}}.} \bibinfo{year}{2026}\natexlab{}.
+\newblock \bibinfo{title}{{three.js}}.
+\newblock \bibinfo{howpublished}{\url{https://threejs.org/}}.
+\newblock
+\newblock
+\shownote{threejs.org}.
+
+
+\bibitem[{Campos Zamora} et~al\mbox{.}(2024)]%
+        {CamposZamora2024MoireWidgets}
+\bibfield{author}{\bibinfo{person}{Daniel {Campos Zamora}},
+  \bibinfo{person}{Mustafa~Doga Dogan}, \bibinfo{person}{Alexa~F. Siu},
+  \bibinfo{person}{Eunyee Koh}, {and} \bibinfo{person}{Chang Xiao}.}
+  \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{{Moir\'eWidgets}: High-Precision, Passive Tangible
+  Interfaces via {M}oir\'e Effect}. In \bibinfo{booktitle}{\emph{Proceedings of
+  the {CHI} Conference on Human Factors in Computing Systems ({CHI} '24)}}.
+  \bibinfo{publisher}{ACM}, \bibinfo{address}{New York, NY, USA},
+  \bibinfo{pages}{1--10}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1145/3613904.3642734}
+\showDOI{\tempurl}
+
+
+\bibitem[Chosson and Hersch(2014)]%
+        {Chosson2014Beating}
+\bibfield{author}{\bibinfo{person}{Sylvain~M. Chosson} {and}
+  \bibinfo{person}{Roger~D. Hersch}.} \bibinfo{year}{2014}\natexlab{}.
+\newblock \showarticletitle{Beating Shapes Relying on {M}oir\'e Level Lines}.
+\newblock \bibinfo{journal}{\emph{ACM Transactions on Graphics}}
+  \bibinfo{volume}{34}, \bibinfo{number}{1}, Article \bibinfo{articleno}{9}
+  (\bibinfo{year}{2014}), \bibinfo{numpages}{11}~pages.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1145/2644806}
+\showDOI{\tempurl}
+
+
+\bibitem[Crow(1977)]%
+        {Crow1977}
+\bibfield{author}{\bibinfo{person}{Franklin~C. Crow}.}
+  \bibinfo{year}{1977}\natexlab{}.
+\newblock \showarticletitle{The aliasing problem in computer-generated shaded
+  images}.
+\newblock \bibinfo{journal}{\emph{Commun. ACM}} \bibinfo{volume}{20},
+  \bibinfo{number}{11} (\bibinfo{year}{1977}), \bibinfo{pages}{799--805}.
+\newblock
+
+
+\bibitem[Ebert et~al\mbox{.}(2003)]%
+        {Ebert2003Texturing}
+\bibfield{author}{\bibinfo{person}{David~S. Ebert}, \bibinfo{person}{F.~Kenton
+  Musgrave}, \bibinfo{person}{Darwyn Peachey}, \bibinfo{person}{Ken Perlin},
+  {and} \bibinfo{person}{Steven Worley}.} \bibinfo{year}{2003}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{Texturing and Modeling: A Procedural
+  Approach} (\bibinfo{edition}{3rd} ed.)}.
+\newblock \bibinfo{publisher}{Morgan Kaufmann}, \bibinfo{address}{San
+  Francisco, CA, USA}.
+\newblock
+
+
+\bibitem[Ericson(2004)]%
+        {Ericson2004}
+\bibfield{author}{\bibinfo{person}{Christer Ericson}.}
+  \bibinfo{year}{2004}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{Real-Time Collision Detection}}.
+\newblock \bibinfo{publisher}{Morgan Kaufmann}, \bibinfo{address}{San
+  Francisco, CA, USA}.
+\newblock
+
+
+\bibitem[Frisken et~al\mbox{.}(2000)]%
+        {Frisken2000Adaptively}
+\bibfield{author}{\bibinfo{person}{Sarah~F. Frisken},
+  \bibinfo{person}{Ronald~N. Perry}, \bibinfo{person}{Alyn~P. Rockwood}, {and}
+  \bibinfo{person}{Thouis~R. Jones}.} \bibinfo{year}{2000}\natexlab{}.
+\newblock \showarticletitle{Adaptively sampled distance fields: a general
+  representation of shape for computer graphics}. In
+  \bibinfo{booktitle}{\emph{Proceedings of the 27th Annual Conference on
+  Computer Graphics and Interactive Techniques ({SIGGRAPH} '00)}}.
+  \bibinfo{publisher}{ACM}, \bibinfo{address}{New York, NY, USA},
+  \bibinfo{pages}{249--254}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1145/344779.344899}
+\showDOI{\tempurl}
+
+
+\bibitem[Galin et~al\mbox{.}(2020)]%
+        {Galin2020}
+\bibfield{author}{\bibinfo{person}{Eric Galin}, \bibinfo{person}{Eric
+  Gu\'erin}, \bibinfo{person}{Axel Paris}, {and} \bibinfo{person}{Adrien
+  Peytavie}.} \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{Segment Tracing Using Local {L}ipschitz Bounds}.
+\newblock \bibinfo{journal}{\emph{Computer Graphics Forum}}
+  \bibinfo{volume}{39}, \bibinfo{number}{2} (\bibinfo{year}{2020}),
+  \bibinfo{pages}{545--554}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1111/cgf.13951}
+\showDOI{\tempurl}
+
+
+\bibitem[Gilbert et~al\mbox{.}(1988)]%
+        {GJK1988}
+\bibfield{author}{\bibinfo{person}{Elmer~G. Gilbert},
+  \bibinfo{person}{Daniel~W. Johnson}, {and} \bibinfo{person}{S.~Sathiya
+  Keerthi}.} \bibinfo{year}{1988}\natexlab{}.
+\newblock \showarticletitle{A fast procedure for computing the distance between
+  complex objects in three-dimensional space}.
+\newblock \bibinfo{journal}{\emph{IEEE Journal of Robotics and Automation}}
+  \bibinfo{volume}{4}, \bibinfo{number}{2} (\bibinfo{year}{1988}),
+  \bibinfo{pages}{193--203}.
+\newblock
+
+
+\bibitem[Glassner(1997)]%
+        {Glassner1997Inside}
+\bibfield{author}{\bibinfo{person}{Andrew~S. Glassner}.}
+  \bibinfo{year}{1997}\natexlab{}.
+\newblock \showarticletitle{Inside {M}oire Patterns}.
+\newblock \bibinfo{journal}{\emph{IEEE Computer Graphics and Applications}}
+  \bibinfo{volume}{17}, \bibinfo{number}{6} (\bibinfo{year}{1997}),
+  \bibinfo{pages}{97--101}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1109/38.626975}
+\showDOI{\tempurl}
+
+
+\bibitem[Green(2007)]%
+        {Green2007Improved}
+\bibfield{author}{\bibinfo{person}{Chris Green}.}
+  \bibinfo{year}{2007}\natexlab{}.
+\newblock \showarticletitle{Improved alpha-tested magnification for vector
+  textures and special effects}. In \bibinfo{booktitle}{\emph{{ACM} {SIGGRAPH}
+  2007 Courses}}. \bibinfo{publisher}{ACM}, \bibinfo{address}{New York, NY,
+  USA}, \bibinfo{pages}{9--18}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1145/1281500.1281665}
+\showDOI{\tempurl}
+
+
+\bibitem[Hart(1996)]%
+        {Hart1996Sphere}
+\bibfield{author}{\bibinfo{person}{John~C. Hart}.}
+  \bibinfo{year}{1996}\natexlab{}.
+\newblock \showarticletitle{Sphere tracing: a geometric method for the
+  antialiased ray tracing of implicit surfaces}.
+\newblock \bibinfo{journal}{\emph{The Visual Computer}} \bibinfo{volume}{12},
+  \bibinfo{number}{10} (\bibinfo{year}{1996}), \bibinfo{pages}{527--545}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1007/s003710050084}
+\showDOI{\tempurl}
+
+
+\bibitem[Heckbert(1986)]%
+        {Heckbert1986Survey}
+\bibfield{author}{\bibinfo{person}{Paul~S. Heckbert}.}
+  \bibinfo{year}{1986}\natexlab{}.
+\newblock \showarticletitle{Survey of Texture Mapping}.
+\newblock \bibinfo{journal}{\emph{IEEE Computer Graphics and Applications}}
+  \bibinfo{volume}{6}, \bibinfo{number}{11} (\bibinfo{year}{1986}),
+  \bibinfo{pages}{56--67}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1109/MCG.1986.276672}
+\showDOI{\tempurl}
+
+
+\bibitem[Hersch and Chosson(2004)]%
+        {Hersch2004Band}
+\bibfield{author}{\bibinfo{person}{Roger~D. Hersch} {and}
+  \bibinfo{person}{Sylvain Chosson}.} \bibinfo{year}{2004}\natexlab{}.
+\newblock \showarticletitle{Band {M}oir\'e Images}.
+\newblock \bibinfo{journal}{\emph{ACM Transactions on Graphics}}
+  \bibinfo{volume}{23}, \bibinfo{number}{3} (\bibinfo{year}{2004}),
+  \bibinfo{pages}{239--247}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1145/1015706.1015709}
+\showDOI{\tempurl}
+\newblock
+\shownote{Proceedings of {SIGGRAPH} 2004}.
+
+
+\bibitem[Hutley et~al\mbox{.}(1994)]%
+        {Hutley1994Moire}
+\bibfield{author}{\bibinfo{person}{M.~C. Hutley}, \bibinfo{person}{R. Hunt},
+  \bibinfo{person}{R.~F. Stevens}, {and} \bibinfo{person}{P. Savander}.}
+  \bibinfo{year}{1994}\natexlab{}.
+\newblock \showarticletitle{The {M}oir\'e Magnifier}.
+\newblock \bibinfo{journal}{\emph{Pure and Applied Optics: Journal of the
+  European Optical Society Part A}} \bibinfo{volume}{3}, \bibinfo{number}{2}
+  (\bibinfo{year}{1994}), \bibinfo{pages}{133--142}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1088/0963-9659/3/2/006}
+\showDOI{\tempurl}
+
+
+\bibitem[Jankun-Kelly and Ma(2003)]%
+        {JankunKelly2003Moire}
+\bibfield{author}{\bibinfo{person}{T.~J. Jankun-Kelly} {and}
+  \bibinfo{person}{Kwan-Liu Ma}.} \bibinfo{year}{2003}\natexlab{}.
+\newblock \showarticletitle{{MoireGraphs}: Radial Focus+Context Visualization
+  and Interaction for Graphs with Visual Nodes}. In
+  \bibinfo{booktitle}{\emph{{IEEE} Symposium on Information Visualization 2003
+  ({INFOVIS} 2003)}}. \bibinfo{publisher}{IEEE}, \bibinfo{address}{Piscataway,
+  NJ, USA}, \bibinfo{pages}{59--66}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1109/INFVIS.2003.1249009}
+\showDOI{\tempurl}
+
+
+\bibitem[Kalra and Barr(1989)]%
+        {Kalra1989}
+\bibfield{author}{\bibinfo{person}{Devendra Kalra} {and}
+  \bibinfo{person}{Alan~H. Barr}.} \bibinfo{year}{1989}\natexlab{}.
+\newblock \showarticletitle{Guaranteed ray intersections with implicit
+  surfaces}. In \bibinfo{booktitle}{\emph{Proceedings of {SIGGRAPH} '89}}.
+  \bibinfo{pages}{297--306}.
+\newblock
+
+
+\bibitem[Keeter(2020)]%
+        {Keeter2020}
+\bibfield{author}{\bibinfo{person}{Matthew~J. Keeter}.}
+  \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{Massively parallel rendering of complex closed-form
+  implicit surfaces}.
+\newblock \bibinfo{journal}{\emph{ACM Transactions on Graphics}}
+  \bibinfo{volume}{39}, \bibinfo{number}{4} (\bibinfo{year}{2020}).
+\newblock
+
+
+\bibitem[Keller(2013)]%
+        {Keller2013Quasi}
+\bibfield{author}{\bibinfo{person}{Alexander Keller}.}
+  \bibinfo{year}{2013}\natexlab{}.
+\newblock \showarticletitle{Quasi-{M}onte {C}arlo image synthesis in a
+  nutshell}.
+\newblock \bibinfo{journal}{\emph{Monte Carlo and Quasi-Monte Carlo Methods
+  2012}} (\bibinfo{year}{2013}), \bibinfo{pages}{213--249}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1007/978-3-642-41095-6_8}
+\showDOI{\tempurl}
+
+
+\bibitem[Knoll et~al\mbox{.}(2009)]%
+        {Knoll2009}
+\bibfield{author}{\bibinfo{person}{Aaron Knoll}, \bibinfo{person}{Younis
+  Hijazi}, \bibinfo{person}{Andrew Kensler}, \bibinfo{person}{Mathias Schott},
+  \bibinfo{person}{Charles Hansen}, {and} \bibinfo{person}{Hans Hagen}.}
+  \bibinfo{year}{2009}\natexlab{}.
+\newblock \showarticletitle{Fast ray tracing of arbitrary implicit surfaces
+  with interval and affine arithmetic}.
+\newblock \bibinfo{journal}{\emph{Computer Graphics Forum}}
+  \bibinfo{volume}{28}, \bibinfo{number}{1} (\bibinfo{year}{2009}),
+  \bibinfo{pages}{26--40}.
+\newblock
+
+
+\bibitem[Lagae et~al\mbox{.}(2010)]%
+        {Lagae2010}
+\bibfield{author}{\bibinfo{person}{Ares Lagae}, \bibinfo{person}{Sylvain
+  Lefebvre}, \bibinfo{person}{Rob Cook}, \bibinfo{person}{Tony DeRose},
+  \bibinfo{person}{George Drettakis}, \bibinfo{person}{David~S. Ebert},
+  \bibinfo{person}{J.~P. Lewis}, \bibinfo{person}{Ken Perlin}, {and}
+  \bibinfo{person}{Matthias Zwicker}.} \bibinfo{year}{2010}\natexlab{}.
+\newblock \showarticletitle{A survey of procedural noise functions}.
+\newblock \bibinfo{journal}{\emph{Computer Graphics Forum}}
+  \bibinfo{volume}{29}, \bibinfo{number}{8} (\bibinfo{year}{2010}),
+  \bibinfo{pages}{2579--2600}.
+\newblock
+
+
+\bibitem[Lebanon and Bruckstein(2001)]%
+        {Lebanon2001Variational}
+\bibfield{author}{\bibinfo{person}{Guy Lebanon} {and}
+  \bibinfo{person}{Alfred~M. Bruckstein}.} \bibinfo{year}{2001}\natexlab{}.
+\newblock \showarticletitle{Variational approach to moir\'e pattern synthesis}.
+\newblock \bibinfo{journal}{\emph{Journal of the Optical Society of America A}}
+  \bibinfo{volume}{18}, \bibinfo{number}{6} (\bibinfo{year}{2001}),
+  \bibinfo{pages}{1371--1382}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1364/JOSAA.18.001371}
+\showDOI{\tempurl}
+
+
+\bibitem[Mitchell(1990)]%
+        {Mitchell1990}
+\bibfield{author}{\bibinfo{person}{Don~P. Mitchell}.}
+  \bibinfo{year}{1990}\natexlab{}.
+\newblock \showarticletitle{Robust ray intersection with interval arithmetic}.
+  In \bibinfo{booktitle}{\emph{Proceedings of Graphics Interface '90}}.
+  \bibinfo{pages}{68--74}.
+\newblock
+
+
+\bibitem[Nehab and Hoppe(2008)]%
+        {Nehab2008}
+\bibfield{author}{\bibinfo{person}{Diego Nehab} {and} \bibinfo{person}{Hugues
+  Hoppe}.} \bibinfo{year}{2008}\natexlab{}.
+\newblock \showarticletitle{Random-access rendering of general vector
+  graphics}.
+\newblock \bibinfo{journal}{\emph{ACM Transactions on Graphics}}
+  \bibinfo{volume}{27}, \bibinfo{number}{5} (\bibinfo{year}{2008}).
+\newblock
+
+
+\bibitem[Nicolai(2010)]%
+        {Nicolai2010Index}
+\bibfield{author}{\bibinfo{person}{Carsten Nicolai}.}
+  \bibinfo{year}{2010}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{{M}oir\'e Index}}.
+\newblock \bibinfo{publisher}{Gestalten}, \bibinfo{address}{Berlin, Germany}.
+\newblock
+
+
+\bibitem[Norton et~al\mbox{.}(1982)]%
+        {Norton1982}
+\bibfield{author}{\bibinfo{person}{Alan Norton}, \bibinfo{person}{Alyn~P.
+  Rockwood}, {and} \bibinfo{person}{Philip~T. Skolmoski}.}
+  \bibinfo{year}{1982}\natexlab{}.
+\newblock \showarticletitle{Clamping: A method of antialiasing textured
+  surfaces by bandwidth limiting in object space}. In
+  \bibinfo{booktitle}{\emph{Proceedings of {SIGGRAPH} '82}}.
+  \bibinfo{pages}{1--8}.
+\newblock
+
+
+\bibitem[Oster(1965)]%
+        {Oster1965Optical}
+\bibfield{author}{\bibinfo{person}{Gerald Oster}.}
+  \bibinfo{year}{1965}\natexlab{}.
+\newblock \showarticletitle{Optical Art}.
+\newblock \bibinfo{journal}{\emph{Applied Optics}} \bibinfo{volume}{4},
+  \bibinfo{number}{11} (\bibinfo{year}{1965}), \bibinfo{pages}{1359--1369}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1364/AO.4.001359}
+\showDOI{\tempurl}
+
+
+\bibitem[Oster and Nishijima(1963)]%
+        {Oster1963Moire}
+\bibfield{author}{\bibinfo{person}{Gerald Oster} {and}
+  \bibinfo{person}{Yasunori Nishijima}.} \bibinfo{year}{1963}\natexlab{}.
+\newblock \showarticletitle{{M}oir\'e Patterns}.
+\newblock \bibinfo{journal}{\emph{Scientific American}} \bibinfo{volume}{208},
+  \bibinfo{number}{5} (\bibinfo{year}{1963}), \bibinfo{pages}{54--63}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1038/scientificamerican0563-54}
+\showDOI{\tempurl}
+
+
+\bibitem[Oster et~al\mbox{.}(1964)]%
+        {Oster1964}
+\bibfield{author}{\bibinfo{person}{Gerald Oster}, \bibinfo{person}{Marvin
+  Wasserman}, {and} \bibinfo{person}{Charles Zwerling}.}
+  \bibinfo{year}{1964}\natexlab{}.
+\newblock \showarticletitle{Theoretical interpretation of moir\'e patterns}.
+\newblock \bibinfo{journal}{\emph{Journal of the Optical Society of America}}
+  \bibinfo{volume}{54}, \bibinfo{number}{2} (\bibinfo{year}{1964}),
+  \bibinfo{pages}{169--175}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1364/JOSA.54.000169}
+\showDOI{\tempurl}
+
+
+\bibitem[Ostromoukhov and Hersch(1995)]%
+        {Ostromoukhov1995Artistic}
+\bibfield{author}{\bibinfo{person}{Victor Ostromoukhov} {and}
+  \bibinfo{person}{Roger~D. Hersch}.} \bibinfo{year}{1995}\natexlab{}.
+\newblock \showarticletitle{Artistic Screening}. In
+  \bibinfo{booktitle}{\emph{Proceedings of the 22nd Annual Conference on
+  Computer Graphics and Interactive Techniques ({SIGGRAPH} '95)}}.
+  \bibinfo{publisher}{ACM}, \bibinfo{address}{New York, NY, USA},
+  \bibinfo{pages}{219--228}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1145/218380.218445}
+\showDOI{\tempurl}
+
+
+\bibitem[Ostromoukhov and Hersch(1999)]%
+        {Ostromoukhov1999MultiColor}
+\bibfield{author}{\bibinfo{person}{Victor Ostromoukhov} {and}
+  \bibinfo{person}{Roger~D. Hersch}.} \bibinfo{year}{1999}\natexlab{}.
+\newblock \showarticletitle{Multi-Color and Artistic Dithering}. In
+  \bibinfo{booktitle}{\emph{Proceedings of the 26th Annual Conference on
+  Computer Graphics and Interactive Techniques ({SIGGRAPH} '99)}}.
+  \bibinfo{publisher}{ACM}, \bibinfo{address}{New York, NY, USA},
+  \bibinfo{pages}{425--432}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1145/311535.311605}
+\showDOI{\tempurl}
+
+
+\bibitem[Ostromoukhov et~al\mbox{.}(1994)]%
+        {Ostromoukhov1994Rotated}
+\bibfield{author}{\bibinfo{person}{Victor Ostromoukhov},
+  \bibinfo{person}{Roger~D. Hersch}, {and} \bibinfo{person}{Isaac Amidror}.}
+  \bibinfo{year}{1994}\natexlab{}.
+\newblock \showarticletitle{Rotated Dispersed Dither: A New Technique for
+  Digital Halftoning}. In \bibinfo{booktitle}{\emph{Proceedings of the 21st
+  Annual Conference on Computer Graphics and Interactive Techniques ({SIGGRAPH}
+  '94)}}. \bibinfo{publisher}{ACM}, \bibinfo{address}{New York, NY, USA},
+  \bibinfo{pages}{123--130}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1145/192161.192188}
+\showDOI{\tempurl}
+
+
+\bibitem[Papas et~al\mbox{.}(2012)]%
+        {Papas2012Magic}
+\bibfield{author}{\bibinfo{person}{Marios Papas}, \bibinfo{person}{Thomas
+  Houit}, \bibinfo{person}{Derek Nowrouzezahrai}, \bibinfo{person}{Markus
+  Gross}, {and} \bibinfo{person}{Wojciech Jarosz}.}
+  \bibinfo{year}{2012}\natexlab{}.
+\newblock \showarticletitle{The Magic Lens: Refractive Steganography}.
+\newblock \bibinfo{journal}{\emph{ACM Transactions on Graphics}}
+  \bibinfo{volume}{31}, \bibinfo{number}{6}, Article \bibinfo{articleno}{186}
+  (\bibinfo{year}{2012}), \bibinfo{numpages}{10}~pages.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1145/2366145.2366205}
+\showDOI{\tempurl}
+\newblock
+\shownote{Proceedings of {SIGGRAPH} Asia 2012}.
+
+
+\bibitem[Pjanic and Hersch(2015)]%
+        {Pjanic2015Color}
+\bibfield{author}{\bibinfo{person}{Petar Pjanic} {and}
+  \bibinfo{person}{Roger~D. Hersch}.} \bibinfo{year}{2015}\natexlab{}.
+\newblock \showarticletitle{Color Imaging and Pattern Hiding on a Metallic
+  Substrate}.
+\newblock \bibinfo{journal}{\emph{ACM Transactions on Graphics}}
+  \bibinfo{volume}{34}, \bibinfo{number}{4}, Article \bibinfo{articleno}{130}
+  (\bibinfo{year}{2015}), \bibinfo{numpages}{10}~pages.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1145/2766944}
+\showDOI{\tempurl}
+\newblock
+\shownote{Proceedings of {SIGGRAPH} 2015}.
+
+
+\bibitem[Post and Han(2008)]%
+        {Post2008Moire}
+\bibfield{author}{\bibinfo{person}{Daniel Post} {and} \bibinfo{person}{Bongtae
+  Han}.} \bibinfo{year}{2008}\natexlab{}.
+\newblock \showarticletitle{{M}oir\'e Interferometry}.
+\newblock In \bibinfo{booktitle}{\emph{Springer Handbook of Experimental Solid
+  Mechanics}}, \bibfield{editor}{\bibinfo{person}{William~N. Sharpe}} (Ed.).
+  \bibinfo{publisher}{Springer}, \bibinfo{address}{Boston, MA, USA},
+  Chapter~22, \bibinfo{pages}{627--654}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1007/978-0-387-30877-7\_22}
+\showDOI{\tempurl}
+
+
+\bibitem[Post et~al\mbox{.}(1994)]%
+        {Post1994High}
+\bibfield{author}{\bibinfo{person}{Daniel Post}, \bibinfo{person}{Bongtae Han},
+  {and} \bibinfo{person}{Peter Ifju}.} \bibinfo{year}{1994}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{High Sensitivity {M}oir\'e: Experimental
+  Analysis for Mechanics and Materials}}.
+\newblock \bibinfo{publisher}{Springer}, \bibinfo{address}{New York, NY, USA}.
+\newblock
+
+
+\bibitem[Qiu et~al\mbox{.}(2023)]%
+        {Qiu2023MoireTag}
+\bibfield{author}{\bibinfo{person}{Simeng Qiu}, \bibinfo{person}{Hadi Amata},
+  {and} \bibinfo{person}{Wolfgang Heidrich}.} \bibinfo{year}{2023}\natexlab{}.
+\newblock \showarticletitle{{Moir\'eTag}: Angular Measurement and Tracking with
+  a Passive Marker}. In \bibinfo{booktitle}{\emph{{ACM} {SIGGRAPH} 2023
+  Conference Proceedings}}. \bibinfo{publisher}{ACM}, \bibinfo{address}{New
+  York, NY, USA}, Article \bibinfo{articleno}{26},
+  \bibinfo{numpages}{10}~pages.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1145/3588432.3591538}
+\showDOI{\tempurl}
+
+
+\bibitem[Quilez(2008)]%
+        {Quilez}
+\bibfield{author}{\bibinfo{person}{Inigo Quilez}.}
+  \bibinfo{year}{2008}\natexlab{}.
+\newblock \bibinfo{title}{Distance functions}.
+\newblock
+  \bibinfo{howpublished}{\url{https://iquilezles.org/articles/distfunctions/}}.
+\newblock
+\newblock
+\shownote{iquilezles.org}.
+
+
+\bibitem[Quilez(2019)]%
+        {Quilez2019Distance}
+\bibfield{author}{\bibinfo{person}{Inigo Quilez}.}
+  \bibinfo{year}{2019}\natexlab{}.
+\newblock \bibinfo{title}{2{D} distance functions}.
+\newblock
+  \bibinfo{howpublished}{\url{https://iquilezles.org/articles/distfunctions2d/}}.
+\newblock
+\newblock
+\shownote{iquilezles.org}.
+
+
+\bibitem[Rayleigh(1874)]%
+        {Rayleigh1874Gratings}
+\bibfield{author}{\bibinfo{person}{Lord Rayleigh}.}
+  \bibinfo{year}{1874}\natexlab{}.
+\newblock \showarticletitle{On the manufacture and theory of
+  diffraction-gratings}.
+\newblock \bibinfo{journal}{\emph{The London, Edinburgh, and Dublin
+  Philosophical Magazine and Journal of Science}} \bibinfo{volume}{47},
+  \bibinfo{number}{310} (\bibinfo{year}{1874}), \bibinfo{pages}{81--93}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1080/14786447408640996}
+\showDOI{\tempurl}
+
+
+\bibitem[Righi(1887)]%
+        {Righi1887Sovrapposizione}
+\bibfield{author}{\bibinfo{person}{Augusto Righi}.}
+  \bibinfo{year}{1887}\natexlab{}.
+\newblock \showarticletitle{Sui fenomeni che si producono colla sovrapposizione
+  di due reticoli e sopra alcune loro applicazioni}.
+\newblock \bibinfo{journal}{\emph{Il Nuovo Cimento}}  \bibinfo{volume}{21}
+  (\bibinfo{year}{1887}), \bibinfo{pages}{203--229}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1007/BF02737370}
+\showDOI{\tempurl}
+
+
+\bibitem[Rockafellar(1970)]%
+        {Rockafellar1970Convex}
+\bibfield{author}{\bibinfo{person}{R.~Tyrrell Rockafellar}.}
+  \bibinfo{year}{1970}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{Convex Analysis}}.
+\newblock \bibinfo{publisher}{Princeton University Press},
+  \bibinfo{address}{Princeton, NJ, USA}.
+\newblock
+
+
+\bibitem[Saberpour et~al\mbox{.}(2020)]%
+        {Saberpour2020Fabrication}
+\bibfield{author}{\bibinfo{person}{Artin Saberpour}, \bibinfo{person}{Roger~D.
+  Hersch}, \bibinfo{person}{Jiajing Fang}, \bibinfo{person}{Rhaleb Zayer},
+  \bibinfo{person}{Hans-Peter Seidel}, {and} \bibinfo{person}{Vahid Babaei}.}
+  \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{Fabrication of moir\'e on curved surfaces}.
+\newblock \bibinfo{journal}{\emph{Optics Express}} \bibinfo{volume}{28},
+  \bibinfo{number}{13} (\bibinfo{year}{2020}), \bibinfo{pages}{19413--19427}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1364/OE.393843}
+\showDOI{\tempurl}
+
+
+\bibitem[Schneider(2014)]%
+        {Schneider2014Convex}
+\bibfield{author}{\bibinfo{person}{Rolf Schneider}.}
+  \bibinfo{year}{2014}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{Convex Bodies: The {B}runn--{M}inkowski
+  Theory} (\bibinfo{edition}{2nd} ed.)}.
+\newblock \bibinfo{publisher}{Cambridge University Press},
+  \bibinfo{address}{Cambridge, UK}.
+\newblock
+
+
+\bibitem[Sen(1998)]%
+        {Sen1998Product}
+\bibfield{author}{\bibinfo{person}{Asok~K. Sen}.}
+  \bibinfo{year}{1998}\natexlab{}.
+\newblock \showarticletitle{A Product--Delay Algorithm for Graphic Design}.
+\newblock \bibinfo{journal}{\emph{Computers \& Graphics}} \bibinfo{volume}{22},
+  \bibinfo{number}{6} (\bibinfo{year}{1998}), \bibinfo{pages}{759--764}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1016/S0097-8493(98)00096-X}
+\showDOI{\tempurl}
+
+
+\bibitem[Sen(2000)]%
+        {Sen2000Moire}
+\bibfield{author}{\bibinfo{person}{Asok~K. Sen}.}
+  \bibinfo{year}{2000}\natexlab{}.
+\newblock \showarticletitle{{M}oir\'e Patterns}.
+\newblock \bibinfo{journal}{\emph{Computers \& Graphics}} \bibinfo{volume}{24},
+  \bibinfo{number}{3} (\bibinfo{year}{2000}), \bibinfo{pages}{471--475}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1016/S0097-8493(00)00043-1}
+\showDOI{\tempurl}
+
+
+\bibitem[Sethapakdi et~al\mbox{.}(2025)]%
+        {Sethapakdi2025FabObscura}
+\bibfield{author}{\bibinfo{person}{Ticha Sethapakdi}, \bibinfo{person}{Maxine
+  Perroni-Scharf}, \bibinfo{person}{Mingming Li}, \bibinfo{person}{Jiaji Li},
+  \bibinfo{person}{Justin Solomon}, \bibinfo{person}{Arvind Satyanarayan},
+  {and} \bibinfo{person}{Stefanie Mueller}.} \bibinfo{year}{2025}\natexlab{}.
+\newblock \showarticletitle{{FabObscura}: Computational Design and Fabrication
+  for Interactive Barrier-Grid Animations}. In
+  \bibinfo{booktitle}{\emph{Proceedings of the 38th Annual {ACM} Symposium on
+  User Interface Software and Technology ({UIST} '25)}}.
+  \bibinfo{publisher}{ACM}, \bibinfo{address}{New York, NY, USA}, Article
+  \bibinfo{articleno}{109}, \bibinfo{numpages}{16}~pages.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1145/3746059.3747629}
+\showDOI{\tempurl}
+
+
+\bibitem[Sharp and Jacobson(2022)]%
+        {Sharp2022}
+\bibfield{author}{\bibinfo{person}{Nicholas Sharp} {and} \bibinfo{person}{Alec
+  Jacobson}.} \bibinfo{year}{2022}\natexlab{}.
+\newblock \showarticletitle{Spelunking the deep: guaranteed queries on general
+  neural implicit surfaces via range analysis}.
+\newblock \bibinfo{journal}{\emph{ACM Transactions on Graphics}}
+  \bibinfo{volume}{41}, \bibinfo{number}{4} (\bibinfo{year}{2022}).
+\newblock
+
+
+\bibitem[Sloan and Joe(1994)]%
+        {Sloan1994Lattice}
+\bibfield{author}{\bibinfo{person}{Ian~H. Sloan} {and} \bibinfo{person}{Stephen
+  Joe}.} \bibinfo{year}{1994}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{Lattice Methods for Multiple Integration}}.
+\newblock \bibinfo{publisher}{Oxford University Press},
+  \bibinfo{address}{Oxford, UK}.
+\newblock
+
+
+\bibitem[Tsai and Chuang(2013)]%
+        {Tsai2013Target}
+\bibfield{author}{\bibinfo{person}{Pei-Hen Tsai} {and} \bibinfo{person}{Yung-Yu
+  Chuang}.} \bibinfo{year}{2013}\natexlab{}.
+\newblock \showarticletitle{Target-Driven {M}oir\'e Pattern Synthesis by Phase
+  Modulation}. In \bibinfo{booktitle}{\emph{Proceedings of the {IEEE}
+  International Conference on Computer Vision ({ICCV})}}.
+  \bibinfo{publisher}{IEEE}, \bibinfo{address}{Piscataway, NJ, USA},
+  \bibinfo{pages}{1912--1919}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1109/ICCV.2013.240}
+\showDOI{\tempurl}
+
+
+\bibitem[Ulichney(1987)]%
+        {Ulichney1987}
+\bibfield{author}{\bibinfo{person}{Robert Ulichney}.}
+  \bibinfo{year}{1987}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{Digital Halftoning}}.
+\newblock \bibinfo{publisher}{MIT Press}, \bibinfo{address}{Cambridge, MA,
+  USA}.
+\newblock
+
+
+\bibitem[{W3C GPU for the Web Working Group}(2025)]%
+        {WebGPU}
+\bibfield{author}{\bibinfo{person}{{W3C GPU for the Web Working Group}}.}
+  \bibinfo{year}{2025}\natexlab{}.
+\newblock \bibinfo{title}{{WebGPU}}.
+\newblock \bibinfo{howpublished}{W3C Candidate Recommendation,
+  \url{https://www.w3.org/TR/webgpu/}}.
+\newblock
+
+
+\bibitem[Walger et~al\mbox{.}(2019)]%
+        {Walger2019Moire}
+\bibfield{author}{\bibinfo{person}{Thomas Walger}, \bibinfo{person}{Th\'eophane
+  Besson}, \bibinfo{person}{Valentin Flauraud}, \bibinfo{person}{Roger~D.
+  Hersch}, {and} \bibinfo{person}{Juergen Brugger}.}
+  \bibinfo{year}{2019}\natexlab{}.
+\newblock \showarticletitle{1{D} moir\'e shapes by superposed layers of
+  micro-lenses}.
+\newblock \bibinfo{journal}{\emph{Optics Express}} \bibinfo{volume}{27},
+  \bibinfo{number}{26} (\bibinfo{year}{2019}), \bibinfo{pages}{37419--37434}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1364/OE.27.037419}
+\showDOI{\tempurl}
+
+
+\bibitem[Walger et~al\mbox{.}(2020)]%
+        {Walger2020LevelLine}
+\bibfield{author}{\bibinfo{person}{Thomas Walger}, \bibinfo{person}{Th\'eophane
+  Besson}, \bibinfo{person}{Valentin Flauraud}, \bibinfo{person}{Roger~D.
+  Hersch}, {and} \bibinfo{person}{Juergen Brugger}.}
+  \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{Level-line moir\'es by superposition of cylindrical
+  microlens gratings}.
+\newblock \bibinfo{journal}{\emph{Journal of the Optical Society of America A}}
+  \bibinfo{volume}{37}, \bibinfo{number}{2} (\bibinfo{year}{2020}),
+  \bibinfo{pages}{209--218}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1364/JOSAA.37.000209}
+\showDOI{\tempurl}
+
+
+\bibitem[Walger and Hersch(2015)]%
+        {Walger2015Hiding}
+\bibfield{author}{\bibinfo{person}{Thomas Walger} {and}
+  \bibinfo{person}{Roger~D. Hersch}.} \bibinfo{year}{2015}\natexlab{}.
+\newblock \showarticletitle{Hiding Information in Multiple Level-line
+  {M}oir\'es}. In \bibinfo{booktitle}{\emph{Proceedings of the 2015 {ACM}
+  Symposium on Document Engineering ({DocEng} '15)}}. \bibinfo{publisher}{ACM},
+  \bibinfo{address}{New York, NY, USA}, \bibinfo{pages}{21--24}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1145/2682571.2797078}
+\showDOI{\tempurl}
+
+
+\bibitem[Watkins(1982)]%
+        {Watkins1982Kinetic}
+\bibfield{author}{\bibinfo{person}{James~F. Watkins}.}
+  \bibinfo{year}{1982}\natexlab{}.
+\newblock \showarticletitle{Kinetic Art: Producing Unusual {M}oir\'e Effects by
+  Means of Specially Prepared Drawings}.
+\newblock \bibinfo{journal}{\emph{Leonardo}} \bibinfo{volume}{15},
+  \bibinfo{number}{2} (\bibinfo{year}{1982}), \bibinfo{pages}{133--136}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.2307/1574552}
+\showDOI{\tempurl}
+
+
+\bibitem[Xiao and Zheng(2021)]%
+        {Xiao2021MoireBoard}
+\bibfield{author}{\bibinfo{person}{Chang Xiao} {and} \bibinfo{person}{Changxi
+  Zheng}.} \bibinfo{year}{2021}\natexlab{}.
+\newblock \showarticletitle{{Moir\'eBoard}: A Stable, Accurate and Low-cost
+  Camera Tracking Method}. In \bibinfo{booktitle}{\emph{The 34th Annual {ACM}
+  Symposium on User Interface Software and Technology ({UIST} '21)}}.
+  \bibinfo{publisher}{ACM}, \bibinfo{address}{New York, NY, USA},
+  \bibinfo{pages}{881--893}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1145/3472749.3474793}
+\showDOI{\tempurl}
+
+
+\bibitem[Yan et~al\mbox{.}(2014)]%
+        {Yan2014}
+\bibfield{author}{\bibinfo{person}{Ling-Qi Yan}, \bibinfo{person}{Milo{\v s}
+  Ha{\v s}an}, \bibinfo{person}{Wenzel Jakob}, \bibinfo{person}{Jason
+  Lawrence}, \bibinfo{person}{Steve Marschner}, {and} \bibinfo{person}{Ravi
+  Ramamoorthi}.} \bibinfo{year}{2014}\natexlab{}.
+\newblock \showarticletitle{Rendering glints on high-resolution normal-mapped
+  specular surfaces}.
+\newblock \bibinfo{journal}{\emph{ACM Transactions on Graphics}}
+  \bibinfo{volume}{33}, \bibinfo{number}{4} (\bibinfo{year}{2014}).
+\newblock
+
+
+\bibitem[Yan et~al\mbox{.}(2016)]%
+        {Yan2016}
+\bibfield{author}{\bibinfo{person}{Ling-Qi Yan}, \bibinfo{person}{Milo{\v s}
+  Ha{\v s}an}, \bibinfo{person}{Steve Marschner}, {and} \bibinfo{person}{Ravi
+  Ramamoorthi}.} \bibinfo{year}{2016}\natexlab{}.
+\newblock \showarticletitle{Position-normal distributions for efficient
+  rendering of specular microstructure}.
+\newblock \bibinfo{journal}{\emph{ACM Transactions on Graphics}}
+  \bibinfo{volume}{35}, \bibinfo{number}{4} (\bibinfo{year}{2016}).
+\newblock
+
+
+\bibitem[Zwicker et~al\mbox{.}(2002)]%
+        {Zwicker2002EWA}
+\bibfield{author}{\bibinfo{person}{Matthias Zwicker},
+  \bibinfo{person}{Hanspeter Pfister}, \bibinfo{person}{Jeroen van Baar}, {and}
+  \bibinfo{person}{Markus Gross}.} \bibinfo{year}{2002}\natexlab{}.
+\newblock \showarticletitle{{EWA} Splatting}.
+\newblock \bibinfo{journal}{\emph{IEEE Transactions on Visualization and
+  Computer Graphics}} \bibinfo{volume}{8}, \bibinfo{number}{3}
+  (\bibinfo{year}{2002}), \bibinfo{pages}{223--238}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1109/TVCG.2002.1021576}
+\showDOI{\tempurl}
+
+
+\end{thebibliography}

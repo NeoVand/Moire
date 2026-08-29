@@ -1,0 +1,4894 @@
+{
+  "summary": {
+    "settingsChecked": 534,
+    "withAnyDrop": 217,
+    "worstDropped": 0.4875,
+    "meanDropped": 0.04637,
+    "worstInvented": 0,
+    "legibleSettings": 298,
+    "legibleWorstDropped": 0.2875,
+    "medianInkDeep": 0.4,
+    "worst8": [
+      {
+        "setting": "square s=4 drift/s=1 rot=0.01 zoom=0.15",
+        "spanP90": 65537,
+        "inkDeep": 1,
+        "dropped": 0.4875,
+        "invented": 0,
+        "deepEvalsPerPixel": 37,
+        "fractionAtSpanCap": 1
+      },
+      {
+        "setting": "hexagon s=3 drift/s=1 rot=0.01 zoom=1",
+        "spanP90": 65537,
+        "inkDeep": 1,
+        "dropped": 0.4875,
+        "invented": 0,
+        "deepEvalsPerPixel": 69,
+        "fractionAtSpanCap": 1
+      },
+      {
+        "setting": "square s=3 drift/s=1 rot=0.01 zoom=0.15",
+        "spanP90": 65537,
+        "inkDeep": 1,
+        "dropped": 0.4813,
+        "invented": 0,
+        "deepEvalsPerPixel": 43,
+        "fractionAtSpanCap": 1
+      },
+      {
+        "setting": "hexagon s=1 drift/s=1 rot=0.01 zoom=0.15",
+        "spanP90": 65537,
+        "inkDeep": 1,
+        "dropped": 0.4813,
+        "invented": 0,
+        "deepEvalsPerPixel": 42,
+        "fractionAtSpanCap": 1
+      },
+      {
+        "setting": "triangle s=3 drift/s=1.222 rot=0.01 zoom=0.08",
+        "spanP90": 10359,
+        "inkDeep": 0.994,
+        "dropped": 0.4688,
+        "invented": 0,
+        "deepEvalsPerPixel": 48,
+        "fractionAtSpanCap": 0
+      },
+      {
+        "setting": "triangle s=4 drift/s=1.116 rot=0.2 zoom=0.08",
+        "spanP90": 15314,
+        "inkDeep": 1,
+        "dropped": 0.4688,
+        "invented": 0,
+        "deepEvalsPerPixel": 358,
+        "fractionAtSpanCap": 0
+      },
+      {
+        "setting": "square s=2 drift/s=1 rot=0.01 zoom=2",
+        "spanP90": 65537,
+        "inkDeep": 1,
+        "dropped": 0.4625,
+        "invented": 0,
+        "deepEvalsPerPixel": 53,
+        "fractionAtSpanCap": 1
+      },
+      {
+        "setting": "circle s=4 drift/s=1 rot=0.01 zoom=0.4",
+        "spanP90": 65537,
+        "inkDeep": 1,
+        "dropped": 0.4313,
+        "invented": 0,
+        "deepEvalsPerPixel": 68,
+        "fractionAtSpanCap": 1
+      }
+    ]
+  },
+  "rows": [
+    {
+      "setting": "circle s=1 drift/s=2.5 rot=0 zoom=0.15",
+      "spanP90": 1508,
+      "inkDeep": 0.15,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 9,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=1 drift/s=1.118 rot=0 zoom=2",
+      "spanP90": 2365,
+      "inkDeep": 0.425,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 13,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=1 drift/s=1.118 rot=0 zoom=0.15",
+      "spanP90": 31495,
+      "inkDeep": 0.425,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 13,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=1 drift/s=2.55 rot=0 zoom=0.08",
+      "spanP90": 2698,
+      "inkDeep": 0.15,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 9,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=1 drift/s=1.414 rot=0 zoom=0.4",
+      "spanP90": 2957,
+      "inkDeep": 0.319,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=1 drift/s=2.693 rot=0 zoom=0.15",
+      "spanP90": 1267,
+      "inkDeep": 0.15,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 9,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=1 drift/s=2 rot=0 zoom=0.15",
+      "spanP90": 2634,
+      "inkDeep": 0.219,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 10,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=1 drift/s=2.236 rot=0 zoom=0.08",
+      "spanP90": 3706,
+      "inkDeep": 0.181,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 10,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=1 drift/s=3 rot=0 zoom=0.08",
+      "spanP90": 1858,
+      "inkDeep": 0.125,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 9,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=1 drift/s=3.905 rot=0 zoom=0.08",
+      "spanP90": 1047,
+      "inkDeep": 0.1,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 8,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=1.5 drift/s=1.667 rot=0 zoom=0.15",
+      "spanP90": 2960,
+      "inkDeep": 0.256,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=1.5 drift/s=2.667 rot=0.002 zoom=0.08",
+      "spanP90": 1620,
+      "inkDeep": 0.394,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 9,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=1.5 drift/s=1.7 rot=0 zoom=0.08",
+      "spanP90": 5222,
+      "inkDeep": 0.256,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=1.5 drift/s=2.687 rot=0.002 zoom=0.08",
+      "spanP90": 1592,
+      "inkDeep": 0.381,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 9,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=1.5 drift/s=2.749 rot=0 zoom=0.08",
+      "spanP90": 1511,
+      "inkDeep": 0.15,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 9,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=1.5 drift/s=1.491 rot=0 zoom=0.15",
+      "spanP90": 4302,
+      "inkDeep": 0.313,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=1.5 drift/s=2.134 rot=0 zoom=0.08",
+      "spanP90": 2779,
+      "inkDeep": 0.2,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 10,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=1.5 drift/s=2 rot=0 zoom=0.15",
+      "spanP90": 1757,
+      "inkDeep": 0.219,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 10,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=1.5 drift/s=2.108 rot=0 zoom=0.08",
+      "spanP90": 2868,
+      "inkDeep": 0.2,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 10,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=1.5 drift/s=2.749 rot=0 zoom=0.08",
+      "spanP90": 1511,
+      "inkDeep": 0.15,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 9,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=2 drift/s=1.25 rot=0 zoom=1",
+      "spanP90": 1052,
+      "inkDeep": 0.375,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 12,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=2 drift/s=1.25 rot=0 zoom=0.08",
+      "spanP90": 13129,
+      "inkDeep": 0.375,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 12,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=2 drift/s=2 rot=0.002 zoom=0.15",
+      "spanP90": 1318,
+      "inkDeep": 0.319,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=2 drift/s=1.275 rot=0 zoom=0.08",
+      "spanP90": 11818,
+      "inkDeep": 0.369,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 12,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=2 drift/s=2.016 rot=0.002 zoom=0.15",
+      "spanP90": 1291,
+      "inkDeep": 0.306,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 10,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=2 drift/s=1.346 rot=0 zoom=0.08",
+      "spanP90": 9093,
+      "inkDeep": 0.35,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 12,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=2 drift/s=2.062 rot=0.002 zoom=0.15",
+      "spanP90": 1217,
+      "inkDeep": 0.288,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 10,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=2 drift/s=1.601 rot=0 zoom=0.15",
+      "spanP90": 2526,
+      "inkDeep": 0.281,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=2 drift/s=1.5 rot=0 zoom=0.4",
+      "spanP90": 1184,
+      "inkDeep": 0.313,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=2 drift/s=1.5 rot=0.002 zoom=0.4",
+      "spanP90": 1184,
+      "inkDeep": 0.331,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 15,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=2 drift/s=1.953 rot=0 zoom=0.15",
+      "spanP90": 1405,
+      "inkDeep": 0.219,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 10,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=2 drift/s=2.5 rot=0.002 zoom=0.08",
+      "spanP90": 1414,
+      "inkDeep": 0.356,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 8,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=2 drift/s=2 rot=0.002 zoom=0.15",
+      "spanP90": 1318,
+      "inkDeep": 0.319,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=2 drift/s=2.062 rot=0.002 zoom=0.15",
+      "spanP90": 1217,
+      "inkDeep": 0.288,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 10,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=2 drift/s=2.828 rot=0.002 zoom=0.08",
+      "spanP90": 1062,
+      "inkDeep": 0.288,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 8,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=3 drift/s=1.333 rot=0 zoom=0.08",
+      "spanP90": 6333,
+      "inkDeep": 0.35,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 12,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=3 drift/s=1.344 rot=0 zoom=0.08",
+      "spanP90": 6115,
+      "inkDeep": 0.35,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 12,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=3 drift/s=1.374 rot=0 zoom=0.08",
+      "spanP90": 5542,
+      "inkDeep": 0.35,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 12,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=3 drift/s=1 rot=0 zoom=8",
+      "spanP90": 65537,
+      "inkDeep": 0.244,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 10,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "circle s=3 drift/s=1.302 rot=0 zoom=0.4",
+      "spanP90": 1420,
+      "inkDeep": 0.363,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 12,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=3 drift/s=1.667 rot=0 zoom=0.15",
+      "spanP90": 1481,
+      "inkDeep": 0.256,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=3 drift/s=1.374 rot=0 zoom=0.15",
+      "spanP90": 2957,
+      "inkDeep": 0.35,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 12,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=3 drift/s=1.572 rot=0 zoom=0.15",
+      "spanP90": 1787,
+      "inkDeep": 0.281,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=3 drift/s=1.886 rot=0 zoom=0.08",
+      "spanP90": 1933,
+      "inkDeep": 0.231,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 10,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=4 drift/s=1 rot=0 zoom=2",
+      "spanP90": 65537,
+      "inkDeep": 0.2,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "circle s=4 drift/s=1.118 rot=0 zoom=0.15",
+      "spanP90": 7875,
+      "inkDeep": 0.425,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 13,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=4 drift/s=1.25 rot=0 zoom=0.15",
+      "spanP90": 3503,
+      "inkDeep": 0.375,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 12,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=4 drift/s=1 rot=0 zoom=2",
+      "spanP90": 65537,
+      "inkDeep": 0.2,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "circle s=4 drift/s=1.179 rot=0 zoom=0.15",
+      "spanP90": 5042,
+      "inkDeep": 0.4,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 13,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=4 drift/s=1.414 rot=0 zoom=0.08",
+      "spanP90": 3696,
+      "inkDeep": 0.319,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=1 drift/s=4 rot=0 zoom=0.08",
+      "spanP90": 1109,
+      "inkDeep": 0.125,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 6,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=1 drift/s=2.5 rot=0 zoom=0.08",
+      "spanP90": 3073,
+      "inkDeep": 0.244,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 10,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=1 drift/s=1 rot=0 zoom=8",
+      "spanP90": 65537,
+      "inkDeep": 0.481,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "square s=1 drift/s=1 rot=0 zoom=0.4",
+      "spanP90": 65537,
+      "inkDeep": 0.5,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "square s=1 drift/s=2.5 rot=0 zoom=0.15",
+      "spanP90": 1675,
+      "inkDeep": 0.244,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 9,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=1 drift/s=4 rot=0.002 zoom=0.08",
+      "spanP90": 1139,
+      "inkDeep": 0.306,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 7,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=1 drift/s=2 rot=0 zoom=0.08",
+      "spanP90": 5236,
+      "inkDeep": 0.325,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 13,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=1 drift/s=2 rot=0 zoom=0.15",
+      "spanP90": 2868,
+      "inkDeep": 0.325,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=1 drift/s=2.5 rot=0 zoom=0.15",
+      "spanP90": 1779,
+      "inkDeep": 0.244,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 9,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=1 drift/s=4 rot=0 zoom=0.08",
+      "spanP90": 1218,
+      "inkDeep": 0.125,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 6,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=1 drift/s=3 rot=0 zoom=0.08",
+      "spanP90": 2033,
+      "inkDeep": 0.188,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 9,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=1 drift/s=3 rot=0 zoom=0.08",
+      "spanP90": 2091,
+      "inkDeep": 0.188,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 9,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=1 drift/s=3 rot=0 zoom=0.08",
+      "spanP90": 2315,
+      "inkDeep": 0.188,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 9,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=1 drift/s=4 rot=0 zoom=0.08",
+      "spanP90": 1320,
+      "inkDeep": 0.125,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 6,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=1 drift/s=4 rot=0.002 zoom=0.08",
+      "spanP90": 1109,
+      "inkDeep": 0.306,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 7,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=1 drift/s=4 rot=0 zoom=0.08",
+      "spanP90": 1267,
+      "inkDeep": 0.125,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 6,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=1 drift/s=4 rot=0.002 zoom=0.08",
+      "spanP90": 1426,
+      "inkDeep": 0.306,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 7,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=1.5 drift/s=1.667 rot=0 zoom=0.08",
+      "spanP90": 5796,
+      "inkDeep": 0.4,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 12,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=1.5 drift/s=1.667 rot=0 zoom=0.15",
+      "spanP90": 3101,
+      "inkDeep": 0.4,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 10,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=1.5 drift/s=1.667 rot=0 zoom=0.4",
+      "spanP90": 1173,
+      "inkDeep": 0.4,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 10,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=1.5 drift/s=2.667 rot=0 zoom=0.08",
+      "spanP90": 1781,
+      "inkDeep": 0.219,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 9,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=1.5 drift/s=1.667 rot=0 zoom=0.15",
+      "spanP90": 3204,
+      "inkDeep": 0.4,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 10,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=1.5 drift/s=2.667 rot=0 zoom=0.08",
+      "spanP90": 1843,
+      "inkDeep": 0.219,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 9,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=1.5 drift/s=2 rot=0 zoom=0.15",
+      "spanP90": 1886,
+      "inkDeep": 0.325,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 10,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=1.5 drift/s=2 rot=0 zoom=0.08",
+      "spanP90": 3705,
+      "inkDeep": 0.325,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 12,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=1.5 drift/s=2.667 rot=0.002 zoom=0.15",
+      "spanP90": 1028,
+      "inkDeep": 0.231,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 9,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=1.5 drift/s=2.667 rot=0 zoom=0.08",
+      "spanP90": 1781,
+      "inkDeep": 0.219,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 9,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=1.5 drift/s=2.667 rot=0 zoom=0.08",
+      "spanP90": 2012,
+      "inkDeep": 0.219,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 9,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=2 drift/s=2 rot=0 zoom=0.15",
+      "spanP90": 1398,
+      "inkDeep": 0.319,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 9,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=2 drift/s=2 rot=0 zoom=0.08",
+      "spanP90": 2624,
+      "inkDeep": 0.325,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=2 drift/s=1 rot=0 zoom=8",
+      "spanP90": 65537,
+      "inkDeep": 0.331,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "square s=2 drift/s=1 rot=0 zoom=2",
+      "spanP90": 65537,
+      "inkDeep": 0.313,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "square s=2 drift/s=1.25 rot=0 zoom=0.15",
+      "spanP90": 7225,
+      "inkDeep": 0.463,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 13,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=2 drift/s=2 rot=0 zoom=0.08",
+      "spanP90": 2688,
+      "inkDeep": 0.325,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=2 drift/s=1.5 rot=0 zoom=0.15",
+      "spanP90": 3358,
+      "inkDeep": 0.425,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=2 drift/s=2 rot=0 zoom=0.15",
+      "spanP90": 1471,
+      "inkDeep": 0.319,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 9,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=2 drift/s=2 rot=0 zoom=0.08",
+      "spanP90": 2619,
+      "inkDeep": 0.325,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=2 drift/s=2 rot=0.002 zoom=0.15",
+      "spanP90": 1408,
+      "inkDeep": 0.375,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 12,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=2 drift/s=2 rot=0.002 zoom=0.15",
+      "spanP90": 1452,
+      "inkDeep": 0.375,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 12,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=2 drift/s=2 rot=0.002 zoom=0.15",
+      "spanP90": 1509,
+      "inkDeep": 0.375,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 12,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=3 drift/s=1.333 rot=0 zoom=0.08",
+      "spanP90": 6540,
+      "inkDeep": 0.456,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 12,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=3 drift/s=1 rot=0 zoom=1",
+      "spanP90": 65537,
+      "inkDeep": 0.3,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "square s=3 drift/s=1 rot=0 zoom=1",
+      "spanP90": 65537,
+      "inkDeep": 0.3,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "square s=3 drift/s=1 rot=0 zoom=1",
+      "spanP90": 65537,
+      "inkDeep": 0.3,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "square s=3 drift/s=1.333 rot=0 zoom=0.08",
+      "spanP90": 6588,
+      "inkDeep": 0.456,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 12,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=3 drift/s=1.333 rot=0 zoom=0.08",
+      "spanP90": 6563,
+      "inkDeep": 0.456,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 12,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=3 drift/s=1.333 rot=0 zoom=0.15",
+      "spanP90": 3543,
+      "inkDeep": 0.456,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 12,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=4 drift/s=1 rot=0 zoom=8",
+      "spanP90": 65537,
+      "inkDeep": 0.269,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "square s=4 drift/s=1 rot=0 zoom=8",
+      "spanP90": 65537,
+      "inkDeep": 0.269,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "square s=4 drift/s=1 rot=0 zoom=8",
+      "spanP90": 65537,
+      "inkDeep": 0.269,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "square s=4 drift/s=1 rot=0 zoom=8",
+      "spanP90": 65537,
+      "inkDeep": 0.269,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "square s=4 drift/s=1 rot=0 zoom=8",
+      "spanP90": 65537,
+      "inkDeep": 0.269,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "square s=4 drift/s=1 rot=0 zoom=8",
+      "spanP90": 65537,
+      "inkDeep": 0.269,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "square s=4 drift/s=1 rot=0 zoom=8",
+      "spanP90": 65537,
+      "inkDeep": 0.269,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "square s=4 drift/s=1 rot=0 zoom=8",
+      "spanP90": 65537,
+      "inkDeep": 0.269,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "square s=4 drift/s=1 rot=0 zoom=8",
+      "spanP90": 65537,
+      "inkDeep": 0.269,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "square s=4 drift/s=1 rot=0 zoom=0.4",
+      "spanP90": 65537,
+      "inkDeep": 0.431,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "triangle s=1 drift/s=2.165 rot=0 zoom=0.15",
+      "spanP90": 2513,
+      "inkDeep": 0.125,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 7,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=1 drift/s=3.464 rot=0.002 zoom=0.08",
+      "spanP90": 1778,
+      "inkDeep": 0.131,
+      "dropped": 0.0125,
+      "invented": 0,
+      "deepEvalsPerPixel": 9,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=1 drift/s=3.714 rot=0 zoom=0.08",
+      "spanP90": 1509,
+      "inkDeep": 0.069,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 6,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=1 drift/s=2.665 rot=0 zoom=0.08",
+      "spanP90": 2876,
+      "inkDeep": 0.106,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 7,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=1 drift/s=1 rot=0 zoom=8",
+      "spanP90": 65537,
+      "inkDeep": 0.113,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 7,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "triangle s=1 drift/s=1 rot=0 zoom=0.4",
+      "spanP90": 65537,
+      "inkDeep": 0.219,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 7,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "triangle s=1 drift/s=1.866 rot=0 zoom=0.4",
+      "spanP90": 1361,
+      "inkDeep": 0.125,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 10,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=1 drift/s=3.165 rot=0 zoom=0.15",
+      "spanP90": 1070,
+      "inkDeep": 0.088,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 6,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=1 drift/s=1.5 rot=0 zoom=0.4",
+      "spanP90": 2661,
+      "inkDeep": 0.15,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 13,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=1 drift/s=1.5 rot=0.002 zoom=1",
+      "spanP90": 1066,
+      "inkDeep": 0.206,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 15,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=1 drift/s=2.366 rot=0 zoom=0.08",
+      "spanP90": 3988,
+      "inkDeep": 0.113,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 7,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=1 drift/s=2 rot=0 zoom=0.15",
+      "spanP90": 3288,
+      "inkDeep": 0.125,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 8,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=1 drift/s=2 rot=0.002 zoom=0.15",
+      "spanP90": 3288,
+      "inkDeep": 0.294,
+      "dropped": 0.0125,
+      "invented": 0,
+      "deepEvalsPerPixel": 12,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=1 drift/s=2.866 rot=0.002 zoom=0.15",
+      "spanP90": 1474,
+      "inkDeep": 0.088,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 8,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=1.5 drift/s=2.309 rot=0 zoom=0.15",
+      "spanP90": 1449,
+      "inkDeep": 0.113,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 7,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=1.5 drift/s=1.61 rot=0 zoom=0.4",
+      "spanP90": 1351,
+      "inkDeep": 0.15,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 13,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=1.5 drift/s=2.476 rot=0 zoom=0.15",
+      "spanP90": 1225,
+      "inkDeep": 0.113,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 7,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=1.5 drift/s=1.777 rot=0 zoom=0.15",
+      "spanP90": 2695,
+      "inkDeep": 0.15,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 9,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=1.5 drift/s=2.643 rot=0 zoom=0.08",
+      "spanP90": 1970,
+      "inkDeep": 0.106,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 7,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=1.5 drift/s=2.11 rot=0 zoom=0.08",
+      "spanP90": 3255,
+      "inkDeep": 0.125,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 7,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=1.5 drift/s=1 rot=0 zoom=8",
+      "spanP90": 65537,
+      "inkDeep": 0.088,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 7,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "triangle s=1.5 drift/s=1 rot=0 zoom=0.4",
+      "spanP90": 65537,
+      "inkDeep": 0.219,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 7,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "triangle s=1.5 drift/s=1.577 rot=0 zoom=0.4",
+      "spanP90": 1468,
+      "inkDeep": 0.15,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 12,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=1.5 drift/s=2.443 rot=0 zoom=0.15",
+      "spanP90": 1255,
+      "inkDeep": 0.113,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 7,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=1.5 drift/s=3.309 rot=0.002 zoom=0.08",
+      "spanP90": 1218,
+      "inkDeep": 0.081,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 7,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=1.5 drift/s=1.333 rot=0 zoom=0.15",
+      "spanP90": 7316,
+      "inkDeep": 0.163,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 14,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=1.5 drift/s=1.333 rot=0.002 zoom=0.4",
+      "spanP90": 2745,
+      "inkDeep": 0.306,
+      "dropped": 0.0375,
+      "invented": 0,
+      "deepEvalsPerPixel": 21,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=1.5 drift/s=2.777 rot=0 zoom=0.08",
+      "spanP90": 1823,
+      "inkDeep": 0.1,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 6,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=2 drift/s=1.857 rot=0 zoom=0.15",
+      "spanP90": 1812,
+      "inkDeep": 0.125,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 9,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=2 drift/s=1.982 rot=0 zoom=0.08",
+      "spanP90": 2859,
+      "inkDeep": 0.125,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 8,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=2 drift/s=1.833 rot=0 zoom=0.15",
+      "spanP90": 1872,
+      "inkDeep": 0.131,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 10,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=2 drift/s=1 rot=0 zoom=8",
+      "spanP90": 65537,
+      "inkDeep": 0.075,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 7,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "triangle s=2 drift/s=1 rot=0 zoom=0.4",
+      "spanP90": 65537,
+      "inkDeep": 0.194,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 7,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "triangle s=2 drift/s=1.433 rot=0 zoom=0.4",
+      "spanP90": 1526,
+      "inkDeep": 0.15,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 16,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=2 drift/s=2.083 rot=0 zoom=0.15",
+      "spanP90": 1372,
+      "inkDeep": 0.125,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 8,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=3 drift/s=1.821 rot=0 zoom=0.15",
+      "spanP90": 1264,
+      "inkDeep": 0.138,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 10,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=1 drift/s=2.165 rot=0 zoom=0.08",
+      "spanP90": 4330,
+      "inkDeep": 0.2,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 9,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=1 drift/s=2.415 rot=0 zoom=0.15",
+      "spanP90": 1727,
+      "inkDeep": 0.169,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 8,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=1 drift/s=3.714 rot=0 zoom=0.08",
+      "spanP90": 1307,
+      "inkDeep": 0.113,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 5,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=1 drift/s=1.366 rot=0 zoom=0.4",
+      "spanP90": 3463,
+      "inkDeep": 0.4,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 13,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=1 drift/s=2.665 rot=0 zoom=0.15",
+      "spanP90": 1350,
+      "inkDeep": 0.15,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 6,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=1 drift/s=3.964 rot=0 zoom=0.08",
+      "spanP90": 1103,
+      "inkDeep": 0.113,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 5,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=1 drift/s=2 rot=0 zoom=0.08",
+      "spanP90": 5057,
+      "inkDeep": 0.219,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 9,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=1 drift/s=2 rot=0 zoom=0.08",
+      "spanP90": 5219,
+      "inkDeep": 0.219,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 9,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=1 drift/s=3 rot=0 zoom=0.15",
+      "spanP90": 1029,
+      "inkDeep": 0.15,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 5,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=1 drift/s=3 rot=0 zoom=0.15",
+      "spanP90": 1064,
+      "inkDeep": 0.15,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 5,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=1 drift/s=3.665 rot=0 zoom=0.08",
+      "spanP90": 1322,
+      "inkDeep": 0.119,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 5,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=1 drift/s=4 rot=0.002 zoom=0.08",
+      "spanP90": 1040,
+      "inkDeep": 0.281,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 6,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=1 drift/s=4.165 rot=0 zoom=0.08",
+      "spanP90": 1085,
+      "inkDeep": 0.106,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 5,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=1.5 drift/s=1.443 rot=0 zoom=0.15",
+      "spanP90": 4995,
+      "inkDeep": 0.375,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 15,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=1.5 drift/s=2.309 rot=0 zoom=0.08",
+      "spanP90": 2480,
+      "inkDeep": 0.188,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 8,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=1.5 drift/s=1.61 rot=0 zoom=0.15",
+      "spanP90": 3390,
+      "inkDeep": 0.319,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 14,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=1.5 drift/s=2.476 rot=0 zoom=0.08",
+      "spanP90": 2063,
+      "inkDeep": 0.163,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 7,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=1.5 drift/s=1.777 rot=0 zoom=0.08",
+      "spanP90": 4679,
+      "inkDeep": 0.256,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 12,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=1.5 drift/s=1.333 rot=0 zoom=1",
+      "spanP90": 1035,
+      "inkDeep": 0.406,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 21,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=1.5 drift/s=1.333 rot=0 zoom=0.08",
+      "spanP90": 12912,
+      "inkDeep": 0.406,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 18,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=1.5 drift/s=2.11 rot=0 zoom=0.08",
+      "spanP90": 2948,
+      "inkDeep": 0.2,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 9,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=1.5 drift/s=2 rot=0 zoom=0.15",
+      "spanP90": 1800,
+      "inkDeep": 0.219,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 8,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=1.5 drift/s=2 rot=0 zoom=0.08",
+      "spanP90": 3423,
+      "inkDeep": 0.219,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 9,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=1.5 drift/s=2.443 rot=0.002 zoom=0.15",
+      "spanP90": 1126,
+      "inkDeep": 0.3,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 8,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=1.5 drift/s=2.667 rot=0 zoom=0.08",
+      "spanP90": 1675,
+      "inkDeep": 0.15,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 6,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=1.5 drift/s=2.777 rot=0.002 zoom=0.08",
+      "spanP90": 1634,
+      "inkDeep": 0.406,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 8,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=2 drift/s=1.083 rot=0 zoom=0.4",
+      "spanP90": 8638,
+      "inkDeep": 0.488,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 39,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=2 drift/s=1.732 rot=0 zoom=0.15",
+      "spanP90": 2070,
+      "inkDeep": 0.281,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 12,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=2 drift/s=1.208 rot=0 zoom=0.4",
+      "spanP90": 3256,
+      "inkDeep": 0.456,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 19,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=2 drift/s=1.857 rot=0 zoom=0.15",
+      "spanP90": 1681,
+      "inkDeep": 0.244,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 10,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=2 drift/s=1.333 rot=0 zoom=0.15",
+      "spanP90": 5137,
+      "inkDeep": 0.406,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 14,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=2 drift/s=1.982 rot=0 zoom=0.08",
+      "spanP90": 2619,
+      "inkDeep": 0.219,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 9,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=2 drift/s=1 rot=0 zoom=8",
+      "spanP90": 65537,
+      "inkDeep": 0.306,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 15,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "hexagon s=2 drift/s=1.583 rot=0 zoom=0.08",
+      "spanP90": 5006,
+      "inkDeep": 0.319,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 16,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=2 drift/s=1.5 rot=0 zoom=0.15",
+      "spanP90": 3223,
+      "inkDeep": 0.363,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 14,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=2 drift/s=1.833 rot=0 zoom=0.15",
+      "spanP90": 1737,
+      "inkDeep": 0.25,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 10,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=2 drift/s=2 rot=0 zoom=0.15",
+      "spanP90": 1350,
+      "inkDeep": 0.219,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 8,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=2 drift/s=2 rot=0 zoom=0.08",
+      "spanP90": 2552,
+      "inkDeep": 0.219,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 8,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=2 drift/s=2.083 rot=0 zoom=0.08",
+      "spanP90": 2366,
+      "inkDeep": 0.206,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 8,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=2 drift/s=2.732 rot=0.002 zoom=0.08",
+      "spanP90": 1212,
+      "inkDeep": 0.313,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 8,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=3 drift/s=1.155 rot=0 zoom=0.15",
+      "spanP90": 7958,
+      "inkDeep": 0.456,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 16,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=3 drift/s=1.238 rot=0 zoom=0.4",
+      "spanP90": 1873,
+      "inkDeep": 0.444,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 19,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=3 drift/s=1.321 rot=0 zoom=0.4",
+      "spanP90": 1339,
+      "inkDeep": 0.413,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 20,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=3 drift/s=1.488 rot=0 zoom=0.15",
+      "spanP90": 2197,
+      "inkDeep": 0.363,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 13,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=3 drift/s=1 rot=0 zoom=2",
+      "spanP90": 65537,
+      "inkDeep": 0.269,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 15,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "hexagon s=3 drift/s=1 rot=0 zoom=2",
+      "spanP90": 65537,
+      "inkDeep": 0.269,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 15,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "hexagon s=3 drift/s=1.222 rot=0 zoom=0.15",
+      "spanP90": 5388,
+      "inkDeep": 0.444,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 15,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=3 drift/s=1.655 rot=0 zoom=0.08",
+      "spanP90": 2893,
+      "inkDeep": 0.313,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 14,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=3 drift/s=1.388 rot=0 zoom=0.08",
+      "spanP90": 5440,
+      "inkDeep": 0.4,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 15,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=3 drift/s=1.821 rot=0 zoom=0.08",
+      "spanP90": 2193,
+      "inkDeep": 0.256,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=4 drift/s=1.241 rot=0 zoom=0.08",
+      "spanP90": 6894,
+      "inkDeep": 0.444,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 15,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=4 drift/s=1 rot=0 zoom=1",
+      "spanP90": 65537,
+      "inkDeep": 0.256,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 15,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "hexagon s=4 drift/s=1 rot=0 zoom=1",
+      "spanP90": 65537,
+      "inkDeep": 0.256,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 15,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "pentagon s=1 drift/s=2.378 rot=0 zoom=0.15",
+      "spanP90": 1813,
+      "inkDeep": 0.163,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 7,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=1 drift/s=3.804 rot=0.002 zoom=0.08",
+      "spanP90": 1234,
+      "inkDeep": 0.263,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 7,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=1 drift/s=3.65 rot=0 zoom=0.08",
+      "spanP90": 1395,
+      "inkDeep": 0.113,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 5,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=1 drift/s=1.397 rot=0 zoom=0.4",
+      "spanP90": 3168,
+      "inkDeep": 0.306,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=1 drift/s=2.278 rot=0 zoom=0.15",
+      "spanP90": 2086,
+      "inkDeep": 0.169,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 7,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=1 drift/s=3.495 rot=0.002 zoom=0.08",
+      "spanP90": 1592,
+      "inkDeep": 0.288,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 8,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=1 drift/s=1.618 rot=0 zoom=0.08",
+      "spanP90": 9676,
+      "inkDeep": 0.256,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 10,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=1 drift/s=2.206 rot=0 zoom=0.08",
+      "spanP90": 4011,
+      "inkDeep": 0.188,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 8,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=1 drift/s=3.969 rot=0 zoom=0.08",
+      "spanP90": 1204,
+      "inkDeep": 0.1,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 5,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=1 drift/s=2.427 rot=0 zoom=0.08",
+      "spanP90": 3443,
+      "inkDeep": 0.15,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 7,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=1 drift/s=3.015 rot=0 zoom=0.08",
+      "spanP90": 1999,
+      "inkDeep": 0.125,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 6,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=1 drift/s=3.897 rot=0.002 zoom=0.08",
+      "spanP90": 1124,
+      "inkDeep": 0.244,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 7,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=1 drift/s=3.824 rot=0 zoom=0.08",
+      "spanP90": 1247,
+      "inkDeep": 0.1,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 5,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=1.5 drift/s=1.585 rot=0 zoom=0.15",
+      "spanP90": 3588,
+      "inkDeep": 0.256,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 9,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=1.5 drift/s=2.536 rot=0 zoom=0.08",
+      "spanP90": 1953,
+      "inkDeep": 0.15,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 7,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=1.5 drift/s=1.482 rot=0 zoom=0.15",
+      "spanP90": 4556,
+      "inkDeep": 0.281,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 10,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=1.5 drift/s=2.433 rot=0 zoom=0.08",
+      "spanP90": 2190,
+      "inkDeep": 0.15,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 7,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=1.5 drift/s=1.519 rot=0 zoom=0.15",
+      "spanP90": 4197,
+      "inkDeep": 0.281,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 9,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=1.5 drift/s=2.33 rot=0 zoom=0.08",
+      "spanP90": 2475,
+      "inkDeep": 0.163,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 7,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=1.5 drift/s=1.471 rot=0 zoom=0.15",
+      "spanP90": 4622,
+      "inkDeep": 0.281,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 10,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=1.5 drift/s=2.058 rot=0 zoom=0.08",
+      "spanP90": 3200,
+      "inkDeep": 0.2,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 8,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=1.5 drift/s=1.618 rot=0 zoom=0.4",
+      "spanP90": 1292,
+      "inkDeep": 0.256,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 10,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=1.5 drift/s=1.618 rot=0.002 zoom=0.4",
+      "spanP90": 1292,
+      "inkDeep": 0.238,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 13,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=1.5 drift/s=2.598 rot=0 zoom=0.08",
+      "spanP90": 1808,
+      "inkDeep": 0.15,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 7,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=1.5 drift/s=2.157 rot=0 zoom=0.15",
+      "spanP90": 1601,
+      "inkDeep": 0.2,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 7,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=1.5 drift/s=2.549 rot=0 zoom=0.15",
+      "spanP90": 1042,
+      "inkDeep": 0.15,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 6,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=1.5 drift/s=3.137 rot=0 zoom=0.08",
+      "spanP90": 1189,
+      "inkDeep": 0.125,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 6,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=2 drift/s=1.902 rot=0 zoom=0.08",
+      "spanP90": 2959,
+      "inkDeep": 0.219,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 8,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=2 drift/s=1.112 rot=0 zoom=0.4",
+      "spanP90": 6324,
+      "inkDeep": 0.363,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 30,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=2 drift/s=1.825 rot=0 zoom=0.15",
+      "spanP90": 1787,
+      "inkDeep": 0.238,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 8,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=2 drift/s=1.139 rot=0 zoom=0.4",
+      "spanP90": 5018,
+      "inkDeep": 0.356,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 24,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=2 drift/s=1.748 rot=0 zoom=0.15",
+      "spanP90": 2041,
+      "inkDeep": 0.244,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 8,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=2 drift/s=1.544 rot=0 zoom=0.15",
+      "spanP90": 2932,
+      "inkDeep": 0.269,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 9,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=2 drift/s=1.985 rot=0 zoom=0.15",
+      "spanP90": 1438,
+      "inkDeep": 0.213,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 7,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=2 drift/s=1.214 rot=0 zoom=1",
+      "spanP90": 1277,
+      "inkDeep": 0.344,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 24,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=2 drift/s=1.214 rot=0 zoom=0.08",
+      "spanP90": 15941,
+      "inkDeep": 0.344,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 14,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=2 drift/s=1.507 rot=0 zoom=0.15",
+      "spanP90": 3186,
+      "inkDeep": 0.281,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 9,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=2 drift/s=1.948 rot=0 zoom=0.08",
+      "spanP90": 2744,
+      "inkDeep": 0.219,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 8,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=2 drift/s=1.618 rot=0 zoom=0.08",
+      "spanP90": 4839,
+      "inkDeep": 0.256,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 9,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=2 drift/s=2.353 rot=0 zoom=0.08",
+      "spanP90": 1710,
+      "inkDeep": 0.163,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 7,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=3 drift/s=1.268 rot=0 zoom=0.4",
+      "spanP90": 1646,
+      "inkDeep": 0.319,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 19,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=3 drift/s=1.217 rot=0 zoom=0.4",
+      "spanP90": 2084,
+      "inkDeep": 0.344,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 23,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=3 drift/s=1.165 rot=0 zoom=1",
+      "spanP90": 1120,
+      "inkDeep": 0.35,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 29,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=3 drift/s=1.165 rot=0 zoom=0.08",
+      "spanP90": 13966,
+      "inkDeep": 0.35,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 15,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=3 drift/s=1.323 rot=0 zoom=0.08",
+      "spanP90": 6720,
+      "inkDeep": 0.319,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=3 drift/s=1.005 rot=0 zoom=0.08",
+      "spanP90": 65537,
+      "inkDeep": 0.381,
+      "dropped": 0.2875,
+      "invented": 0,
+      "deepEvalsPerPixel": 128,
+      "fractionAtSpanCap": 0.98
+    },
+    {
+      "setting": "pentagon s=3 drift/s=1.569 rot=0 zoom=0.15",
+      "spanP90": 1846,
+      "inkDeep": 0.256,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 9,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=3 drift/s=1.862 rot=0 zoom=0.08",
+      "spanP90": 2071,
+      "inkDeep": 0.225,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 8,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=4 drift/s=1.397 rot=0 zoom=0.08",
+      "spanP90": 3959,
+      "inkDeep": 0.306,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 10,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=1 drift/s=3.939 rot=0 zoom=0.08",
+      "spanP90": 1065,
+      "inkDeep": 0.1,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 5,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=1 drift/s=2.415 rot=0 zoom=0.08",
+      "spanP90": 3188,
+      "inkDeep": 0.15,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 7,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=1 drift/s=3.852 rot=0.002 zoom=0.08",
+      "spanP90": 1150,
+      "inkDeep": 0.269,
+      "dropped": 0.0063,
+      "invented": 0,
+      "deepEvalsPerPixel": 7,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=1 drift/s=1.366 rot=0 zoom=0.15",
+      "spanP90": 9176,
+      "inkDeep": 0.35,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 15,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=1 drift/s=2.665 rot=0 zoom=0.08",
+      "spanP90": 2482,
+      "inkDeep": 0.15,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 6,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=1 drift/s=3.964 rot=0.002 zoom=0.08",
+      "spanP90": 1078,
+      "inkDeep": 0.256,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 7,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=1 drift/s=1.879 rot=0 zoom=0.08",
+      "spanP90": 6000,
+      "inkDeep": 0.219,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 10,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=1 drift/s=2.221 rot=0 zoom=0.08",
+      "spanP90": 3821,
+      "inkDeep": 0.169,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 9,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=1 drift/s=2.819 rot=0 zoom=0.08",
+      "spanP90": 2255,
+      "inkDeep": 0.138,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 7,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=1 drift/s=3.674 rot=0 zoom=0.08",
+      "spanP90": 1286,
+      "inkDeep": 0.106,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 5,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=1 drift/s=3.759 rot=0.002 zoom=0.08",
+      "spanP90": 1229,
+      "inkDeep": 0.275,
+      "dropped": 0.0063,
+      "invented": 0,
+      "deepEvalsPerPixel": 7,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=1.5 drift/s=1.641 rot=0 zoom=0.08",
+      "spanP90": 5882,
+      "inkDeep": 0.256,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 12,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=1.5 drift/s=1.61 rot=0 zoom=0.15",
+      "spanP90": 3359,
+      "inkDeep": 0.263,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=1.5 drift/s=2.568 rot=0 zoom=0.08",
+      "spanP90": 1836,
+      "inkDeep": 0.15,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 6,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=1.5 drift/s=2.643 rot=0 zoom=0.08",
+      "spanP90": 1715,
+      "inkDeep": 0.15,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 6,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=1.5 drift/s=1.481 rot=0 zoom=0.15",
+      "spanP90": 4436,
+      "inkDeep": 0.313,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 14,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=1.5 drift/s=2.11 rot=0 zoom=0.08",
+      "spanP90": 2906,
+      "inkDeep": 0.2,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 8,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=1.5 drift/s=1.879 rot=0 zoom=0.15",
+      "spanP90": 2135,
+      "inkDeep": 0.219,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 8,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=1.5 drift/s=2.107 rot=0 zoom=0.08",
+      "spanP90": 2903,
+      "inkDeep": 0.2,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 8,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=1.5 drift/s=2.449 rot=0.002 zoom=0.15",
+      "spanP90": 1101,
+      "inkDeep": 0.213,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 8,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=1.5 drift/s=2.506 rot=0.002 zoom=0.15",
+      "spanP90": 1046,
+      "inkDeep": 0.194,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 8,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=1.5 drift/s=3.076 rot=0.002 zoom=0.08",
+      "spanP90": 1210,
+      "inkDeep": 0.288,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 7,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=2 drift/s=1.231 rot=0 zoom=0.15",
+      "spanP90": 7675,
+      "inkDeep": 0.388,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 14,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=2 drift/s=1.97 rot=0 zoom=0.08",
+      "spanP90": 2610,
+      "inkDeep": 0.206,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 9,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=2 drift/s=1.208 rot=0 zoom=0.15",
+      "spanP90": 8647,
+      "inkDeep": 0.4,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 15,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=2 drift/s=1.926 rot=0 zoom=0.08",
+      "spanP90": 2795,
+      "inkDeep": 0.206,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 10,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=2 drift/s=1.333 rot=0 zoom=0.08",
+      "spanP90": 9576,
+      "inkDeep": 0.356,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 15,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=2 drift/s=1.583 rot=0 zoom=0.15",
+      "spanP90": 2646,
+      "inkDeep": 0.281,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=2 drift/s=1.41 rot=0 zoom=0.4",
+      "spanP90": 1518,
+      "inkDeep": 0.319,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 14,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=2 drift/s=1.581 rot=0 zoom=0.15",
+      "spanP90": 2653,
+      "inkDeep": 0.281,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=2 drift/s=1.837 rot=0 zoom=0.08",
+      "spanP90": 3194,
+      "inkDeep": 0.219,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 9,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=2 drift/s=1.879 rot=0 zoom=0.08",
+      "spanP90": 3001,
+      "inkDeep": 0.219,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 8,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=2 drift/s=2.05 rot=0 zoom=0.08",
+      "spanP90": 2342,
+      "inkDeep": 0.2,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 8,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=2 drift/s=2.732 rot=0 zoom=0.08",
+      "spanP90": 1190,
+      "inkDeep": 0.15,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 6,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=3 drift/s=1.313 rot=0 zoom=0.15",
+      "spanP90": 3648,
+      "inkDeep": 0.363,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 12,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=3 drift/s=1.284 rot=0 zoom=0.15",
+      "spanP90": 4077,
+      "inkDeep": 0.369,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 13,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=3 drift/s=1.321 rot=0 zoom=0.15",
+      "spanP90": 3549,
+      "inkDeep": 0.363,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 12,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=3 drift/s=1.488 rot=0 zoom=0.08",
+      "spanP90": 4085,
+      "inkDeep": 0.313,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 13,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=3 drift/s=1.225 rot=0 zoom=0.08",
+      "spanP90": 9915,
+      "inkDeep": 0.388,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 15,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=3 drift/s=1.367 rot=0 zoom=0.4",
+      "spanP90": 1142,
+      "inkDeep": 0.35,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 17,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=3 drift/s=1.538 rot=0 zoom=0.15",
+      "spanP90": 1946,
+      "inkDeep": 0.281,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 12,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=3 drift/s=1.821 rot=0 zoom=0.08",
+      "spanP90": 2168,
+      "inkDeep": 0.219,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=4 drift/s=1.241 rot=0 zoom=0.15",
+      "spanP90": 3661,
+      "inkDeep": 0.375,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 15,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=4 drift/s=1.366 rot=0 zoom=0.08",
+      "spanP90": 4302,
+      "inkDeep": 0.35,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 13,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=1 drift/s=1 rot=0 zoom=8",
+      "spanP90": 65537,
+      "inkDeep": 0.456,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "circle s=1 drift/s=0.5 rot=0 zoom=0.4",
+      "spanP90": 1976,
+      "inkDeep": 1,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 14,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=1 drift/s=2.55 rot=0.01 zoom=0.08",
+      "spanP90": 2698,
+      "inkDeep": 0.988,
+      "dropped": 0.1125,
+      "invented": 0,
+      "deepEvalsPerPixel": 35,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=1 drift/s=1.414 rot=0.002 zoom=0.15",
+      "spanP90": 7883,
+      "inkDeep": 0.95,
+      "dropped": 0.0875,
+      "invented": 0,
+      "deepEvalsPerPixel": 16,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=1 drift/s=3.202 rot=0.01 zoom=0.08",
+      "spanP90": 1608,
+      "inkDeep": 0.925,
+      "dropped": 0.0813,
+      "invented": 0,
+      "deepEvalsPerPixel": 24,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=1.5 drift/s=1.667 rot=0.2 zoom=0.4",
+      "spanP90": 1111,
+      "inkDeep": 0.9,
+      "dropped": 0.0313,
+      "invented": 0,
+      "deepEvalsPerPixel": 180,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=1.5 drift/s=1.7 rot=0.002 zoom=0.08",
+      "spanP90": 5222,
+      "inkDeep": 0.881,
+      "dropped": 0.1063,
+      "invented": 0,
+      "deepEvalsPerPixel": 15,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=1.5 drift/s=0.943 rot=0.002 zoom=0.08",
+      "spanP90": 65537,
+      "inkDeep": 1,
+      "dropped": 0.1375,
+      "invented": 0,
+      "deepEvalsPerPixel": 17,
+      "fractionAtSpanCap": 0.36
+    },
+    {
+      "setting": "circle s=1.5 drift/s=1.333 rot=0.05 zoom=0.15",
+      "spanP90": 6755,
+      "inkDeep": 1,
+      "dropped": 0.1063,
+      "invented": 0,
+      "deepEvalsPerPixel": 138,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=1.5 drift/s=2.108 rot=0.002 zoom=0.08",
+      "spanP90": 2868,
+      "inkDeep": 0.619,
+      "dropped": 0.0375,
+      "invented": 0,
+      "deepEvalsPerPixel": 13,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=2 drift/s=1.25 rot=0.01 zoom=0.4",
+      "spanP90": 2628,
+      "inkDeep": 0.981,
+      "dropped": 0.1188,
+      "invented": 0,
+      "deepEvalsPerPixel": 44,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=2 drift/s=0.559 rot=0.05 zoom=0.4",
+      "spanP90": 1205,
+      "inkDeep": 1,
+      "dropped": 0.0313,
+      "invented": 0,
+      "deepEvalsPerPixel": 101,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=2 drift/s=0.707 rot=0 zoom=0.08",
+      "spanP90": 10450,
+      "inkDeep": 1,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 14,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=2 drift/s=1 rot=0.002 zoom=2",
+      "spanP90": 65537,
+      "inkDeep": 1,
+      "dropped": 0.2813,
+      "invented": 0,
+      "deepEvalsPerPixel": 64,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "circle s=2 drift/s=1.118 rot=0.01 zoom=0.08",
+      "spanP90": 29527,
+      "inkDeep": 1,
+      "dropped": 0.1313,
+      "invented": 0,
+      "deepEvalsPerPixel": 41,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=2 drift/s=1.581 rot=0.01 zoom=0.08",
+      "spanP90": 4930,
+      "inkDeep": 0.988,
+      "dropped": 0.1063,
+      "invented": 0,
+      "deepEvalsPerPixel": 41,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=3 drift/s=0.333 rot=0 zoom=0.08",
+      "spanP90": 1858,
+      "inkDeep": 1,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 14,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=3 drift/s=0.373 rot=0 zoom=0.15",
+      "spanP90": 1143,
+      "inkDeep": 1,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 14,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=3 drift/s=1.344 rot=0.05 zoom=0.15",
+      "spanP90": 3262,
+      "inkDeep": 1,
+      "dropped": 0.1125,
+      "invented": 0,
+      "deepEvalsPerPixel": 128,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=3 drift/s=0.898 rot=0.2 zoom=0.4",
+      "spanP90": 4545,
+      "inkDeep": 1,
+      "dropped": 0.0938,
+      "invented": 0,
+      "deepEvalsPerPixel": 434,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=3 drift/s=0.745 rot=0.01 zoom=0.15",
+      "spanP90": 4407,
+      "inkDeep": 1,
+      "dropped": 0.0813,
+      "invented": 0,
+      "deepEvalsPerPixel": 46,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=3 drift/s=1.491 rot=0.05 zoom=0.15",
+      "spanP90": 2152,
+      "inkDeep": 0.988,
+      "dropped": 0.1125,
+      "invented": 0,
+      "deepEvalsPerPixel": 108,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=3 drift/s=1.054 rot=0.002 zoom=1",
+      "spanP90": 3546,
+      "inkDeep": 0.844,
+      "dropped": 0.1313,
+      "invented": 0,
+      "deepEvalsPerPixel": 58,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=3 drift/s=1.667 rot=0.2 zoom=0.15",
+      "spanP90": 1481,
+      "inkDeep": 0.956,
+      "dropped": 0.0938,
+      "invented": 0,
+      "deepEvalsPerPixel": 219,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=3 drift/s=1.886 rot=0.01 zoom=0.15",
+      "spanP90": 1032,
+      "inkDeep": 0.769,
+      "dropped": 0.025,
+      "invented": 0,
+      "deepEvalsPerPixel": 25,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=4 drift/s=1 rot=0.05 zoom=0.08",
+      "spanP90": 65537,
+      "inkDeep": 1,
+      "dropped": 0.35,
+      "invented": 0,
+      "deepEvalsPerPixel": 153,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "circle s=4 drift/s=1.008 rot=0.01 zoom=0.4",
+      "spanP90": 47225,
+      "inkDeep": 1,
+      "dropped": 0.0938,
+      "invented": 0,
+      "deepEvalsPerPixel": 67,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=4 drift/s=1.031 rot=0.002 zoom=0.4",
+      "spanP90": 11809,
+      "inkDeep": 0.988,
+      "dropped": 0.075,
+      "invented": 0,
+      "deepEvalsPerPixel": 42,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=4 drift/s=0.559 rot=0.2 zoom=0.08",
+      "spanP90": 3009,
+      "inkDeep": 1,
+      "dropped": 0.025,
+      "invented": 0,
+      "deepEvalsPerPixel": 275,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=4 drift/s=0.75 rot=0.002 zoom=0.08",
+      "spanP90": 6333,
+      "inkDeep": 1,
+      "dropped": 0.05,
+      "invented": 0,
+      "deepEvalsPerPixel": 17,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=4 drift/s=0.976 rot=0.01 zoom=0.4",
+      "spanP90": 15370,
+      "inkDeep": 1,
+      "dropped": 0.075,
+      "invented": 0,
+      "deepEvalsPerPixel": 69,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=4 drift/s=1 rot=0.01 zoom=0.4",
+      "spanP90": 65537,
+      "inkDeep": 1,
+      "dropped": 0.4313,
+      "invented": 0,
+      "deepEvalsPerPixel": 68,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "circle s=4 drift/s=1.031 rot=0.2 zoom=0.4",
+      "spanP90": 11809,
+      "inkDeep": 1,
+      "dropped": 0.1188,
+      "invented": 0,
+      "deepEvalsPerPixel": 396,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=6 drift/s=0.667 rot=0.2 zoom=0.08",
+      "spanP90": 2958,
+      "inkDeep": 1,
+      "dropped": 0.0188,
+      "invented": 0,
+      "deepEvalsPerPixel": 299,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=6 drift/s=0.534 rot=0.002 zoom=0.08",
+      "spanP90": 1842,
+      "inkDeep": 1,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 20,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=6 drift/s=0.833 rot=0.002 zoom=0.4",
+      "spanP90": 1344,
+      "inkDeep": 0.881,
+      "dropped": 0.0813,
+      "invented": 0,
+      "deepEvalsPerPixel": 36,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=6 drift/s=0.786 rot=0.01 zoom=0.08",
+      "spanP90": 5068,
+      "inkDeep": 1,
+      "dropped": 0.0813,
+      "invented": 0,
+      "deepEvalsPerPixel": 40,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "circle s=9 drift/s=0.524 rot=0.01 zoom=0.08",
+      "spanP90": 1190,
+      "inkDeep": 1,
+      "dropped": 0.0438,
+      "invented": 0,
+      "deepEvalsPerPixel": 34,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=1 drift/s=1 rot=0.05 zoom=0.4",
+      "spanP90": 65537,
+      "inkDeep": 1,
+      "dropped": 0.1813,
+      "invented": 0,
+      "deepEvalsPerPixel": 190,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "square s=1 drift/s=1 rot=0 zoom=1",
+      "spanP90": 65537,
+      "inkDeep": 0.5,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "square s=1 drift/s=4 rot=0.05 zoom=0.08",
+      "spanP90": 1117,
+      "inkDeep": 0.906,
+      "dropped": 0.0313,
+      "invented": 0,
+      "deepEvalsPerPixel": 74,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=1 drift/s=1 rot=0.002 zoom=0.08",
+      "spanP90": 65537,
+      "inkDeep": 1,
+      "dropped": 0.3813,
+      "invented": 0,
+      "deepEvalsPerPixel": 19,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "square s=1 drift/s=2 rot=0.05 zoom=0.08",
+      "spanP90": 5236,
+      "inkDeep": 1,
+      "dropped": 0.0875,
+      "invented": 0,
+      "deepEvalsPerPixel": 136,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=1 drift/s=3 rot=0.2 zoom=0.15",
+      "spanP90": 1116,
+      "inkDeep": 0.919,
+      "dropped": 0.05,
+      "invented": 0,
+      "deepEvalsPerPixel": 178,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=1.5 drift/s=0.667 rot=0.05 zoom=0.15",
+      "spanP90": 6621,
+      "inkDeep": 1,
+      "dropped": 0.0625,
+      "invented": 0,
+      "deepEvalsPerPixel": 134,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=1.5 drift/s=0.667 rot=0.01 zoom=0.4",
+      "spanP90": 2501,
+      "inkDeep": 1,
+      "dropped": 0.075,
+      "invented": 0,
+      "deepEvalsPerPixel": 40,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=1.5 drift/s=0.667 rot=0.2 zoom=0.4",
+      "spanP90": 2484,
+      "inkDeep": 1,
+      "dropped": 0.0938,
+      "invented": 0,
+      "deepEvalsPerPixel": 265,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=1.5 drift/s=1.333 rot=0 zoom=0.08",
+      "spanP90": 12982,
+      "inkDeep": 0.456,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 14,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=1.5 drift/s=1.667 rot=0.002 zoom=0.08",
+      "spanP90": 6005,
+      "inkDeep": 0.913,
+      "dropped": 0.1063,
+      "invented": 0,
+      "deepEvalsPerPixel": 17,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=1.5 drift/s=2 rot=0.2 zoom=0.08",
+      "spanP90": 3705,
+      "inkDeep": 1,
+      "dropped": 0.0875,
+      "invented": 0,
+      "deepEvalsPerPixel": 331,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=2 drift/s=0.5 rot=0.01 zoom=0.08",
+      "spanP90": 5468,
+      "inkDeep": 1,
+      "dropped": 0.025,
+      "invented": 0,
+      "deepEvalsPerPixel": 44,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=2 drift/s=0.25 rot=0.002 zoom=0.15",
+      "spanP90": 1452,
+      "inkDeep": 1,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 17,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=2 drift/s=1.25 rot=0.05 zoom=0.15",
+      "spanP90": 7146,
+      "inkDeep": 1,
+      "dropped": 0.0563,
+      "invented": 0,
+      "deepEvalsPerPixel": 160,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=2 drift/s=0.5 rot=0.01 zoom=0.08",
+      "spanP90": 5655,
+      "inkDeep": 1,
+      "dropped": 0.025,
+      "invented": 0,
+      "deepEvalsPerPixel": 44,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=2 drift/s=1 rot=0 zoom=0.15",
+      "spanP90": 65537,
+      "inkDeep": 0.5,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "square s=2 drift/s=1 rot=0.01 zoom=2",
+      "spanP90": 65537,
+      "inkDeep": 1,
+      "dropped": 0.4625,
+      "invented": 0,
+      "deepEvalsPerPixel": 53,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "square s=2 drift/s=2 rot=0.05 zoom=0.15",
+      "spanP90": 1435,
+      "inkDeep": 0.969,
+      "dropped": 0.0625,
+      "invented": 0,
+      "deepEvalsPerPixel": 102,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=2 drift/s=1.5 rot=0.01 zoom=0.08",
+      "spanP90": 6293,
+      "inkDeep": 0.994,
+      "dropped": 0.1,
+      "invented": 0,
+      "deepEvalsPerPixel": 48,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=2 drift/s=2 rot=0.002 zoom=0.08",
+      "spanP90": 2829,
+      "inkDeep": 0.606,
+      "dropped": 0.0125,
+      "invented": 0,
+      "deepEvalsPerPixel": 13,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=3 drift/s=1.333 rot=0 zoom=0.4",
+      "spanP90": 1300,
+      "inkDeep": 0.456,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 18,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=3 drift/s=0.833 rot=0.002 zoom=0.08",
+      "spanP90": 13680,
+      "inkDeep": 1,
+      "dropped": 0.1,
+      "invented": 0,
+      "deepEvalsPerPixel": 19,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=3 drift/s=0.333 rot=0.2 zoom=0.08",
+      "spanP90": 2295,
+      "inkDeep": 1,
+      "dropped": 0.0313,
+      "invented": 0,
+      "deepEvalsPerPixel": 232,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=3 drift/s=1.333 rot=0.01 zoom=0.4",
+      "spanP90": 1302,
+      "inkDeep": 0.906,
+      "dropped": 0.0813,
+      "invented": 0,
+      "deepEvalsPerPixel": 39,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=3 drift/s=0.667 rot=0.2 zoom=0.15",
+      "spanP90": 3335,
+      "inkDeep": 1,
+      "dropped": 0.0813,
+      "invented": 0,
+      "deepEvalsPerPixel": 319,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=3 drift/s=1 rot=0.002 zoom=8",
+      "spanP90": 65537,
+      "inkDeep": 1,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 204,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "square s=3 drift/s=1 rot=0.01 zoom=0.15",
+      "spanP90": 65537,
+      "inkDeep": 1,
+      "dropped": 0.4813,
+      "invented": 0,
+      "deepEvalsPerPixel": 43,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "square s=3 drift/s=1 rot=0.2 zoom=1",
+      "spanP90": 65537,
+      "inkDeep": 1,
+      "dropped": 0.2875,
+      "invented": 0,
+      "deepEvalsPerPixel": 410,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "square s=3 drift/s=1.333 rot=0.01 zoom=0.4",
+      "spanP90": 1302,
+      "inkDeep": 0.906,
+      "dropped": 0.0813,
+      "invented": 0,
+      "deepEvalsPerPixel": 39,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=4 drift/s=0.625 rot=0 zoom=0.08",
+      "spanP90": 4023,
+      "inkDeep": 1,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 13,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=4 drift/s=0.25 rot=0.002 zoom=0.08",
+      "spanP90": 1381,
+      "inkDeep": 1,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 16,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=4 drift/s=1 rot=0.2 zoom=1",
+      "spanP90": 65537,
+      "inkDeep": 1,
+      "dropped": 0.2875,
+      "invented": 0,
+      "deepEvalsPerPixel": 427,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "square s=4 drift/s=1 rot=0.01 zoom=0.15",
+      "spanP90": 65537,
+      "inkDeep": 1,
+      "dropped": 0.4875,
+      "invented": 0,
+      "deepEvalsPerPixel": 37,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "square s=4 drift/s=0.625 rot=0.002 zoom=0.08",
+      "spanP90": 4094,
+      "inkDeep": 1,
+      "dropped": 0.1,
+      "invented": 0,
+      "deepEvalsPerPixel": 18,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=4 drift/s=0.75 rot=0.002 zoom=0.4",
+      "spanP90": 1308,
+      "inkDeep": 0.969,
+      "dropped": 0.05,
+      "invented": 0,
+      "deepEvalsPerPixel": 23,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=4 drift/s=0.75 rot=0.05 zoom=0.15",
+      "spanP90": 3529,
+      "inkDeep": 1,
+      "dropped": 0.025,
+      "invented": 0,
+      "deepEvalsPerPixel": 130,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=4 drift/s=1 rot=0.002 zoom=1",
+      "spanP90": 65537,
+      "inkDeep": 1,
+      "dropped": 0.4188,
+      "invented": 0,
+      "deepEvalsPerPixel": 79,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "square s=4 drift/s=1 rot=0.05 zoom=8",
+      "spanP90": 65537,
+      "inkDeep": 1,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 33,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "square s=4 drift/s=1 rot=0.2 zoom=0.15",
+      "spanP90": 65537,
+      "inkDeep": 1,
+      "dropped": 0.2875,
+      "invented": 0,
+      "deepEvalsPerPixel": 370,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "square s=6 drift/s=0.667 rot=0.05 zoom=0.15",
+      "spanP90": 1657,
+      "inkDeep": 0.988,
+      "dropped": 0.0563,
+      "invented": 0,
+      "deepEvalsPerPixel": 120,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=6 drift/s=0.333 rot=0.05 zoom=0.08",
+      "spanP90": 1148,
+      "inkDeep": 1,
+      "dropped": 0.0063,
+      "invented": 0,
+      "deepEvalsPerPixel": 93,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=6 drift/s=0.667 rot=0 zoom=0.15",
+      "spanP90": 1680,
+      "inkDeep": 1,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 13,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=6 drift/s=0.667 rot=0.05 zoom=0.08",
+      "spanP90": 3137,
+      "inkDeep": 1,
+      "dropped": 0.0875,
+      "invented": 0,
+      "deepEvalsPerPixel": 139,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "square s=9 drift/s=0.444 rot=0.2 zoom=0.08",
+      "spanP90": 1064,
+      "inkDeep": 0.988,
+      "dropped": 0.0188,
+      "invented": 0,
+      "deepEvalsPerPixel": 207,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=1 drift/s=0.866 rot=0.002 zoom=0.15",
+      "spanP90": 28075,
+      "inkDeep": 1,
+      "dropped": 0.0063,
+      "invented": 0,
+      "deepEvalsPerPixel": 19,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=1 drift/s=0.25 rot=0.05 zoom=0.4",
+      "spanP90": 1385,
+      "inkDeep": 0.994,
+      "dropped": 0.0125,
+      "invented": 0,
+      "deepEvalsPerPixel": 115,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=1 drift/s=2.415 rot=0.2 zoom=0.15",
+      "spanP90": 1926,
+      "inkDeep": 0.781,
+      "dropped": 0.2375,
+      "invented": 0,
+      "deepEvalsPerPixel": 220,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=1 drift/s=1.366 rot=0.2 zoom=0.4",
+      "spanP90": 3605,
+      "inkDeep": 0.963,
+      "dropped": 0.3688,
+      "invented": 0,
+      "deepEvalsPerPixel": 263,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=1 drift/s=1 rot=0.2 zoom=0.08",
+      "spanP90": 65537,
+      "inkDeep": 1,
+      "dropped": 0.2563,
+      "invented": 0,
+      "deepEvalsPerPixel": 324,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "triangle s=1 drift/s=2.366 rot=0.01 zoom=0.15",
+      "spanP90": 2127,
+      "inkDeep": 0.713,
+      "dropped": 0.2563,
+      "invented": 0,
+      "deepEvalsPerPixel": 24,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=1.5 drift/s=0 rot=0.2 zoom=0.08",
+      "spanP90": 2484,
+      "inkDeep": 1,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 223,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=1.5 drift/s=2.309 rot=0.2 zoom=0.08",
+      "spanP90": 2714,
+      "inkDeep": 0.819,
+      "dropped": 0.3125,
+      "invented": 0,
+      "deepEvalsPerPixel": 268,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=1.5 drift/s=1.61 rot=0.05 zoom=0.4",
+      "spanP90": 1351,
+      "inkDeep": 0.55,
+      "dropped": 0.0688,
+      "invented": 0,
+      "deepEvalsPerPixel": 67,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=1.5 drift/s=0.911 rot=0.002 zoom=0.08",
+      "spanP90": 53420,
+      "inkDeep": 1,
+      "dropped": 0.0188,
+      "invented": 0,
+      "deepEvalsPerPixel": 18,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=1.5 drift/s=0.667 rot=0.002 zoom=0.15",
+      "spanP90": 7093,
+      "inkDeep": 1,
+      "dropped": 0.0188,
+      "invented": 0,
+      "deepEvalsPerPixel": 19,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=1.5 drift/s=2.11 rot=0.01 zoom=0.08",
+      "spanP90": 3255,
+      "inkDeep": 0.863,
+      "dropped": 0.3313,
+      "invented": 0,
+      "deepEvalsPerPixel": 35,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=1.5 drift/s=1.577 rot=0.01 zoom=0.08",
+      "spanP90": 7335,
+      "inkDeep": 0.988,
+      "dropped": 0.4313,
+      "invented": 0,
+      "deepEvalsPerPixel": 44,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=1.5 drift/s=1.911 rot=0.05 zoom=0.08",
+      "spanP90": 4377,
+      "inkDeep": 0.956,
+      "dropped": 0.3875,
+      "invented": 0,
+      "deepEvalsPerPixel": 99,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=2 drift/s=1.083 rot=0.05 zoom=1",
+      "spanP90": 3489,
+      "inkDeep": 0.931,
+      "dropped": 0.3875,
+      "invented": 0,
+      "deepEvalsPerPixel": 133,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=2 drift/s=0.558 rot=0.05 zoom=0.15",
+      "spanP90": 3692,
+      "inkDeep": 1,
+      "dropped": 0.0125,
+      "invented": 0,
+      "deepEvalsPerPixel": 136,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=2 drift/s=0.25 rot=0.01 zoom=0.15",
+      "spanP90": 1846,
+      "inkDeep": 1,
+      "dropped": 0.0125,
+      "invented": 0,
+      "deepEvalsPerPixel": 37,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=2 drift/s=1.982 rot=0.002 zoom=0.08",
+      "spanP90": 2859,
+      "inkDeep": 0.3,
+      "dropped": 0.0375,
+      "invented": 0,
+      "deepEvalsPerPixel": 12,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=2 drift/s=0.933 rot=0.05 zoom=2",
+      "spanP90": 2163,
+      "inkDeep": 1,
+      "dropped": 0.025,
+      "invented": 0,
+      "deepEvalsPerPixel": 116,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=2 drift/s=0.75 rot=0.002 zoom=1",
+      "spanP90": 1099,
+      "inkDeep": 0.925,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 42,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=2 drift/s=1.833 rot=0.002 zoom=0.08",
+      "spanP90": 3509,
+      "inkDeep": 0.35,
+      "dropped": 0.0438,
+      "invented": 0,
+      "deepEvalsPerPixel": 14,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=2 drift/s=1.433 rot=0.002 zoom=0.08",
+      "spanP90": 7622,
+      "inkDeep": 0.731,
+      "dropped": 0.2938,
+      "invented": 0,
+      "deepEvalsPerPixel": 18,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=3 drift/s=0.722 rot=0 zoom=0.15",
+      "spanP90": 4257,
+      "inkDeep": 1,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=3 drift/s=0.083 rot=0.05 zoom=0.08",
+      "spanP90": 1561,
+      "inkDeep": 1,
+      "dropped": 0.0063,
+      "invented": 0,
+      "deepEvalsPerPixel": 95,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=3 drift/s=1.238 rot=0.05 zoom=0.15",
+      "spanP90": 5124,
+      "inkDeep": 0.981,
+      "dropped": 0.425,
+      "invented": 0,
+      "deepEvalsPerPixel": 150,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=3 drift/s=0.888 rot=0.2 zoom=0.4",
+      "spanP90": 4239,
+      "inkDeep": 1,
+      "dropped": 0.0313,
+      "invented": 0,
+      "deepEvalsPerPixel": 365,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=3 drift/s=0.622 rot=0.05 zoom=0.4",
+      "spanP90": 1126,
+      "inkDeep": 0.988,
+      "dropped": 0.0375,
+      "invented": 0,
+      "deepEvalsPerPixel": 111,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=3 drift/s=1.488 rot=0.05 zoom=0.15",
+      "spanP90": 2317,
+      "inkDeep": 0.813,
+      "dropped": 0.2563,
+      "invented": 0,
+      "deepEvalsPerPixel": 100,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=3 drift/s=1.222 rot=0.01 zoom=0.08",
+      "spanP90": 10359,
+      "inkDeep": 0.994,
+      "dropped": 0.4688,
+      "invented": 0,
+      "deepEvalsPerPixel": 48,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=3 drift/s=0.955 rot=0.002 zoom=2",
+      "spanP90": 2186,
+      "inkDeep": 0.981,
+      "dropped": 0.0313,
+      "invented": 0,
+      "deepEvalsPerPixel": 121,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=3 drift/s=1.821 rot=0.01 zoom=0.15",
+      "spanP90": 1264,
+      "inkDeep": 0.475,
+      "dropped": 0.0813,
+      "invented": 0,
+      "deepEvalsPerPixel": 22,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=4 drift/s=0.866 rot=0.2 zoom=1",
+      "spanP90": 1057,
+      "inkDeep": 0.95,
+      "dropped": 0.025,
+      "invented": 0,
+      "deepEvalsPerPixel": 271,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=4 drift/s=0.929 rot=0.05 zoom=0.4",
+      "spanP90": 5042,
+      "inkDeep": 1,
+      "dropped": 0.0375,
+      "invented": 0,
+      "deepEvalsPerPixel": 197,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=4 drift/s=0.991 rot=0 zoom=0.08",
+      "spanP90": 65537,
+      "inkDeep": 1,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 0.88
+    },
+    {
+      "setting": "triangle s=4 drift/s=0.467 rot=0.05 zoom=0.08",
+      "spanP90": 2745,
+      "inkDeep": 1,
+      "dropped": 0.0188,
+      "invented": 0,
+      "deepEvalsPerPixel": 125,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=4 drift/s=1.116 rot=0.2 zoom=0.08",
+      "spanP90": 15314,
+      "inkDeep": 1,
+      "dropped": 0.4688,
+      "invented": 0,
+      "deepEvalsPerPixel": 358,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=4 drift/s=0.916 rot=0.2 zoom=1",
+      "spanP90": 1719,
+      "inkDeep": 0.994,
+      "dropped": 0.0188,
+      "invented": 0,
+      "deepEvalsPerPixel": 311,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=4 drift/s=0.717 rot=0.01 zoom=0.08",
+      "spanP90": 5906,
+      "inkDeep": 1,
+      "dropped": 0.0375,
+      "invented": 0,
+      "deepEvalsPerPixel": 50,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=4 drift/s=1.366 rot=0.01 zoom=0.08",
+      "spanP90": 4506,
+      "inkDeep": 0.944,
+      "dropped": 0.4063,
+      "invented": 0,
+      "deepEvalsPerPixel": 42,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=6 drift/s=0.228 rot=0.01 zoom=0.08",
+      "spanP90": 1050,
+      "inkDeep": 0.981,
+      "dropped": 0.0125,
+      "invented": 0,
+      "deepEvalsPerPixel": 35,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=6 drift/s=0.744 rot=0.01 zoom=0.15",
+      "spanP90": 2328,
+      "inkDeep": 1,
+      "dropped": 0.0125,
+      "invented": 0,
+      "deepEvalsPerPixel": 50,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=6 drift/s=0.827 rot=0.05 zoom=0.08",
+      "spanP90": 6695,
+      "inkDeep": 1,
+      "dropped": 0.0375,
+      "invented": 0,
+      "deepEvalsPerPixel": 155,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=6 drift/s=0.911 rot=0.05 zoom=0.4",
+      "spanP90": 2673,
+      "inkDeep": 1,
+      "dropped": 0.0188,
+      "invented": 0,
+      "deepEvalsPerPixel": 205,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "triangle s=9 drift/s=0.607 rot=0 zoom=0.08",
+      "spanP90": 1780,
+      "inkDeep": 1,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 11,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=1 drift/s=2.165 rot=0.01 zoom=0.08",
+      "spanP90": 4330,
+      "inkDeep": 0.988,
+      "dropped": 0.1125,
+      "invented": 0,
+      "deepEvalsPerPixel": 43,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=1 drift/s=1.116 rot=0.01 zoom=0.08",
+      "spanP90": 60371,
+      "inkDeep": 1,
+      "dropped": 0.1313,
+      "invented": 0,
+      "deepEvalsPerPixel": 49,
+      "fractionAtSpanCap": 0.03
+    },
+    {
+      "setting": "hexagon s=1 drift/s=1 rot=0.01 zoom=0.15",
+      "spanP90": 65537,
+      "inkDeep": 1,
+      "dropped": 0.4813,
+      "invented": 0,
+      "deepEvalsPerPixel": 42,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "hexagon s=1 drift/s=3.964 rot=0.01 zoom=0.08",
+      "spanP90": 1103,
+      "inkDeep": 0.781,
+      "dropped": 0.0375,
+      "invented": 0,
+      "deepEvalsPerPixel": 21,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=1 drift/s=3 rot=0.05 zoom=0.08",
+      "spanP90": 1994,
+      "inkDeep": 0.994,
+      "dropped": 0.0688,
+      "invented": 0,
+      "deepEvalsPerPixel": 84,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=1.5 drift/s=1.443 rot=0.05 zoom=0.15",
+      "spanP90": 4995,
+      "inkDeep": 1,
+      "dropped": 0.0938,
+      "invented": 0,
+      "deepEvalsPerPixel": 137,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=1.5 drift/s=0.744 rot=0.05 zoom=0.08",
+      "spanP90": 16646,
+      "inkDeep": 1,
+      "dropped": 0.0688,
+      "invented": 0,
+      "deepEvalsPerPixel": 117,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=1.5 drift/s=0.667 rot=0.2 zoom=0.15",
+      "spanP90": 6442,
+      "inkDeep": 1,
+      "dropped": 0.0625,
+      "invented": 0,
+      "deepEvalsPerPixel": 261,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=1.5 drift/s=2.643 rot=0.2 zoom=0.08",
+      "spanP90": 1745,
+      "inkDeep": 0.981,
+      "dropped": 0.0688,
+      "invented": 0,
+      "deepEvalsPerPixel": 196,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=1.5 drift/s=2.11 rot=0.002 zoom=0.08",
+      "spanP90": 2948,
+      "inkDeep": 0.65,
+      "dropped": 0.0313,
+      "invented": 0,
+      "deepEvalsPerPixel": 13,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=1.5 drift/s=2.667 rot=0.01 zoom=0.08",
+      "spanP90": 1675,
+      "inkDeep": 0.925,
+      "dropped": 0.0875,
+      "invented": 0,
+      "deepEvalsPerPixel": 28,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=2 drift/s=1.083 rot=0.2 zoom=0.4",
+      "spanP90": 8638,
+      "inkDeep": 1,
+      "dropped": 0.0813,
+      "invented": 0,
+      "deepEvalsPerPixel": 402,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=2 drift/s=1.208 rot=0.002 zoom=0.4",
+      "spanP90": 3256,
+      "inkDeep": 0.756,
+      "dropped": 0.0375,
+      "invented": 0,
+      "deepEvalsPerPixel": 27,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=2 drift/s=0.5 rot=0.2 zoom=0.08",
+      "spanP90": 5166,
+      "inkDeep": 1,
+      "dropped": 0.0313,
+      "invented": 0,
+      "deepEvalsPerPixel": 219,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=2 drift/s=1 rot=0 zoom=0.4",
+      "spanP90": 65537,
+      "inkDeep": 0.5,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 15,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "hexagon s=2 drift/s=1 rot=0.01 zoom=8",
+      "spanP90": 65537,
+      "inkDeep": 1,
+      "dropped": 0.3188,
+      "invented": 0,
+      "deepEvalsPerPixel": 31,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "hexagon s=2 drift/s=1.5 rot=0.01 zoom=0.15",
+      "spanP90": 3201,
+      "inkDeep": 0.981,
+      "dropped": 0.075,
+      "invented": 0,
+      "deepEvalsPerPixel": 38,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=2 drift/s=2 rot=0.2 zoom=0.15",
+      "spanP90": 1350,
+      "inkDeep": 0.956,
+      "dropped": 0.0313,
+      "invented": 0,
+      "deepEvalsPerPixel": 211,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=3 drift/s=0.722 rot=0.2 zoom=0.15",
+      "spanP90": 4060,
+      "inkDeep": 1,
+      "dropped": 0.05,
+      "invented": 0,
+      "deepEvalsPerPixel": 353,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=3 drift/s=0.805 rot=0.002 zoom=0.08",
+      "spanP90": 11398,
+      "inkDeep": 1,
+      "dropped": 0.0938,
+      "invented": 0,
+      "deepEvalsPerPixel": 19,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=3 drift/s=0.455 rot=0.01 zoom=0.08",
+      "spanP90": 3015,
+      "inkDeep": 1,
+      "dropped": 0.0313,
+      "invented": 0,
+      "deepEvalsPerPixel": 39,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=3 drift/s=0.667 rot=0 zoom=0.4",
+      "spanP90": 1209,
+      "inkDeep": 1,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 17,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=3 drift/s=1.055 rot=0.002 zoom=0.4",
+      "spanP90": 8723,
+      "inkDeep": 0.981,
+      "dropped": 0.1063,
+      "invented": 0,
+      "deepEvalsPerPixel": 35,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=3 drift/s=1 rot=0.01 zoom=1",
+      "spanP90": 65537,
+      "inkDeep": 1,
+      "dropped": 0.4875,
+      "invented": 0,
+      "deepEvalsPerPixel": 69,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "hexagon s=3 drift/s=1 rot=0.2 zoom=8",
+      "spanP90": 65537,
+      "inkDeep": 1,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 40,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "hexagon s=3 drift/s=1.333 rot=0.05 zoom=0.08",
+      "spanP90": 6399,
+      "inkDeep": 1,
+      "dropped": 0.0813,
+      "invented": 0,
+      "deepEvalsPerPixel": 131,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=3 drift/s=1.821 rot=0.2 zoom=0.08",
+      "spanP90": 2193,
+      "inkDeep": 1,
+      "dropped": 0.075,
+      "invented": 0,
+      "deepEvalsPerPixel": 237,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=4 drift/s=0.279 rot=0.002 zoom=0.08",
+      "spanP90": 1283,
+      "inkDeep": 1,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 19,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=4 drift/s=0.25 rot=0.05 zoom=0.08",
+      "spanP90": 1157,
+      "inkDeep": 1,
+      "dropped": 0.0063,
+      "invented": 0,
+      "deepEvalsPerPixel": 106,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=4 drift/s=0.991 rot=0.05 zoom=1",
+      "spanP90": 16410,
+      "inkDeep": 1,
+      "dropped": 0.1563,
+      "invented": 0,
+      "deepEvalsPerPixel": 244,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=4 drift/s=0.791 rot=0.01 zoom=0.15",
+      "spanP90": 4216,
+      "inkDeep": 1,
+      "dropped": 0.0688,
+      "invented": 0,
+      "deepEvalsPerPixel": 49,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=4 drift/s=0.75 rot=0.05 zoom=0.4",
+      "spanP90": 1285,
+      "inkDeep": 0.969,
+      "dropped": 0.05,
+      "invented": 0,
+      "deepEvalsPerPixel": 95,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=4 drift/s=0.916 rot=0.2 zoom=1",
+      "spanP90": 1699,
+      "inkDeep": 0.981,
+      "dropped": 0.1063,
+      "invented": 0,
+      "deepEvalsPerPixel": 280,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=4 drift/s=1 rot=0.2 zoom=8",
+      "spanP90": 65537,
+      "inkDeep": 1,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 40,
+      "fractionAtSpanCap": 1
+    },
+    {
+      "setting": "hexagon s=4 drift/s=1.041 rot=0 zoom=0.08",
+      "spanP90": 43917,
+      "inkDeep": 0.488,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 35,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=6 drift/s=0.577 rot=0.002 zoom=0.08",
+      "spanP90": 2241,
+      "inkDeep": 1,
+      "dropped": 0.05,
+      "invented": 0,
+      "deepEvalsPerPixel": 18,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=6 drift/s=0.333 rot=0 zoom=0.08",
+      "spanP90": 1026,
+      "inkDeep": 1,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 17,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=6 drift/s=0.611 rot=0.002 zoom=0.15",
+      "spanP90": 1327,
+      "inkDeep": 1,
+      "dropped": 0.0188,
+      "invented": 0,
+      "deepEvalsPerPixel": 20,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=6 drift/s=0.667 rot=0.01 zoom=0.15",
+      "spanP90": 1616,
+      "inkDeep": 0.981,
+      "dropped": 0.05,
+      "invented": 0,
+      "deepEvalsPerPixel": 38,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "hexagon s=9 drift/s=0.496 rot=0.002 zoom=0.08",
+      "spanP90": 1135,
+      "inkDeep": 1,
+      "dropped": 0.0125,
+      "invented": 0,
+      "deepEvalsPerPixel": 17,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=1 drift/s=0.951 rot=0.01 zoom=1",
+      "spanP90": 11800,
+      "inkDeep": 1,
+      "dropped": 0.0625,
+      "invented": 0,
+      "deepEvalsPerPixel": 66,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=1 drift/s=0.405 rot=0.05 zoom=0.15",
+      "spanP90": 4360,
+      "inkDeep": 1,
+      "dropped": 0.025,
+      "invented": 0,
+      "deepEvalsPerPixel": 113,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=1 drift/s=2.223 rot=0.01 zoom=0.15",
+      "spanP90": 2187,
+      "inkDeep": 0.925,
+      "dropped": 0.225,
+      "invented": 0,
+      "deepEvalsPerPixel": 31,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=1 drift/s=1.397 rot=0.002 zoom=0.08",
+      "spanP90": 15832,
+      "inkDeep": 0.981,
+      "dropped": 0.1875,
+      "invented": 0,
+      "deepEvalsPerPixel": 15,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=1 drift/s=2.206 rot=0.01 zoom=0.15",
+      "spanP90": 2140,
+      "inkDeep": 0.919,
+      "dropped": 0.1688,
+      "invented": 0,
+      "deepEvalsPerPixel": 30,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=1.5 drift/s=0.634 rot=0 zoom=0.08",
+      "spanP90": 10876,
+      "inkDeep": 1,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 15,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=1.5 drift/s=0.27 rot=0.01 zoom=0.08",
+      "spanP90": 3625,
+      "inkDeep": 1,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 45,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=1.5 drift/s=2.433 rot=0.2 zoom=0.15",
+      "spanP90": 1169,
+      "inkDeep": 0.781,
+      "dropped": 0.0938,
+      "invented": 0,
+      "deepEvalsPerPixel": 160,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=1.5 drift/s=0.931 rot=0.2 zoom=2",
+      "spanP90": 2774,
+      "inkDeep": 1,
+      "dropped": 0.0313,
+      "invented": 0,
+      "deepEvalsPerPixel": 275,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=1.5 drift/s=1.079 rot=0.01 zoom=0.15",
+      "spanP90": 32328,
+      "inkDeep": 1,
+      "dropped": 0.225,
+      "invented": 0,
+      "deepEvalsPerPixel": 37,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=1.5 drift/s=1.618 rot=0.01 zoom=0.4",
+      "spanP90": 1292,
+      "inkDeep": 0.813,
+      "dropped": 0.0625,
+      "invented": 0,
+      "deepEvalsPerPixel": 28,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=1.5 drift/s=2.549 rot=0.2 zoom=0.08",
+      "spanP90": 1952,
+      "inkDeep": 0.938,
+      "dropped": 0.1938,
+      "invented": 0,
+      "deepEvalsPerPixel": 205,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=2 drift/s=1.902 rot=0.01 zoom=0.08",
+      "spanP90": 2959,
+      "inkDeep": 0.969,
+      "dropped": 0.1813,
+      "invented": 0,
+      "deepEvalsPerPixel": 36,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=2 drift/s=1.112 rot=0.01 zoom=0.4",
+      "spanP90": 6324,
+      "inkDeep": 0.994,
+      "dropped": 0.2875,
+      "invented": 0,
+      "deepEvalsPerPixel": 64,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=2 drift/s=0.698 rot=0.01 zoom=0.4",
+      "spanP90": 2071,
+      "inkDeep": 1,
+      "dropped": 0.0688,
+      "invented": 0,
+      "deepEvalsPerPixel": 48,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=2 drift/s=0.809 rot=0.002 zoom=1",
+      "spanP90": 1416,
+      "inkDeep": 0.919,
+      "dropped": 0.0188,
+      "invented": 0,
+      "deepEvalsPerPixel": 39,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=2 drift/s=1.103 rot=0.2 zoom=1",
+      "spanP90": 2745,
+      "inkDeep": 0.975,
+      "dropped": 0.1688,
+      "invented": 0,
+      "deepEvalsPerPixel": 313,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=2 drift/s=1.507 rot=0.002 zoom=0.4",
+      "spanP90": 1196,
+      "inkDeep": 0.244,
+      "dropped": 0.0125,
+      "invented": 0,
+      "deepEvalsPerPixel": 14,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=2 drift/s=1.912 rot=0.05 zoom=0.08",
+      "spanP90": 2937,
+      "inkDeep": 0.981,
+      "dropped": 0.2375,
+      "invented": 0,
+      "deepEvalsPerPixel": 109,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=3 drift/s=1.268 rot=0.002 zoom=0.08",
+      "spanP90": 8226,
+      "inkDeep": 0.931,
+      "dropped": 0.2063,
+      "invented": 0,
+      "deepEvalsPerPixel": 19,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=3 drift/s=0.741 rot=0.2 zoom=0.4",
+      "spanP90": 1667,
+      "inkDeep": 0.994,
+      "dropped": 0.0375,
+      "invented": 0,
+      "deepEvalsPerPixel": 288,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=3 drift/s=0.759 rot=0.01 zoom=0.15",
+      "spanP90": 4845,
+      "inkDeep": 1,
+      "dropped": 0.0563,
+      "invented": 0,
+      "deepEvalsPerPixel": 48,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=3 drift/s=0.735 rot=0.002 zoom=0.4",
+      "spanP90": 1614,
+      "inkDeep": 1,
+      "dropped": 0.0375,
+      "invented": 0,
+      "deepEvalsPerPixel": 32,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=3 drift/s=1.323 rot=0.002 zoom=0.15",
+      "spanP90": 3585,
+      "inkDeep": 0.625,
+      "dropped": 0.0813,
+      "invented": 0,
+      "deepEvalsPerPixel": 21,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=3 drift/s=1.005 rot=0.01 zoom=2",
+      "spanP90": 19942,
+      "inkDeep": 1,
+      "dropped": 0.1813,
+      "invented": 0,
+      "deepEvalsPerPixel": 67,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=3 drift/s=1.593 rot=0.05 zoom=0.08",
+      "spanP90": 3310,
+      "inkDeep": 0.988,
+      "dropped": 0.2188,
+      "invented": 0,
+      "deepEvalsPerPixel": 114,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=3 drift/s=1.275 rot=0.05 zoom=0.4",
+      "spanP90": 1606,
+      "inkDeep": 0.869,
+      "dropped": 0.1125,
+      "invented": 0,
+      "deepEvalsPerPixel": 92,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=4 drift/s=0.951 rot=0 zoom=1",
+      "spanP90": 2957,
+      "inkDeep": 0.756,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 15,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=4 drift/s=0.556 rot=0.2 zoom=0.15",
+      "spanP90": 1695,
+      "inkDeep": 1,
+      "dropped": 0.025,
+      "invented": 0,
+      "deepEvalsPerPixel": 264,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=4 drift/s=0.57 rot=0.01 zoom=0.08",
+      "spanP90": 3328,
+      "inkDeep": 1,
+      "dropped": 0.0313,
+      "invented": 0,
+      "deepEvalsPerPixel": 41,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=4 drift/s=0.551 rot=0.002 zoom=0.15",
+      "spanP90": 1651,
+      "inkDeep": 1,
+      "dropped": 0.0188,
+      "invented": 0,
+      "deepEvalsPerPixel": 22,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=4 drift/s=0.992 rot=0.01 zoom=1",
+      "spanP90": 19126,
+      "inkDeep": 1,
+      "dropped": 0.075,
+      "invented": 0,
+      "deepEvalsPerPixel": 119,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=4 drift/s=0.754 rot=0.05 zoom=0.08",
+      "spanP90": 6588,
+      "inkDeep": 1,
+      "dropped": 0.0188,
+      "invented": 0,
+      "deepEvalsPerPixel": 137,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=4 drift/s=1.195 rot=0.01 zoom=0.08",
+      "spanP90": 8747,
+      "inkDeep": 0.994,
+      "dropped": 0.2625,
+      "invented": 0,
+      "deepEvalsPerPixel": 43,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=4 drift/s=0.956 rot=0.05 zoom=2",
+      "spanP90": 1657,
+      "inkDeep": 1,
+      "dropped": 0.025,
+      "invented": 0,
+      "deepEvalsPerPixel": 130,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=6 drift/s=0.396 rot=0.2 zoom=0.08",
+      "spanP90": 1300,
+      "inkDeep": 1,
+      "dropped": 0.0188,
+      "invented": 0,
+      "deepEvalsPerPixel": 232,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=6 drift/s=0.583 rot=0.05 zoom=0.15",
+      "spanP90": 1235,
+      "inkDeep": 0.994,
+      "dropped": 0.0188,
+      "invented": 0,
+      "deepEvalsPerPixel": 104,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=6 drift/s=0.649 rot=0.002 zoom=0.08",
+      "spanP90": 2862,
+      "inkDeep": 1,
+      "dropped": 0.075,
+      "invented": 0,
+      "deepEvalsPerPixel": 21,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=6 drift/s=0.637 rot=0.01 zoom=0.08",
+      "spanP90": 2758,
+      "inkDeep": 1,
+      "dropped": 0.0438,
+      "invented": 0,
+      "deepEvalsPerPixel": 44,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "pentagon s=9 drift/s=0.531 rot=0.01 zoom=0.08",
+      "spanP90": 1295,
+      "inkDeep": 0.969,
+      "dropped": 0.0375,
+      "invented": 0,
+      "deepEvalsPerPixel": 38,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=1 drift/s=0.985 rot=0.2 zoom=8",
+      "spanP90": 4863,
+      "inkDeep": 1,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 34,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=1 drift/s=1.116 rot=0.002 zoom=2",
+      "spanP90": 2413,
+      "inkDeep": 0.65,
+      "dropped": 0.0313,
+      "invented": 0,
+      "deepEvalsPerPixel": 36,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=1 drift/s=0.94 rot=0.002 zoom=2",
+      "spanP90": 4757,
+      "inkDeep": 0.994,
+      "dropped": 0.05,
+      "invented": 0,
+      "deepEvalsPerPixel": 39,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=1 drift/s=1.366 rot=0.2 zoom=0.15",
+      "spanP90": 9176,
+      "inkDeep": 1,
+      "dropped": 0.1813,
+      "invented": 0,
+      "deepEvalsPerPixel": 302,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=1 drift/s=2.819 rot=0.01 zoom=0.08",
+      "spanP90": 2255,
+      "inkDeep": 0.956,
+      "dropped": 0.15,
+      "invented": 0,
+      "deepEvalsPerPixel": 30,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=1.5 drift/s=1.641 rot=0.05 zoom=0.15",
+      "spanP90": 3138,
+      "inkDeep": 1,
+      "dropped": 0.1938,
+      "invented": 0,
+      "deepEvalsPerPixel": 108,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=1.5 drift/s=0.744 rot=0.2 zoom=0.15",
+      "spanP90": 8810,
+      "inkDeep": 1,
+      "dropped": 0.1,
+      "invented": 0,
+      "deepEvalsPerPixel": 263,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=1.5 drift/s=0.911 rot=0.002 zoom=2",
+      "spanP90": 2109,
+      "inkDeep": 0.956,
+      "dropped": 0.075,
+      "invented": 0,
+      "deepEvalsPerPixel": 48,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=1.5 drift/s=1.253 rot=0.002 zoom=0.15",
+      "spanP90": 9287,
+      "inkDeep": 0.956,
+      "dropped": 0.1125,
+      "invented": 0,
+      "deepEvalsPerPixel": 17,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=1.5 drift/s=1.879 rot=0.002 zoom=0.15",
+      "spanP90": 2135,
+      "inkDeep": 0.431,
+      "dropped": 0.0188,
+      "invented": 0,
+      "deepEvalsPerPixel": 12,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=2 drift/s=0.492 rot=0 zoom=0.15",
+      "spanP90": 2629,
+      "inkDeep": 1,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 23,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=2 drift/s=0.235 rot=0.002 zoom=0.08",
+      "spanP90": 2035,
+      "inkDeep": 1,
+      "dropped": 0.0125,
+      "invented": 0,
+      "deepEvalsPerPixel": 28,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=2 drift/s=1.208 rot=0.2 zoom=0.08",
+      "spanP90": 16211,
+      "inkDeep": 1,
+      "dropped": 0.125,
+      "invented": 0,
+      "deepEvalsPerPixel": 324,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=2 drift/s=1.333 rot=0.01 zoom=0.4",
+      "spanP90": 1916,
+      "inkDeep": 0.944,
+      "dropped": 0.1125,
+      "invented": 0,
+      "deepEvalsPerPixel": 41,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=2 drift/s=0.94 rot=0.2 zoom=2",
+      "spanP90": 2383,
+      "inkDeep": 1,
+      "dropped": 0.0375,
+      "invented": 0,
+      "deepEvalsPerPixel": 221,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=2 drift/s=1.583 rot=0.2 zoom=0.08",
+      "spanP90": 4960,
+      "inkDeep": 1,
+      "dropped": 0.15,
+      "invented": 0,
+      "deepEvalsPerPixel": 324,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=2 drift/s=1.879 rot=0.002 zoom=0.08",
+      "spanP90": 3001,
+      "inkDeep": 0.606,
+      "dropped": 0.0563,
+      "invented": 0,
+      "deepEvalsPerPixel": 14,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=3 drift/s=0.821 rot=0.05 zoom=0.08",
+      "spanP90": 12430,
+      "inkDeep": 1,
+      "dropped": 0.0563,
+      "invented": 0,
+      "deepEvalsPerPixel": 115,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=3 drift/s=0.805 rot=0.05 zoom=0.08",
+      "spanP90": 11340,
+      "inkDeep": 1,
+      "dropped": 0.0563,
+      "invented": 0,
+      "deepEvalsPerPixel": 138,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=3 drift/s=0.888 rot=0.002 zoom=0.15",
+      "spanP90": 11086,
+      "inkDeep": 1,
+      "dropped": 0.075,
+      "invented": 0,
+      "deepEvalsPerPixel": 20,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=3 drift/s=0.626 rot=0.05 zoom=0.08",
+      "spanP90": 5175,
+      "inkDeep": 1,
+      "dropped": 0.0563,
+      "invented": 0,
+      "deepEvalsPerPixel": 122,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=3 drift/s=1.055 rot=0.05 zoom=0.15",
+      "spanP90": 23231,
+      "inkDeep": 1,
+      "dropped": 0.1688,
+      "invented": 0,
+      "deepEvalsPerPixel": 137,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=3 drift/s=0.94 rot=0.2 zoom=0.4",
+      "spanP90": 7922,
+      "inkDeep": 1,
+      "dropped": 0.1063,
+      "invented": 0,
+      "deepEvalsPerPixel": 336,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=3 drift/s=1.225 rot=0.2 zoom=0.4",
+      "spanP90": 1985,
+      "inkDeep": 0.981,
+      "dropped": 0.125,
+      "invented": 0,
+      "deepEvalsPerPixel": 252,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=3 drift/s=1.367 rot=0.2 zoom=0.08",
+      "spanP90": 5702,
+      "inkDeep": 1,
+      "dropped": 0.1438,
+      "invented": 0,
+      "deepEvalsPerPixel": 309,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=4 drift/s=0.985 rot=0.002 zoom=8",
+      "spanP90": 1253,
+      "inkDeep": 0.788,
+      "dropped": 0.0063,
+      "invented": 0,
+      "deepEvalsPerPixel": 188,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=4 drift/s=0.604 rot=0.2 zoom=0.15",
+      "spanP90": 1910,
+      "inkDeep": 1,
+      "dropped": 0.0625,
+      "invented": 0,
+      "deepEvalsPerPixel": 241,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=4 drift/s=0.666 rot=0.01 zoom=0.08",
+      "spanP90": 4475,
+      "inkDeep": 1,
+      "dropped": 0.0813,
+      "invented": 0,
+      "deepEvalsPerPixel": 45,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=4 drift/s=0.47 rot=0.002 zoom=0.15",
+      "spanP90": 1233,
+      "inkDeep": 1,
+      "dropped": 0,
+      "invented": 0,
+      "deepEvalsPerPixel": 21,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=4 drift/s=1.116 rot=0.002 zoom=1",
+      "spanP90": 1209,
+      "inkDeep": 0.413,
+      "dropped": 0.0188,
+      "invented": 0,
+      "deepEvalsPerPixel": 38,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=4 drift/s=0.79 rot=0.01 zoom=0.4",
+      "spanP90": 1564,
+      "inkDeep": 0.969,
+      "dropped": 0.0563,
+      "invented": 0,
+      "deepEvalsPerPixel": 49,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=4 drift/s=1.241 rot=0.05 zoom=0.08",
+      "spanP90": 6864,
+      "inkDeep": 1,
+      "dropped": 0.15,
+      "invented": 0,
+      "deepEvalsPerPixel": 150,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=4 drift/s=1.025 rot=0.002 zoom=0.15",
+      "spanP90": 38578,
+      "inkDeep": 1,
+      "dropped": 0.1563,
+      "invented": 0,
+      "deepEvalsPerPixel": 27,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=4 drift/s=1.366 rot=0.05 zoom=0.08",
+      "spanP90": 4302,
+      "inkDeep": 1,
+      "dropped": 0.1875,
+      "invented": 0,
+      "deepEvalsPerPixel": 130,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=6 drift/s=0.444 rot=0.2 zoom=0.08",
+      "spanP90": 1407,
+      "inkDeep": 1,
+      "dropped": 0.0125,
+      "invented": 0,
+      "deepEvalsPerPixel": 228,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=6 drift/s=0.527 rot=0.002 zoom=0.08",
+      "spanP90": 1834,
+      "inkDeep": 1,
+      "dropped": 0.0063,
+      "invented": 0,
+      "deepEvalsPerPixel": 21,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=6 drift/s=0.626 rot=0.2 zoom=0.15",
+      "spanP90": 1381,
+      "inkDeep": 1,
+      "dropped": 0.0375,
+      "invented": 0,
+      "deepEvalsPerPixel": 241,
+      "fractionAtSpanCap": 0
+    },
+    {
+      "setting": "nonagon s=6 drift/s=0.911 rot=0.05 zoom=0.08",
+      "spanP90": 13162,
+      "inkDeep": 1,
+      "dropped": 0.05,
+      "invented": 0,
+      "deepEvalsPerPixel": 136,
+      "fractionAtSpanCap": 0
+    }
+  ]
+}

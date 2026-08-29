@@ -1,0 +1,44 @@
+{
+  "p": {
+    "x": 520,
+    "y": 260
+  },
+  "shape": 4,
+  "sides": 6,
+  "cases": {
+    "shrinking": {
+      "offset": {
+        "x": 4,
+        "y": 2
+      },
+      "drift": 4,
+      "spacing": 14,
+      "facetSolves": [
+        28.89,
+        27.36,
+        -2.54,
+        -52,
+        -47.25,
+        2.44
+      ],
+      "asymptoticSlope": -10
+    },
+    "marginal": {
+      "offset": {
+        "x": 14,
+        "y": 0
+      },
+      "drift": 14,
+      "spacing": 14,
+      "facetSolves": [
+        18.57,
+        23.1,
+        -4.98,
+        null,
+        -69.31,
+        1.66
+      ],
+      "asymptoticSlope": 0
+    }
+  }
+}

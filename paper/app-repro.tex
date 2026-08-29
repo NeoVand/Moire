@@ -1,0 +1,101 @@
+\section{Reproducing the numbers}
+\label{app:repro}
+
+Every number quoted in this paper is generated, not typed. The prose reads its
+values from a single generated macro file, so a figure and the sentence describing
+it cannot drift apart: if an experiment is re-run and its result changes, the text
+changes with it or the build fails.
+
+\subsection{Layout}
+
+Experiments live in \texttt{paper\pslash tools\pslash exp\pslash}, one file per
+claim, each writing a JSON or CSV file to \texttt{paper\pslash data\pslash} and its
+figures to \texttt{paper\pslash figures\pslash}. A collector reads every data file and emits
+\texttt{numbers.tex}, a list of macros; the prose uses only those macros for
+quantities. The mapping from claim to command is:
+
+\begin{center}\footnotesize
+\begin{tabular}{@{}lll@{}}
+  \toprule
+  Claim & Script & Data \\
+  \midrule
+  Fringe law (Thm.~\ref{thm:fringe})     & \texttt{fringe.mjs}     & \texttt{fringe.json} \\
+  Fringe law, drawn (Fig.~\ref{fig:visibility}) & \texttt{fringelaw.mjs} & --- \\
+  Law across pairs (Fig.~\ref{fig:lawatlas}) & \texttt{lawatlas.mjs} & \texttt{lawatlas.json} \\
+  Eikonal divide (\S\ref{sec:eikonal})   & \texttt{gradient.mjs}   & \texttt{gradient.json} \\
+  Cost (Table~\ref{tab:cost})            & \texttt{cost.mjs}       & \texttt{cost.json} \\
+  Fidelity (Table~\ref{tab:fidelity})    & \texttt{fidelity.mjs}   & \texttt{fidelity.json} \\
+  Ablation (Table~\ref{tab:ablation})    & \texttt{cost.mjs}       & \texttt{ablation.json} \\
+  Interval width (\S\ref{sec:limits})    & \texttt{saturation.mjs}   & \texttt{saturation.json} \\
+  Degenerate band (\S\ref{sec:limits})   & \texttt{degenerate.mjs} & \texttt{degenerate.json} \\
+  Bounds, drawn (Figs.~\ref{fig:bounds},~\ref{fig:convex}) & \texttt{math.mjs} & \texttt{residual.csv} \\
+  Interval verified (\S\ref{sec:window}) & \texttt{math.mjs}       & \texttt{window.json} \\
+  Artifacts (Figs.~\ref{fig:holes}--\ref{fig:anchor}) & \texttt{artifacts.mjs} & \texttt{artifacts.json} \\
+  Contouring (\S\ref{sec:beyond})        & \texttt{contour.mjs}    & \texttt{contour.json} \\
+  Field expressions (Table~\ref{tab:compile}) & \texttt{gpu\pslash run.mjs} & \texttt{gpu.json} \\
+  Stroke floor (\S\ref{sec:zoom})        & \texttt{zoom.mjs}       & \texttt{zoom.json} \\
+  Catalog plate (Fig.~\ref{fig:plate})   & \texttt{plate.mjs}      & --- \\
+  Instrument (Fig.~\ref{fig:instrument}) & \texttt{instrument.mjs} & --- \\
+  Two traditions (Fig.~\ref{fig:traditions}) & \texttt{traditions.mjs} & --- \\
+  Teaser (Fig.~\ref{fig:teaser})         & \texttt{teaser.mjs}     & --- \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{The solvers under test are the shipped sources}
+
+The comparisons in \S\ref{sec:results} are between three solvers, and none of them
+is a reimplementation. \sweep{} and \ours{} are the two historical versions, kept
+verbatim under \texttt{paper\pslash tools\pslash legacy\pslash}; the third is
+\texttt{src\pslash gpu\pslash inverseCpu.ts}, the file the shader's CPU twin actually uses. All
+three are loaded by rewriting their source at import time to wrap
+\texttt{shapeRadius} in a counter, so ``metric evaluations per pixel'' is measured
+in the shipping code rather than estimated beside it. An ablation is expressed the
+same way, as a literal find-and-replace against the shipping source; a patch whose
+pattern fails to match raises rather than silently doing nothing, which is what
+keeps the ablation table honest as the source moves underneath it.
+
+Because the counter wraps the metric rather than the loop, the unit compares across
+solvers that search differently: in all three, one candidate index costs one
+\texttt{shapeRadius} call and one Newton step a \texttt{shapeRadius} plus a
+gradient.
+
+Table~\ref{tab:compile} is arranged the same way. The compiled column is produced
+by calling the shipping emitter, \texttt{src\pslash fields\pslash emit.ts}, and
+pasting its output into the timing kernel, so it is the code the tool runs and not
+a hand transcription of it. The interpreter it is compared against is the shader we
+replaced, kept verbatim under \texttt{paper\pslash tools\pslash legacy\pslash}. Both
+are checked against \texttt{src\pslash fields\pslash evalExpr.ts} at the same points
+before either is timed.
+
+\subsection{Figures are renders, not screenshots}
+
+No figure in this paper is a capture of the running application. The pattern figures
+come from a CPU rasteriser that mirrors the shader's \texttt{composite.ts} term for
+term --- same world transform, same $1.15$-pixel stroke floor, same $0.7$-pixel
+antialiasing band, same accept/reject guards, same alpha composite --- so a figure
+can be rendered with a solver that no longer exists in the shader, and per-pixel
+work can be counted while it is drawn. Where a figure needs the walking families it
+calls the shipped solver through the experiments' own instrumented loader.
+
+This costs orders of magnitude more time than a screenshot and buys exact
+reproducibility, antialiasing included. It matters for one claim: the sub-pixel
+offset measured in \S\ref{sec:beyond} would otherwise be confounded by an unknown
+display pipeline.
+
+\subsection{Running it}
+
+The experiments need only a recent Node with TypeScript stripping enabled, since
+they import the shader's twin directly. Run the CPU twin's unit tests first, because
+everything else depends on them; then any experiment; then the collector and the
+document build. Total runtime is dominated by \texttt{fidelity.mjs} and
+\texttt{saturation.mjs}, which sweep $\fidSettings$ and $\satSettings$ settings
+respectively against an exhaustive reference.
+
+\begin{center}\footnotesize
+\begin{tabular}{@{}l@{}}
+  \texttt{node -{}-experimental-strip-types src\pslash gpu\pslash inverseCpu.test.ts} \\
+  \texttt{node paper\pslash tools\pslash exp\pslash contour.mjs} \\
+  \texttt{node paper\pslash tools\pslash numbers.mjs} \\
+\end{tabular}
+\end{center}

@@ -1,0 +1,239 @@
+% Moire Fields. Build: tectonic -X compile paper.tex --outdir build
+\documentclass[acmtog, nonacm]{acmart}
+
+\usepackage{amsmath}
+% acmart's text font already defines a blackboard k; amssymb wants to as well.
+\let\Bbbk\relax
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{calc, arrows.meta, decorations.pathreplacing, patterns, positioning, fit}
+
+\definecolor{ink}{HTML}{15181C}
+\definecolor{accent}{HTML}{C81E5A}
+\definecolor{cool}{HTML}{1B6CA8}
+\definecolor{warm}{HTML}{D4761A}
+\definecolor{soft}{HTML}{8A94A0}
+\definecolor{paperbg}{HTML}{F7F7F5}
+
+\pgfplotsset{
+  paperaxis/.style={
+    width=\linewidth, height=4.4cm,
+    tick align=outside, tick pos=left,
+    axis line style={gray!60},
+    grid=major, grid style={gray!18, very thin},
+    label style={font=\small}, tick label style={font=\footnotesize},
+    legend style={font=\footnotesize, draw=gray!40, fill=white, fill opacity=0.92,
+                  text opacity=1, inner sep=2pt, row sep=-1pt},
+  },
+  smallaxis/.style={paperaxis, height=3.6cm},
+}
+
+% Figure captions read as standalone paragraphs, so they get a lead-in.
+\newcommand{\figlead}[1]{\textbf{#1}\ }
+
+% Two narrow columns full of monospaced identifiers and inline mathematics leave
+% TeX few break points; a little emergency stretch is cheaper than a slug of
+% overfull lines.
+\setlength{\emergencystretch}{1.2em}
+% A slash inside a monospaced path, with a break opportunity after it.
+\newcommand{\pslash}{\discretionary{/}{}{/}}
+
+% Reference entries carry unbreakable DOIs, so a few lines cannot be justified at
+% all. Be sloppy there rather than in the body, where the stretch would show.
+\AtBeginEnvironment{thebibliography}{\sloppy}
+
+% Labels centred under the panels of a strip figure. The strips are assembled as
+% single images by tools/lib/render.mjs, so the geometry has to be restated here:
+% #1 is the panel width and #2 the gutter, both as fractions of the image width,
+% and #3 is a comma list of labels.
+% The row is one unbreakable box: the fractions sum to the full width by
+% construction, so any line breaking at all would scatter the labels.
+\newcommand{\panelrow}[3]{%
+  \par\nointerlineskip\vskip 2.5pt%
+  \noindent\makebox[\linewidth][l]{\footnotesize
+    \foreach \panellabel [count=\panelno] in {#3}{%
+      \ifnum\panelno>1\hspace{#2\linewidth}\fi
+      \makebox[#1\linewidth][c]{\panellabel}%
+    }\hss}%
+  \par
+}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Rot}[1]{\mathbf{R}_{#1}}
+\newcommand{\rad}{\rho}
+\newcommand{\idx}{\phi}
+\newcommand{\ph}{\psi}
+\newcommand{\het}{r}
+\newcommand{\Moire}{\textsc{Moir\'e}}
+\newcommand{\ours}{\textsc{Window}}
+\newcommand{\sweep}{\textsc{Sweep}}
+\newcommand{\loose}{\textsc{Loose}}
+
+\input{numbers}
+
+\begin{document}
+
+\title{Moir\'e Fields}
+\subtitle{Interference as a scalar field, and a tool for drawing with it}
+
+\author{Neo Mohsenvand}
+% obeypunctuation stops acmart appending a comma after the institution; the class
+% insists on a city and a country, and there is no true value for either, so both
+% get a space rather than an invented place.
+\affiliation[obeypunctuation=true]{\institution{Independent}\city{\ }\country{\ }}
+% The class footnotes an address block built from the affiliation, which for a
+% single unaffiliated author is just the byline again.
+\authorsaddresses{}
+
+\begin{abstract}
+Moir\'e is the oldest computational image: two dense families of curves, and a
+third pattern that belongs to neither. Graphics has treated it twice, and both
+times as something that happens to \emph{rasters} --- an aliasing artifact to
+filter away, or a printed pair of gratings to be solved for offline and then slid
+by hand. Neither treatment lets an artist hold a moir\'e and move it.
+
+We propose representing a moir\'e layer not as an image but as a \emph{question}:
+for this pixel, how far is the nearest member of this family, and which one is
+it? A layer becomes a pair of scalar fields --- an index field and a distance
+field --- superposition becomes compositing of fields rather than of pixels, and
+the pattern becomes resolution-independent, zoom-stable, and editable at
+interactive rates. Within this model we prove that the fringes of a superposition
+are exactly the unit level sets of the difference of the two index fields, with a
+saturating tent profile, and that the classical requirement that the two carriers
+be ``close'' is a bound on a single local quantity we can map over the frame.
+Neither family need be periodic, nor a geometric transform of a periodic one, so
+the statement covers spirals, hyperbolae and rotating pencils that Fourier moir\'e
+theory does not reach.
+
+The model has one hard case, and it is the interesting one. When each member of a
+family carries its own rigid motion --- ring $n$ translated by $n\delta$ and
+turned by $n\theta$ --- the family admits no global index field, and the nearest
+member has to be found by search. We show that a single classical object, the
+support function of the generating shape, supplies the four constants the search
+needs: a Lipschitz modulus, an anisotropy floor $\kappa=\cos(\pi/N)$, an exact
+drift rate $\rad(-\delta)$, and convexity when $\theta=0$. From these we derive a
+provably sufficient interval of integers, a skip rule that visits a single-digit
+number of them, and an exact closed form for translated polygons of any side
+count. The result is $\gpuSpeedLo$--$\gpuSpeedHi\times$ faster than the fixed
+enumeration it replaces, at strictly better fidelity, which is what made these
+parameters usable in an interactive tool at all.
+
+We describe \Moire{}, a browser tool built on this model with thirteen families,
+twelve live layers and no rasterisation step anywhere, and close with an
+application the field view makes almost free. Because fringes are the level sets
+of an index difference, and the difference is a line of shader code, a moir\'e can
+be made a contour plot of any field one cares to encode --- no marching squares,
+no polylines, no topology. The field is an expression the author types,
+differentiated automatically and compiled into the shader rather than interpreted
+per pixel, which is a $\fieldGainLo$--$\fieldGainHi\times$ difference and the
+reason it can be arbitrary. Measured against the true level sets, the fringes land
+within $\contourWorstErr$ pixels --- \contourAtFloor{} of \contourFieldCount{}
+fields at our measurement floor --- and the method's entire sampling limit is a
+single inequality between the contour interval and the carrier pitch.
+\end{abstract}
+
+\begin{CCSXML}
+<ccs2012>
+<concept><concept_id>10010147.10010371.10010372</concept_id><concept_desc>Computing methodologies~Rendering</concept_desc><concept_significance>500</concept_significance></concept>
+<concept><concept_id>10010147.10010371.10010396</concept_id><concept_desc>Computing methodologies~Shape modeling</concept_desc><concept_significance>300</concept_significance></concept>
+<concept><concept_id>10003120.10003121.10003124.10010870</concept_id><concept_desc>Human-centered computing~Graphics input devices</concept_desc><concept_significance>100</concept_significance></concept>
+</ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Computing methodologies~Rendering}
+\ccsdesc[300]{Computing methodologies~Shape modeling}
+\ccsdesc[100]{Human-centered computing~Interaction techniques}
+
+\keywords{moir\'e, interference, distance fields, support functions, procedural
+patterns, interactive authoring, {GPU} rendering}
+
+\begin{teaserfigure}
+  \includegraphics[width=\linewidth]{figures/teaser.png}
+  \panelrow{0.19470}{0.00662}{%
+    (1) two combs,
+    (2) two ring families,
+    (3) one walking family,
+    (4) mirrored spirals,
+    (5) a chosen field}
+  \Description{Five tall panels in a row, each a dense hairline drawing in
+  near-black over white. Left to right: two overlapping combs of parallel lines
+  crossed at a shallow angle, producing three broad pale diagonal bands; two sets
+  of concentric rings about centres left and right of middle, producing nested
+  pale hyperbolic channels; a single family of concentric triangles each rotated
+  and shifted from the last, producing a three-armed pinwheel whose envelope
+  crosses itself in dark crosshatched lobes; two Archimedean spirals mirrored
+  about the horizontal axis, producing a starburst of about thirty-six pale rays;
+  and a field of curved bands looping around four centres, the streamlines of a
+  four-vortex flow.}
+  \caption{\figlead{No pixels anywhere.} Five superpositions, ordered left to
+  right by how much the classical theory of moir\'e can say about them. Every one
+  is a pair of scalar fields evaluated once per pixel --- each family answers
+  ``how far to your nearest member, and which one is it'' --- so each is the same
+  picture at any zoom and every number in it is a live slider. Both families in a
+  panel are drawn in one ink, because the fringe law is a statement about total
+  coverage: the pale sets \emph{are} the fringes.
+  \textbf{(1)}~Two line combs three and a half degrees apart: Rayleigh's
+  picture~\cite{Rayleigh1874Gratings}, and the only one spectral theory handles
+  exactly. \textbf{(2)}~Rings about two centres; the
+  fringes are the confocal hyperbolae where the two radii differ by a whole
+  spacing, which is Theorem~\ref{thm:fringe} in its simplest instance.
+  \textbf{(3)}~A \emph{single} family in which member $n$ is turned by $n\theta$
+  and pushed by $n\delta$. It has no global index field and no partner layer: it
+  interferes with itself, and finding the nearest member is the search problem of
+  \S\ref{sec:inverse}. \textbf{(4)}~An Archimedean spiral against its own
+  reflection --- not periodic, not a transform of anything periodic, and so
+  outside Fourier moir\'e theory, but still a difference of two closed-form
+  indices, and that difference is $-M\arg p/\pi$: hence exactly $2M=36$ rays.
+  \textbf{(5)}~The same construction run backwards: the index difference
+  is \emph{chosen}, here to be the stream function of four point vortices, so the
+  fringes are streamlines of the flow (\S\ref{sec:beyond}). No curve was traced and
+  no trajectory integrated --- it is one setting on an ordinary layer.
+  Settings in Appendix~\ref{app:gallery}.}
+  \label{fig:teaser}
+\end{teaserfigure}
+
+\maketitle
+
+\input{sec-intro}
+\input{sec-related}
+\input{sec-field}
+\input{sec-catalog}
+\input{sec-walking}
+\input{sec-inverse}
+\input{sec-system}
+\input{sec-results}
+\input{sec-beyond}
+\input{sec-discussion}
+
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{refs}
+
+\appendix
+\input{app-proofs}
+\input{app-catalog}
+\input{app-atlas}
+\input{app-gallery}
+\input{app-repro}
+
+\end{document}
