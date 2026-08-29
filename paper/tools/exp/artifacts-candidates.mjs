@@ -28,19 +28,15 @@ const Z = 2 / 3;
 // and the L-infinity norm, circles and the Euclidean one -- because that is
 // the regime where a fixed enumeration actually fails.
 const CANDIDATES = [
-  { id: 1, note: 'gentle nautilus', layers: [{ shape: 'square', spacing: 16, thickness: 1.8, offset: { x: 12.8, y: 12.8 }, rotationOffset: 0.03 }] },
-  { id: 2, note: 'slow nautilus', layers: [{ shape: 'square', spacing: 16, thickness: 1.8, offset: { x: 12.8, y: 12.8 }, rotationOffset: 0.018 }] },
-  { id: 3, note: 'fast nautilus', layers: [{ shape: 'square', spacing: 16, thickness: 1.8, offset: { x: 12.8, y: 12.8 }, rotationOffset: 0.05 }] },
-  { id: 4, note: 'coarse nautilus', layers: [{ shape: 'square', spacing: 20, thickness: 2.1, offset: { x: 16, y: 16 }, rotationOffset: 0.025 }] },
-  { id: 5, note: 'counter-twist', layers: [{ shape: 'square', spacing: 16, thickness: 1.8, offset: { x: 12.8, y: -12.8 }, rotationOffset: 0.03 }] },
-  { id: 6, note: 'circle vortex', layers: [{ shape: 'circle', spacing: 14, thickness: 1.8, offset: { x: 8.4, y: 8.4 }, rotationOffset: 0.045 }] },
-  { id: 7, note: 'triangle nautilus', layers: [{ shape: 'triangle', spacing: 16, thickness: 1.8, offset: { x: 9, y: 9 }, rotationOffset: 0.035 }] },
-  { id: 8, note: 'hexagon nautilus', layers: [{ shape: 'polygon', sides: 6, spacing: 16, thickness: 1.8, offset: { x: 9.6, y: 9.6 }, rotationOffset: 0.025 }] },
+  { id: 1, note: 'far-field fan', pan: { x: 420, y: 280 }, layers: [{ shape: 'square', spacing: 20, thickness: 2, offset: { x: 16, y: 16 }, rotationOffset: 0.018 }] },
+  { id: 2, note: 'horizontal sweep', pan: { x: 560, y: 60 }, layers: [{ shape: 'square', spacing: 20, thickness: 2, offset: { x: 16, y: 16 }, rotationOffset: 0.015 }] },
+  { id: 3, note: 'calm coarse fan', pan: { x: 400, y: 400 }, layers: [{ shape: 'square', spacing: 22, thickness: 2.2, offset: { x: 17.6, y: 17.6 }, rotationOffset: 0.012 }] },
+  { id: 4, note: 'fine feathers', pan: { x: 520, y: 330 }, layers: [{ shape: 'square', spacing: 18, thickness: 1.7, offset: { x: 14.4, y: 14.4 }, rotationOffset: 0.02 }] },
 ];
 
 const rows = [];
 for (const cand of CANDIDATES) {
-  const sc = scene({ width: W, height: H, zoom: Z, layers: cand.layers });
+  const sc = scene({ width: W, height: H, zoom: Z, pan: cand.pan ?? { x: 0, y: 0 }, layers: cand.layers });
   const ref = referenceSolver();
   const t0 = performance.now();
   const refImg = render(sc, ref).rgb;
