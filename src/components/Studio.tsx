@@ -14,7 +14,6 @@ import {
   ViewIcon,
   ViewOffSlashIcon,
 } from '@hugeicons/core-free-icons';
-import { exportPng } from '../gpu/capture';
 import {
   LAYER_DEFAULTS,
   MAX_LAYERS,
@@ -30,6 +29,7 @@ import {
   type PatternType,
 } from '../types/moire';
 import { VIEW_DEFAULTS, useProjectStore, useSelectedLayer } from '../store/project';
+import { ExportDialog } from './ExportDialog';
 import { FieldEditor } from './FieldEditor';
 import { FAMILY_ICONS, PATTERN_ICONS } from './patternIcons';
 import { ColorField } from './ui/ColorField';
@@ -363,14 +363,6 @@ function LayerName({
       {name}
     </button>
   );
-}
-
-async function savePng() {
-  try {
-    await exportPng();
-  } catch (err) {
-    console.error(err);
-  }
 }
 
 function LayerStack({ onEditField }: { onEditField: (id: string) => void }) {
@@ -784,6 +776,23 @@ function LayerFields() {
   );
 }
 
+function ExportControl() {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <IconButton
+        icon={ImageDownloadIcon}
+        label="Export & share"
+        active={open}
+        onClick={() => setOpen((prev) => !prev)}
+        size={14}
+        dense
+      />
+      {open && <ExportDialog onClose={() => setOpen(false)} />}
+    </>
+  );
+}
+
 function Chrome({ onToggle }: { onToggle: () => void }) {
   const zoom = useProjectStore((s) => s.camera.zoom);
   const backgroundColor = useProjectStore((s) => s.backgroundColor);
@@ -821,7 +830,7 @@ function Chrome({ onToggle }: { onToggle: () => void }) {
         size={14}
         dense
       />
-      <IconButton icon={ImageDownloadIcon} label="Export PNG" onClick={() => void savePng()} size={14} dense />
+      <ExportControl />
       <IconButton icon={ArrowLeft01Icon} label="Hide studio" onClick={onToggle} size={14} dense />
     </div>
   );

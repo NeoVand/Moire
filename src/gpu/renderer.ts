@@ -349,7 +349,7 @@ export class MoireRenderer {
     });
   }
 
-  async snapshot(): Promise<Blob> {
+  async snapshot(scale = 1): Promise<Blob> {
     // An export that lands inside a field rebuild waits for it rather than failing.
     await this.building;
     if (!this.ready || !this.renderer || !this.scene || !this.camera || !this.canvas) {
@@ -359,8 +359,26 @@ export class MoireRenderer {
       cancelAnimationFrame(this.raf);
       this.raf = 0;
     }
-    this.renderer.render(this.scene, this.camera);
-    return encodeCanvasPng(this.canvas);
+    // A high-resolution export renders once at a raised pixel ratio, capped so
+    // the backing texture stays inside common GPU limits, then puts the ratio
+    // back. The pattern is resolution-free, so the pixels are simply asked again.
+    const dpr = this.lastDpr || 1;
+    const side = Math.max(this.lastWidth, this.lastHeight, 1) * dpr;
+    const factor = Math.min(Math.max(scale, 1), 8192 / side);
+    if (factor > 1.001) {
+      this.renderer.setPixelRatio(dpr * factor);
+      this.renderer.setSize(this.lastWidth, this.lastHeight, false);
+    }
+    try {
+      this.renderer.render(this.scene, this.camera);
+      return await encodeCanvasPng(this.canvas);
+    } finally {
+      if (factor > 1.001) {
+        this.renderer.setPixelRatio(dpr);
+        this.renderer.setSize(this.lastWidth, this.lastHeight, false);
+        this.render();
+      }
+    }
   }
 
   resize() {

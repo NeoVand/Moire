@@ -14,6 +14,7 @@ import {
 } from '../types/moire';
 import { clampZoom } from '../gpu/camera';
 import { beginLayerMorph, endLayerMorph } from '../gpu/typeMorph';
+import type { SceneData } from './scene';
 
 export type LayerPatch = Omit<Partial<PatternLayer>, 'position' | 'offset' | 'scale'> & {
   position?: Partial<Vec2>;
@@ -87,6 +88,8 @@ export interface ProjectStore {
   resetView: () => void;
   setBackgroundColor: (color: string) => void;
   setView: (patch: Partial<ViewState>) => void;
+  /** Replace the whole construction with a parsed scene file, wholesale. */
+  loadScene: (scene: SceneData) => void;
   playIntro: () => void;
   cancelIntro: () => void;
 }
@@ -342,6 +345,18 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       if (patch.ratio) view.envelope = false;
       return { view };
     }),
+
+  loadScene: (scene) => {
+    // A load during the intro would be animated over; the intro yields.
+    abortIntro();
+    set({
+      layers: scene.layers,
+      selectedLayerId: scene.selectedLayerId,
+      camera: { zoom: clampZoom(scene.camera.zoom), pan: scene.camera.pan },
+      backgroundColor: scene.backgroundColor,
+      view: { ...VIEW_DEFAULTS, ...scene.view },
+    });
+  },
 
   cancelIntro: () => stopIntro(),
 

@@ -1,4 +1,4 @@
-type CaptureFn = () => Promise<Blob>;
+type CaptureFn = (scale?: number) => Promise<Blob>;
 
 let captureFn: CaptureFn | null = null;
 
@@ -6,9 +6,10 @@ export function registerCapture(fn: CaptureFn | null) {
   captureFn = fn;
 }
 
-export async function exportPng() {
+/** `scale` multiplies the canvas pixel ratio for the one exported frame. */
+export async function exportPng(scale = 1) {
   if (!captureFn) throw new Error('Canvas is not ready');
-  const blob = await captureFn();
+  const blob = await captureFn(scale);
   const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
