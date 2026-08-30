@@ -404,6 +404,36 @@ function rebuildCurves() {
   }
 }
 
+
+// The curve of a fractional level: same conics as levelCurves, off-integer.
+function offsetLevel(lv: number, off: number): Run[] {
+  const L = lv + off;
+  const F = P.F, pitch = s();
+  if (P.panel === 'difference') {
+    const a = Math.abs(L) * pitch / 2;
+    if (a < 1e-6) return [Array.from({ length: 201 }, (_, i) => [0, -1 + i / 100] as [number, number])];
+    if (a >= F) return [];
+    const b = Math.sqrt(F * F - a * a);
+    const sign = L > 0 ? 1 : -1;
+    const pts: Run = [];
+    for (let i = 0; i <= 400; i++) {
+      const t = -3.4 + (6.8 * i) / 400;
+      pts.push([sign * a * Math.cosh(t), b * Math.sinh(t)]);
+    }
+    return [pts];
+  }
+  const a = (C0 + L * pitch) / 2;
+  const b2 = a * a - F * F;
+  if (b2 <= 1e-9) return [];
+  const b = Math.sqrt(b2);
+  const pts: Run = [];
+  for (let i = 0; i <= 520; i++) {
+    const t = (2 * Math.PI * i) / 520;
+    pts.push([a * Math.cos(t), b * Math.sin(t)]);
+  }
+  return [pts];
+}
+
 // ------------------------------------------------------------------ export
 function settingsJson(): string {
   return JSON.stringify(
@@ -458,6 +488,32 @@ function viewSvg(): string {
     parts.push('</g>');
   }
   const levels = levelCurves();
+  // The band fills, as vectors: each band is a stack of sub-level curves
+  // (H = n + j*w/N, all exact conics), graded in opacity — its envelope
+  // widens precisely where the character runs flat, like the render.
+  if (P.fillAlpha > 0.01) {
+    const NSUB = 4;
+    parts.push('<g id="surface-bandfill">');
+    for (const { lv, pts: _ } of levels) {
+      for (let j = -NSUB; j <= NSUB; j++) {
+        const off = (j / NSUB) * P.band;
+        const w = Math.pow(1 - Math.abs(j) / (NSUB + 1), 1.4) * P.fillAlpha;
+        for (const sub of offsetLevel(lv, off)) {
+          for (const run of clipPatch(sub)) {
+            for (const seg of splitEta(run)) {
+              const o = ((seg.bold ? 0.92 : 0.28) * w).toFixed(2);
+              parts.push(
+                `<polyline points="${lift(seg.pts, lv + off)
+                  .map(([x, y, z]) => px(x, y, z).join(','))
+                  .join(' ')}" fill="none" stroke="${col}" stroke-width="3.4" opacity="${o}"/>`
+              );
+            }
+          }
+        }
+      }
+    }
+    parts.push('</g>');
+  }
   parts.push('<g id="floor-fringes">');
   for (const { pts } of levels)
     for (const run of clipPatch(pts))
@@ -552,10 +608,14 @@ canvas.addEventListener('pointermove', (e) => {
   const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
   drag.x = e.clientX; drag.y = e.clientY;
   if (drag.btn === 2) {
+    // Grab-style pan on the camera's own screen axes: the scene follows the
+    // cursor, and the orbit target moves strictly in the view plane so the
+    // centre of rotation never drifts toward or away from the camera.
     const k = dist * 0.0011;
-    const right = new THREE.Vector3().subVectors(camera.position, target).cross(camera.up).normalize();
-    const upv = new THREE.Vector3().crossVectors(right, new THREE.Vector3().subVectors(camera.position, target)).normalize();
-    target.addScaledVector(right, dx * k).addScaledVector(upv, -dy * k);
+    const forward = new THREE.Vector3().subVectors(target, camera.position).normalize();
+    const right = new THREE.Vector3().crossVectors(forward, camera.up).normalize();
+    const upv = new THREE.Vector3().crossVectors(right, forward).normalize();
+    target.addScaledVector(right, -dx * k).addScaledVector(upv, dy * k);
   } else {
     theta -= dx * 0.0055;
     phi -= dy * 0.0055;

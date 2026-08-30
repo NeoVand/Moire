@@ -184,7 +184,8 @@ function ResearchControl() {
               onToggle={() => setView({ envelope: !view.envelope })}
             />
           </div>
-          <div className={`grid gap-3 ${view.envelope ? '' : 'pointer-events-none opacity-40'}`}>
+          {view.envelope && (
+          <div className="grid gap-3">
             <Slider
               label="Contrast"
               value={view.envelopeContrast}
@@ -237,6 +238,7 @@ function ResearchControl() {
               onChange={(envelopeMask) => setView({ envelopeMask })}
             />
           </div>
+          )}
           <div className="mt-3 grid gap-3 border-t border-[var(--border)] pt-2.5">
             <ToggleRow
               label="Contours"
