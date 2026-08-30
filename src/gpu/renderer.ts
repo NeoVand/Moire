@@ -62,76 +62,36 @@ function nominalCoverage(layer: PatternLayer, pixel: number): number {
 }
 
 /**
- * The slot indices the ratio view compares — the two topmost visible layers with
- * a scalar index — or null when there are not two. Lattices index their members
- * by a pair of integers, so they carry no scalar index to difference; everything
- * else qualifies, radial lines included, whose index is a sector count and still
- * a scalar the ratio can differentiate.
+ * The stack, ranked once into the index coordinates every view consumes.
+ *
+ * Every visible layer contributes coordinates to the stack's joint index
+ * torus — one for a scalar family (lines, rings, curves, the radial fan,
+ * whose sector count is still a scalar), two generators for a lattice. The
+ * character scan, the ratio view, the envelope's sweep orientation, the
+ * regime mask, and the contour overlay all read this one ranking: the
+ * topmost three scalar carriers and the topmost two lattices, top first.
+ * The views differ only in how many rows they consume, never in how the
+ * stack was ordered — and a future tiling layer joins as a layer that
+ * contributes more than two coordinates, not as a new ranking.
  */
-function rankedScalars(layers: PatternLayer[], want: number): number[] {
-  const out: number[] = [];
-  for (let i = Math.min(layers.length, MAX_LAYERS) - 1; i >= 0 && out.length < want; i--) {
-    if (layers[i].visible && !isGrid(layers[i].type)) out.push(i);
-  }
-  return out;
+interface StackRanking {
+  /** Topmost visible scalar-index layers, at most three. */
+  scalars: number[];
+  /** Topmost visible lattices, at most two. */
+  lattices: number[];
 }
 
-function ratioPair(layers: PatternLayer[]): [number, number] | null {
-  const pair = rankedScalars(layers, 2);
-  return pair.length === 2 ? [pair[0], pair[1]] : null;
-}
-
-/**
- * The envelope's ranked pair, unlike the ratio view's, falls back to the topmost
- * eligible layer alone. The lattice sweep orients itself against the ranked
- * partner's index gradient, and a lattice's most common companion is a single
- * scalar family — with no fallback that gradient is the zero vector and the
- * orientation choice degrades to noise. A == B costs nothing else: eta collapses
- * to zero, which only quiets the optional regime mask, and the sum-flip stays
- * off, which is right for a family against itself.
- */
-function envelopePair(layers: PatternLayer[]): [number, number] | null {
-  const pair = ratioPair(layers);
-  if (pair) return pair;
+function rankStack(layers: PatternLayer[]): StackRanking {
+  const scalars: number[] = [];
+  const lattices: number[] = [];
   for (let i = Math.min(layers.length, MAX_LAYERS) - 1; i >= 0; i--) {
-    if (layers[i].visible && !isGrid(layers[i].type)) return [i, i];
+    if (!layers[i].visible) continue;
+    if (isGrid(layers[i].type)) {
+      if (lattices.length < 2) lattices.push(i);
+    } else if (scalars.length < 3) scalars.push(i);
   }
-  return null;
+  return { scalars, lattices };
 }
-
-/**
- * The two-lattice (twist) mode of the envelope: engaged only when no scalar
- * layer is visible, so lattices have no partner gradient to orient against.
- * The topmost lattice becomes the reference; every other lattice matches its
- * generators to the reference's, per pixel, and rides the SAME (u, golden)
- * schedule — matched generators advance in lockstep across layers, so both
- * slow characters of a twist pair (a1−b1 and a2−b2) survive the average
- * exactly while every carrier and cross-beat is scrambled away. With one
- * lattice alone the schedule just washes it to its own cell mean, which is the
- * correct envelope of a lattice with nothing to beat against.
- */
-/** The topmost visible lattice, or -1 — the one whose beat the contour
- * overlay draws when a scalar partner is ranked. */
-function topGrid(layers: PatternLayer[]): number {
-  for (let i = Math.min(layers.length, MAX_LAYERS) - 1; i >= 0; i--) {
-    if (layers[i].visible && isGrid(layers[i].type)) return i;
-  }
-  return -1;
-}
-
-function latticePair(layers: PatternLayer[]): [number, number] | null {
-  for (let i = Math.min(layers.length, MAX_LAYERS) - 1; i >= 0; i--) {
-    if (layers[i].visible && !isGrid(layers[i].type)) return null;
-  }
-  const grids: number[] = [];
-  for (let i = Math.min(layers.length, MAX_LAYERS) - 1; i >= 0 && grids.length < 2; i--) {
-    if (layers[i].visible && isGrid(layers[i].type)) grids.push(i);
-  }
-  if (grids.length === 0) return null;
-  return [grids[0], grids.length > 1 ? grids[1] : -1];
-}
-// (Only the reference index reaches the shader; every other lattice matches
-// against it, so a third or fourth lattice joins the same lockstep.)
 
 /**
  * How long an expression has to stand still before it becomes a shader.
@@ -397,24 +357,40 @@ export class MoireRenderer {
     this.cameraUniforms.background.value.set(state.backgroundColor);
     this.renderer?.setClearColor(state.backgroundColor, 1);
 
+    const rank = rankStack(state.layers);
+    const scalarPair: [number, number] | null =
+      rank.scalars.length >= 2 ? [rank.scalars[0], rank.scalars[1]] : null;
     // With fewer than two comparable layers the ratio view has nothing to say,
     // so the flag stays down and the ordinary composite shows through.
-    const pair = state.view.ratio ? ratioPair(state.layers) : null;
+    const pair = state.view.ratio ? scalarPair : null;
     const envelope = state.view.envelope && !pair;
-    // The regime mask and the orientation-aware sweep both read the same ranked
-    // pair the ratio view compares, so an enveloped stack keeps those uniforms
-    // warm even with the ratio view off.
     const contoursOn = state.view.envelopeContours;
-    const maskPair = envelope || contoursOn ? envelopePair(state.layers) : null;
-    // Lattice stacks carry their beats outside the scalar ranking, so the
-    // twist pair (and the topmost lattice against a scalar partner) must be
-    // resolved for the contour overlay too, not just for the envelope sweep.
-    const latPair = envelope || contoursOn ? latticePair(state.layers) : null;
-    const latB = latPair
-      ? latPair[1]
-      : (envelope || contoursOn) && (pair || maskPair)
-        ? topGrid(state.layers)
-        : -1;
+    const wantsScan = envelope || contoursOn;
+    // The regime mask and the orientation-aware sweep read the same ranked
+    // pair the ratio view compares, so an enveloped stack keeps those uniforms
+    // warm even with the ratio view off — falling back to the topmost scalar
+    // alone: the lattice sweep orients itself against the ranked partner's
+    // index gradient, and with no fallback that gradient is the zero vector
+    // and the orientation choice degrades to noise. A == B costs nothing
+    // else; eta collapses to zero, which only quiets the optional regime mask.
+    const maskPair: [number, number] | null = wantsScan
+      ? scalarPair ?? (rank.scalars.length ? [rank.scalars[0], rank.scalars[0]] : null)
+      : null;
+    // Twist mode, engaged only with no scalar visible: lattices then have no
+    // partner gradient to orient against, so the topmost lattice becomes the
+    // reference every other lattice matches its generators to, and the whole
+    // stack rides the same (u, golden) schedule in lockstep. Only the
+    // reference index reaches the shader; a third or fourth lattice matches
+    // against it and joins the same lockstep.
+    const latPair: [number, number] | null =
+      wantsScan && rank.scalars.length === 0 && rank.lattices.length > 0
+        ? [rank.lattices[0], rank.lattices[1] ?? -1]
+        : null;
+    // The lattice whose beat the contour overlay draws: the twist partner,
+    // else the topmost lattice beating against the ranked scalar — a lattice
+    // indexes members by a pair of integers, so its fringes live outside the
+    // scalar ranking and must be resolved for the overlay separately.
+    const latB = latPair ? latPair[1] : wantsScan && maskPair ? rank.lattices[0] ?? -1 : -1;
     this.viewUniforms.taps.value = envelope
       ? Math.max(2, Math.round(state.view.envelopeTaps))
       : 1;
@@ -432,8 +408,8 @@ export class MoireRenderer {
     // The third ranked scalar joins the character scan: with three layers the
     // dangerous mistake is deviating the top pair's rates for a beat that is
     // slower than one the second layer makes with the third.
-    const trio = pair || maskPair ? rankedScalars(state.layers, 3) : [];
-    this.viewUniforms.ratioC.value = trio.length > 2 ? trio[2] : -1;
+    this.viewUniforms.ratioC.value =
+      (pair || maskPair) && rank.scalars.length > 2 ? rank.scalars[2] : -1;
     this.viewUniforms.ratioBlend.value = state.view.ratioBlend;
     this.viewUniforms.ratioThreshold.value = state.view.ratioThreshold;
     this.viewUniforms.latA.value = latPair ? latPair[0] : -1;
