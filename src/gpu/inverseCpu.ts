@@ -262,11 +262,11 @@ function circleQuadraticResidual(
   const B = -2 * (dot(p, offset) + spacing * phase);
   const C = r * r - phase * phase;
   const guess = Math.max(0, (r - phase) / Math.max(spacing, 1e-5));
-  let res = checkWindow(p, guess, offset, 0, spacing, phase, shape, sides, 3);
+  let res = checkWindow(p, guess, offset, 0, spacing, phase, shape, sides, 4);
 
   if (Math.abs(A) < 1e-8) {
     if (Math.abs(B) > 1e-8) {
-      res = consider(res, p, -C / B, offset, 0, spacing, phase, shape, sides, 3);
+      res = consider(res, p, -C / B, offset, 0, spacing, phase, shape, sides, 4);
     }
     return res;
   }
@@ -278,8 +278,8 @@ function circleQuadraticResidual(
     const sd = Math.sqrt(disc);
     const q = -0.5 * (Bs + (Bs >= 0 ? sd : -sd));
     if (Math.abs(q) > 1e-12) {
-      res = consider(res, p, (q / A) * scale, offset, 0, spacing, phase, shape, sides, 3);
-      res = consider(res, p, (Cs / q) * scale, offset, 0, spacing, phase, shape, sides, 3);
+      res = consider(res, p, (q / A) * scale, offset, 0, spacing, phase, shape, sides, 4);
+      res = consider(res, p, (Cs / q) * scale, offset, 0, spacing, phase, shape, sides, 4);
     }
   }
   return res;
@@ -353,7 +353,6 @@ function polygonTranslatedResidual(
   // only reason a closed form is worth having here.
   const seed = Math.max(0, (shapeRadius(p, shape, sides) - phase) / spacing);
   let res = bracketFlat(MISS, p, seed, offset, spacing, phase, shape, sides);
-  const marginal = Math.abs(spacing - ringDrift(offset, shape, sides)) < 1e-4;
 
   // The normals are a rotation apart, so carry them instead of calling trig N times.
   const step = TAU / facets;
@@ -369,9 +368,14 @@ function polygonTranslatedResidual(
     ny = ss * nx + cs * ny;
     nx = rx;
     const den = spacing + b;
-    if (Math.abs(den) > 1e-6) {
+    // A facet within 1e-4 of flat takes the constant candidate rather than a
+    // crossing solve at n ~ 1/den, mirroring the WGSL twin: the shader's f32
+    // turns that far crossing into garbage, and a twin that solved it in f64
+    // would silently disagree. The tolerance matches the dispatch's own
+    // m ≤ s + 1e-4, so the whole near-marginal band reads as flat.
+    if (Math.abs(den) > 1e-4) {
       res = bracketFlat(res, p, (a - phase) / den, offset, spacing, phase, shape, sides);
-    } else if (marginal) {
+    } else {
       // s + bₖ = 0 on the facet that leads at large n: h is flat there, so the
       // value it is flat at is the distance, attained at every index past the
       // crossover. Every index does equally well, so there is no one index to

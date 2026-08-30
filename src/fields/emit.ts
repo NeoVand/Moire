@@ -116,6 +116,16 @@ export function emitField(compiled: CompiledField, back: EmitBackend): EmitResul
    * with an exactly-zero factor contributes nothing even when the other factor
    * overflowed, which is the `term` helper in `evalExpr.ts`, reached here at
    * compile time instead of per evaluation.
+   *
+   * The scope is narrower than `term`'s, though: this folds *structural* zeros
+   * (constants, cross-partials, floor/sign slopes), which are the common ones,
+   * but a slope that becomes zero only at runtime — a `select` guard biting on
+   * sqrt/log/div outside its domain — still reaches a plain multiply, where
+   * 0 · ∞ = NaN if the carried partial overflowed at the same point. The CPU
+   * evaluator tests at runtime and returns 0 there, so the twins can differ on
+   * inputs like sqrt(-exp(999x)). Guarding every runtime slope would reshape
+   * the generated code for an input no preset reaches; the boundary is
+   * documented here and in the paper instead.
    */
   const keep = (base: string, expr: string): string => {
     if (LITERAL.test(expr) || NAME.test(expr)) return expr;

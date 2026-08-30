@@ -328,7 +328,6 @@ fn polygonTranslatedWgsl(p: vec2<f32>, offset: vec2<f32>, spacing: f32, phase: f
   // rotation in any of them, which is the only reason a closed form beats the scan.
   let seed = max(0.0, (shapeRadiusWgsl(p, shapeType, sides) - phase) / spacing);
   var d = bracketFlat(vec2<f32>(1e6, -1.0), p, seed, offset, spacing, phase, shapeType, sides);
-  let marginal = abs(spacing - shapeRadiusWgsl(-offset, shapeType, sides)) < 1e-4;
   let count = i32(facets + 0.5);
 
   // The normals are a rotation apart, so carry them instead of calling trig N times.
@@ -345,9 +344,14 @@ fn polygonTranslatedWgsl(p: vec2<f32>, offset: vec2<f32>, spacing: f32, phase: f
     let b = dot(offset, nk);
     nk = vec2<f32>(cs * nk.x - ss * nk.y, ss * nk.x + cs * nk.y);
     let den = spacing + b;
-    if (abs(den) > 1e-6) {
+    // A facet within 1e-4 of flat takes the constant candidate, not the
+    // crossing solve: the crossing sits at n ~ 1/den, where f32 subtracts two
+    // huge near-equal numbers into garbage (and for den < 0 the seed clamps to
+    // zero and the far field is never examined). The tolerance matches the
+    // dispatch's own m <= s + 1e-4, so the whole near-marginal band is flat.
+    if (abs(den) > 1e-4) {
       d = bracketFlat(d, p, (a - phase) / den, offset, spacing, phase, shapeType, sides);
-    } else if (marginal) {
+    } else {
       // Every index past the crossover does equally well, so there is no one
       // index to report -- which is the right answer: no local pitch exists here.
       d = nearerWgsl(d, vec2<f32>(a - phase, -1.0));

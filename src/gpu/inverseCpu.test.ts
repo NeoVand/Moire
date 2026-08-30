@@ -412,6 +412,55 @@ assert.ok(
 );
 console.log(`  translated polygons: ${closedCases} closed-form cases exact, ${marginalCases} of them marginal`);
 
+// The near-marginal sliver, pinned at 5e-5 to either side of m = s. The old
+// solver routed |s - m| in (1e-6, 1e-4) through a crossing solve at n ~ 1/|s-m|,
+// which the shader's f32 turns into garbage (and, for m slightly above s, into a
+// clamped seed that never examines the far field). The whole band now takes the
+// flat-constant branch: never nearer than a bounded brute force (no phantom
+// ink), and above it by at most the drift the terminal facet accumulates over
+// the range the brute force can walk (bounded, slver-scaled under-ink).
+{
+  let checked = 0;
+  for (const [shape, sides] of [
+    [2, 4],
+    [4, 6],
+  ] as const) {
+    const unit = ringDrift({ x: 1, y: 0 }, shape, sides);
+    for (const spacing of [3, 14]) {
+      for (const side of [-1, 1]) {
+        const den = -side * 5e-5; // s - m; negative means m just above s
+        const offset = { x: (spacing + side * 5e-5) / unit, y: 0 };
+        for (const r of [60, 800]) {
+          for (let i = 0; i < 7; i++) {
+            const ang = (i * Math.PI * 2) / 7 + 0.17;
+            const p = { x: r * Math.cos(ang), y: r * Math.sin(ang) };
+            const guard = Math.max(spacing * 0.75, 4);
+            const got = ringDistanceCpu(p, offset, 0, spacing, 0, shape, sides, 0, guard);
+            const reach = Math.ceil((4 * (r + guard)) / spacing) + 128;
+            const want = bruteRing(p, offset, 0, spacing, 0, shape, sides, reach);
+            checked += 1;
+            // The flat value is the terminal segment's constant; the true
+            // residual drifts off it at |s - m| per index, so both directions
+            // carry the same drift-scaled slack: the flat semantics may sit
+            // under or over a bounded brute force by at most that drift over
+            // the range either can walk. Well under a stroke width everywhere.
+            const slack = Math.abs(den) * reach + 1e-3;
+            assert.ok(
+              Math.min(want, guard) - got <= slack,
+              `sliver phantom beyond drift bound: shape=${shape}/${sides} s=${spacing} den=${den} r=${r} i=${i} got=${got} want=${want} slack=${slack}`
+            );
+            assert.ok(
+              want > guard || got - want <= slack,
+              `sliver under-ink beyond drift bound: shape=${shape}/${sides} s=${spacing} den=${den} r=${r} i=${i} got=${got} want=${want} slack=${slack}`
+            );
+          }
+        }
+      }
+    }
+  }
+  console.log(`  near-marginal sliver: ${checked} pinned cases at |s-m| = 5e-5 hold both bounds`);
+}
+
 // Exactness is exactly the property "window fits the budget", so pin down where
 // that holds: rings at least two device pixels apart, and an offset no more than
 // a quarter of the spacing. Both edges are real. Below two pixels of pitch the
