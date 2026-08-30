@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Paper HTML build cache (tikz standalone compiles)
+paper/.build/tikz-html/

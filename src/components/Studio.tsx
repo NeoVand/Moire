@@ -4,6 +4,7 @@ import {
   Add01Icon,
   ArrowLeft01Icon,
   AudioWave02Icon,
+  BookOpen01Icon,
   Copy01Icon,
   Delete02Icon,
   DragDropVerticalIcon,
@@ -902,6 +903,13 @@ function Chrome({ onToggle }: { onToggle: () => void }) {
       </button>
       <ColorField value={backgroundColor} onChange={setBackgroundColor} />
       <EnvelopeControl />
+      <IconButton
+        icon={BookOpen01Icon}
+        label="Read the paper"
+        onClick={() => window.open(`${import.meta.env.BASE_URL}paper/index.html`, '_blank', 'noopener')}
+        size={14}
+        dense
+      />
       <IconButton
         icon={KeyboardIcon}
         label="Shortcuts"
