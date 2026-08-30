@@ -370,6 +370,25 @@ from the same character scan the criterion runs, so the view keeps whichever
 low-order beat the criterion found; each direction still covers a whole period
 of every family, so nothing else about the average changes.
 
+The rule scales to $K$ layers without amendment, and it says something
+worth pausing on: the diagonal $w=(1,\dots,1)$ preserves exactly the
+\emph{zero-sum} sublattice $\{k:\sum_i k_i=0\}$---every pairwise difference
+and every zero-sum ternary character at once. A beat between beats such as
+$k=(1,1,-2)$, slow wherever $\nabla\idx_1+\nabla\idx_2\approx2\nabla\idx_3$,
+rides the diagonal for free; three ring families arrange that conspiracy
+over half the frame when $2/s_3=1/s_1+1/s_2$, the harmonic mean, and the
+fringes that appear there belong to no pair (the second harmonic of the
+third family carries them, so its duty cycle must stay off one half). What
+costs a deviation is only a winning character that is \emph{not} zero-sum,
+and the deviation must be chosen against every layer it touches: deviating
+the top pair's rates for a sum beat can scramble a slower difference beat
+the second layer makes with the \emph{third}---a fringe that stands in the
+render and washes from the view, which is how our two-layer scan first
+failed on three. \Moire{} therefore scans all pairs among the three topmost
+families, plus the zero-sum ternaries, and spends a rate deviation only on
+the global winner (supplemental \S S3;
+\texttt{tools/exp/ternary.mjs} reproduces the harmonic-mean prediction).
+
 \paragraph{One solve, many taps.}
 The cost, done naively, is $M$ full evaluations of every layer, and for a
 walking family one evaluation is the search of \S\ref{sec:inverse}, so $\envTaps$

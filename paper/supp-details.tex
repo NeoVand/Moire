@@ -7,11 +7,23 @@ ablation.
 
 \subsection{Every family has a currency}
 
-The envelope view advances the ranked pair at the integer rates that hold the
+The envelope view advances the ranked layers at the integer rates that hold the
 criterion's winning character fixed (\S3.6)---the plain diagonal for a
 difference beat, $(1,-1)$ for a sum beat, $(1,2)$ and its relatives for the
 second-order beats, every other layer riding the diagonal---and averages over
-$u\in[0,1)$. Each family realizes its advance in its own parameter. The
+$u\in[0,1)$. On $K$ layers the diagonal alone preserves the zero-sum
+sublattice, rank $K-1$, so the only per-pixel decision is whether a
+non-zero-sum character wins and which pair spends the deviation; the scan
+compares all pairs among the three topmost scalar families together with the
+zero-sum ternaries, because a deviation granted to the top pair on the
+strength of a two-layer scan can outrank, and then scramble, a slower beat
+against the third. (To isolate a single character $k$ on $K$ layers in
+general, sweep along $w_1+\gamma w_2$ with $w_1,w_2$ integer vectors spanning
+a complement of $k$ in $k^\perp\cap\Z^K$: an integer character survives the
+average iff it is orthogonal to both, i.e.\ iff it is a multiple of $k$. The
+two-layer rule and the twist pair's $w=(1,\gamma,1,\gamma)$ are the rank-one
+and rank-two instances.) Each family realizes its advance in its own
+parameter. The
 level-set families shift a phase (a rate of $2$ advances up to a full local
 period, so the slide offset wraps back into the half-period the solved trio
 brackets---exact for phase families, whose residual is periodic in the gap).

@@ -210,6 +210,7 @@ export function createViewUniforms() {
     ratio: uniform(0),
     ratioA: uniform(-1, 'int'),
     ratioB: uniform(-1, 'int'),
+    ratioC: uniform(-1, 'int'),
     /** How much of the heat map covers the composite: 1 replaces, less overlays. */
     ratioBlend: uniform(1),
     /** Centre of the map's marked boundary. 1/4 is the theory's line. */
@@ -410,6 +411,7 @@ export function buildColorNode(
     // in the render. eta << 1 is the fringe regime; past 1/4 no fringe forms.
     const xiA = float(0).toVar();
     const xiB = float(0).toVar();
+    const xiC = float(0).toVar();
     solved.forEach(({ phase }, index) => {
       // Continuous index, modulo its integer part: signed residual over the
       // local member gap, oriented at the neighbour with the smaller residual so
@@ -418,6 +420,7 @@ export function buildColorNode(
       const xi = phase.x.div(max(phase.x.sub(toward), float(1e-6)));
       If(view.ratioA.equal(int(index)), () => xiA.assign(xi));
       If(view.ratioB.equal(int(index)), () => xiB.assign(xi));
+      If(view.ratioC.equal(int(index)), () => xiC.assign(xi));
     });
     // Screen-space index gradients. xi wraps by one whole unit where the nearest
     // member changes; rounding the per-pixel delta away unwraps every unit
@@ -426,12 +429,23 @@ export function buildColorNode(
     const unwrap = (v) => v.sub(round(v));
     const gradA = vec2(unwrap(dFdx(xiA)), unwrap(dFdy(xiA)));
     const gradB = vec2(unwrap(dFdx(xiB)), unwrap(dFdy(xiB)));
-    // Primitive characters with |k| <= 2. Higher orders exist classically but
-    // their fringes are fainter (the profile's harmonic content decays), so the
-    // scan stops where the eye does. The sweep rate that preserves character
-    // (kA, kB) is (wA, wB) with kA wA + kB wB = 0, normalised so wA > 0: the
-    // envelope for a kept character averages along the subgroup orthogonal to
-    // it. (1,-1) keeps today's diagonal; (1,1) is the old backwards sweep.
+    const gradC = vec2(unwrap(dFdx(xiC)), unwrap(dFdy(xiC)));
+    // Primitive characters with |k| <= 2, scanned over every pair among the
+    // three ranked layers. On K layers the superposition lives on T^K and the
+    // characters are k in Z^K; the diagonal sweep w = (1,...,1) preserves the
+    // whole zero-sum sublattice (k summing to zero) at once — every pairwise
+    // difference and every zero-sum ternary beat — so those need no schedule
+    // at all, and every unranked layer rides the diagonal. What needs a
+    // deviation is a winning character that is NOT zero-sum (a sum beat, a
+    // second-order beat): its pair takes the rates (wP, wQ) with
+    // kP wP + kQ wQ = 0 while everything else stays at 1. Scanning only one
+    // pair chose that deviation blind: a sum beat between the top two layers
+    // would scramble a slower difference beat the second layer makes with the
+    // THIRD — the fringe stood in the render and washed from the view. The
+    // scan now compares all three pairs and deviates only for the global
+    // winner. Higher orders exist classically but their fringes are fainter
+    // (the profile's harmonic content decays), so the scan stops where the
+    // eye does.
     const CHARACTERS = [
       [1, -1],
       [1, 1],
@@ -440,28 +454,76 @@ export function buildColorNode(
       [1, -2],
       [1, 2],
     ];
+    // Pairs beyond the first exist only when a third ranked layer does; an
+    // absent slot's candidates are pushed out of every comparison.
+    const validC = step(float(-0.5), float(view.ratioC));
+    const cGate = float(1).sub(validC).mul(1e5);
+    const PAIRS = [
+      { gP: gradA, gQ: gradB, gate: float(0), who: 0 },
+      { gP: gradA, gQ: gradC, gate: cGate, who: 1 },
+      { gP: gradB, gQ: gradC, gate: cGate, who: 2 },
+    ];
     const etaBest = float(1e6).toVar();
     const pickBest = float(1e6).toVar();
     const rateA = float(1).toVar();
     const rateB = float(1).toVar();
-    CHARACTERS.forEach(([ka, kb]) => {
-      const beat = gradA.mul(ka).add(gradB.mul(kb));
-      const carrier = gradA.mul(ka).sub(gradB.mul(kb));
-      const e = length(beat).div(max(length(carrier).mul(0.5), float(1e-6)));
-      const wA = Math.abs(kb);
-      const wB = kb < 0 ? ka : -ka;
+    const rateC = float(1).toVar();
+    PAIRS.forEach(({ gP, gQ, gate, who }) => {
+      CHARACTERS.forEach(([ka, kb]) => {
+        const beat = gP.mul(ka).add(gQ.mul(kb));
+        const carrier = gP.mul(ka).sub(gQ.mul(kb));
+        const e = length(beat)
+          .div(max(length(carrier).mul(0.5), float(1e-6)))
+          .add(gate);
+        const wP = Math.abs(kb);
+        const wQ = kb < 0 ? ka : -ka;
+        If(e.lessThan(etaBest), () => etaBest.assign(e));
+        // The heat map shows the true minimum, but the sweep-character choice
+        // penalises order two: a second-order fringe rides second harmonics,
+        // so its contrast is lower by roughly |cos(pi*duty)| and a near-tie
+        // should resolve toward the first-order beat -- also keeps the
+        // per-pixel choice from flickering between characters of comparable
+        // slowness. A zero-sum winner leaves every rate at 1, so ties among
+        // zero-sum characters cost nothing whichever way they fall.
+        const order2 = Math.max(Math.abs(ka), Math.abs(kb)) > 1;
+        const ep = order2 ? e.mul(1.5) : e;
+        const rA = who === 2 ? 1 : wP;
+        const rB = who === 0 ? wQ : who === 2 ? wP : 1;
+        const rC = who === 0 ? 1 : wQ;
+        If(ep.lessThan(pickBest), () => {
+          pickBest.assign(ep);
+          rateA.assign(rA);
+          rateB.assign(rB);
+          rateC.assign(rC);
+        });
+      });
+    });
+    // Zero-sum ternary characters — beats BETWEEN beats, like (1,1,-2) slow
+    // where 2/s3 = 1/s1 + 1/s2 and the three directions conspire. They join
+    // the scan for the heat map's sake; as zero-sum characters they already
+    // ride the diagonal, so a ternary winner asks for no rate deviation at
+    // all, and the same 1.5 penalty as order two keeps near-ties with a
+    // first-order pairwise beat resolving toward the stronger fringe.
+    const TERNARY = [
+      [1, 1, -2],
+      [1, -2, 1],
+      [-2, 1, 1],
+    ];
+    TERNARY.forEach(([ka, kb, kc]) => {
+      const beat = gradA.mul(ka).add(gradB.mul(kb)).add(gradC.mul(kc));
+      const carrier = max(
+        length(gradA).mul(Math.abs(ka)),
+        max(length(gradB).mul(Math.abs(kb)), length(gradC).mul(Math.abs(kc)))
+      );
+      const e = length(beat)
+        .div(max(carrier.mul(0.5), float(1e-6)))
+        .add(cGate);
       If(e.lessThan(etaBest), () => etaBest.assign(e));
-      // The heat map shows the true minimum, but the sweep-character choice
-      // penalises order two: a second-order fringe rides second harmonics, so
-      // its contrast is lower by roughly |cos(pi*duty)| and a near-tie should
-      // resolve toward the first-order beat -- also keeps the per-pixel choice
-      // from flickering between characters of comparable slowness.
-      const order2 = Math.max(Math.abs(ka), Math.abs(kb)) > 1;
-      const ep = order2 ? e.mul(1.5) : e;
-      If(ep.lessThan(pickBest), () => {
-        pickBest.assign(ep);
-        rateA.assign(wA);
-        rateB.assign(wB);
+      If(e.mul(1.5).lessThan(pickBest), () => {
+        pickBest.assign(e.mul(1.5));
+        rateA.assign(1);
+        rateB.assign(1);
+        rateC.assign(1);
       });
     });
     const eta = etaBest.clamp(0, 1);
@@ -654,14 +716,16 @@ export function buildColorNode(
       const color = camera.background.toVar();
       solved.forEach(({ slot, local, halfT, aa, isLattice, cell, shift, phase, phaseFrom }, index) => {
         If(slot.active.greaterThan(0.5), () => {
-          // The ranked pair advances at the integer rates that hold the winning
-          // character fixed while everything else averages out; unranked layers
-          // ride the diagonal. Rate (1, 1) is the plain diagonal, (1, -1) the
-          // old backwards sweep for a sum beat, (1, 2) and friends the
-          // second-order schedules.
+          // The ranked layers advance at the integer rates that hold the
+          // winning character fixed while everything else averages out;
+          // unranked layers ride the diagonal, which alone preserves every
+          // zero-sum character among them. All rates 1 is the plain diagonal,
+          // (1, -1) the backwards sweep for a sum beat, (1, 2) and friends
+          // the second-order schedules — always on the winning pair only.
           const rate = float(1).toVar();
           If(view.ratioA.equal(int(index)), () => rate.assign(rateA));
           If(view.ratioB.equal(int(index)), () => rate.assign(rateB));
+          If(view.ratioC.equal(int(index)), () => rate.assign(rateC));
           const strokeAlpha = (d) =>
             float(1).sub(smoothstep(halfT.sub(aa), halfT.add(aa), d)).mul(slot.opacity);
 

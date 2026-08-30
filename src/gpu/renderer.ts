@@ -56,11 +56,16 @@ function nominalCoverage(layer: PatternLayer, pixel: number): number {
  * else qualifies, radial lines included, whose index is a sector count and still
  * a scalar the ratio can differentiate.
  */
-function ratioPair(layers: PatternLayer[]): [number, number] | null {
-  const pair: number[] = [];
-  for (let i = Math.min(layers.length, MAX_LAYERS) - 1; i >= 0 && pair.length < 2; i--) {
-    if (layers[i].visible && !isGrid(layers[i].type)) pair.push(i);
+function rankedScalars(layers: PatternLayer[], want: number): number[] {
+  const out: number[] = [];
+  for (let i = Math.min(layers.length, MAX_LAYERS) - 1; i >= 0 && out.length < want; i--) {
+    if (layers[i].visible && !isGrid(layers[i].type)) out.push(i);
   }
+  return out;
+}
+
+function ratioPair(layers: PatternLayer[]): [number, number] | null {
+  const pair = rankedScalars(layers, 2);
   return pair.length === 2 ? [pair[0], pair[1]] : null;
 }
 
@@ -365,6 +370,11 @@ export class MoireRenderer {
     this.viewUniforms.ratio.value = pair ? 1 : 0;
     this.viewUniforms.ratioA.value = pair ? pair[0] : maskPair ? maskPair[0] : -1;
     this.viewUniforms.ratioB.value = pair ? pair[1] : maskPair ? maskPair[1] : -1;
+    // The third ranked scalar joins the character scan: with three layers the
+    // dangerous mistake is deviating the top pair's rates for a beat that is
+    // slower than one the second layer makes with the third.
+    const trio = pair || maskPair ? rankedScalars(state.layers, 3) : [];
+    this.viewUniforms.ratioC.value = trio.length > 2 ? trio[2] : -1;
     this.viewUniforms.ratioBlend.value = state.view.ratioBlend;
     this.viewUniforms.ratioThreshold.value = state.view.ratioThreshold;
     const latPair = envelope ? latticePair(state.layers) : null;

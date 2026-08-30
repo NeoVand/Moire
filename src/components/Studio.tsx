@@ -835,7 +835,7 @@ function LayerFields() {
             step={0.001}
             unit=" rad"
             defaultValue={LAYER_DEFAULTS.rotationOffset}
-            info="Walking twist: ring n turns n of these. A few hundredths of a radian makes a pinwheel."
+            info="Walking twist: ring n turns n of these. A few hundredths of a radian makes a pinwheel — but it needs something to act on: with circles and zero Offset each member is unchanged by its own turn, so give the family a drift or a shape first."
             onChange={(rotationOffset) => updateLayer(layer.id, { rotationOffset })}
           />
         </>
