@@ -1,0 +1,81 @@
+<title>Character Hills</title>
+<style>
+  :root {
+    --ink: #15181c;
+    --paper: #f4f2ee;
+    --accent: #c81e5a;
+    --soft: #8a94a0;
+    --line: #dcd8d0;
+  }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font: 13px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+    overflow: hidden;
+  }
+  #view { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+  #panel {
+    position: fixed; top: 14px; right: 14px; width: 270px;
+    background: rgba(255, 255, 255, 0.93);
+    border: 1px solid var(--line); border-radius: 10px;
+    padding: 14px 16px 12px;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 8px 28px rgba(21, 24, 28, 0.10);
+  }
+  h1 { font-size: 14px; margin: 0 0 2px; font-weight: 650; letter-spacing: 0.01em; }
+  #formula { color: var(--soft); font-size: 11.5px; margin: 0 0 10px; min-height: 15px; }
+  .seg { display: flex; gap: 6px; margin-bottom: 12px; }
+  .seg button, .views button {
+    flex: 1; padding: 5px 0; font: inherit; font-size: 12px;
+    border: 1px solid var(--line); border-radius: 7px;
+    background: #fff; color: var(--ink); cursor: pointer;
+  }
+  .seg button.on { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  .lab {
+    font-size: 10px; letter-spacing: 0.09em; text-transform: uppercase;
+    color: var(--soft); margin: 10px 0 4px;
+  }
+  .row { display: grid; grid-template-columns: 1fr 74px 38px; gap: 8px; align-items: center; margin: 3px 0; }
+  .row span:last-child { text-align: right; color: var(--soft); font-variant-numeric: tabular-nums; font-size: 11.5px; }
+  input[type="range"] { width: 100%; accent-color: var(--accent); margin: 0; }
+  .checks { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 10px; margin-top: 4px; }
+  .checks label { display: flex; gap: 6px; align-items: center; font-size: 12px; cursor: pointer; }
+  .checks input { accent-color: var(--accent); }
+  .views { display: flex; gap: 6px; margin-top: 10px; }
+  #hint { margin: 10px 0 0; font-size: 10.5px; color: var(--soft); }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+</style>
+<canvas id="view"></canvas>
+<div id="panel">
+  <h1>Character Hills</h1>
+  <p id="formula"></p>
+  <div class="seg">
+    <button id="difference" class="on">Difference</button>
+    <button id="sum">Sum</button>
+  </div>
+  <div class="lab">Scene</div>
+  <div class="row"><span>Separation F</span><input id="f" type="range" min="0.08" max="0.35" step="0.005"><span id="f-v"></span></div>
+  <div class="row"><span>Fringe levels</span><input id="levels" type="range" min="3" max="9" step="1"><span id="levels-v"></span></div>
+  <div class="row"><span>Ring duty</span><input id="duty" type="range" min="0.15" max="0.7" step="0.01"><span id="duty-v"></span></div>
+  <div class="lab">Surface</div>
+  <div class="row"><span>Relief</span><input id="relief" type="range" min="0.1" max="0.8" step="0.01"><span id="relief-v"></span></div>
+  <div class="row"><span>Band width</span><input id="band" type="range" min="0.03" max="0.22" step="0.005"><span id="band-v"></span></div>
+  <div class="row"><span>Bold cut &eta;</span><input id="etacut" type="range" min="0.15" max="1.2" step="0.05"><span id="etacut-v"></span></div>
+  <div class="row"><span>Light</span><input id="light" type="range" min="0" max="360" step="5"><span id="light-v"></span></div>
+  <div class="lab">Overlays</div>
+  <div class="checks">
+    <label><input id="contours" type="checkbox">contour curves</label>
+    <label><input id="fringes" type="checkbox">floor fringes</label>
+    <label><input id="drops" type="checkbox">drop lines</label>
+    <label><input id="tint" type="checkbox">tint family 1</label>
+  </div>
+  <div class="views">
+    <button id="view-paper">Paper view</button>
+    <button id="view-top">Top</button>
+    <button id="view-low">Low</button>
+  </div>
+  <p id="hint">Drag orbits &middot; shift-drag pans &middot; wheel zooms. Bold marks &eta; below the cut &mdash; the fringe the eye actually sees. Screenshot for Illustrator; high-res files live in paper/fig4-assets.</p>
+</div>
+<script>/*__BUNDLE__*/</script>
