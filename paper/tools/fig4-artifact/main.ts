@@ -621,7 +621,7 @@ let phi = (65 * Math.PI) / 180; // polar from +z
 let dist = 4.6;
 function placeCamera() {
   activeCamera();
-  phi = Math.min(Math.max(phi, 0.05), Math.PI - 0.05);
+  phi = Math.min(Math.max(phi, 0.002), Math.PI - 0.05);
   dist = Math.min(Math.max(dist, 1.2), 14);
   camera.position.set(
     target.x + dist * Math.sin(phi) * Math.cos(theta),
