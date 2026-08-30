@@ -1018,6 +1018,87 @@ console.log(
     `sliding the residual matches a re-solve to ${sweepWorst.toExponential(1)} world units`
 );
 
+// ---------------------------------------------------- crowded rotated rings
+//
+// Past the fold radius ≈ spacing/θ the residual h(n) turns non-monotonic and
+// several BRANCHES of a rotated family pass every point. The trio must then
+// report the residual-adjacent branches, not the index neighbours a fold away:
+// the envelope's slide period is measured off the trio, and a fold-wide gap
+// there leaves the carrier standing in sector-shaped hash (the hexrot scene:
+// hexagon rings, s = 6, θ = 0.02 rad per ring, fold radius 300).
+{
+  const sC = 6;
+  const thetaC = 0.02;
+  const guardC = sC; // the envelope's reject guard: one whole pitch
+  let trioLie = 0;
+  let adjMiss = 0;
+  let checked = 0;
+  let crowdSeen = 0;
+  let detail = '';
+  for (const r of [350, 520, 800]) {
+    for (let i = 0; i < 24; i++) {
+      const a = (i * Math.PI * 2) / 24 + 0.11;
+      const p = { x: r * Math.cos(a), y: r * Math.sin(a) };
+      const ph = ringPhaseCpu(p, { x: 0, y: 0 }, thetaC, sC, 0, 4, 6, 0, guardC);
+      if (ph.floor > 0) continue; // saturated: no members inside the guard here
+      checked += 1;
+
+      const nMax = Math.ceil((r + guardC) / sC) + 8;
+      const residuals: number[] = [];
+      for (let n = 0; n <= nMax; n++) {
+        residuals.push(shapeRadius(rotate2d(p, -n * thetaC), 4, 6) - n * sC);
+      }
+      const nearest = residuals.reduce((b, c) => (Math.abs(c) < Math.abs(b) ? c : b));
+      approx(ph.r, nearest, 1e-3);
+
+      // Every reported neighbour is a real member or the declared nominal step.
+      for (const slot of [ph.rUp, ph.rDown]) {
+        const real = residuals.some((c) => Math.abs(c - slot) < 1e-3);
+        const nominal =
+          Math.abs(slot - (ph.r + sC)) < 1e-3 || Math.abs(slot - (ph.r - sC)) < 1e-3;
+        if (!real && !nominal) {
+          trioLie += 1;
+          detail = `r=${r} i=${i} slot=${slot.toFixed(3)} near=${nearest.toFixed(3)}`;
+        }
+      }
+
+      // The scan provably finds the three nearest members inside the guard, so
+      // whenever a runner-up branch sits comfortably inside it and within a
+      // pitch of the winner, the trio must CONTAIN it — an index neighbour
+      // from a fold away in its slot instead is the sector-hash bug.
+      const inGuard = residuals
+        .filter((c) => Math.abs(c) <= guardC)
+        .sort((x, y) => Math.abs(x) - Math.abs(y));
+      // Keep clear of the ring around one nominal step, where a fallback
+      // rUp = r ± s could coincidentally match a real branch.
+      const provable = inGuard
+        .slice(1, 3)
+        .filter(
+          (c) =>
+            Math.abs(c) <= guardC * 0.85 &&
+            Math.abs(Math.abs(c - nearest) - sC) > sC * 0.1
+        );
+      if (provable.length) crowdSeen += 1;
+      for (const c of provable) {
+        if (Math.abs(ph.rUp - c) > 1e-3 && Math.abs(ph.rDown - c) > 1e-3) {
+          adjMiss += 1;
+          detail =
+            `r=${r} i=${i} trio=(${ph.r.toFixed(3)}, ${ph.rUp.toFixed(3)}, ${ph.rDown.toFixed(3)}) ` +
+            `missing branch at ${c.toFixed(3)}`;
+        }
+      }
+    }
+  }
+  assert.ok(checked > 50, `too few crowded probes admissible, ${checked}`);
+  assert.ok(crowdSeen > 20, `the crowded regime was not reached, ${crowdSeen}`);
+  assert.ok(trioLie === 0, `trio reported a member that does not exist (${detail})`);
+  assert.ok(adjMiss === 0, `trio missed the adjacent branch in a crowd (${detail})`);
+  console.log(
+    `  crowded rings: ${checked} probes past the fold radius, ` +
+      `${crowdSeen} in a full crowd — the trio reports the adjacent branches`
+  );
+}
+
 // Lattices have no scalar phase, so the envelope averages them by translation
 // instead. That is only an average over the carrier if the reported cell really is
 // a period of the lattice, in both generators and for edges and vertices alike.

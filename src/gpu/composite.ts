@@ -336,15 +336,23 @@ function solveLayers(slots, fields, view, world, pixel) {
 
       halfT.assign(max(slot.thickness.mul(0.5), pixel.mul(1.15)));
       aa.assign(pixel.mul(0.7));
-      const accept = max(halfT.sub(aa), float(0));
-      // Past halfT + aa the stroke is fully transparent, so the ring solver is
-      // free to prove indices away instead of measuring them. Under the sweep the
-      // stroke visits every phase, and under the ratio view the index has to be
-      // differentiable between strokes, so both measure a whole pitch out.
-      const reject = max(
-        halfT.add(aa),
-        max(view.sweep, max(view.ratio, view.contours)).mul(slot.spacing)
-      );
+      // How exactly the phase must be measured depends on who consumes it.
+      // The plain render only asks whether a member sits within the stroke, so
+      // the rotated-ring scan may stop at the FIRST member that close
+      // (`accept`) and prove the rest away (`reject` at the stroke edge). The
+      // envelope, the ratio view, and the contours consume the phase itself —
+      // the residual trio and the measured local gap — so there `accept` must
+      // drop to zero and `reject` widen to a whole pitch: an early exit hands
+      // back a member that is merely close enough, and where a rotating family
+      // crowds (past radius ≈ spacing/θ the ring index turns non-monotonic and
+      // several rings pass near every point) the true neighbours then measure
+      // NEARER than it, are rejected as impossible, and the gap silently falls
+      // back to the nominal spacing — the sweep averages over the wrong period
+      // and the carrier survives as sector-shaped hash. With the exact argmin
+      // the neighbour trio is honest by construction.
+      const needPhase = max(view.sweep, max(view.ratio, view.contours));
+      const accept = max(halfT.sub(aa), float(0)).mul(step(needPhase, float(0)));
+      const reject = max(halfT.add(aa), needPhase.mul(slot.spacing));
 
       // A field is a displacement of the layer's *index*: `shift` many members,
       // wherever you stand. That is the one description every family shares, and

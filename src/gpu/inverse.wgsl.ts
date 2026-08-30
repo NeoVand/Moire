@@ -362,11 +362,15 @@ fn polygonTranslatedWgsl(p: vec2<f32>, offset: vec2<f32>, spacing: f32, phase: f
 `, [bracketFlat, shapeRadiusWgsl, nearerWgsl]);
 
 /**
- * The concentric families as a signed residual and the index that attained it,
- * `vec2(h, n)`. Mirrors `ringSignedCpu` in inverseCpu.ts.
+ * The concentric families as a signed residual, the index that attained it,
+ * and the scan's two runners-up: `vec4(h, n, alt2, alt3)`. Mirrors
+ * `ringSignedCpu` in inverseCpu.ts. The closed forms report sentinel
+ * runners-up — their residual is monotone around the winner, so the index
+ * neighbours ARE the residual neighbours; the rotated scan is where the
+ * members adjacent in residual can be other branches of the family.
  */
 const ringSignedWgsl = wgslFn(`
-fn ringSignedWgsl(p: vec2<f32>, offset: vec2<f32>, theta: f32, spacing: f32, phase: f32, shapeType: f32, sides: f32, acceptBelow: f32, guard: f32) -> vec2<f32> {
+fn ringSignedWgsl(p: vec2<f32>, offset: vec2<f32>, theta: f32, spacing: f32, phase: f32, shapeType: f32, sides: f32, acceptBelow: f32, guard: f32) -> vec4<f32> {
   let s = max(spacing, 1e-4);
   let hasOff = dot(offset, offset) > 1e-8;
   let hasRot = abs(theta) > 1e-8;
@@ -379,18 +383,20 @@ fn ringSignedWgsl(p: vec2<f32>, offset: vec2<f32>, theta: f32, spacing: f32, pha
     if (adj >= 0.0) {
       n = round(adj / s);
     }
-    return vec2<f32>(centeredResidualWgsl(radial, s, phase), n);
+    return vec4<f32>(centeredResidualWgsl(radial, s, phase), n, 1e6, 1e6);
   }
   if (!hasRot) {
     if (shape <= 1) {
-      return circleQuadraticWgsl(p, offset, s, phase, shapeType, sides);
+      let hit = circleQuadraticWgsl(p, offset, s, phase, shapeType, sides);
+      return vec4<f32>(hit.x, hit.y, 1e6, 1e6);
     }
     // h is convex in n here, so the crossing is a linear solve on one facet. Only
     // a drift that outruns the spacing can hide the answer at a breakpoint
     // instead of a crossing, and that case falls through to the scan.
     let facets = facetCountWgsl(shapeType, sides);
     if (facets > 0.0 && shapeRadiusWgsl(-offset, shapeType, sides) <= s + 1e-4) {
-      return polygonTranslatedWgsl(p, offset, s, phase, shapeType, sides, facets);
+      let hit = polygonTranslatedWgsl(p, offset, s, phase, shapeType, sides, facets);
+      return vec4<f32>(hit.x, hit.y, 1e6, 1e6);
     }
   }
 
@@ -412,6 +418,11 @@ fn ringSignedWgsl(p: vec2<f32>, offset: vec2<f32>, theta: f32, spacing: f32, pha
   if (span > 1024.0) {
     stride = exp2(ceil(log2(span / 1024.0)));
   }
+  // A caller that measures the phase (acceptBelow = 0) gets the runners-up too:
+  // the skip bar must then protect the THIRD-nearest member, not just the
+  // nearest, so the trio's members are proven rather than sampled. The plain
+  // render keeps the tighter bar and its early exit — it only asks for ink.
+  let wantTrio = acceptBelow <= 0.0;
 
   // q_n advances by a fixed rotation and a fixed translation per stride, so the
   // loop carries them instead of recomputing: no sin, cos, or atan2 per ring.
@@ -428,6 +439,10 @@ fn ringSignedWgsl(p: vec2<f32>, offset: vec2<f32>, theta: f32, spacing: f32, pha
   var best = 1e6;
   var bestSigned = 1e6;
   var bestN = -1.0;
+  var alt2 = 1e6;
+  var alt2Signed = 1e6;
+  var alt3 = 1e6;
+  var alt3Signed = 1e6;
   for (var i = 0; i < 1024; i += 1) {
     if (n > hi) {
       break;
@@ -436,16 +451,32 @@ fn ringSignedWgsl(p: vec2<f32>, offset: vec2<f32>, theta: f32, spacing: f32, pha
     let signed = shapeRadiusWgsl(q, shapeType, sides) - ringR;
     let gap = abs(signed);
     if (gap < best) {
+      alt3 = alt2;
+      alt3Signed = alt2Signed;
+      alt2 = best;
+      alt2Signed = bestSigned;
       best = gap;
       bestSigned = signed;
       bestN = n;
+    } else if (gap < alt2) {
+      alt3 = alt2;
+      alt3Signed = alt2Signed;
+      alt2 = gap;
+      alt2Signed = signed;
+    } else if (gap < alt3) {
+      alt3 = gap;
+      alt3Signed = signed;
     }
     if (acceptBelow > 0.0 && best <= acceptBelow) {
       break;
     }
     // No index within (gap - bar) / slope of here can beat bar, so the next index
     // worth looking at is the first lattice point past that run.
-    let bar = min(best, guard);
+    var protect = best;
+    if (wantTrio) {
+      protect = alt3;
+    }
+    let bar = min(protect, guard);
     let safe = floor((gap - bar) / slope) + 1.0;
     let jump = max(1.0, ceil(safe / stride)) * stride;
     n = n + jump;
@@ -465,9 +496,9 @@ fn ringSignedWgsl(p: vec2<f32>, offset: vec2<f32>, theta: f32, spacing: f32, pha
   // best <= acceptBelow < guard whenever the loop exited early, so clamping here
   // cannot discard an accepted hit.
   if (best <= guard) {
-    return vec2<f32>(bestSigned, bestN);
+    return vec4<f32>(bestSigned, bestN, alt2Signed, alt3Signed);
   }
-  return vec2<f32>(guard, -1.0);
+  return vec4<f32>(guard, -1.0, 1e6, 1e6);
 }
 `, [
   centeredResidualWgsl,
@@ -533,7 +564,12 @@ fn ringPhase(p: vec2<f32>, offset: vec2<f32>, theta: f32, spacing: f32, phase: f
 
   // Rings are ordered by residual, not by index: increasing n lowers h, and past
   // the marginal drift h turns around, so which side a neighbour lands on is not
-  // fixed. The trio is a set, so it does not matter.
+  // fixed. The trio is a set, so it does not matter. Under rotation past the
+  // fold radius (~ spacing/theta) it is sharper than that: the members adjacent
+  // in residual are other BRANCHES of the family, indices far from n, which the
+  // scan's runners-up carry — report the index neighbours there and the trio
+  // spans a whole fold, the measured gap overstates the local period, and the
+  // envelope's slide leaves the carrier standing in sector-shaped patches.
   var above = 1e6;
   if (n >= 0.0) {
     above = evalRing(p, n + 1.0, offset, theta, s, phi, shapeType, sides);
@@ -543,10 +579,47 @@ fn ringPhase(p: vec2<f32>, offset: vec2<f32>, theta: f32, spacing: f32, phase: f
     below = evalRing(p, n - 1.0, offset, theta, s, phi, shapeType, sides);
   }
 
+  // The nearest candidate to r, then the nearest on the OTHER side of r (else
+  // the second-nearest), so the trio flanks the winner when the family does.
+  var cnds = array<f32, 4>(above, below, hit.z, hit.w);
+  var first = 1e6;
+  var second = 1e6;
+  for (var k = 0; k < 4; k += 1) {
+    let v = cnds[k];
+    if (v >= 1e5 || abs(v - r) <= 1e-9) {
+      continue;
+    }
+    if (first >= 1e5 || abs(v - r) < abs(first - r)) {
+      second = first;
+      first = v;
+    } else if (second >= 1e5 || abs(v - r) < abs(second - r)) {
+      second = v;
+    }
+  }
+  var opp = 1e6;
+  for (var k = 0; k < 4; k += 1) {
+    let v = cnds[k];
+    if (v >= 1e5 || (v - r) * (first - r) >= 0.0) {
+      continue;
+    }
+    if (opp >= 1e5 || abs(v - r) < abs(opp - r)) {
+      opp = v;
+    }
+  }
+  if (opp < 1e5) {
+    second = opp;
+  }
+  var upSlot = first;
+  var downSlot = second;
+  if (first < 1e5 && first < r) {
+    upSlot = second;
+    downSlot = first;
+  }
+
   return vec4<f32>(
     r * scale,
-    neighbourWgsl(above, r, s, 1.0) * scale,
-    neighbourWgsl(below, r, s, -1.0) * scale,
+    neighbourWgsl(upSlot, r, s, 1.0) * scale,
+    neighbourWgsl(downSlot, r, s, -1.0) * scale,
     0.0
   );
 }

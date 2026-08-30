@@ -8,7 +8,7 @@
     "width": 640,
     "height": 480
   },
-  "updatedAt": "2026-08-30T18:13:36.548Z",
+  "updatedAt": "2026-08-30T18:36:57.112Z",
   "cases": {
     "lines-pair": {
       "coords": [
@@ -192,6 +192,13 @@
         1
       ],
       "note": "ratio view over a grid and two scalars — the ranking must skip the grid"
+    },
+    "hexrot-spiral-envelope": {
+      "coords": [
+        1,
+        1
+      ],
+      "note": "two concentric-hexagon families, one rotating 0.02 rad per ring — past the fold radius spacing/θ = 300 the family branches, and the phase trio must report adjacent branches, not index neighbours (the sector-hash bug)"
     }
   }
 }

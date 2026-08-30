@@ -196,6 +196,28 @@ export const cases = [
     ),
   },
   {
+    name: 'hexrot-spiral-envelope',
+    coords: [1, 1],
+    note:
+      'two concentric-hexagon families, one rotating 0.02 rad per ring — past ' +
+      'the fold radius spacing/θ = 300 the family branches, and the phase trio ' +
+      'must report adjacent branches, not index neighbours (the sector-hash bug)',
+    scene: scene(
+      [
+        layer('a', { type: 'concentric-polygons', spacing: 6, thickness: 3.5, sides: 6 }),
+        layer('b', {
+          type: 'concentric-polygons',
+          spacing: 6,
+          thickness: 3.5,
+          sides: 6,
+          rotationOffset: 0.02,
+        }),
+      ],
+      view(ENVELOPE),
+      0.5
+    ),
+  },
+  {
     name: 'radial-pair-contours',
     coords: [1, 1],
     note: 'two radial fans off-centre — the sector-count scalar under contours',
