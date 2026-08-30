@@ -164,7 +164,7 @@ correction is first order in $\het$, which is the same small parameter
 theorem is exact in the limit that a fringe becomes infinitely broad, and
 degrades in the parameter that measures how far from that limit we are --- which is
 why the verification below both restricts to $\het\le1/4$ and reports the residual
-rather than claiming zero. Three further remarks.
+rather than claiming zero. Four further remarks.
 
 \paragraph{The locus is classical; the profile is not.}
 $\Phi$ is periodic with period $1$ and extremal at $D\in\Z$ and
@@ -222,6 +222,23 @@ level sets are exactly the members. It is an index field computed by search
 rather than written down, the theorem does not care about the difference, and
 the \texttt{walking-circle} row of Table~\ref{tab:fringe} measures the law
 holding on it.
+
+\paragraph{The difference is a difference up to labeling.}
+Nothing fixes the sign of an index field: relabel a family's members $n\to-n$
+and $\idx$ flips while every curve, stroke and pixel stays the same. $D$ is
+therefore defined per \emph{pair of labelings}, and the theorem holds in
+whichever labeling makes its own hypothesis true --- the one where the carriers
+nearly agree, so that $D$ is slow. In the opposite labeling the same slow
+combination reads $\idx_1+\idx_2$: the classical \emph{sum}
+moir\'e~\cite{Oster1964}. Where the two index gradients anti-align it is the sum
+that beats slowly, and a difference-only reading misses fringes that stand in
+plain sight. This is not hypothetical. Our first envelope view
+(\S\ref{sec:envelope}) held $\idx_1-\idx_2$ fixed while it averaged, and every
+sum-labeled fringe system in the frame vanished from it.
+\S\ref{sec:visibility} folds both labelings into one criterion, the envelope
+sweeps whichever one the criterion picks, and for lattice layers, whose index is
+a vector, the quotient grows from a sign to a small integer combination of
+generators (supplemental \S S3).
 
 \subsection{The envelope view}
 \label{sec:envelope}

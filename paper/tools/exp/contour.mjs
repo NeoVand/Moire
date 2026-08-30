@@ -36,9 +36,9 @@ mkdirSync(DATA, { recursive: true });
 mkdirSync(FIGS, { recursive: true });
 
 /** Carrier pitch, world units. Deliberately near the pixel limit. */
-const S = 5;
+const S = 5.8;
 const INK = '#12161c';
-const T = 1.4;
+const T = 1.65;
 
 const CARRIER = { kind: 'parallel', angle: 0, spacing: S, phase: 0, thickness: T, color: INK };
 
@@ -69,7 +69,7 @@ function encoded(name, label, amount, scale) {
 // fringes are straight lines at a spacing we know in advance. Any displacement
 // measured here is bias in the estimator, not error in the method, and it sets
 // the noise floor for the six fields below.
-const DETUNE = 5.5556;
+const DETUNE = 6.4444;
 const CONTROL = {
   name: 'control',
   label: 'two pitches',

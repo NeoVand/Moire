@@ -190,6 +190,7 @@ function compileTikz(tikzTex, widthPt = LINEWIDTH_PT) {
   cpSync(cached, join(OUT_FIGS, png));
   // Display share of the text column that matches the print proportion:
   // pixel width at 300dpi back to points, against the print line width.
+  recordDims(`figures/${png}`, cached);
   const pxWidth = readFileSync(cached).readUInt32BE(16);
   return { src: `figures/${png}`, widthPt: (pxWidth / 300) * 72 };
 }
@@ -355,9 +356,9 @@ function figureToHtml(inner, star, num, id) {
   let te;
   while ((te = extractEnv(tex, 'tikzpicture'))) {
     const { src, widthPt } = compileTikz(tex.slice(te.start, te.end), star ? LINEWIDTH_PT : COLUMNWIDTH_PT);
-    // Display so the plot's type matches the page's body type (a column-width
-    // plot sits at ~60% of the text column), floored so small drawings hold.
-    const pct = Math.min(100, Math.max((widthPt / COLUMNWIDTH_PT) * 60, 48));
+    // A column-float plot spans the text column, like it spans its column in
+    // print; only an intrinsically narrow drawing sits below full width.
+    const pct = Math.min(100, Math.max((widthPt / COLUMNWIDTH_PT) * 100, 55));
     tikzHtml += `<img class="tikz" style="width:${pct.toFixed(1)}%" src="${src}" alt="">`;
     tex = tex.slice(0, te.start) + tex.slice(te.end);
   }
@@ -390,11 +391,19 @@ function figureToHtml(inner, star, num, id) {
   return `<figure class="paper-figure${star ? ' wide' : ''}" id="${id}">${bodyHtml}<figcaption><span class="fignum">Fig. ${num}.</span> ${inline(captionTex)}</figcaption></figure>`;
 }
 
+const IMG_DIMS = new Map();
+
+function recordDims(src, file) {
+  const buf = readFileSync(file);
+  IMG_DIMS.set(src, { w: buf.readUInt32BE(16), h: buf.readUInt32BE(20) });
+}
+
 function copyFigure(rel) {
   const base = rel.split('/').pop();
   const from = join(PAPER, rel.endsWith('.png') ? rel : `${rel}.png`);
   const name = base.endsWith('.png') ? base : `${base}.png`;
   cpSync(from, join(OUT_FIGS, name));
+  recordDims(`figures/${name}`, from);
   return `figures/${name}`;
 }
 
@@ -660,6 +669,10 @@ function inline(tex, alreadyEscaped = false) {
   // Post-escape tokens for injected HTML.
   s = s.replaceAll(/@@SC\|([^@]+)@@/g, '<span class="sc">$1</span>');
   s = s.replaceAll('@@RET@@', '<strong>return</strong>');
+
+  // Punctuation right after math must not start a line: KaTeX renders an
+  // atomic inline, and browsers happily break just before the comma.
+  s = s.replace(/(@@MATH\d+@@)([,.;:!?)\]]+)/g, '<span class="nowrap">$1$2</span>');
 
   // Restore math, entity-escaped for the DOM. A nested inline() call may meet
   // the outer call's placeholders: leave those for the outer restore.
@@ -1436,7 +1449,11 @@ document.addEventListener('DOMContentLoaded', () => {
 </html>
 `;
 
-writeFileSync(join(OUT, 'index.html'), html);
+const stamped = html.replace(/<img ([^>]*?)src="(figures\/[^"]+)"/g, (m, pre, src) => {
+  const d = IMG_DIMS.get(src);
+  return d ? `<img ${pre}src="${src}" width="${d.w}" height="${d.h}"` : m;
+});
+writeFileSync(join(OUT, 'index.html'), stamped);
 console.log(
   `wrote public/paper/index.html  (${paragraphs.length} blocks, ${figN} figures, ${tabN} tables, ${eqN} equations, ${thmN} theorem-like, ${used.length} references, ${tikzCount} tikz)`
 );
