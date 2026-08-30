@@ -47,6 +47,12 @@
   .views { display: flex; gap: 6px; margin-top: 10px; }
   #hint { margin: 10px 0 0; font-size: 10.5px; color: var(--soft); }
   button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  #copymodal { position: fixed; inset: 0; z-index: 10; background: rgba(21,24,28,.35); display: grid; place-items: center; }
+  .cm-box { width: min(620px, 92vw); background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; box-shadow: 0 14px 44px rgba(21,24,28,.25); }
+  .cm-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 13px; }
+  .cm-head button { font: inherit; font-size: 12px; padding: 4px 10px; border: 1px solid var(--line); border-radius: 7px; background: #fff; cursor: pointer; }
+  #cm-text { width: 100%; height: 42vh; resize: vertical; font: 11px/1.4 ui-monospace, monospace; border: 1px solid var(--line); border-radius: 7px; padding: 8px; box-sizing: border-box; color: var(--ink); background: var(--paper); }
+  .cm-note { margin-top: 6px; font-size: 10.5px; color: var(--soft); }
 </style>
 <canvas id="view"></canvas>
 <div id="panel">
@@ -77,9 +83,9 @@
   <div class="checks">
     <label><input id="contours" type="checkbox">contour curves</label>
     <label><input id="fringes" type="checkbox">floor fringes</label>
-    <label><input id="drops" type="checkbox">drop lines</label>
+    <label><input id="posts" type="checkbox">corner posts</label>
     <label><input id="tint" type="checkbox">tint family 1</label>
-    <label><input id="edge" type="checkbox">surface outline</label>
+    <label><input id="edge" type="checkbox">outlines</label>
     <label><input id="floorvis" type="checkbox">floor</label>
   </div>
   <div class="views">
@@ -87,6 +93,11 @@
     <button id="view-top">Top</button>
     <button id="view-low">Low</button>
   </div>
-  <p id="hint">Drag orbits &middot; shift-drag pans &middot; wheel zooms. Bold marks &eta; below the cut &mdash; the fringe the eye actually sees. Screenshot for Illustrator; high-res files live in paper/fig4-assets.</p>
+  <div class="lab">Export</div>
+  <div class="views">
+    <button id="exp-json">Settings JSON</button>
+    <button id="exp-svg">View SVG</button>
+  </div>
+  <p id="hint">Drag orbits &middot; shift-drag pans &middot; wheel zooms. Bold marks &eta; below the cut &mdash; the fringe the eye actually sees. Screenshot for reference; Settings JSON captures every knob and the camera, so the exact frame can be re-rendered at print resolution.</p>
 </div>
 <script>/*__BUNDLE__*/</script>

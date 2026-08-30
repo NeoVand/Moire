@@ -24,7 +24,7 @@ interface Params {
   showFloor: boolean;
   showContours: boolean;
   showFringes: boolean;
-  showDrops: boolean;
+  showPosts: boolean; // corner posts joining the two planes
   lightAz: number; // degrees
 }
 
@@ -46,7 +46,7 @@ const P: Params = {
   showFloor: true,
   showContours: false,
   showFringes: false,
-  showDrops: true,
+  showPosts: true,
   lightAz: 145,
 };
 
@@ -339,9 +339,6 @@ function rebuildCurves() {
   const colHex = P.panel === 'difference' ? ACCENT : WARM;
   const boldMat = new THREE.MeshBasicMaterial({ color: colHex });
   const thinMat = new THREE.LineBasicMaterial({ color: colHex, transparent: true, opacity: 0.4 });
-  const dropMat = new THREE.LineDashedMaterial({
-    color: INK, dashSize: 0.028, gapSize: 0.02, transparent: true, opacity: 0.65,
-  });
   const levels = levelCurves();
   const addRun = (pts3: [number, number, number][], bold: boolean, radius: number) => {
     if (bold) {
@@ -380,33 +377,147 @@ function rebuildCurves() {
       const g = new THREE.TubeGeometry(curve3(pts3), 160, 0.004, 5, false);
       dynamic.add(new THREE.Mesh(g, edgeMat));
     }
-    const fl = new THREE.BufferGeometry().setFromPoints([
-      new THREE.Vector3(-1, -1, 0.002), new THREE.Vector3(1, -1, 0.002),
-      new THREE.Vector3(1, 1, 0.002), new THREE.Vector3(-1, 1, 0.002),
-      new THREE.Vector3(-1, -1, 0.002),
-    ]);
-    dynamic.add(new THREE.Line(fl, new THREE.LineBasicMaterial({ color: INK, transparent: true, opacity: 0.5 })));
-  }
-  if (P.showDrops) {
-    const drops: [number, number][] = [];
-    if (P.panel === 'difference') {
-      for (const [n, sign, t] of [[2, 1, 1.6], [3, -1, 1.3], [4, 1, -1.0]] as const) {
-        if (n >= P.levels) continue;
-        const a = (n * s()) / 2;
-        const b = Math.sqrt(Math.max(P.F * P.F - a * a, 1e-12));
-        drops.push([sign * a * Math.cosh(t), b * Math.sinh(t)]);
-      }
-    } else drops.push([0, 0]);
-    for (const [x, y] of drops) {
-      const z = P.z0 + zScale * (H(x, y) - zMid);
-      const g = new THREE.BufferGeometry().setFromPoints([
-        new THREE.Vector3(x, y, 0), new THREE.Vector3(x, y, z),
-      ]);
-      const line = new THREE.Line(g, dropMat);
-      line.computeLineDistances();
-      dynamic.add(line);
+    // the moire plane gets the same ink outline
+    for (const e of edges) {
+      const pts3 = e.map(([x, y]) => [x, y, 0.003] as [number, number, number]);
+      const g = new THREE.TubeGeometry(curve3(pts3), 32, 0.004, 5, false);
+      dynamic.add(new THREE.Mesh(g, edgeMat));
     }
   }
+  if (P.showPosts) {
+    const postMat = new THREE.MeshBasicMaterial({ color: INK, transparent: true, opacity: 0.55 });
+    for (const [cx, cy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]] as const) {
+      const z = P.z0 + zScale * (H(cx, cy) - zMid);
+      const g = new THREE.TubeGeometry(
+        curve3([[cx, cy, 0.003], [cx, cy, (z + 0.003) / 2], [cx, cy, z]]),
+        8, 0.0032, 5, false
+      );
+      dynamic.add(new THREE.Mesh(g, postMat));
+    }
+  }
+}
+
+// ------------------------------------------------------------------ export
+function settingsJson(): string {
+  return JSON.stringify(
+    {
+      app: 'character-hills',
+      version: 1,
+      params: P,
+      camera: { theta, phi, dist, target: [target.x, target.y, target.z] },
+      viewport: { w: canvas.clientWidth, h: canvas.clientHeight },
+    },
+    null,
+    2
+  );
+}
+
+function viewSvg(): string {
+  camera.updateMatrixWorld(true);
+  const W = canvas.clientWidth, Hh = canvas.clientHeight;
+  const v = new THREE.Vector3();
+  const px = (x: number, y: number, z: number) => {
+    v.set(x, y, z).project(camera);
+    return [((v.x * 0.5 + 0.5) * W).toFixed(1), ((1 - (v.y * 0.5 + 0.5)) * Hh).toFixed(1)];
+  };
+  const poly = (pts: [number, number, number][], cls: string) =>
+    `<polyline points="${pts.map(([x, y, z]) => px(x, y, z).join(',')).join(' ')}" class="${cls}"/>`;
+  const col = P.panel === 'difference' ? '#C81E5A' : '#D4761A';
+  const parts: string[] = [
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${Hh}" viewBox="0 0 ${W} ${Hh}">`,
+    `<style>.bold{stroke:${col};stroke-width:2.4;fill:none}` +
+      `.thin{stroke:${col};stroke-width:0.9;fill:none;opacity:.45}` +
+      `.ring1{stroke:#26506a;stroke-width:0.7;fill:none}` +
+      `.ring2{stroke:#15181c;stroke-width:0.7;fill:none}` +
+      `.frame{stroke:#15181c;stroke-width:1.6;fill:none}` +
+      `.post{stroke:#15181c;stroke-width:1.2;fill:none;opacity:.55}</style>`,
+  ];
+  const lift = (run: Run, lv: number) =>
+    run.map(([x, y]) => [x, y, liftZ(lv)] as [number, number, number]);
+  const flat = (run: Run, z = 0) => run.map(([x, y]) => [x, y, z] as [number, number, number]);
+  const border: Run = [[-1, -1], [1, -1], [1, 1], [-1, 1], [-1, -1]];
+  // floor ring families, clipped to the patch
+  for (const [fam, cx] of [['ring1', -P.F], ['ring2', P.F]] as const) {
+    parts.push(`<g id="floor-${fam === 'ring1' ? 'family1' : 'family2'}">`);
+    const kmax = Math.ceil(1.6 / s());
+    for (let k = 1; k <= kmax; k++) {
+      const pts: Run = [];
+      for (let i = 0; i <= 360; i++) {
+        const a = (2 * Math.PI * i) / 360;
+        pts.push([cx + k * s() * Math.cos(a), k * s() * Math.sin(a)]);
+      }
+      for (const run of clipPatch(pts)) parts.push(poly(flat(run, 0.001), fam));
+    }
+    parts.push('</g>');
+  }
+  const levels = levelCurves();
+  parts.push('<g id="floor-fringes">');
+  for (const { pts } of levels)
+    for (const run of clipPatch(pts))
+      for (const seg of splitEta(run))
+        parts.push(poly(flat(seg.pts, 0.002), seg.bold ? 'bold' : 'thin'));
+  parts.push('</g><g id="surface-contours">');
+  for (const { lv, pts } of levels)
+    for (const run of clipPatch(pts))
+      for (const seg of splitEta(run))
+        parts.push(poly(lift(seg.pts, lv), seg.bold ? 'bold' : 'thin'));
+  parts.push('</g><g id="frames">');
+  parts.push(poly(flat(border, 0.001), 'frame'));
+  const edge: Run = [];
+  for (let i = 0; i <= 640; i++) {
+    const t = (i % 160) / 160;
+    const side = Math.floor(i / 160) % 4;
+    if (side === 0) edge.push([-1 + 2 * t, -1]);
+    else if (side === 1) edge.push([1, -1 + 2 * t]);
+    else if (side === 2) edge.push([1 - 2 * t, 1]);
+    else edge.push([-1, 1 - 2 * t]);
+  }
+  edge.push([-1, -1]);
+  parts.push(
+    poly(edge.map(([x, y]) => [x, y, P.z0 + zScale * (H(x, y) - zMid)] as [number, number, number]), 'frame')
+  );
+  parts.push('</g>');
+  if (P.showPosts) {
+    parts.push('<g id="corner-posts">');
+    for (const [cx, cy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]] as const) {
+      const z = P.z0 + zScale * (H(cx, cy) - zMid);
+      parts.push(poly([[cx, cy, 0], [cx, cy, z]], 'post'));
+    }
+    parts.push('</g>');
+  }
+  parts.push('</svg>');
+  return parts.join('\n');
+}
+
+function openCopyModal(title: string, text: string) {
+  let modal = document.getElementById('copymodal') as HTMLDivElement | null;
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'copymodal';
+    modal.innerHTML =
+      '<div class="cm-box"><div class="cm-head"><b id="cm-title"></b>' +
+      '<span><button id="cm-copy">Copy</button> <button id="cm-close">Close</button></span></div>' +
+      '<textarea id="cm-text" readonly spellcheck="false"></textarea>' +
+      '<div class="cm-note">Downloads are sandboxed on this page \u2014 copy instead (\u2318A \u00b7 \u2318C works too).</div></div>';
+    document.body.appendChild(modal);
+    document.getElementById('cm-close')!.addEventListener('click', () => modal!.remove());
+    document.getElementById('cm-copy')!.addEventListener('click', async () => {
+      const ta = document.getElementById('cm-text') as HTMLTextAreaElement;
+      ta.select();
+      try {
+        await navigator.clipboard.writeText(ta.value);
+        (document.getElementById('cm-copy') as HTMLButtonElement).textContent = 'Copied';
+      } catch {
+        document.execCommand('copy');
+        (document.getElementById('cm-copy') as HTMLButtonElement).textContent = 'Copied?';
+      }
+    });
+  }
+  (document.getElementById('cm-title') as HTMLElement).textContent = title;
+  const ta = document.getElementById('cm-text') as HTMLTextAreaElement;
+  ta.value = text;
+  ta.focus();
+  ta.select();
 }
 
 // ------------------------------------------------------------------ orbit
@@ -512,7 +623,7 @@ function bindCheck(id: string, get: () => boolean, set: (v: boolean) => void) {
 }
 bindCheck('contours', () => P.showContours, (v) => (P.showContours = v));
 bindCheck('fringes', () => P.showFringes, (v) => (P.showFringes = v));
-bindCheck('drops', () => P.showDrops, (v) => (P.showDrops = v));
+bindCheck('posts', () => P.showPosts, (v) => (P.showPosts = v));
 bindCheck('tint', () => P.tint, (v) => { P.tint = v; floorDirty = true; });
 bindCheck('edge', () => P.showEdge, (v) => (P.showEdge = v));
 bindCheck('floorvis', () => P.showFloor, (v) => (P.showFloor = v));
@@ -538,6 +649,8 @@ for (const p of ['difference', 'sum'] as Panel[]) {
 $('view-paper').addEventListener('click', () => preset(25, -62, 4.6));
 $('view-top').addEventListener('click', () => preset(88, -90, 4.2));
 $('view-low').addEventListener('click', () => preset(10, -30, 4.2));
+$('exp-json').addEventListener('click', () => openCopyModal('Settings JSON', settingsJson()));
+$('exp-svg').addEventListener('click', () => openCopyModal('View SVG (current camera)', viewSvg()));
 
 // ------------------------------------------------------------------ loop
 function resize() {

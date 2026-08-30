@@ -43,6 +43,10 @@ import { layerMorph } from './typeMorph';
 import { compileField, type CompiledField } from '../fields/expr';
 import { fieldFunction } from '../fields/expr.wgsl';
 
+// The paper accent, converted by THREE.Color into the renderer's linear
+// working space so the overlay matches the printed #C81E5A.
+const ACCENT_LINEAR = new THREE.Color('#C81E5A');
+
 export function patternTypeCode(type: PatternType): number {
   switch (type) {
     case 'straight-lines':
@@ -848,6 +852,9 @@ export function buildColorNode(
         out.assign(mix(out, view.pivot.add(view.lift).clamp(0, 1), fade));
       }
     );
+    // At blend 1 the map replaces the picture; below it the map reads over the
+    // drawing, so an author sees where on the picture fringes will live.
+    If(view.ratio.greaterThan(0.5), () => out.assign(mix(out, heat, view.ratioBlend.clamp(0, 1))));
     // Fringe contours: the winning character's beat phase crosses an integer
     // exactly at each fringe centre, so its level sets, one pixel wide, are
     // the skeleton of the moiré — the same curves the character-hills figure
@@ -855,7 +862,9 @@ export function buildColorNode(
     // screen-space distance, so the stroke holds one width at any zoom, and
     // the overlay fades out of the fringe regime with the same threshold the
     // heat map marks: where the beat runs at carrier scale the level sets are
-    // the carrier, not a fringe skeleton.
+    // the carrier, not a fringe skeleton. Drawn after the heat map so the
+    // skeleton annotates that view too; the colour is the paper accent in the
+    // shader's linear working space (raw sRGB values here render neon).
     If(view.contours.greaterThan(0.5), () => {
       const fd = beatVal.sub(round(beatVal)).abs();
       const dpx = fd.div(max(beatRate, float(1e-6)));
@@ -870,11 +879,8 @@ export function buildColorNode(
       const band = pow(max(float(1).sub(fd.div(0.28)), float(0)), 1.5)
         .mul(view.contourBand);
       const alpha = max(stroke.mul(0.85), band.mul(0.55)).mul(gate);
-      out.assign(mix(out, vec3(0.784, 0.118, 0.353), alpha));
+      out.assign(mix(out, vec3(ACCENT_LINEAR.r, ACCENT_LINEAR.g, ACCENT_LINEAR.b), alpha));
     });
-    // At blend 1 the map replaces the picture; below it the map reads over the
-    // drawing, so an author sees where on the picture fringes will live.
-    If(view.ratio.greaterThan(0.5), () => out.assign(mix(out, heat, view.ratioBlend.clamp(0, 1))));
     return out;
   })();
 }
