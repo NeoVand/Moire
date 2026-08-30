@@ -63,7 +63,10 @@ scan of §3.6. `ternary.mjs` scans all primitive characters on three ring
 layers and, with `search`, finds the harmonic-mean spacing where the zero-sum
 ternary (1,1,-2) owns half the frame while every pairwise character stays
 fast — the prediction behind the three-layer paragraph of §3.7.
-`tools/fig-charhills.py` regenerates `fig-charhills.tex`, the
+`tools/fig4-3d.py` (run with `uv run`) renders the real-3D reference images
+and layered redraw assets for Figure 4 into `fig4-assets/` — lit surfaces,
+pixel-registered SVG curve overlays, floor/band textures, heightmaps; see
+that folder's README. `tools/fig-charhills.py` regenerates `fig-charhills.tex`, the
 hand-drawn character-hills figure of §3 (every curve is computed, then emitted
 as TikZ coordinates); it has no dependencies beyond Python's standard library.
 
