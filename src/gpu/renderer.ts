@@ -358,7 +358,8 @@ export class MoireRenderer {
     // The regime mask and the orientation-aware sweep both read the same ranked
     // pair the ratio view compares, so an enveloped stack keeps those uniforms
     // warm even with the ratio view off.
-    const maskPair = envelope ? envelopePair(state.layers) : null;
+    const contoursOn = state.view.envelopeContours && !pair;
+    const maskPair = envelope || contoursOn ? envelopePair(state.layers) : null;
     this.viewUniforms.taps.value = envelope
       ? Math.max(2, Math.round(state.view.envelopeTaps))
       : 1;
@@ -366,8 +367,9 @@ export class MoireRenderer {
     this.viewUniforms.contrast.value = envelope ? state.view.envelopeContrast : 1;
     this.viewUniforms.lift.value = envelope ? state.view.envelopeLift : 0;
     this.viewUniforms.envMask.value = envelope && maskPair ? state.view.envelopeMask : 0;
-    this.viewUniforms.contours.value =
-      envelope && maskPair && state.view.envelopeContours ? 1 : 0;
+    this.viewUniforms.contours.value = contoursOn && maskPair ? 1 : 0;
+    this.viewUniforms.contourW.value = Math.max(0.4, state.view.contourWidth);
+    this.viewUniforms.contourBand.value = state.view.contourBands;
     this.viewUniforms.pivot.value.copy(envelope ? envelopePivot(state) : scratch.set(0xffffff));
     this.viewUniforms.ratio.value = pair ? 1 : 0;
     this.viewUniforms.ratioA.value = pair ? pair[0] : maskPair ? maskPair[0] : -1;

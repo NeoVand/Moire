@@ -106,6 +106,8 @@ const VIEW_KEYS: (keyof ViewState)[] = [
   'envelopeLift',
   'envelopeMask',
   'envelopeContours',
+  'contourWidth',
+  'contourBands',
   'ratio',
   'ratioBlend',
   'ratioThreshold',

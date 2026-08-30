@@ -55,6 +55,14 @@ export interface ViewState {
    * threshold.
    */
   envelopeContours: boolean;
+  /** Contour stroke width in screen pixels. */
+  contourWidth: number;
+  /**
+   * The widened companion to the stroke: a soft fill measured in index units,
+   * so on screen it spans the actual fringe width, expanding where the
+   * character runs flat. 0 is off.
+   */
+  contourBands: number;
   /**
    * The heterodyne ratio map: where a fringe can form at all. Dark where the two
    * topmost comparable layers' index gradients nearly agree, bright past the 1/4
@@ -76,6 +84,8 @@ export const VIEW_DEFAULTS: ViewState = {
   envelopeLift: 0,
   envelopeMask: 0,
   envelopeContours: false,
+  contourWidth: 1.6,
+  contourBands: 0.4,
   ratio: false,
   ratioBlend: 1,
   ratioThreshold: 0.25,

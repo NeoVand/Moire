@@ -228,10 +228,35 @@ function EnvelopeControl() {
           <div className="mt-3 grid gap-3 border-t border-[var(--border)] pt-2.5">
             <ToggleRow
               label="Contours"
-              info="Draws the winning character's integer level sets over the envelope — the fringe centres as exact curves, the same skeleton the paper lifts into 3D. They fade where the beat runs at carrier scale."
+              info="Draws the winning character's integer level sets over the picture — envelope or raw — as exact curves, the skeleton the paper lifts into 3D. They fade where the beat runs at carrier scale."
               on={view.envelopeContours}
               onToggle={() => setView({ envelopeContours: !view.envelopeContours })}
             />
+            {view.envelopeContours && (
+              <>
+                <Slider
+                  label="Width"
+                  value={view.contourWidth}
+                  min={0.5}
+                  max={4}
+                  step={0.1}
+                  unit=" px"
+                  defaultValue={VIEW_DEFAULTS.contourWidth}
+                  info="Stroke width of the level curves, constant at any zoom."
+                  onChange={(contourWidth) => setView({ contourWidth })}
+                />
+                <Slider
+                  label="Bands"
+                  value={view.contourBands}
+                  min={0}
+                  max={1}
+                  step={0.05}
+                  defaultValue={VIEW_DEFAULTS.contourBands}
+                  info="A soft fill around each curve, as wide as the fringe itself — it swells where the character runs flat and pinches where it steepens."
+                  onChange={(contourBands) => setView({ contourBands })}
+                />
+              </>
+            )}
             <ToggleRow
               label="Fringe ratio"
               info="A map of where fringes can exist: dark where the two topmost layers' carriers are close enough to beat, light where they are too different to interfere. Check it before committing to parameters."

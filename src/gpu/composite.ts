@@ -19,6 +19,7 @@ import {
   mix,
   max,
   min,
+  pow,
   smoothstep,
   step,
 } from 'three/tsl';
@@ -212,6 +213,8 @@ export function createViewUniforms() {
     ratioB: uniform(-1, 'int'),
     ratioC: uniform(-1, 'int'),
     contours: uniform(0),
+    contourW: uniform(1.6),
+    contourBand: uniform(0.4),
     /** How much of the heat map covers the composite: 1 replaces, less overlays. */
     ratioBlend: uniform(1),
     /** Centre of the map's marked boundary. 1/4 is the theory's line. */
@@ -315,7 +318,10 @@ export function buildColorNode(
         // free to prove indices away instead of measuring them. Under the sweep the
         // stroke visits every phase, and under the ratio view the index has to be
         // differentiable between strokes, so both measure a whole pitch out.
-        const reject = max(halfT.add(aa), max(view.sweep, view.ratio).mul(slot.spacing));
+        const reject = max(
+          halfT.add(aa),
+          max(view.sweep, max(view.ratio, view.contours)).mul(slot.spacing)
+        );
 
         // A field is a displacement of the layer's *index*: `shift` many members,
         // wherever you stand. That is the one description every family shares, and
@@ -853,11 +859,18 @@ export function buildColorNode(
     If(view.contours.greaterThan(0.5), () => {
       const fd = beatVal.sub(round(beatVal)).abs();
       const dpx = fd.div(max(beatRate, float(1e-6)));
-      const stroke = float(1)
-        .sub(smoothstep(float(0.7), float(1.7), dpx))
-        .mul(step(float(1e-5), beatRate))
-        .mul(float(1).sub(smoothstep(thr, thr.mul(2).add(0.1), eta)));
-      out.assign(mix(out, vec3(0.784, 0.118, 0.353), stroke.mul(0.85)));
+      const gate = step(float(1e-5), beatRate).mul(
+        float(1).sub(smoothstep(thr, thr.mul(2).add(0.1), eta))
+      );
+      const w = view.contourW;
+      const stroke = float(1).sub(smoothstep(w.mul(0.6), w.mul(1.4).add(0.4), dpx));
+      // The widened companion: a soft fill in INDEX units, so its screen
+      // width is the actual fringe width — it expands exactly where the
+      // character runs flat, which is the artifact figure's band look.
+      const band = pow(max(float(1).sub(fd.div(0.28)), float(0)), 1.5)
+        .mul(view.contourBand);
+      const alpha = max(stroke.mul(0.85), band.mul(0.55)).mul(gate);
+      out.assign(mix(out, vec3(0.784, 0.118, 0.353), alpha));
     });
     // At blend 1 the map replaces the picture; below it the map reads over the
     // drawing, so an author sees where on the picture fringes will live.
