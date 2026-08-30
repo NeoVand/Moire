@@ -129,7 +129,7 @@ export function teaserScenes(solver) {
       // preset family.
       name: 'vortex-pair',
       zoom: 0.8,
-      pan: { x: 28.943107685316058, y: -19.537783490484912 },
+      pan: { x: 4.805, y: -27.2 },
       layers: [
         walking(solver, {
           offset: { x: 0, y: -0.5 },

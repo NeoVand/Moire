@@ -20,9 +20,10 @@ const W = 640;
 const H = 340;
 const INK = '#15181c';
 
-// Two concentric families, detuned by three percent: a textbook moire.
+// Two identical concentric families, centres a hand's width apart: the textbook
+// two-pole moire, mirror-symmetric about the midline.
 const CFG_A = { kind: 'concentric', shape: 'circle', spacing: 11, position: { x: -70, y: 0 } };
-const CFG_B = { kind: 'concentric', shape: 'circle', spacing: 11.33, position: { x: 70, y: 0 } };
+const CFG_B = { kind: 'concentric', shape: 'circle', spacing: 11, position: { x: 70, y: 0 } };
 const THICK = 1.6;
 
 // --- The field pipeline: one distance query per family per pixel, at final size.

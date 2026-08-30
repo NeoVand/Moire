@@ -163,28 +163,9 @@ const TIKZ_PREAMBLE = `\\documentclass[tikz]{standalone}
 // acmtog's line width, measured: everything in the paper is drawn against it.
 const LINEWIDTH_PT = 510.295;
 
-// Web-only legibility tweaks: in print the legends tuck into the axis corner,
-// which reads fine at page scale but covers data on screen. Move them below
-// the axis, unboxed. Longest (most specific) patterns first.
-const TIKZ_TWEAKS = [
-  [
-    'legend pos=north east, legend columns=1,', // fig 6a, four long entries
-    'legend style={at={(0.5,-0.40)}, anchor=north, draw=none, fill=none, /tikz/every even column/.append style={column sep=0.5cm}}, legend columns=2,',
-  ],
-  [
-    'legend pos=north west, legend columns=1,', // fig 6b, narrow panel
-    'legend style={at={(0.5,-0.40)}, anchor=north, draw=none, fill=none}, legend columns=1,',
-  ],
-  [
-    'legend pos=north east,', // convex-residual plot, two short entries
-    'legend style={at={(0.5,-0.46)}, anchor=north, draw=none, fill=none, /tikz/every even column/.append style={column sep=0.5cm}}, legend columns=2,',
-  ],
-  [
-    'legend pos=north west,', // saturation plot, three short entries
-    'legend style={at={(0.5,-0.50)}, anchor=north, draw=none, fill=none, /tikz/every even column/.append style={column sep=0.5cm}}, legend columns=3,',
-  ],
-];
-
+// acmtog is two-column past \maketitle: a plain figure float is one column
+// wide, a starred one spans the full line.
+const COLUMNWIDTH_PT = 243.147;
 let tikzCount = 0;
 function compileTikz(tikzTex, widthPt = LINEWIDTH_PT) {
   tikzCount += 1;
@@ -192,8 +173,7 @@ function compileTikz(tikzTex, widthPt = LINEWIDTH_PT) {
   // the full column for a bare figure, a fraction of it inside a subfigure.
   // CSV tables resolve against the document directory, so point them at the
   // paper's data/ absolutely.
-  let absTex = tikzTex.replaceAll('{data/', `{${PAPER}/data/`);
-  for (const [from, to] of TIKZ_TWEAKS) absTex = absTex.replaceAll(from, to);
+  let absTex = tikzTex.replaceAll('{data/', `{${PAPER}/data/`).replaceAll('{figures/', `{${PAPER}/figures/`);
   const doc = `${TIKZ_PREAMBLE}\\setlength{\\linewidth}{${widthPt.toFixed(3)}pt}\n${absTex}\n\\end{document}\n`;
   const hash = createHash('sha256').update(doc).digest('hex').slice(0, 12);
   const png = `tikz-${hash}.png`;
@@ -211,8 +191,7 @@ function compileTikz(tikzTex, widthPt = LINEWIDTH_PT) {
   // Display share of the text column that matches the print proportion:
   // pixel width at 300dpi back to points, against the print line width.
   const pxWidth = readFileSync(cached).readUInt32BE(16);
-  const pct = Math.min(100, ((pxWidth / 300) * 72 * 100) / LINEWIDTH_PT);
-  return { src: `figures/${png}`, pct };
+  return { src: `figures/${png}`, widthPt: (pxWidth / 300) * 72 };
 }
 
 // ------------------------------------------------------------ the algorithm
@@ -348,8 +327,9 @@ function figureToHtml(inner, star, num, id) {
   let se;
   while ((se = extractEnv(tex, 'subfigure'))) {
     let stex = se.inner.replace(/^\s*\[[^\]]*\]/, '');
-    const widthArg = stex.match(/^\s*\{([\d.]+)\\(?:textwidth|linewidth)\}/);
+    const widthArg = stex.match(/^\s*\{([\d.]+)\\(textwidth|linewidth)\}/);
     const width = widthArg ? Number(widthArg[1]) : 1;
+    const widthBase = widthArg && widthArg[2] === 'linewidth' && !star ? COLUMNWIDTH_PT : LINEWIDTH_PT;
     stex = stex.replace(/^\s*\{[^}]*\}/, '');
     const scap = takeCommand(stex, 'caption');
     const scapTex = scap ? scap.content : '';
@@ -359,7 +339,7 @@ function figureToHtml(inner, star, num, id) {
     if (ig) img = copyFigure(ig[1]);
     else {
       const st = extractEnv(stex, 'tikzpicture');
-      if (st) img = compileTikz(stex.slice(st.start, st.end), width * LINEWIDTH_PT).src;
+      if (st) img = compileTikz(stex.slice(st.start, st.end), width * widthBase).src;
     }
     subs.push({ img, caption: scapTex, width });
     tex = tex.slice(0, se.start) + tex.slice(se.end);
@@ -374,10 +354,11 @@ function figureToHtml(inner, star, num, id) {
   let tikzHtml = '';
   let te;
   while ((te = extractEnv(tex, 'tikzpicture'))) {
-    const { src, pct } = compileTikz(tex.slice(te.start, te.end));
-    // Print proportion, with a floor so an intrinsically small drawing does
-    // not shrink into a stamp on screen.
-    tikzHtml += `<img class="tikz" style="width:${Math.max(pct, 55).toFixed(1)}%" src="${src}" alt="">`;
+    const { src, widthPt } = compileTikz(tex.slice(te.start, te.end), star ? LINEWIDTH_PT : COLUMNWIDTH_PT);
+    // Display so the plot's type matches the page's body type (a column-width
+    // plot sits at ~60% of the text column), floored so small drawings hold.
+    const pct = Math.min(100, Math.max((widthPt / COLUMNWIDTH_PT) * 60, 48));
+    tikzHtml += `<img class="tikz" style="width:${pct.toFixed(1)}%" src="${src}" alt="">`;
     tex = tex.slice(0, te.start) + tex.slice(te.end);
   }
 
@@ -385,6 +366,8 @@ function figureToHtml(inner, star, num, id) {
   const imgs = [...tex.matchAll(/\\includegraphics\[[^\]]*\]\{([^}]+)\}/g)].map((m) => m[1]);
 
   let bodyHtml = '';
+  const allPlots = subs.length > 0 && subs.every((x) => x.img && x.img.includes('tikz-'));
+  if (allPlots) star = false;
   if (subs.length) {
     const letters = 'abcdefghij';
     bodyHtml = `<div class="subrow">${subs
@@ -1046,9 +1029,9 @@ for (const p of paragraphs) {
 
 const katexMacros = JSON.stringify(MATH_MACROS);
 
-const MARK = `<svg class="mark" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="0.9"><circle cx="10.4" cy="12" r="2.6"/><circle cx="10.4" cy="12" r="5.7"/><circle cx="10.4" cy="12" r="8.8"/><circle cx="13.6" cy="12" r="2.6"/><circle cx="13.6" cy="12" r="5.7"/><circle cx="13.6" cy="12" r="8.8"/></g></svg>`;
+const MARK = `<svg class="mark" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="0.7"><circle cx="10.6" cy="12" r="2.2"/><circle cx="10.6" cy="12" r="4.9"/><circle cx="10.6" cy="12" r="7.6"/><circle cx="10.6" cy="12" r="10.3"/><circle cx="13.4" cy="12" r="2.2"/><circle cx="13.4" cy="12" r="4.9"/><circle cx="13.4" cy="12" r="7.6"/><circle cx="13.4" cy="12" r="10.3"/></g></svg>`;
 
-const FAVICON = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="%231A1D21" stroke-width="1.1"><circle cx="10.4" cy="12" r="2.6"/><circle cx="10.4" cy="12" r="5.7"/><circle cx="10.4" cy="12" r="8.8"/><circle cx="13.6" cy="12" r="2.6"/><circle cx="13.6" cy="12" r="5.7"/><circle cx="13.6" cy="12" r="8.8"/></g></svg>').replaceAll('%25', '%')}`;
+const FAVICON = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="%231A1D21" stroke-width="0.9"><circle cx="10.6" cy="12" r="2.2"/><circle cx="10.6" cy="12" r="4.9"/><circle cx="10.6" cy="12" r="7.6"/><circle cx="10.6" cy="12" r="10.3"/><circle cx="13.4" cy="12" r="2.2"/><circle cx="13.4" cy="12" r="4.9"/><circle cx="13.4" cy="12" r="7.6"/><circle cx="13.4" cy="12" r="10.3"/></g></svg>').replaceAll('%25', '%')}`;
 
 const html = `<!doctype html>
 <html lang="en">

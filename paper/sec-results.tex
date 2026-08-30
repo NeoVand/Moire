@@ -222,12 +222,14 @@ material (\S S3).
 \begin{figure}[t]
   \centering
   \begin{tikzpicture}
-    \begin{axis}[paperaxis, height=4.0cm,
+    \begin{axis}[paperaxis, height=4.6cm,
       xlabel={interval span (indices, $\log_2$ bins)},
       ylabel={exact ink fraction},
       xmode=log, log basis x=2,
       xmin=1.5, xmax=50000, ymin=0, ymax=1,
-      legend pos=north west,
+      legend style={at={(0.5,-0.44)}, anchor=north, draw=none, fill=none,
+                    /tikz/every even column/.append style={column sep=0.5cm}},
+      legend columns=3,
     ]
       \addplot[draw=none, fill=cool!12, forget plot] coordinates
         {(1024,0) (50000,0) (50000,1) (1024,1)} \closedcycle;
@@ -242,6 +244,10 @@ material (\S S3).
       \addlegendentry{minimum}
       \node[soft, font=\scriptsize, anchor=north east] at (axis cs:45000,0.99)
         {beyond budget $B$};
+      \node[anchor=north west, inner sep=1.5pt, fill=white, draw=soft, semithick]
+        at (rel axis cs: 0.035, 0.95) {\includegraphics[width=1.35cm]{figures/inset-saturation-open.png}};
+      \node[anchor=south east, inner sep=1.5pt, fill=white, draw=soft, semithick]
+        at (rel axis cs: 0.965, 0.10) {\includegraphics[width=1.35cm]{figures/inset-saturation-solid.png}};
     \end{axis}
   \end{tikzpicture}
   \Description{A line plot of exact ink fraction against interval span on a base-two
@@ -254,7 +260,10 @@ material (\S S3).
   the ink fraction of the exact field. Past the budget $B=\satBudget$ (shaded) the median
   setting is $\satMedianInk$ ink --- a nearly filled rectangle, where no point
   sample of the distance field is meaningful and the honest output is the filtered
-  mean~\cite{Norton1982}. The dashed minimum is the honest caveat: sparse
+  mean~\cite{Norton1982}. The insets are one walking circle family at both ends
+  of the axis: a benign drift, whose pattern is open and whose interval is a few
+  indices, and the near-marginal drift, where the interval explodes --- into a
+  frame that is already solid ink. The dashed minimum is the honest caveat: sparse
   exceptions exist.}
   \label{fig:saturation}
 \end{figure}

@@ -13,10 +13,10 @@ import { writePng } from '../lib/png.mjs';
 const FIGS = new URL('../../figures/', import.meta.url);
 mkdirSync(FIGS, { recursive: true });
 
-const PITCH = 5;
+const PITCH = 6.2;
 const INK = '#12161c';
-const T = 1.4;
-const V = view({ width: 560, height: 560, zoom: 1, superSample: 3 });
+const T = 1.7;
+const V = view({ width: 560, height: 560, zoom: 0.78, superSample: 3 });
 
 /** A carrier, and the same carrier with one of the shipped fields encoded. */
 function encode(field, fieldAmount, fieldScale) {

@@ -158,8 +158,8 @@ console.log(`wrote data/zoom.json (${decades.toFixed(1)} decades)`);
 // different job: the measurement needs a pair every rule can express, and the
 // picture needs a pair whose fringe system is still legible after its carrier
 // stops being resolvable. This one is the tool's own opening view -- the project
-// Moire eases into on first load -- at three times its default scale, so that a
-// sixteen-fold zoom-out lands on a fringe rosette rather than on a black square.
+// Moire eases into on first load -- recomposed on the frame's diagonal, so that an
+// eight-fold zoom-out lands on a fringe rosette rather than on a black square.
 // Both families walk, so both go through the shipped solver.
 const solver = await loadSolver('final');
 const PANEL = 540;
@@ -189,9 +189,11 @@ function ringLayer(L, floor) {
 }
 
 const K = 3;
+// The two centres sit on the frame's diagonal, equidistant from its corners,
+// so every zoom level frames the pair symmetrically.
 const OPENING = [
   {
-    position: { x: 20 * K, y: 50 * K },
+    position: { x: 25 * K, y: 25 * K },
     rotation: 50,
     spacing: 6 * K,
     offset: { x: 0, y: -0.5 * K },
@@ -199,7 +201,7 @@ const OPENING = [
     color: INK,
   },
   {
-    position: { x: 10 * K, y: -20 * K },
+    position: { x: -25 * K, y: -25 * K },
     rotation: -5.8,
     spacing: 6 * K,
     offset: { x: 0, y: 0.5 * K },
@@ -217,7 +219,7 @@ function panel(zoom, { floor = 1.15 } = {}) {
   };
 }
 
-const SHOWN = [4, 1, 0.25];
+const SHOWN = [2, 1, 0.25];
 const panels = SHOWN.map((z) => panel(z));
 panels.push(panel(SHOWN[2], { floor: 0 }));
 const strip = tile(panels, 4, 14, 255);

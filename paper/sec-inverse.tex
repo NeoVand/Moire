@@ -63,13 +63,15 @@ is merely loose rather than wrong.
 
 \begin{figure*}[t]
   \centering
-  \begin{subfigure}[t]{0.62\textwidth}
+  \begin{subfigure}[t]{0.485\textwidth}
     \vspace{0pt}
     \begin{tikzpicture}
-      \begin{axis}[paperaxis, height=5.0cm,
+      \begin{axis}[paperaxis, height=4.6cm,
         xlabel={ring index $n$}, ylabel={residual $h_p(n)$},
         xmin=0, xmax=74, ymin=-260, ymax=380,
-        legend pos=north east, legend columns=1,
+        legend style={at={(0.5,-0.36)}, anchor=north, draw=none, fill=none,
+                      /tikz/every even column/.append style={column sep=0.45cm}},
+        legend columns=2,
       ]
         % window shading
         \addplot[draw=none, fill=cool!10, forget plot] coordinates
@@ -99,22 +101,24 @@ is merely loose rather than wrong.
     closing in only near the crossing.}
     \label{fig:residual}
   \end{subfigure}\hfill
-  \begin{subfigure}[t]{0.35\textwidth}
+  \begin{subfigure}[t]{0.485\textwidth}
     \vspace{0pt}
     \begin{tikzpicture}
-      \begin{axis}[paperaxis, height=5.0cm,
+      \begin{axis}[paperaxis, height=4.6cm,
         xlabel={$\lVert p\rVert$ (world units, $s=14$)}, ylabel={indices},
         xmin=0, xmax=1600, ymin=0, ymax=82,
-        legend pos=north west, legend columns=1,
+        legend style={at={(0.5,-0.36)}, anchor=north, draw=none, fill=none,
+                      /tikz/every even column/.append style={column sep=0.45cm}},
+        legend columns=2,
       ]
         \addplot[accent, very thick] table [x=radius, y=stray, col sep=comma] {data/fan-triangle.csv};
-        \addlegendentry{worst stray of $n^\star$ from $\rad(p)/s$}
+        \addlegendentry{worst stray of $n^\star$}
         \addplot[cool, thick, densely dashed] table [x=radius, y=span, col sep=comma] {data/fan-triangle.csv};
-        \addlegendentry{proven interval width}
+        \addlegendentry{proven interval}
         \addplot[warm, thick] table [x=radius, y=evaluated, col sep=comma] {data/fan-triangle.csv};
         \addlegendentry{indices we evaluate}
         \addplot[soft, thin, dotted, domain=0:1600, samples=2] {16};
-        \addlegendentry{$\pm16$, a fixed budget}
+        \addlegendentry{$\pm16$ budget}
       \end{axis}
     \end{tikzpicture}
     \caption{Why no constant works. Triangles, $\theta=0.02$, $96$ directions per
@@ -295,10 +299,12 @@ consequence, which is severe and free to avoid.
 \begin{figure}[t]
   \centering
   \begin{tikzpicture}
-    \begin{axis}[paperaxis, height=4.2cm,
+    \begin{axis}[paperaxis, height=4.6cm,
       xlabel={ring index $n$}, ylabel={$h_p(n)$},
       xmin=0, xmax=260, ymin=-640, ymax=620,
-      legend pos=north east,
+      legend style={at={(0.5,-0.42)}, anchor=north, draw=none, fill=none,
+                    /tikz/every even column/.append style={column sep=0.5cm}},
+      legend columns=2,
     ]
       \addplot[draw=none, fill=accent!22, forget plot] coordinates
         {(0,-10) (260,-10) (260,10) (0,10)} \closedcycle;
@@ -306,6 +312,10 @@ consequence, which is severe and free to avoid.
       \addlegendentry{$m < s$: one crossing}
       \addplot[warm, very thick] table [x=n, y=h, col sep=comma] {data/convex-marginal.csv};
       \addlegendentry{$m = s$: flat forever}
+      \node[anchor=north east, inner sep=1.5pt, fill=white, draw=cool, semithick]
+        at (rel axis cs: 0.70, 0.95) {\includegraphics[width=1.35cm]{figures/inset-convex-cross.png}};
+      \node[anchor=north east, inner sep=1.5pt, fill=white, draw=warm, semithick]
+        at (rel axis cs: 0.97, 0.95) {\includegraphics[width=1.35cm]{figures/inset-convex-flat.png}};
     \end{axis}
   \end{tikzpicture}
   \Description{A plot of the residual against ring index for two settings, with a
@@ -320,7 +330,10 @@ consequence, which is severe and free to avoid.
   some facet's own segment, so the answer is a linear solve. At the marginal drift
   $m=s$ (orange) the leading facet's slope cancels and the residual is
   \emph{constant} past the crossover: all large indices are exactly equidistant, so
-  no enumeration of finite length can settle them. One evaluation of the constant
+  no enumeration of finite length can settle them. The insets are the family
+  itself in each regime, framed in its curve's colour: below the marginal drift
+  the walking hexagons stay a drawing; at it the far side piles into a plateau.
+  One evaluation of the constant
   settles all of them at once.}
   \label{fig:convex}
 \end{figure}
