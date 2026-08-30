@@ -336,13 +336,18 @@ function figureToHtml(inner, star, num, id) {
     const scapTex = scap ? scap.content : '';
     if (scap) stex = scap.before + scap.after;
     let img = null;
+    let imgWidthPt = 0;
     const ig = stex.match(/\\includegraphics\[[^\]]*\]\{([^}]+)\}/);
     if (ig) img = copyFigure(ig[1]);
     else {
       const st = extractEnv(stex, 'tikzpicture');
-      if (st) img = compileTikz(stex.slice(st.start, st.end), width * widthBase).src;
+      if (st) {
+        const r = compileTikz(stex.slice(st.start, st.end), width * widthBase);
+        img = r.src;
+        imgWidthPt = r.widthPt;
+      }
     }
-    subs.push({ img, caption: scapTex, width });
+    subs.push({ img, caption: scapTex, width, imgWidthPt });
     tex = tex.slice(0, se.start) + tex.slice(se.end);
   }
 
@@ -374,11 +379,15 @@ function figureToHtml(inner, star, num, id) {
   if (subs.length) {
     const letters = 'abcdefghij';
     const cls = allPlots ? 'subcol' : 'subrow';
+    const maxPt = Math.max(...subs.map((x) => x.imgWidthPt || 0), 1);
     bodyHtml = `<div class="${cls}">${subs
-      .map(
-        (s, i) =>
-          `<figure class="sub"${allPlots ? '' : ` style="flex-grow:${s.width}"`}>${s.img ? `<img src="${s.img}" alt="">` : ''}<figcaption>(${letters[i]}) ${inline(s.caption)}</figcaption></figure>`
-      )
+      .map((s, i) => {
+        const style = allPlots
+          ? ` style="width:${((s.imgWidthPt / maxPt) * 88).toFixed(1)}%"`
+          : '';
+        const grow = allPlots ? '' : ` style="flex-grow:${s.width}"`;
+        return `<figure class="sub"${grow}>${s.img ? `<img${style} src="${s.img}" alt="">` : ''}<figcaption>(${letters[i]}) ${inline(s.caption)}</figcaption></figure>`;
+      })
       .join('')}</div>`;
   }
   for (const [i, img] of imgs.entries()) {
@@ -1299,7 +1308,6 @@ figcaption {
 .subrow figcaption { text-align: center; font-size: 0.78rem; color: var(--faint); padding-top: 0.45rem; }
 .subcol { display: flex; flex-direction: column; gap: 1.6rem; }
 .subcol figure.sub { margin: 0; }
-.subcol img { width: 88%; }
 .subcol figcaption { font-size: 0.85rem; color: var(--ink-soft); padding-top: 0.5rem; max-width: 40rem; margin: 0 auto; }
 .panelrow {
   display: flex; font-size: 0.78rem; color: var(--faint);
