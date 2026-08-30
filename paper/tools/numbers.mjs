@@ -51,11 +51,36 @@ section('src/types/moire.ts : what the Studio offers');
   // from rather than the whole of what can be written.
   macro('fieldCount', spell[FIELD_PRESETS.length]);
   // Several sentences spell the family count out in words rather than through the
-  // macro, so a change here has to be read for, not silently retypeset.
-  if (PATTERN_META.length !== 13) {
-    throw new Error(`the Studio ships ${PATTERN_META.length} families; the prose says thirteen`);
+  // macro, so a change here has to be read for, not silently retypeset. The
+  // paper's catalog analyses these thirteen by name; anything the Studio grows
+  // afterwards is later work and out of the paper's scope, so the guard names
+  // the set rather than counting it -- a count would pass if one family were
+  // swapped for another.
+  const CATALOG = [
+    'straight-lines', 'radial-lines',
+    'concentric-circles', 'concentric-squares', 'concentric-triangles',
+    'concentric-polygons',
+    'grid-square', 'grid-hex', 'grid-triangle',
+    'curve-wave', 'curve-parabola', 'curve-hyperbola', 'curve-spiral',
+  ];
+  // Families the Studio has gained since the paper was written. Listing them
+  // explicitly is the point: a new family must be either added to the catalog
+  // and the prose, or consciously declared out of scope here.
+  const BEYOND_PAPER = ['tiling-periodic'];
+  const shipped = PATTERN_META.map((m) => m.id);
+  const missing = CATALOG.filter((id) => !shipped.includes(id));
+  const extra = shipped.filter((id) => !CATALOG.includes(id) && !BEYOND_PAPER.includes(id));
+  if (missing.length || extra.length) {
+    throw new Error(
+      `the paper's catalog and the Studio disagree` +
+        (missing.length ? `; the Studio no longer ships ${missing.join(', ')}` : '') +
+        (extra.length
+          ? `; the Studio ships ${extra.join(', ')}, which the prose does not count` +
+            ` -- add it to the catalog and the prose, or to BEYOND_PAPER`
+          : '')
+    );
   }
-  macro('patternCount', spell[PATTERN_META.length]);
+  macro('patternCount', spell[CATALOG.length]);
   macro('envTaps', ENVELOPE_TAPS);
 }
 
@@ -108,7 +133,9 @@ its mean falls short of $0.5$ by construction. \\emph{In regime} is the share of
 last row has none: with those settings no fringe exists, and the criterion says so
 without rendering.}
 \\label{tab:fringe}
-\\small
+% The Families column carries long prose; \\small leaves the widest row 11pt
+% over the full text width, which prints into the margin.
+\\footnotesize
 \\centering
 \\begin{tabular}{@{}llrrrrcr@{}}
 \\toprule
