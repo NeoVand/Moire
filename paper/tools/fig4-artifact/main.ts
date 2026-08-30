@@ -410,7 +410,7 @@ function rebuildCurves() {
   }
   if (P.showPosts) {
     const postMat = new THREE.MeshBasicMaterial({ color: INK, transparent: true, opacity: 0.55 });
-    const dash = 0.042, gap = 0.03;
+    const dash = 0.03, gap = 0.021;
     for (const [cx, cy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]] as const) {
       const z = P.z0 + zScale * (H(cx, cy) - zMid);
       for (let z0 = 0.004; z0 < z; z0 += dash + gap) {
