@@ -15,7 +15,7 @@
 
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -27,6 +27,8 @@ const OUT_FIGS = join(OUT, 'figures');
 const TIKZ_CACHE = join(PAPER, '.build', 'tikz-html');
 mkdirSync(OUT_FIGS, { recursive: true });
 mkdirSync(TIKZ_CACHE, { recursive: true });
+// Hash-named tikz output goes stale whenever a picture or its width changes.
+for (const f of readdirSync(OUT_FIGS)) if (f.startsWith('tikz-')) rmSync(join(OUT_FIGS, f));
 
 const read = (f) => readFileSync(join(PAPER, f), 'utf8');
 
@@ -144,38 +146,73 @@ const TIKZ_PREAMBLE = `\\documentclass[tikz]{standalone}
 \\newcommand{\\rad}{\\rho}\\newcommand{\\idx}{\\phi}\\newcommand{\\ph}{\\psi}\\newcommand{\\het}{\\eta}
 \\newcommand{\\R}{\\mathbb{R}}\\newcommand{\\Z}{\\mathbb{Z}}\\newcommand{\\Rot}[1]{\\mathbf{R}_{#1}}
 \\pgfplotsset{
-  paperaxis/.style={width=9.2cm, height=4.4cm, tick align=outside, tick pos=left,
-    axis line style={gray!60}, grid=major, grid style={gray!18, very thin},
+  paperaxis/.style={
+    width=\\linewidth, height=4.4cm,
+    tick align=outside, tick pos=left,
+    axis line style={gray!60},
+    grid=major, grid style={gray!18, very thin},
     label style={font=\\small}, tick label style={font=\\footnotesize},
     legend style={font=\\footnotesize, draw=gray!40, fill=white, fill opacity=0.92,
-                  text opacity=1, inner sep=2pt, row sep=-1pt}},
+                  text opacity=1, inner sep=2pt, row sep=-1pt},
+  },
   smallaxis/.style={paperaxis, height=3.6cm},
 }
 \\begin{document}
 `;
 
+// acmtog's line width, measured: everything in the paper is drawn against it.
+const LINEWIDTH_PT = 510.295;
+
+// Web-only legibility tweaks: in print the legends tuck into the axis corner,
+// which reads fine at page scale but covers data on screen. Move them below
+// the axis, unboxed. Longest (most specific) patterns first.
+const TIKZ_TWEAKS = [
+  [
+    'legend pos=north east, legend columns=1,', // fig 6a, four long entries
+    'legend style={at={(0.5,-0.40)}, anchor=north, draw=none, fill=none, /tikz/every even column/.append style={column sep=0.5cm}}, legend columns=2,',
+  ],
+  [
+    'legend pos=north west, legend columns=1,', // fig 6b, narrow panel
+    'legend style={at={(0.5,-0.40)}, anchor=north, draw=none, fill=none}, legend columns=1,',
+  ],
+  [
+    'legend pos=north east,', // convex-residual plot, two short entries
+    'legend style={at={(0.5,-0.46)}, anchor=north, draw=none, fill=none, /tikz/every even column/.append style={column sep=0.5cm}}, legend columns=2,',
+  ],
+  [
+    'legend pos=north west,', // saturation plot, three short entries
+    'legend style={at={(0.5,-0.50)}, anchor=north, draw=none, fill=none, /tikz/every even column/.append style={column sep=0.5cm}}, legend columns=3,',
+  ],
+];
+
 let tikzCount = 0;
-function compileTikz(tikzTex) {
+function compileTikz(tikzTex, widthPt = LINEWIDTH_PT) {
   tikzCount += 1;
-  const hash = createHash('sha256').update(TIKZ_PREAMBLE + tikzTex).digest('hex').slice(0, 12);
+  // \linewidth inside the picture means the width the figure had in print:
+  // the full column for a bare figure, a fraction of it inside a subfigure.
+  // CSV tables resolve against the document directory, so point them at the
+  // paper's data/ absolutely.
+  let absTex = tikzTex.replaceAll('{data/', `{${PAPER}/data/`);
+  for (const [from, to] of TIKZ_TWEAKS) absTex = absTex.replaceAll(from, to);
+  const doc = `${TIKZ_PREAMBLE}\\setlength{\\linewidth}{${widthPt.toFixed(3)}pt}\n${absTex}\n\\end{document}\n`;
+  const hash = createHash('sha256').update(doc).digest('hex').slice(0, 12);
   const png = `tikz-${hash}.png`;
   const cached = join(TIKZ_CACHE, png);
   if (!existsSync(cached)) {
     const texFile = join(TIKZ_CACHE, `tikz-${hash}.tex`);
-    // \linewidth appears inside some pictures; standalone gives it a page-ish
-    // value, so pin it to the printed column width. CSV tables resolve against
-    // the document directory, so point them at the paper's data/ absolutely.
-    const absTex = tikzTex.replaceAll('{data/', `{${PAPER}/data/`);
-    const doc = `${TIKZ_PREAMBLE}\\setlength{\\linewidth}{9.2cm}\n${absTex}\n\\end{document}\n`;
     writeFileSync(texFile, doc);
     execFileSync('tectonic', ['-X', 'compile', texFile, '--outdir', TIKZ_CACHE], {
       cwd: PAPER,
       stdio: 'pipe',
     });
-    execFileSync('pdftoppm', ['-png', '-r', '300', '-singlefile', join(TIKZ_CACHE, `tikz-${hash}.pdf`), join(TIKZ_CACHE, `tikz-${hash}`)], { stdio: 'pipe' });
+    execFileSync('pdftocairo', ['-png', '-transp', '-r', '300', '-singlefile', join(TIKZ_CACHE, `tikz-${hash}.pdf`), join(TIKZ_CACHE, `tikz-${hash}`)], { stdio: 'pipe' });
   }
   cpSync(cached, join(OUT_FIGS, png));
-  return `figures/${png}`;
+  // Display share of the text column that matches the print proportion:
+  // pixel width at 300dpi back to points, against the print line width.
+  const pxWidth = readFileSync(cached).readUInt32BE(16);
+  const pct = Math.min(100, ((pxWidth / 300) * 72 * 100) / LINEWIDTH_PT);
+  return { src: `figures/${png}`, pct };
 }
 
 // ------------------------------------------------------------ the algorithm
@@ -322,7 +359,7 @@ function figureToHtml(inner, star, num, id) {
     if (ig) img = copyFigure(ig[1]);
     else {
       const st = extractEnv(stex, 'tikzpicture');
-      if (st) img = compileTikz(stex.slice(st.start, st.end));
+      if (st) img = compileTikz(stex.slice(st.start, st.end), width * LINEWIDTH_PT).src;
     }
     subs.push({ img, caption: scapTex, width });
     tex = tex.slice(0, se.start) + tex.slice(se.end);
@@ -337,8 +374,10 @@ function figureToHtml(inner, star, num, id) {
   let tikzHtml = '';
   let te;
   while ((te = extractEnv(tex, 'tikzpicture'))) {
-    const png = compileTikz(tex.slice(te.start, te.end));
-    tikzHtml += `<img class="tikz" src="${png}" alt="">`;
+    const { src, pct } = compileTikz(tex.slice(te.start, te.end));
+    // Print proportion, with a floor so an intrinsically small drawing does
+    // not shrink into a stamp on screen.
+    tikzHtml += `<img class="tikz" style="width:${Math.max(pct, 55).toFixed(1)}%" src="${src}" alt="">`;
     tex = tex.slice(0, te.start) + tex.slice(te.end);
   }
 
@@ -1240,11 +1279,13 @@ blockquote.thesis p { margin: 0; }
 /* ---- figures ---- */
 figure.paper-figure, figure.algorithm { margin: 2.2rem 0; }
 figure.paper-table { margin: 2.2rem 0; }
+/* Figures sit directly on the paper: raster art multiplies its white away,
+   and tikz plots are rasterized with true transparency. */
 figure img {
   max-width: 100%; height: auto; display: block; margin: 0 auto;
-  background: var(--plate); border: 1px solid var(--hairline);
+  mix-blend-mode: multiply;
 }
-figure img.tikz { border: none; background: transparent; max-width: min(100%, 33rem); }
+figure img.tikz { max-width: 100%; }
 figcaption {
   font-size: 0.87rem; color: var(--ink-soft); line-height: 1.5;
   padding-top: 0.65rem; max-width: 43rem; margin: 0 auto;

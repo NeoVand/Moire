@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { GithubIcon, Globe02Icon, JupiterIcon, Linkedin02Icon } from '@hugeicons/core-free-icons';
+import { GithubIcon, Globe02Icon, Linkedin02Icon } from '@hugeicons/core-free-icons';
 import { isTypingTarget } from '../lib/keyboard';
 import { Icon } from './ui/Icon';
+import { MoireMark } from './ui/MoireMark';
 
 const REPO = 'https://github.com/NeoVand/Moire';
 const LINKS = [
@@ -106,7 +107,7 @@ export function AboutOverlay() {
         onWheel={(e) => e.stopPropagation()}
       >
         <header className="flex items-center justify-center gap-2 text-[var(--text-primary)]">
-          <Icon icon={JupiterIcon} size={26} strokeWidth={1.6} />
+          <MoireMark size={26} strokeWidth={1.0} />
           <h2 id="moire-about-title" className="text-[18px] font-semibold tracking-[-0.04em]">
             Moiré
           </h2>

@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { HugeiconsIcon } from '@hugeicons/react';
-import { JupiterIcon } from '@hugeicons/core-free-icons';
+import { MoireMark } from './ui/MoireMark';
 import { registerCapture } from '../gpu/capture';
 import { MoireRenderer } from '../gpu/renderer';
 import {
@@ -240,7 +239,7 @@ export function MoireStage() {
       {!error && !ready && (
         <div className="pointer-events-none absolute inset-0 z-10 grid place-items-center">
           <div className="flex items-center gap-2 text-[var(--text-secondary)]">
-            <HugeiconsIcon icon={JupiterIcon} size={18} color="currentColor" strokeWidth={1.75} />
+            <MoireMark size={18} />
             <span className="text-[13px]">Compiling</span>
           </div>
         </div>

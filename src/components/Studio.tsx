@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, type Ref } from 'react';
-import { HugeiconsIcon } from '@hugeicons/react';
 import {
   Add01Icon,
   ArrowLeft01Icon,
@@ -9,7 +8,6 @@ import {
   Delete02Icon,
   DragDropVerticalIcon,
   ImageDownloadIcon,
-  JupiterIcon,
   KeyboardIcon,
   ViewIcon,
   ViewOffSlashIcon,
@@ -36,6 +34,7 @@ import { ColorField } from './ui/ColorField';
 import { FloatingPanel } from './ui/FloatingPanel';
 import { InfoTip } from './ui/Tip';
 import { Icon, type HugeIcon } from './ui/Icon';
+import { MoireMark } from './ui/MoireMark';
 import { IconButton } from './ui/IconButton';
 import { Slider } from './ui/Slider';
 
@@ -53,7 +52,7 @@ function readOpen() {
 }
 
 function Mark({ size = 22 }: { size?: number }) {
-  return <HugeiconsIcon icon={JupiterIcon} size={size} color="currentColor" strokeWidth={1.75} />;
+  return <MoireMark size={size} />;
 }
 
 function Rule() {

@@ -4,7 +4,7 @@ Canvas-first WebGPU moiré tool. Vite + React + TypeScript + Three.js TSL. Do no
 
 ## Product contract
 
-- Full-bleed canvas. One studio chrome on the left (Jupiter mark, view, layers, fields, PNG export). `I` collapses it to a Moire pill. `E` exports a PNG.
+- Full-bleed canvas. One studio chrome on the left (Moiré ring mark, view, layers, fields, PNG export). `I` collapses it to a Moire pill. `E` exports a PNG.
 - World Y is up. Flip Y only in `src/gpu/camera.ts` (pointer / zoom-to-cursor).
 - Drag moves the selected layer (screen-space; invert layer rotation onto position). Option-drag rotates around the world origin (degrees in UI). Space or middle-drag pans. Wheel zooms to cursor. Shift on sliders is fine control.
 - `rotation` is degrees. `rotationOffset` is radians, always present on the layer.
@@ -53,11 +53,11 @@ A field is a displacement of a layer's *index*: `shift` many members, wherever y
 - The envelope reuses that η twice: `envMask` fades the view to its pivot where η > 1/4 (outside the regime the mean is a faithful but carrier-fine Φ(D) that reads as a failed average — mask defaults OFF, slider in the panel), and where the SUM beat is the slower one the ranked second layer sweeps backwards (the diagonal preserves φ₁−φ₂ and averages φ₁+φ₂ away; flipping recovers the sum moiré). Pair uniforms stay warm during any enveloped frame.
 - Stroke: `halfT = max(thickness/2, 1.15 * pixel)` so hairlines and small geometric gaps do not pepper at zoom-out. `pixel = 1/zoom`.
 - `devicePixelRatio` clamped to 2. Camera at `z = 1`, `near = 0.1`. `toneMapped = false`.
-- First paint waits on `compileAsync`. `MoireStage` shows a Jupiter “Compiling” mark until the first frame. The first load then eases two default concentric layers into the preset.
+- First paint waits on `compileAsync`. `MoireStage` shows the ring mark with “Compiling” until the first frame. The first load then eases two default concentric layers into the preset.
 
 ## UI
 
-- One `Studio` panel with a Jupiter (`JupiterIcon`) mark. Do not resurrect a separate top HUD, right inspector, or bottom filmstrip.
+- One `Studio` panel with the Moiré ring mark (`ui/MoireMark`: two concentric-circle families a hair apart — also the favicon and the paper site wordmark). Do not resurrect a separate top HUD, right inspector, or bottom filmstrip.
 - Export lives behind the image icon: an `ExportDialog` `FloatingPanel` with a live preview (0.25× render, refreshed on aspect change and debounced on any store change), aspect chips (cover-never-crop: a different aspect extends the frame about centre — the pattern continues past every edge), and 1/2/4× resolution with a px readout. Exports render at an explicit framebuffer size with the zoom uniform scaled to match (`MoireRenderer.snapshot({scale, aspect})` / `snapshotSize` — framing identical by construction, capped 8192px a side; `capturePng`/`captureSize`/`exportPng` in `src/gpu/capture.ts`). The scene side saves/loads the whole construction as JSON (drag-drop onto the panel works) — `src/store/scene.ts` serializes layers/camera/background/view and parses forgivingly (missing fields take `createLayer` defaults; unknown types are errors), `loadScene` replaces the project wholesale. The export shortcut still saves a 1× PNG directly.
 - Frosted HUD: `--hud-bg` + `backdrop-filter`. Selected layer is a quiet ring, not an inverted overlay.
 - Every slider has a reset affordance next to its label when dirty. Defaults live in `LAYER_DEFAULTS`.
