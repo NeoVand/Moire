@@ -66,7 +66,7 @@ is merely loose rather than wrong.
   \begin{subfigure}[t]{0.485\textwidth}
     \vspace{0pt}
     \begin{tikzpicture}
-      \begin{axis}[paperaxis, scale only axis, width=7.1cm, height=4.2cm,
+      \begin{axis}[paperaxis, scale only axis, width=7.1cm, height=4.2cm, name=resax,
         xlabel={ring index $n$}, ylabel={residual $h_p(n)$},
         xmin=0, xmax=74, ymin=-260, ymax=380,
         legend style={at={(0.5,-0.36)}, anchor=north, draw=none, fill=none,
@@ -91,6 +91,7 @@ is merely loose rather than wrong.
         \draw[soft, dashed] (axis cs:\figNaive,-260) -- (axis cs:\figNaive,380);
         \node[soft, font=\scriptsize, anchor=south, rotate=90] at (axis cs:\figNaive,-250) {naive $r/s$};
       \end{axis}
+      \path ([yshift=8pt]resax.north);
     \end{tikzpicture}
     \caption{One pixel, worked. The naive index guess is $\figNaive$; the true
     nearest ring is $\figTrue$, $\figGap$ rings away and outside any small
@@ -104,7 +105,7 @@ is merely loose rather than wrong.
   \begin{subfigure}[t]{0.485\textwidth}
     \vspace{0pt}
     \begin{tikzpicture}
-      \begin{axis}[paperaxis, scale only axis, width=7.1cm, height=4.2cm,
+      \begin{axis}[paperaxis, scale only axis, width=7.1cm, height=4.2cm, name=fanax,
         xlabel={$\lVert p\rVert$ (world units, $s=14$)}, ylabel={indices},
         xmin=0, xmax=1600, ymin=0, ymax=82,
         legend style={at={(0.5,-0.36)}, anchor=north, draw=none, fill=none,
@@ -120,6 +121,7 @@ is merely loose rather than wrong.
         \addplot[soft, thin, dotted, domain=0:1600, samples=2] {16};
         \addlegendentry{$\pm16$ budget}
       \end{axis}
+      \path ([yshift=8pt]fanax.north);
     \end{tikzpicture}
     \caption{Why no constant works. Triangles, $\theta=0.02$, $96$ directions per
     radius; the stray is the worst seen out to that radius. The nearest index
