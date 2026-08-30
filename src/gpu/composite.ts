@@ -302,9 +302,8 @@ export function buildColorNode(
     const lattice = matchLattices(view, solved, scan);
     const mean = sweepStack(camera, view, solved, lattice.coh, scan);
     return grade(camera, view, mean, scan.eta, [
-      { val: scan.beatVal, rate: scan.beatRate, eta: scan.eta },
-      lattice.char1,
-      lattice.char2,
+      { val: scan.beatVal, rate: scan.beatRate, eta: scan.eta, on: float(1) },
+      ...lattice.chars,
     ]);
   })();
 }
@@ -657,15 +656,25 @@ function matchLattices(view, solved, scan) {
       x2Ref.assign(latGrads[index].x2);
     });
   });
-  // The lattice beat characters the contour overlay draws, recorded where
-  // the sweep's own matching decides them. A slot with no lattice leaves the
-  // rates at zero, which the overlay's gate reads as "nothing to draw".
+  // The matched twist pair's slow characters D1 = a1 − b1 and D2 = a2 − b2,
+  // recorded as a value plus BOTH sides' gradient vectors, so their integer
+  // combinations — the kind's dual-ring characters, the skeleton of the
+  // visible rosette — can be formed after the matching. A pixel with no
+  // twist pair leaves the gradients at zero, which gates every combination
+  // off through its rate.
+  const m1Val = float(0).toVar();
+  const m2Val = float(0).toVar();
+  const m1Ref = vec2(0).toVar();
+  const m1Oth = vec2(0).toVar();
+  const m2Ref = vec2(0).toVar();
+  const m2Oth = vec2(0).toVar();
+  const latBType = float(-1).toVar();
+  // Scalar-partner mode's single character, recorded where the sweep's own
+  // candidate matching decides it. A slot with no lattice leaves the rate at
+  // zero, which the overlay's gate reads as "nothing to draw".
   const latVal1 = float(0).toVar();
   const latRate1 = float(0).toVar();
   const latEta1 = float(0).toVar();
-  const latVal2 = float(0).toVar();
-  const latRate2 = float(0).toVar();
-  const latEta2 = float(0).toVar();
 
   // Each lattice's tap schedule, as coefficients on (u, v): generator 1
   // advances by cu1*u + cv1*v per tap, generator 2 by cu2*u + cv2*v.
@@ -721,16 +730,13 @@ function matchLattices(view, solved, scan) {
           // The twist pair's slow characters, in this matched labeling, for
           // the contour overlay: a1 - b1 and a2 - b2 with the matched signs.
           If(view.latB.equal(int(index)), () => {
-            latVal1.assign(x1Ref.sub(x1.mul(s1)));
-            latRate1.assign(length(g1Ref.sub(g1.mul(s1))));
-            latEta1.assign(
-              latRate1.div(max(length(g1Ref.add(g1.mul(s1))).mul(0.5), float(1e-6)))
-            );
-            latVal2.assign(x2Ref.sub(x2.mul(t1)));
-            latRate2.assign(length(g2Ref.sub(g2.mul(t1))));
-            latEta2.assign(
-              latRate2.div(max(length(g2Ref.add(g2.mul(t1))).mul(0.5), float(1e-6)))
-            );
+            latBType.assign(slot.type);
+            m1Val.assign(x1Ref.sub(x1.mul(s1)));
+            m1Ref.assign(g1Ref);
+            m1Oth.assign(g1.mul(s1));
+            m2Val.assign(x2Ref.sub(x2.mul(t1)));
+            m2Ref.assign(g2Ref);
+            m2Oth.assign(g2.mul(t1));
           });
         }).Else(() => {
           cu1.assign(0);
@@ -738,16 +744,13 @@ function matchLattices(view, solved, scan) {
           cu2.assign(s2);
           cv2.assign(0);
           If(view.latB.equal(int(index)), () => {
-            latVal1.assign(x1Ref.sub(x2.mul(s2)));
-            latRate1.assign(length(g1Ref.sub(g2.mul(s2))));
-            latEta1.assign(
-              latRate1.div(max(length(g1Ref.add(g2.mul(s2))).mul(0.5), float(1e-6)))
-            );
-            latVal2.assign(x2Ref.sub(x1.mul(t2)));
-            latRate2.assign(length(g2Ref.sub(g1.mul(t2))));
-            latEta2.assign(
-              latRate2.div(max(length(g2Ref.add(g1.mul(t2))).mul(0.5), float(1e-6)))
-            );
+            latBType.assign(slot.type);
+            m1Val.assign(x1Ref.sub(x2.mul(s2)));
+            m1Ref.assign(g1Ref);
+            m1Oth.assign(g2.mul(s2));
+            m2Val.assign(x2Ref.sub(x1.mul(t2)));
+            m2Ref.assign(g2Ref);
+            m2Oth.assign(g1.mul(t2));
           });
         });
       });
@@ -809,11 +812,46 @@ function matchLattices(view, solved, scan) {
     });
     return { cu1, cv1, cu2, cv2 };
   });
-  return {
-    coh: latCoh,
-    char1: { val: latVal1, rate: latRate1, eta: latEta1 },
-    char2: { val: latVal2, rate: latRate2, eta: latEta2 },
-  };
+
+  // The contour channels. In twist mode the skeleton is the matched pair's
+  // characters combined into the latB kind's FUNDAMENTAL dual-ring families
+  // — (1,0)/(0,1) for a square lattice's line families, (1,-1)/(2,1)/(1,2)
+  // for the honeycomb's three wall families, (1,0)/(0,1)/(1,1) for the
+  // triangle lattice's edges — because a contour should annotate a fringe
+  // the ink actually carries: the hex twist's visible rosette is the wall
+  // beat, and its generator differences alone are two faint lines through
+  // it. Every combination of the two matched characters survives the
+  // lockstep sweep, so drawing more of them costs nothing but the gate.
+  // `on` admits only the kind's fundamentals; the weights are the sweep
+  // candidate table's, and −1 (no twist pair anywhere) lands on the square
+  // column with zero rates, so nothing draws.
+  const t = latBType;
+  const isSquare = float(1).sub(step(5.5, t));
+  const isHexK = step(5.5, t).mul(float(1).sub(step(6.5, t)));
+  const isTri = step(6.5, t);
+  const weigh = (sq, hx, tr) => isSquare.mul(sq).add(isHexK.mul(hx)).add(isTri.mul(tr));
+  const COMBOS = [
+    { a: 1, b: 0, pen: weigh(1.0, 1.2, 1.0) },
+    { a: 0, b: 1, pen: weigh(1.0, 1.2, 1.0) },
+    { a: 1, b: 1, pen: weigh(1.3, 1.2, 1.0) },
+    { a: 1, b: -1, pen: weigh(1.3, 1.0, 1.3) },
+    { a: 2, b: 1, pen: weigh(4.0, 1.0, 1.3) },
+    { a: 1, b: 2, pen: weigh(4.0, 1.0, 1.3) },
+  ];
+  const chars = COMBOS.map(({ a, b, pen }) => {
+    const val = m1Val.mul(a).add(m2Val.mul(b));
+    const beat = m1Ref.sub(m1Oth).mul(a).add(m2Ref.sub(m2Oth).mul(b));
+    const carrier = m1Ref.add(m1Oth).mul(a).add(m2Ref.add(m2Oth).mul(b));
+    const rate = length(beat);
+    return {
+      val,
+      rate,
+      eta: rate.div(max(length(carrier).mul(0.5), float(1e-6))),
+      on: step(pen, float(1.05)),
+    };
+  });
+  chars.push({ val: latVal1, rate: latRate1, eta: latEta1, on: float(1) });
+  return { coh: latCoh, chars };
 }
 
 /**
@@ -984,21 +1022,23 @@ function grade(camera, view, mean, eta, channels) {
     // is the actual fringe width, expanding exactly where the character
     // runs flat, which is the artifact figure's band look. A scalar stack
     // draws the winning character of the pairwise scan; a lattice draws the
-    // characters its own generator matching decided (both of a twist
-    // pair's, one against a scalar partner) — a degenerate rate gates its
-    // character off, so only real beats draw.
-    const addChar = (val, rate, et) => {
+    // characters its own generator matching decided (the twist pair's
+    // fundamental dual-ring combinations, or one against a scalar partner).
+    // `on` is the channel's own admission gate — a kind whose ink does not
+    // carry the combination stays quiet — and a degenerate rate gates the
+    // rest, so only real beats draw.
+    const addChar = ({ val, rate, eta: et, on }) => {
       const fd = val.sub(round(val)).abs();
       const dpx = fd.div(max(rate, float(1e-6)));
-      const gate = step(float(1e-5), rate).mul(
-        float(1).sub(smoothstep(thr, thr.mul(2).add(0.1), et))
-      );
+      const gate = step(float(1e-5), rate)
+        .mul(on)
+        .mul(float(1).sub(smoothstep(thr, thr.mul(2).add(0.1), et)));
       const stroke = float(1).sub(smoothstep(w.mul(0.6), w.mul(1.4).add(0.4), dpx));
       const band = pow(max(float(1).sub(fd.div(0.28)), float(0)), 1.5)
         .mul(view.contourBand);
       acc.assign(max(acc, max(stroke.mul(0.85), band.mul(0.55)).mul(gate)));
     };
-    for (const ch of channels) addChar(ch.val, ch.rate, ch.eta);
+    for (const ch of channels) addChar(ch);
     out.assign(mix(out, vec3(ACCENT_LINEAR.r, ACCENT_LINEAR.g, ACCENT_LINEAR.b), acc));
   });
   return out;
