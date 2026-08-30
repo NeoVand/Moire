@@ -1,0 +1,56 @@
+\documentclass[border=6pt]{standalone}
+\usepackage{libertine}
+\usepackage[T1]{fontenc}
+\usepackage{amssymb}
+\usepackage{tikz}
+\usetikzlibrary{calc, arrows.meta}
+\definecolor{ink}{HTML}{15181C}
+\definecolor{accent}{HTML}{C81E5A}
+\definecolor{cool}{HTML}{1B6CA8}
+\newcommand{\idx}{\phi}
+\begin{document}
+\begin{tikzpicture}
+  \node[anchor=south west, inner sep=0] (img) at (0,0)
+    {\includegraphics[width=17cm]{fig4-final.png}};
+  \begin{scope}[shift={(img.south west)},
+      x={($ (img.south east)-(img.south west) $)},
+      y={($ (img.north west)-(img.south west) $)}]
+    \tikzset{lab/.style={font=\footnotesize, inner sep=1pt}}
+    \tikzset{lead/.style={-{Stealth[length=4.5pt]}, line width=0.55pt}}
+
+    % ---------- panel A: the difference ----------
+    \node[lab, text=ink, align=left, anchor=west] (gl) at (0.012,0.83)
+      {the graph of $D=\idx_1-\idx_2$};
+    \draw[lead, ink!65] (gl.south) to[out=-70,in=110] (0.138,0.545);
+
+    \node[lab, text=accent!88!ink, anchor=west] (cl) at (0.418,0.885)
+      {contours at $D\in\mathbb{Z}$\,\dots};
+    \draw[lead, accent!75] (cl.west) to[out=205,in=50] (0.352,0.705);
+
+    \node[lab, text=accent!88!ink, anchor=west] (fl) at (0.415,0.24)
+      {\dots are the fringes};
+    \draw[lead, accent!75] (fl.west) to[out=190,in=-25] (0.362,0.368);
+
+    \node[lab, text=ink!80, align=center, anchor=south] (wl) at (0.285,0.955)
+      {steep:\\contours crowd};
+    \draw[lead, ink!60] (wl.south) to[out=-85,in=95] (0.276,0.640);
+
+    \node[lab, text=ink!70, anchor=west] (rl) at (0.055,0.065)
+      {two ring families};
+    \draw[lead, ink!55] (rl.east) to[out=10,in=205] (0.272,0.145);
+
+    % ---------- panel B: the sum ----------
+    \node[lab, text=cool!90!ink, align=right, anchor=east] (sl) at (0.995,0.85)
+      {the sum $\idx_1+\idx_2$:\\steep everywhere};
+    \draw[lead, cool!75] (sl.south) to[out=-120,in=40] (0.768,0.712);
+
+    \node[lab, text=cool!90!ink, align=left, anchor=west] (pl) at (0.552,0.935)
+      {flat only between\\the centres};
+    \draw[lead, cool!75] (pl.south) to[out=-62,in=118] (0.752,0.498);
+
+    \node[lab, text=ink!70, anchor=east] (nl) at (0.998,0.115)
+      {no broad fringe};
+    \draw[lead, ink!55] (nl.west) to[out=178,in=-55] (0.882,0.310);
+  \end{scope}
+\end{tikzpicture}
+\end{document}
