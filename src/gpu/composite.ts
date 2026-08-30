@@ -474,8 +474,9 @@ export function buildColorNode(
     // rotates around its centre, taking turns against each lattice direction),
     // so it is chosen per pixel among the lattice's beat-capable index
     // combinations. Which combinations those are is a property of where the
-    // lattice puts its ink: the candidates are the first two rings of the dual
-    // lattice, (1,0) (0,1) (1,1) (1,-1) (2,1) (1,2) in generator coordinates.
+    // lattice puts its ink: the candidates are the first three rings of the
+    // dual lattice — (1,0) (0,1) (1,1) (1,-1) (2,1) (1,2), and the doubled
+    // generators (2,0) (0,2) (2,2) — in generator coordinates.
     // A square grid's line families are its first ring and its vertex
     // diagonals the second, both inside the old four. A honeycomb is the
     // trap: its hexagon walls of one orientation repeat at pitch (√3/2)s,
@@ -502,6 +503,8 @@ export function buildColorNode(
     //   (1,1)   (su - g, g)      (1,-1)  (g, g - su)
     //   (2,1)   (su - g, 2g - su)
     //   (1,2)   (su - 2g, g)
+    //   (2,0)   (su/2, g)        (0,2)   (g, su/2)
+    //   (2,2)   (su/2 - g, g)
     // Per-lattice generator index gradients, computed unconditionally so the
     // screen-space derivatives stay in uniform control flow.
     const latGrads = solved.map(({ cell, local }) => {
@@ -598,6 +601,14 @@ export function buildColorNode(
         const isTri = step(6.5, t);
         const weigh = (sq, hx, tr) =>
           isSquare.mul(sq).add(isHexK.mul(hx)).add(isTri.mul(tr));
+        // The third ring is the doubled generators — the honeycomb's vertex
+        // rows repeat at half the row pitch, and a thin-lined square grid is
+        // rich in each family's second harmonic, so (2,0)-type beats stand in
+        // the render (hex against rings: the ring-3 beat is nearly as slow as
+        // the wall beat and owns the sectors 30 degrees away). Holding a
+        // doubled combination puts the bare generator on u/2, which washes
+        // that one carrier over only half a period; the residue sits at
+        // carrier scale under a coarse fringe and is accepted.
         const cand = [
           { g: g1, co: (s) => [s, 0, 0, 1], pen: weigh(1.0, 1.2, 1.0) },
           { g: g2, co: (s) => [0, 1, s, 0], pen: weigh(1.0, 1.2, 1.0) },
@@ -605,6 +616,9 @@ export function buildColorNode(
           { g: g1.sub(g2), co: (s) => [0, 1, s.negate(), 1], pen: weigh(1.3, 1.0, 1.3) },
           { g: g1.mul(2).add(g2), co: (s) => [s, -1, s.negate(), 2], pen: weigh(4.0, 1.0, 1.3) },
           { g: g1.add(g2.mul(2)), co: (s) => [s, -2, 0, 1], pen: weigh(4.0, 1.0, 1.3) },
+          { g: g1.mul(2), co: (s) => [s.mul(0.5), 0, 0, 1], pen: weigh(1.25, 1.15, 1.25) },
+          { g: g2.mul(2), co: (s) => [0, 1, s.mul(0.5), 0], pen: weigh(1.25, 1.15, 1.25) },
+          { g: g1.add(g2).mul(2), co: (s) => [s.mul(0.5), -1, 0, 1], pen: weigh(4.0, 1.15, 1.25) },
         ];
         const best = float(1e6).toVar();
         cand.forEach(({ g, co, pen }) => {

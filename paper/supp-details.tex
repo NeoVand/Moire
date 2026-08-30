@@ -37,14 +37,19 @@ vectors normal to the three wall families are $(1,-1)$, $(2,1)$, and
 $(1,2)$---the \emph{second} ring of the dual lattice, not the first. An
 enumeration that stops at the generators, their sum, and their difference
 covers one wall family in three; against a ring partner the other two sectors
-keep their fringes in the render and lose them in the view. So the candidates
-are the first two dual rings, $(1,0)$, $(0,1)$, $(1,1)$, $(1,-1)$, $(2,1)$,
-$(1,2)$, each counted either way, and each weighted by where its kind puts
+keep their fringes in the render and lose them in the view. Nor does the ink
+stop there: the third ring is the \emph{doubled} generators $(2,0)$, $(0,2)$,
+$(2,2)$ --- the honeycomb's vertex rows repeat at half the row pitch, and a
+thin-lined grid is rich in each family's second harmonic --- and against the
+same ring partner the ring-3 beat is nearly as slow as the wall beat and owns
+the sectors thirty degrees away. So the candidates are the first three dual
+rings, each counted either way, and each weighted by where its kind puts
 ink: the honeycomb's fundamental is its second ring, the square grid has
-nothing at $(2,1)$ at all, and the weight multiplies the match error so a
-near-tie resolves toward the family that carries contrast. (The enumeration is
-still finite; higher coincidence rings exist, exactly as the scalar characters
-beyond $\lvert k\rvert=2$ do, and sit outside the schedule.)
+nothing at $(2,1)$ or $(2,2)$ at all, and the weight multiplies the match
+error so a near-tie resolves toward the family that carries contrast. (The
+enumeration is still finite; higher coincidence rings exist, exactly as the
+scalar characters beyond $\lvert k\rvert=2$ do, and sit outside the
+schedule.)
 Every combination is linear in position, so its index gradient is exact, and the
 view holds still, per pixel, the one whose gradient best matches the ranked
 partner's, forward or backward. The complementary direction runs a golden-ratio
@@ -55,8 +60,11 @@ other candidate to a nonzero mix of $u$ and $\{i\varphi\}$: a generator rides
 $(u,\,\{i\varphi\})$, the sum rides $(u-\{i\varphi\},\,\{i\varphi\})$, the
 difference $(\{i\varphi\},\,\{i\varphi\}-u)$, and the second-ring pairs
 $(u-\{i\varphi\},\, 2\{i\varphi\}-u)$ and $(u-2\{i\varphi\},\, \{i\varphi\})$.
-A self-beat would need two combinations held at once, which no schedule
-provides.
+The doubled combinations have no unimodular completion --- holding $(2,0)$
+puts the bare generator on $u/2$, which averages that one carrier over only
+half a period; the residue sits at carrier scale beneath a coarse fringe and
+is accepted. A self-beat would need two combinations held at once, which no
+schedule provides.
 
 Two lattices with no scalar layer between them are the one case the partner
 gradient cannot orient, and the beat there is \emph{rank two}: a small twist
