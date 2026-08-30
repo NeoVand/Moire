@@ -13,14 +13,26 @@ Every number in the paper and every figure is generated from this repository by
 a script in `tools/`. Nothing in `paper/` is
 imported by the app, and no experiment touches `src/`.
 
+## Submitting
+
+`SUBMISSION.md` has the whole route to ACM TOG: accounts to create, the class
+options TOG requires, a pre-flight checklist of the documented desk-rejection
+triggers, and what changes only after acceptance.
+
 ## Build
 
 ```bash
-brew install tectonic          # or any XeLaTeX with acmart + pgfplots
+brew install tectonic          # or any XeLaTeX with pgfplots
 mkdir -p build
 tectonic -X compile paper.tex --outdir build --keep-intermediates
 tectonic -X compile supplemental.tex --outdir build
 ```
+
+`acmart.cls` and `ACM-Reference-Format.bst` are vendored here at v2.20, the
+current release. They are not incidental: the TeX distribution's bundled copy
+was v1.83 from 2022, far below what ACM accepts. Keep them, and re-vendor from
+[CTAN](https://ctan.org/pkg/acmart) when a newer version lands. `pdfinfo` on the
+built PDF reports which one was actually used.
 
 Writes `build/paper.pdf` and `build/supplemental.pdf`. The supplemental
 (catalog plate, gradient atlas, envelope and ablation details, gallery

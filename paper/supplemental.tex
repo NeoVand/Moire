@@ -2,7 +2,10 @@
 % Build AFTER the main paper (it reads build/paper.aux for cross-references):
 %   tectonic -X compile paper.tex --outdir build --keep-intermediates
 %   tectonic -X compile supplemental.tex --outdir build
-\documentclass[acmtog, nonacm]{acmart}
+% Anonymous like the paper: supplemental material reaches the same referees, so
+% it must not identify the author either. No `review` here -- line numbers are
+% for referees to cite the manuscript by, and this is not the manuscript.
+\documentclass[acmtog, anonymous]{acmart}
 
 \usepackage{amsmath}
 \let\Bbbk\relax
@@ -87,6 +90,8 @@
 \renewcommand{\thesection}{S\arabic{section}}
 \renewcommand{\thetable}{S\arabic{table}}
 \renewcommand{\thefigure}{S\arabic{figure}}
+
+\citestyle{acmauthoryear}
 
 \begin{document}
 

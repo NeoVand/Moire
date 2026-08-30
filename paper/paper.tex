@@ -1,5 +1,16 @@
 % Moire Fields. Build: tectonic -X compile paper.tex --outdir build
-\documentclass[acmtog, nonacm]{acmart}
+%
+% SUBMISSION MODE (the line below). TOG's author guidelines require exactly
+% these options: `acmtog` for the two-column journal template, `anonymous` to
+% hide the byline, and `review` for the line numbers referees cite. TOG is
+% author-anonymous to referees, so the byline below stays in the source and the
+% class suppresses it -- safer than deleting it and forgetting to restore it.
+% See SUBMISSION.md for the full checklist.
+\documentclass[acmtog, anonymous, review]{acmart}
+%
+% READING MODE. Swap for the line above to build a named, line-number-free copy
+% for yourself or for beta readers:
+% \documentclass[acmtog]{acmart}
 
 \usepackage{amsmath}
 % acmart's text font already defines a blackboard k; amssymb wants to as well.
@@ -92,11 +103,26 @@
 
 \input{numbers}
 
+% TOG asks that the byline be replaced by the ID Manuscript Central issues when
+% the submission is created. Fill this in and rebuild before uploading the PDF.
+\acmSubmissionID{}
+
+\acmJournal{TOG}
+
+% TOG requires author-year citations. acmart's default for `acmtog` is numeric,
+% so leaving this out silently typesets the wrong style.
+\citestyle{acmauthoryear}
+
 \begin{document}
 
 \title{Moir\'e Fields}
 
 \author{Neo Mohsenvand}
+% TODO(orcid): register free at https://orcid.org/register and paste the iD
+% here. TOG requires one from the submitting author AT SUBMISSION, and from
+% every author before an accepted paper reaches production. The `anonymous`
+% class option hides it during review. See SUBMISSION.md section 1.1.
+\orcid{0000-0000-0000-0000}
 % obeypunctuation stops acmart appending a comma after the institution; the class
 % insists on a city and a country, and there is no true value for either, so both
 % get a space rather than an invented place.
@@ -133,7 +159,7 @@ $\contourWorstErr$\,px on the hardest field tested.
 <ccs2012>
 <concept><concept_id>10010147.10010371.10010372</concept_id><concept_desc>Computing methodologies~Rendering</concept_desc><concept_significance>500</concept_significance></concept>
 <concept><concept_id>10010147.10010371.10010396</concept_id><concept_desc>Computing methodologies~Shape modeling</concept_desc><concept_significance>300</concept_significance></concept>
-<concept><concept_id>10003120.10003121.10003124</concept_id><concept_desc>Human-centered computing~Interaction techniques</concept_desc><concept_significance>100</concept_significance></concept>
+<concept><concept_id>10003120.10003121.10003128</concept_id><concept_desc>Human-centered computing~Interaction techniques</concept_desc><concept_significance>100</concept_significance></concept>
 </ccs2012>
 \end{CCSXML}
 
