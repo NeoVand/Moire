@@ -360,10 +360,18 @@ export class MoireRenderer {
     const rank = rankStack(state.layers);
     const scalarPair: [number, number] | null =
       rank.scalars.length >= 2 ? [rank.scalars[0], rank.scalars[1]] : null;
-    // With fewer than two comparable layers the ratio view has nothing to say,
-    // so the flag stays down and the ordinary composite shows through.
-    const pair = state.view.ratio ? scalarPair : null;
-    const envelope = state.view.envelope && !pair;
+    // The ratio view engages whenever the measurement has characters to map:
+    // two scalars, a scalar against a lattice, or a lattice pair — the eta
+    // scan reads lattice ink families, so the map is not a scalar-only
+    // instrument. With nothing to compare the flag stays down and the
+    // ordinary composite shows through.
+    const canMeasure =
+      !!scalarPair ||
+      (rank.scalars.length > 0 && rank.lattices.length > 0) ||
+      rank.lattices.length >= 2;
+    const ratioOn = state.view.ratio && canMeasure;
+    const pair = ratioOn ? scalarPair : null;
+    const envelope = state.view.envelope && !ratioOn;
     const contoursOn = state.view.envelopeContours;
     const wantsScan = envelope || contoursOn;
     // The regime mask and the orientation-aware sweep read the same ranked
@@ -373,9 +381,10 @@ export class MoireRenderer {
     // index gradient, and with no fallback that gradient is the zero vector
     // and the orientation choice degrades to noise. A == B costs nothing
     // else; eta collapses to zero, which only quiets the optional regime mask.
-    const maskPair: [number, number] | null = wantsScan
-      ? scalarPair ?? (rank.scalars.length ? [rank.scalars[0], rank.scalars[0]] : null)
-      : null;
+    const maskPair: [number, number] | null =
+      wantsScan || ratioOn
+        ? scalarPair ?? (rank.scalars.length ? [rank.scalars[0], rank.scalars[0]] : null)
+        : null;
     // Twist mode, engaged only with no scalar visible: lattices then have no
     // partner gradient to orient against, so the topmost lattice becomes the
     // reference every other lattice matches its generators to, and the whole
@@ -402,9 +411,13 @@ export class MoireRenderer {
     this.viewUniforms.contourW.value = Math.max(0.4, state.view.contourWidth);
     this.viewUniforms.contourBand.value = state.view.contourBands;
     this.viewUniforms.pivot.value.copy(envelope ? envelopePivot(state) : scratch.set(0xffffff));
-    this.viewUniforms.ratio.value = pair ? 1 : 0;
+    this.viewUniforms.ratio.value = ratioOn ? 1 : 0;
     this.viewUniforms.ratioA.value = pair ? pair[0] : maskPair ? maskPair[0] : -1;
-    this.viewUniforms.ratioB.value = pair ? pair[1] : maskPair ? maskPair[1] : -1;
+    // The A == B fallback exists for the envelope's sweep orientation; under
+    // the ratio view a self-pair's beat is identically zero and would flood
+    // the map with a false eta of 0, so a lone scalar keeps B empty there.
+    this.viewUniforms.ratioB.value =
+      pair ? pair[1] : maskPair ? (ratioOn ? -1 : maskPair[1]) : -1;
     // The third ranked scalar joins the character scan: with three layers the
     // dangerous mistake is deviating the top pair's rates for a beat that is
     // slower than one the second layer makes with the third.
@@ -414,6 +427,11 @@ export class MoireRenderer {
     this.viewUniforms.ratioThreshold.value = state.view.ratioThreshold;
     this.viewUniforms.latA.value = latPair ? latPair[0] : -1;
     this.viewUniforms.latB.value = latB;
+    // The eta measurement sees lattices in every measuring view — the ratio
+    // map included, which the sweep-side latA/latB stay out of.
+    const measuring = wantsScan || ratioOn;
+    this.viewUniforms.scanLatA.value = measuring ? rank.lattices[0] ?? -1 : -1;
+    this.viewUniforms.scanLatB.value = measuring ? rank.lattices[1] ?? -1 : -1;
 
     for (let i = 0; i < this.slots.length; i++) {
       writeLayerSlot(this.slots[i], state.layers[i]);

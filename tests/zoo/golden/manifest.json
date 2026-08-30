@@ -8,7 +8,7 @@
     "width": 640,
     "height": 480
   },
-  "updatedAt": "2026-08-30T18:57:35.449Z",
+  "updatedAt": "2026-08-30T19:07:36.681Z",
   "cases": {
     "lines-pair": {
       "coords": [
@@ -199,6 +199,20 @@
         1
       ],
       "note": "two concentric-hexagon families, one rotating 0.02 rad per ring — past the fold radius spacing/θ = 300 the family branches, and the phase trio must report adjacent branches, not index neighbours (the sector-hash bug)"
+    },
+    "grid-ring-ratio": {
+      "coords": [
+        2,
+        1
+      ],
+      "note": "the eta map of a ring family over a square lattice — dark lobes where a grid family matches the local ring direction and pitch; the measurement reads lattice ink families, so one scalar plus a lattice is a map"
+    },
+    "grid-twist-ratio": {
+      "coords": [
+        2,
+        2
+      ],
+      "note": "the eta map of a square-lattice twist pair — matched dual-ring families beat slowly everywhere, so the map reads uniformly deep in the fringe regime"
     }
   }
 }

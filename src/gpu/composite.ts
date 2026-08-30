@@ -234,6 +234,11 @@ export function createViewUniforms() {
     // is not the scalar scan's winning character — it has to be read off the
     // generator matching the sweep itself uses.
     latB: uniform(-1, 'int'),
+    // The measurement's lattice ranking — the topmost two whenever any view
+    // measures the stack, the ratio map included — independent of latA/latB,
+    // which drive the sweep's twist matching and the overlay's channels.
+    scanLatA: uniform(-1, 'int'),
+    scanLatB: uniform(-1, 'int'),
   };
 }
 
@@ -298,14 +303,72 @@ export function buildColorNode(
     const pixel = float(1).div(max(camera.zoom, float(0.08)));
 
     const solved = solveLayers(slots, fields, view, world, pixel);
-    const scan = scanCharacters(view, solved);
-    const lattice = matchLattices(view, solved, scan);
+    const coords = latticeCoords(solved);
+    const scan = scanCharacters(view, solved, coords);
+    const lattice = matchLattices(view, solved, scan, coords);
     const mean = sweepStack(camera, view, solved, lattice.coh, scan);
-    return grade(camera, view, mean, scan.eta, [
+    return grade(camera, view, mean, scan.etaAll, [
       { val: scan.beatVal, rate: scan.beatRate, eta: scan.eta, on: float(1) },
       ...lattice.chars,
     ]);
   })();
+}
+
+/**
+ * The first three rings of the dual lattice, in generator coordinates, with
+ * each kind's ink weight `[square, hexagon, triangle]` — 1 marks a kind's
+ * fundamental families, a mild penalty its weaker-but-real harmonics, and 4
+ * a combination the kind has no ink at, kept only so the candidate list
+ * stays uniform. One table, three consumers: the sweep's candidate
+ * matching, the twist contour channels, and the eta measurement.
+ */
+const DUAL_RING = [
+  { a: 1, b: 0, pens: [1.0, 1.2, 1.0] },
+  { a: 0, b: 1, pens: [1.0, 1.2, 1.0] },
+  { a: 1, b: 1, pens: [1.3, 1.2, 1.0] },
+  { a: 1, b: -1, pens: [1.3, 1.0, 1.3] },
+  { a: 2, b: 1, pens: [4.0, 1.0, 1.3] },
+  { a: 1, b: 2, pens: [4.0, 1.0, 1.3] },
+  { a: 2, b: 0, pens: [1.25, 1.15, 1.25] },
+  { a: 0, b: 2, pens: [1.25, 1.15, 1.25] },
+  { a: 2, b: 2, pens: [4.0, 1.15, 1.25] },
+];
+
+/** The pen for a combination given a slot's type node (square 5, hex 6, tri 7). */
+function kindPen(typeNode, pens) {
+  const isSquare = float(1).sub(step(5.5, typeNode));
+  const isHexK = step(5.5, typeNode).mul(float(1).sub(step(6.5, typeNode)));
+  const isTri = step(6.5, typeNode);
+  return isSquare.mul(pens[0]).add(isHexK.mul(pens[1])).add(isTri.mul(pens[2]));
+}
+
+// Per-lattice generator index coordinates and their EXACT screen gradients —
+// each combination's continuous index is linear in the layer point, so no
+// derivative estimate is involved. Computed unconditionally for every slot so
+// the screen-space derivatives downstream stay in uniform control flow; a
+// non-lattice slot yields garbage coordinates nothing reads.
+function latticeCoords(solved) {
+  return solved.map(({ cell, local, shift }) => {
+    // step keeps the guard non-zero at d = 0 (a non-lattice slot's empty
+    // cell), where sign() would return 0 and divide by zero.
+    const safe = (d) => step(0, d).mul(2).sub(1).mul(d.abs().max(1e-6));
+    const perp1 = vec2(cell.w.negate(), cell.z);
+    const perp2 = vec2(cell.y.negate(), cell.x);
+    const b1 = perp1.div(safe(cell.xy.dot(perp1)));
+    const b2 = perp2.div(safe(cell.zw.dot(perp2)));
+    // A lattice spends its field as a translation along generator 1 (the
+    // tap resample advances by uLat + shift), so the field belongs to the
+    // first generator's continuous index — without it, a field-warped grid
+    // against its unmodulated twin reads as no beat at all.
+    const xi1 = local.dot(b1).sub(shift);
+    const xi2 = local.dot(b2);
+    return {
+      x1: xi1,
+      x2: xi2,
+      g1: vec2(dFdx(xi1), dFdy(xi1)),
+      g2: vec2(dFdx(xi2), dFdy(xi2)),
+    };
+  });
 }
 
 // Solved once per layer, before the sweep. Everything the tap loop needs is in
@@ -447,7 +510,7 @@ function solveLayers(slots, fields, view, world, pixel) {
 // families near a 2:1 pitch ratio beating in 2*phi1 - phi2, which a
 // first-order-only criterion declares "no fringe" while the fringe stands
 // in the render. eta << 1 is the fringe regime; past 1/4 no fringe forms.
-function scanCharacters(view, solved) {
+function scanCharacters(view, solved, latGrads) {
   const xiA = float(0).toVar();
   const xiB = float(0).toVar();
   const xiC = float(0).toVar();
@@ -494,11 +557,16 @@ function scanCharacters(view, solved) {
     [1, 2],
   ];
   // Pairs beyond the first exist only when a third ranked layer does; an
-  // absent slot's candidates are pushed out of every comparison.
+  // absent slot's candidates are pushed out of every comparison. The first
+  // pair needs the same guard since the ratio view can rank a lone scalar
+  // (B empty): a pair against an absent slot has a zero beat and would win
+  // the scan with a false eta of 0.
+  const validB = step(float(-0.5), float(view.ratioB));
+  const bGate = float(1).sub(validB).mul(1e5);
   const validC = step(float(-0.5), float(view.ratioC));
   const cGate = float(1).sub(validC).mul(1e5);
   const PAIRS = [
-    { gP: gradA, gQ: gradB, xP: xiA, xQ: xiB, gate: float(0), who: 0 },
+    { gP: gradA, gQ: gradB, xP: xiA, xQ: xiB, gate: bGate, who: 0 },
     { gP: gradA, gQ: gradC, xP: xiA, xQ: xiC, gate: cGate, who: 1 },
     { gP: gradB, gQ: gradC, xP: xiB, xQ: xiC, gate: cGate, who: 2 },
   ];
@@ -575,7 +643,57 @@ function scanCharacters(view, solved) {
     });
   });
   const eta = etaBest.clamp(0, 1);
-  return { xiA, gradA, eta, rateA, rateB, rateC, beatVal, beatRate };
+
+  // Lattice coordinates join the measurement. eta is defined over the
+  // characters of the JOINT index torus, and a lattice's visible families
+  // are its dual-ring combinations — so the map must darken where a grid
+  // family beats a scalar carrier, or where two lattices' matched families
+  // beat, exactly as it darkens for a scalar pair; without this the ratio
+  // view is blind to every lattice in the stack. Measurement only: the
+  // sweep's schedules keep their own matching below, so nothing here can
+  // move an envelope pixel.
+  const latEntry = (sel) => {
+    const g1 = vec2(0).toVar();
+    const g2 = vec2(0).toVar();
+    const type = float(-1).toVar();
+    solved.forEach(({ slot }, index) => {
+      If(sel.equal(int(index)), () => {
+        g1.assign(latGrads[index].g1);
+        g2.assign(latGrads[index].g2);
+        type.assign(slot.type);
+      });
+    });
+    // 1e5 pushes a missing lattice's characters out of every minimum.
+    const missing = float(1).sub(step(float(-0.5), float(sel))).mul(1e5);
+    return { g1, g2, type, missing };
+  };
+  const latP = latEntry(view.scanLatA);
+  const latQ = latEntry(view.scanLatB);
+  const sGate = float(1).sub(step(float(-0.5), float(view.ratioA))).mul(1e5);
+  const etaOf = (beat, carrier) =>
+    length(beat).div(max(length(carrier).mul(0.5), float(1e-6)));
+  let latMin = float(1e6);
+  DUAL_RING.forEach(({ a, b, pens }) => {
+    const gP = latP.g1.mul(a).add(latP.g2.mul(b));
+    const gQ = latQ.g1.mul(a).add(latQ.g2.mul(b));
+    // A combination the kind carries no ink at must not darken the map.
+    const penP = step(float(1.4), kindPen(latP.type, pens)).mul(1e5);
+    const penQ = step(float(1.4), kindPen(latQ.type, pens)).mul(1e5);
+    // Each lattice's combination against the ranked scalar, either way
+    // around, and the matched same-combination difference across the pair.
+    const pScalar = min(etaOf(gP.sub(gradA), gP.add(gradA)), etaOf(gP.add(gradA), gP.sub(gradA)));
+    const qScalar = min(etaOf(gQ.sub(gradA), gQ.add(gradA)), etaOf(gQ.add(gradA), gQ.sub(gradA)));
+    const pq = min(etaOf(gP.sub(gQ), gP.add(gQ)), etaOf(gP.add(gQ), gP.sub(gQ)));
+    latMin = min(latMin, pScalar.add(penP).add(latP.missing).add(sGate));
+    latMin = min(latMin, qScalar.add(penQ).add(latQ.missing).add(sGate));
+    latMin = min(latMin, pq.add(max(penP, penQ)).add(latQ.missing));
+  });
+  // The joint minimum feeds the heat map and the regime mask; the scalar
+  // minimum keeps gating the scalar beat channel, whose own regime is what
+  // its contour annotates.
+  const etaAll = min(etaBest, latMin).clamp(0, 1);
+
+  return { xiA, gradA, eta, etaAll, rateA, rateB, rateC, beatVal, beatRate };
 }
 
 // A lattice joins the sweep by translation — but along what, and stepped
@@ -617,31 +735,8 @@ function scanCharacters(view, solved) {
 //   (1,2)   (su - 2g, g)
 //   (2,0)   (su/2, g)        (0,2)   (g, su/2)
 //   (2,2)   (su/2 - g, g)
-function matchLattices(view, solved, scan) {
+function matchLattices(view, solved, scan, latGrads) {
   const { gradA, xiA } = scan;
-  // Per-lattice generator index gradients, computed unconditionally so the
-  // screen-space derivatives stay in uniform control flow.
-  const latGrads = solved.map(({ cell, local, shift }) => {
-    // step keeps the guard non-zero at d = 0 (a non-lattice slot's empty
-    // cell), where sign() would return 0 and divide by zero.
-    const safe = (d) => step(0, d).mul(2).sub(1).mul(d.abs().max(1e-6));
-    const perp1 = vec2(cell.w.negate(), cell.z);
-    const perp2 = vec2(cell.y.negate(), cell.x);
-    const b1 = perp1.div(safe(cell.xy.dot(perp1)));
-    const b2 = perp2.div(safe(cell.zw.dot(perp2)));
-    // A lattice spends its field as a translation along generator 1 (the
-    // tap resample advances by uLat + shift), so the field belongs to the
-    // first generator's continuous index — without it, a field-warped grid
-    // against its unmodulated twin reads as no beat at all.
-    const xi1 = local.dot(b1).sub(shift);
-    const xi2 = local.dot(b2);
-    return {
-      x1: xi1,
-      x2: xi2,
-      g1: vec2(dFdx(xi1), dFdy(xi1)),
-      g2: vec2(dFdx(xi2), dFdy(xi2)),
-    };
-  });
   // The reference lattice's generator gradients and continuous indices, for
   // twist mode and its contour overlay.
   const g1Ref = vec2(0).toVar();
@@ -755,16 +850,6 @@ function matchLattices(view, solved, scan) {
         });
       });
     }).Else(() => {
-      // Ink-placement weights, selected by kind (square 5, hex 6,
-      // triangle 7): a weight of 1 marks the kind's fundamental families, a
-      // mild penalty its weaker-but-real harmonics, and 4 a combination the
-      // kind has no ink at, kept only so the candidate list stays uniform.
-      const t = slot.type;
-      const isSquare = float(1).sub(step(5.5, t));
-      const isHexK = step(5.5, t).mul(float(1).sub(step(6.5, t)));
-      const isTri = step(6.5, t);
-      const weigh = (sq, hx, tr) =>
-        isSquare.mul(sq).add(isHexK.mul(hx)).add(isTri.mul(tr));
       // The third ring is the doubled generators — the honeycomb's vertex
       // rows repeat at half the row pitch, and a thin-lined square grid is
       // rich in each family's second harmonic, so (2,0)-type beats stand in
@@ -772,18 +857,23 @@ function matchLattices(view, solved, scan) {
       // the wall beat and owns the sectors 30 degrees away). Holding a
       // doubled combination puts the bare generator on u/2, which washes
       // that one carrier over only half a period; the residue sits at
-      // carrier scale under a coarse fringe and is accepted.
-      const cand = [
-        { g: g1, co: (s) => [s, 0, 0, 1], ab: [1, 0], pen: weigh(1.0, 1.2, 1.0) },
-        { g: g2, co: (s) => [0, 1, s, 0], ab: [0, 1], pen: weigh(1.0, 1.2, 1.0) },
-        { g: g1.add(g2), co: (s) => [s, -1, 0, 1], ab: [1, 1], pen: weigh(1.3, 1.2, 1.0) },
-        { g: g1.sub(g2), co: (s) => [0, 1, s.negate(), 1], ab: [1, -1], pen: weigh(1.3, 1.0, 1.3) },
-        { g: g1.mul(2).add(g2), co: (s) => [s, -1, s.negate(), 2], ab: [2, 1], pen: weigh(4.0, 1.0, 1.3) },
-        { g: g1.add(g2.mul(2)), co: (s) => [s, -2, 0, 1], ab: [1, 2], pen: weigh(4.0, 1.0, 1.3) },
-        { g: g1.mul(2), co: (s) => [s.mul(0.5), 0, 0, 1], ab: [2, 0], pen: weigh(1.25, 1.15, 1.25) },
-        { g: g2.mul(2), co: (s) => [0, 1, s.mul(0.5), 0], ab: [0, 2], pen: weigh(1.25, 1.15, 1.25) },
-        { g: g1.add(g2).mul(2), co: (s) => [s.mul(0.5), -1, 0, 1], ab: [2, 2], pen: weigh(4.0, 1.15, 1.25) },
+      // carrier scale under a coarse fringe and is accepted. Pens come from
+      // the shared DUAL_RING ink table, selected by this slot's kind.
+      const schedules = [
+        { g: g1, co: (s) => [s, 0, 0, 1], ab: [1, 0] },
+        { g: g2, co: (s) => [0, 1, s, 0], ab: [0, 1] },
+        { g: g1.add(g2), co: (s) => [s, -1, 0, 1], ab: [1, 1] },
+        { g: g1.sub(g2), co: (s) => [0, 1, s.negate(), 1], ab: [1, -1] },
+        { g: g1.mul(2).add(g2), co: (s) => [s, -1, s.negate(), 2], ab: [2, 1] },
+        { g: g1.add(g2.mul(2)), co: (s) => [s, -2, 0, 1], ab: [1, 2] },
+        { g: g1.mul(2), co: (s) => [s.mul(0.5), 0, 0, 1], ab: [2, 0] },
+        { g: g2.mul(2), co: (s) => [0, 1, s.mul(0.5), 0], ab: [0, 2] },
+        { g: g1.add(g2).mul(2), co: (s) => [s.mul(0.5), -1, 0, 1], ab: [2, 2] },
       ];
+      const cand = schedules.map((c, k) => ({
+        ...c,
+        pen: kindPen(slot.type, DUAL_RING[k].pens),
+      }));
       const best = float(1e6).toVar();
       cand.forEach(({ g, co, ab, pen }) => {
         const ep = length(g.sub(gradA));
@@ -822,23 +912,10 @@ function matchLattices(view, solved, scan) {
   // beat, and its generator differences alone are two faint lines through
   // it. Every combination of the two matched characters survives the
   // lockstep sweep, so drawing more of them costs nothing but the gate.
-  // `on` admits only the kind's fundamentals; the weights are the sweep
-  // candidate table's, and −1 (no twist pair anywhere) lands on the square
-  // column with zero rates, so nothing draws.
-  const t = latBType;
-  const isSquare = float(1).sub(step(5.5, t));
-  const isHexK = step(5.5, t).mul(float(1).sub(step(6.5, t)));
-  const isTri = step(6.5, t);
-  const weigh = (sq, hx, tr) => isSquare.mul(sq).add(isHexK.mul(hx)).add(isTri.mul(tr));
-  const COMBOS = [
-    { a: 1, b: 0, pen: weigh(1.0, 1.2, 1.0) },
-    { a: 0, b: 1, pen: weigh(1.0, 1.2, 1.0) },
-    { a: 1, b: 1, pen: weigh(1.3, 1.2, 1.0) },
-    { a: 1, b: -1, pen: weigh(1.3, 1.0, 1.3) },
-    { a: 2, b: 1, pen: weigh(4.0, 1.0, 1.3) },
-    { a: 1, b: 2, pen: weigh(4.0, 1.0, 1.3) },
-  ];
-  const chars = COMBOS.map(({ a, b, pen }) => {
+  // `on` admits only the kind's fundamentals; the weights are the shared
+  // DUAL_RING ink table's, and −1 (no twist pair anywhere) lands on the
+  // square column with zero rates, so nothing draws.
+  const chars = DUAL_RING.slice(0, 6).map(({ a, b, pens }) => {
     const val = m1Val.mul(a).add(m2Val.mul(b));
     const beat = m1Ref.sub(m1Oth).mul(a).add(m2Ref.sub(m2Oth).mul(b));
     const carrier = m1Ref.add(m1Oth).mul(a).add(m2Ref.add(m2Oth).mul(b));
@@ -847,7 +924,7 @@ function matchLattices(view, solved, scan) {
       val,
       rate,
       eta: rate.div(max(length(carrier).mul(0.5), float(1e-6))),
-      on: step(pen, float(1.05)),
+      on: step(kindPen(latBType, pens), float(1.05)),
     };
   });
   chars.push({ val: latVal1, rate: latRate1, eta: latEta1, on: float(1) });

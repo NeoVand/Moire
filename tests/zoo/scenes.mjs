@@ -389,4 +389,27 @@ export const cases = [
       view({ ratio: true })
     ),
   },
+  {
+    name: 'grid-ring-ratio',
+    coords: [2, 1],
+    note:
+      'the eta map of a ring family over a square lattice — dark lobes where a ' +
+      'grid family matches the local ring direction and pitch; the measurement ' +
+      'reads lattice ink families, so one scalar plus a lattice is a map',
+    scene: scene(
+      [
+        layer('a', { type: 'grid-square', spacing: 16 }),
+        layer('b', { type: 'concentric-circles', spacing: 15 }),
+      ],
+      view({ ratio: true })
+    ),
+  },
+  {
+    name: 'grid-twist-ratio',
+    coords: [2, 2],
+    note:
+      'the eta map of a square-lattice twist pair — matched dual-ring families ' +
+      'beat slowly everywhere, so the map reads uniformly deep in the fringe regime',
+    scene: scene(gridTwist(), view({ ratio: true })),
+  },
 ];
