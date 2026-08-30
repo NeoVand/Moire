@@ -352,6 +352,31 @@ export class MoireRenderer {
     this.watchFields();
   }
 
+  /**
+   * Resolves when no field rebuild is scheduled or in flight, flushing a
+   * scheduled one immediately rather than waiting out the settle delay. A
+   * capture taken after this sees the expressions as written — the zoo harness
+   * loads a scene and settles instead of guessing at the debounce.
+   */
+  async settle(): Promise<void> {
+    if (this.fieldTimer) {
+      clearTimeout(this.fieldTimer);
+      this.fieldTimer = 0;
+      await this.rebuildFields();
+    }
+    await this.building;
+  }
+
+  /** The backend three actually initialised — goldens never compare across backends. */
+  backendName(): 'webgpu' | 'webgl2' | 'unknown' {
+    const backend = this.renderer?.backend as
+      | { isWebGPUBackend?: boolean; isWebGLBackend?: boolean }
+      | undefined;
+    if (backend?.isWebGPUBackend) return 'webgpu';
+    if (backend?.isWebGLBackend) return 'webgl2';
+    return 'unknown';
+  }
+
   private writeSlots() {
     const state = this.lastState;
     if (!this.cameraUniforms || !this.viewUniforms || !state) return;

@@ -1,0 +1,197 @@
+{
+  "backend": "webgpu",
+  "viewport": {
+    "width": 960,
+    "height": 720
+  },
+  "capture": {
+    "width": 640,
+    "height": 480
+  },
+  "updatedAt": "2026-08-30T18:12:57.318Z",
+  "cases": {
+    "lines-pair": {
+      "coords": [
+        1,
+        1
+      ],
+      "note": "two line families at 4°, plain composite"
+    },
+    "lines-pair-envelope": {
+      "coords": [
+        1,
+        1
+      ],
+      "note": "the same pair enveloped: broad diagonal fringes, carrier gone"
+    },
+    "lines-pair-contours": {
+      "coords": [
+        1,
+        1
+      ],
+      "note": "contours at integer D over the envelope"
+    },
+    "lines-pair-ratio": {
+      "coords": [
+        1,
+        1
+      ],
+      "note": "the heterodyne ratio map of the pair"
+    },
+    "lines-pair-mask": {
+      "coords": [
+        1,
+        1
+      ],
+      "note": "envelope with the regime mask most of the way up"
+    },
+    "lines-trio-contours": {
+      "coords": [
+        1,
+        1,
+        1
+      ],
+      "note": "three families at 0/3/9° — the third joins the character scan"
+    },
+    "rings-pair-envelope": {
+      "coords": [
+        1,
+        1
+      ],
+      "note": "two ring families off-centre: the two-centre fringe system"
+    },
+    "rings-pair-contours": {
+      "coords": [
+        1,
+        1
+      ],
+      "note": "the character-hills skeleton: contours of D between ring centres"
+    },
+    "rings-pair-contours-zoom2": {
+      "coords": [
+        1,
+        1
+      ],
+      "note": "the same skeleton at scene zoom 2 — guards the capture framing math"
+    },
+    "squares-pair-contours": {
+      "coords": [
+        1,
+        1
+      ],
+      "note": "square rings at a 10° twist — piecewise index fields with corners"
+    },
+    "radial-pair-contours": {
+      "coords": [
+        1,
+        1
+      ],
+      "note": "two radial fans off-centre — the sector-count scalar under contours"
+    },
+    "line-ring-contours": {
+      "coords": [
+        1,
+        1
+      ],
+      "note": "mixed classes: a line family against a ring family"
+    },
+    "wave-pair-envelope": {
+      "coords": [
+        1,
+        1
+      ],
+      "note": "two wave families at 5° — bent index fields enveloped"
+    },
+    "spiral-ring-envelope": {
+      "coords": [
+        1,
+        1
+      ],
+      "note": "a spiral against rings — unequal index gradients everywhere"
+    },
+    "line-field-envelope": {
+      "coords": [
+        1,
+        1
+      ],
+      "note": "a Gaussian-warped line family against a plain twin, enveloped"
+    },
+    "line-field-contours": {
+      "coords": [
+        1,
+        1
+      ],
+      "note": "the warped pair under contours — level sets of the field itself"
+    },
+    "grid-twist-envelope": {
+      "coords": [
+        2,
+        2
+      ],
+      "note": "the square-lattice twist pair — both slow characters survive the sweep"
+    },
+    "grid-twist-contours": {
+      "coords": [
+        2,
+        2
+      ],
+      "note": "contours on the twist pair — the class the first lattice-contours bug hid in"
+    },
+    "grid-hex-twist-contours": {
+      "coords": [
+        2,
+        2
+      ],
+      "note": "hex lattices at 3° — three families, two generators, under contours"
+    },
+    "grid-tri-line-contours": {
+      "coords": [
+        2,
+        1
+      ],
+      "note": "a triangle lattice against a scalar partner — the lattice beat a scalar ranks"
+    },
+    "grid-trio-twist-contours": {
+      "coords": [
+        2,
+        2,
+        2
+      ],
+      "note": "three square lattices at 0/2.5/5° — the third joins the lockstep sweep"
+    },
+    "grid-field-envelope": {
+      "coords": [
+        2,
+        2
+      ],
+      "note": "the dipole-field grid pair from the bug report, enveloped"
+    },
+    "grid-field-contours": {
+      "coords": [
+        2,
+        2
+      ],
+      "note": "the same pair under contours — the fix that seeded this zoo"
+    },
+    "single-ring-envelope": {
+      "coords": [
+        1
+      ],
+      "note": "one scalar family alone — the A == B envelope fallback"
+    },
+    "single-grid-envelope": {
+      "coords": [
+        2
+      ],
+      "note": "one lattice alone — the sweep washes it to its cell mean"
+    },
+    "grid-lines-ratio": {
+      "coords": [
+        2,
+        1,
+        1
+      ],
+      "note": "ratio view over a grid and two scalars — the ranking must skip the grid"
+    }
+  }
+}

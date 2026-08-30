@@ -55,6 +55,15 @@ A field is a displacement of a layer's *index*: `shift` many members, wherever y
 - `devicePixelRatio` clamped to 2. Camera at `z = 1`, `near = 0.1`. `toneMapped = false`.
 - First paint waits on `compileAsync`. `MoireStage` shows the ring mark with “Compiling” until the first frame. The first load then eases two default concentric layers into the preset.
 
+## Scene zoo (golden-image regression)
+
+`npm run zoo` renders every case in `tests/zoo/scenes.mjs` through the real pipeline — Vite dev server, headless Chrome, WebGPU on the actual GPU — and pixel-compares against `tests/zoo/golden/`. `npm run zoo:update` re-blesses after an intended visual change; `npm run zoo -- grid` filters by name substring. Run the zoo before and after ANY change to `composite.ts`, `renderer.ts`, or the solvers; bless only diffs you can explain.
+
+- Cases live in `tests/zoo/scenes.mjs`: complete scene JSONs (layers written out in full so app-default drift can't move a golden), one per cell of the feature × layer-class matrix. Each carries `coords`, the per-layer index-coordinate count (1 scalar, 2 lattice, 5 for a future Penrose layer) — the schema is already shaped for tilings. A failing case's JSON loads straight into the app via the export panel's drag-drop.
+- The app side is `src/zoo/bridge.ts` (`window.__zoo`), loaded only in dev behind `?zoo`. A capture is a pure function of the scene file and the pixel size: the bridge pins the camera zoom so the stage's own layout cancels out of `snapshot`'s framing math (a scene at zoom 1 shows 640 world units across the capture), and `MoireRenderer.settle()` flushes the field-expression debounce so captures never race a material rebuild.
+- Goldens are per-backend: `golden/manifest.json` records which backend blessed them and the runner refuses to compare across backends. Current goldens: webgpu (Apple Metal). `tests/zoo/out/` (renders + diffs) is gitignored.
+- Failure budget is `MAX_DIFF_RATIO` (0.05% of pixels at pixelmatch threshold 0.12) — far below any real regression (a one-constant contour tweak moves 1–10% of pixels) but above driver-level noise.
+
 ## UI
 
 - One `Studio` panel with the Moiré ring mark (`ui/MoireMark`: two concentric-circle families a hair apart — also the favicon and the paper site wordmark). Do not resurrect a separate top HUD, right inspector, or bottom filmstrip.

@@ -56,7 +56,11 @@ export function MoireStage() {
         gpu.render();
         registerCapture(
           (opts) => gpu.snapshot(opts),
-          (opts) => gpu.snapshotSize(opts)
+          (opts) => gpu.snapshotSize(opts),
+          {
+            settle: () => gpu.settle(),
+            info: () => ({ backend: gpu.backendName() }),
+          }
         );
         setReady(true);
         useProjectStore.getState().playIntro();

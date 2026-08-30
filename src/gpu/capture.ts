@@ -8,12 +8,25 @@ export interface CaptureOptions {
 type CaptureFn = (opts?: CaptureOptions) => Promise<Blob>;
 type SizeFn = (opts?: CaptureOptions) => { width: number; height: number };
 
+export interface CaptureExtras {
+  /** Resolves when no shader rebuild is pending — a capture after it is current. */
+  settle?: () => Promise<void>;
+  /** Which backend three initialised; the zoo records it beside its goldens. */
+  info?: () => { backend: string };
+}
+
 let captureFn: CaptureFn | null = null;
 let sizeFn: SizeFn | null = null;
+let extraFns: CaptureExtras = {};
 
-export function registerCapture(capture: CaptureFn | null, size: SizeFn | null = null) {
+export function registerCapture(
+  capture: CaptureFn | null,
+  size: SizeFn | null = null,
+  extras: CaptureExtras = {}
+) {
   captureFn = capture;
   sizeFn = size;
+  extraFns = capture ? extras : {};
 }
 
 /** One rendered frame as a PNG blob — the export dialog's preview and payload. */
@@ -25,6 +38,16 @@ export async function capturePng(opts: CaptureOptions = {}): Promise<Blob> {
 /** The pixel size an export would have, for showing before rendering it. */
 export function captureSize(opts: CaptureOptions = {}): { width: number; height: number } | null {
   return sizeFn ? sizeFn(opts) : null;
+}
+
+/** Waits out any pending shader rebuild, so the next capture is current. */
+export async function captureSettle(): Promise<void> {
+  await extraFns.settle?.();
+}
+
+/** Backend info, or null while no renderer is registered. */
+export function captureInfo(): { backend: string } | null {
+  return captureFn ? (extraFns.info?.() ?? { backend: 'unknown' }) : null;
 }
 
 export async function exportPng(opts: CaptureOptions = {}) {

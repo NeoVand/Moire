@@ -30,3 +30,6 @@ paper/.build/tikz-html/
 paper/build/
 paper/paper.pdf
 paper/tools/fig4-artifact/dist.html
+
+# The zoo's per-run renders and diffs; the blessed goldens are tracked
+tests/zoo/out/
