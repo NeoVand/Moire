@@ -8,6 +8,7 @@ type Panel = 'difference' | 'sum';
 
 interface Params {
   panel: Panel;
+  projection: 'perspective' | 'orthographic';
   F: number; // focus half-separation (patch units)
   levels: number; // fringe count: D spans -levels..levels (pitch s = 2F/levels)
   relief: number; // total surface height (patch units)
@@ -30,6 +31,7 @@ interface Params {
 
 const P: Params = {
   panel: 'difference',
+  projection: 'perspective',
   F: 0.2,
   levels: 5,
   relief: 0.5,
@@ -173,8 +175,16 @@ const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(PAPER);
-const camera = new THREE.PerspectiveCamera(32, 1, 0.01, 50);
-camera.up.set(0, 0, 1);
+const persp = new THREE.PerspectiveCamera(32, 1, 0.01, 80);
+const ortho = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.01, 80);
+persp.up.set(0, 0, 1);
+ortho.up.set(0, 0, 1);
+let camera: THREE.PerspectiveCamera | THREE.OrthographicCamera = persp;
+let viewAspect = 1;
+function activeCamera() {
+  camera = P.projection === 'orthographic' ? ortho : persp;
+  return camera;
+}
 
 const sun = new THREE.DirectionalLight(0xffffff, 2.1);
 const fill = new THREE.DirectionalLight(0xdfe8ff, 0.5);
@@ -610,6 +620,7 @@ let theta = (-62 * Math.PI) / 180; // azimuth, from +x
 let phi = (65 * Math.PI) / 180; // polar from +z
 let dist = 4.6;
 function placeCamera() {
+  activeCamera();
   phi = Math.min(Math.max(phi, 0.05), Math.PI - 0.05);
   dist = Math.min(Math.max(dist, 1.2), 14);
   camera.position.set(
@@ -618,6 +629,14 @@ function placeCamera() {
     target.z + dist * Math.cos(phi)
   );
   camera.lookAt(target);
+  if (camera === ortho) {
+    // Frustum height tracks the perspective framing at the same distance, so
+    // switching projections holds the subject size and wheel-zoom still zooms.
+    const hh = dist * Math.tan((persp.fov * Math.PI) / 360);
+    ortho.top = hh; ortho.bottom = -hh;
+    ortho.right = hh * viewAspect; ortho.left = -hh * viewAspect;
+  }
+  camera.updateProjectionMatrix();
 }
 let drag: { x: number; y: number; btn: number } | null = null;
 canvas.addEventListener('pointerdown', (e) => {
@@ -725,6 +744,14 @@ for (const m of ['bands', 'phi'] as const) {
   });
 }
 
+for (const m of ['perspective', 'orthographic'] as const) {
+  $('proj-' + (m === 'perspective' ? 'persp' : 'ortho')).addEventListener('click', () => {
+    P.projection = m;
+    $('proj-persp').classList.toggle('on', m === 'perspective');
+    $('proj-ortho').classList.toggle('on', m === 'orthographic');
+    placeCamera();
+  });
+}
 for (const p of ['difference', 'sum'] as Panel[]) {
   $(p).addEventListener('click', () => {
     P.panel = p;
@@ -768,14 +795,18 @@ function syncUi() {
   $('sum').classList.toggle('on', P.panel === 'sum');
   $('mode-bands').classList.toggle('on', P.fillMode === 'bands');
   $('mode-phi').classList.toggle('on', P.fillMode === 'phi');
+  $('proj-persp').classList.toggle('on', P.projection !== 'orthographic');
+  $('proj-ortho').classList.toggle('on', P.projection === 'orthographic');
+  placeCamera();
 }
 window.addEventListener('pageshow', () => setTimeout(syncUi, 250));
 
 function resize() {
   const w = innerWidth, h = innerHeight;
   renderer.setSize(w, h, false);
-  camera.aspect = w / h;
-  camera.updateProjectionMatrix();
+  viewAspect = w / h;
+  persp.aspect = viewAspect;
+  placeCamera();
 }
 addEventListener('resize', resize);
 resize();
@@ -828,8 +859,8 @@ renderer.setAnimationLoop(() => renderer.render(scene, camera));
   apply();
   renderer.setPixelRatio(1);
   renderer.setSize(w, h, false);
-  camera.aspect = w / h;
-  camera.updateProjectionMatrix();
+  viewAspect = w / h;
+  persp.aspect = viewAspect;
   placeCamera();
   renderer.render(scene, camera);
   const url = canvas.toDataURL('image/png');
