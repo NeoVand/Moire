@@ -80,6 +80,8 @@ export type TilingId =
   | 'truncated-hex'
   | 'rhombitrihex'
   | 'snub-square'
+  | 'truncated-trihex'
+  | 'snub-trihex'
   | 'elongated-triangular'
   | 'running-bond';
 
@@ -227,6 +229,44 @@ export const TILINGS: TilingSpec[] = [
     gaps: [[3, 4]],
   },
   {
+    id: 'truncated-trihex',
+    label: 'Truncated trihexagonal',
+    notation: '4.6.12',
+    // Dodecagons on a triangular lattice with a square bridging each adjacent
+    // pair; the gaps are the hexagons. Pitch is the dodecagon's width across
+    // the flats plus one square: (2 + sqrt(3)) + 1.
+    a1: [3 + SQRT3, 0],
+    a2: [(3 + SQRT3) / 2, ((3 + SQRT3) * SQRT3) / 2],
+    polygons: [
+      { cx: 0, cy: 0, n: 12, r: polyRadius(12), rot: Math.PI / 12 },
+      ...[0, 1, 2].map((k) => {
+        const ang = (k * Math.PI) / 3;
+        const d = (3 + SQRT3) / 2;
+        return {
+          cx: d * Math.cos(ang),
+          cy: d * Math.sin(ang),
+          n: 4,
+          r: polyRadius(4),
+          rot: ang + Math.PI / 4,
+        };
+      }),
+    ],
+    gaps: [[6, 2]],
+  },
+  {
+    id: 'snub-trihex',
+    label: 'Snub trihexagonal',
+    notation: '3.3.3.3.6',
+    // The chiral one: hexagon centres on a triangular lattice of pitch sqrt(7)
+    // — the lattice vector is 2u + v in the hexagon's own basis, which sits
+    // atan(sqrt(3)/5) = 19.1 degrees off it — with eight triangles per cell
+    // filling the rest.
+    a1: [Math.sqrt(7), 0],
+    a2: [Math.sqrt(7) / 2, (Math.sqrt(7) * SQRT3) / 2],
+    polygons: [{ cx: 0, cy: 0, n: 6, r: 1, rot: -Math.atan2(SQRT3, 5) }],
+    gaps: [[3, 8]],
+  },
+  {
     id: 'elongated-triangular',
     label: 'Elongated triangular',
     notation: '3.3.3.4.4',
@@ -282,27 +322,82 @@ function corners(poly: TilingPolygon): [number, number][] {
   return out;
 }
 
-/** One cell's segments and vertices, before the neighbour copies. */
-function baseGeometry(spec: TilingSpec): { segs: Segment[]; verts: [number, number][] } {
-  const segs: Segment[] = [];
+/**
+ * One cell's polygon corners, plus any edges a tiling states outright.
+ *
+ * The corners are the whole story for a uniform tiling: every edge has unit
+ * length and joins two of them, so the edge set is recovered below as the
+ * unit-distance pairs. Packing the polygons and taking their boundaries is NOT
+ * enough — in the snub tilings two triangles meet along an edge that bounds no
+ * packed shape, and those edges would simply be absent (nine of the fifteen per
+ * cell in the snub trihexagonal). The vertices know about them; the faces do not.
+ */
+function baseCorners(spec: TilingSpec): { verts: [number, number][]; segs: Segment[] } {
   const verts: [number, number][] = [];
   for (const poly of spec.polygons) {
-    const c = corners(poly);
-    for (let k = 0; k < c.length; k++) {
-      const [x1, y1] = c[k];
-      const [x2, y2] = c[(k + 1) % c.length];
-      segs.push({ x1, y1, x2, y2 });
-      verts.push([x1, y1]);
-    }
+    for (const c of corners(poly)) verts.push(c);
   }
+  const segs: Segment[] = [];
   if (spec.id === 'running-bond') {
-    // The brick wall has no packed polygon: its courses are full-length
-    // horizontal lines, and the vertical joints step by half a brick.
+    // The brick wall is the one entry whose edges are not all unit length —
+    // a course runs on past the joints — so it states its edges directly.
     segs.push({ x1: 0, y1: 0, x2: 2, y2: 0 });
     segs.push({ x1: 0, y1: 0, x2: 0, y2: 1 });
     verts.push([0, 0]);
   }
-  return { segs, verts };
+  return { verts, segs };
+}
+
+/**
+ * Vertices are snapped to this grid before anything compares them. Corners
+ * come out of cos/sin, so the same lattice vertex reached from two different
+ * cells differs in the last bits — enough that an exact comparison sees two
+ * points, and enough that a segment's canonical ordering can flip between
+ * copies and defeat the dedup.
+ */
+const SNAP = 1e6;
+const snap = (v: number) => Math.round(v * SNAP) / SNAP;
+
+/**
+ * The edges of a unit-edge tiling: every pair of vertices exactly one edge
+ * apart. Non-adjacent vertices in these tilings are never at unit distance —
+ * a square's diagonal is sqrt(2), a hexagon's short diagonal sqrt(3) — so the
+ * pairs are exactly the edges, which the edge-count test checks outright.
+ */
+function unitEdges(verts: [number, number][]): Segment[] {
+  const out: Segment[] = [];
+  for (let i = 0; i < verts.length; i++) {
+    for (let j = i + 1; j < verts.length; j++) {
+      const dx = verts[j][0] - verts[i][0];
+      const dy = verts[j][1] - verts[i][1];
+      if (Math.abs(Math.hypot(dx, dy) - 1) > 1e-6) continue;
+      out.push({ x1: verts[i][0], y1: verts[i][1], x2: verts[j][0], y2: verts[j][1] });
+    }
+  }
+  return out;
+}
+
+/** Replicate a cell's corners over `reach` cells each way, deduped. */
+function spreadCorners(spec: TilingSpec, reach: number, keep: number): [number, number][] {
+  const { verts } = baseCorners(spec);
+  const out: [number, number][] = [];
+  const seen = new Set<string>();
+  for (let i = -reach; i <= reach; i++) {
+    for (let j = -reach; j <= reach; j++) {
+      const dx = i * spec.a1[0] + j * spec.a2[0];
+      const dy = i * spec.a1[1] + j * spec.a2[1];
+      for (const [vx, vy] of verts) {
+        const x = snap(vx + dx);
+        const y = snap(vy + dy);
+        if (!nearCell({ x1: x, y1: y, x2: x, y2: y }, spec.a1, spec.a2, keep)) continue;
+        const k = `${x},${y}`;
+        if (seen.has(k)) continue;
+        seen.add(k);
+        out.push([x, y]);
+      }
+    }
+  }
+  return out;
 }
 
 /**
@@ -316,13 +411,18 @@ function baseGeometry(spec: TilingSpec): { segs: Segment[]; verts: [number, numb
  */
 const KEEP_MARGIN = 1.6;
 
-function segmentNearCell(seg: Segment, a1: [number, number], a2: [number, number]): boolean {
+function nearCell(
+  seg: Segment,
+  a1: [number, number],
+  a2: [number, number],
+  margin: number = KEEP_MARGIN
+): boolean {
   const cx = [0, a1[0], a2[0], a1[0] + a2[0]];
   const cy = [0, a1[1], a2[1], a1[1] + a2[1]];
-  const loX = Math.min(...cx) - KEEP_MARGIN;
-  const hiX = Math.max(...cx) + KEEP_MARGIN;
-  const loY = Math.min(...cy) - KEEP_MARGIN;
-  const hiY = Math.max(...cy) + KEEP_MARGIN;
+  const loX = Math.min(...cx) - margin;
+  const hiX = Math.max(...cx) + margin;
+  const loY = Math.min(...cy) - margin;
+  const hiY = Math.max(...cy) + margin;
   const sLoX = Math.min(seg.x1, seg.x2);
   const sHiX = Math.max(seg.x1, seg.x2);
   const sLoY = Math.min(seg.y1, seg.y2);
@@ -355,40 +455,41 @@ export function tilingGeometry(id: TilingId): TilingGeometry {
   if (hit) return hit;
 
   const spec = tilingSpec(id);
-  const { segs, verts } = baseGeometry(spec);
+  const span = Math.max(Math.hypot(...spec.a1), Math.hypot(...spec.a2));
+  const reach = Math.ceil((KEEP_MARGIN + 2) / Math.max(span, 0.2)) + 2;
+  // Vertices are gathered a whole edge further out than segments are kept, so
+  // an edge leaving the kept band still finds its far endpoint.
+  const wide = spreadCorners(spec, reach, KEEP_MARGIN + 1.2);
+  const segs = unitEdges(wide);
+
+  // The edges a tiling states outright (the brick's courses), replicated.
+  const { segs: stated } = baseCorners(spec);
+  for (let i = -reach; i <= reach; i++) {
+    for (let j = -reach; j <= reach; j++) {
+      const dx = i * spec.a1[0] + j * spec.a2[0];
+      const dy = i * spec.a1[1] + j * spec.a2[1];
+      for (const t of stated) {
+        segs.push({ x1: t.x1 + dx, y1: t.y1 + dy, x2: t.x2 + dx, y2: t.y2 + dy });
+      }
+    }
+  }
+
   const outSegs: number[] = [];
   const outVerts: number[] = [];
   const seenSeg = new Set<string>();
-  const seenVert = new Set<string>();
-  const key = (...v: number[]) => v.map((n) => n.toFixed(4)).join(',');
-
-  for (let i = -2; i <= 2; i++) {
-    for (let j = -2; j <= 2; j++) {
-      const dx = i * spec.a1[0] + j * spec.a2[0];
-      const dy = i * spec.a1[1] + j * spec.a2[1];
-      for (const s of segs) {
-        const moved = { x1: s.x1 + dx, y1: s.y1 + dy, x2: s.x2 + dx, y2: s.y2 + dy };
-        if (!segmentNearCell(moved, spec.a1, spec.a2)) continue;
-        // An edge shared by two polygons is generated twice; the min over the
-        // list does not care, but the shader's loop does.
-        const k =
-          moved.x1 < moved.x2 || (moved.x1 === moved.x2 && moved.y1 <= moved.y2)
-            ? key(moved.x1, moved.y1, moved.x2, moved.y2)
-            : key(moved.x2, moved.y2, moved.x1, moved.y1);
-        if (seenSeg.has(k)) continue;
-        seenSeg.add(k);
-        outSegs.push(moved.x1, moved.y1, moved.x2, moved.y2);
-      }
-      for (const [vx, vy] of verts) {
-        const x = vx + dx;
-        const y = vy + dy;
-        if (!segmentNearCell({ x1: x, y1: y, x2: x, y2: y }, spec.a1, spec.a2)) continue;
-        const k = key(x, y);
-        if (seenVert.has(k)) continue;
-        seenVert.add(k);
-        outVerts.push(x, y);
-      }
-    }
+  const end = (x: number, y: number) => `${snap(x)},${snap(y)}`;
+  for (const m of segs) {
+    if (!nearCell(m, spec.a1, spec.a2)) continue;
+    const a = end(m.x1, m.y1);
+    const b = end(m.x2, m.y2);
+    const k = a < b ? `${a}|${b}` : `${b}|${a}`;
+    if (seenSeg.has(k)) continue;
+    seenSeg.add(k);
+    outSegs.push(m.x1, m.y1, m.x2, m.y2);
+  }
+  for (const [x, y] of wide) {
+    if (!nearCell({ x1: x, y1: y, x2: x, y2: y }, spec.a1, spec.a2)) continue;
+    outVerts.push(x, y);
   }
 
   const geo: TilingGeometry = {
@@ -399,6 +500,39 @@ export function tilingGeometry(id: TilingId): TilingGeometry {
   };
   geometryCache.set(id, geo);
   return geo;
+}
+
+/**
+ * Edges per cell, counted from the generated geometry by taking the segments
+ * whose midpoint falls in the fundamental domain. The check the catalogue
+ * needs: a face-based construction can miss the edges that bound no packed
+ * face, and those tilings still look entirely plausible.
+ */
+export function vertexDegrees(id: TilingId): number[] {
+  const spec = tilingSpec(id);
+  const geo = tilingGeometry(id);
+  const verts: [number, number][] = [];
+  for (let i = 0; i < geo.vertices.length; i += 2) {
+    verts.push([geo.vertices[i], geo.vertices[i + 1]]);
+  }
+  // Only vertices with a full edge of clearance inside the generated band can
+  // see all their neighbours; the rest are the band's own boundary, not the
+  // tiling's.
+  // A vertex needs a whole edge of clearance inside the kept band before all
+  // of its neighbours are guaranteed present; nearer the rim the missing
+  // neighbours are the band's edge, not the tiling's.
+  const out: number[] = [];
+  for (const [x, y] of verts) {
+    if (!nearCell({ x1: x, y1: y, x2: x, y2: y }, spec.a1, spec.a2, KEEP_MARGIN - 1.05)) {
+      continue;
+    }
+    let deg = 0;
+    for (const [ox, oy] of verts) {
+      if (Math.abs(Math.hypot(ox - x, oy - y) - 1) < 1e-6) deg += 1;
+    }
+    out.push(deg);
+  }
+  return out;
 }
 
 export interface TilingRange {
@@ -467,32 +601,37 @@ export function tilingTable(): TilingTable {
  */
 export function tilingPatch(id: TilingId, h: number): Segment[] {
   const spec = tilingSpec(id);
-  const { segs } = baseGeometry(spec);
   const span = Math.max(Math.hypot(...spec.a1), Math.hypot(...spec.a2));
-  const reach = Math.ceil((h * 2) / Math.max(span, 0.2)) + 2;
-  const out: Segment[] = [];
-  const inBox = (x: number, y: number) => x >= -h && x <= h && y >= -h && y <= h;
+  const reach = Math.ceil((h + 2) / Math.max(span, 0.2)) + 2;
+  const verts: [number, number][] = [];
+  const { verts: base, segs: stated } = baseCorners(spec);
+  const segs: Segment[] = [];
   for (let i = -reach; i <= reach; i++) {
     for (let j = -reach; j <= reach; j++) {
       const dx = i * spec.a1[0] + j * spec.a2[0];
       const dy = i * spec.a1[1] + j * spec.a2[1];
-      for (const s of segs) {
-        const m = { x1: s.x1 + dx, y1: s.y1 + dy, x2: s.x2 + dx, y2: s.y2 + dy };
-        // Keep a segment with either end in view, or one that crosses it.
-        if (
-          inBox(m.x1, m.y1) ||
-          inBox(m.x2, m.y2) ||
-          (Math.min(m.x1, m.x2) < h &&
-            Math.max(m.x1, m.x2) > -h &&
-            Math.min(m.y1, m.y2) < h &&
-            Math.max(m.y1, m.y2) > -h)
-        ) {
-          out.push(m);
-        }
+      for (const [vx, vy] of base) {
+        const x = vx + dx;
+        const y = vy + dy;
+        if (x < -h - 1.2 || x > h + 1.2 || y < -h - 1.2 || y > h + 1.2) continue;
+        verts.push([x, y]);
+      }
+      for (const t of stated) {
+        segs.push({ x1: t.x1 + dx, y1: t.y1 + dy, x2: t.x2 + dx, y2: t.y2 + dy });
       }
     }
   }
-  return out;
+  segs.push(...unitEdges(verts));
+  const inBox = (x: number, y: number) => x >= -h && x <= h && y >= -h && y <= h;
+  return segs.filter(
+    (m) =>
+      inBox(m.x1, m.y1) ||
+      inBox(m.x2, m.y2) ||
+      (Math.min(m.x1, m.x2) < h &&
+        Math.max(m.x1, m.x2) > -h &&
+        Math.min(m.y1, m.y2) < h &&
+        Math.max(m.y1, m.y2) > -h)
+  );
 }
 
 /** Distance from `p` to a segment, both in layer coordinates, measured in world. */

@@ -122,6 +122,8 @@ export const MAX_DIFF_RATIO = 0.0005;
  * against the CPU catalogue the unit tests pin. */
 const TILING_IDS = [
   'kagome',
+  'truncated-trihex',
+  'snub-trihex',
   'truncated-square',
   'truncated-hex',
   'rhombitrihex',

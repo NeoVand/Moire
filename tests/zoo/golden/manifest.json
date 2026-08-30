@@ -8,7 +8,7 @@
     "width": 640,
     "height": 480
   },
-  "updatedAt": "2026-08-30T19:36:38.443Z",
+  "updatedAt": "2026-08-30T20:03:22.338Z",
   "cases": {
     "lines-pair": {
       "coords": [
@@ -269,6 +269,18 @@
         1
       ],
       "note": "the truncated-square tiling against a ring family — a tiling beats a scalar like any lattice"
+    },
+    "tiling-truncated-trihex": {
+      "coords": [
+        2
+      ],
+      "note": "the truncated-trihex tiling alone: edges and vertices, no beat"
+    },
+    "tiling-snub-trihex": {
+      "coords": [
+        2
+      ],
+      "note": "the snub-trihex tiling alone: edges and vertices, no beat"
     }
   }
 }

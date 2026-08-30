@@ -5,6 +5,7 @@ import {
   polyArea,
   tilingGeometry,
   tilingHits,
+  vertexDegrees,
   type TilingSpec,
 } from './tilings.ts';
 
@@ -93,6 +94,21 @@ for (const spec of TILINGS) {
     approx(packed + gaps, cellArea(spec), 1e-6, `${label}: cell area`);
   }
 
+  // 3b. Every vertex has exactly as many edges as its configuration has faces.
+  //     This is the check that catches an edge set built from packed faces
+  //     alone: in the snub tilings two triangles meet along an edge that
+  //     bounds no packed shape — nine of the fifteen per cell in the snub
+  //     trihexagonal — and the picture still looks entirely plausible without
+  //     them. Degree is local, so no cell-counting boundary can fudge it.
+  if (spec.id !== 'running-bond') {
+    const wantDeg = spec.notation.split('.').length;
+    const degs = vertexDegrees(spec.id);
+    assert.ok(degs.length > 0, `${label}: no interior vertex to check`);
+    for (const d of degs) {
+      assert.equal(d, wantDeg, `${label}: a vertex has ${d} edges, not ${wantDeg}`);
+    }
+  }
+
   // 4. The generated ink is periodic under BOTH generators — the property the
   //    envelope's cell average rests on, checked through the real distance
   //    function rather than asserted of the table.
@@ -165,7 +181,8 @@ for (const spec of TILINGS) {
 
   console.log(
     `  ${spec.notation.padEnd(9)} ${label.padEnd(22)} ` +
-      `${geo.segments.length / 4} segments, ${geo.vertices.length / 2} vertices`
+      `${geo.segments.length / 4} segments, ${geo.vertices.length / 2} vertices` +
+      (spec.id === 'running-bond' ? '' : `, degree ${spec.notation.split('.').length}`)
   );
 }
 
