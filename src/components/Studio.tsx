@@ -37,6 +37,9 @@ import { Icon, type HugeIcon } from './ui/Icon';
 import { MoireMark } from './ui/MoireMark';
 import { IconButton } from './ui/IconButton';
 import { Slider } from './ui/Slider';
+import { TilingGallery } from './TilingGallery';
+import { currentTiling } from '../lib/tilingChoice';
+import { tilingSpec, type TilingId } from '../gpu/tilings';
 
 const STUDIO_KEY = 'moire-studio-open';
 
@@ -348,10 +351,14 @@ function FieldMark({
 
 function PatternPicker({
   type,
+  tiling,
   onChange,
+  onTiling,
 }: {
   type: PatternType;
+  tiling: TilingId;
   onChange: (type: PatternType) => void;
+  onTiling: (choice: { type: PatternType; tiling: TilingId }) => void;
 }) {
   const lastByFamily = useRef<Partial<Record<PatternFamily, PatternType>>>({});
   const family = familyOf(type);
@@ -374,19 +381,25 @@ function PatternPicker({
           />
         ))}
       </div>
-      {variants.length > 1 && (
-        <div className="flex gap-0.5">
-          {variants.map((id) => (
-            <ShapeChip
-              key={id}
-              label={PATTERN_META.find((item) => item.id === id)?.label ?? id}
-              icon={PATTERN_ICONS[id].icon}
-              iconClassName={PATTERN_ICONS[id].className}
-              active={type === id}
-              onClick={() => onChange(id)}
-            />
-          ))}
-        </div>
+      {family === 'grid' ? (
+        // Tilings are picked by picture: the whole catalogue behind one chip,
+        // rather than a variant row that cannot hold ten of them.
+        <TilingGallery type={type} tiling={tiling} onChange={onTiling} />
+      ) : (
+        variants.length > 1 && (
+          <div className="flex gap-0.5">
+            {variants.map((id) => (
+              <ShapeChip
+                key={id}
+                label={PATTERN_META.find((item) => item.id === id)?.label ?? id}
+                icon={PATTERN_ICONS[id].icon}
+                iconClassName={PATTERN_ICONS[id].className}
+                active={type === id}
+                onClick={() => onChange(id)}
+              />
+            ))}
+          </div>
+        )
       )}
     </div>
   );
@@ -615,13 +628,25 @@ function LayerFields() {
           onCommit={(name) => renameLayer(layer.id, name)}
         />
         <span className="shrink-0 text-[11px] text-[var(--text-muted)]">
-          {familyMeta && familyMeta.types.length > 1
-            ? `${familyMeta.label} · ${typeLabel}`
-            : (familyMeta?.label ?? typeLabel)}
+          {family === 'grid'
+            ? `Tiling · ${tilingSpec(currentTiling(layer.type, layer.tiling)).label}`
+            : familyMeta && familyMeta.types.length > 1
+              ? `${familyMeta.label} · ${typeLabel}`
+              : (familyMeta?.label ?? typeLabel)}
         </span>
       </div>
 
-      <PatternPicker type={layer.type} onChange={(type) => setLayerType(layer.id, type)} />
+      <PatternPicker
+        type={layer.type}
+        tiling={layer.tiling}
+        onChange={(type) => setLayerType(layer.id, type)}
+        onTiling={(choice) => {
+          // The catalogue name rides along whichever type it resolves to, so
+          // switching away and back remembers which tiling you had.
+          updateLayer(layer.id, { tiling: choice.tiling });
+          if (choice.type !== layer.type) setLayerType(layer.id, choice.type);
+        }}
+      />
 
       <ColorField
         label="Stroke"

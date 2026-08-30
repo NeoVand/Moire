@@ -56,6 +56,14 @@ export interface TilingSpec {
    */
   gaps: [sides: number, count: number][];
   /**
+   * A tiling the renderer already draws with a closed form: selecting it from
+   * the gallery sets that pattern type instead of `tiling-periodic`, so the
+   * three regular lattices keep their fast paths and the catalogue still holds
+   * the whole family. Their geometry lives here anyway — it is what draws the
+   * gallery thumbnail, and what the catalogue tests check.
+   */
+  builtin?: 'grid-square' | 'grid-hex' | 'grid-triangle';
+  /**
    * The largest circle that fits inside any face, in edge-length units — so
    * the farthest a point can sit from this tiling's ink. Derived from the
    * faces for a tiling made of regular polygons; stated only where it is not.
@@ -64,6 +72,9 @@ export interface TilingSpec {
 }
 
 export type TilingId =
+  | 'square'
+  | 'triangular'
+  | 'hexagonal'
   | 'kagome'
   | 'truncated-square'
   | 'truncated-hex'
@@ -110,6 +121,39 @@ export function polyArea(n: number): number {
  *   one entry here whose faces are not regular polygons.
  */
 export const TILINGS: TilingSpec[] = [
+  {
+    id: 'square',
+    label: 'Square',
+    notation: '4.4.4.4',
+    builtin: 'grid-square',
+    a1: [1, 0],
+    a2: [0, 1],
+    polygons: [{ cx: 0.5, cy: 0.5, n: 4, r: polyRadius(4), rot: Math.PI / 4 }],
+    gaps: [],
+  },
+  {
+    id: 'triangular',
+    label: 'Triangular',
+    notation: '3.3.3.3.3.3',
+    builtin: 'grid-triangle',
+    a1: [1, 0],
+    a2: [0.5, SQRT3 / 2],
+    polygons: [
+      { cx: 0.5, cy: SQRT3 / 6, n: 3, r: 1 / SQRT3, rot: Math.PI / 2 },
+      { cx: 1, cy: SQRT3 / 3, n: 3, r: 1 / SQRT3, rot: -Math.PI / 2 },
+    ],
+    gaps: [],
+  },
+  {
+    id: 'hexagonal',
+    label: 'Hexagonal',
+    notation: '6.6.6',
+    builtin: 'grid-hex',
+    a1: [SQRT3, 0],
+    a2: [SQRT3 / 2, 1.5],
+    polygons: [{ cx: 0, cy: 0, n: 6, r: 1, rot: Math.PI / 6 }],
+    gaps: [],
+  },
   {
     id: 'kagome',
     label: 'Kagome',
@@ -412,6 +456,43 @@ export function tilingTable(): TilingTable {
     ranges,
   };
   return tableCache;
+}
+
+/**
+ * A square patch of the tiling, for a gallery thumbnail: the same segments the
+ * shader walks, translated over enough cells to fill `[-h, h]^2` in edge units
+ * and clipped to it. Drawing the thumbnail from the catalogue rather than from
+ * a picture is what keeps the gallery honest — a thumbnail cannot show a
+ * tiling the layer would not draw.
+ */
+export function tilingPatch(id: TilingId, h: number): Segment[] {
+  const spec = tilingSpec(id);
+  const { segs } = baseGeometry(spec);
+  const span = Math.max(Math.hypot(...spec.a1), Math.hypot(...spec.a2));
+  const reach = Math.ceil((h * 2) / Math.max(span, 0.2)) + 2;
+  const out: Segment[] = [];
+  const inBox = (x: number, y: number) => x >= -h && x <= h && y >= -h && y <= h;
+  for (let i = -reach; i <= reach; i++) {
+    for (let j = -reach; j <= reach; j++) {
+      const dx = i * spec.a1[0] + j * spec.a2[0];
+      const dy = i * spec.a1[1] + j * spec.a2[1];
+      for (const s of segs) {
+        const m = { x1: s.x1 + dx, y1: s.y1 + dy, x2: s.x2 + dx, y2: s.y2 + dy };
+        // Keep a segment with either end in view, or one that crosses it.
+        if (
+          inBox(m.x1, m.y1) ||
+          inBox(m.x2, m.y2) ||
+          (Math.min(m.x1, m.x2) < h &&
+            Math.max(m.x1, m.x2) > -h &&
+            Math.min(m.y1, m.y2) < h &&
+            Math.max(m.y1, m.y2) > -h)
+        ) {
+          out.push(m);
+        }
+      }
+    }
+  }
+  return out;
 }
 
 /** Distance from `p` to a segment, both in layer coordinates, measured in world. */
