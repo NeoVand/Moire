@@ -22,6 +22,7 @@ import {
   pow,
   smoothstep,
   step,
+  uniformArray,
 } from 'three/tsl';
 import {
   FIELD_NONE,
@@ -39,6 +40,7 @@ import {
   ringPhase,
 } from './inverse.wgsl';
 import { gridDistance, latticeCellWgsl } from './lattice.wgsl';
+import { tilingTable, tilingIndex } from './tilings';
 import { layerMorph } from './typeMorph';
 import { compileField, type CompiledField } from '../fields/expr';
 import { fieldFunction } from '../fields/expr.wgsl';
@@ -75,10 +77,39 @@ export function patternTypeCode(type: PatternType): number {
       return 11;
     case 'curve-spiral':
       return 12;
+    case 'tiling-periodic':
+      return 13;
     default:
       return 1;
   }
 }
+
+/**
+ * The tiling catalogue, as two uniform arrays every slot indexes into.
+ *
+ * The table is static, so it is uploaded once and never touched again:
+ * choosing a different tiling moves a start and a count in one layer's slot.
+ * That is what keeps a gallery clickable — no pipeline rebuild, no upload,
+ * and the same numbers the CPU mirror walks.
+ */
+const TILE_TABLE = tilingTable();
+const TILE_SEGS = uniformArray(
+  Array.from({ length: TILE_TABLE.segments.length / 4 }, (_, i) =>
+    new THREE.Vector4(
+      TILE_TABLE.segments[i * 4],
+      TILE_TABLE.segments[i * 4 + 1],
+      TILE_TABLE.segments[i * 4 + 2],
+      TILE_TABLE.segments[i * 4 + 3]
+    )
+  ),
+  'vec4'
+);
+const TILE_VERTS = uniformArray(
+  Array.from({ length: TILE_TABLE.vertices.length / 2 }, (_, i) =>
+    new THREE.Vector2(TILE_TABLE.vertices[i * 2], TILE_TABLE.vertices[i * 2 + 1])
+  ),
+  'vec2'
+);
 
 export function createLayerSlot() {
   return {
@@ -104,6 +135,13 @@ export function createLayerSlot() {
     fieldScale: uniform(200),
     typeFrom: uniform(1),
     morph: uniform(1),
+    // The catalogue run this layer's tiling occupies, and its translation
+    // cell in world units before the layer's stretch.
+    tileSegStart: uniform(0, 'int'),
+    tileSegCount: uniform(0, 'int'),
+    tileVertStart: uniform(0, 'int'),
+    tileVertCount: uniform(0, 'int'),
+    tileCell: uniform(new THREE.Vector4(1, 0, 0, 1)),
   };
 }
 
@@ -270,6 +308,17 @@ export function writeLayerSlot(slot: LayerSlot, layer: PatternLayer | undefined)
   slot.lineCount.value = layer.lineCount ?? 8;
   slot.bend.value = layer.bend ?? 0;
   slot.frequency.value = layer.frequency ?? 1;
+  const range = TILE_TABLE.ranges[tilingIndex(layer.tiling)];
+  slot.tileSegStart.value = range.segStart;
+  slot.tileSegCount.value = range.segCount;
+  slot.tileVertStart.value = range.vertStart;
+  slot.tileVertCount.value = range.vertCount;
+  slot.tileCell.value.set(
+    range.a1[0] * layer.spacing,
+    range.a1[1] * layer.spacing,
+    range.a2[0] * layer.spacing,
+    range.a2[1] * layer.spacing
+  );
   writeField(slot, layer.field);
   const morph = layerMorph(layer.id);
   if (morph) {
@@ -384,7 +433,12 @@ function solveLayers(slots, fields, view, world, pixel) {
     const shift = float(0).toVar();
     const phase = vec4(0).toVar();
     const phaseFrom = vec4(0).toVar();
-    const isLattice = slot.type.greaterThan(4.5).and(slot.type.lessThan(7.5));
+    // Code 13 joins the 5..7 grids: a tiling is a lattice, indexed by a pair
+    // of integers, so every lattice path downstream takes it unchanged.
+    const isLattice = slot.type
+      .greaterThan(4.5)
+      .and(slot.type.lessThan(7.5))
+      .or(slot.type.greaterThan(12.5));
 
     If(slot.active.greaterThan(0.5), () => {
       const c = slot.rotation.cos();
@@ -440,6 +494,18 @@ function solveLayers(slots, fields, view, world, pixel) {
       cell.assign(
         latticeCellWgsl(slot.type.sub(5), slot.spacing, slot.scale.x, slot.scale.y)
       );
+      // A catalogue tiling carries its own translation cell; the layer's
+      // stretch applies per axis, exactly as the grids' cells do.
+      If(slot.type.greaterThan(12.5), () => {
+        cell.assign(
+          vec4(
+            slot.tileCell.x.mul(slot.scale.x),
+            slot.tileCell.y.mul(slot.scale.y),
+            slot.tileCell.z.mul(slot.scale.x),
+            slot.tileCell.w.mul(slot.scale.y)
+          )
+        );
+      });
 
       // A morph has two families in flight at once, so it needs both phases.
       const phaseOf = (typeNode, out) => {
@@ -932,6 +998,72 @@ function matchLattices(view, solved, scan, latGrads) {
 }
 
 /**
+ * A catalogue tiling's edge and vertex distance, by walking its own segments.
+ *
+ * The three original grids each got a hand-written distance function; a
+ * catalogue cannot, so a tiling's ink is data — the segments of its cell and
+ * of every neighbour within reach, in the shared uniform table. The point
+ * folds into the cell once and the walk is flat, with no neighbourhood search,
+ * because the table already carries the copies that could win.
+ *
+ * The fold is the fractional part in the generator basis, which is the same
+ * pair of coordinates the character scan reads off this layer — so the ink and
+ * the indices agree about what a cell is, by construction.
+ *
+ * The stretch lives in world space: the fold and the closest-point solve run in
+ * unstretched layer coordinates and only the final difference is scaled, so an
+ * anisotropic tiling stretches its ink rather than its parameterisation. That
+ * is the convention the hexagon and triangle grids already use.
+ */
+const tilingInkFn = Fn(
+  ([p, cellVec, spacing, scaleVec, segStart, segCount, vertStart, vertCount]) => {
+    const sgn = (v) => step(0, v).mul(2).sub(1).mul(v.abs().max(1e-4));
+    const sx = sgn(scaleVec.x);
+    const sy = sgn(scaleVec.y);
+    const q = vec2(p.x.div(sx), p.y.div(sy));
+    const a = cellVec.xy;
+    const b = cellVec.zw;
+    const det = a.x.mul(b.y).sub(a.y.mul(b.x));
+    const safe = step(0, det).mul(2).sub(1).mul(det.abs().max(1e-6));
+    const u = q.x.mul(b.y).sub(q.y.mul(b.x)).div(safe);
+    const v = a.x.mul(q.y).sub(a.y.mul(q.x)).div(safe);
+    const f = a.mul(u.fract()).add(b.mul(v.fract())).toVar();
+
+    const edge = float(1e8).toVar();
+    Loop(segCount, ({ i }) => {
+      const seg = TILE_SEGS.element(segStart.add(i));
+      const p1 = seg.xy.mul(spacing);
+      const e = seg.zw.sub(seg.xy).mul(spacing);
+      const t = f.sub(p1).dot(e).div(max(e.dot(e), float(1e-9))).clamp(0, 1);
+      const d = f.sub(p1.add(e.mul(t)));
+      edge.assign(min(edge, length(vec2(d.x.mul(sx), d.y.mul(sy)))));
+    });
+
+    const vert = float(1e8).toVar();
+    Loop(vertCount, ({ i }) => {
+      const d = f.sub(TILE_VERTS.element(vertStart.add(i)).mul(spacing));
+      vert.assign(min(vert, length(vec2(d.x.mul(sx), d.y.mul(sy)))));
+    });
+
+    return vec2(edge, vert);
+  }
+);
+
+function tilingInk(slot, p) {
+  const hit = tilingInkFn(
+    p,
+    slot.tileCell,
+    slot.spacing,
+    slot.scale,
+    slot.tileSegStart,
+    slot.tileSegCount,
+    slot.tileVertStart,
+    slot.tileVertCount
+  ).toVar();
+  return { edge: hit.x, vert: hit.y };
+}
+
+/**
  * The tap loop: the whole stack composited once per tap, each layer
  * advanced by its schedule — scalars slide their solved phase at the
  * scan's rates, lattices resample along the matched combination — and the
@@ -982,26 +1114,28 @@ function sweepStack(camera, view, solved, latCoh, scan) {
           // times over.
           const kind = slot.type.sub(5);
           const ink = float(0).toVar();
+          const edgeD = float(1e8).toVar();
+          const vertD = float(1e8).toVar();
+          If(slot.type.greaterThan(12.5), () => {
+            const hit = tilingInk(slot, shifted);
+            edgeD.assign(hit.edge);
+            vertD.assign(hit.vert);
+          }).Else(() => {
+            If(slot.drawEdges.greaterThan(0.5), () => {
+              edgeD.assign(
+                gridDistance(shifted, kind, slot.spacing, float(0), slot.scale.x, slot.scale.y)
+              );
+            });
+            If(slot.vertexSize.greaterThan(0.001), () => {
+              vertD.assign(
+                gridDistance(shifted, kind, slot.spacing, float(1), slot.scale.x, slot.scale.y)
+              );
+            });
+          });
           If(slot.drawEdges.greaterThan(0.5), () => {
-            const edgeD = gridDistance(
-              shifted,
-              kind,
-              slot.spacing,
-              float(0),
-              slot.scale.x,
-              slot.scale.y
-            );
             ink.assign(float(1).sub(smoothstep(halfT.sub(aa), halfT.add(aa), edgeD)));
           });
           If(slot.vertexSize.greaterThan(0.001), () => {
-            const vertD = gridDistance(
-              shifted,
-              kind,
-              slot.spacing,
-              float(1),
-              slot.scale.x,
-              slot.scale.y
-            );
             const vR = slot.vertexSize;
             ink.assign(
               max(ink, float(1).sub(smoothstep(max(vR.sub(aa), float(0)), vR.add(aa), vertD)))

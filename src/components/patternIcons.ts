@@ -1,5 +1,6 @@
 import {
   Asterisk02Icon,
+  Blockchain01Icon,
   CellsIcon,
   CircleIcon,
   DialpadCircle01Icon,
@@ -33,6 +34,7 @@ export const PATTERN_ICONS: Record<PatternType, { icon: HugeIcon; className?: st
   'curve-parabola': { icon: Parabola01Icon },
   'curve-hyperbola': { icon: HyperboleIcon },
   'curve-spiral': { icon: SpiralsIcon },
+  'tiling-periodic': { icon: Blockchain01Icon },
 };
 
 export const FAMILY_ICONS: Record<PatternFamily, HugeIcon> = {

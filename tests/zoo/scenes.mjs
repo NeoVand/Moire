@@ -118,7 +118,62 @@ export const CAPTURE = { width: 640, height: 480 };
 /** How much of the frame may disagree with the golden before a case fails. */
 export const MAX_DIFF_RATIO = 0.0005;
 
+/** One layer per catalogue tiling, drawn plainly — the shader's segment walk
+ * against the CPU catalogue the unit tests pin. */
+const TILING_IDS = [
+  'kagome',
+  'truncated-square',
+  'truncated-hex',
+  'rhombitrihex',
+  'snub-square',
+  'elongated-triangular',
+  'running-bond',
+];
+
+const tilingCases = TILING_IDS.flatMap((id) => [
+  {
+    name: `tiling-${id}`,
+    coords: [2],
+    note: `the ${id} tiling alone: edges and vertices, no beat`,
+    scene: scene(
+      [layer('a', { type: 'tiling-periodic', tiling: id, spacing: 26, thickness: 2 })],
+      view()
+    ),
+  },
+]);
+
 export const cases = [
+  ...tilingCases,
+  {
+    name: 'tiling-kagome-twist-contours',
+    coords: [2, 2],
+    note: 'two kagome tilings at 5 degrees — a catalogue tiling is a lattice, so the twist machinery applies unchanged',
+    scene: scene(
+      [
+        layer('a', { type: 'tiling-periodic', tiling: 'kagome', spacing: 22, thickness: 2 }),
+        layer('b', {
+          type: 'tiling-periodic',
+          tiling: 'kagome',
+          spacing: 22,
+          thickness: 2,
+          rotation: 5,
+        }),
+      ],
+      view(CONTOURS)
+    ),
+  },
+  {
+    name: 'tiling-octagon-ring-envelope',
+    coords: [2, 1],
+    note: 'the truncated-square tiling against a ring family — a tiling beats a scalar like any lattice',
+    scene: scene(
+      [
+        layer('a', { type: 'tiling-periodic', tiling: 'truncated-square', spacing: 20, thickness: 2 }),
+        layer('b', { type: 'concentric-circles', spacing: 19, thickness: 2 }),
+      ],
+      view(ENVELOPE)
+    ),
+  },
   // ---- scalar pairs: the four view modes on the simplest stack ----
   {
     name: 'lines-pair',

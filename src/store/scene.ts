@@ -1,5 +1,6 @@
 import type { CameraState, PatternLayer, PatternType, Vec2 } from '../types/moire';
 import { FIELD_NONE, MAX_LAYERS, PATTERN_META, createLayer } from '../types/moire';
+import { TILING_IDS, type TilingId } from '../gpu/tilings';
 import type { ViewState } from './project';
 
 /**
@@ -21,6 +22,7 @@ export interface SceneData {
 
 const SCENE_VERSION = 1;
 const TYPES = new Set<PatternType>(PATTERN_META.map((m) => m.id));
+const TILINGS = new Set<string>(TILING_IDS);
 
 export function serializeScene(scene: SceneData): string {
   return JSON.stringify(
@@ -89,6 +91,9 @@ function parseLayer(raw: unknown, index: number): PatternLayer {
     lineCount: num(r.lineCount, base.lineCount),
     bend: num(r.bend, base.bend),
     frequency: num(r.frequency, base.frequency),
+    // An unknown tiling name is a forward-compatible scene, not a broken one:
+    // it lands on the default rather than failing the whole load.
+    tiling: TILINGS.has(String(r.tiling)) ? (r.tiling as TilingId) : base.tiling,
     field: {
       source: str(field.source, FIELD_NONE.source),
       amount: num(field.amount, FIELD_NONE.amount),

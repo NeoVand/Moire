@@ -1,3 +1,5 @@
+import type { TilingId } from '../gpu/tilings';
+
 export type PatternType =
   | 'straight-lines'
   | 'radial-lines'
@@ -11,7 +13,8 @@ export type PatternType =
   | 'curve-wave'
   | 'curve-parabola'
   | 'curve-hyperbola'
-  | 'curve-spiral';
+  | 'curve-spiral'
+  | 'tiling-periodic';
 
 /**
  * A field displaces a layer's index by `fieldAmount * f(q)` members. The fringes
@@ -95,6 +98,9 @@ export interface PatternLayer {
   bend: number;
   /** Wave oscillation rate. 1 is one cycle per 32 world units. */
   frequency: number;
+  /** Which catalogue tiling, for `tiling-periodic`. Stored by name so
+   * reordering the catalogue cannot repaint an existing scene. */
+  tiling: TilingId;
   /** Scalar field displacing the layer's index. */
   field: FieldSpec;
 }
@@ -127,6 +133,7 @@ export const PATTERN_META: {
   { id: 'grid-square', label: 'Square', family: 'grid' },
   { id: 'grid-hex', label: 'Hexagon', family: 'grid' },
   { id: 'grid-triangle', label: 'Triangle', family: 'grid' },
+  { id: 'tiling-periodic', label: 'Tiling', family: 'grid' },
   { id: 'curve-wave', label: 'Wave', family: 'curves' },
   { id: 'curve-parabola', label: 'Parabola', family: 'curves' },
   { id: 'curve-hyperbola', label: 'Hyperbola', family: 'curves' },
@@ -149,7 +156,11 @@ export const PATTERN_FAMILIES: {
       'concentric-polygons',
     ],
   },
-  { id: 'grid', label: 'Grid', types: ['grid-square', 'grid-hex', 'grid-triangle'] },
+  {
+    id: 'grid',
+    label: 'Tiling',
+    types: ['grid-square', 'grid-hex', 'grid-triangle', 'tiling-periodic'],
+  },
   {
     id: 'curves',
     label: 'Curves',
@@ -183,8 +194,25 @@ export function mixInvN(n0: number, n1: number, t: number): number {
   return 1 / ((1 - t) / Math.max(n0, 1e-4) + t / Math.max(n1, 1e-4));
 }
 
+/**
+ * A lattice: members indexed by a PAIR of integers rather than a scalar phase.
+ * The three regular grids and every catalogue tiling alike — which is what
+ * makes them one family. Everything that branches on "is this a lattice"
+ * (the envelope's cell average, the character scan's ranking, the contour
+ * overlay's generator matching) asks this.
+ */
 export function isGrid(type: PatternType): boolean {
-  return type === 'grid-square' || type === 'grid-hex' || type === 'grid-triangle';
+  return (
+    type === 'grid-square' ||
+    type === 'grid-hex' ||
+    type === 'grid-triangle' ||
+    type === 'tiling-periodic'
+  );
+}
+
+/** A lattice whose decoration comes from the tiling catalogue. */
+export function isTiling(type: PatternType): boolean {
+  return type === 'tiling-periodic';
 }
 
 export function isLines(type: PatternType): boolean {
@@ -237,6 +265,7 @@ export function createLayer(
     lineCount: 8,
     bend: 0,
     frequency: 1,
+    tiling: 'kagome',
     ...rest,
     field: { ...FIELD_NONE, ...partial.field },
     position: { x: 0, y: 0, ...position },

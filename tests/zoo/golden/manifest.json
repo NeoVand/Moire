@@ -8,7 +8,7 @@
     "width": 640,
     "height": 480
   },
-  "updatedAt": "2026-08-30T19:07:36.681Z",
+  "updatedAt": "2026-08-30T19:36:38.443Z",
   "cases": {
     "lines-pair": {
       "coords": [
@@ -213,6 +213,62 @@
         2
       ],
       "note": "the eta map of a square-lattice twist pair — matched dual-ring families beat slowly everywhere, so the map reads uniformly deep in the fringe regime"
+    },
+    "tiling-kagome": {
+      "coords": [
+        2
+      ],
+      "note": "the kagome tiling alone: edges and vertices, no beat"
+    },
+    "tiling-kagome-twist-contours": {
+      "coords": [
+        2,
+        2
+      ],
+      "note": "two kagome tilings at 5 degrees — a catalogue tiling is a lattice, so the twist machinery applies unchanged"
+    },
+    "tiling-truncated-square": {
+      "coords": [
+        2
+      ],
+      "note": "the truncated-square tiling alone: edges and vertices, no beat"
+    },
+    "tiling-truncated-hex": {
+      "coords": [
+        2
+      ],
+      "note": "the truncated-hex tiling alone: edges and vertices, no beat"
+    },
+    "tiling-rhombitrihex": {
+      "coords": [
+        2
+      ],
+      "note": "the rhombitrihex tiling alone: edges and vertices, no beat"
+    },
+    "tiling-snub-square": {
+      "coords": [
+        2
+      ],
+      "note": "the snub-square tiling alone: edges and vertices, no beat"
+    },
+    "tiling-elongated-triangular": {
+      "coords": [
+        2
+      ],
+      "note": "the elongated-triangular tiling alone: edges and vertices, no beat"
+    },
+    "tiling-running-bond": {
+      "coords": [
+        2
+      ],
+      "note": "the running-bond tiling alone: edges and vertices, no beat"
+    },
+    "tiling-octagon-ring-envelope": {
+      "coords": [
+        2,
+        1
+      ],
+      "note": "the truncated-square tiling against a ring family — a tiling beats a scalar like any lattice"
     }
   }
 }
