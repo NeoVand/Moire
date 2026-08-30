@@ -7,39 +7,74 @@ ablation.
 
 \subsection{Every family has a currency}
 
-The envelope view advances every layer's index together by $u$ and averages over
-$u\in[0,1)$, and each family spends that advance in its own coin. The level-set
-families shift a phase. The radial pencil turns: advancing its index by $u$
-rotates the fan by $u\pi/N$, which is how a family whose index is an angle joins
-an average built for scalars.
+The envelope view advances the ranked pair at the integer rates that hold the
+criterion's winning character fixed (\S3.6)---the plain diagonal for a
+difference beat, $(1,-1)$ for a sum beat, $(1,2)$ and its relatives for the
+second-order beats, every other layer riding the diagonal---and averages over
+$u\in[0,1)$. Each family realizes its advance in its own parameter. The
+level-set families shift a phase (a rate of $2$ advances up to a full local
+period, so the slide offset wraps back into the half-period the solved trio
+brackets---exact for phase families, whose residual is periodic in the gap).
+The radial pencil turns: advancing its index by $u$ rotates the fan by
+$u\pi/N$, which is how a family whose index is an angle joins an average built
+for scalars.
 
 A lattice indexes its members by a \emph{pair} of integers, so its phase lives
 on a two-torus and the diagonal of \S3.5 is not a point of bookkeeping but a
 choice of direction. Two wrong answers bracket the right one. Averaging over the
-whole torus washes the lattice to its mean coverage --- and with it every fringe
+whole torus washes the lattice to its mean coverage---and with it every fringe
 it makes against the rest of the stack, since a one-dimensional correlation is
 measure zero there. Stepping both generators in lockstep keeps the lattice's own
 indices correlated, and it then beats against itself: a fine hatch at the
 carrier's scale that no contrast can be read through.
 
 The right answer is a rank-1 slice of the torus, oriented per point. Which of a
-lattice's index combinations carries the visible beat is the convention choice
-of \S3.6 again, enlarged from a sign to a low-order integer vector: either
-generator, their sum, or their difference --- for the hexagonal and triangular
-lattices one of these is the third row direction --- each counted either way.
+lattice's index combinations carries the visible beat is the character choice
+of \S3.6 again, here over integer combinations of the generators. The candidate
+set must follow the ink, and the honeycomb taught us how far that reaches: its
+hexagon walls of one orientation repeat at pitch $(\sqrt3/2)s$, and the dual
+vectors normal to the three wall families are $(1,-1)$, $(2,1)$, and
+$(1,2)$---the \emph{second} ring of the dual lattice, not the first. An
+enumeration that stops at the generators, their sum, and their difference
+covers one wall family in three; against a ring partner the other two sectors
+keep their fringes in the render and lose them in the view. So the candidates
+are the first two dual rings, $(1,0)$, $(0,1)$, $(1,1)$, $(1,-1)$, $(2,1)$,
+$(1,2)$, each counted either way, and each weighted by where its kind puts
+ink: the honeycomb's fundamental is its second ring, the square grid has
+nothing at $(2,1)$ at all, and the weight multiplies the match error so a
+near-tie resolves toward the family that carries contrast. (The enumeration is
+still finite; higher coincidence rings exist, exactly as the scalar characters
+beyond $\lvert k\rvert=2$ do, and sit outside the schedule.)
 Every combination is linear in position, so its index gradient is exact, and the
 view holds still, per pixel, the one whose gradient best matches the ranked
 partner's, forward or backward. The complementary direction runs a golden-ratio
-rule, $\{i\varphi\}$ at the $i$th tap --- the Fibonacci lattice, a rank-1 rule
-on the two-torus~\cite{Sloan1994Lattice, Keller2013Quasi}. The schedules are
-worth recording: to hold a generator, step the pair by $(u,\,\{i\varphi\})$; to
-hold their sum or difference with both bare indices still equidistributed, step
-it by $(\{i\varphi\},\, \pm u - \{i\varphi\})$. A self-beat would need two
-combinations held at once, which no schedule provides.
+rule, $\{i\varphi\}$ at the $i$th tap---the Fibonacci lattice, a rank-1 rule
+on the two-torus~\cite{Sloan1994Lattice, Keller2013Quasi}. Each schedule is the
+unimodular completion that sends its own combination to the sweep $u$ and every
+other candidate to a nonzero mix of $u$ and $\{i\varphi\}$: a generator rides
+$(u,\,\{i\varphi\})$, the sum rides $(u-\{i\varphi\},\,\{i\varphi\})$, the
+difference $(\{i\varphi\},\,\{i\varphi\}-u)$, and the second-ring pairs
+$(u-\{i\varphi\},\, 2\{i\varphi\}-u)$ and $(u-2\{i\varphi\},\, \{i\varphi\})$.
+A self-beat would need two combinations held at once, which no schedule
+provides.
 
-We record the choice because our first implementation fixed it globally --- one
-generator, one way --- and the instrument said no: a partner family's counting
-direction rotates around its centre, so whole sectors of a superposition kept
+Two lattices with no scalar layer between them are the one case the partner
+gradient cannot orient, and the beat there is \emph{rank two}: a small twist
+between equal lattices leaves both matched-generator differences slow at once,
+and the moir\'e is itself a lattice. The right sweep is again the one
+orthogonal to every kept character --- here $w=(1,\gamma,1,\gamma)$ on the
+four-torus: the topmost lattice rides $(u,\{i\gamma\})$ directly, and every
+other lattice matches each of its generators, signed, to the reference's per
+pixel and rides the \emph{same} schedule. Matched generators advance in
+lockstep across layers, so both slow differences survive every tap exactly,
+while each carrier, each self-beat, and every cross combination rides a nonzero
+mix of $u$ and $\gamma$ and averages away. Without this the orientation choice
+degenerates to a per-pixel tie-break on derivative noise, and the envelope of
+an ordinary twist pair drowns in speckle.
+
+We record the choice because our first implementation fixed it globally---one
+generator, one way---and the tool exposed the error: a partner family's counting
+direction rotates around its center, so whole sectors of a superposition kept
 their fringes in the render and lost them in the view. \S3.6's minimum is not a
 nicety. An average that fixes the convention globally deletes the moir\'es that
 live in the other gauge.
@@ -53,7 +88,7 @@ is about the coverage the stack would average over its own periods: $2h/s$ per
 family, composited. Counting a lattice's families is not optional. A hex lattice
 draws three, and calling its coverage that of one puts the pivot far brighter
 than the picture it is expanding about, which at any real contrast drives the
-whole frame black --- which is how we found the bug.
+whole frame black---which is how we found the bug.
 
 \subsection{Reading the ablation's negative rows}
 

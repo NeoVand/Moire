@@ -20,7 +20,7 @@ quantities. The mapping from claim to command is:
   Claim & Script & Data \\
   \midrule
   Fringe law (Thm.~\ref{thm:fringe})     & \texttt{fringe.mjs}     & \texttt{fringe.json} \\
-  Fringe law, drawn (Fig.~\ref{fig:visibility}) & \texttt{fringelaw.mjs} & --- \\
+  Fringe law, drawn (Fig.~\ref{fig:visibility}) & \texttt{fringelaw.mjs} &---\\
   Law across pairs (Fig.~\ref{fig:lawatlas}) & \texttt{lawatlas.mjs} & \texttt{lawatlas.json} \\
   Eikonal divide (\S\ref{sec:eikonal})   & \texttt{gradient.mjs}   & \texttt{gradient.json} \\
   Cost (Table~\ref{tab:cost})            & \texttt{cost.mjs}       & \texttt{cost.json} \\
@@ -34,21 +34,23 @@ quantities. The mapping from claim to command is:
   Contouring (\S\ref{sec:beyond})        & \texttt{contour.mjs}    & \texttt{contour.json} \\
   Field expressions (Table~\ref{tab:compile}) & \texttt{gpu\pslash run.mjs} & \texttt{gpu.json} \\
   Stroke floor (\S\ref{sec:zoom})        & \texttt{zoom.mjs}       & \texttt{zoom.json} \\
-  Catalog plate (Fig.~\ref{fig:plate})   & \texttt{plate.mjs}      & --- \\
-  Instrument (Fig.~\ref{fig:instrument}) & \texttt{instrument.mjs} & --- \\
-  Two traditions (Fig.~\ref{fig:traditions}) & \texttt{traditions.mjs} & --- \\
-  Teaser (Fig.~\ref{fig:teaser})         & \texttt{teaser.mjs}     & --- \\
+  Catalog plate (Fig.~\ref{fig:plate})   & \texttt{plate.mjs}      &---\\
+  Instrument (Fig.~\ref{fig:instrument}) & \texttt{instrument.mjs} &---\\
+  Two traditions (Fig.~\ref{fig:traditions}) & \texttt{traditions.mjs} &---\\
+  Teaser (Fig.~\ref{fig:teaser})         & \texttt{teaser.mjs}     &---\\
   \bottomrule
 \end{tabular}
 \end{center}
 
 \subsection{The solvers under test are the shipped sources}
 
-The comparisons in \S\ref{sec:results} are between three solvers, and none of them
-is a reimplementation. \sweep{} and \ours{} are the two historical versions, kept
-verbatim under \texttt{paper\pslash tools\pslash legacy\pslash}; the third is
-\texttt{src\pslash gpu\pslash inverseCpu.ts}, the file the shader's CPU twin actually uses. All
-three are loaded by rewriting their source at import time to wrap
+The comparisons in \S\ref{sec:results} run four solvers, and none is a
+reimplementation. \sweep{} and \loose{} are historical versions, kept
+verbatim under \texttt{paper\pslash tools\pslash legacy\pslash}; \ours{} is read
+live from \texttt{src\pslash gpu\pslash inverseCpu.ts}, the file the shader's CPU
+twin actually uses, so the paper always measures what ships; and
+\textsc{Reference} is the exhaustive scan of \S\ref{sec:protocol}. All are
+loaded by rewriting their source at import time to wrap
 \texttt{shapeRadius} in a counter, so ``metric evaluations per pixel'' is measured
 in the shipping code rather than estimated beside it. An ablation is expressed the
 same way, as a literal find-and-replace against the shipping source; a patch whose
@@ -56,7 +58,7 @@ pattern fails to match raises rather than silently doing nothing, which is what
 keeps the ablation table honest as the source moves underneath it.
 
 Because the counter wraps the metric rather than the loop, the unit compares across
-solvers that search differently: in all three, one candidate index costs one
+solvers that search differently: in every solver, one candidate index costs one
 \texttt{shapeRadius} call and one Newton step a \texttt{shapeRadius} plus a
 gradient.
 
@@ -71,9 +73,9 @@ before either is timed.
 \subsection{Figures are renders, not screenshots}
 
 No figure in this paper is a capture of the running application. The pattern figures
-come from a CPU rasteriser that mirrors the shader's \texttt{composite.ts} term for
-term --- same world transform, same $1.15$-pixel stroke floor, same $0.7$-pixel
-antialiasing band, same accept/reject guards, same alpha composite --- so a figure
+come from a CPU rasterizer that mirrors the shader's \texttt{composite.ts} term for
+term---same world transform, same $1.15$-pixel stroke floor, same $0.7$-pixel
+antialiasing band, same accept/reject guards, same alpha composite---so a figure
 can be rendered with a solver that no longer exists in the shader, and per-pixel
 work can be counted while it is drawn. Where a figure needs the walking families it
 calls the shipped solver through the experiments' own instrumented loader.

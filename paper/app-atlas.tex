@@ -9,7 +9,7 @@ per family.
 
 For a family given as the level sets of $\ph$, the Euclidean distance to the
 nearest member is $\mathrm{pd}(\ph-\varphi,s)/\lVert\nabla\ph\rVert$. Drop the
-denominator and the value you threshold is a phase residual, not a length, so the
+denominator and the thresholded value is a phase residual, not a length, so the
 stroke is too thin by exactly $\lVert\nabla\ph\rVert$ wherever that exceeds $1$.
 The measurement is therefore direct: sweep each curve family over its own
 parameter ranges, evaluate $\lVert\nabla\ph\rVert$ on a $1400\times880$ frame, and
@@ -31,11 +31,11 @@ long.
 \paragraph{The spiral was wrong and looked fine.} Its worst factor is
 $\gradWorstSpiral\times$, but the share of the frame off by more than $10\%$ is
 $\gradSpiralFrame\%$. For an Archimedean spiral $\lVert\nabla\ph\rVert=\sqrt{1+b^2/r^2}$, which is
-close to $1$ everywhere except very near the origin --- and near the origin the
+close to $1$ everywhere except very near the origin---and near the origin the
 arms are so tightly packed that nobody was looking. The bug was real, confined to
 a region already illegible, and therefore invisible.
 
-\paragraph{The parabola was right and looks worst.} It divides, and always did,
+\paragraph{The parabola was right and looked worst.} It divides, and always did,
 yet it has the largest worst factor in the table at $\gradWorstParab\times$ and
 $\gradParabFrame\%$ of the frame off. Those two numbers describe the family, not the
 bug: a parabola's members genuinely crowd towards the edges of a wide frame, so
@@ -45,7 +45,7 @@ read only the ``worst factor'' column we would have concluded the parabola was t
 most broken family in the tool. It is the only one that was never broken.
 
 The lesson we take is about the shape of the measurement rather than the numbers.
-A per-family scalar --- worst case, mean, percentile --- cannot separate ``this
+A per-family scalar---worst case, mean, percentile---cannot separate ``this
 family is steep'' from ``this renderer is wrong,'' because the same quantity
 appears in both. What separates them is comparing the two renderers on the same
 family, which is what Figure~\ref{fig:gradient} does and what we should have done
@@ -55,13 +55,13 @@ first.
 
 The floor of \eqref{eq:stroke} is $1.15$ pixels, in world units. Applied to a
 phase residual it means $1.15$ phase units, which is $1.15/\lVert\nabla\ph\rVert$
-world units --- so on a steep family the protection against zoom-out speckle was
+world units---so on a steep family the protection against zoom-out speckle was
 weaker than intended by the same factor the stroke was thin by, and weakest
 exactly where the family was densest and needed it most. The two bugs are one bug,
 and fixing the divide fixed both. We mention it because the failure mode of the
 floor is the same visual signature as the inversion failure of
-\S\ref{sec:inverse} --- a pattern that breaks into speckle at low zoom --- and we
-spent real time attributing one to the other.
+\S\ref{sec:inverse}---a pattern that breaks into speckle at low zoom---and we
+repeatedly attributed one to the other.
 
 \subsection{The same divide, for an authored field}
 
@@ -71,7 +71,7 @@ the reason \S\ref{sec:exprs} differentiates rather than asking the author to: a
 field supplied without its gradient reintroduces exactly the bug this appendix is
 about, and does so on a term the author controls with a slider. The presets are
 listed as source in Table~\ref{tab:exprs}; the gradients are not listed anywhere,
-because there is nothing to list --- both evaluators carry the partials alongside
+because there is nothing to list---both evaluators carry the partials alongside
 the value and neither has a derivative written down in it.
 
 \input{tab-exprs}

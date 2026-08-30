@@ -1,235 +1,154 @@
 \section{Introduction}
 \label{sec:intro}
 
-Draw a comb of parallel lines on tracing paper. Draw another. Lay one over the
-other and turn it a few degrees. A third pattern appears --- broad, slow bands
-that belong to neither sheet, sweeping across the page as you turn. Nothing was
-added. The bands are made of the same ink you already had, rearranged by nothing
-but the difference between two things that were almost the same.
+Draw a comb of parallel lines on tracing paper, draw another, lay one over the
+other and turn it a few degrees. A third pattern appears: broad, slow bands that
+belong to neither sheet, made of ink already on the page and rearranged by
+nothing but the small difference between two nearly identical structures.
+Moir\'e has been a precision instrument since Rayleigh judged ruled gratings by
+the fringes they made against their own copies~\cite{Rayleigh1874Gratings} and
+Righi read grating displacement from fringe
+motion~\cite{Righi1887Sovrapposizione}. It became an artistic medium in the
+1960s~\cite{Oster1963Moire, Oster1965Optical, Seitz1965Responsive}, and artists
+have built patterns for it since, by hand~\cite{Watkins1982Kinetic} and by the
+plate~\cite{Nicolai2010Index}; it acquired a complete Fourier
+theory~\cite{Amidror2009Theory}; it grounded a security-printing
+discipline~\cite{Hersch2004Band, Chosson2014Beating}; and it reappeared at the
+nanoscale, where two graphene sheets twisted by $1.1^\circ$ form a moir\'e
+superlattice whose slow beat reorganizes the material into a
+superconductor~\cite{Bistritzer2011Moire, Cao2018Magic}. What it has not become
+is a medium an artist can draw in interactively. This paper argues that the
+obstacle is a representation, and proposes a different one.
 
-This is the oldest computational image, in the sense that it is a computation you
-can perform with two pieces of paper and no arithmetic, and it produces a result
-that no amount of staring at either input would predict. Rayleigh put it to work in
-1874, judging the quality of a ruled grating by the fringes it made against its own
-copy~\cite{Rayleigh1874Gratings}; Righi measured the displacement of two gratings
-from the motion of their fringes in 1887~\cite{Righi1887Sovrapposizione}. Oster and
-Nishijima put it in \emph{Scientific American} in
-1963~\cite{Oster1963Moire}, and by 1965 Oster was writing about it as an artistic
-medium, next to Riley and Vasarely~\cite{Oster1965Optical}; artists have been
-building patterns for it ever since, by hand~\cite{Watkins1982Kinetic} and by
-the plate~\cite{Nicolai2010Index}. Amidror gave it a complete Fourier
-theory~\cite{Amidror2009Theory}. Hersch's group at EPFL turned it into a design
-discipline and then into security printing~\cite{Hersch2004Band, Chosson2014Beating}.
-Physics lately rediscovered it at the nanoscale: two graphene sheets twisted by
-$1.1^\circ$ form a moir\'e superlattice whose slow beat reorganises the
-material's electronic structure into
-superconductivity~\cite{Bistritzer2011Moire, Cao2018Magic} --- the same
-difference of two dense structures, doing condensed-matter physics.
-
-And yet, if you sit down today and try to \emph{draw} with moir\'e, you find that
-the tools do not exist. This paper is about why, and about what we think the
-missing representation is.
-
-\subsection{Two traditions, one blind spot}
-
-Graphics has related to moir\'e twice, and the two relationships have almost
-nothing to do with each other.
-
-The first is \emph{suppression}. Moir\'e is what undersampling looks like when the
-signal is repetitive: a texture at grazing incidence, a shadow map at the wrong
-resolution, a halftone screen rescanned. Essentially the whole of texture
-filtering exists to prevent it~\cite{Heckbert1986Survey, Zwicker2002EWA}, and it
-remains a first-class concern in neural rendering~\cite{Barron2021MipNeRF}. Here
-moir\'e is a symptom, and the cure is to remove high frequencies before they can
-beat.
-
-The second is \emph{synthesis}. A smaller and much richer literature builds
-moir\'e on purpose. Band moir\'e images place a compressed picture in the bands of
-a base grating and reveal it by sampling with a line
-grating~\cite{Hersch2004Band}. Level-line moir\'e encodes a shape as an elevation
-profile, embeds it as local phase shifts, and reveals its contours as fringes that
-\emph{beat} when the layers slide~\cite{Chosson2014Beating}. Target-driven phase
-modulation solves for two gratings whose $(1,-1)$ interference component
-reproduces an arbitrary grayscale image~\cite{Tsai2013Target}. Variational
-formulations choose among the many pattern pairs that produce a desired
-superposition~\cite{Lebanon2001Variational}. The artistic-screening line makes the
-halftone screen itself a designed object~\cite{Ostromoukhov1995Artistic}. Recent
-work moves the same physics into micro-optics and curved
-fabrication~\cite{Walger2019Moire, Saberpour2020Fabrication}, and into sensing,
-where the amplification runs backwards and a moir\'e becomes a sub-millimetre
-encoder~\cite{Qiu2023MoireTag, CamposZamora2024MoireWidgets}.
-
-Read across that second tradition and one assumption is universal: \textbf{a layer
-is a raster}. It is an image of a grating, possibly warped, and the moir\'e is
-what happens when two such images are multiplied. Everything follows from that.
-Authoring is offline, because you must solve for and then rasterise the layers ---
-Tsai and Chuang report about two minutes per result~\cite{Tsai2013Target}. Playback
-is \emph{physical}: you print the two layers on transparencies and slide them, which
-is instantaneous but also the only interaction you get. And the pattern has a
-resolution, so it has a Nyquist limit, so the act of displaying it can destroy it or
-invent it. What the literature does not contain, as far as we can find, is an
-interactive tool an artist can draw moir\'e \emph{in}: every synthesis paper above
-either solves for a fixed pair of layers or studies a physical superposition, and the
-nearest interactive system, FabObscura~\cite{Sethapakdi2025FabObscura}, authors
-barrier-grid occlusion rather than interference.
-
-We think the gap is not a missing feature. It is a missing representation.
-
-\subsection{The question instead of the picture}
+Graphics has related to moir\'e in two nearly disjoint ways. The first is
+\emph{suppression}: moir\'e is what undersampling looks like when the signal is
+repetitive, essentially the whole of texture filtering exists to prevent
+it~\cite{Heckbert1986Survey, Zwicker2002EWA}, and it remains a first-class
+concern in neural rendering~\cite{Barron2021MipNeRF}. The second is
+\emph{synthesis}: a smaller literature builds moir\'e on purpose---band
+moir\'e images~\cite{Hersch2004Band}, level-line moir\'e~\cite{Chosson2014Beating},
+target-driven phase modulation~\cite{Tsai2013Target}, variational layer
+design~\cite{Lebanon2001Variational}, artistic
+screening~\cite{Ostromoukhov1995Artistic}, micro-optics and curved
+fabrication~\cite{Walger2019Moire, Saberpour2020Fabrication}, and, running the
+amplification backwards, moir\'e as a sub-millimeter
+sensor~\cite{Qiu2023MoireTag, CamposZamora2024MoireWidgets}. Across that second
+tradition one assumption is nearly universal: a layer is a raster---an image
+of a grating, possibly warped, multiplied against another. Authoring is
+therefore offline, since the layers must be solved for and then rasterized;
+playback is physical, printed transparencies slid by hand; and the pattern has
+a resolution, so displaying it at any other scale can destroy it or invent it
+(Figure~\ref{fig:traditions}). Interactive moir\'e toys and prepress suites
+exist, but in all of them the fringe is an unmodelled side effect of drawing
+two dense patterns; what the literature does not contain, as far as we can
+find, is an interactive tool in which the moir\'e itself is represented,
+predicted, and stable under zoom---the nearest system,
+FabObscura~\cite{Sethapakdi2025FabObscura}, authors barrier-grid occlusion
+rather than interference. We think the gap is not a missing feature but a
+missing representation.
 
 \begin{figure}[t]
   \centering
   \includegraphics[width=\linewidth]{figures/two-traditions.png}
   \Description{Two square black-on-white panels stacked. Both show two sets of
-  concentric rings about different centres, crossing to form a lens-shaped fringe
+  concentric rings about different centers, crossing to form a lens-shaped fringe
   pattern. In the upper panel the rings are broken into ragged dashes, the outer rings
-  have faded to grey mush, and a coarse blotchy pattern sits over everything. In the
+  have faded to gray mush, and a coarse blotchy pattern sits over everything. In the
   lower panel every ring is a continuous crisp line right into the corners and the
   only large-scale pattern is the fringe system itself.}
   \caption{\figlead{Raster versus field, same two families.} \emph{Above:} the
-  standard synthesis pipeline reused at a scale it was not rasterised for. Each
-  layer is rasterised to a bilevel plate, the plates are multiplied, and the
-  product is displayed at a different scale --- which is what photographing,
+  standard synthesis pipeline reused at a scale it was not rasterized for. Each
+  layer is rasterized to a bilevel plate, the plates are multiplied, and the
+  product is displayed at a different scale---which is what photographing,
   scanning or zooming a printed pair amounts to. (Printed at press resolution and
   viewed in place, the plates never resample; every \emph{screen} reuse of them
   does, and the screen is where an interactive tool lives.) The strokes break into dashes, the
   outer rings dissolve, and a coarse secondary pattern appears that is a property of
   the sampling grid rather than of either family. \emph{Below:} the same two
   families as fields. Two distance queries per pixel, composited, at the display
-  resolution. There is no intermediate raster, so there is nothing to alias, and the
-  crossings stay crisp all the way to the corners.}
+  resolution. There is no intermediate raster, so the sampling grid contributes
+  no pattern of its own, and the crossings stay crisp all the way to the corners.}
   \label{fig:traditions}
 \end{figure}
 
 A layer, stripped of its raster, is a countable family of curves
-$\{\gamma_n\}$ --- the $n$th line, the $n$th ring, the $n$th turn of a spiral.
-A pixel does not need the family. It needs one number: how far away is the
-nearest member? Give it that, threshold it against a stroke width, and you have
-ink. Do it for several families and composite. The moir\'e is not computed at all;
-it is what the eye does with the composite, just as it is with paper.
-
-So we represent a layer by two scalar fields. The \emph{index field} $\idx(p)$
-says which member $p$ sits on, fractionally, so that $\gamma_n=\idx^{-1}(n)$. The
+$\{\gamma_n\}$: the $n$th line, the $n$th ring, the $n$th turn of a spiral. We
+represent it by two scalar fields. The \emph{index field} $\idx(p)$ says which
+member $p$ sits on, fractionally, so that $\gamma_n=\idx^{-1}(n)$; the
 \emph{distance field} $d(p)=\min_n \mathrm{dist}(p,\gamma_n)$ says how far the
-nearest one is. Both are functions of a continuous position, evaluated per pixel,
-with no grid anywhere (Figure~\ref{fig:traditions}).
+nearest one is. Both are functions of a continuous position, evaluated per
+pixel, with no grid anywhere. The distance field is what a renderer thresholds
+into ink; the index field is what the theory works with, and our central
+observation is that the interference lives entirely in it: \emph{the fringes of
+a superposition are the unit level sets of the difference of the two index
+fields}. Section~\ref{sec:fringe} makes this precise---the locally averaged
+ink is a function of $D=\idx_1-\idx_2$ alone, a saturating tent rather than a
+sinusoid, exact under stated local hypotheses and first-order accurate beyond
+them---and verifies it against $\fringeSamples$ measurements over
+$\fringeScenes$ pairs of families to a mean coverage error of $\fringeMeanErr$.
+The locus and the profile shape have classical
+ancestors~\cite{Oster1964, Patorski1976Profile, Amidror1994TConv}; what the
+field form adds is a per-pixel statement about the actual compositing operator,
+with a computable validity criterion---the heterodyne ratio $\het$, a
+\emph{field} that can be drawn, telling an author where in the frame a fringe
+will form before they commit to parameters. One subtlety runs through
+everything: a family's index convention is arbitrary, so $D$ is one
+representative of a lattice of integer combinations $k_1\idx_1+k_2\idx_2$, and
+the visible moir\'e is whichever low-order combination beats slowest
+(\S\ref{sec:visibility}). The criterion, and the tool, scan the characters up
+to order two.
 
-This sounds like a small change of bookkeeping. It is not, and the reason is that
-the two fields are not redundant. The distance field is what you \emph{render};
-the index field is what you \emph{think with}. Our central observation is that the
-interference lives entirely in the second one:
+For most families the index field is a closed form; Section~\ref{sec:catalog}
+lists the thirteen we ship, of which nine are one line of algebra each. The
+families that make the richest interference are not among them. What op
+artists actually reach for are families whose members are not concentric---each ring displaced a little further than the last, or turned a little further,
+so the family shears, spirals, and finally unwinds into a pencil of
+near-parallel curves; Riley's \emph{Blaze}, a nest of zigzag rings each turned
+against the last, is exactly such a family~\cite{Oster1965Optical}. We call
+these \emph{walking families} (Section~\ref{sec:walking}): member $n$ is the
+shape of radius $ns+\varphi$, displaced by $n\delta$ and turned by $n\theta$.
+Two extra parameters, and the closed form is gone: each member lives in its own
+frame, no formula in $p$ has these curves as its level sets, and the nearest
+index must be searched for. The obvious search---guess the index from the
+radius, check a fixed number of neighbors---fails coherently: the pixels
+whose true nearest member falls outside the guessed neighborhood form arcs,
+not speckle, so whole sides of whole rings disappear, and the budget is paid at
+every pixel whether or not it was needed. For a long time we believed these
+broken segments were a rasterization bug; they are an inversion bug.
 
-\begin{quote}
-\itshape The fringes of a superposition are the unit level sets of the difference
-of the two index fields.
-\end{quote}
-
-Not approximately, and not only for periodic layers. In
-Section~\ref{sec:fringe} we make this precise --- the locally averaged ink is a
-function of $D=\idx_1-\idx_2$ alone, and that function is a saturating tent rather
-than a sinusoid --- state the exact condition under which it holds, and verify it
-against $\fringeSamples$ measurements over $\fringeScenes$ pairs of families to a
-mean error of $\fringeMeanErr$ in coverage. The condition turns out to be a bound on one local
-scalar, the \emph{heterodyne ratio} $\het=|\nabla D| / |\nabla \idx|$, which is
-the field-space form of ``the two carriers must be close.'' Because $\het$ is a
-field, we can draw it, and tell an artist where in the frame a fringe will form
-before they commit to the parameters. One convention hides inside the word
-\emph{difference}: a family's index sign is arbitrary --- count its members the
-other way and $\idx$ flips while nothing drawn changes --- so $D$ is taken in the
-labeling that brings the two carriers close. Read in the opposite labeling, the
-same slow combination is $\idx_1+\idx_2$, the classical \emph{sum} moir\'e; the
-criterion tests both labelings and keeps the slower beat
-(\S\ref{sec:visibility}).
-
-The classical theory reaches this conclusion for locally periodic layers by
-Fourier argument, and reaches it asymptotically~\cite{Amidror2009Theory,
-Amidror1998Fourier}. The field version is exact, per-pixel, and indifferent to
-periodicity: it applies verbatim to an Archimedean spiral over circles, to two
-hyperbola families, and to a pencil of rings that is not a geometric transform of
-any periodic structure. That last case is where the paper earns its keep.
-
-\subsection{The hard case is the interesting case}
-
-For most families the index field is easy. Parallel lines: $\idx=\langle
-p,u\rangle/s$. Circles about a fixed centre: $\idx=\lVert p\rVert/s$. Squares,
-triangles, $N$-gons: the same with $\lVert\cdot\rVert$ replaced by that shape's
-radial metric. In each case one closed-form scalar function of $p$ has the family
-as its level sets, and both fields are $O(1)$. Section~\ref{sec:catalog}
-works through all thirteen families we ship; eleven are of this kind.
-
-The families that make the richest interference are not. What op-artists and
-pattern designers actually reach for are families whose members are \emph{not}
-concentric: each ring displaced a little further than the last, or turned a
-little further, so the family as a whole shears, spirals, and finally unwinds into
-a pencil of near-parallel curves --- Riley's \emph{Blaze}, a nest of zigzag rings
-each turned against the last, is exactly such a family~\cite{Seitz1965Responsive}. We call these \emph{walking families}
-(Section~\ref{sec:walking}): member $n$ is the shape of radius $ns+\varphi$,
-centred at $\Rot{n\theta}(n\delta)$ and turned by $n\theta$. Two extra
-parameters, and the closed form is gone: each curve lives in its own frame, so no
-formula in $p$ has these curves as its level sets, and the index field of
-\S\ref{sec:field} survives only as the answer to a search. The nearest index is
-no longer $\lVert p\rVert/s$, and it can be very far from it.
-
-What we found in practice --- and what we suspect anyone who builds this tool
-finds --- is that the obvious response fails in a specific and instructive way.
-Guess the index from the radius, check a fixed number of neighbours, take the
-minimum. This is wrong, and it is wrong \emph{coherently}: the pixels whose true
-nearest member fell outside the guessed neighbourhood form arcs, not speckle, so
-whole sides of whole rings disappear. For a long time we believed these
-``broken segments'' were a rasterisation bug. They are an inversion bug. And it
-is also slow, because the full budget is paid at every pixel whether or not the
-answer was the first candidate --- slow enough that these two sliders were, in
-our own tool, parameters users learned not to touch.
-
-Section~\ref{sec:inverse} replaces the guess with a theorem. The observation that
-does the work is that every radial metric in this setting --- circle, square,
-triangle, regular $N$-gon --- is a \emph{support function}
-$\rad(q)=\max_k\langle q,n_k\rangle$, and support functions come with exactly the
-four constants this problem needs. They are $1$-Lipschitz, which lets us skip
-indices without evaluating them, in the spirit of sphere
-tracing~\cite{Hart1996Sphere}. They satisfy $\rad(q)\ge\kappa\lVert q\rVert$ with
-$\kappa=\cos(\pi/N)$ exactly, which bounds how far anisotropy and rotation
-together can fan the nearest index away from the radius. They are subadditive, so
-the rate at which a ring's boundary outruns its own radius is not
-$\lVert\delta\rVert$ but exactly $\rad(-\delta)$ --- a factor of two apart for a
-triangle, and using the loose constant declares whole bands of ordinary settings
-unsolvable. And when $\theta=0$ they make the index residual convex and piecewise
-linear in $n$, one segment per facet, which we solve in closed form for any side
-count, including a marginal case where the residual is eventually \emph{constant}
-and no enumeration of any finite length can succeed.
-
-The first three constants give a closed interval of integers that provably
-contains every member passing within a stroke width of the pixel, so the minimum
-over the interval is the true minimum. The interval does not involve $\theta$ at
-all, which surprised us: the rotation that destroys the closed form does not widen
-the search. The walk over the interval then skips most of it and calls no
-transcendental function in the loop. Measured on the GPU this is
-$\gpuSpeedLo$--$\gpuSpeedHi\times$ faster than the enumeration it replaces, at
-equal or better fidelity, and faster than an exhaustive scan that is told in
-advance where to stop.
-
-We are also explicit about where the guarantee ends, because the boundary is
-geometrically meaningful rather than merely technical. The interval is unbounded
-on exactly one locus, $\rad(-\delta)=s$, and on that locus the walking family
-degenerates into a \emph{tangent pencil}: every member passes through a common
-point, so unboundedly many really do crowd near it. Nearby, the interval is finite
-but wide. Section~\ref{sec:limits} shows what to do there, and the finding we
-would most like implementors to take is that the choice of \emph{how} to subsample
-matters more than how much: anchored to the family, you get a thinner but
-structurally whole pattern; anchored to the pixel, you get shattered dashes at
-identical cost.
+Section~\ref{sec:inverse} replaces the guess with a certificate. Every radial
+metric in this setting---circle, square, triangle, regular $N$-gon---is a
+\emph{support function}, and support functions supply exactly the constants the
+problem needs: a Lipschitz modulus that lets indices be skipped unevaluated, in
+the spirit of sphere tracing~\cite{Hart1996Sphere}; an exact anisotropy floor;
+and a subadditive drift rate $\rad(-\delta)$ that is strictly tighter than
+$\lVert\delta\rVert$, where using the loose constant declares whole bands of
+ordinary settings unsolvable. Together they give a closed interval of integers
+that provably contains every member passing within a stroke width of the pixel---an interval that, unexpectedly, does not involve the rotation $\theta$ at
+all---and, when $\theta=0$, a closed form for translated polygons of any side
+count, including a marginal case in which the residual is eventually constant
+and no enumeration of any finite length can succeed. Measured on the GPU the
+certified solver is $\gpuSpeedLo$--$\gpuSpeedHi\times$ faster than the fixed
+enumeration it replaces across rotated settings, at equal or better fidelity,
+and faster than an exhaustive scan given the same termination bound. Where the
+interval genuinely explodes---the tangent-pencil locus, where unboundedly
+many members really do crowd a point---Section~\ref{sec:limits} shows the
+choice that matters is not how much to subsample but how: anchored to the
+family, the error reads as a thinner pattern; anchored to the pixel, as a
+shattered one, at identical cost.
 
 \subsection{Contributions}
 
 \begin{itemize}
   \item A field formulation of moir\'e in which a layer is an index field plus a
   distance field, superposition is field compositing, and the pattern has no
-  resolution (Section~\ref{sec:field}).
+  raster at any stage (Section~\ref{sec:field}).
 
   \item The fringe law: locally averaged ink is a saturating tent in the index
-  difference, so fringes are its unit level sets. Exact, per-pixel, with no
-  periodicity assumption, and with a computable validity criterion --- the
-  heterodyne ratio --- that can be drawn as a map
+  difference, so fringes are its unit level sets---exact under stated local
+  hypotheses, per-pixel, with no periodicity assumption, and with a computable
+  validity criterion, the heterodyne ratio, scanned over the low-order
+  characters and drawable as a map
   (Sections~\ref{sec:fringe}--\ref{sec:visibility}).
 
   \item Walking families, and their inversion: a provably sufficient index
@@ -240,21 +159,20 @@ identical cost.
 
   \item \Moire{}, an interactive tool: thirteen families, twelve concurrent
   layers compiled once, zoom-stable strokes, GPU type morphing, and no
-  rasterisation step (Section~\ref{sec:system}). Its \emph{envelope} view draws
-  the averaged ink directly, which requires averaging over index rather than over
-  space; done properly it costs one solve and a few instructions per tap rather
-  than one solve per tap (Section~\ref{sec:envelope}).
+  rasterization step (Section~\ref{sec:system}). Its \emph{envelope} view draws
+  the averaged ink directly, which requires averaging over index rather than
+  over space; done properly it costs one solve and a few instructions per tap
+  rather than one solve per tap (Section~\ref{sec:envelope}).
 
   \item Moir\'e fields as a contouring primitive: because fringes are level sets
   of an index difference, encoding a scalar field in that difference renders its
-  contours without ever computing a contour. The fringes localise to
-  $\contourWorstErr$\,px of the true level sets, and the only limit is a
-  Nyquist-like inequality between contour spacing and carrier pitch
-  (Section~\ref{sec:beyond}).
+  contours without ever computing a contour. The fringes localize to a mean of
+  $\contourWorstErr$\,px of the true level sets on the hardest field we tested,
+  and the only sampling limit is an inequality between contour spacing and
+  carrier pitch (Section~\ref{sec:beyond}).
 
   \item An expression language for those fields, with the gradient the eikonal
   divide needs obtained by forward-mode differentiation rather than by hand, and
-  compiled to straight-line shader code rather than interpreted per pixel ---
-  which is what makes an arbitrary user-written field affordable at all, by
+  compiled to straight-line shader code rather than interpreted per pixel---which is what makes an arbitrary user-written field affordable, by
   $\fieldGainLo$--$\fieldGainHi\times$ (Section~\ref{sec:exprs}).
 \end{itemize}

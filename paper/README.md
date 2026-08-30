@@ -9,8 +9,8 @@ The mathematics lives in `src/gpu/inverseCpu.ts` and `src/gpu/inverse.wgsl.ts`, 
 the field language in `src/fields/`; the paper measures those files rather than
 describing them.
 
-Every number in the paper and every figure that is not a photograph of the app is
-generated from this repository by a script in `tools/`. Nothing in `paper/` is
+Every number in the paper and every figure is generated from this repository by
+a script in `tools/`. Nothing in `paper/` is
 imported by the app, and no experiment touches `src/`.
 
 ## Build
@@ -44,7 +44,7 @@ node tools/exp/artifacts.mjs   # the artifact figures, drop maps, insets
 node tools/exp/zoom.mjs        # the stroke floor: bias and noise across zoom
 node tools/exp/contour.mjs     # fringe-to-contour displacement, five fields
 node tools/exp/fidelity.mjs    # 2401-setting sweep against brute force  (~1 min)
-node tools/exp/envelope.mjs    # 55k-setting interval-width sweep        (~1 min)
+node tools/exp/saturation.mjs  # 55k-setting interval-width sweep        (~1 min)
 node tools/exp/degenerate.mjs  # the strided band against a deep scan
 node tools/exp/math.mjs        # data for the explanatory plots
 node tools/exp/plate.mjs       # the thirteen-family catalog plate
@@ -54,12 +54,16 @@ node tools/exp/instrument.mjs  # streamlines and shadow moiré
 node tools/numbers.mjs         # collect data/ into numbers.tex and the tables
 ```
 
-Run `envelope.mjs` before `degenerate.mjs` and `math.mjs`: they read its CSV. Run
+Run `saturation.mjs` before `degenerate.mjs` and `math.mjs`: they read its CSV. Run
 `numbers.mjs` last, and before the document build. Results land in `data/`,
 figures in `figures/`. `hyperdiag.mjs` is a diagnostic that prints to stdout and
-feeds no figure; it is what found the hyperbola row of Table 1.
+feeds no figure; it is what found the hyperbola row of Table 1. `order2.mjs` is
+the same kind of probe for the second-order (2,-1) beat behind the character
+scan of §3.6. `tools/fig-charhills.py` regenerates `fig-charhills.tex`, the
+hand-drawn character-hills figure of §3 (every curve is computed, then emitted
+as TikZ coordinates); it has no dependencies beyond Python's standard library.
 
-Total runtime is dominated by `fidelity.mjs` and `envelope.mjs`.
+Total runtime is dominated by `fidelity.mjs` and `saturation.mjs`.
 
 ### GPU numbers
 

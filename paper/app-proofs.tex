@@ -4,7 +4,8 @@
 \subsection{The fringe law}
 \label{app:fringe}
 
-We prove Theorem~\ref{thm:fringe}. Recall the setting. Layer $i$ has index field
+\begin{proof}[Proof of Theorem~\ref{thm:fringe}]
+Recall the setting. Layer $i$ has index field
 $\idx_i$, and its ink at a point $q$ comes from thresholding the Euclidean distance
 to the nearest member,
 \begin{equation}
@@ -14,7 +15,7 @@ to the nearest member,
 against the half-width $h_i$ with an antialiasing band $a$, giving
 $\alpha_i(q)=1-\mathrm{smoothstep}(h_i-a,\,h_i+a,\,d_i(q))$. Here
 $\mathrm{pd}(x,1)=\min_{n\in\Z}\lvert x-n\rvert$ is the distance to the nearest
-integer. The two layers share a colour and composite as a union,
+integer. The two layers share a color and composite as a union,
 $\alpha=\alpha_1+\alpha_2-\alpha_1\alpha_2$.
 
 \paragraph{Step 1: move the threshold into index units.}
@@ -28,27 +29,30 @@ half-width and band \emph{measured in index units}, and
 \end{equation}
 we have exactly $\alpha_i(q)=A_i(\idx_i(q))$. This is the only place the eikonal
 factor of \S\ref{sec:eikonal} is used, and it is used twice: once to make the
-threshold comparable to a length, and once to make $w_i$ and $b_i$ constants rather
-than functions of $q$. The hypothesis that $\lVert\nabla\idx_i\rVert$ be
-sensibly constant on $S$ is therefore not cosmetic, and the verification in
-\S\ref{sec:fringe} excludes samples where it varies by more than $15\%$ across a
-period for exactly this reason.
+threshold comparable to a length, and once to make $w_i$ and $b_i$ constants
+rather than functions of $q$---which is where the theorem's constant-gradient
+hypothesis enters, and why it cannot be dropped. The verification in
+\S\ref{sec:fringe} excludes samples whose gradient varies by more than $15\%$
+across a period for exactly this reason.
 
-\paragraph{Step 2: reparameterise the segment by index.}
+\paragraph{Step 2: reparameterize the segment by index.}
 Let $g=\tfrac12(\nabla\idx_1+\nabla\idx_2)$, let $u=g/\lVert g\rVert$, let
-$T=1/\lVert g\rVert$, and parameterise $S$ by arclength $t\in[-T/2,T/2]$, so
-$q(t)=p+tu$. Because both families are local foliations on $S$ with gradients close
-to $g$, the map $t\mapsto v=\idx_1(q(t))$ is a diffeomorphism onto an interval of
-length
+$T=1/\lVert g\rVert$, and parameterize $S$ by arclength $t\in[-T/2,T/2]$, so
+$q(t)=p+tu$. With $\nabla\idx_1$ constant on $S$, the map $t\mapsto
+v=\idx_1(q(t))$ is affine with slope $\langle\nabla\idx_1,u\rangle$, hence a
+measure-preserving reparameterization onto an interval of length
 \begin{equation}
-  \lVert\nabla\idx_1\rVert\,T\;=\;\frac{\lVert\nabla\idx_1\rVert}{\lVert g\rVert}
+  \langle\nabla\idx_1,u\rangle\,T
+  \;=\;\frac{\langle\nabla\idx_1,u\rangle}{\lVert g\rVert}
+  \;=\;1+\tfrac12\,\frac{\langle\nabla D,u\rangle}{\lVert g\rVert}
   \;=\;1+O(\het),
 \end{equation}
 since $\nabla\idx_1=g+\tfrac12\nabla D$ and $\het=\lVert\nabla D\rVert/\lVert
-g\rVert$. Up to the same order the parameterisation is affine. So averaging over $S$
-in $t$ is, to first order in $\het$, averaging over one unit period in $v$; and
-because both $A_1$ and $A_2$ are $1$-periodic, the choice of representative period
-does not matter.
+g\rVert$; when $D$ is constant on $S$ the middle term vanishes and the length is
+exactly $1$. So averaging over $S$ in $t$ is averaging over one unit period in
+$v$, exactly in the constant case and to first order in $\het$ otherwise; and
+because both $A_1$ and $A_2$ are $1$-periodic, the choice of representative
+period does not matter.
 
 \paragraph{Step 3: the constant case.}
 By definition $\idx_2=\idx_1-D$, so in the new variable the second layer's
@@ -68,28 +72,32 @@ content of the theorem.
 Let $b_i\to0$, so $A_i$ becomes the indicator of
 $\{\mathrm{pd}(v,1)\le w_i\}$, an interval of length $2w_i$ per period. Then
 $\int_0^1 A_i=2w_i$, and $\int_0^1A_1(v)A_2(v-\Delta)\,\mathrm{d}v$ is the
-overlap of two arcs of half-widths $w_1$ and $w_2$ whose centres are
+overlap of two arcs of half-widths $w_1$ and $w_2$ whose centers are
 $t=\mathrm{pd}(\Delta,1)$ apart. That overlap is $w_1+w_2-t$ only while the arcs
 partially overlap; once one lies inside the other ($t\le|w_1-w_2|$) it saturates
 at $2\min(w_1,w_2)$, and once they separate it is zero, so
-$\mathrm{overlap}=\min\big(2\min(w_1,w_2),\,\max(0,\,w_1+w_2-t)\big)$. (A second
+$\mathrm{overlap}=\min\big(2\min(w_1,w_2),\,\max(0,\,w_1+w_2-t)\big)$. A second
 overlap across the far side of the period would need $w_1+w_2>1-t\ge\tfrac12$,
-which the merged-stroke exclusion rules out.) Hence
+which the theorem's hypothesis $w_1+w_2\le\tfrac12$ excludes---this is where
+that hypothesis is used, and without it \eqref{eq:tent} overcounts (the integral
+form \eqref{eq:phi} does not). Hence
 \begin{equation}
   \Phi(\Delta)=2w_1+2w_2-\min\!\big(2\min(w_1,w_2),\;\max\big(0,\;w_1+w_2-t\big)\big),
 \end{equation}
 which is \eqref{eq:tent}. It is piecewise linear in $t$: slope $0$ while one
 stroke lies inside the other, slope $1$ while they partially overlap, slope $0$
-after they separate --- a tent with a flat floor and a flat top, minimised at
-$\Delta\in\Z$ at the value $2\max(w_1,w_2)$ and maximised at $2w_1+2w_2$ wherever
+after they separate---a tent with a flat floor and a flat top, minimized at
+$\Delta\in\Z$ at the value $2\max(w_1,w_2)$ and maximized at $2w_1+2w_2$ wherever
 $t\ge w_1+w_2$. Note that the plateau is reached strictly inside the period
 whenever $w_1+w_2<\tfrac12$, which is the regime the tool operates in and the
 reason thickening strokes eventually stops changing the fringe.
 
-\paragraph{Step 5: the affine case, and why the error is first order.}
-Suppose now that $D$ is affine on $S$ rather than constant. In the index variable
-write $D=D(p)+\mu\,(v-v_p)$, where $\mu$ is the change in $D$ per unit index,
-so that $\lvert\mu\rvert=\het+O(\het^2)$ by the definition of $\het$. Put
+\paragraph{Step 5: the non-constant case, and why the error is first order.}
+Suppose now that $D$ varies on $S$; with the gradients constant it is affine
+there. In the index variable write $D=D(p)+\mu\,(v-v_p)$, where $\mu$ is the
+change in $D$ per unit index, so that
+$\lvert\mu\rvert\le\het+O(\het^2)$ by the definition of $\het$ (with equality
+when $\nabla D$ is parallel to $u$). Put
 $F(v,\Delta)=A_1(v)+A_2(v-\Delta)-A_1(v)A_2(v-\Delta)$, so that
 $\Phi(\Delta)=\int_0^1F(v,\Delta)\,\mathrm{d}v$. Averaging over the period and
 expanding in $\mu$,
@@ -101,19 +109,22 @@ expanding in $\mu$,
 \end{equation}
 The integral is bounded: $\partial_\Delta F(v,\Delta)=A_2'(v-\Delta)\,(A_1(v)-1)$,
 $\lvert v-v_p\rvert\le\tfrac12$ on the period, $\lvert A_1-1\rvert\le1$, and
-$\int_0^1\lvert A_2'\rvert=2$ for the single-bump profile \eqref{eq:appprofile},
+$\int_0^1\lvert A_2'\rvert\le2$ for the single-bump profile \eqref{eq:appprofile},
 so the correction is at most $\lvert\mu\rvert$ in absolute value. Hence
 $\bar\alpha(p)=\Phi(D(p))+O(\het)$, as claimed.
+\end{proof}
 
-We stress that the first-order term does not vanish identically. It is odd in
-$(v-v_p)$ against a factor that is not even, so there is no symmetry argument that
-kills it, and one should expect a genuine $O(\het)$ bias --- a slight asymmetry of
-the fringe profile, leaning in the direction the carrier is changing. This is
-visible in the data: the measured light fringes of Table~\ref{tab:fringe} sit at
-mean index gap $\fringeLight$ from an integer rather than at $0$. The bound above
-says that residual should be a fraction of $\het$, and at the regime boundary
-$\het=1/4$ it is.
-\qed
+\begin{remark}
+The first-order term does not vanish identically. It is odd in
+$(v-v_p)$ against a factor that is not even, so no symmetry argument kills it,
+and one should expect a genuine $O(\het)$ perturbation of the profile---a
+slight asymmetry leaning in the direction the carrier is changing. Its effect
+on the \emph{positions} of the extrema depends also on the profile's curvature
+there, and on a plateaued extremum the position is not $O(\het)$-stable at all;
+the measured statistic is consistent with this: the light fringes of
+Table~\ref{tab:fringe} sit at mean index gap $\fringeLight$ from an integer
+rather than at $0$, a fraction of the regime bound $\het=1/4$.
+\end{remark}
 
 Figure~\ref{fig:lawatlas} is the theorem and its hypothesis drawn together, on five
 of the pairs Table~\ref{tab:fringe} measures.
@@ -125,13 +136,13 @@ of the pairs Table~\ref{tab:fringe} measures.
     (a) two combs,
     (b) circles under lines,
     {(c) hexagons, $4^\circ$},
-    {(d) circles, two centres},
+    {(d) circles, two centers},
     (e) hyperbolae under lines}
   \Description{Two rows of five square panels. The top row shows five moire
   superpositions: two nearly parallel line combs; concentric circles crossed by
   horizontal lines; two hexagon families four degrees apart; two circle families with
-  displaced centres; and rectangular hyperbolae under diagonal lines. The bottom row
-  shows the same five frames blurred to grey fringe fields, with crimson curves drawn
+  displaced centers; and rectangular hyperbolae under diagonal lines. The bottom row
+  shows the same five frames blurred to gray fringe fields, with crimson curves drawn
   on the light fringes. The crimson curves cover the whole panel in the first, are
   confined to a central wedge in the second, radiate as six rays in the third, appear
   only in the outer regions in the fourth, and are entirely absent in the fifth.}
@@ -144,9 +155,9 @@ of the pairs Table~\ref{tab:fringe} measures.
   criterion admits: $\atlasCombs\%$, $\atlasCircleLines\%$, $\atlasHex\%$,
   $\atlasCircles\%$, $\atlasControl\%$. Column~(b) is masked to a wedge because
   outside it the circles and the lines cross at a wide angle. Column~(d) is masked
-  near the two centres, where the superposition is a rosette and not a fringe field
+  near the two centers, where the superposition is a rosette and not a fringe field
   at all. Column~(e) draws nothing, and there is nothing there: the criterion refuses
-  the whole frame, and the grey panel is flat. The whole bottom row costs two
+  the whole frame, and the gray panel is flat. The whole bottom row costs two
   gradients per pixel and no raster, which is why the tool can tell a user that a
   pair of layers will not interfere before it draws them.}
   \label{fig:lawatlas}
@@ -158,5 +169,5 @@ The bounds of \S\ref{sec:inverse} are proved where they are stated: the drift
 constant in \S\ref{sec:drift}, the two-sided envelope as
 Lemma~\ref{lem:envelope}, the sufficient interval as Theorem~\ref{thm:window},
 the Lipschitz skip bound as Lemma~\ref{lem:lipschitz}, and the closed form for
-translated polygons as Proposition~\ref{prop:closed}. Each proof is short enough
-that separating it from its statement would cost the reader more than it saves.
+translated polygons as Proposition~\ref{prop:closed}; each is short and stated
+in place.

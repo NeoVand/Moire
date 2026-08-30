@@ -352,7 +352,7 @@
     },
     {
       "name": "walking-circle",
-      "note": "a walking family (member n displaced by n-delta) over concentric circles",
+      "note": "a walking family (member $n$ displaced by $n\\delta$) over concentric circles",
       "all": {
         "n": 13658,
         "mean": 0.0157,

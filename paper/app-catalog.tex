@@ -7,15 +7,15 @@ with a copy of itself under a small perturbation, so that the fringe system each
 one generates can be seen next to the family that generates it.
 
 The perturbation differs by family, and which one is natural is itself
-informative. Families with an orientation --- the two line families, the three
-lattices, the three open curves --- fringe under a small \emph{rotation}, a few
+informative. Families with an orientation---the two line families, the three
+lattices, the three open curves---fringe under a small \emph{rotation}, a few
 degrees, because rotating them changes the direction of $\nabla\idx$ without
-changing its magnitude. Closed families --- the four concentric shapes and the
-spiral --- fringe under a small \emph{detuning} of the pitch instead, five or six
-percent, because rotating a concentric family about its own centre does nothing at
+changing its magnitude. Closed families---the four concentric shapes and the
+spiral---fringe under a small \emph{detuning} of the pitch instead, five or six
+percent, because rotating a concentric family about its own center does nothing at
 all. This is not a fact about our implementation. It is $\het$ of
 Eq.~\ref{eq:ratio} deciding what counts as a perturbation: for a family whose
-index gradient is radial, rotation about the centre leaves $\nabla\idx$ unchanged
+index gradient is radial, rotation about the center leaves $\nabla\idx$ unchanged
 and so leaves $\het=0$, and there is nothing to see.
 
 \newlength{\platew}
@@ -45,7 +45,7 @@ and so leaves $\het=0$, and there is nothing to see.
 
 \begin{figure*}[p]
   \Description{Thirteen cells in a grid, each a pair of stacked black-on-white line
-  drawings. The upper drawing of a cell is one curve family --- parallel lines, a
+  drawings. The upper drawing of a cell is one curve family---parallel lines, a
   radial pencil with a blank disc at its hub, concentric circles, squares, triangles,
   hexagons, a square lattice, a hexagonal lattice, a triangular lattice, a wave
   train, a nest of parabolae, a nest of hyperbolae, a spiral. The lower drawing
@@ -78,7 +78,7 @@ and so leaves $\het=0$, and there is nothing to see.
     \caption{\figlead{Thirteen families, alone and beating.} Each cell is one
     family: above, rendered by itself from its distance field; below, superposed
     with a perturbed copy of itself, so the fringe system sits directly under the
-    family that generates it. The label gives the perturbation --- a rotation in
+    family that generates it. The label gives the perturbation---a rotation in
     degrees for families with an orientation, a multiplier on the pitch for the
     closed ones, which as \S\ref{app:catalog} explains is $\het$ deciding what
     counts as a perturbation rather than a choice of ours. Every panel is
@@ -94,7 +94,7 @@ and so leaves $\het=0$, and there is nothing to see.
     \end{minipage}}
 \end{figure*}
 
-Two families deserve a note on their parameterisation, because the natural
+Two families deserve a note on their parameterization, because the natural
 parameter and the useful parameter differ.
 
 \paragraph{The parabola's bend.} The family is $y=ax^2+ns+\varphi$, and $a$ is
@@ -102,16 +102,16 @@ exposed to the author as a slider $B$ with $a=B/100$. The scaling is not
 cosmetic. Perpendicular member spacing is $s/\lVert\nabla\ph\rVert =
 s/\sqrt{1+4a^2x^2}$, which falls off linearly in $\lvert x\rvert$, so a value of
 $a$ that looks reasonable at the origin has closed the family to nothing by the
-edge of the frame. On a $250$-unit panel, $a=0.5$ --- an unremarkable-looking
-number --- packs several hundred members into the corners. The slider therefore
+edge of the frame. On a $250$-unit panel, $a=0.5$---an unremarkable-looking
+number---packs several hundred members into the corners. The slider therefore
 spans a range that keeps the whole frame resolvable, and the useful settings all
 have $B<1$.
 
 \paragraph{The spiral's pitch.} Archimedean spirals are $r=b\theta$, and a
 family of them at radial interval $s$ has $M=\mathrm{round}(\lvert B\rvert/s)$
-arms for a pitch slider $B$. The rounding is not laziness. $\ph=r-b\theta$ has a
+arms for a pitch slider $B$. The rounding is load-bearing. $\ph=r-b\theta$ has a
 branch cut wherever $\mathrm{atan2}$ does, and the level sets close across it only
-if $b\,2\pi$ is an integer multiple of $s$ --- that is, only if $M$ is an integer.
+if $b\,2\pi$ is an integer multiple of $s$---that is, only if $M$ is an integer.
 Pass $B$ through unrounded and every member of the family has a visible seam along
 the negative $x$ axis. Setting $B=0$ gives $M=1$ but $b=0$, which is concentric
 circles, so the slider degrades to the family it should degrade to.

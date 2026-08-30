@@ -216,7 +216,7 @@ const gpu = load('gpu.json');
   const GPU_HARD = [
     ['Offset near spacing', '1', 'hard: off near spacing @1'],
     ['Offset near spacing', '0.15', 'hard: off near spacing @0.15'],
-    ['Marginal drift $m=s$', '1', 'hard: marginal drift @1'],
+    ['Marginal drift $m=s$, rotated', '1', 'hard: marginal drift @1'],
   ];
 
   const speedups = GPU_ROWS.filter(([, , , counts]) => counts).map(
@@ -413,9 +413,9 @@ const cost = load('cost.json');
   \\centering
   \\small
   \\caption{Mean evaluations of $\\rad$ per pixel, CPU rasteriser, and fraction of
-  pixels differing from \\textsc{Reference} by more than $8/255$. \\ours{} is
-  pixel-identical to brute force on all ${COST_ROWS.length} scenes while doing less work
-  than the exhaustive scan that defines them.}
+  pixels differing from \\textsc{Reference} by more than $8/255$. \\ours{} agrees
+  with brute force to within that tolerance at every pixel of all ${COST_ROWS.length} scenes
+  while doing less work than the exhaustive scan that defines them.}
   \\label{tab:cost}
   \\begin{tabular}{@{}lrrrr@{}}
     \\toprule
@@ -614,7 +614,7 @@ const zoom = load('zoom.json');
   macro('zoomFloorNoise', r(zoom.ours.worstNoise, 3));
   macro('zoomNoFloorNoise', r(zoom.noFloor.worstNoise, 3));
   macro('zoomValueNoise', r(zoom.value.worstNoise, 3));
-  macro('zoomFloorNoiseCoarse', r(coarse('ours').noise, 3));
+  macro('zoomFloorNoiseCoarse', r(coarse('ours').noise, 4));
   macro('zoomNoFloorNoiseCoarse', r(coarse('noFloor').noise, 3));
   macro('zoomNoiseRatio', Math.round(coarse('noFloor').noise / Math.max(coarse('ours').noise, 1e-9)));
   macro('zoomFloorInkGain', r(zoom.worstFloorInkGain, 2));
