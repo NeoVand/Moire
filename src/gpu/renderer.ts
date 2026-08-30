@@ -366,6 +366,8 @@ export class MoireRenderer {
     this.viewUniforms.contrast.value = envelope ? state.view.envelopeContrast : 1;
     this.viewUniforms.lift.value = envelope ? state.view.envelopeLift : 0;
     this.viewUniforms.envMask.value = envelope && maskPair ? state.view.envelopeMask : 0;
+    this.viewUniforms.contours.value =
+      envelope && maskPair && state.view.envelopeContours ? 1 : 0;
     this.viewUniforms.pivot.value.copy(envelope ? envelopePivot(state) : scratch.set(0xffffff));
     this.viewUniforms.ratio.value = pair ? 1 : 0;
     this.viewUniforms.ratioA.value = pair ? pair[0] : maskPair ? maskPair[0] : -1;

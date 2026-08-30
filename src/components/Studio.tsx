@@ -227,6 +227,12 @@ function EnvelopeControl() {
           </div>
           <div className="mt-3 grid gap-3 border-t border-[var(--border)] pt-2.5">
             <ToggleRow
+              label="Contours"
+              info="Draws the winning character's integer level sets over the envelope — the fringe centres as exact curves, the same skeleton the paper lifts into 3D. They fade where the beat runs at carrier scale."
+              on={view.envelopeContours}
+              onToggle={() => setView({ envelopeContours: !view.envelopeContours })}
+            />
+            <ToggleRow
               label="Fringe ratio"
               info="A map of where fringes can exist: dark where the two topmost layers' carriers are close enough to beat, light where they are too different to interfere. Check it before committing to parameters."
               on={view.ratio}

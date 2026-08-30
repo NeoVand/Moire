@@ -105,6 +105,7 @@ const VIEW_KEYS: (keyof ViewState)[] = [
   'envelopeSweep',
   'envelopeLift',
   'envelopeMask',
+  'envelopeContours',
   'ratio',
   'ratioBlend',
   'ratioThreshold',
@@ -139,7 +140,7 @@ export function parseScene(text: string): SceneData {
   const rawView = (r.view ?? {}) as Record<string, unknown>;
   for (const key of VIEW_KEYS) {
     const v = rawView[key];
-    if (key === 'envelope' || key === 'ratio') {
+    if (key === 'envelope' || key === 'ratio' || key === 'envelopeContours') {
       if (typeof v === 'boolean') view[key] = v;
     } else if (typeof v === 'number' && Number.isFinite(v)) {
       view[key] = v;

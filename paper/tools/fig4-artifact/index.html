@@ -17,6 +17,7 @@
   }
   #view { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
   #panel {
+    max-height: calc(100vh - 28px); overflow-y: auto;
     position: fixed; top: 14px; right: 14px; width: 270px;
     background: rgba(255, 255, 255, 0.93);
     border: 1px solid var(--line); border-radius: 10px;
@@ -60,7 +61,15 @@
   <div class="row"><span>Fringe levels</span><input id="levels" type="range" min="3" max="9" step="1"><span id="levels-v"></span></div>
   <div class="row"><span>Ring duty</span><input id="duty" type="range" min="0.15" max="0.7" step="0.01"><span id="duty-v"></span></div>
   <div class="lab">Surface</div>
+  <div class="seg" style="margin-bottom:6px">
+    <button id="mode-bands" class="on">Bands</button>
+    <button id="mode-phi">&Phi;(D) mean ink</button>
+  </div>
   <div class="row"><span>Relief</span><input id="relief" type="range" min="0.1" max="0.8" step="0.01"><span id="relief-v"></span></div>
+  <div class="row"><span>Float</span><input id="z0" type="range" min="0.25" max="0.9" step="0.01"><span id="z0-v"></span></div>
+  <div class="row"><span>Opacity</span><input id="sopacity" type="range" min="0.15" max="1" step="0.01"><span id="sopacity-v"></span></div>
+  <div class="row"><span>Fill</span><input id="fillalpha" type="range" min="0" max="1" step="0.01"><span id="fillalpha-v"></span></div>
+  <div class="row"><span>Outline</span><input id="outline" type="range" min="0" max="4" step="0.1"><span id="outline-v"></span></div>
   <div class="row"><span>Band width</span><input id="band" type="range" min="0.03" max="0.22" step="0.005"><span id="band-v"></span></div>
   <div class="row"><span>Bold cut &eta;</span><input id="etacut" type="range" min="0.15" max="1.2" step="0.05"><span id="etacut-v"></span></div>
   <div class="row"><span>Light</span><input id="light" type="range" min="0" max="360" step="5"><span id="light-v"></span></div>
@@ -70,6 +79,8 @@
     <label><input id="fringes" type="checkbox">floor fringes</label>
     <label><input id="drops" type="checkbox">drop lines</label>
     <label><input id="tint" type="checkbox">tint family 1</label>
+    <label><input id="edge" type="checkbox">surface outline</label>
+    <label><input id="floorvis" type="checkbox">floor</label>
   </div>
   <div class="views">
     <button id="view-paper">Paper view</button>

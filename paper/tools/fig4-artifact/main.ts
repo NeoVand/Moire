@@ -16,6 +16,12 @@ interface Params {
   band: number; // contour band half-width (index units)
   etaCut: number; // bold below
   tint: boolean; // tint family 1 cool
+  fillMode: 'bands' | 'phi'; // cosmetic bands vs exact mean-ink profile
+  fillAlpha: number; // band fill opacity
+  outlineW: number; // integer-level outline half-width, patch px (0 = off)
+  surfOpacity: number; // surface opacity
+  showEdge: boolean; // surface boundary outline
+  showFloor: boolean;
   showContours: boolean;
   showFringes: boolean;
   showDrops: boolean;
@@ -32,6 +38,12 @@ const P: Params = {
   band: 0.09,
   etaCut: 0.45,
   tint: true,
+  fillMode: 'bands',
+  fillAlpha: 0.92,
+  outlineW: 1.4,
+  surfOpacity: 1,
+  showEdge: true,
+  showFloor: true,
   showContours: false,
   showFringes: false,
   showDrops: true,
@@ -219,18 +231,56 @@ function paintBands() {
   const img = ctx.createImageData(n, n);
   const d = img.data;
   const paper = [244, 242, 238];
+  const ink = [21, 24, 28];
   const col = P.panel === 'difference' ? [200, 30, 90] : [212, 118, 26];
+  const dark = col.map((c) => c * 0.62);
+  const duty = P.duty;
+  const flat = 2 * duty - duty * duty; // uncorrelated union coverage
+  const lineHw = (P.outlineW * 2) / n; // patch units
+  const eps = 2 / n;
   for (let j = 0; j < n; j++) {
     const y = -1 + (2 * (j + 0.5)) / n;
     for (let i = 0; i < n; i++) {
       const x = -1 + (2 * (i + 0.5)) / n;
       const h = H(x, y);
       const t = Math.abs(h - Math.round(h));
-      const band = Math.pow(Math.max(0, 1 - t / P.band), 1.4);
-      const a = (eta(x, y) < P.etaCut ? 0.92 : 0.28) * band;
+      const et = eta(x, y);
+      const inRegime = et < P.etaCut;
+      let r = paper[0], g = paper[1], b = paper[2];
+      if (P.fillMode === 'phi') {
+        // Exact mean ink along the diagonal: union of two duty-d strokes at
+        // beat phase t is 2d - overlap, the saturating tent of Theorem 1 —
+        // valid where the beat is slow; past the cut the true local mean is
+        // the uncorrelated coverage, so the profile fades to it honestly.
+        const overlap = Math.max(0, duty - t) + Math.max(0, duty - (1 - t));
+        const tent = Math.min(1, 2 * duty - overlap);
+        const fade = Math.min(1, Math.max(0, (et - 0.8 * P.etaCut) / (0.8 * P.etaCut)));
+        const a = (tent * (1 - fade) + flat * fade) * P.fillAlpha;
+        r = r * (1 - a) + ink[0] * a;
+        g = g * (1 - a) + ink[1] * a;
+        b = b * (1 - a) + ink[2] * a;
+      } else {
+        const band = Math.pow(Math.max(0, 1 - t / P.band), 1.4);
+        const a = (inRegime ? 1 : 0.3) * band * P.fillAlpha;
+        r = r * (1 - a) + col[0] * a;
+        g = g * (1 - a) + col[1] * a;
+        b = b * (1 - a) + col[2] * a;
+      }
+      if (P.outlineW > 0.01) {
+        // Constant-width isoline at the exact integer level: residual over
+        // the local index gradient is distance to the level set.
+        const gx = (H(x + eps, y) - H(x - eps, y)) / (2 * eps);
+        const gy = (H(x, y + eps) - H(x, y - eps)) / (2 * eps);
+        const dist = t / Math.max(Math.hypot(gx, gy), 1e-9);
+        const lineA =
+          Math.min(1, Math.max(0, (lineHw - dist) / (eps * 0.75) + 0.5)) *
+          (inRegime ? 0.95 : 0.35);
+        r = r * (1 - lineA) + dark[0] * lineA;
+        g = g * (1 - lineA) + dark[1] * lineA;
+        b = b * (1 - lineA) + dark[2] * lineA;
+      }
       const o = (j * n + i) * 4;
-      for (let k = 0; k < 3; k++) d[o + k] = paper[k] * (1 - a) + col[k] * a;
-      d[o + 3] = 255;
+      d[o] = r; d[o + 1] = g; d[o + 2] = b; d[o + 3] = 255;
     }
   }
   ctx.putImageData(img, 0, 0);
@@ -252,6 +302,7 @@ const surfMat = new THREE.MeshStandardMaterial({
   roughness: 0.95,
   metalness: 0,
   side: THREE.DoubleSide,
+  transparent: true,
 });
 const SEG = 320;
 let surfGeo = new THREE.PlaneGeometry(2, 2, SEG, SEG);
@@ -315,6 +366,26 @@ function rebuildCurves() {
         }
       }
     }
+  }
+  if (P.showEdge) {
+    const edgeMat = new THREE.MeshBasicMaterial({ color: INK });
+    const edges: Run[] = [[], [], [], []];
+    for (let i = 0; i <= 160; i++) {
+      const t = -1 + (2 * i) / 160;
+      edges[0].push([t, -1]); edges[1].push([1, t]);
+      edges[2].push([-t, 1]); edges[3].push([-1, -t]);
+    }
+    for (const e of edges) {
+      const pts3 = e.map(([x, y]) => [x, y, P.z0 + zScale * (H(x, y) - zMid)] as [number, number, number]);
+      const g = new THREE.TubeGeometry(curve3(pts3), 160, 0.004, 5, false);
+      dynamic.add(new THREE.Mesh(g, edgeMat));
+    }
+    const fl = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(-1, -1, 0.002), new THREE.Vector3(1, -1, 0.002),
+      new THREE.Vector3(1, 1, 0.002), new THREE.Vector3(-1, 1, 0.002),
+      new THREE.Vector3(-1, -1, 0.002),
+    ]);
+    dynamic.add(new THREE.Line(fl, new THREE.LineBasicMaterial({ color: INK, transparent: true, opacity: 0.5 })));
   }
   if (P.showDrops) {
     const drops: [number, number][] = [];
@@ -398,6 +469,8 @@ function schedule() {
   timer = setTimeout(apply, 60) as unknown as number;
 }
 function apply() {
+  surfMat.opacity = P.surfOpacity;
+  floor.visible = P.showFloor;
   if (shapeDirty) reshapeSurface();
   if (floorDirty) { paintFloor(); floorTex.needsUpdate = true; }
   if (bandsDirty) { paintBands(); bandTex.needsUpdate = true; }
@@ -423,6 +496,10 @@ function bindRange(id: string, get: () => number, set: (v: number) => void, fmt:
 bindRange('f', () => P.F, (v) => { P.F = v; floorDirty = bandsDirty = shapeDirty = true; }, (v) => v.toFixed(2));
 bindRange('levels', () => P.levels, (v) => { P.levels = Math.round(v); floorDirty = bandsDirty = shapeDirty = true; }, (v) => `±${Math.round(v)}`);
 bindRange('relief', () => P.relief, (v) => { P.relief = v; shapeDirty = true; }, (v) => v.toFixed(2));
+bindRange('z0', () => P.z0, (v) => { P.z0 = v; shapeDirty = true; }, (v) => v.toFixed(2));
+bindRange('sopacity', () => P.surfOpacity, (v) => { P.surfOpacity = v; }, (v) => v.toFixed(2));
+bindRange('fillalpha', () => P.fillAlpha, (v) => { P.fillAlpha = v; bandsDirty = true; }, (v) => v.toFixed(2));
+bindRange('outline', () => P.outlineW, (v) => { P.outlineW = v; bandsDirty = true; }, (v) => v.toFixed(1));
 bindRange('duty', () => P.duty, (v) => { P.duty = v; floorDirty = true; }, (v) => v.toFixed(2));
 bindRange('band', () => P.band, (v) => { P.band = v; bandsDirty = true; }, (v) => v.toFixed(2));
 bindRange('etacut', () => P.etaCut, (v) => { P.etaCut = v; bandsDirty = true; }, (v) => v.toFixed(2));
@@ -437,6 +514,17 @@ bindCheck('contours', () => P.showContours, (v) => (P.showContours = v));
 bindCheck('fringes', () => P.showFringes, (v) => (P.showFringes = v));
 bindCheck('drops', () => P.showDrops, (v) => (P.showDrops = v));
 bindCheck('tint', () => P.tint, (v) => { P.tint = v; floorDirty = true; });
+bindCheck('edge', () => P.showEdge, (v) => (P.showEdge = v));
+bindCheck('floorvis', () => P.showFloor, (v) => (P.showFloor = v));
+for (const m of ['bands', 'phi'] as const) {
+  $('mode-' + m).addEventListener('click', () => {
+    P.fillMode = m;
+    bandsDirty = true;
+    $('mode-bands').classList.toggle('on', m === 'bands');
+    $('mode-phi').classList.toggle('on', m === 'phi');
+    schedule();
+  });
+}
 
 for (const p of ['difference', 'sum'] as Panel[]) {
   $(p).addEventListener('click', () => {

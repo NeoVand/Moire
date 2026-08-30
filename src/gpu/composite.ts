@@ -211,6 +211,7 @@ export function createViewUniforms() {
     ratioA: uniform(-1, 'int'),
     ratioB: uniform(-1, 'int'),
     ratioC: uniform(-1, 'int'),
+    contours: uniform(0),
     /** How much of the heat map covers the composite: 1 replaces, less overlays. */
     ratioBlend: uniform(1),
     /** Centre of the map's marked boundary. 1/4 is the theory's line. */
@@ -459,16 +460,21 @@ export function buildColorNode(
     const validC = step(float(-0.5), float(view.ratioC));
     const cGate = float(1).sub(validC).mul(1e5);
     const PAIRS = [
-      { gP: gradA, gQ: gradB, gate: float(0), who: 0 },
-      { gP: gradA, gQ: gradC, gate: cGate, who: 1 },
-      { gP: gradB, gQ: gradC, gate: cGate, who: 2 },
+      { gP: gradA, gQ: gradB, xP: xiA, xQ: xiB, gate: float(0), who: 0 },
+      { gP: gradA, gQ: gradC, xP: xiA, xQ: xiC, gate: cGate, who: 1 },
+      { gP: gradB, gQ: gradC, xP: xiB, xQ: xiC, gate: cGate, who: 2 },
     ];
     const etaBest = float(1e6).toVar();
     const pickBest = float(1e6).toVar();
     const rateA = float(1).toVar();
     const rateB = float(1).toVar();
     const rateC = float(1).toVar();
-    PAIRS.forEach(({ gP, gQ, gate, who }) => {
+    // The winning character's beat phase and its per-pixel rate, for the
+    // contour overlay: level sets of the phase at integers are the fringe
+    // centres, and the rate turns a phase residual into screen pixels.
+    const beatVal = float(0).toVar();
+    const beatRate = float(0).toVar();
+    PAIRS.forEach(({ gP, gQ, xP, xQ, gate, who }) => {
       CHARACTERS.forEach(([ka, kb]) => {
         const beat = gP.mul(ka).add(gQ.mul(kb));
         const carrier = gP.mul(ka).sub(gQ.mul(kb));
@@ -495,6 +501,8 @@ export function buildColorNode(
           rateA.assign(rA);
           rateB.assign(rB);
           rateC.assign(rC);
+          beatVal.assign(xP.mul(ka).add(xQ.mul(kb)));
+          beatRate.assign(length(beat));
         });
       });
     });
@@ -524,6 +532,8 @@ export function buildColorNode(
         rateA.assign(1);
         rateB.assign(1);
         rateC.assign(1);
+        beatVal.assign(xiA.mul(ka).add(xiB.mul(kb)).add(xiC.mul(kc)));
+        beatRate.assign(length(beat));
       });
     });
     const eta = etaBest.clamp(0, 1);
@@ -832,6 +842,23 @@ export function buildColorNode(
         out.assign(mix(out, view.pivot.add(view.lift).clamp(0, 1), fade));
       }
     );
+    // Fringe contours: the winning character's beat phase crosses an integer
+    // exactly at each fringe centre, so its level sets, one pixel wide, are
+    // the skeleton of the moiré — the same curves the character-hills figure
+    // lifts onto its surfaces. The phase residual over the beat rate is a
+    // screen-space distance, so the stroke holds one width at any zoom, and
+    // the overlay fades out of the fringe regime with the same threshold the
+    // heat map marks: where the beat runs at carrier scale the level sets are
+    // the carrier, not a fringe skeleton.
+    If(view.contours.greaterThan(0.5), () => {
+      const fd = beatVal.sub(round(beatVal)).abs();
+      const dpx = fd.div(max(beatRate, float(1e-6)));
+      const stroke = float(1)
+        .sub(smoothstep(float(0.7), float(1.7), dpx))
+        .mul(step(float(1e-5), beatRate))
+        .mul(float(1).sub(smoothstep(thr, thr.mul(2).add(0.1), eta)));
+      out.assign(mix(out, vec3(0.784, 0.118, 0.353), stroke.mul(0.85)));
+    });
     // At blend 1 the map replaces the picture; below it the map reads over the
     // drawing, so an author sees where on the picture fringes will live.
     If(view.ratio.greaterThan(0.5), () => out.assign(mix(out, heat, view.ratioBlend.clamp(0, 1))));

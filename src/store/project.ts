@@ -49,6 +49,13 @@ export interface ViewState {
    */
   envelopeMask: number;
   /**
+   * Draw the winning character's integer level sets over the envelope: the
+   * fringe centres as one-pixel curves, the skeleton the character-hills
+   * figure lifts into 3D. Fades out of the fringe regime with the ratio
+   * threshold.
+   */
+  envelopeContours: boolean;
+  /**
    * The heterodyne ratio map: where a fringe can form at all. Dark where the two
    * topmost comparable layers' index gradients nearly agree, bright past the 1/4
    * threshold where the carriers are too different to interfere — so an author
@@ -68,6 +75,7 @@ export const VIEW_DEFAULTS: ViewState = {
   envelopeSweep: 1,
   envelopeLift: 0,
   envelopeMask: 0,
+  envelopeContours: false,
   ratio: false,
   ratioBlend: 1,
   ratioThreshold: 0.25,
