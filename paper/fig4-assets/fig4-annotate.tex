@@ -11,7 +11,7 @@
 \begin{document}
 \begin{tikzpicture}
   \node[anchor=south west, inner sep=0] (img) at (0,0)
-    {\includegraphics[width=17cm]{fig4-final4.png}};
+    {\includegraphics[width=17cm]{fig4-final.png}};
   \begin{scope}[shift={(img.south west)},
       x={($ (img.south east)-(img.south west) $)},
       y={($ (img.north west)-(img.south west) $)}]
@@ -19,30 +19,30 @@
     \tikzset{lead/.style={-{Stealth[length=4.5pt]}, line width=0.55pt}}
 
     % ---------- panel A: the difference ----------
-    \node[lab, text=ink, align=left, anchor=west] (gl) at (0.012,0.875)
-      {the graph of $D=\idx_1-\idx_2$};
-    \draw[lead, ink!65] (gl.south) to[out=-100,in=45] (0.0625,0.7295);
+    \node[lab, text=ink, align=left, anchor=west] (gl) at (0.012,0.78)
+      {the graph of\\$D=\idx_1-\idx_2$};
+    \draw[lead, ink!65] (gl.south) to[out=-75,in=125] (0.0909,0.55);
 
-    \node[lab, text=accent!88!ink, anchor=west] (cl) at (0.418,0.9023)
+    \node[lab, text=accent!88!ink, anchor=west] (cl) at (0.418,0.7875)
       {contours at $D\in\mathbb{Z}$};
-    \draw[lead, accent!75] (cl.west) to[out=205,in=50] (0.352,0.8061);
+    \draw[lead, accent!75] (cl.west) to[out=205,in=50] (0.352,0.6273);
 
-    \node[lab, text=ink!80, align=center, anchor=south] (wl) at (0.285,0.960)
+    \node[lab, text=ink!80, align=center, anchor=south] (wl) at (0.285,0.9118)
       {steep:\\contours crowd};
-    \draw[lead, ink!60] (wl.south) to[out=-85,in=95] (0.276,0.7714);
+    \draw[lead, ink!60] (wl.south) to[out=-85,in=95] (0.276,0.5695);
 
-    \node[lab, text=ink!70, anchor=west] (rl) at (0.055,0.4642)
+    \node[lab, text=ink!70, anchor=west] (rl) at (0.055,0.0578)
       {two ring families};
-    \draw[lead, ink!55] (rl.east) to[out=10,in=205] (0.272,0.507);
+    \draw[lead, ink!55] (rl.east) to[out=10,in=205] (0.272,0.1291);
 
     % ---------- panel B: the sum ----------
-    \node[lab, text=cool!90!ink, align=right, anchor=east] (sl) at (0.995,0.8836)
+    \node[lab, text=cool!90!ink, align=right, anchor=east] (sl) at (0.995,0.7563)
       {the sum $\idx_1+\idx_2$:\\steep everywhere};
-    \draw[lead, cool!75] (sl.west) to[out=-155,in=75] (0.8543,0.8341);
+    \draw[lead, cool!75] (sl.west) to[out=-155,in=75] (0.8543,0.6737);
 
-    \node[lab, text=cool!90!ink, align=left, anchor=west] (pl) at (0.552,0.929)
+    \node[lab, text=cool!90!ink, align=left, anchor=west] (pl) at (0.552,0.8319)
       {flat only between\\the centres};
-    \draw[lead, cool!75] (pl.south) to[out=-62,in=118] (0.752,0.6956);
+    \draw[lead, cool!75] (pl.south) to[out=-62,in=118] (0.752,0.4432);
   \end{scope}
 \end{tikzpicture}
 \end{document}
