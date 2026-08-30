@@ -568,19 +568,23 @@ function ringScan(
       shapeRadius({ x: radius * c - offX, y: -radius * sn - offY }, shape, sides) - ringR;
     const gap = Math.abs(signed);
     if (gap < best) {
-      alt3 = alt2;
-      alt3Signed = alt2Signed;
-      alt2 = best;
-      alt2Signed = bestSigned;
+      // The runners-up are only ever read when a trio is wanted, and the plain
+      // render — which is most frames — never asks for one.
+      if (wantTrio) {
+        alt3 = alt2;
+        alt3Signed = alt2Signed;
+        alt2 = best;
+        alt2Signed = bestSigned;
+      }
       best = gap;
       bestSigned = signed;
       bestN = n;
-    } else if (gap < alt2) {
+    } else if (wantTrio && gap < alt2) {
       alt3 = alt2;
       alt3Signed = alt2Signed;
       alt2 = gap;
       alt2Signed = signed;
-    } else if (gap < alt3) {
+    } else if (wantTrio && gap < alt3) {
       alt3 = gap;
       alt3Signed = signed;
     }
