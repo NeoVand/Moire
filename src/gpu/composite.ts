@@ -228,6 +228,12 @@ export function createViewUniforms() {
     // generators to the reference's and rides the same tap schedule, so the
     // twist moire's two slow characters survive the average in lockstep.
     latA: uniform(-1, 'int'),
+    // The lattice whose beat the contour overlay draws: the twist partner when
+    // latA is set, else the topmost lattice beating against the ranked scalar.
+    // A lattice indexes members by a pair of integers, so its fringe skeleton
+    // is not the scalar scan's winning character — it has to be read off the
+    // generator matching the sweep itself uses.
+    latB: uniform(-1, 'int'),
   };
 }
 
@@ -589,7 +595,7 @@ export function buildColorNode(
     //   (2,2)   (su/2 - g, g)
     // Per-lattice generator index gradients, computed unconditionally so the
     // screen-space derivatives stay in uniform control flow.
-    const latGrads = solved.map(({ cell, local }) => {
+    const latGrads = solved.map(({ cell, local, shift }) => {
       // step keeps the guard non-zero at d = 0 (a non-lattice slot's empty
       // cell), where sign() would return 0 and divide by zero.
       const safe = (d) => step(0, d).mul(2).sub(1).mul(d.abs().max(1e-6));
@@ -597,22 +603,42 @@ export function buildColorNode(
       const perp2 = vec2(cell.y.negate(), cell.x);
       const b1 = perp1.div(safe(cell.xy.dot(perp1)));
       const b2 = perp2.div(safe(cell.zw.dot(perp2)));
-      const xi1 = local.dot(b1);
+      // A lattice spends its field as a translation along generator 1 (the
+      // tap resample advances by uLat + shift), so the field belongs to the
+      // first generator's continuous index — without it, a field-warped grid
+      // against its unmodulated twin reads as no beat at all.
+      const xi1 = local.dot(b1).sub(shift);
       const xi2 = local.dot(b2);
       return {
+        x1: xi1,
+        x2: xi2,
         g1: vec2(dFdx(xi1), dFdy(xi1)),
         g2: vec2(dFdx(xi2), dFdy(xi2)),
       };
     });
-    // The reference lattice's generator gradients, for twist mode.
+    // The reference lattice's generator gradients and continuous indices, for
+    // twist mode and its contour overlay.
     const g1Ref = vec2(0).toVar();
     const g2Ref = vec2(0).toVar();
+    const x1Ref = float(0).toVar();
+    const x2Ref = float(0).toVar();
     solved.forEach((_, index) => {
       If(view.latA.equal(int(index)), () => {
         g1Ref.assign(latGrads[index].g1);
         g2Ref.assign(latGrads[index].g2);
+        x1Ref.assign(latGrads[index].x1);
+        x2Ref.assign(latGrads[index].x2);
       });
     });
+    // The lattice beat characters the contour overlay draws, recorded where
+    // the sweep's own matching decides them. A slot with no lattice leaves the
+    // rates at zero, which the overlay's gate reads as "nothing to draw".
+    const latVal1 = float(0).toVar();
+    const latRate1 = float(0).toVar();
+    const latEta1 = float(0).toVar();
+    const latVal2 = float(0).toVar();
+    const latRate2 = float(0).toVar();
+    const latEta2 = float(0).toVar();
 
     // Each lattice's tap schedule, as coefficients on (u, v): generator 1
     // advances by cu1*u + cv1*v per tap, generator 2 by cu2*u + cv2*v.
@@ -638,7 +664,7 @@ export function buildColorNode(
     //   sum   (g, su - g)    — indices 1, 2 each pure noise; 1+2 rides su
     //   diff  (g, g - su)    — likewise, 1-2 rides su
     const latCoh = solved.map(({ slot }, index) => {
-      const { g1, g2 } = latGrads[index];
+      const { g1, g2, x1, x2 } = latGrads[index];
       const cu1 = float(1).toVar();
       const cv1 = float(0).toVar();
       const cu2 = float(0).toVar();
@@ -665,11 +691,37 @@ export function buildColorNode(
             cv1.assign(0);
             cu2.assign(0);
             cv2.assign(t1);
+            // The twist pair's slow characters, in this matched labeling, for
+            // the contour overlay: a1 - b1 and a2 - b2 with the matched signs.
+            If(view.latB.equal(int(index)), () => {
+              latVal1.assign(x1Ref.sub(x1.mul(s1)));
+              latRate1.assign(length(g1Ref.sub(g1.mul(s1))));
+              latEta1.assign(
+                latRate1.div(max(length(g1Ref.add(g1.mul(s1))).mul(0.5), float(1e-6)))
+              );
+              latVal2.assign(x2Ref.sub(x2.mul(t1)));
+              latRate2.assign(length(g2Ref.sub(g2.mul(t1))));
+              latEta2.assign(
+                latRate2.div(max(length(g2Ref.add(g2.mul(t1))).mul(0.5), float(1e-6)))
+              );
+            });
           }).Else(() => {
             cu1.assign(0);
             cv1.assign(t2);
             cu2.assign(s2);
             cv2.assign(0);
+            If(view.latB.equal(int(index)), () => {
+              latVal1.assign(x1Ref.sub(x2.mul(s2)));
+              latRate1.assign(length(g1Ref.sub(g2.mul(s2))));
+              latEta1.assign(
+                latRate1.div(max(length(g1Ref.add(g2.mul(s2))).mul(0.5), float(1e-6)))
+              );
+              latVal2.assign(x2Ref.sub(x1.mul(t2)));
+              latRate2.assign(length(g2Ref.sub(g1.mul(t2))));
+              latEta2.assign(
+                latRate2.div(max(length(g2Ref.add(g1.mul(t2))).mul(0.5), float(1e-6)))
+              );
+            });
           });
         });
       }).Else(() => {
@@ -692,18 +744,18 @@ export function buildColorNode(
         // that one carrier over only half a period; the residue sits at
         // carrier scale under a coarse fringe and is accepted.
         const cand = [
-          { g: g1, co: (s) => [s, 0, 0, 1], pen: weigh(1.0, 1.2, 1.0) },
-          { g: g2, co: (s) => [0, 1, s, 0], pen: weigh(1.0, 1.2, 1.0) },
-          { g: g1.add(g2), co: (s) => [s, -1, 0, 1], pen: weigh(1.3, 1.2, 1.0) },
-          { g: g1.sub(g2), co: (s) => [0, 1, s.negate(), 1], pen: weigh(1.3, 1.0, 1.3) },
-          { g: g1.mul(2).add(g2), co: (s) => [s, -1, s.negate(), 2], pen: weigh(4.0, 1.0, 1.3) },
-          { g: g1.add(g2.mul(2)), co: (s) => [s, -2, 0, 1], pen: weigh(4.0, 1.0, 1.3) },
-          { g: g1.mul(2), co: (s) => [s.mul(0.5), 0, 0, 1], pen: weigh(1.25, 1.15, 1.25) },
-          { g: g2.mul(2), co: (s) => [0, 1, s.mul(0.5), 0], pen: weigh(1.25, 1.15, 1.25) },
-          { g: g1.add(g2).mul(2), co: (s) => [s.mul(0.5), -1, 0, 1], pen: weigh(4.0, 1.15, 1.25) },
+          { g: g1, co: (s) => [s, 0, 0, 1], ab: [1, 0], pen: weigh(1.0, 1.2, 1.0) },
+          { g: g2, co: (s) => [0, 1, s, 0], ab: [0, 1], pen: weigh(1.0, 1.2, 1.0) },
+          { g: g1.add(g2), co: (s) => [s, -1, 0, 1], ab: [1, 1], pen: weigh(1.3, 1.2, 1.0) },
+          { g: g1.sub(g2), co: (s) => [0, 1, s.negate(), 1], ab: [1, -1], pen: weigh(1.3, 1.0, 1.3) },
+          { g: g1.mul(2).add(g2), co: (s) => [s, -1, s.negate(), 2], ab: [2, 1], pen: weigh(4.0, 1.0, 1.3) },
+          { g: g1.add(g2.mul(2)), co: (s) => [s, -2, 0, 1], ab: [1, 2], pen: weigh(4.0, 1.0, 1.3) },
+          { g: g1.mul(2), co: (s) => [s.mul(0.5), 0, 0, 1], ab: [2, 0], pen: weigh(1.25, 1.15, 1.25) },
+          { g: g2.mul(2), co: (s) => [0, 1, s.mul(0.5), 0], ab: [0, 2], pen: weigh(1.25, 1.15, 1.25) },
+          { g: g1.add(g2).mul(2), co: (s) => [s.mul(0.5), -1, 0, 1], ab: [2, 2], pen: weigh(4.0, 1.15, 1.25) },
         ];
         const best = float(1e6).toVar();
-        cand.forEach(({ g, co, pen }) => {
+        cand.forEach(({ g, co, ab, pen }) => {
           const ep = length(g.sub(gradA));
           const em = length(g.add(gradA));
           const e = min(ep, em).mul(pen);
@@ -715,6 +767,16 @@ export function buildColorNode(
             cv1.assign(c[1]);
             cu2.assign(c[2]);
             cv2.assign(c[3]);
+            // The character this combination beats in against the ranked
+            // partner, for the contour overlay: comb - s*xiA is the slow
+            // difference in the labeling the match chose.
+            If(view.latB.equal(int(index)), () => {
+              latVal1.assign(x1.mul(ab[0]).add(x2.mul(ab[1])).sub(xiA.mul(s)));
+              latRate1.assign(length(g.sub(gradA.mul(s))));
+              latEta1.assign(
+                latRate1.div(max(length(g.add(gradA.mul(s))).mul(0.5), float(1e-6)))
+              );
+            });
           });
         });
       });
@@ -866,20 +928,31 @@ export function buildColorNode(
     // skeleton annotates that view too; the colour is the paper accent in the
     // shader's linear working space (raw sRGB values here render neon).
     If(view.contours.greaterThan(0.5), () => {
-      const fd = beatVal.sub(round(beatVal)).abs();
-      const dpx = fd.div(max(beatRate, float(1e-6)));
-      const gate = step(float(1e-5), beatRate).mul(
-        float(1).sub(smoothstep(thr, thr.mul(2).add(0.1), eta))
-      );
       const w = view.contourW;
-      const stroke = float(1).sub(smoothstep(w.mul(0.6), w.mul(1.4).add(0.4), dpx));
-      // The widened companion: a soft fill in INDEX units, so its screen
-      // width is the actual fringe width — it expands exactly where the
-      // character runs flat, which is the artifact figure's band look.
-      const band = pow(max(float(1).sub(fd.div(0.28)), float(0)), 1.5)
-        .mul(view.contourBand);
-      const alpha = max(stroke.mul(0.85), band.mul(0.55)).mul(gate);
-      out.assign(mix(out, vec3(ACCENT_LINEAR.r, ACCENT_LINEAR.g, ACCENT_LINEAR.b), alpha));
+      const acc = float(0).toVar();
+      // One character's contribution: stroke at its integer levels plus the
+      // widened companion — a soft fill in INDEX units, so its screen width
+      // is the actual fringe width, expanding exactly where the character
+      // runs flat, which is the artifact figure's band look. A scalar stack
+      // draws the winning character of the pairwise scan; a lattice draws the
+      // characters its own generator matching decided (both of a twist
+      // pair's, one against a scalar partner) — a degenerate rate gates its
+      // character off, so only real beats draw.
+      const addChar = (val, rate, et) => {
+        const fd = val.sub(round(val)).abs();
+        const dpx = fd.div(max(rate, float(1e-6)));
+        const gate = step(float(1e-5), rate).mul(
+          float(1).sub(smoothstep(thr, thr.mul(2).add(0.1), et))
+        );
+        const stroke = float(1).sub(smoothstep(w.mul(0.6), w.mul(1.4).add(0.4), dpx));
+        const band = pow(max(float(1).sub(fd.div(0.28)), float(0)), 1.5)
+          .mul(view.contourBand);
+        acc.assign(max(acc, max(stroke.mul(0.85), band.mul(0.55)).mul(gate)));
+      };
+      addChar(beatVal, beatRate, eta);
+      addChar(latVal1, latRate1, latEta1);
+      addChar(latVal2, latRate2, latEta2);
+      out.assign(mix(out, vec3(ACCENT_LINEAR.r, ACCENT_LINEAR.g, ACCENT_LINEAR.b), acc));
     });
     return out;
   })();

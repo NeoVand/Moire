@@ -98,6 +98,15 @@ function envelopePair(layers: PatternLayer[]): [number, number] | null {
  * lattice alone the schedule just washes it to its own cell mean, which is the
  * correct envelope of a lattice with nothing to beat against.
  */
+/** The topmost visible lattice, or -1 — the one whose beat the contour
+ * overlay draws when a scalar partner is ranked. */
+function topGrid(layers: PatternLayer[]): number {
+  for (let i = Math.min(layers.length, MAX_LAYERS) - 1; i >= 0; i--) {
+    if (layers[i].visible && isGrid(layers[i].type)) return i;
+  }
+  return -1;
+}
+
 function latticePair(layers: PatternLayer[]): [number, number] | null {
   for (let i = Math.min(layers.length, MAX_LAYERS) - 1; i >= 0; i--) {
     if (layers[i].visible && !isGrid(layers[i].type)) return null;
@@ -360,6 +369,15 @@ export class MoireRenderer {
     // warm even with the ratio view off.
     const contoursOn = state.view.envelopeContours;
     const maskPair = envelope || contoursOn ? envelopePair(state.layers) : null;
+    // Lattice stacks carry their beats outside the scalar ranking, so the
+    // twist pair (and the topmost lattice against a scalar partner) must be
+    // resolved for the contour overlay too, not just for the envelope sweep.
+    const latPair = envelope || contoursOn ? latticePair(state.layers) : null;
+    const latB = latPair
+      ? latPair[1]
+      : (envelope || contoursOn) && (pair || maskPair)
+        ? topGrid(state.layers)
+        : -1;
     this.viewUniforms.taps.value = envelope
       ? Math.max(2, Math.round(state.view.envelopeTaps))
       : 1;
@@ -367,7 +385,7 @@ export class MoireRenderer {
     this.viewUniforms.contrast.value = envelope ? state.view.envelopeContrast : 1;
     this.viewUniforms.lift.value = envelope ? state.view.envelopeLift : 0;
     this.viewUniforms.envMask.value = envelope && maskPair ? state.view.envelopeMask : 0;
-    this.viewUniforms.contours.value = contoursOn && (pair || maskPair) ? 1 : 0;
+    this.viewUniforms.contours.value = contoursOn && (pair || maskPair || latPair) ? 1 : 0;
     this.viewUniforms.contourW.value = Math.max(0.4, state.view.contourWidth);
     this.viewUniforms.contourBand.value = state.view.contourBands;
     this.viewUniforms.pivot.value.copy(envelope ? envelopePivot(state) : scratch.set(0xffffff));
@@ -381,8 +399,8 @@ export class MoireRenderer {
     this.viewUniforms.ratioC.value = trio.length > 2 ? trio[2] : -1;
     this.viewUniforms.ratioBlend.value = state.view.ratioBlend;
     this.viewUniforms.ratioThreshold.value = state.view.ratioThreshold;
-    const latPair = envelope ? latticePair(state.layers) : null;
     this.viewUniforms.latA.value = latPair ? latPair[0] : -1;
+    this.viewUniforms.latB.value = latB;
 
     for (let i = 0; i < this.slots.length; i++) {
       writeLayerSlot(this.slots[i], state.layers[i]);
