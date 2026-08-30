@@ -171,7 +171,7 @@ function heightRange(): [number, number] {
 
 // ------------------------------------------------------------------ three
 const canvas = document.getElementById('view') as HTMLCanvasElement;
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(PAPER);
@@ -852,11 +852,12 @@ renderer.setAnimationLoop(() => renderer.render(scene, camera));
   paintBands();
   hardRefreshTextures();
 };
-(window as any).__renderPng = (w: number, h: number) => {
+(window as any).__renderPng = (w: number, h: number, transparent = false) => {
   clearTimeout(timer);
   floorDirty = bandsDirty = shapeDirty = true;
   hardRefreshTextures();
   apply();
+  scene.background = transparent ? null : new THREE.Color(PAPER);
   renderer.setPixelRatio(1);
   renderer.setSize(w, h, false);
   viewAspect = w / h;
@@ -864,6 +865,7 @@ renderer.setAnimationLoop(() => renderer.render(scene, camera));
   placeCamera();
   renderer.render(scene, camera);
   const url = canvas.toDataURL('image/png');
+  scene.background = new THREE.Color(PAPER);
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   resize();
   return url;

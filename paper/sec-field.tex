@@ -281,6 +281,10 @@ characters range over integer combinations of generators (supplemental \S S3).
 \begin{figure*}[t]
   \centering
   \begin{tikzpicture}
+    % the grey field is a separate layer behind the (transparent) render;
+    % shrink it by moving these two corners.
+    \fill[color={rgb,255:red,244;green,242;blue,238}]
+      (0,0) rectangle (\linewidth,0.39972\linewidth);
     \node[anchor=south west, inner sep=0] (img) at (0,0)
       {\includegraphics[width=\linewidth]{figures/charhills}};
     \begin{scope}[shift={(img.south west)},
@@ -288,24 +292,18 @@ characters range over integer combinations of generators (supplemental \S S3).
         y={($ (img.north west)-(img.south west) $)}]
       \tikzset{lab/.style={font=\footnotesize, inner sep=1pt}}
       \tikzset{lead/.style={-{Stealth[length=4.5pt]}, line width=0.55pt}}
-      \node[lab, text=ink, align=left, anchor=west] (gl) at (0.012,0.78)
+      \node[lab, text=ink, align=left, anchor=west] (gl) at (0.0114,0.8285)
         {the graph of\\$D=\idx_1-\idx_2$};
-      \draw[lead, ink!65] (gl.south) to[out=-75,in=125] (0.0909,0.55);
-      \node[lab, text=accent!88!ink, anchor=west] (cl) at (0.418,0.7875)
+      \draw[lead, ink!65] (gl.south) to[out=-69,in=132] (0.0905,0.607);
+      \node[lab, text=accent!88!ink, anchor=west] (cl) at (0.3873,0.8567)
         {contours at $D\in\Z$};
-      \draw[lead, accent!75] (cl.west) to[out=205,in=50] (0.352,0.6273);
-      \node[lab, text=ink!80, align=center, anchor=south] (wl) at (0.285,0.9118)
-        {steep:\\contours crowd};
-      \draw[lead, ink!60] (wl.south) to[out=-85,in=95] (0.276,0.5695);
-      \node[lab, text=ink!70, anchor=west] (rl) at (0.055,0.0578)
+      \draw[lead, accent!75] (cl.south) to[out=-155,in=90] (0.4113,0.6706);
+      \node[lab, text=ink!70, anchor=west] (rl) at (0.0586,0.0309)
         {two ring families};
-      \draw[lead, ink!55] (rl.east) to[out=10,in=205] (0.272,0.1291);
-      \node[lab, text=cool!90!ink, align=right, anchor=east] (sl) at (0.995,0.7563)
-        {the sum $\idx_1+\idx_2$:\\steep everywhere};
-      \draw[lead, cool!75] (sl.west) to[out=-155,in=75] (0.8543,0.6737);
-      \node[lab, text=cool!90!ink, align=left, anchor=west] (pl) at (0.552,0.8319)
-        {flat only between\\the centres};
-      \draw[lead, cool!75] (pl.south) to[out=-62,in=118] (0.752,0.4432);
+      \draw[lead, ink!55] (rl.east) to[out=10,in=205] (0.278,0.110);
+      \node[lab, text=cool!90!ink, anchor=east] (sl) at (0.9769,0.8754)
+        {the sum $\idx_1+\idx_2$};
+      \draw[lead, cool!75] (sl.south) to[out=-109,in=76] (0.8817,0.7531);
     \end{scope}
   \end{tikzpicture}
   \Description{Two orthographic 3D renders side by side. In each, a floor
@@ -315,10 +313,9 @@ characters range over integer combinations of generators (supplemental \S S3).
   graph of the index difference, a twisted sheet carrying broad crimson
   bands that widen where the sheet lies flat and crowd into a wall between
   the ring centres; labels read the graph of D, contours at integer D,
-  steep: contours crowd, and two ring families. Right: the same floor
-  under the graph of the index sum, a bowl covered in tightly crowded
-  blue rings with one bold flat bar between the centres; labels read the
-  sum: steep everywhere, and flat only between the centres.}
+  and two ring families. Right: the same floor under the graph of the
+  index sum, a bowl covered in tightly crowded blue rings with one bold
+  flat bar between the centres, labelled the sum.}
   \caption{\figlead{Characters as hills over the pattern.}
   Two identical ring families (floor); above them, the graph of an integer
   character of their indices, its integer levels drawn on the surface.
