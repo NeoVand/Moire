@@ -25,3 +25,8 @@ dist-ssr
 
 # Paper HTML build cache (tikz standalone compiles)
 paper/.build/tikz-html/
+
+# Build products (canonical PDF lives in paper/build/, which git already skips as untracked)
+paper/build/
+paper/paper.pdf
+paper/tools/fig4-artifact/dist.html
