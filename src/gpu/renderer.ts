@@ -102,6 +102,24 @@ function rankStack(layers: PatternLayer[]): StackRanking {
  */
 const FIELD_SETTLE_MS = 220;
 
+/**
+ * How many layer slots a stack needs compiled.
+ *
+ * The shader carries one solve per slot, and an inactive slot is NOT free:
+ * its branch still costs registers, and the lattice coordinates every slot
+ * contributes must be computed in uniform control flow, because their screen
+ * derivatives cannot live inside a branch. Twelve slots for a two-layer
+ * drawing measured 3.8x the per-pixel cost of two.
+ *
+ * So the material is compiled for the stack that exists, and the count keys a
+ * rebuild the same way a field expression does — debounced, holding the last
+ * frame. It counts layers PRESENT, not visible, so hiding a layer stays a
+ * uniform write and never rebuilds.
+ */
+function slotsNeeded(layers: PatternLayer[]): number {
+  return Math.min(Math.max(layers.length, 1), MAX_LAYERS);
+}
+
 const scratch = new THREE.Color();
 
 function envelopePivot(state: RendererSync): THREE.Color {
@@ -155,6 +173,8 @@ export class MoireRenderer {
   private building: Promise<void> | null = null;
   /** The expressions the live material was built for, one per slot. */
   private fieldSources: string[] = [];
+  /** How many slots the live material was built for. */
+  private slotCount = MAX_LAYERS;
   private lastState: RendererSync | null = null;
   private lastWidth = 0;
   private lastHeight = 0;
@@ -162,9 +182,12 @@ export class MoireRenderer {
 
   canvas: HTMLCanvasElement | null = null;
 
-  async mount(container: HTMLElement): Promise<void> {
+  async mount(container: HTMLElement, layerCount = MAX_LAYERS): Promise<void> {
     this.disposed = false;
     this.container = container;
+    // Compiled for the stack the app opens with, so the first material is
+    // already the right size and startup pays for no rebuild.
+    this.slotCount = Math.min(Math.max(layerCount, 1), MAX_LAYERS);
 
     const renderer = new THREE.WebGPURenderer({
       antialias: false,
@@ -256,8 +279,10 @@ export class MoireRenderer {
     material.colorNode = buildColorNode(
       this.cameraUniforms!,
       this.viewUniforms!,
-      this.slots,
-      this.fieldSources.map((source) => (source ? compileFieldCached(source) : null))
+      this.slots.slice(0, this.slotCount),
+      this.fieldSources
+        .slice(0, this.slotCount)
+        .map((source) => (source ? compileFieldCached(source) : null))
     );
     material.side = THREE.DoubleSide;
     material.toneMapped = false;
@@ -281,25 +306,42 @@ export class MoireRenderer {
   private watchFields() {
     const state = this.lastState;
     if (!state || !this.ready) return;
-    const settled = this.fieldSources.every(
+    const fieldsSettled = this.fieldSources.every(
       (source, i) => source === fieldSource(state.layers[i]?.field)
     );
+    const slotsSettled = this.slotCount === slotsNeeded(state.layers);
     if (this.fieldTimer) clearTimeout(this.fieldTimer);
-    this.fieldTimer = settled
-      ? 0
-      : window.setTimeout(() => {
-          this.fieldTimer = 0;
-          void this.rebuildFields();
-        }, FIELD_SETTLE_MS);
+    if (fieldsSettled && slotsSettled) {
+      this.fieldTimer = 0;
+      return;
+    }
+    // An expression waits to stand still, because it is being typed. A layer
+    // count is a click and has already stopped, so it rebuilds on the next
+    // frame — waiting out the field delay would leave a new layer invisible
+    // for a quarter second.
+    this.fieldTimer = window.setTimeout(
+      () => {
+        this.fieldTimer = 0;
+        void this.rebuildFields();
+      },
+      fieldsSettled ? 0 : FIELD_SETTLE_MS
+    );
   }
 
   private async rebuildFields() {
     const state = this.lastState;
     if (!this.ready || !this.renderer || !this.scene || !this.camera || !this.mesh || !state) return;
     const wanted = this.slots.map((_, i) => fieldSource(state.layers[i]?.field));
-    if (wanted.every((source, i) => source === this.fieldSources[i])) return;
+    const wantedSlots = slotsNeeded(state.layers);
+    if (
+      wantedSlots === this.slotCount &&
+      wanted.every((source, i) => source === this.fieldSources[i])
+    ) {
+      return;
+    }
 
     this.fieldSources = wanted;
+    this.slotCount = wantedSlots;
     const previous = this.material;
     const material = this.buildMaterial();
     this.material = material;

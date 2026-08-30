@@ -45,7 +45,7 @@ export function MoireStage() {
     gpuRef.current = gpu;
 
     void gpu
-      .mount(container)
+      .mount(container, useProjectStore.getState().layers.length)
       .then(() => {
         if (cancelled) {
           gpu.dispose();
