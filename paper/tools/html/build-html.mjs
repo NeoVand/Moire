@@ -372,21 +372,16 @@ function figureToHtml(inner, star, num, id) {
   const imgs = [...tex.matchAll(/\\includegraphics\[[^\]]*\]\{([^}]+)\}/g)].map((m) => m[1]);
 
   let bodyHtml = '';
-  // Two plots squeezed side by side render at mismatched scales and cramp
-  // their captions; on the page they stack, each at full column width.
+  // Plot panels sit side by side as one graphic, each cell growing with its
+  // picture's own bounding width so every axis renders at one shared scale.
   const allPlots = subs.length > 0 && subs.every((x) => x.img && x.img.includes('tikz-'));
-  if (allPlots) star = false;
   if (subs.length) {
     const letters = 'abcdefghij';
-    const cls = allPlots ? 'subcol' : 'subrow';
-    const maxPt = Math.max(...subs.map((x) => x.imgWidthPt || 0), 1);
+    const cls = allPlots ? 'subrow plots' : 'subrow';
     bodyHtml = `<div class="${cls}">${subs
       .map((s, i) => {
-        const style = allPlots
-          ? ` style="width:${((s.imgWidthPt / maxPt) * 88).toFixed(1)}%"`
-          : '';
-        const grow = allPlots ? '' : ` style="flex-grow:${s.width}"`;
-        return `<figure class="sub"${grow}>${s.img ? `<img${style} src="${s.img}" alt="">` : ''}<figcaption>(${letters[i]}) ${inline(s.caption)}</figcaption></figure>`;
+        const grow = allPlots ? s.imgWidthPt.toFixed(1) : s.width;
+        return `<figure class="sub" style="flex-grow:${grow}">${s.img ? `<img src="${s.img}" alt="">` : ''}<figcaption>(${letters[i]}) ${inline(s.caption)}</figcaption></figure>`;
       })
       .join('')}</div>`;
   }
@@ -1306,9 +1301,8 @@ figcaption {
 .subrow { display: flex; gap: 8px; align-items: flex-start; }
 .subrow figure.sub { margin: 0; flex: 1 1 0; min-width: 0; }
 .subrow figcaption { text-align: center; font-size: 0.78rem; color: var(--faint); padding-top: 0.45rem; }
-.subcol { display: flex; flex-direction: column; gap: 1.6rem; }
-.subcol figure.sub { margin: 0; }
-.subcol figcaption { font-size: 0.85rem; color: var(--ink-soft); padding-top: 0.5rem; max-width: 40rem; margin: 0 auto; }
+.subrow.plots { max-width: 62rem; margin: 0 auto; gap: 1.6rem; }
+.subrow.plots figcaption { text-align: left; font-size: 0.84rem; color: var(--ink-soft); padding-top: 0.55rem; }
 .panelrow {
   display: flex; font-size: 0.78rem; color: var(--faint);
   font-family: var(--mono); padding: 0.35rem 0 0.9rem;
@@ -1317,6 +1311,7 @@ figcaption {
 @media (max-width: 640px) {
   .subrow { flex-wrap: wrap; }
   .subrow figure.sub { flex-basis: 46%; }
+  .subrow.plots figure.sub { flex-basis: 100%; }
   .panelrow { font-size: 0.62rem; }
 }
 
