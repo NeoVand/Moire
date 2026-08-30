@@ -297,665 +297,703 @@ export function buildColorNode(
     const world = vec2(centered.x, centered.y.negate()).div(camera.zoom).add(camera.pan);
     const pixel = float(1).div(max(camera.zoom, float(0.08)));
 
-    // Solved once per layer, before the sweep. Everything the tap loop needs is in
-    // here, so a tap costs arithmetic rather than a search — and a hidden layer
-    // costs nothing, because the whole solve sits under the same branch that
-    // decides whether the layer draws at all.
-    const solved = slots.map((slot, index) => {
-      const local = vec2(0).toVar();
-      const halfT = float(0).toVar();
-      const aa = float(0).toVar();
-      const cell = vec4(0).toVar();
-      const shift = float(0).toVar();
-      const phase = vec4(0).toVar();
-      const phaseFrom = vec4(0).toVar();
-      const isLattice = slot.type.greaterThan(4.5).and(slot.type.lessThan(7.5));
+    const solved = solveLayers(slots, fields, view, world, pixel);
+    const scan = scanCharacters(view, solved);
+    const lattice = matchLattices(view, solved, scan);
+    const mean = sweepStack(camera, view, solved, lattice.coh, scan);
+    return grade(camera, view, mean, scan.eta, [
+      { val: scan.beatVal, rate: scan.beatRate, eta: scan.eta },
+      lattice.char1,
+      lattice.char2,
+    ]);
+  })();
+}
 
-      If(slot.active.greaterThan(0.5), () => {
-        const c = slot.rotation.cos();
-        const s = slot.rotation.sin();
-        local.assign(
-          vec2(
-            c.mul(world.x).add(s.mul(world.y)),
-            s.negate().mul(world.x).add(c.mul(world.y))
-          ).sub(slot.position)
-        );
+// Solved once per layer, before the sweep. Everything the tap loop needs is in
+// here, so a tap costs arithmetic rather than a search — and a hidden layer
+// costs nothing, because the whole solve sits under the same branch that
+// decides whether the layer draws at all.
+function solveLayers(slots, fields, view, world, pixel) {
+  return slots.map((slot, index) => {
+    const local = vec2(0).toVar();
+    const halfT = float(0).toVar();
+    const aa = float(0).toVar();
+    const cell = vec4(0).toVar();
+    const shift = float(0).toVar();
+    const phase = vec4(0).toVar();
+    const phaseFrom = vec4(0).toVar();
+    const isLattice = slot.type.greaterThan(4.5).and(slot.type.lessThan(7.5));
 
-        halfT.assign(max(slot.thickness.mul(0.5), pixel.mul(1.15)));
-        aa.assign(pixel.mul(0.7));
-        const accept = max(halfT.sub(aa), float(0));
-        // Past halfT + aa the stroke is fully transparent, so the ring solver is
-        // free to prove indices away instead of measuring them. Under the sweep the
-        // stroke visits every phase, and under the ratio view the index has to be
-        // differentiable between strokes, so both measure a whole pitch out.
-        const reject = max(
-          halfT.add(aa),
-          max(view.sweep, max(view.ratio, view.contours)).mul(slot.spacing)
-        );
+    If(slot.active.greaterThan(0.5), () => {
+      const c = slot.rotation.cos();
+      const s = slot.rotation.sin();
+      local.assign(
+        vec2(
+          c.mul(world.x).add(s.mul(world.y)),
+          s.negate().mul(world.x).add(c.mul(world.y))
+        ).sub(slot.position)
+      );
 
-        // A field is a displacement of the layer's *index*: `shift` many members,
-        // wherever you stand. That is the one description every family shares, and
-        // it is what makes the fringes against an unmodulated twin the level sets
-        // of the field. Each family then spends it in its own currency — phase for
-        // the level-set families, a rotation for the radial fan, a translation
-        // along a generator for the lattices.
-        //
-        // The expression is unrolled into this shader rather than interpreted from
-        // uniforms, so a layer with no field emits no field code at all — not a
-        // branch around it, nothing — and a layer with one pays for its own
-        // arithmetic and no dispatch.
-        const shiftGrad = vec2(0).toVar();
-        const program = fields[index];
-        if (program) {
-          const sample = fieldFunction(program, `moireField${index}`)(local, slot.fieldScale);
-          shift.assign(sample.x.mul(slot.fieldAmount));
-          shiftGrad.assign(vec2(sample.y, sample.z).mul(slot.fieldAmount));
-        }
-        const warp = shift.mul(slot.spacing);
-        const warpGrad = shiftGrad.mul(slot.spacing);
+      halfT.assign(max(slot.thickness.mul(0.5), pixel.mul(1.15)));
+      aa.assign(pixel.mul(0.7));
+      const accept = max(halfT.sub(aa), float(0));
+      // Past halfT + aa the stroke is fully transparent, so the ring solver is
+      // free to prove indices away instead of measuring them. Under the sweep the
+      // stroke visits every phase, and under the ratio view the index has to be
+      // differentiable between strokes, so both measure a whole pitch out.
+      const reject = max(
+        halfT.add(aa),
+        max(view.sweep, max(view.ratio, view.contours)).mul(slot.spacing)
+      );
 
-        cell.assign(
-          latticeCellWgsl(slot.type.sub(5), slot.spacing, slot.scale.x, slot.scale.y)
-        );
+      // A field is a displacement of the layer's *index*: `shift` many members,
+      // wherever you stand. That is the one description every family shares, and
+      // it is what makes the fringes against an unmodulated twin the level sets
+      // of the field. Each family then spends it in its own currency — phase for
+      // the level-set families, a rotation for the radial fan, a translation
+      // along a generator for the lattices.
+      //
+      // The expression is unrolled into this shader rather than interpreted from
+      // uniforms, so a layer with no field emits no field code at all — not a
+      // branch around it, nothing — and a layer with one pays for its own
+      // arithmetic and no dispatch.
+      const shiftGrad = vec2(0).toVar();
+      const program = fields[index];
+      if (program) {
+        const sample = fieldFunction(program, `moireField${index}`)(local, slot.fieldScale);
+        shift.assign(sample.x.mul(slot.fieldAmount));
+        shiftGrad.assign(vec2(sample.y, sample.z).mul(slot.fieldAmount));
+      }
+      const warp = shift.mul(slot.spacing);
+      const warpGrad = shiftGrad.mul(slot.spacing);
 
-        // A morph has two families in flight at once, so it needs both phases.
-        const phaseOf = (typeNode, out) => {
-          If(typeNode.lessThanEqual(0.1), () => {
+      cell.assign(
+        latticeCellWgsl(slot.type.sub(5), slot.spacing, slot.scale.x, slot.scale.y)
+      );
+
+      // A morph has two families in flight at once, so it needs both phases.
+      const phaseOf = (typeNode, out) => {
+        If(typeNode.lessThanEqual(0.1), () => {
+          out.assign(
+            linePhase(local, float(0), slot.spacing, slot.phase, slot.offset.x, warp, warpGrad)
+          );
+        }).Else(() => {
+          If(typeNode.lessThan(4.5), () => {
             out.assign(
-              linePhase(local, float(0), slot.spacing, slot.phase, slot.offset.x, warp, warpGrad)
+              ringPhase(
+                local,
+                slot.offset,
+                slot.rotationOffset,
+                slot.spacing,
+                slot.phase,
+                typeNode,
+                slot.sides,
+                accept,
+                reject,
+                warp,
+                warpGrad
+              )
             );
           }).Else(() => {
-            If(typeNode.lessThan(4.5), () => {
+            If(typeNode.lessThan(8.5), () => {
               out.assign(
-                ringPhase(
+                radialLinePhase(local, slot.lineCount, slot.phase, shift, shiftGrad)
+              );
+            }).Else(() => {
+              out.assign(
+                curvePhase(
                   local,
-                  slot.offset,
-                  slot.rotationOffset,
+                  typeNode.sub(9),
                   slot.spacing,
                   slot.phase,
-                  typeNode,
-                  slot.sides,
-                  accept,
-                  reject,
+                  slot.bend,
+                  slot.frequency,
                   warp,
                   warpGrad
                 )
               );
-            }).Else(() => {
-              If(typeNode.lessThan(8.5), () => {
-                out.assign(
-                  radialLinePhase(local, slot.lineCount, slot.phase, shift, shiftGrad)
-                );
-              }).Else(() => {
-                out.assign(
-                  curvePhase(
-                    local,
-                    typeNode.sub(9),
-                    slot.spacing,
-                    slot.phase,
-                    slot.bend,
-                    slot.frequency,
-                    warp,
-                    warpGrad
-                  )
-                );
-              });
             });
           });
-        };
-
-        // A lattice never reads the phase, and the solvers are the expensive part,
-        // so it does not pay for one.
-        If(isLattice.not(), () => {
-          phaseOf(slot.type, phase);
-          If(slot.morph.lessThan(0.999), () => phaseOf(slot.typeFrom, phaseFrom));
         });
-      });
+      };
 
-      return { slot, local, halfT, aa, isLattice, cell, shift, phase, phaseFrom };
-    });
-
-    // The heterodyne ratio of the two ranked layers, computed before the sweep
-    // because the sweep needs it. A visible moire is an integer combination
-    // kA*phiA + kB*phiB that varies slowly against the carriers, so each
-    // candidate character k gets eta_k = |kA gA + kB gB| / (|kA gA - kB gB| / 2)
-    // -- beat gradient over the mean gradient of the carriers in the labeling
-    // that brings them close -- and the criterion is the minimum over a small
-    // character set. (1,-1) and (1,1) are the classical difference and sum
-    // moires; the |k| = 2 pairs are the second-order beats, e.g. two line
-    // families near a 2:1 pitch ratio beating in 2*phi1 - phi2, which a
-    // first-order-only criterion declares "no fringe" while the fringe stands
-    // in the render. eta << 1 is the fringe regime; past 1/4 no fringe forms.
-    const xiA = float(0).toVar();
-    const xiB = float(0).toVar();
-    const xiC = float(0).toVar();
-    solved.forEach(({ phase }, index) => {
-      // Continuous index, modulo its integer part: signed residual over the
-      // local member gap, oriented at the neighbour with the smaller residual so
-      // the index counts the same way whichever family produced the trio.
-      const toward = min(phase.y, phase.z);
-      const xi = phase.x.div(max(phase.x.sub(toward), float(1e-6)));
-      If(view.ratioA.equal(int(index)), () => xiA.assign(xi));
-      If(view.ratioB.equal(int(index)), () => xiB.assign(xi));
-      If(view.ratioC.equal(int(index)), () => xiC.assign(xi));
-    });
-    // Screen-space index gradients. xi wraps by one whole unit where the nearest
-    // member changes; rounding the per-pixel delta away unwraps every unit
-    // boundary, sound while the carrier spans a couple of pixels. What survives
-    // the unwrap, the clamp turns into bright lines rather than garbage.
-    const unwrap = (v) => v.sub(round(v));
-    const gradA = vec2(unwrap(dFdx(xiA)), unwrap(dFdy(xiA)));
-    const gradB = vec2(unwrap(dFdx(xiB)), unwrap(dFdy(xiB)));
-    const gradC = vec2(unwrap(dFdx(xiC)), unwrap(dFdy(xiC)));
-    // Primitive characters with |k| <= 2, scanned over every pair among the
-    // three ranked layers. On K layers the superposition lives on T^K and the
-    // characters are k in Z^K; the diagonal sweep w = (1,...,1) preserves the
-    // whole zero-sum sublattice (k summing to zero) at once — every pairwise
-    // difference and every zero-sum ternary beat — so those need no schedule
-    // at all, and every unranked layer rides the diagonal. What needs a
-    // deviation is a winning character that is NOT zero-sum (a sum beat, a
-    // second-order beat): its pair takes the rates (wP, wQ) with
-    // kP wP + kQ wQ = 0 while everything else stays at 1. Scanning only one
-    // pair chose that deviation blind: a sum beat between the top two layers
-    // would scramble a slower difference beat the second layer makes with the
-    // THIRD — the fringe stood in the render and washed from the view. The
-    // scan now compares all three pairs and deviates only for the global
-    // winner. Higher orders exist classically but their fringes are fainter
-    // (the profile's harmonic content decays), so the scan stops where the
-    // eye does.
-    const CHARACTERS = [
-      [1, -1],
-      [1, 1],
-      [2, -1],
-      [2, 1],
-      [1, -2],
-      [1, 2],
-    ];
-    // Pairs beyond the first exist only when a third ranked layer does; an
-    // absent slot's candidates are pushed out of every comparison.
-    const validC = step(float(-0.5), float(view.ratioC));
-    const cGate = float(1).sub(validC).mul(1e5);
-    const PAIRS = [
-      { gP: gradA, gQ: gradB, xP: xiA, xQ: xiB, gate: float(0), who: 0 },
-      { gP: gradA, gQ: gradC, xP: xiA, xQ: xiC, gate: cGate, who: 1 },
-      { gP: gradB, gQ: gradC, xP: xiB, xQ: xiC, gate: cGate, who: 2 },
-    ];
-    const etaBest = float(1e6).toVar();
-    const pickBest = float(1e6).toVar();
-    const rateA = float(1).toVar();
-    const rateB = float(1).toVar();
-    const rateC = float(1).toVar();
-    // The winning character's beat phase and its per-pixel rate, for the
-    // contour overlay: level sets of the phase at integers are the fringe
-    // centres, and the rate turns a phase residual into screen pixels.
-    const beatVal = float(0).toVar();
-    const beatRate = float(0).toVar();
-    PAIRS.forEach(({ gP, gQ, xP, xQ, gate, who }) => {
-      CHARACTERS.forEach(([ka, kb]) => {
-        const beat = gP.mul(ka).add(gQ.mul(kb));
-        const carrier = gP.mul(ka).sub(gQ.mul(kb));
-        const e = length(beat)
-          .div(max(length(carrier).mul(0.5), float(1e-6)))
-          .add(gate);
-        const wP = Math.abs(kb);
-        const wQ = kb < 0 ? ka : -ka;
-        If(e.lessThan(etaBest), () => etaBest.assign(e));
-        // The heat map shows the true minimum, but the sweep-character choice
-        // penalises order two: a second-order fringe rides second harmonics,
-        // so its contrast is lower by roughly |cos(pi*duty)| and a near-tie
-        // should resolve toward the first-order beat -- also keeps the
-        // per-pixel choice from flickering between characters of comparable
-        // slowness. A zero-sum winner leaves every rate at 1, so ties among
-        // zero-sum characters cost nothing whichever way they fall.
-        const order2 = Math.max(Math.abs(ka), Math.abs(kb)) > 1;
-        const ep = order2 ? e.mul(1.5) : e;
-        const rA = who === 2 ? 1 : wP;
-        const rB = who === 0 ? wQ : who === 2 ? wP : 1;
-        const rC = who === 0 ? 1 : wQ;
-        If(ep.lessThan(pickBest), () => {
-          pickBest.assign(ep);
-          rateA.assign(rA);
-          rateB.assign(rB);
-          rateC.assign(rC);
-          beatVal.assign(xP.mul(ka).add(xQ.mul(kb)));
-          beatRate.assign(length(beat));
-        });
+      // A lattice never reads the phase, and the solvers are the expensive part,
+      // so it does not pay for one.
+      If(isLattice.not(), () => {
+        phaseOf(slot.type, phase);
+        If(slot.morph.lessThan(0.999), () => phaseOf(slot.typeFrom, phaseFrom));
       });
     });
-    // Zero-sum ternary characters — beats BETWEEN beats, like (1,1,-2) slow
-    // where 2/s3 = 1/s1 + 1/s2 and the three directions conspire. They join
-    // the scan for the heat map's sake; as zero-sum characters they already
-    // ride the diagonal, so a ternary winner asks for no rate deviation at
-    // all, and the same 1.5 penalty as order two keeps near-ties with a
-    // first-order pairwise beat resolving toward the stronger fringe.
-    const TERNARY = [
-      [1, 1, -2],
-      [1, -2, 1],
-      [-2, 1, 1],
-    ];
-    TERNARY.forEach(([ka, kb, kc]) => {
-      const beat = gradA.mul(ka).add(gradB.mul(kb)).add(gradC.mul(kc));
-      const carrier = max(
-        length(gradA).mul(Math.abs(ka)),
-        max(length(gradB).mul(Math.abs(kb)), length(gradC).mul(Math.abs(kc)))
-      );
+
+    return { slot, local, halfT, aa, isLattice, cell, shift, phase, phaseFrom };
+  });
+}
+
+// The heterodyne ratio of the two ranked layers, computed before the sweep
+// because the sweep needs it. A visible moire is an integer combination
+// kA*phiA + kB*phiB that varies slowly against the carriers, so each
+// candidate character k gets eta_k = |kA gA + kB gB| / (|kA gA - kB gB| / 2)
+// -- beat gradient over the mean gradient of the carriers in the labeling
+// that brings them close -- and the criterion is the minimum over a small
+// character set. (1,-1) and (1,1) are the classical difference and sum
+// moires; the |k| = 2 pairs are the second-order beats, e.g. two line
+// families near a 2:1 pitch ratio beating in 2*phi1 - phi2, which a
+// first-order-only criterion declares "no fringe" while the fringe stands
+// in the render. eta << 1 is the fringe regime; past 1/4 no fringe forms.
+function scanCharacters(view, solved) {
+  const xiA = float(0).toVar();
+  const xiB = float(0).toVar();
+  const xiC = float(0).toVar();
+  solved.forEach(({ phase }, index) => {
+    // Continuous index, modulo its integer part: signed residual over the
+    // local member gap, oriented at the neighbour with the smaller residual so
+    // the index counts the same way whichever family produced the trio.
+    const toward = min(phase.y, phase.z);
+    const xi = phase.x.div(max(phase.x.sub(toward), float(1e-6)));
+    If(view.ratioA.equal(int(index)), () => xiA.assign(xi));
+    If(view.ratioB.equal(int(index)), () => xiB.assign(xi));
+    If(view.ratioC.equal(int(index)), () => xiC.assign(xi));
+  });
+  // Screen-space index gradients. xi wraps by one whole unit where the nearest
+  // member changes; rounding the per-pixel delta away unwraps every unit
+  // boundary, sound while the carrier spans a couple of pixels. What survives
+  // the unwrap, the clamp turns into bright lines rather than garbage.
+  const unwrap = (v) => v.sub(round(v));
+  const gradA = vec2(unwrap(dFdx(xiA)), unwrap(dFdy(xiA)));
+  const gradB = vec2(unwrap(dFdx(xiB)), unwrap(dFdy(xiB)));
+  const gradC = vec2(unwrap(dFdx(xiC)), unwrap(dFdy(xiC)));
+  // Primitive characters with |k| <= 2, scanned over every pair among the
+  // three ranked layers. On K layers the superposition lives on T^K and the
+  // characters are k in Z^K; the diagonal sweep w = (1,...,1) preserves the
+  // whole zero-sum sublattice (k summing to zero) at once — every pairwise
+  // difference and every zero-sum ternary beat — so those need no schedule
+  // at all, and every unranked layer rides the diagonal. What needs a
+  // deviation is a winning character that is NOT zero-sum (a sum beat, a
+  // second-order beat): its pair takes the rates (wP, wQ) with
+  // kP wP + kQ wQ = 0 while everything else stays at 1. Scanning only one
+  // pair chose that deviation blind: a sum beat between the top two layers
+  // would scramble a slower difference beat the second layer makes with the
+  // THIRD — the fringe stood in the render and washed from the view. The
+  // scan now compares all three pairs and deviates only for the global
+  // winner. Higher orders exist classically but their fringes are fainter
+  // (the profile's harmonic content decays), so the scan stops where the
+  // eye does.
+  const CHARACTERS = [
+    [1, -1],
+    [1, 1],
+    [2, -1],
+    [2, 1],
+    [1, -2],
+    [1, 2],
+  ];
+  // Pairs beyond the first exist only when a third ranked layer does; an
+  // absent slot's candidates are pushed out of every comparison.
+  const validC = step(float(-0.5), float(view.ratioC));
+  const cGate = float(1).sub(validC).mul(1e5);
+  const PAIRS = [
+    { gP: gradA, gQ: gradB, xP: xiA, xQ: xiB, gate: float(0), who: 0 },
+    { gP: gradA, gQ: gradC, xP: xiA, xQ: xiC, gate: cGate, who: 1 },
+    { gP: gradB, gQ: gradC, xP: xiB, xQ: xiC, gate: cGate, who: 2 },
+  ];
+  const etaBest = float(1e6).toVar();
+  const pickBest = float(1e6).toVar();
+  const rateA = float(1).toVar();
+  const rateB = float(1).toVar();
+  const rateC = float(1).toVar();
+  // The winning character's beat phase and its per-pixel rate, for the
+  // contour overlay: level sets of the phase at integers are the fringe
+  // centres, and the rate turns a phase residual into screen pixels.
+  const beatVal = float(0).toVar();
+  const beatRate = float(0).toVar();
+  PAIRS.forEach(({ gP, gQ, xP, xQ, gate, who }) => {
+    CHARACTERS.forEach(([ka, kb]) => {
+      const beat = gP.mul(ka).add(gQ.mul(kb));
+      const carrier = gP.mul(ka).sub(gQ.mul(kb));
       const e = length(beat)
-        .div(max(carrier.mul(0.5), float(1e-6)))
-        .add(cGate);
+        .div(max(length(carrier).mul(0.5), float(1e-6)))
+        .add(gate);
+      const wP = Math.abs(kb);
+      const wQ = kb < 0 ? ka : -ka;
       If(e.lessThan(etaBest), () => etaBest.assign(e));
-      If(e.mul(1.5).lessThan(pickBest), () => {
-        pickBest.assign(e.mul(1.5));
-        rateA.assign(1);
-        rateB.assign(1);
-        rateC.assign(1);
-        beatVal.assign(xiA.mul(ka).add(xiB.mul(kb)).add(xiC.mul(kc)));
+      // The heat map shows the true minimum, but the sweep-character choice
+      // penalises order two: a second-order fringe rides second harmonics,
+      // so its contrast is lower by roughly |cos(pi*duty)| and a near-tie
+      // should resolve toward the first-order beat -- also keeps the
+      // per-pixel choice from flickering between characters of comparable
+      // slowness. A zero-sum winner leaves every rate at 1, so ties among
+      // zero-sum characters cost nothing whichever way they fall.
+      const order2 = Math.max(Math.abs(ka), Math.abs(kb)) > 1;
+      const ep = order2 ? e.mul(1.5) : e;
+      const rA = who === 2 ? 1 : wP;
+      const rB = who === 0 ? wQ : who === 2 ? wP : 1;
+      const rC = who === 0 ? 1 : wQ;
+      If(ep.lessThan(pickBest), () => {
+        pickBest.assign(ep);
+        rateA.assign(rA);
+        rateB.assign(rB);
+        rateC.assign(rC);
+        beatVal.assign(xP.mul(ka).add(xQ.mul(kb)));
         beatRate.assign(length(beat));
       });
     });
-    const eta = etaBest.clamp(0, 1);
-
-    // A lattice joins the sweep by translation — but along what, and stepped
-    // which way? Wrong either way and the beat its lines make with the rest of
-    // the stack averages out while the lattice's own carrier washes clean:
-    // fringes that are plainly in the pattern vanish from its envelope. The
-    // beating system is a per-pixel fact (a ring family's counting direction
-    // rotates around its centre, taking turns against each lattice direction),
-    // so it is chosen per pixel among the lattice's beat-capable index
-    // combinations. Which combinations those are is a property of where the
-    // lattice puts its ink: the candidates are the first three rings of the
-    // dual lattice — (1,0) (0,1) (1,1) (1,-1) (2,1) (1,2), and the doubled
-    // generators (2,0) (0,2) (2,2) — in generator coordinates.
-    // A square grid's line families are its first ring and its vertex
-    // diagonals the second, both inside the old four. A honeycomb is the
-    // trap: its hexagon walls of one orientation repeat at pitch (√3/2)s,
-    // and the dual vectors normal to the three wall families are (1,-1),
-    // (2,1), (1,2) — the SECOND ring. Match only first-ring combinations and
-    // the envelope schedules correctly in a third of the directions a partner
-    // gradient can point, washing the plainly visible wall beat everywhere
-    // else. Each candidate is weighted by the kind's ink placement (the
-    // honeycomb's fundamental is its second ring, a square grid has no ink at
-    // (2,1) at all), the weight multiplying the match error so near-ties
-    // resolve toward the family that actually carries contrast. Each
-    // combination's continuous index is linear in the layer point, so its
-    // screen gradient is exact; whichever combination, stepped forward or
-    // backward, best matches the ranked partner's index gradient is held
-    // coherent by the tap schedule below, and everything else is golden-ratio
-    // scrambled so the lattice never beats with itself: any self-hatch would
-    // need two combinations coherent at once, which no schedule provides.
-    //
-    // The schedules, as (generator-1, generator-2) offsets with g the golden
-    // scramble and su the signed sweep; each is the unimodular completion that
-    // sends its own combination to su and every other candidate to a nonzero
-    // multiple of g (or a mix), so exactly one character survives:
-    //   (1,0)   (su, g)          (0,1)   (g, su)
-    //   (1,1)   (su - g, g)      (1,-1)  (g, g - su)
-    //   (2,1)   (su - g, 2g - su)
-    //   (1,2)   (su - 2g, g)
-    //   (2,0)   (su/2, g)        (0,2)   (g, su/2)
-    //   (2,2)   (su/2 - g, g)
-    // Per-lattice generator index gradients, computed unconditionally so the
-    // screen-space derivatives stay in uniform control flow.
-    const latGrads = solved.map(({ cell, local, shift }) => {
-      // step keeps the guard non-zero at d = 0 (a non-lattice slot's empty
-      // cell), where sign() would return 0 and divide by zero.
-      const safe = (d) => step(0, d).mul(2).sub(1).mul(d.abs().max(1e-6));
-      const perp1 = vec2(cell.w.negate(), cell.z);
-      const perp2 = vec2(cell.y.negate(), cell.x);
-      const b1 = perp1.div(safe(cell.xy.dot(perp1)));
-      const b2 = perp2.div(safe(cell.zw.dot(perp2)));
-      // A lattice spends its field as a translation along generator 1 (the
-      // tap resample advances by uLat + shift), so the field belongs to the
-      // first generator's continuous index — without it, a field-warped grid
-      // against its unmodulated twin reads as no beat at all.
-      const xi1 = local.dot(b1).sub(shift);
-      const xi2 = local.dot(b2);
-      return {
-        x1: xi1,
-        x2: xi2,
-        g1: vec2(dFdx(xi1), dFdy(xi1)),
-        g2: vec2(dFdx(xi2), dFdy(xi2)),
-      };
-    });
-    // The reference lattice's generator gradients and continuous indices, for
-    // twist mode and its contour overlay.
-    const g1Ref = vec2(0).toVar();
-    const g2Ref = vec2(0).toVar();
-    const x1Ref = float(0).toVar();
-    const x2Ref = float(0).toVar();
-    solved.forEach((_, index) => {
-      If(view.latA.equal(int(index)), () => {
-        g1Ref.assign(latGrads[index].g1);
-        g2Ref.assign(latGrads[index].g2);
-        x1Ref.assign(latGrads[index].x1);
-        x2Ref.assign(latGrads[index].x2);
-      });
-    });
-    // The lattice beat characters the contour overlay draws, recorded where
-    // the sweep's own matching decides them. A slot with no lattice leaves the
-    // rates at zero, which the overlay's gate reads as "nothing to draw".
-    const latVal1 = float(0).toVar();
-    const latRate1 = float(0).toVar();
-    const latEta1 = float(0).toVar();
-    const latVal2 = float(0).toVar();
-    const latRate2 = float(0).toVar();
-    const latEta2 = float(0).toVar();
-
-    // Each lattice's tap schedule, as coefficients on (u, v): generator 1
-    // advances by cu1*u + cv1*v per tap, generator 2 by cu2*u + cv2*v.
-    //
-    // Twist mode (latA >= 0; no scalar layers visible): the reference lattice
-    // rides (u, v) directly, and every other lattice matches each of its
-    // generators, signed, to the reference's — matched generators then advance
-    // in lockstep across layers, so the twist pair's two slow characters
-    // (a1−b1 and a2−b2, in the matched labeling) are preserved exactly at
-    // every tap, while each lattice's own carrier, its self-beats, and the
-    // cross combinations all ride nonzero rates of u, v, or u−v and average
-    // away. This is the sweep-orthogonal-to-the-kept-characters rule with a
-    // rank-2 kept set: w = (1, γ, 1, γ) on the four-torus annihilates
-    // everything but the two matched differences.
-    //
-    // Scalar-partner mode (latA < 0): the classic per-pixel choice among the
-    // four beat-capable combinations — each generator, their sum, and their
-    // difference — matched forward or backward against the ranked partner's
-    // index gradient. The schedules, as (generator-1, generator-2) offsets
-    // with g the golden scramble and su the signed sweep:
-    //   gen1  (su, g)        — index 1 coherent, 2 scrambled
-    //   gen2  (g, su)        — index 2 coherent, 1 scrambled
-    //   sum   (g, su - g)    — indices 1, 2 each pure noise; 1+2 rides su
-    //   diff  (g, g - su)    — likewise, 1-2 rides su
-    const latCoh = solved.map(({ slot }, index) => {
-      const { g1, g2, x1, x2 } = latGrads[index];
-      const cu1 = float(1).toVar();
-      const cv1 = float(0).toVar();
-      const cu2 = float(0).toVar();
-      const cv2 = float(1).toVar();
-      If(view.latA.greaterThanEqual(int(0)), () => {
-        If(view.latA.equal(int(index)).not(), () => {
-          // Which generator, and which sign, matches the reference's first?
-          const e1p = length(g1.sub(g1Ref));
-          const e1m = length(g1.add(g1Ref));
-          const e2p = length(g2.sub(g1Ref));
-          const e2m = length(g2.add(g1Ref));
-          // step(a, b) = 1 where b >= a: forward when its error is not larger.
-          const s1 = step(e1p, e1m).mul(2).sub(1);
-          const s2 = step(e2p, e2m).mul(2).sub(1);
-          // The unmatched generator's sign against the reference's second.
-          const o1p = length(g2.sub(g2Ref));
-          const o1m = length(g2.add(g2Ref));
-          const o2p = length(g1.sub(g2Ref));
-          const o2m = length(g1.add(g2Ref));
-          const t1 = step(o1p, o1m).mul(2).sub(1);
-          const t2 = step(o2p, o2m).mul(2).sub(1);
-          If(min(e1p, e1m).lessThanEqual(min(e2p, e2m)), () => {
-            cu1.assign(s1);
-            cv1.assign(0);
-            cu2.assign(0);
-            cv2.assign(t1);
-            // The twist pair's slow characters, in this matched labeling, for
-            // the contour overlay: a1 - b1 and a2 - b2 with the matched signs.
-            If(view.latB.equal(int(index)), () => {
-              latVal1.assign(x1Ref.sub(x1.mul(s1)));
-              latRate1.assign(length(g1Ref.sub(g1.mul(s1))));
-              latEta1.assign(
-                latRate1.div(max(length(g1Ref.add(g1.mul(s1))).mul(0.5), float(1e-6)))
-              );
-              latVal2.assign(x2Ref.sub(x2.mul(t1)));
-              latRate2.assign(length(g2Ref.sub(g2.mul(t1))));
-              latEta2.assign(
-                latRate2.div(max(length(g2Ref.add(g2.mul(t1))).mul(0.5), float(1e-6)))
-              );
-            });
-          }).Else(() => {
-            cu1.assign(0);
-            cv1.assign(t2);
-            cu2.assign(s2);
-            cv2.assign(0);
-            If(view.latB.equal(int(index)), () => {
-              latVal1.assign(x1Ref.sub(x2.mul(s2)));
-              latRate1.assign(length(g1Ref.sub(g2.mul(s2))));
-              latEta1.assign(
-                latRate1.div(max(length(g1Ref.add(g2.mul(s2))).mul(0.5), float(1e-6)))
-              );
-              latVal2.assign(x2Ref.sub(x1.mul(t2)));
-              latRate2.assign(length(g2Ref.sub(g1.mul(t2))));
-              latEta2.assign(
-                latRate2.div(max(length(g2Ref.add(g1.mul(t2))).mul(0.5), float(1e-6)))
-              );
-            });
-          });
-        });
-      }).Else(() => {
-        // Ink-placement weights, selected by kind (square 5, hex 6,
-        // triangle 7): a weight of 1 marks the kind's fundamental families, a
-        // mild penalty its weaker-but-real harmonics, and 4 a combination the
-        // kind has no ink at, kept only so the candidate list stays uniform.
-        const t = slot.type;
-        const isSquare = float(1).sub(step(5.5, t));
-        const isHexK = step(5.5, t).mul(float(1).sub(step(6.5, t)));
-        const isTri = step(6.5, t);
-        const weigh = (sq, hx, tr) =>
-          isSquare.mul(sq).add(isHexK.mul(hx)).add(isTri.mul(tr));
-        // The third ring is the doubled generators — the honeycomb's vertex
-        // rows repeat at half the row pitch, and a thin-lined square grid is
-        // rich in each family's second harmonic, so (2,0)-type beats stand in
-        // the render (hex against rings: the ring-3 beat is nearly as slow as
-        // the wall beat and owns the sectors 30 degrees away). Holding a
-        // doubled combination puts the bare generator on u/2, which washes
-        // that one carrier over only half a period; the residue sits at
-        // carrier scale under a coarse fringe and is accepted.
-        const cand = [
-          { g: g1, co: (s) => [s, 0, 0, 1], ab: [1, 0], pen: weigh(1.0, 1.2, 1.0) },
-          { g: g2, co: (s) => [0, 1, s, 0], ab: [0, 1], pen: weigh(1.0, 1.2, 1.0) },
-          { g: g1.add(g2), co: (s) => [s, -1, 0, 1], ab: [1, 1], pen: weigh(1.3, 1.2, 1.0) },
-          { g: g1.sub(g2), co: (s) => [0, 1, s.negate(), 1], ab: [1, -1], pen: weigh(1.3, 1.0, 1.3) },
-          { g: g1.mul(2).add(g2), co: (s) => [s, -1, s.negate(), 2], ab: [2, 1], pen: weigh(4.0, 1.0, 1.3) },
-          { g: g1.add(g2.mul(2)), co: (s) => [s, -2, 0, 1], ab: [1, 2], pen: weigh(4.0, 1.0, 1.3) },
-          { g: g1.mul(2), co: (s) => [s.mul(0.5), 0, 0, 1], ab: [2, 0], pen: weigh(1.25, 1.15, 1.25) },
-          { g: g2.mul(2), co: (s) => [0, 1, s.mul(0.5), 0], ab: [0, 2], pen: weigh(1.25, 1.15, 1.25) },
-          { g: g1.add(g2).mul(2), co: (s) => [s.mul(0.5), -1, 0, 1], ab: [2, 2], pen: weigh(4.0, 1.15, 1.25) },
-        ];
-        const best = float(1e6).toVar();
-        cand.forEach(({ g, co, ab, pen }) => {
-          const ep = length(g.sub(gradA));
-          const em = length(g.add(gradA));
-          const e = min(ep, em).mul(pen);
-          If(e.lessThan(best), () => {
-            best.assign(e);
-            const s = step(ep, em).mul(2).sub(1);
-            const c = co(s);
-            cu1.assign(c[0]);
-            cv1.assign(c[1]);
-            cu2.assign(c[2]);
-            cv2.assign(c[3]);
-            // The character this combination beats in against the ranked
-            // partner, for the contour overlay: comb - s*xiA is the slow
-            // difference in the labeling the match chose.
-            If(view.latB.equal(int(index)), () => {
-              latVal1.assign(x1.mul(ab[0]).add(x2.mul(ab[1])).sub(xiA.mul(s)));
-              latRate1.assign(length(g.sub(gradA.mul(s))));
-              latEta1.assign(
-                latRate1.div(max(length(g.add(gradA.mul(s))).mul(0.5), float(1e-6)))
-              );
-            });
-          });
-        });
-      });
-      return { cu1, cv1, cu2, cv2 };
-    });
-
-    const sum = vec3(0).toVar();
-    Loop(view.taps, ({ i }) => {
-      // Centred on zero so that a single tap is the pattern itself, and so that
-      // the trio of members brackets every phase the sweep visits.
-      const along = float(i).add(0.5).div(float(view.taps));
-      const u = along.sub(0.5).mul(view.sweep);
-
-      // The scrambled generator's offsets: a rank-1 golden-ratio rule over the
-      // taps, quasi-uniform over the cell whichever parity or count the taps
-      // have. Which generator it scrambles is the per-pixel choice above.
-      const v = float(i).mul(GOLDEN).fract().sub(0.5).mul(view.sweep);
-
-      const color = camera.background.toVar();
-      solved.forEach(({ slot, local, halfT, aa, isLattice, cell, shift, phase, phaseFrom }, index) => {
-        If(slot.active.greaterThan(0.5), () => {
-          // The ranked layers advance at the integer rates that hold the
-          // winning character fixed while everything else averages out;
-          // unranked layers ride the diagonal, which alone preserves every
-          // zero-sum character among them. All rates 1 is the plain diagonal,
-          // (1, -1) the backwards sweep for a sum beat, (1, 2) and friends
-          // the second-order schedules — always on the winning pair only.
-          const rate = float(1).toVar();
-          If(view.ratioA.equal(int(index)), () => rate.assign(rateA));
-          If(view.ratioB.equal(int(index)), () => rate.assign(rateB));
-          If(view.ratioC.equal(int(index)), () => rate.assign(rateC));
-          const strokeAlpha = (d) =>
-            float(1).sub(smoothstep(halfT.sub(aa), halfT.add(aa), d)).mul(slot.opacity);
-
-          const alpha = float(0).toVar();
-          If(isLattice, () => {
-            // A lattice has no scalar phase to slide, so it resamples: each
-            // generator is a translation, and stepping along one is exactly one step
-            // of the index it counts. The field rides in on the first of them.
-            // The schedule is the per-pixel coefficient choice above.
-            const uLat = u.mul(latCoh[index].cu1).add(v.mul(latCoh[index].cv1));
-            const vLat = u.mul(latCoh[index].cu2).add(v.mul(latCoh[index].cv2));
-            const shifted = local.sub(cell.xy.mul(uLat.add(shift))).sub(cell.zw.mul(vLat));
-            // Both lookups sit behind what asks for them: a lattice resample is the
-            // most expensive thing a tap can do, and the sweep does it two dozen
-            // times over.
-            const kind = slot.type.sub(5);
-            const ink = float(0).toVar();
-            If(slot.drawEdges.greaterThan(0.5), () => {
-              const edgeD = gridDistance(
-                shifted,
-                kind,
-                slot.spacing,
-                float(0),
-                slot.scale.x,
-                slot.scale.y
-              );
-              ink.assign(float(1).sub(smoothstep(halfT.sub(aa), halfT.add(aa), edgeD)));
-            });
-            If(slot.vertexSize.greaterThan(0.001), () => {
-              const vertD = gridDistance(
-                shifted,
-                kind,
-                slot.spacing,
-                float(1),
-                slot.scale.x,
-                slot.scale.y
-              );
-              const vR = slot.vertexSize;
-              ink.assign(
-                max(ink, float(1).sub(smoothstep(max(vR.sub(aa), float(0)), vR.add(aa), vertD)))
-              );
-            });
-            alpha.assign(ink.mul(slot.opacity));
-          }).Else(() => {
-            // One local period per unit of `u`, so the sweep covers exactly one
-            // carrier cycle whatever the family's pitch happens to be here. A
-            // |rate| of 2 advances up to a full local period, past the trio the
-            // solve bracketed, so the offset wraps back into the half-period the
-            // trio covers -- exact for the phase families, whose residual is
-            // periodic in the gap, and first-order elsewhere, like the slide
-            // itself. At |rate| = 1 the wrap never engages.
-            const slide = (ph) => {
-              const gap = max(ph.y.sub(ph.x).abs(), float(1e-6));
-              const off = u.mul(rate).mul(gap);
-              const wrapped = off.sub(round(off.div(gap)).mul(gap));
-              return phaseDistWgsl(ph, wrapped);
-            };
-            If(slot.morph.greaterThan(0.999), () => {
-              alpha.assign(strokeAlpha(slide(phase)));
-            }).Else(() => {
-              alpha.assign(
-                strokeAlpha(mix(slide(phaseFrom), slide(phase), slot.morph))
-              );
-            });
-          });
-          color.assign(mix(color, slot.color, alpha.clamp(0, 1)));
-        });
-      });
-      sum.addAssign(color);
-    });
-
-    // Ink for the fringe regime, paper for failure, with a soft step at the
-    // marked threshold so the boundary reads without a legend. 1/4 is the
-    // theory's line; the uniform lets an author read the map's gradations.
-    const thr = max(view.ratioThreshold, float(0.02));
-    const heat = mix(
-      vec3(0.07, 0.075, 0.09),
-      camera.background,
-      smoothstep(float(0), thr, eta)
-        .mul(0.45)
-        .add(smoothstep(thr.sub(0.02), thr.add(0.02), eta).mul(0.2))
-        .add(smoothstep(thr, float(1), eta).mul(0.35))
+  });
+  // Zero-sum ternary characters — beats BETWEEN beats, like (1,1,-2) slow
+  // where 2/s3 = 1/s1 + 1/s2 and the three directions conspire. They join
+  // the scan for the heat map's sake; as zero-sum characters they already
+  // ride the diagonal, so a ternary winner asks for no rate deviation at
+  // all, and the same 1.5 penalty as order two keeps near-ties with a
+  // first-order pairwise beat resolving toward the stronger fringe.
+  const TERNARY = [
+    [1, 1, -2],
+    [1, -2, 1],
+    [-2, 1, 1],
+  ];
+  TERNARY.forEach(([ka, kb, kc]) => {
+    const beat = gradA.mul(ka).add(gradB.mul(kb)).add(gradC.mul(kc));
+    const carrier = max(
+      length(gradA).mul(Math.abs(ka)),
+      max(length(gradB).mul(Math.abs(kb)), length(gradC).mul(Math.abs(kc)))
     );
-
-    // Contrast expands about the stack's nominal mean coverage, so the pivot does
-    // not drift as the fringes move. At contrast 1 this returns the average
-    // untouched, and with one tap and no sweep that is the render itself.
-    const mean = sum.div(float(view.taps));
-    const out = mix(view.pivot, mean, view.contrast).add(view.lift).clamp(0, 1).toVar();
-    // The regime mask, for the envelope: outside the fringe regime Phi(D) is a
-    // carrier-fine stripe field that reads as a failed average, so fade it to
-    // the pivot there. The eta of the two ranked layers is already in hand; with
-    // no eligible pair the uniforms sit at -1 and the mask never engages.
-    If(
-      view.envMask
-        .greaterThan(0.001)
-        .and(view.ratio.lessThan(0.5))
-        .and(view.ratioA.greaterThanEqual(int(0)))
-        .and(view.ratioB.greaterThanEqual(int(0))),
-      () => {
-        // The band tracks the same threshold uniform the heat map marks, so
-        // moving the Threshold slider moves both boundaries together.
-        const fade = smoothstep(thr.sub(0.03), thr.add(0.05), eta).mul(view.envMask);
-        out.assign(mix(out, view.pivot.add(view.lift).clamp(0, 1), fade));
-      }
-    );
-    // At blend 1 the map replaces the picture; below it the map reads over the
-    // drawing, so an author sees where on the picture fringes will live.
-    If(view.ratio.greaterThan(0.5), () => out.assign(mix(out, heat, view.ratioBlend.clamp(0, 1))));
-    // Fringe contours: the winning character's beat phase crosses an integer
-    // exactly at each fringe centre, so its level sets, one pixel wide, are
-    // the skeleton of the moiré — the same curves the character-hills figure
-    // lifts onto its surfaces. The phase residual over the beat rate is a
-    // screen-space distance, so the stroke holds one width at any zoom, and
-    // the overlay fades out of the fringe regime with the same threshold the
-    // heat map marks: where the beat runs at carrier scale the level sets are
-    // the carrier, not a fringe skeleton. Drawn after the heat map so the
-    // skeleton annotates that view too; the colour is the paper accent in the
-    // shader's linear working space (raw sRGB values here render neon).
-    If(view.contours.greaterThan(0.5), () => {
-      const w = view.contourW;
-      const acc = float(0).toVar();
-      // One character's contribution: stroke at its integer levels plus the
-      // widened companion — a soft fill in INDEX units, so its screen width
-      // is the actual fringe width, expanding exactly where the character
-      // runs flat, which is the artifact figure's band look. A scalar stack
-      // draws the winning character of the pairwise scan; a lattice draws the
-      // characters its own generator matching decided (both of a twist
-      // pair's, one against a scalar partner) — a degenerate rate gates its
-      // character off, so only real beats draw.
-      const addChar = (val, rate, et) => {
-        const fd = val.sub(round(val)).abs();
-        const dpx = fd.div(max(rate, float(1e-6)));
-        const gate = step(float(1e-5), rate).mul(
-          float(1).sub(smoothstep(thr, thr.mul(2).add(0.1), et))
-        );
-        const stroke = float(1).sub(smoothstep(w.mul(0.6), w.mul(1.4).add(0.4), dpx));
-        const band = pow(max(float(1).sub(fd.div(0.28)), float(0)), 1.5)
-          .mul(view.contourBand);
-        acc.assign(max(acc, max(stroke.mul(0.85), band.mul(0.55)).mul(gate)));
-      };
-      addChar(beatVal, beatRate, eta);
-      addChar(latVal1, latRate1, latEta1);
-      addChar(latVal2, latRate2, latEta2);
-      out.assign(mix(out, vec3(ACCENT_LINEAR.r, ACCENT_LINEAR.g, ACCENT_LINEAR.b), acc));
+    const e = length(beat)
+      .div(max(carrier.mul(0.5), float(1e-6)))
+      .add(cGate);
+    If(e.lessThan(etaBest), () => etaBest.assign(e));
+    If(e.mul(1.5).lessThan(pickBest), () => {
+      pickBest.assign(e.mul(1.5));
+      rateA.assign(1);
+      rateB.assign(1);
+      rateC.assign(1);
+      beatVal.assign(xiA.mul(ka).add(xiB.mul(kb)).add(xiC.mul(kc)));
+      beatRate.assign(length(beat));
     });
-    return out;
-  })();
+  });
+  const eta = etaBest.clamp(0, 1);
+  return { xiA, gradA, eta, rateA, rateB, rateC, beatVal, beatRate };
+}
+
+// A lattice joins the sweep by translation — but along what, and stepped
+// which way? Wrong either way and the beat its lines make with the rest of
+// the stack averages out while the lattice's own carrier washes clean:
+// fringes that are plainly in the pattern vanish from its envelope. The
+// beating system is a per-pixel fact (a ring family's counting direction
+// rotates around its centre, taking turns against each lattice direction),
+// so it is chosen per pixel among the lattice's beat-capable index
+// combinations. Which combinations those are is a property of where the
+// lattice puts its ink: the candidates are the first three rings of the
+// dual lattice — (1,0) (0,1) (1,1) (1,-1) (2,1) (1,2), and the doubled
+// generators (2,0) (0,2) (2,2) — in generator coordinates.
+// A square grid's line families are its first ring and its vertex
+// diagonals the second, both inside the old four. A honeycomb is the
+// trap: its hexagon walls of one orientation repeat at pitch (√3/2)s,
+// and the dual vectors normal to the three wall families are (1,-1),
+// (2,1), (1,2) — the SECOND ring. Match only first-ring combinations and
+// the envelope schedules correctly in a third of the directions a partner
+// gradient can point, washing the plainly visible wall beat everywhere
+// else. Each candidate is weighted by the kind's ink placement (the
+// honeycomb's fundamental is its second ring, a square grid has no ink at
+// (2,1) at all), the weight multiplying the match error so near-ties
+// resolve toward the family that actually carries contrast. Each
+// combination's continuous index is linear in the layer point, so its
+// screen gradient is exact; whichever combination, stepped forward or
+// backward, best matches the ranked partner's index gradient is held
+// coherent by the tap schedule below, and everything else is golden-ratio
+// scrambled so the lattice never beats with itself: any self-hatch would
+// need two combinations coherent at once, which no schedule provides.
+//
+// The schedules, as (generator-1, generator-2) offsets with g the golden
+// scramble and su the signed sweep; each is the unimodular completion that
+// sends its own combination to su and every other candidate to a nonzero
+// multiple of g (or a mix), so exactly one character survives:
+//   (1,0)   (su, g)          (0,1)   (g, su)
+//   (1,1)   (su - g, g)      (1,-1)  (g, g - su)
+//   (2,1)   (su - g, 2g - su)
+//   (1,2)   (su - 2g, g)
+//   (2,0)   (su/2, g)        (0,2)   (g, su/2)
+//   (2,2)   (su/2 - g, g)
+function matchLattices(view, solved, scan) {
+  const { gradA, xiA } = scan;
+  // Per-lattice generator index gradients, computed unconditionally so the
+  // screen-space derivatives stay in uniform control flow.
+  const latGrads = solved.map(({ cell, local, shift }) => {
+    // step keeps the guard non-zero at d = 0 (a non-lattice slot's empty
+    // cell), where sign() would return 0 and divide by zero.
+    const safe = (d) => step(0, d).mul(2).sub(1).mul(d.abs().max(1e-6));
+    const perp1 = vec2(cell.w.negate(), cell.z);
+    const perp2 = vec2(cell.y.negate(), cell.x);
+    const b1 = perp1.div(safe(cell.xy.dot(perp1)));
+    const b2 = perp2.div(safe(cell.zw.dot(perp2)));
+    // A lattice spends its field as a translation along generator 1 (the
+    // tap resample advances by uLat + shift), so the field belongs to the
+    // first generator's continuous index — without it, a field-warped grid
+    // against its unmodulated twin reads as no beat at all.
+    const xi1 = local.dot(b1).sub(shift);
+    const xi2 = local.dot(b2);
+    return {
+      x1: xi1,
+      x2: xi2,
+      g1: vec2(dFdx(xi1), dFdy(xi1)),
+      g2: vec2(dFdx(xi2), dFdy(xi2)),
+    };
+  });
+  // The reference lattice's generator gradients and continuous indices, for
+  // twist mode and its contour overlay.
+  const g1Ref = vec2(0).toVar();
+  const g2Ref = vec2(0).toVar();
+  const x1Ref = float(0).toVar();
+  const x2Ref = float(0).toVar();
+  solved.forEach((_, index) => {
+    If(view.latA.equal(int(index)), () => {
+      g1Ref.assign(latGrads[index].g1);
+      g2Ref.assign(latGrads[index].g2);
+      x1Ref.assign(latGrads[index].x1);
+      x2Ref.assign(latGrads[index].x2);
+    });
+  });
+  // The lattice beat characters the contour overlay draws, recorded where
+  // the sweep's own matching decides them. A slot with no lattice leaves the
+  // rates at zero, which the overlay's gate reads as "nothing to draw".
+  const latVal1 = float(0).toVar();
+  const latRate1 = float(0).toVar();
+  const latEta1 = float(0).toVar();
+  const latVal2 = float(0).toVar();
+  const latRate2 = float(0).toVar();
+  const latEta2 = float(0).toVar();
+
+  // Each lattice's tap schedule, as coefficients on (u, v): generator 1
+  // advances by cu1*u + cv1*v per tap, generator 2 by cu2*u + cv2*v.
+  //
+  // Twist mode (latA >= 0; no scalar layers visible): the reference lattice
+  // rides (u, v) directly, and every other lattice matches each of its
+  // generators, signed, to the reference's — matched generators then advance
+  // in lockstep across layers, so the twist pair's two slow characters
+  // (a1−b1 and a2−b2, in the matched labeling) are preserved exactly at
+  // every tap, while each lattice's own carrier, its self-beats, and the
+  // cross combinations all ride nonzero rates of u, v, or u−v and average
+  // away. This is the sweep-orthogonal-to-the-kept-characters rule with a
+  // rank-2 kept set: w = (1, γ, 1, γ) on the four-torus annihilates
+  // everything but the two matched differences.
+  //
+  // Scalar-partner mode (latA < 0): the classic per-pixel choice among the
+  // four beat-capable combinations — each generator, their sum, and their
+  // difference — matched forward or backward against the ranked partner's
+  // index gradient. The schedules, as (generator-1, generator-2) offsets
+  // with g the golden scramble and su the signed sweep:
+  //   gen1  (su, g)        — index 1 coherent, 2 scrambled
+  //   gen2  (g, su)        — index 2 coherent, 1 scrambled
+  //   sum   (g, su - g)    — indices 1, 2 each pure noise; 1+2 rides su
+  //   diff  (g, g - su)    — likewise, 1-2 rides su
+  const latCoh = solved.map(({ slot }, index) => {
+    const { g1, g2, x1, x2 } = latGrads[index];
+    const cu1 = float(1).toVar();
+    const cv1 = float(0).toVar();
+    const cu2 = float(0).toVar();
+    const cv2 = float(1).toVar();
+    If(view.latA.greaterThanEqual(int(0)), () => {
+      If(view.latA.equal(int(index)).not(), () => {
+        // Which generator, and which sign, matches the reference's first?
+        const e1p = length(g1.sub(g1Ref));
+        const e1m = length(g1.add(g1Ref));
+        const e2p = length(g2.sub(g1Ref));
+        const e2m = length(g2.add(g1Ref));
+        // step(a, b) = 1 where b >= a: forward when its error is not larger.
+        const s1 = step(e1p, e1m).mul(2).sub(1);
+        const s2 = step(e2p, e2m).mul(2).sub(1);
+        // The unmatched generator's sign against the reference's second.
+        const o1p = length(g2.sub(g2Ref));
+        const o1m = length(g2.add(g2Ref));
+        const o2p = length(g1.sub(g2Ref));
+        const o2m = length(g1.add(g2Ref));
+        const t1 = step(o1p, o1m).mul(2).sub(1);
+        const t2 = step(o2p, o2m).mul(2).sub(1);
+        If(min(e1p, e1m).lessThanEqual(min(e2p, e2m)), () => {
+          cu1.assign(s1);
+          cv1.assign(0);
+          cu2.assign(0);
+          cv2.assign(t1);
+          // The twist pair's slow characters, in this matched labeling, for
+          // the contour overlay: a1 - b1 and a2 - b2 with the matched signs.
+          If(view.latB.equal(int(index)), () => {
+            latVal1.assign(x1Ref.sub(x1.mul(s1)));
+            latRate1.assign(length(g1Ref.sub(g1.mul(s1))));
+            latEta1.assign(
+              latRate1.div(max(length(g1Ref.add(g1.mul(s1))).mul(0.5), float(1e-6)))
+            );
+            latVal2.assign(x2Ref.sub(x2.mul(t1)));
+            latRate2.assign(length(g2Ref.sub(g2.mul(t1))));
+            latEta2.assign(
+              latRate2.div(max(length(g2Ref.add(g2.mul(t1))).mul(0.5), float(1e-6)))
+            );
+          });
+        }).Else(() => {
+          cu1.assign(0);
+          cv1.assign(t2);
+          cu2.assign(s2);
+          cv2.assign(0);
+          If(view.latB.equal(int(index)), () => {
+            latVal1.assign(x1Ref.sub(x2.mul(s2)));
+            latRate1.assign(length(g1Ref.sub(g2.mul(s2))));
+            latEta1.assign(
+              latRate1.div(max(length(g1Ref.add(g2.mul(s2))).mul(0.5), float(1e-6)))
+            );
+            latVal2.assign(x2Ref.sub(x1.mul(t2)));
+            latRate2.assign(length(g2Ref.sub(g1.mul(t2))));
+            latEta2.assign(
+              latRate2.div(max(length(g2Ref.add(g1.mul(t2))).mul(0.5), float(1e-6)))
+            );
+          });
+        });
+      });
+    }).Else(() => {
+      // Ink-placement weights, selected by kind (square 5, hex 6,
+      // triangle 7): a weight of 1 marks the kind's fundamental families, a
+      // mild penalty its weaker-but-real harmonics, and 4 a combination the
+      // kind has no ink at, kept only so the candidate list stays uniform.
+      const t = slot.type;
+      const isSquare = float(1).sub(step(5.5, t));
+      const isHexK = step(5.5, t).mul(float(1).sub(step(6.5, t)));
+      const isTri = step(6.5, t);
+      const weigh = (sq, hx, tr) =>
+        isSquare.mul(sq).add(isHexK.mul(hx)).add(isTri.mul(tr));
+      // The third ring is the doubled generators — the honeycomb's vertex
+      // rows repeat at half the row pitch, and a thin-lined square grid is
+      // rich in each family's second harmonic, so (2,0)-type beats stand in
+      // the render (hex against rings: the ring-3 beat is nearly as slow as
+      // the wall beat and owns the sectors 30 degrees away). Holding a
+      // doubled combination puts the bare generator on u/2, which washes
+      // that one carrier over only half a period; the residue sits at
+      // carrier scale under a coarse fringe and is accepted.
+      const cand = [
+        { g: g1, co: (s) => [s, 0, 0, 1], ab: [1, 0], pen: weigh(1.0, 1.2, 1.0) },
+        { g: g2, co: (s) => [0, 1, s, 0], ab: [0, 1], pen: weigh(1.0, 1.2, 1.0) },
+        { g: g1.add(g2), co: (s) => [s, -1, 0, 1], ab: [1, 1], pen: weigh(1.3, 1.2, 1.0) },
+        { g: g1.sub(g2), co: (s) => [0, 1, s.negate(), 1], ab: [1, -1], pen: weigh(1.3, 1.0, 1.3) },
+        { g: g1.mul(2).add(g2), co: (s) => [s, -1, s.negate(), 2], ab: [2, 1], pen: weigh(4.0, 1.0, 1.3) },
+        { g: g1.add(g2.mul(2)), co: (s) => [s, -2, 0, 1], ab: [1, 2], pen: weigh(4.0, 1.0, 1.3) },
+        { g: g1.mul(2), co: (s) => [s.mul(0.5), 0, 0, 1], ab: [2, 0], pen: weigh(1.25, 1.15, 1.25) },
+        { g: g2.mul(2), co: (s) => [0, 1, s.mul(0.5), 0], ab: [0, 2], pen: weigh(1.25, 1.15, 1.25) },
+        { g: g1.add(g2).mul(2), co: (s) => [s.mul(0.5), -1, 0, 1], ab: [2, 2], pen: weigh(4.0, 1.15, 1.25) },
+      ];
+      const best = float(1e6).toVar();
+      cand.forEach(({ g, co, ab, pen }) => {
+        const ep = length(g.sub(gradA));
+        const em = length(g.add(gradA));
+        const e = min(ep, em).mul(pen);
+        If(e.lessThan(best), () => {
+          best.assign(e);
+          const s = step(ep, em).mul(2).sub(1);
+          const c = co(s);
+          cu1.assign(c[0]);
+          cv1.assign(c[1]);
+          cu2.assign(c[2]);
+          cv2.assign(c[3]);
+          // The character this combination beats in against the ranked
+          // partner, for the contour overlay: comb - s*xiA is the slow
+          // difference in the labeling the match chose.
+          If(view.latB.equal(int(index)), () => {
+            latVal1.assign(x1.mul(ab[0]).add(x2.mul(ab[1])).sub(xiA.mul(s)));
+            latRate1.assign(length(g.sub(gradA.mul(s))));
+            latEta1.assign(
+              latRate1.div(max(length(g.add(gradA.mul(s))).mul(0.5), float(1e-6)))
+            );
+          });
+        });
+      });
+    });
+    return { cu1, cv1, cu2, cv2 };
+  });
+  return {
+    coh: latCoh,
+    char1: { val: latVal1, rate: latRate1, eta: latEta1 },
+    char2: { val: latVal2, rate: latRate2, eta: latEta2 },
+  };
+}
+
+/**
+ * The tap loop: the whole stack composited once per tap, each layer
+ * advanced by its schedule — scalars slide their solved phase at the
+ * scan's rates, lattices resample along the matched combination — and the
+ * taps averaged into the mean the envelope grades. One tap at zero sweep
+ * is the ordinary render, bit for bit.
+ */
+function sweepStack(camera, view, solved, latCoh, scan) {
+  const { rateA, rateB, rateC } = scan;
+  const sum = vec3(0).toVar();
+  Loop(view.taps, ({ i }) => {
+    // Centred on zero so that a single tap is the pattern itself, and so that
+    // the trio of members brackets every phase the sweep visits.
+    const along = float(i).add(0.5).div(float(view.taps));
+    const u = along.sub(0.5).mul(view.sweep);
+
+    // The scrambled generator's offsets: a rank-1 golden-ratio rule over the
+    // taps, quasi-uniform over the cell whichever parity or count the taps
+    // have. Which generator it scrambles is the per-pixel choice above.
+    const v = float(i).mul(GOLDEN).fract().sub(0.5).mul(view.sweep);
+
+    const color = camera.background.toVar();
+    solved.forEach(({ slot, local, halfT, aa, isLattice, cell, shift, phase, phaseFrom }, index) => {
+      If(slot.active.greaterThan(0.5), () => {
+        // The ranked layers advance at the integer rates that hold the
+        // winning character fixed while everything else averages out;
+        // unranked layers ride the diagonal, which alone preserves every
+        // zero-sum character among them. All rates 1 is the plain diagonal,
+        // (1, -1) the backwards sweep for a sum beat, (1, 2) and friends
+        // the second-order schedules — always on the winning pair only.
+        const rate = float(1).toVar();
+        If(view.ratioA.equal(int(index)), () => rate.assign(rateA));
+        If(view.ratioB.equal(int(index)), () => rate.assign(rateB));
+        If(view.ratioC.equal(int(index)), () => rate.assign(rateC));
+        const strokeAlpha = (d) =>
+          float(1).sub(smoothstep(halfT.sub(aa), halfT.add(aa), d)).mul(slot.opacity);
+
+        const alpha = float(0).toVar();
+        If(isLattice, () => {
+          // A lattice has no scalar phase to slide, so it resamples: each
+          // generator is a translation, and stepping along one is exactly one step
+          // of the index it counts. The field rides in on the first of them.
+          // The schedule is the per-pixel coefficient choice above.
+          const uLat = u.mul(latCoh[index].cu1).add(v.mul(latCoh[index].cv1));
+          const vLat = u.mul(latCoh[index].cu2).add(v.mul(latCoh[index].cv2));
+          const shifted = local.sub(cell.xy.mul(uLat.add(shift))).sub(cell.zw.mul(vLat));
+          // Both lookups sit behind what asks for them: a lattice resample is the
+          // most expensive thing a tap can do, and the sweep does it two dozen
+          // times over.
+          const kind = slot.type.sub(5);
+          const ink = float(0).toVar();
+          If(slot.drawEdges.greaterThan(0.5), () => {
+            const edgeD = gridDistance(
+              shifted,
+              kind,
+              slot.spacing,
+              float(0),
+              slot.scale.x,
+              slot.scale.y
+            );
+            ink.assign(float(1).sub(smoothstep(halfT.sub(aa), halfT.add(aa), edgeD)));
+          });
+          If(slot.vertexSize.greaterThan(0.001), () => {
+            const vertD = gridDistance(
+              shifted,
+              kind,
+              slot.spacing,
+              float(1),
+              slot.scale.x,
+              slot.scale.y
+            );
+            const vR = slot.vertexSize;
+            ink.assign(
+              max(ink, float(1).sub(smoothstep(max(vR.sub(aa), float(0)), vR.add(aa), vertD)))
+            );
+          });
+          alpha.assign(ink.mul(slot.opacity));
+        }).Else(() => {
+          // One local period per unit of `u`, so the sweep covers exactly one
+          // carrier cycle whatever the family's pitch happens to be here. A
+          // |rate| of 2 advances up to a full local period, past the trio the
+          // solve bracketed, so the offset wraps back into the half-period the
+          // trio covers -- exact for the phase families, whose residual is
+          // periodic in the gap, and first-order elsewhere, like the slide
+          // itself. At |rate| = 1 the wrap never engages.
+          const slide = (ph) => {
+            const gap = max(ph.y.sub(ph.x).abs(), float(1e-6));
+            const off = u.mul(rate).mul(gap);
+            const wrapped = off.sub(round(off.div(gap)).mul(gap));
+            return phaseDistWgsl(ph, wrapped);
+          };
+          If(slot.morph.greaterThan(0.999), () => {
+            alpha.assign(strokeAlpha(slide(phase)));
+          }).Else(() => {
+            alpha.assign(
+              strokeAlpha(mix(slide(phaseFrom), slide(phase), slot.morph))
+            );
+          });
+        });
+        color.assign(mix(color, slot.color, alpha.clamp(0, 1)));
+      });
+    });
+    sum.addAssign(color);
+  });
+  return sum.div(float(view.taps));
+}
+
+/**
+ * Grading and overlays: contrast expansion about the pivot, the regime
+ * mask, the heat map, and the contour overlay — which draws every ranked
+ * character channel the scan and the lattice matching handed over.
+ */
+function grade(camera, view, mean, eta, channels) {
+  // Ink for the fringe regime, paper for failure, with a soft step at the
+  // marked threshold so the boundary reads without a legend. 1/4 is the
+  // theory's line; the uniform lets an author read the map's gradations.
+  const thr = max(view.ratioThreshold, float(0.02));
+  const heat = mix(
+    vec3(0.07, 0.075, 0.09),
+    camera.background,
+    smoothstep(float(0), thr, eta)
+      .mul(0.45)
+      .add(smoothstep(thr.sub(0.02), thr.add(0.02), eta).mul(0.2))
+      .add(smoothstep(thr, float(1), eta).mul(0.35))
+  );
+
+  // Contrast expands about the stack's nominal mean coverage, so the pivot does
+  // not drift as the fringes move. At contrast 1 this returns the average
+  // untouched, and with one tap and no sweep that is the render itself.
+  const out = mix(view.pivot, mean, view.contrast).add(view.lift).clamp(0, 1).toVar();
+  // The regime mask, for the envelope: outside the fringe regime Phi(D) is a
+  // carrier-fine stripe field that reads as a failed average, so fade it to
+  // the pivot there. The eta of the two ranked layers is already in hand; with
+  // no eligible pair the uniforms sit at -1 and the mask never engages.
+  If(
+    view.envMask
+      .greaterThan(0.001)
+      .and(view.ratio.lessThan(0.5))
+      .and(view.ratioA.greaterThanEqual(int(0)))
+      .and(view.ratioB.greaterThanEqual(int(0))),
+    () => {
+      // The band tracks the same threshold uniform the heat map marks, so
+      // moving the Threshold slider moves both boundaries together.
+      const fade = smoothstep(thr.sub(0.03), thr.add(0.05), eta).mul(view.envMask);
+      out.assign(mix(out, view.pivot.add(view.lift).clamp(0, 1), fade));
+    }
+  );
+  // At blend 1 the map replaces the picture; below it the map reads over the
+  // drawing, so an author sees where on the picture fringes will live.
+  If(view.ratio.greaterThan(0.5), () => out.assign(mix(out, heat, view.ratioBlend.clamp(0, 1))));
+  // Fringe contours: the winning character's beat phase crosses an integer
+  // exactly at each fringe centre, so its level sets, one pixel wide, are
+  // the skeleton of the moiré — the same curves the character-hills figure
+  // lifts onto its surfaces. The phase residual over the beat rate is a
+  // screen-space distance, so the stroke holds one width at any zoom, and
+  // the overlay fades out of the fringe regime with the same threshold the
+  // heat map marks: where the beat runs at carrier scale the level sets are
+  // the carrier, not a fringe skeleton. Drawn after the heat map so the
+  // skeleton annotates that view too; the colour is the paper accent in the
+  // shader's linear working space (raw sRGB values here render neon).
+  If(view.contours.greaterThan(0.5), () => {
+    const w = view.contourW;
+    const acc = float(0).toVar();
+    // One character's contribution: stroke at its integer levels plus the
+    // widened companion — a soft fill in INDEX units, so its screen width
+    // is the actual fringe width, expanding exactly where the character
+    // runs flat, which is the artifact figure's band look. A scalar stack
+    // draws the winning character of the pairwise scan; a lattice draws the
+    // characters its own generator matching decided (both of a twist
+    // pair's, one against a scalar partner) — a degenerate rate gates its
+    // character off, so only real beats draw.
+    const addChar = (val, rate, et) => {
+      const fd = val.sub(round(val)).abs();
+      const dpx = fd.div(max(rate, float(1e-6)));
+      const gate = step(float(1e-5), rate).mul(
+        float(1).sub(smoothstep(thr, thr.mul(2).add(0.1), et))
+      );
+      const stroke = float(1).sub(smoothstep(w.mul(0.6), w.mul(1.4).add(0.4), dpx));
+      const band = pow(max(float(1).sub(fd.div(0.28)), float(0)), 1.5)
+        .mul(view.contourBand);
+      acc.assign(max(acc, max(stroke.mul(0.85), band.mul(0.55)).mul(gate)));
+    };
+    for (const ch of channels) addChar(ch.val, ch.rate, ch.eta);
+    out.assign(mix(out, vec3(ACCENT_LINEAR.r, ACCENT_LINEAR.g, ACCENT_LINEAR.b), acc));
+  });
+  return out;
 }
 
 export function createSlots(count = MAX_LAYERS): LayerSlot[] {
