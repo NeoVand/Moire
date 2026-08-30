@@ -246,6 +246,10 @@ figcaption {
 .subrow { display: flex; gap: 8px; align-items: flex-start; }
 .subrow figure.sub { margin: 0; flex: 1 1 0; min-width: 0; }
 .subrow figcaption { text-align: center; font-size: 0.78rem; color: var(--faint); padding-top: 0.45rem; }
+.subcol { display: flex; flex-direction: column; gap: 1.6rem; }
+.subcol figure.sub { margin: 0; }
+.subcol img { width: 88%; }
+.subcol figcaption { font-size: 0.85rem; color: var(--ink-soft); padding-top: 0.5rem; max-width: 40rem; margin: 0 auto; }
 .panelrow {
   display: flex; font-size: 0.78rem; color: var(--faint);
   font-family: var(--mono); padding: 0.35rem 0 0.9rem;
@@ -1300,13 +1304,13 @@ like the pattern has changed. It is the largest single fidelity error we measure
 from any cause ($38.3\%$ of pixels), and it comes from a bound that
 is merely loose rather than wrong.</p>
 <h3 id="sec-6-3"><span class="secnum">6.3</span> A provably sufficient interval of indices</h3>
-<figure class="paper-figure" id="fig-6"><div class="subrow"><figure class="sub" style="flex-grow:0.485"><img src="figures/tikz-4bba0d5147f4.png" width="1192" height="595" alt=""><figcaption>(a) One pixel, worked. The naive index guess is <span class="nowrap">$49$;</span> the true
+<figure class="paper-figure" id="fig-6"><div class="subcol"><figure class="sub"><img src="figures/tikz-4bba0d5147f4.png" width="1192" height="595" alt=""><figcaption>(a) One pixel, worked. The naive index guess is <span class="nowrap">$49$;</span> the true
     nearest ring is <span class="nowrap">$41$,</span> $8$ rings away and outside any small
     neighbourhood. The two envelopes of Lemma <a href="#thm-3">3</a> cross the guard
     band (pink) at $22$ and <span class="nowrap">$56$,</span> proving that no ring outside those
     $35$ indices comes within <span class="nowrap">$G$.</span> The Lipschitz rule then visits
     $9$ of them (dots), taking long strides while $|h|$ is large and
-    closing in only near the crossing.</figcaption></figure><figure class="sub" style="flex-grow:0.485"><img src="figures/tikz-bc8b75c49e40.png" width="1031" height="607" alt=""><figcaption>(b) Why no constant works. Triangles, <span class="nowrap">$\theta=0.02$,</span> $96$ directions per
+    closing in only near the crossing.</figcaption></figure><figure class="sub"><img src="figures/tikz-bc8b75c49e40.png" width="1031" height="607" alt=""><figcaption>(b) Why no constant works. Triangles, <span class="nowrap">$\theta=0.02$,</span> $96$ directions per
     radius; the stray is the worst seen out to that radius. The nearest index
     leaves any fixed neighbourhood of the naive guess and the gap grows linearly,
     so a budget is a horizontal line that the requirement crosses  —  here at
@@ -1724,7 +1728,7 @@ scenes cheap; the divergence reading, and why narrowing the interval rather than
 exiting sooner is the productive lever on a GPU, are in the supplemental
 material (§ S3).</p>
 <h3 id="sec-8-5"><span class="secnum">8.5</span> Where the guarantee ends</h3>
-<figure class="paper-figure" id="fig-12"><img class="tikz" style="width:98.4%" src="figures/tikz-0cca928c01a0.png" width="997" height="772" alt=""><figcaption><span class="fignum">Fig. 12.</span> The interval is wide only where the pattern is already solid.
+<figure class="paper-figure" id="fig-12"><img class="tikz" style="width:98.4%" src="figures/tikz-9d632f2b60dc.png" width="997" height="772" alt=""><figcaption><span class="fignum">Fig. 12.</span> The interval is wide only where the pattern is already solid.
   $55{,}692$ settings, binned by the $90$th-percentile interval span, against
   the ink fraction of the exact field. Past the budget $B=1{,}024$ (shaded) the median
   setting is $0.89$ ink  —  a nearly filled rectangle, where no point
