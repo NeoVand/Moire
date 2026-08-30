@@ -247,7 +247,7 @@ figcaption {
 .subrow figure.sub { margin: 0; flex: 1 1 0; min-width: 0; }
 .subrow figcaption { text-align: center; font-size: 0.78rem; color: var(--faint); padding-top: 0.45rem; }
 .subrow.plots { max-width: 62rem; margin: 0 auto; gap: 1.6rem; }
-.subrow.plots figcaption { text-align: left; font-size: 0.84rem; color: var(--ink-soft); padding-top: 0.55rem; }
+.subrow.plots figcaption { text-align: center; font-size: 0.78rem; color: var(--faint); padding-top: 0.4rem; }
 .panelrow {
   display: flex; font-size: 0.78rem; color: var(--faint);
   font-family: var(--mono); padding: 0.35rem 0 0.9rem;
@@ -455,6 +455,12 @@ nearest interactive system, FabObscura <span class="cite">[<a href="#ref-63">63
 barrier-grid occlusion rather than interference.</p>
 <p>We think the gap is not a missing feature. It is a missing representation.</p>
 <h3 id="sec-1-2"><span class="secnum">1.2</span> The question instead of the picture</h3>
+<p>A layer, stripped of its raster, is a countable family of curves
+$\{\gamma_n\}$  —  the $n$th line, the $n$th ring, the $n$th turn of a spiral.
+A pixel does not need the family. It needs one number: how far away is the
+nearest member? Give it that, threshold it against a stroke width, and you have
+ink. Do it for several families and composite. The moiré is not computed at all;
+it is what the eye does with the composite, just as it is with paper.</p>
 <figure class="paper-figure" id="fig-2"><img src="figures/two-traditions.png" width="640" height="690" alt=""><figcaption><span class="fignum">Fig. 2.</span> <strong>Raster versus field, same two families.</strong>  <em>Above:</em> the
   standard synthesis pipeline reused at a scale it was not rasterised for. Each
   layer is rasterised to a bilevel plate, the plates are multiplied, and the
@@ -467,12 +473,6 @@ barrier-grid occlusion rather than interference.</p>
   families as fields. Two distance queries per pixel, composited, at the display
   resolution. There is no intermediate raster, so there is nothing to alias, and the
   crossings stay crisp all the way to the corners.</figcaption></figure>
-<p>A layer, stripped of its raster, is a countable family of curves
-$\{\gamma_n\}$  —  the $n$th line, the $n$th ring, the $n$th turn of a spiral.
-A pixel does not need the family. It needs one number: how far away is the
-nearest member? Give it that, threshold it against a stroke width, and you have
-ink. Do it for several families and composite. The moiré is not computed at all;
-it is what the eye does with the composite, just as it is with paper.</p>
 <p>So we represent a layer by two scalar fields. The <em>index field</em> $\idx(p)$
 says which member $p$ sits on, fractionally, so that <span class="nowrap">$\gamma_n=\idx^{-1}(n)$.</span> The
 <em>distance field</em> $d(p)=\min_n \mathrm{dist}(p,\gamma_n)$ says how far the
@@ -777,16 +777,16 @@ offset. Then</p>
 <p>where $\mathrm{pd}(v,s)=\min_{k\in\Z}|v-ks|$ is the distance from $v$ to the
 lattice <span class="nowrap">$s\Z$.</span> Both are one line of shader code.</p>
 <h3 id="sec-3-2"><span class="secnum">3.2</span> The gradient is not optional</h3>
+<p>The division by $\lVert\nabla\ph\rVert$ in Eq. <a href="#eq-3">3</a> converts a phase
+residual into a length. It is easy to omit, and we omitted it. Our shader applied
+it for the parabola family and not for the wave, hyperbola or spiral, with two
+consequences.</p>
 <figure class="paper-figure" id="fig-3"><img src="figures/gradient-compare.png" width="920" height="610" alt=""><div class="panelrow"><span>wave</span><span>hyperbola</span><span>spiral</span></div><figcaption><span class="fignum">Fig. 3.</span> <strong>A phase residual is not a distance.</strong>  Top: what our shader drew
   for the wave, hyperbola and spiral families  —  the phase residual, undivided.
   Strokes thin by exactly the factor the family is steep by, so the pattern fades
   where it should saturate and the hyperbola's asymptotes disappear. Bottom: the
   same settings with Eq. <a href="#eq-3">3</a>. The parabola family always divided; these
   three did not, and the failure is worst where the family is densest.</figcaption></figure>
-<p>The division by $\lVert\nabla\ph\rVert$ in Eq. <a href="#eq-3">3</a> converts a phase
-residual into a length. It is easy to omit, and we omitted it. Our shader applied
-it for the parabola family and not for the wave, hyperbola or spiral, with two
-consequences.</p>
 <p>The first is cosmetic but severe. Where <span class="nowrap">$\lVert\nabla\ph\rVert&gt;1$,</span> the reported
 distance is $\lVert\nabla\ph\rVert$ times too large, so the stroke is thinner by
 the same factor. Sweeping each
@@ -1208,6 +1208,7 @@ $\rad$ is the innermost call of the solver.</p>
   linear forms, hence convex and piecewise linear with $N$ pieces.</p></li>
 </ol>
 <h3 id="sec-5-2"><span class="secnum">5.2</span> The family, and the field it induces</h3>
+<p>A <em>walking family</em> is the sequence of curves</p>
 <figure class="paper-figure" id="fig-5"><img class="tikz" style="width:70.0%" src="figures/tikz-6638c597f65d.png" width="709" height="613" alt=""><figcaption><span class="fignum">Fig. 5.</span> A walking family of triangles (<span class="nowrap">$N=3$).</span> Ring $n$ has inradius
   <span class="nowrap">$ns+\varphi$,</span> its centre $c_n = \Rot{n\theta}(n\delta)$ walks along the dotted
   spiral, and its own frame is turned by <span class="nowrap">$n\theta$.</span> Rendering asks for the
@@ -1216,7 +1217,6 @@ $\rad$ is the innermost call of the solver.</p>
   <span class="nowrap">$q_n = \Rot{-n\theta}\,p - n\delta$.</span> Because each ring has a different frame,
   no closed-form scalar field of $p$ has these rings as its level sets, and the
   index field survives only as the answer to a search (<a href="#sec-3-4">§3.4</a>).</figcaption></figure>
-<p>A <em>walking family</em> is the sequence of curves</p>
 <div class="equation" id="eq-19"><div class="eq-scroll">\[\Gamma_n \;=\; \bigl\{\, p : \rad\bigl(\Rot{-n\theta}(p - c_n)\bigr) = ns+\varphi \,\bigr\},
   \qquad c_n = \Rot{n\theta}(n\delta),\]</div><span class="eq-no">(19)</span></div>
 <p>for <span class="nowrap">$n\in\N_0$,</span> with spacing <span class="nowrap">$s&gt;0$,</span> phase $\varphi\ge0$ (so that every radius
@@ -1303,26 +1303,26 @@ like the pattern has changed. It is the largest single fidelity error we measure
 from any cause ($38.3\%$ of pixels), and it comes from a bound that
 is merely loose rather than wrong.</p>
 <h3 id="sec-6-3"><span class="secnum">6.3</span> A provably sufficient interval of indices</h3>
-<figure class="paper-figure wide" id="fig-6"><div class="subrow plots"><figure class="sub" style="flex-grow:285.8"><img src="figures/tikz-04d0969f5c5c.png" width="1191" height="817" alt=""><figcaption>(a) One pixel, worked. The naive index guess is <span class="nowrap">$49$;</span> the true
-    nearest ring is <span class="nowrap">$41$,</span> $8$ rings away and outside any small
-    neighbourhood. The two envelopes of Lemma <a href="#thm-3">3</a> cross the guard
-    band (pink) at $22$ and <span class="nowrap">$56$,</span> proving that no ring outside those
-    $35$ indices comes within <span class="nowrap">$G$.</span> The Lipschitz rule then visits
-    $9$ of them (dots), taking long strides while $|h|$ is large and
-    closing in only near the crossing.</figcaption></figure><figure class="sub" style="flex-grow:247.0"><img src="figures/tikz-72677458df1d.png" width="1029" height="814" alt=""><figcaption>(b) Why no constant works. Triangles, <span class="nowrap">$\theta=0.02$,</span> $96$ directions per
-    radius; the stray is the worst seen out to that radius. The nearest index
-    leaves any fixed neighbourhood of the naive guess and the gap grows linearly,
-    so a budget is a horizontal line that the requirement crosses  —  here at
-    <span class="nowrap">$r\approx500$,</span> a third of the way across the frame. The proven interval grows
-    too, since the rings near a pixel genuinely become more numerous, but the
-    Lipschitz skip keeps what we evaluate well below it.</figcaption></figure></div><figcaption><span class="fignum">Fig. 6.</span> The two facts that make bounded inversion possible. Left: the residual
-  at a single pixel is sandwiched between two lines in <span class="nowrap">$n$,</span> which is enough to
-  certify a finite interval. Right: why no fixed interval could have been enough,
-  measured.</figcaption></figure>
 <p>Write <span class="nowrap">$r=\lVert p\rVert$,</span> <span class="nowrap">$L=\lVert\delta\rVert$,</span> <span class="nowrap">$m=\rad(-\delta)$,</span> and note
 $\rad(\Rot{-n\theta}p)\le r$ by (P2) and
 $\lVert q_n\rVert \ge |r - nL|$ by the triangle inequality on (<a href="#eq-20">20</a>)  — 
 both independent of <span class="nowrap">$\theta$.</span></p>
+<figure class="paper-figure wide" id="fig-6"><div class="subrow plots"><figure class="sub" style="flex-grow:285.8"><img src="figures/tikz-04d0969f5c5c.png" width="1191" height="817" alt=""><figcaption>(a) One pixel, worked.</figcaption></figure><figure class="sub" style="flex-grow:247.0"><img src="figures/tikz-72677458df1d.png" width="1029" height="814" alt=""><figcaption>(b) Why no constant works.</figcaption></figure></div><figcaption><span class="fignum">Fig. 6.</span> <strong>The two facts that make bounded inversion possible.</strong> 
+  <strong>(a)</strong> The residual at one pixel is sandwiched between two lines in <span class="nowrap">$n$,</span>
+  which is enough to certify a finite interval. The naive index guess is
+  <span class="nowrap">$49$;</span> the true nearest ring is <span class="nowrap">$41$,</span> $8$ rings away and
+  outside any small neighbourhood. The two envelopes of Lemma <a href="#thm-3">3</a>
+  cross the guard band (pink) at $22$ and <span class="nowrap">$56$,</span> proving that no ring
+  outside those $35$ indices comes within <span class="nowrap">$G$;</span> the Lipschitz rule then
+  visits $9$ of them (dots), taking long strides while $|h|$ is large
+  and closing in only near the crossing. <strong>(b)</strong> Why no fixed interval
+  could have been enough, measured. Triangles, <span class="nowrap">$\theta=0.02$,</span> $96$ directions
+  per radius; the stray is the worst seen out to that radius. The nearest index
+  leaves any fixed neighbourhood of the naive guess and the gap grows linearly,
+  so a budget is a horizontal line that the requirement crosses  —  here at
+  <span class="nowrap">$r\approx500$,</span> a third of the way across the frame. The proven interval grows
+  too, since the rings near a pixel genuinely become more numerous, but the
+  Lipschitz skip keeps what we evaluate well below it.</figcaption></figure>
 <div class="theorem thm-plain" id="thm-3"><p><span class="thm-head">Lemma 3 (Two-sided envelope).</span> For all $n \ge 0$ and all <span class="nowrap">$\theta$,</span></p><div class="equation" id="eq-27"><div class="eq-scroll">\[\max\bigl\{\, \kappa\,|r - nL|,\ \ nm - r \,\bigr\} - (ns+\varphi)
   \ \le\ h_p(n)\ \le\ r + nm - (ns+\varphi).\]</div><span class="eq-no">(27)</span></div></div>
 <div class="proof"><p><em class="proof-head">Proof.</em> The upper bound is (<a href="#eq-25">25</a>) with <span class="nowrap">$\rad(\Rot{-n\theta}p)\le r$.</span> For the
@@ -1410,6 +1410,10 @@ this is the difference between neighbouring pixels agreeing on <em>which rings
 exist</em> and each pixel sampling its own subset. Section <a href="#sec-8-5">8.5</a> shows the
 consequence, which is severe and free to avoid.</p>
 <h3 id="sec-6-5"><span class="secnum">6.5</span> Translated polygons in closed form</h3>
+<p>The scan of Algorithm <a href="#alg-1">1</a> is exact and fast, but for $\theta=0$ we can
+do better than fast: we can be exact in $O(N)$ regardless of the interval width,
+including on the locus where the interval is infinite. Property (P4) is the reason,
+and we have not found it used for this.</p>
 <figure class="paper-figure" id="fig-7"><img class="tikz" style="width:100.0%" src="figures/tikz-494699e37bea.png" width="1032" height="571" alt=""><figcaption><span class="fignum">Fig. 7.</span> With $\theta=0$ the residual of a translated polygon is convex and
   piecewise linear in <span class="nowrap">$n$,</span> one segment per facet (hexagon, <span class="nowrap">$s=14$).</span> When the drift
   is below the spacing (blue) it falls monotonically and crosses zero once, on
@@ -1421,10 +1425,6 @@ consequence, which is severe and free to avoid.</p>
   the walking hexagons stay a drawing; at it the far side piles into a plateau.
   One evaluation of the constant
   settles all of them at once.</figcaption></figure>
-<p>The scan of Algorithm <a href="#alg-1">1</a> is exact and fast, but for $\theta=0$ we can
-do better than fast: we can be exact in $O(N)$ regardless of the interval width,
-including on the locus where the interval is infinite. Property (P4) is the reason,
-and we have not found it used for this.</p>
 <p>With <span class="nowrap">$\theta=0$,</span> (<a href="#eq-20">20</a>) becomes affine in <span class="nowrap">$n$:</span> <span class="nowrap">$q_n = p - n\delta$.</span> Writing
 $a_k = \langle p, u_k\rangle$ and $b_k = \langle \delta, u_k\rangle$ over the $N$
 unit normals,</p>
@@ -1628,17 +1628,6 @@ exists in the shader, and the only way to get a per-pixel work map.</p>
 <p>All experiment scripts, the generated data, and every figure in this paper are in
 the accompanying repository and reproduce with one command each.</p>
 <h3 id="sec-8-2"><span class="secnum">8.2</span> Cost</h3>
-<figure class="paper-table" id="tab-3"><figcaption><span class="fignum">Table 3.</span> GPU pass time in milliseconds per megapixel of solver work, one
-  full-screen family, Apple <code>metal-3</code>. <em>Zoom</em> $0.15$ is a $6.7\times$
-  zoom-out, where the index interval is widest. The last three rows are the hard
-  cases of Section <a href="#sec-8-5">8.5</a>: an offset close to the spacing, and the
-  marginal drift $m=s$ itself. Bold marks the shipped method, not the row minimum:
-  <span class="sc">Loose</span> is faster on the nonagon row, and loses ink globally
-  (Table <a href="#tab-5">5</a>).</figcaption><div class="table-scroll"><table><tr><th>Family</th><th>Zoom</th><th><span class="sc">Sweep</span></th><th><span class="sc">Loose</span></th><th><span class="sc">Window</span></th></tr><tr><th>Circle, rotation + offset</th><th>$1$</th><th>$10.16$</th><th>$0.33$</th><th>$\mathbf{0.33}$</th></tr><tr><td>Circle, rotation + offset</td><td>$0.15$</td><td>$15.47$</td><td>$1.25$</td><td>$\mathbf{1.05}$</td></tr><tr><td>Square, rotation</td><td>$1$</td><td>$8.78$</td><td>$0.26$</td><td>$\mathbf{0.26}$</td></tr><tr><td>Square, rotation + offset</td><td>$0.15$</td><td>$13.50$</td><td>$0.85$</td><td>$\mathbf{0.79}$</td></tr><tr><td>Square, offset only</td><td>$1$</td><td>$0.92$</td><td>$1.18$</td><td>$\mathbf{0.20}$</td></tr><tr><td>Triangle, rotation</td><td>$1$</td><td>$14.42$</td><td>$0.52$</td><td>$\mathbf{0.39}$</td></tr><tr><td>Triangle, rotation</td><td>$0.15$</td><td>$20.12$</td><td>$1.44$</td><td>$\mathbf{0.92}$</td></tr><tr><td>Triangle, rotation + offset</td><td>$1$</td><td>$16.97$</td><td>$0.79$</td><td>$\mathbf{0.52}$</td></tr><tr><td>Triangle, rotation + offset</td><td>$0.15$</td><td>$27.85$</td><td>$2.69$</td><td>$\mathbf{1.64}$</td></tr><tr><td>Hexagon, rotation + offset</td><td>$0.15$</td><td>$25.17$</td><td>$2.23$</td><td>$\mathbf{1.64}$</td></tr><tr><td>Nonagon, rotation + offset</td><td>$0.15$</td><td>$23.40$</td><td>$2.03$</td><td>$\mathbf{2.16}$</td></tr><tr class="rule-above"><td>Offset near spacing</td><td>$1$</td><td>$43.32$</td><td>$2.82$</td><td>$\mathbf{1.57}$</td></tr><tr><td>Offset near spacing</td><td>$0.15$</td><td>$46.73$</td><td>$7.47$</td><td>$\mathbf{5.44}$</td></tr><tr><td>Marginal drift $m=s$</td><td>$1$</td><td>$65.73$</td><td>$30.47$</td><td>$\mathbf{17.56}$</td></tr></table></div></figure>
-<figure class="paper-table" id="tab-4"><figcaption><span class="fignum">Table 4.</span> Mean evaluations of $\rad$ per pixel, CPU rasteriser, and fraction of
-  pixels differing from <span class="sc">Reference</span> by more than <span class="nowrap">$8/255$.</span> <span class="sc">Window</span> is
-  pixel-identical to brute force on all 7 scenes while doing less work
-  than the exhaustive scan that defines them.</figcaption><div class="table-scroll"><table><tr><th></th><th colspan="3" class="center">evaluations / pixel</th><th><span class="sc">Window</span></th></tr><tr><th>Scene</th><th><span class="sc">Ref.</span></th><th><span class="sc">Sweep</span></th><th><span class="sc">Window</span></th><th>differ</th></tr><tr><th>Triangle, rotation</th><th>$21.9$</th><th>$192.3$</th><th>$7.6$</th><th>$0.0\%$</th></tr><tr><td>Hexagon, rotation, zoomed out</td><td>$84.3$</td><td>$180.0$</td><td>$9.0$</td><td>$0.0\%$</td></tr><tr><td>Triangle, translation</td><td>$19.2$</td><td>$195.4$</td><td>$11.0$</td><td>$0.0\%$</td></tr><tr><td>Triangle, offset $=$ spacing</td><td>$46.0$</td><td>$283.6$</td><td>$11.0$</td><td>$0.0\%$</td></tr><tr><td>Square, rotation + translation</td><td>$23.5$</td><td>$201.9$</td><td>$7.8$</td><td>$0.0\%$</td></tr><tr><td>Deep zoom-out, small rotation</td><td>$43.5$</td><td>$194.1$</td><td>$\mathbf{7.5}$</td><td>$0.0\%$</td></tr><tr><td>Two circle families, interfering</td><td>$49.5$</td><td>$360.8$</td><td>$11.1$</td><td>$0.0\%$</td></tr></table></div></figure>
 <p>Table <a href="#tab-3">3</a> gives GPU pass times. Across rotated settings <span class="sc">Window</span> is
 $11$–$37\times$ faster than <span class="sc">Sweep</span>. The absolute numbers are
 what changed the tool: a single rotated triangle family went from
@@ -1650,6 +1639,17 @@ translation-only row shows Proposition <a href="#thm-6">6</a> in isolation:
 $0.92 \to 0.20$ ms, a $4.7\times$ gain over
 an already-cheap case, because the closed form needs no rotation and hence no
 transcendentals.</p>
+<figure class="paper-table" id="tab-3"><figcaption><span class="fignum">Table 3.</span> GPU pass time in milliseconds per megapixel of solver work, one
+  full-screen family, Apple <code>metal-3</code>. <em>Zoom</em> $0.15$ is a $6.7\times$
+  zoom-out, where the index interval is widest. The last three rows are the hard
+  cases of Section <a href="#sec-8-5">8.5</a>: an offset close to the spacing, and the
+  marginal drift $m=s$ itself. Bold marks the shipped method, not the row minimum:
+  <span class="sc">Loose</span> is faster on the nonagon row, and loses ink globally
+  (Table <a href="#tab-5">5</a>).</figcaption><div class="table-scroll"><table><tr><th>Family</th><th>Zoom</th><th><span class="sc">Sweep</span></th><th><span class="sc">Loose</span></th><th><span class="sc">Window</span></th></tr><tr><th>Circle, rotation + offset</th><th>$1$</th><th>$10.16$</th><th>$0.33$</th><th>$\mathbf{0.33}$</th></tr><tr><td>Circle, rotation + offset</td><td>$0.15$</td><td>$15.47$</td><td>$1.25$</td><td>$\mathbf{1.05}$</td></tr><tr><td>Square, rotation</td><td>$1$</td><td>$8.78$</td><td>$0.26$</td><td>$\mathbf{0.26}$</td></tr><tr><td>Square, rotation + offset</td><td>$0.15$</td><td>$13.50$</td><td>$0.85$</td><td>$\mathbf{0.79}$</td></tr><tr><td>Square, offset only</td><td>$1$</td><td>$0.92$</td><td>$1.18$</td><td>$\mathbf{0.20}$</td></tr><tr><td>Triangle, rotation</td><td>$1$</td><td>$14.42$</td><td>$0.52$</td><td>$\mathbf{0.39}$</td></tr><tr><td>Triangle, rotation</td><td>$0.15$</td><td>$20.12$</td><td>$1.44$</td><td>$\mathbf{0.92}$</td></tr><tr><td>Triangle, rotation + offset</td><td>$1$</td><td>$16.97$</td><td>$0.79$</td><td>$\mathbf{0.52}$</td></tr><tr><td>Triangle, rotation + offset</td><td>$0.15$</td><td>$27.85$</td><td>$2.69$</td><td>$\mathbf{1.64}$</td></tr><tr><td>Hexagon, rotation + offset</td><td>$0.15$</td><td>$25.17$</td><td>$2.23$</td><td>$\mathbf{1.64}$</td></tr><tr><td>Nonagon, rotation + offset</td><td>$0.15$</td><td>$23.40$</td><td>$2.03$</td><td>$\mathbf{2.16}$</td></tr><tr class="rule-above"><td>Offset near spacing</td><td>$1$</td><td>$43.32$</td><td>$2.82$</td><td>$\mathbf{1.57}$</td></tr><tr><td>Offset near spacing</td><td>$0.15$</td><td>$46.73$</td><td>$7.47$</td><td>$\mathbf{5.44}$</td></tr><tr><td>Marginal drift $m=s$</td><td>$1$</td><td>$65.73$</td><td>$30.47$</td><td>$\mathbf{17.56}$</td></tr></table></div></figure>
+<figure class="paper-table" id="tab-4"><figcaption><span class="fignum">Table 4.</span> Mean evaluations of $\rad$ per pixel, CPU rasteriser, and fraction of
+  pixels differing from <span class="sc">Reference</span> by more than <span class="nowrap">$8/255$.</span> <span class="sc">Window</span> is
+  pixel-identical to brute force on all 7 scenes while doing less work
+  than the exhaustive scan that defines them.</figcaption><div class="table-scroll"><table><tr><th></th><th colspan="3" class="center">evaluations / pixel</th><th><span class="sc">Window</span></th></tr><tr><th>Scene</th><th><span class="sc">Ref.</span></th><th><span class="sc">Sweep</span></th><th><span class="sc">Window</span></th><th>differ</th></tr><tr><th>Triangle, rotation</th><th>$21.9$</th><th>$192.3$</th><th>$7.6$</th><th>$0.0\%$</th></tr><tr><td>Hexagon, rotation, zoomed out</td><td>$84.3$</td><td>$180.0$</td><td>$9.0$</td><td>$0.0\%$</td></tr><tr><td>Triangle, translation</td><td>$19.2$</td><td>$195.4$</td><td>$11.0$</td><td>$0.0\%$</td></tr><tr><td>Triangle, offset $=$ spacing</td><td>$46.0$</td><td>$283.6$</td><td>$11.0$</td><td>$0.0\%$</td></tr><tr><td>Square, rotation + translation</td><td>$23.5$</td><td>$201.9$</td><td>$7.8$</td><td>$0.0\%$</td></tr><tr><td>Deep zoom-out, small rotation</td><td>$43.5$</td><td>$194.1$</td><td>$\mathbf{7.5}$</td><td>$0.0\%$</td></tr><tr><td>Two circle families, interfering</td><td>$49.5$</td><td>$360.8$</td><td>$11.1$</td><td>$0.0\%$</td></tr></table></div></figure>
 <p>Table <a href="#tab-4">4</a> counts CPU evaluations of $\rad$ per pixel and, in the last
 column, disagreement with the exhaustive reference. Two things stand out. <span class="sc">Window</span>
 costs $7.5$–$11.1$ evaluations per pixel where <span class="sc">Sweep</span> costs
@@ -1661,6 +1661,13 @@ certificate: the Lipschitz rule skips indices the exhaustive scan is obliged to
 visit. Being faster than brute force while agreeing with it everywhere is the
 cleanest summary of the method we can offer.</p>
 <h3 id="sec-8-3"><span class="secnum">8.3</span> Fidelity</h3>
+<p>We swept $2{,}401$ parameter settings  —  six shapes $\times$ spacings from
+$1$ to $120$ $\times$ offsets $\times$ rotations $\times$ six zoom levels  — 
+and compared every solver against <span class="sc">Reference</span> at $512$ quasi-random points
+each, classifying each point as agreeing, having lost ink, or having invented it.
+Settings where the exhaustive reference would need more than $10^5$ evaluations
+per point are counted and excluded rather than measured. Results in
+Table <a href="#tab-5">5</a>.</p>
 <figure class="paper-figure wide" id="fig-9"><div class="subrow"><figure class="sub" style="flex-grow:0.245"><img src="figures/artifact-holes-reference.png" width="1200" height="800" alt=""><figcaption>(a) <span class="sc">Reference</span></figcaption></figure><figure class="sub" style="flex-grow:0.245"><img src="figures/artifact-holes-sweep.png" width="1200" height="800" alt=""><figcaption>(b) <span class="sc">Sweep</span>, $1100$ ev/px</figcaption></figure><figure class="sub" style="flex-grow:0.245"><img src="figures/artifact-holes-sweep-drop.png" width="1200" height="800" alt=""><figcaption>(c) lost ink (magenta)</figcaption></figure><figure class="sub" style="flex-grow:0.245"><img src="figures/artifact-holes-final.png" width="1200" height="800" alt=""><figcaption>(d) <span class="sc">Window</span>, $72$ ev/px</figcaption></figure></div><figcaption><span class="fignum">Fig. 9.</span> Fixed enumeration deletes arcs, not pixels. The far field of a
   walking hexagon family whose drift aims at an edge  —  almost a full spacing
   long, <span class="nowrap">$\lVert\delta\rVert=0.95s$,</span> while the support ratio stays at
@@ -1679,13 +1686,6 @@ cleanest summary of the method we can offer.</p>
   scan, so it subsamples: ink drops from $0.459$ to
   $0.152$ and $38.3\%$ of pixels change. The exact
   constant keeps the interval finite and the pattern intact.</figcaption></figure>
-<p>We swept $2{,}401$ parameter settings  —  six shapes $\times$ spacings from
-$1$ to $120$ $\times$ offsets $\times$ rotations $\times$ six zoom levels  — 
-and compared every solver against <span class="sc">Reference</span> at $512$ quasi-random points
-each, classifying each point as agreeing, having lost ink, or having invented it.
-Settings where the exhaustive reference would need more than $10^5$ evaluations
-per point are counted and excluded rather than measured. Results in
-Table <a href="#tab-5">5</a>.</p>
 <figure class="paper-table" id="tab-5"><figcaption><span class="fignum">Table 5.</span> Ink lost against <span class="sc">Reference</span> over $2{,}401$ settings.
   <em>In interval</em> restricts to points where Theorem <a href="#thm-4">4</a>'s interval
   fits the budget, so exactness is claimed; <em>legible</em> restricts to the
@@ -1709,17 +1709,17 @@ like on one scene, and Figure <a href="#fig-11">11</a> isolates the drift const
 GPU twin agrees with the CPU twin to <code>f32</code> precision at every point where
 the interval fits the budget.</p>
 <h3 id="sec-8-4"><span class="secnum">8.4</span> Ablation</h3>
-<figure class="paper-table" id="tab-6"><figcaption><span class="fignum">Table 6.</span> Time relative to the full method when one mechanism is removed
-  ($3.84$ Mpixel of solver work). Each column is a different family, chosen so
-  that every mechanism has a column where it binds. Values below $1$ mean the
-  mechanism costs time in that setting, which is the price of exactness
-  elsewhere.</figcaption><div class="table-scroll"><table><tr><th></th><th colspan="2" class="center">rotated</th><th colspan="2" class="center">translated</th></tr><tr><th>Mechanism removed</th><th>tri.</th><th>hex. out</th><th>near $s$</th><th>marginal</th></tr><tr><th>Lipschitz skip (<a href="#sec-6-4">§6.4</a>)</th><th>$2.05$</th><th>$2.32$</th><th>$3.26$</th><th>$1.00$</th></tr><tr><td>Support fast paths (<a href="#sec-5">§5</a>)</td><td>$1.33$</td><td>$1.16$</td><td>$0.99$</td><td>$1.50$</td></tr><tr><td>Exact drift (<a href="#sec-6-2">§6.2</a>)</td><td>$1.00$</td><td>$0.99$</td><td>$1.24$</td><td>$1.00$</td></tr><tr><td>Polygon closed form (<a href="#sec-6-5">§6.5</a>)</td><td>$0.97$</td><td>$0.99$</td><td>$1.00$</td><td>$\mathbf{90.3}$</td></tr><tr><td>Carried rotation (<a href="#sec-6-4">§6.4</a>)</td><td>$0.92$</td><td>$0.88$</td><td>$0.90$</td><td>$0.90$</td></tr><tr><td>Accept early exit (<a href="#sec-6-1">§6.1</a>)</td><td>$0.85$</td><td>$0.84$</td><td>$0.81$</td><td>$1.00$</td></tr></table></div></figure>
 <p>Table <a href="#tab-6">6</a> removes one mechanism at a time. The Lipschitz skip is
 the largest single lever ($2.1$–<span class="nowrap">$3.3\times$),</span> and the polygon closed
 form is decisive exactly where predicted: on the marginal drift it is worth
 <span class="nowrap">$90.3\times$,</span> because without it the scan must walk a $2^{16}$-wide
 interval to find an answer that Proposition <a href="#thm-6">6</a> reads off in one
 comparison.</p>
+<figure class="paper-table" id="tab-6"><figcaption><span class="fignum">Table 6.</span> Time relative to the full method when one mechanism is removed
+  ($3.84$ Mpixel of solver work). Each column is a different family, chosen so
+  that every mechanism has a column where it binds. Values below $1$ mean the
+  mechanism costs time in that setting, which is the price of exactness
+  elsewhere.</figcaption><div class="table-scroll"><table><tr><th></th><th colspan="2" class="center">rotated</th><th colspan="2" class="center">translated</th></tr><tr><th>Mechanism removed</th><th>tri.</th><th>hex. out</th><th>near $s$</th><th>marginal</th></tr><tr><th>Lipschitz skip (<a href="#sec-6-4">§6.4</a>)</th><th>$2.05$</th><th>$2.32$</th><th>$3.26$</th><th>$1.00$</th></tr><tr><td>Support fast paths (<a href="#sec-5">§5</a>)</td><td>$1.33$</td><td>$1.16$</td><td>$0.99$</td><td>$1.50$</td></tr><tr><td>Exact drift (<a href="#sec-6-2">§6.2</a>)</td><td>$1.00$</td><td>$0.99$</td><td>$1.24$</td><td>$1.00$</td></tr><tr><td>Polygon closed form (<a href="#sec-6-5">§6.5</a>)</td><td>$0.97$</td><td>$0.99$</td><td>$1.00$</td><td>$\mathbf{90.3}$</td></tr><tr><td>Carried rotation (<a href="#sec-6-4">§6.4</a>)</td><td>$0.92$</td><td>$0.88$</td><td>$0.90$</td><td>$0.90$</td></tr><tr><td>Accept early exit (<a href="#sec-6-1">§6.1</a>)</td><td>$0.85$</td><td>$0.84$</td><td>$0.81$</td><td>$1.00$</td></tr></table></div></figure>
 <p>Two entries are below <span class="nowrap">$1$:</span> removing the carried rotation or the accept-early-exit
 is $8$–$19\%$ <em>faster</em> in these dense scenes, a wavefront-
 divergence effect. We keep both because they are what make sparse and mid-density
@@ -1727,6 +1727,8 @@ scenes cheap; the divergence reading, and why narrowing the interval rather than
 exiting sooner is the productive lever on a GPU, are in the supplemental
 material (§ S3).</p>
 <h3 id="sec-8-5"><span class="secnum">8.5</span> Where the guarantee ends</h3>
+<p>Theorem <a href="#thm-4">4</a> gives an interval; it does not promise a small one. Two
+questions follow: how often is it too wide to walk, and what happens then.</p>
 <figure class="paper-figure" id="fig-12"><img class="tikz" style="width:98.4%" src="figures/tikz-9d632f2b60dc.png" width="997" height="772" alt=""><figcaption><span class="fignum">Fig. 12.</span> The interval is wide only where the pattern is already solid.
   $55{,}692$ settings, binned by the $90$th-percentile interval span, against
   the ink fraction of the exact field. Past the budget $B=1{,}024$ (shaded) the median
@@ -1746,8 +1748,6 @@ material (§ S3).</p>
   and hooks. Anchoring it to the global index lattice (right) makes them agree, and
   the same missing ink becomes a thinner family of whole straight lines  —  a
   plausible pattern rather than a broken one. The two differ by one line of code.</figcaption></figure>
-<p>Theorem <a href="#thm-4">4</a> gives an interval; it does not promise a small one. Two
-questions follow: how often is it too wide to walk, and what happens then.</p>
 <p><em>How often.</em> Over $55{,}692$ settings spanning the whole parameter space
 our interface exposes, the interval fits the $B=1{,}024$ budget in $45{,}774$ of
 them (<span class="nowrap">$82\%$),</span> and the widest fitting span we observed is

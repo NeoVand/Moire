@@ -1037,6 +1037,21 @@ for (let para of body.split(/\n\s*\n/)) {
   paragraphs.push(`<p>${inline(para)}</p>`);
 }
 
+// A heading followed immediately by floats reads like a section that speaks
+// pictures before words; give each such float the classic treatment and let
+// the first paragraph go first.
+for (let i = 0; i < paragraphs.length; i++) {
+  if (!/^<h[23] /.test(paragraphs[i])) continue;
+  let j = i + 1;
+  while (j < paragraphs.length && /^<figure/.test(paragraphs[j])) j++;
+  const nFloats = j - (i + 1);
+  if (nFloats > 0 && j < paragraphs.length && /^<p>/.test(paragraphs[j])) {
+    const floats = paragraphs.splice(i + 1, nFloats);
+    paragraphs.splice(i + 2, 0, ...floats);
+    i += 1 + nFloats;
+  }
+}
+
 // --------------------------------------------------------------- assemble
 
 const toc = [];
@@ -1302,7 +1317,7 @@ figcaption {
 .subrow figure.sub { margin: 0; flex: 1 1 0; min-width: 0; }
 .subrow figcaption { text-align: center; font-size: 0.78rem; color: var(--faint); padding-top: 0.45rem; }
 .subrow.plots { max-width: 62rem; margin: 0 auto; gap: 1.6rem; }
-.subrow.plots figcaption { text-align: left; font-size: 0.84rem; color: var(--ink-soft); padding-top: 0.55rem; }
+.subrow.plots figcaption { text-align: center; font-size: 0.78rem; color: var(--faint); padding-top: 0.4rem; }
 .panelrow {
   display: flex; font-size: 0.78rem; color: var(--faint);
   font-family: var(--mono); padding: 0.35rem 0 0.9rem;

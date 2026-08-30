@@ -93,13 +93,7 @@ is merely loose rather than wrong.
       \end{axis}
       \path ([yshift=8pt]resax.north);
     \end{tikzpicture}
-    \caption{One pixel, worked. The naive index guess is $\figNaive$; the true
-    nearest ring is $\figTrue$, $\figGap$ rings away and outside any small
-    neighbourhood. The two envelopes of Lemma~\ref{lem:envelope} cross the guard
-    band (pink) at $\figLo$ and $\figHi$, proving that no ring outside those
-    $\figSpan$ indices comes within $G$. The Lipschitz rule then visits
-    $\figEvals$ of them (dots), taking long strides while $|h|$ is large and
-    closing in only near the crossing.}
+    \caption{One pixel, worked.}
     \label{fig:residual}
   \end{subfigure}\hfill
   \begin{subfigure}[t]{0.485\textwidth}
@@ -123,13 +117,7 @@ is merely loose rather than wrong.
       \end{axis}
       \path ([yshift=8pt]fanax.north);
     \end{tikzpicture}
-    \caption{Why no constant works. Triangles, $\theta=0.02$, $96$ directions per
-    radius; the stray is the worst seen out to that radius. The nearest index
-    leaves any fixed neighbourhood of the naive guess and the gap grows linearly,
-    so a budget is a horizontal line that the requirement crosses --- here at
-    $r\approx500$, a third of the way across the frame. The proven interval grows
-    too, since the rings near a pixel genuinely become more numerous, but the
-    Lipschitz skip keeps what we evaluate well below it.}
+    \caption{Why no constant works.}
     \label{fig:fan}
   \end{subfigure}
   \Description{Two plots. The left plots the residual against ring index: a steeply
@@ -141,10 +129,22 @@ is merely loose rather than wrong.
   stray of the nearest index grows roughly linearly past sixty, the proven interval
   width grows with it, the count of indices evaluated stays near ten, and a dotted
   horizontal line at sixteen marks a fixed budget that the stray crosses early.}
-  \caption{The two facts that make bounded inversion possible. Left: the residual
-  at a single pixel is sandwiched between two lines in $n$, which is enough to
-  certify a finite interval. Right: why no fixed interval could have been enough,
-  measured.}
+  \caption{\figlead{The two facts that make bounded inversion possible.}
+  \textbf{(a)}~The residual at one pixel is sandwiched between two lines in $n$,
+  which is enough to certify a finite interval. The naive index guess is
+  $\figNaive$; the true nearest ring is $\figTrue$, $\figGap$ rings away and
+  outside any small neighbourhood. The two envelopes of Lemma~\ref{lem:envelope}
+  cross the guard band (pink) at $\figLo$ and $\figHi$, proving that no ring
+  outside those $\figSpan$ indices comes within $G$; the Lipschitz rule then
+  visits $\figEvals$ of them (dots), taking long strides while $|h|$ is large
+  and closing in only near the crossing. \textbf{(b)}~Why no fixed interval
+  could have been enough, measured. Triangles, $\theta=0.02$, $96$ directions
+  per radius; the stray is the worst seen out to that radius. The nearest index
+  leaves any fixed neighbourhood of the naive guess and the gap grows linearly,
+  so a budget is a horizontal line that the requirement crosses --- here at
+  $r\approx500$, a third of the way across the frame. The proven interval grows
+  too, since the rings near a pixel genuinely become more numerous, but the
+  Lipschitz skip keeps what we evaluate well below it.}
   \label{fig:bounds}
 \end{figure*}
 
