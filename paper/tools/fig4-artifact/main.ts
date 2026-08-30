@@ -83,11 +83,11 @@ function eta(x: number, y: number): number {
 }
 
 type Run = [number, number][];
-function clipPatch(pts: Run): Run[] {
+function clipPatch(pts: Run, bound = 1): Run[] {
   const out: Run[] = [];
   let cur: Run = [];
   for (const p of pts) {
-    if (Math.abs(p[0]) <= 1 && Math.abs(p[1]) <= 1) cur.push(p);
+    if (Math.abs(p[0]) <= bound && Math.abs(p[1]) <= bound) cur.push(p);
     else if (cur.length) { out.push(cur); cur = []; }
   }
   if (cur.length) out.push(cur);
@@ -354,15 +354,28 @@ function rebuildCurves() {
       dynamic.add(new THREE.Line(g, thinMat));
     }
   };
-  for (const { lv, pts } of levels) {
-    for (const run of clipPatch(pts)) {
+  // A tube has a body: clip its spine a radius inside the patch so nothing
+  // overhangs the border, and lift it along the surface NORMAL so it hugs
+  // the steep flanks instead of riding proud of them.
+  const R_CONTOUR = 0.0034;
+  const onSurface = ([x, y]: [number, number]): [number, number, number] => {
+    const e = 1e-3;
+    const gx = ((H(x + e, y) - H(x - e, y)) / (2 * e)) * zScale;
+    const gy = ((H(x, y + e) - H(x, y - e)) / (2 * e)) * zScale;
+    const inv = 1 / Math.sqrt(gx * gx + gy * gy + 1);
+    const lift = R_CONTOUR * 0.9;
+    return [
+      x - gx * inv * lift,
+      y - gy * inv * lift,
+      P.z0 + zScale * (H(x, y) - zMid) + inv * lift,
+    ];
+  };
+  for (const { pts } of levels) {
+    for (const run of clipPatch(pts, 1 - R_CONTOUR * 1.6)) {
       for (const seg of splitEta(run)) {
-        if (P.showContours) {
-          const z = liftZ(lv) + 0.006;
-          addRun(seg.pts.map(([x, y]) => [x, y, z] as [number, number, number]), seg.bold, 0.005);
-        }
+        if (P.showContours) addRun(seg.pts.map(onSurface), seg.bold, R_CONTOUR);
         if (P.showFringes) {
-          addRun(seg.pts.map(([x, y]) => [x, y, 0.004] as [number, number, number]), seg.bold, 0.004);
+          addRun(seg.pts.map(([x, y]) => [x, y, 0.003] as [number, number, number]), seg.bold, 0.003);
         }
       }
     }
