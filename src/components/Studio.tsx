@@ -8,7 +8,7 @@ import {
   Delete02Icon,
   DragDropVerticalIcon,
   ImageDownloadIcon,
-  KeyboardIcon,
+  MicroscopeIcon,
   ViewIcon,
   ViewOffSlashIcon,
 } from '@hugeicons/core-free-icons';
@@ -134,6 +134,25 @@ function ToggleRow({
 
 function EnvelopeControl() {
   const envelope = useProjectStore((s) => s.view.envelope);
+  const setView = useProjectStore((s) => s.setView);
+  return (
+    <IconButton
+      icon={AudioWave02Icon}
+      label="Envelope"
+      active={envelope}
+      onClick={() => setView({ envelope: !envelope })}
+      size={14}
+      dense
+    />
+  );
+}
+
+/**
+ * The microscope: the research views in one place — the envelope's dials, the
+ * contour skeleton, and the fringe-ratio map. The envelope icon beside it only
+ * flips the view; everything tunable lives here.
+ */
+function ResearchControl() {
   const view = useProjectStore((s) => s.view);
   const setView = useProjectStore((s) => s.setView);
   const [open, setOpen] = useState(false);
@@ -141,38 +160,31 @@ function EnvelopeControl() {
   return (
     <>
       <IconButton
-        icon={AudioWave02Icon}
-        label={envelope ? 'Envelope · right-click for options' : 'Envelope'}
-        active={envelope || view.ratio}
-        onClick={() => {
-          setView({ envelope: !envelope });
-          setOpen(!envelope);
-        }}
-        onAlternate={() => {
-          if (!envelope && !view.ratio) setView({ envelope: true });
-          setOpen(true);
-        }}
+        icon={MicroscopeIcon}
+        label="Research"
+        active={open || view.ratio || view.envelopeContours}
+        onClick={() => setOpen(!open)}
         size={14}
         dense
       />
       {open && (
         <FloatingPanel
-          id="envelope"
+          id="research"
           width={236}
           defaultPosition={{ x: window.innerWidth - 260, y: 56 }}
           onClose={() => setOpen(false)}
-          mark={<Icon icon={AudioWave02Icon} size={14} />}
-          title="Envelope"
+          mark={<Icon icon={MicroscopeIcon} size={14} />}
+          title="Research"
         >
           <div className="mb-3 grid gap-3">
             <ToggleRow
               label="Envelope"
               info="The stack averaged over its own phase — the fringe field with the carrier removed. Nothing is blurred; the average is over phase, not space."
-              on={envelope}
-              onToggle={() => setView({ envelope: !envelope })}
+              on={view.envelope}
+              onToggle={() => setView({ envelope: !view.envelope })}
             />
           </div>
-          <div className={`grid gap-3 ${envelope ? '' : 'pointer-events-none opacity-40'}`}>
+          <div className={`grid gap-3 ${view.envelope ? '' : 'pointer-events-none opacity-40'}`}>
             <Slider
               label="Contrast"
               value={view.envelopeContrast}
@@ -933,17 +945,11 @@ function Chrome({ onToggle }: { onToggle: () => void }) {
       </button>
       <ColorField value={backgroundColor} onChange={setBackgroundColor} />
       <EnvelopeControl />
+      <ResearchControl />
       <IconButton
         icon={BookOpen02Icon}
         label="Read the paper"
         onClick={() => window.open(`${import.meta.env.BASE_URL}paper/index.html`, '_blank', 'noopener')}
-        size={14}
-        dense
-      />
-      <IconButton
-        icon={KeyboardIcon}
-        label="Shortcuts"
-        onClick={() => window.dispatchEvent(new Event('moire-shortcuts'))}
         size={14}
         dense
       />

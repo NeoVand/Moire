@@ -58,6 +58,9 @@ const PAPER = '#f4f2ee';
 const C0 = 1.6;
 
 const s = () => (2 * P.F) / P.levels;
+// The top of the Bold-cut slider means "no cut": everything draws bold and
+// the Phi profile never fades to the uncorrelated mean.
+const etaCutEff = () => (P.etaCut >= 2.04 ? 1e9 : P.etaCut);
 
 // ------------------------------------------------------------------ math
 function radii(x: number, y: number): [number, number] {
@@ -95,7 +98,7 @@ function splitEta(run: Run): { bold: boolean; pts: Run }[] {
   let cur: Run = [];
   let cls: boolean | null = null;
   for (const p of run) {
-    const b = eta(p[0], p[1]) < P.etaCut;
+    const b = eta(p[0], p[1]) < etaCutEff();
     if (cls !== null && b !== cls && cur.length) { out.push({ bold: cls, pts: cur }); cur = []; }
     cls = b;
     cur.push(p);
@@ -245,7 +248,7 @@ function paintBands() {
       const h = H(x, y);
       const t = Math.abs(h - Math.round(h));
       const et = eta(x, y);
-      const inRegime = et < P.etaCut;
+      const inRegime = et < etaCutEff();
       let r = paper[0], g = paper[1], b = paper[2];
       if (P.fillMode === 'phi') {
         // Exact mean ink along the diagonal: union of two duty-d strokes at
@@ -254,7 +257,7 @@ function paintBands() {
         // the uncorrelated coverage, so the profile fades to it honestly.
         const overlap = Math.max(0, duty - t) + Math.max(0, duty - (1 - t));
         const tent = Math.min(1, 2 * duty - overlap);
-        const fade = Math.min(1, Math.max(0, (et - 0.8 * P.etaCut) / (0.8 * P.etaCut)));
+        const fade = Math.min(1, Math.max(0, (et - 0.8 * etaCutEff()) / (0.8 * etaCutEff())));
         const a = (tent * (1 - fade) + flat * fade) * P.fillAlpha;
         r = r * (1 - a) + ink[0] * a;
         g = g * (1 - a) + ink[1] * a;
@@ -386,13 +389,17 @@ function rebuildCurves() {
   }
   if (P.showPosts) {
     const postMat = new THREE.MeshBasicMaterial({ color: INK, transparent: true, opacity: 0.55 });
+    const dash = 0.042, gap = 0.03;
     for (const [cx, cy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]] as const) {
       const z = P.z0 + zScale * (H(cx, cy) - zMid);
-      const g = new THREE.TubeGeometry(
-        curve3([[cx, cy, 0.003], [cx, cy, (z + 0.003) / 2], [cx, cy, z]]),
-        8, 0.0032, 5, false
-      );
-      dynamic.add(new THREE.Mesh(g, postMat));
+      for (let z0 = 0.004; z0 < z; z0 += dash + gap) {
+        const z1 = Math.min(z0 + dash, z);
+        const g = new THREE.TubeGeometry(
+          new THREE.LineCurve3(new THREE.Vector3(cx, cy, z0), new THREE.Vector3(cx, cy, z1)),
+          1, 0.0028, 5, false
+        );
+        dynamic.add(new THREE.Mesh(g, postMat));
+      }
     }
   }
 }
@@ -430,7 +437,7 @@ function viewSvg(): string {
       `.ring1{stroke:#26506a;stroke-width:0.7;fill:none}` +
       `.ring2{stroke:#15181c;stroke-width:0.7;fill:none}` +
       `.frame{stroke:#15181c;stroke-width:1.6;fill:none}` +
-      `.post{stroke:#15181c;stroke-width:1.2;fill:none;opacity:.55}</style>`,
+      `.post{stroke:#15181c;stroke-width:1.2;fill:none;opacity:.55;stroke-dasharray:7 5}</style>`,
   ];
   const lift = (run: Run, lv: number) =>
     run.map(([x, y]) => [x, y, liftZ(lv)] as [number, number, number]);
@@ -613,7 +620,7 @@ bindRange('fillalpha', () => P.fillAlpha, (v) => { P.fillAlpha = v; bandsDirty =
 bindRange('outline', () => P.outlineW, (v) => { P.outlineW = v; bandsDirty = true; }, (v) => v.toFixed(1));
 bindRange('duty', () => P.duty, (v) => { P.duty = v; floorDirty = true; }, (v) => v.toFixed(2));
 bindRange('band', () => P.band, (v) => { P.band = v; bandsDirty = true; }, (v) => v.toFixed(2));
-bindRange('etacut', () => P.etaCut, (v) => { P.etaCut = v; bandsDirty = true; }, (v) => v.toFixed(2));
+bindRange('etacut', () => P.etaCut, (v) => { P.etaCut = v; bandsDirty = true; }, (v) => (v >= 2.04 ? 'all' : v.toFixed(2)));
 bindRange('light', () => P.lightAz, (v) => { P.lightAz = v; placeSun(); }, (v) => `${Math.round(v)}°`);
 
 function bindCheck(id: string, get: () => boolean, set: (v: boolean) => void) {

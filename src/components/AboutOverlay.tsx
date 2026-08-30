@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { GithubIcon, Globe02Icon, Linkedin02Icon } from '@hugeicons/core-free-icons';
+import { GithubIcon, Globe02Icon, KeyboardIcon, Linkedin02Icon } from '@hugeicons/core-free-icons';
 import { isTypingTarget } from '../lib/keyboard';
 import { Icon } from './ui/Icon';
 import { MoireMark } from './ui/MoireMark';
@@ -122,7 +122,7 @@ export function AboutOverlay() {
           <MoirePreview />
         </div>
 
-        <div className="mt-3 flex justify-center">
+        <div className="mt-3 flex justify-center gap-1">
           <a
             href={REPO}
             target="_blank"
@@ -134,6 +134,19 @@ export function AboutOverlay() {
             <Icon icon={GithubIcon} size={15} />
             <span>Repository</span>
           </a>
+          <button
+            type="button"
+            title="Keyboard shortcuts"
+            aria-label="Keyboard shortcuts"
+            onClick={() => {
+              setOpen(false);
+              window.dispatchEvent(new Event('moire-shortcuts'));
+            }}
+            className="flex items-center gap-1.5 rounded-md px-2 py-1 text-[12px] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
+          >
+            <Icon icon={KeyboardIcon} size={15} />
+            <span>Shortcuts</span>
+          </button>
         </div>
 
         <div className="mt-3 h-px bg-[var(--border)]" />
