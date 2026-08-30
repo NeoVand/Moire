@@ -52,7 +52,7 @@ const P: Params = {
 
 const INK = 0x15181c;
 const ACCENT = '#C81E5A';
-const WARM = '#D4761A';
+const SUMBLUE = '#1B6CA8';
 const COOL = [0x1b / 2.55, 0x6c / 2.55, 0xa8 / 2.55]; // 0..100 scale unused; see tex
 const PAPER = '#f4f2ee';
 const C0 = 1.6;
@@ -235,7 +235,7 @@ function paintBands() {
   const d = img.data;
   const paper = [244, 242, 238];
   const ink = [21, 24, 28];
-  const col = P.panel === 'difference' ? [200, 30, 90] : [212, 118, 26];
+  const col = P.panel === 'difference' ? [200, 30, 90] : [27, 108, 168];
   const dark = col.map((c) => c * 0.62);
   const duty = P.duty;
   const flat = 2 * duty - duty * duty; // uncorrelated union coverage
@@ -291,6 +291,14 @@ function paintBands() {
 
 const floorTex = new THREE.CanvasTexture(floorCanvas);
 const bandTex = new THREE.CanvasTexture(bandCanvas);
+// A repaint must never inherit stale GPU state: dispose forces three to
+// reallocate and re-upload the whole canvas on the next render.
+function hardRefreshTextures() {
+  floorTex.dispose();
+  bandTex.dispose();
+  floorTex.needsUpdate = true;
+  bandTex.needsUpdate = true;
+}
 for (const t of [floorTex, bandTex]) {
   t.anisotropy = renderer.capabilities.getMaxAnisotropy();
   t.colorSpace = THREE.SRGBColorSpace;
@@ -339,7 +347,7 @@ function rebuildCurves() {
       if (m.geometry) m.geometry.dispose();
     });
   }
-  const colHex = P.panel === 'difference' ? ACCENT : WARM;
+  const colHex = P.panel === 'difference' ? ACCENT : SUMBLUE;
   const boldMat = new THREE.MeshBasicMaterial({ color: colHex });
   const thinMat = new THREE.LineBasicMaterial({ color: colHex, transparent: true, opacity: 0.4 });
   const levels = levelCurves();
@@ -472,7 +480,7 @@ function viewSvg(): string {
   };
   const poly = (pts: [number, number, number][], cls: string) =>
     `<polyline points="${pts.map(([x, y, z]) => px(x, y, z).join(',')).join(' ')}" class="${cls}"/>`;
-  const col = P.panel === 'difference' ? '#C81E5A' : '#D4761A';
+  const col = P.panel === 'difference' ? '#C81E5A' : '#1B6CA8';
   const parts: string[] = [
     `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${Hh}" viewBox="0 0 ${W} ${Hh}">`,
     `<style>.bold{stroke:${col};stroke-width:2.4;fill:none}` +
@@ -720,6 +728,7 @@ for (const m of ['bands', 'phi'] as const) {
 for (const p of ['difference', 'sum'] as Panel[]) {
   $(p).addEventListener('click', () => {
     P.panel = p;
+    hardRefreshTextures();
     bandsDirty = shapeDirty = true;
     $('difference').classList.toggle('on', p === 'difference');
     $('sum').classList.toggle('on', p === 'sum');
@@ -733,6 +742,35 @@ $('exp-json').addEventListener('click', () => openCopyModal('Settings JSON', set
 $('exp-svg').addEventListener('click', () => openCopyModal('View SVG (current camera)', viewSvg()));
 
 // ------------------------------------------------------------------ loop
+// Chrome restores form controls across reloads and fires their events,
+// which can push a previous session's values into P piecemeal. After any
+// (re)load, write the true state back into every control.
+function syncUi() {
+  const pairs: [string, string | number | boolean][] = [
+    ['f', P.F], ['levels', P.levels], ['duty', P.duty], ['relief', P.relief],
+    ['z0', P.z0], ['sopacity', P.surfOpacity], ['fillalpha', P.fillAlpha],
+    ['outline', P.outlineW], ['band', P.band], ['etacut', P.etaCut],
+    ['light', P.lightAz],
+  ];
+  for (const [id, v] of pairs) {
+    const el = $(id) as HTMLInputElement;
+    el.value = String(v);
+    const out = document.getElementById(id + '-v');
+    if (out) out.textContent = id === 'etacut' && (v as number) >= 2.04 ? 'all'
+      : id === 'levels' ? '\u00b1' + v : id === 'light' ? Math.round(v as number) + '\u00b0'
+      : typeof v === 'number' ? (v as number).toFixed(2) : String(v);
+  }
+  for (const [id, v] of [['contours', P.showContours], ['fringes', P.showFringes],
+    ['posts', P.showPosts], ['tint', P.tint], ['edge', P.showEdge], ['floorvis', P.showFloor]] as const) {
+    ($(id) as HTMLInputElement).checked = v as boolean;
+  }
+  $('difference').classList.toggle('on', P.panel === 'difference');
+  $('sum').classList.toggle('on', P.panel === 'sum');
+  $('mode-bands').classList.toggle('on', P.fillMode === 'bands');
+  $('mode-phi').classList.toggle('on', P.fillMode === 'phi');
+}
+window.addEventListener('pageshow', () => setTimeout(syncUi, 250));
+
 function resize() {
   const w = innerWidth, h = innerHeight;
   renderer.setSize(w, h, false);
@@ -745,3 +783,57 @@ placeSun();
 preset(25, -62, 4.6);
 apply();
 renderer.setAnimationLoop(() => renderer.render(scene, camera));
+
+// ---------------------------------------------------------------- harness
+// Local figure production: apply a Settings JSON, raise texture resolution,
+// render at print size, hand back a PNG. Inert unless called.
+(window as any).__census = () => {
+  const out: Record<string, number> = {};
+  scene.traverse((o) => {
+    const m = o as THREE.Mesh;
+    const mat = (m.material as THREE.MeshBasicMaterial | undefined);
+    const key = o.type + (mat && mat.color ? '#' + mat.color.getHexString() : '');
+    out[key] = (out[key] || 0) + 1;
+  });
+  out['dynamicChildren'] = dynamic.children.length;
+  return out;
+};
+(window as any).__applySettings = (o: any) => {
+  clearTimeout(timer);
+  Object.assign(P, o.params);
+  hardRefreshTextures();
+  if (o.camera) {
+    theta = o.camera.theta; phi = o.camera.phi; dist = o.camera.dist;
+    target.set(o.camera.target[0], o.camera.target[1], o.camera.target[2]);
+  }
+  placeSun();
+  placeCamera();
+  ($('difference') as HTMLElement).classList.toggle('on', P.panel === 'difference');
+  ($('sum') as HTMLElement).classList.toggle('on', P.panel === 'sum');
+  floorDirty = bandsDirty = shapeDirty = true;
+  apply();
+  syncUi();
+};
+(window as any).__setTexRes = (floorN: number, bandN: number) => {
+  floorCanvas.width = floorCanvas.height = floorN;
+  bandCanvas.width = bandCanvas.height = bandN;
+  paintFloor();
+  paintBands();
+  hardRefreshTextures();
+};
+(window as any).__renderPng = (w: number, h: number) => {
+  clearTimeout(timer);
+  floorDirty = bandsDirty = shapeDirty = true;
+  hardRefreshTextures();
+  apply();
+  renderer.setPixelRatio(1);
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  placeCamera();
+  renderer.render(scene, camera);
+  const url = canvas.toDataURL('image/png');
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  resize();
+  return url;
+};
