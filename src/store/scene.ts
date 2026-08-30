@@ -87,6 +87,7 @@ function parseLayer(raw: unknown, index: number): PatternLayer {
     sides: num(r.sides, base.sides),
     vertexSize: num(r.vertexSize, base.vertexSize),
     drawEdges: bool(r.drawEdges, base.drawEdges),
+    tileFill: num(r.tileFill, base.tileFill),
     scale: vec2(r.scale, base.scale),
     lineCount: num(r.lineCount, base.lineCount),
     bend: num(r.bend, base.bend),

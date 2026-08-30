@@ -34,6 +34,7 @@ function layer(id, over = {}) {
     sides: 6,
     vertexSize: 2.5,
     drawEdges: true,
+    tileFill: 0,
     lineCount: 8,
     bend: 0,
     frequency: 1,
@@ -129,7 +130,6 @@ const TILING_IDS = [
   'rhombitrihex',
   'snub-square',
   'elongated-triangular',
-  'running-bond',
 ];
 
 const tilingCases = TILING_IDS.flatMap((id) => [
@@ -146,6 +146,62 @@ const tilingCases = TILING_IDS.flatMap((id) => [
 
 export const cases = [
   ...tilingCases,
+  {
+    name: 'tiling-kagome-filled',
+    coords: [2],
+    note:
+      'kagome with the faces inked inward — the hexagons clear the inset and ' +
+      'the triangles do not, which is what makes one tiling look unlike another',
+    scene: scene(
+      [
+        layer('a', {
+          type: 'tiling-periodic',
+          tiling: 'kagome',
+          spacing: 30,
+          thickness: 1.5,
+          vertexSize: 0,
+          tileFill: 0.45,
+        }),
+      ],
+      view()
+    ),
+  },
+  {
+    name: 'tiling-octagon-pair-filled',
+    coords: [2, 2],
+    note: 'two filled truncated-square tilings at 6 degrees — the moire of the faces, not of hairlines',
+    scene: scene(
+      [
+        layer('a', {
+          type: 'tiling-periodic',
+          tiling: 'truncated-square',
+          spacing: 30,
+          thickness: 1.5,
+          vertexSize: 0,
+          tileFill: 0.45,
+        }),
+        layer('b', {
+          type: 'tiling-periodic',
+          tiling: 'truncated-square',
+          spacing: 30,
+          thickness: 1.5,
+          vertexSize: 0,
+          tileFill: 0.45,
+          rotation: 6,
+        }),
+      ],
+      view()
+    ),
+  },
+  {
+    name: 'grid-hex-filled',
+    coords: [2],
+    note: 'fill on a closed-form grid: the honeycomb inked inward, no catalogue table involved',
+    scene: scene(
+      [layer('a', { type: 'grid-hex', spacing: 18, thickness: 1.5, vertexSize: 0, tileFill: 0.5 })],
+      view()
+    ),
+  },
   {
     name: 'tiling-kagome-twist-contours',
     coords: [2, 2],

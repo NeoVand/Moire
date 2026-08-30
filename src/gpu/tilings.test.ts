@@ -100,13 +100,11 @@ for (const spec of TILINGS) {
   //     bounds no packed shape — nine of the fifteen per cell in the snub
   //     trihexagonal — and the picture still looks entirely plausible without
   //     them. Degree is local, so no cell-counting boundary can fudge it.
-  if (spec.id !== 'running-bond') {
-    const wantDeg = spec.notation.split('.').length;
-    const degs = vertexDegrees(spec.id);
-    assert.ok(degs.length > 0, `${label}: no interior vertex to check`);
-    for (const d of degs) {
-      assert.equal(d, wantDeg, `${label}: a vertex has ${d} edges, not ${wantDeg}`);
-    }
+  const wantDeg = spec.notation.split('.').length;
+  const degs = vertexDegrees(spec.id);
+  assert.ok(degs.length > 0, `${label}: no interior vertex to check`);
+  for (const d of degs) {
+    assert.equal(d, wantDeg, `${label}: a vertex has ${d} edges, not ${wantDeg}`);
   }
 
   // 4. The generated ink is periodic under BOTH generators — the property the
@@ -182,7 +180,7 @@ for (const spec of TILINGS) {
   console.log(
     `  ${spec.notation.padEnd(9)} ${label.padEnd(22)} ` +
       `${geo.segments.length / 4} segments, ${geo.vertices.length / 2} vertices` +
-      (spec.id === 'running-bond' ? '' : `, degree ${spec.notation.split('.').length}`)
+      `, degree ${spec.notation.split('.').length}`
   );
 }
 

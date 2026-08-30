@@ -8,7 +8,7 @@
     "width": 640,
     "height": 480
   },
-  "updatedAt": "2026-08-30T20:03:22.338Z",
+  "updatedAt": "2026-08-30T20:38:36.502Z",
   "cases": {
     "lines-pair": {
       "coords": [
@@ -281,6 +281,25 @@
         2
       ],
       "note": "the snub-trihex tiling alone: edges and vertices, no beat"
+    },
+    "tiling-kagome-filled": {
+      "coords": [
+        2
+      ],
+      "note": "kagome with the faces inked inward — the hexagons clear the inset and the triangles do not, which is what makes one tiling look unlike another"
+    },
+    "tiling-octagon-pair-filled": {
+      "coords": [
+        2,
+        2
+      ],
+      "note": "two filled truncated-square tilings at 6 degrees — the moire of the faces, not of hairlines"
+    },
+    "grid-hex-filled": {
+      "coords": [
+        2
+      ],
+      "note": "fill on a closed-form grid: the honeycomb inked inward, no catalogue table involved"
     }
   }
 }

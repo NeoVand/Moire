@@ -90,6 +90,14 @@ export interface PatternLayer {
   vertexSize: number;
   /** Lattice edges. Grids have no offset. */
   drawEdges: boolean;
+  /**
+   * Ink the faces, inward from their edges. 0 is off; 1 is solid. In between
+   * it is an inset, so a face fills only once its incircle exceeds the inset —
+   * which is what separates a tiling's big faces from its small ones, and is
+   * the whole reason two different tilings look like two different patterns
+   * rather than the same fringe system twice.
+   */
+  tileFill: number;
   /** Lattice stretch in layer space. 1 is unstretched. */
   scale: Vec2;
   /** Distinct lines through the origin. Radial lines only. */
@@ -262,6 +270,7 @@ export function createLayer(
     sides: 6,
     vertexSize: 2.5,
     drawEdges: true,
+    tileFill: 0,
     lineCount: 8,
     bend: 0,
     frequency: 1,
@@ -339,6 +348,7 @@ export const LAYER_DEFAULTS = {
   rotationOffset: 0,
   sides: 6,
   vertexSize: 2.5,
+  tileFill: 0,
   spacingGrid: 16,
   scaleX: 1,
   scaleY: 1,

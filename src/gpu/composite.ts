@@ -40,7 +40,7 @@ import {
   ringPhase,
 } from './inverse.wgsl';
 import { gridDistance, latticeCellWgsl } from './lattice.wgsl';
-import { tilingTable, tilingIndex } from './tilings';
+import { tilingTable, tilingIndex, BIN_REACH } from './tilings';
 import { layerMorph } from './typeMorph';
 import { compileField, type CompiledField } from '../fields/expr';
 import { fieldFunction } from '../fields/expr.wgsl';
@@ -93,20 +93,33 @@ export function patternTypeCode(type: PatternType): number {
  * and the same numbers the CPU mirror walks.
  */
 const TILE_TABLE = tilingTable();
-const TILE_SEGS = uniformArray(
-  Array.from({ length: TILE_TABLE.segments.length / 4 }, (_, i) =>
+/** One descriptor per bin: segment start and count, vertex start and count. */
+const TILE_BINS = uniformArray(
+  Array.from({ length: TILE_TABLE.binDescs.length / 4 }, (_, i) =>
     new THREE.Vector4(
-      TILE_TABLE.segments[i * 4],
-      TILE_TABLE.segments[i * 4 + 1],
-      TILE_TABLE.segments[i * 4 + 2],
-      TILE_TABLE.segments[i * 4 + 3]
+      TILE_TABLE.binDescs[i * 4],
+      TILE_TABLE.binDescs[i * 4 + 1],
+      TILE_TABLE.binDescs[i * 4 + 2],
+      TILE_TABLE.binDescs[i * 4 + 3]
+    )
+  ),
+  'vec4'
+);
+/** The segments themselves, grouped by bin — read straight, no indirection. */
+const TILE_SEGS = uniformArray(
+  Array.from({ length: TILE_TABLE.binSegs.length / 4 }, (_, i) =>
+    new THREE.Vector4(
+      TILE_TABLE.binSegs[i * 4],
+      TILE_TABLE.binSegs[i * 4 + 1],
+      TILE_TABLE.binSegs[i * 4 + 2],
+      TILE_TABLE.binSegs[i * 4 + 3]
     )
   ),
   'vec4'
 );
 const TILE_VERTS = uniformArray(
-  Array.from({ length: TILE_TABLE.vertices.length / 2 }, (_, i) =>
-    new THREE.Vector2(TILE_TABLE.vertices[i * 2], TILE_TABLE.vertices[i * 2 + 1])
+  Array.from({ length: TILE_TABLE.binVerts.length / 2 }, (_, i) =>
+    new THREE.Vector2(TILE_TABLE.binVerts[i * 2], TILE_TABLE.binVerts[i * 2 + 1])
   ),
   'vec2'
 );
@@ -135,12 +148,13 @@ export function createLayerSlot() {
     fieldScale: uniform(200),
     typeFrom: uniform(1),
     morph: uniform(1),
-    // The catalogue run this layer's tiling occupies, and its translation
-    // cell in world units before the layer's stretch.
-    tileSegStart: uniform(0, 'int'),
-    tileSegCount: uniform(0, 'int'),
-    tileVertStart: uniform(0, 'int'),
-    tileVertCount: uniform(0, 'int'),
+    // Where this layer's tiling keeps its bins, how many per axis, and its
+    // translation cell in world units before the layer's stretch.
+    tileBinBase: uniform(0, 'int'),
+    tileBins: uniform(1, 'int'),
+    /** Face fill: how much, and the inset it corresponds to in world units. */
+    tileFill: uniform(0),
+    tileFillEdge: uniform(0),
     tileCell: uniform(new THREE.Vector4(1, 0, 0, 1)),
   };
 }
@@ -285,6 +299,20 @@ const GOLDEN = 0.6180339887498949;
 
 export type ViewUniforms = ReturnType<typeof createViewUniforms>;
 
+/**
+ * The deepest inset a layer's edge distance can be trusted to, in units of
+ * `spacing`. For a catalogue tiling it is the bins' own reach; for the three
+ * closed-form grids it is the face's incircle, which their solvers report
+ * exactly: half a cell for the square, the apothem for the hexagon, and a
+ * third of the height for the triangle.
+ */
+function fillReach(type: PatternType): number {
+  if (type === 'grid-square') return 0.5;
+  if (type === 'grid-hex') return 0.86602540378;
+  if (type === 'grid-triangle') return 0.28867513459;
+  return BIN_REACH;
+}
+
 export function writeLayerSlot(slot: LayerSlot, layer: PatternLayer | undefined) {
   if (!layer || !layer.visible) {
     slot.active.value = 0;
@@ -309,10 +337,13 @@ export function writeLayerSlot(slot: LayerSlot, layer: PatternLayer | undefined)
   slot.bend.value = layer.bend ?? 0;
   slot.frequency.value = layer.frequency ?? 1;
   const range = TILE_TABLE.ranges[tilingIndex(layer.tiling)];
-  slot.tileSegStart.value = range.segStart;
-  slot.tileSegCount.value = range.segCount;
-  slot.tileVertStart.value = range.vertStart;
-  slot.tileVertCount.value = range.vertCount;
+  slot.tileBinBase.value = range.binBase;
+  slot.tileBins.value = range.bins;
+  slot.tileFill.value = layer.tileFill ?? 0;
+  // The inset the fill slider asks for, in world units. It runs from the
+  // deepest distance the layer's ink can report down to zero, so the slider
+  // sweeps from "only the largest faces" through to solid.
+  slot.tileFillEdge.value = (1 - (layer.tileFill ?? 0)) * fillReach(layer.type) * layer.spacing;
   slot.tileCell.value.set(
     range.a1[0] * layer.spacing,
     range.a1[1] * layer.spacing,
@@ -1015,39 +1046,50 @@ function matchLattices(view, solved, scan, latGrads) {
  * anisotropic tiling stretches its ink rather than its parameterisation. That
  * is the convention the hexagon and triangle grids already use.
  */
-const tilingInkFn = Fn(
-  ([p, cellVec, spacing, scaleVec, segStart, segCount, vertStart, vertCount]) => {
-    const sgn = (v) => step(0, v).mul(2).sub(1).mul(v.abs().max(1e-4));
-    const sx = sgn(scaleVec.x);
-    const sy = sgn(scaleVec.y);
-    const q = vec2(p.x.div(sx), p.y.div(sy));
-    const a = cellVec.xy;
-    const b = cellVec.zw;
-    const det = a.x.mul(b.y).sub(a.y.mul(b.x));
-    const safe = step(0, det).mul(2).sub(1).mul(det.abs().max(1e-6));
-    const u = q.x.mul(b.y).sub(q.y.mul(b.x)).div(safe);
-    const v = a.x.mul(q.y).sub(a.y.mul(q.x)).div(safe);
-    const f = a.mul(u.fract()).add(b.mul(v.fract())).toVar();
+const tilingInkFn = Fn(([p, cellVec, spacing, scaleVec, binBase, bins, wantEdge, wantVert]) => {
+  const sgn = (v) => step(0, v).mul(2).sub(1).mul(v.abs().max(1e-4));
+  const sx = sgn(scaleVec.x);
+  const sy = sgn(scaleVec.y);
+  const q = vec2(p.x.div(sx), p.y.div(sy));
+  const a = cellVec.xy;
+  const b = cellVec.zw;
+  const det = a.x.mul(b.y).sub(a.y.mul(b.x));
+  const safe = step(0, det).mul(2).sub(1).mul(det.abs().max(1e-6));
+  const u = q.x.mul(b.y).sub(q.y.mul(b.x)).div(safe).fract();
+  const v = a.x.mul(q.y).sub(a.y.mul(q.x)).div(safe).fract();
+  const f = a.mul(u).add(b.mul(v)).toVar();
 
-    const edge = float(1e8).toVar();
-    Loop(segCount, ({ i }) => {
-      const seg = TILE_SEGS.element(segStart.add(i));
-      const p1 = seg.xy.mul(spacing);
-      const e = seg.zw.sub(seg.xy).mul(spacing);
-      const t = f.sub(p1).dot(e).div(max(e.dot(e), float(1e-9))).clamp(0, 1);
-      const d = f.sub(p1.add(e.mul(t)));
-      edge.assign(min(edge, length(vec2(d.x.mul(sx), d.y.mul(sy)))));
-    });
+  // The bin this point lands in. Its list holds every segment that could be
+  // nearest to any point in the bin, so the walk is exact — it simply skips
+  // the copies that never could have won. Twenty-four taps over a two-tiling
+  // stack made walking the whole list cost more than everything else in the
+  // frame put together.
+  const nb = float(bins);
+  const bi = u.mul(nb).floor().clamp(0, nb.sub(1));
+  const bj = v.mul(nb).floor().clamp(0, nb.sub(1));
+  const desc = TILE_BINS.element(binBase.add(int(bj.mul(nb).add(bi))));
 
-    const vert = float(1e8).toVar();
-    Loop(vertCount, ({ i }) => {
-      const d = f.sub(TILE_VERTS.element(vertStart.add(i)).mul(spacing));
-      vert.assign(min(vert, length(vec2(d.x.mul(sx), d.y.mul(sy)))));
-    });
+  // Each walk is skipped when nothing asks for it — a uniform branch, so a
+  // stack that draws edges without vertex dots pays for one loop, not two.
+  const edge = float(1e8).toVar();
+  Loop(wantEdge.greaterThan(0.5).select(int(desc.y), int(0)), ({ i }) => {
+    const seg = TILE_SEGS.element(int(desc.x).add(i));
+    const p1 = seg.xy.mul(spacing);
+    const e = seg.zw.sub(seg.xy).mul(spacing);
+    const t = f.sub(p1).dot(e).div(max(e.dot(e), float(1e-9))).clamp(0, 1);
+    const d = f.sub(p1.add(e.mul(t)));
+    edge.assign(min(edge, length(vec2(d.x.mul(sx), d.y.mul(sy)))));
+  });
 
-    return vec2(edge, vert);
-  }
-);
+  const vert = float(1e8).toVar();
+  Loop(wantVert.greaterThan(0.5).select(int(desc.w), int(0)), ({ i }) => {
+    const vtx = TILE_VERTS.element(int(desc.z).add(i));
+    const d = f.sub(vtx.mul(spacing));
+    vert.assign(min(vert, length(vec2(d.x.mul(sx), d.y.mul(sy)))));
+  });
+
+  return vec2(edge, vert);
+});
 
 function tilingInk(slot, p) {
   const hit = tilingInkFn(
@@ -1055,10 +1097,10 @@ function tilingInk(slot, p) {
     slot.tileCell,
     slot.spacing,
     slot.scale,
-    slot.tileSegStart,
-    slot.tileSegCount,
-    slot.tileVertStart,
-    slot.tileVertCount
+    slot.tileBinBase,
+    slot.tileBins,
+    max(slot.drawEdges, slot.tileFill),
+    slot.vertexSize
   ).toVar();
   return { edge: hit.x, vert: hit.y };
 }
@@ -1121,7 +1163,7 @@ function sweepStack(camera, view, solved, latCoh, scan) {
             edgeD.assign(hit.edge);
             vertD.assign(hit.vert);
           }).Else(() => {
-            If(slot.drawEdges.greaterThan(0.5), () => {
+            If(slot.drawEdges.greaterThan(0.5).or(slot.tileFill.greaterThan(0.001)), () => {
               edgeD.assign(
                 gridDistance(shifted, kind, slot.spacing, float(0), slot.scale.x, slot.scale.y)
               );
@@ -1139,6 +1181,16 @@ function sweepStack(camera, view, solved, latCoh, scan) {
             const vR = slot.vertexSize;
             ink.assign(
               max(ink, float(1).sub(smoothstep(max(vR.sub(aa), float(0)), vR.add(aa), vertD)))
+            );
+          });
+          // Fill inks a face inward from its edges. Because the threshold is
+          // an inset, a face survives only while its incircle clears it — so
+          // one slider sweeps from the largest faces alone through to solid,
+          // and which faces are large is exactly what distinguishes one
+          // tiling from another.
+          If(slot.tileFill.greaterThan(0.001), () => {
+            ink.assign(
+              max(ink, smoothstep(slot.tileFillEdge.sub(aa), slot.tileFillEdge.add(aa), edgeD))
             );
           });
           alpha.assign(ink.mul(slot.opacity));

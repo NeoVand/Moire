@@ -51,9 +51,8 @@ function TilingThumb({ id, size = THUMB }: { id: TilingId; size?: number }) {
 
 /**
  * The gallery groups by how regular the tiling is, because that is the
- * distinction a reader can see: the three whose faces are all one shape, the
- * uniform ones built from several regular polygons, and the brick, whose faces
- * are not regular at all.
+ * distinction a reader can see: the three whose faces are all one shape, and
+ * the eight built from several kinds of regular polygon.
  */
 const SECTIONS: { label: string; ids: TilingId[] }[] = [
   { label: 'Regular', ids: ['square', 'triangular', 'hexagonal'] },
@@ -66,9 +65,10 @@ const SECTIONS: { label: string; ids: TilingId[] }[] = [
       'rhombitrihex',
       'snub-square',
       'elongated-triangular',
+      'truncated-trihex',
+      'snub-trihex',
     ],
   },
-  { label: 'Other', ids: ['running-bond'] },
 ];
 
 export function TilingGallery({

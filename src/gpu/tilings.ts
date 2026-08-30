@@ -65,8 +65,8 @@ export interface TilingSpec {
   builtin?: 'grid-square' | 'grid-hex' | 'grid-triangle';
   /**
    * The largest circle that fits inside any face, in edge-length units — so
-   * the farthest a point can sit from this tiling's ink. Derived from the
-   * faces for a tiling made of regular polygons; stated only where it is not.
+   * the farthest a point can sit from this tiling's ink, and therefore how far
+   * a bin has to reach to hold every segment that could be a point's nearest.
    */
   inradius?: number;
 }
@@ -82,8 +82,7 @@ export type TilingId =
   | 'snub-square'
   | 'truncated-trihex'
   | 'snub-trihex'
-  | 'elongated-triangular'
-  | 'running-bond';
+  | 'elongated-triangular';
 
 const SQRT3 = Math.sqrt(3);
 const TAU = Math.PI * 2;
@@ -118,9 +117,6 @@ export function polyArea(n: number): number {
  *   square lattice of pitch 1 + sqrt(3); the gaps are triangles.
  * - Elongated triangular: a row of squares under a row of triangles, the rows
  *   offset by half an edge.
- * - Running bond: the brick wall — 2x1 rectangles, each course offset by half
- *   a brick. Not uniform (its vertices are not all alike) but famous, and the
- *   one entry here whose faces are not regular polygons.
  */
 export const TILINGS: TilingSpec[] = [
   {
@@ -275,17 +271,6 @@ export const TILINGS: TilingSpec[] = [
     polygons: [{ cx: 0.5, cy: 0.5, n: 4, r: polyRadius(4), rot: Math.PI / 4 }],
     gaps: [[3, 2]],
   },
-  {
-    id: 'running-bond',
-    label: 'Running bond',
-    notation: 'brick',
-    a1: [2, 0],
-    a2: [1, 1],
-    polygons: [],
-    gaps: [],
-    // A 2x1 brick's incircle.
-    inradius: 0.5,
-  },
 ];
 
 export const TILING_IDS = TILINGS.map((t) => t.id);
@@ -323,29 +308,21 @@ function corners(poly: TilingPolygon): [number, number][] {
 }
 
 /**
- * One cell's polygon corners, plus any edges a tiling states outright.
+ * One cell's polygon corners.
  *
- * The corners are the whole story for a uniform tiling: every edge has unit
+ * The corners are the whole story: every edge of a uniform tiling has unit
  * length and joins two of them, so the edge set is recovered below as the
  * unit-distance pairs. Packing the polygons and taking their boundaries is NOT
  * enough — in the snub tilings two triangles meet along an edge that bounds no
  * packed shape, and those edges would simply be absent (nine of the fifteen per
  * cell in the snub trihexagonal). The vertices know about them; the faces do not.
  */
-function baseCorners(spec: TilingSpec): { verts: [number, number][]; segs: Segment[] } {
+function baseCorners(spec: TilingSpec): { verts: [number, number][] } {
   const verts: [number, number][] = [];
   for (const poly of spec.polygons) {
     for (const c of corners(poly)) verts.push(c);
   }
-  const segs: Segment[] = [];
-  if (spec.id === 'running-bond') {
-    // The brick wall is the one entry whose edges are not all unit length —
-    // a course runs on past the joints — so it states its edges directly.
-    segs.push({ x1: 0, y1: 0, x2: 2, y2: 0 });
-    segs.push({ x1: 0, y1: 0, x2: 0, y2: 1 });
-    verts.push([0, 0]);
-  }
-  return { verts, segs };
+  return { verts };
 }
 
 /**
@@ -462,18 +439,6 @@ export function tilingGeometry(id: TilingId): TilingGeometry {
   const wide = spreadCorners(spec, reach, KEEP_MARGIN + 1.2);
   const segs = unitEdges(wide);
 
-  // The edges a tiling states outright (the brick's courses), replicated.
-  const { segs: stated } = baseCorners(spec);
-  for (let i = -reach; i <= reach; i++) {
-    for (let j = -reach; j <= reach; j++) {
-      const dx = i * spec.a1[0] + j * spec.a2[0];
-      const dy = i * spec.a1[1] + j * spec.a2[1];
-      for (const t of stated) {
-        segs.push({ x1: t.x1 + dx, y1: t.y1 + dy, x2: t.x2 + dx, y2: t.y2 + dy });
-      }
-    }
-  }
-
   const outSegs: number[] = [];
   const outVerts: number[] = [];
   const seenSeg = new Set<string>();
@@ -543,6 +508,12 @@ export interface TilingRange {
   /** The translation cell, in edge-length units. */
   a1: [number, number];
   a2: [number, number];
+  /** Bins per axis over the cell, in generator coordinates. */
+  bins: number;
+  /** Where this tiling's `bins * bins` bin descriptors begin. */
+  binBase: number;
+  /** The largest face's incircle, in edge units — the bins' reach. */
+  inradius: number;
 }
 
 export interface TilingTable {
@@ -550,8 +521,47 @@ export interface TilingTable {
   segments: Float32Array;
   /** Every catalogue vertex, concatenated: `[x, y]` each. */
   vertices: Float32Array;
+  /**
+   * One descriptor per bin, `[segStart, segCount, vertStart, vertCount]`,
+   * indexing into `binSegs` / `binVerts`.
+   */
+  binDescs: Float32Array;
+  /** Segments themselves, grouped by bin: `[x1, y1, x2, y2]` each. */
+  binSegs: Float32Array;
+  /** Vertices themselves, grouped by bin: `[x, y]` each. */
+  binVerts: Float32Array;
   /** Where each catalogue entry's run begins, by catalogue index. */
   ranges: TilingRange[];
+}
+
+/**
+ * How far a bin reaches around itself, in edge units. Everything the ink asks
+ * of the distance lives inside this: a stroke half-width, a vertex disk, and
+ * the fill threshold, all of which are fractions of an edge in any drawing
+ * that still reads as a tiling. Beyond it the walk reports \"further than the
+ * reach\", which inks identically.
+ */
+export const BIN_REACH = 0.62;
+
+/** The largest circle inside any of a tiling's faces, in edge units. */
+export function tilingInradius(spec: TilingSpec): number {
+  if (spec.inradius !== undefined) return spec.inradius;
+  const apothem = (n: number) => 1 / (2 * Math.tan(Math.PI / n));
+  const faces = [
+    ...spec.polygons.map((p) => apothem(p.n)),
+    ...spec.gaps.map(([sides]) => apothem(sides)),
+  ];
+  return faces.length ? Math.max(...faces) : 0.5;
+}
+
+/** Closest distance from a point to a segment, in edge units. */
+function pointSegment(px: number, py: number, s: Segment): number {
+  const ex = s.x2 - s.x1;
+  const ey = s.y2 - s.y1;
+  const len2 = ex * ex + ey * ey;
+  let t = len2 > 1e-12 ? ((px - s.x1) * ex + (py - s.y1) * ey) / len2 : 0;
+  t = t < 0 ? 0 : t > 1 ? 1 : t;
+  return Math.hypot(px - (s.x1 + t * ex), py - (s.y1 + t * ey));
 }
 
 let tableCache: TilingTable | null = null;
@@ -570,30 +580,136 @@ export function tilingTable(): TilingTable {
   if (tableCache) return tableCache;
   const segments: number[] = [];
   const vertices: number[] = [];
+  const binDescs: number[] = [];
+  const binSegs: number[] = [];
+  const binVerts: number[] = [];
   const ranges: TilingRange[] = [];
+
   for (const spec of TILINGS) {
     const geo = tilingGeometry(spec.id);
-    ranges.push({
-      segStart: segments.length / 4,
-      segCount: geo.segments.length / 4,
-      vertStart: vertices.length / 2,
-      vertCount: geo.vertices.length / 2,
-      a1: spec.a1,
-      a2: spec.a2,
-    });
+    const segStart = segments.length / 4;
+    const vertStart = vertices.length / 2;
+    const segCount = geo.segments.length / 4;
+    const vertCount = geo.vertices.length / 2;
     segments.push(...geo.segments);
     vertices.push(...geo.vertices);
+
+    // A bin holds every segment within BIN_REACH of it, so a walk of that bin
+    // is EXACT for any distance below the reach and saturates above it. That
+    // is all the ink asks: a stroke and a vertex disk are far thinner than
+    // the reach, and the fill test compares against a threshold kept inside
+    // it. Above the reach the answer is only \"further than the reach\", which
+    // is the same ink either way. The walk skips the ten cells' worth of
+    // copies that never could have won.
+    const reachOf = BIN_REACH;
+    const extent = Math.max(
+      Math.hypot(...spec.a1),
+      Math.hypot(...spec.a2)
+    );
+    // Bins much finer than the reach still pay: a bin of side s padded by r
+    // covers (s + 2r)^2, so halving s past r still cuts the walk. The only
+    // cost is table size, and the table is a few tens of kilobytes.
+    const bins = Math.max(3, Math.min(10, Math.round(extent / 0.4)));
+    const binBase = binDescs.length / 4;
+
+    for (let bj = 0; bj < bins; bj++) {
+      for (let bi = 0; bi < bins; bi++) {
+        // The bin's corners in edge-space, then padded by the reach.
+        const corners: [number, number][] = [];
+        for (const [du, dv] of [
+          [0, 0],
+          [1, 0],
+          [0, 1],
+          [1, 1],
+        ] as const) {
+          const u = (bi + du) / bins;
+          const v = (bj + dv) / bins;
+          corners.push([
+            u * spec.a1[0] + v * spec.a2[0],
+            u * spec.a1[1] + v * spec.a2[1],
+          ]);
+        }
+        const loX = Math.min(...corners.map((c) => c[0]));
+        const hiX = Math.max(...corners.map((c) => c[0]));
+        const loY = Math.min(...corners.map((c) => c[1]));
+        const hiY = Math.max(...corners.map((c) => c[1]));
+
+        const segIdx: number[] = [];
+        for (let k = 0; k < segCount; k++) {
+          const seg = {
+            x1: geo.segments[k * 4],
+            y1: geo.segments[k * 4 + 1],
+            x2: geo.segments[k * 4 + 2],
+            y2: geo.segments[k * 4 + 3],
+          };
+          // Nearest distance from the bin's box to the segment, sampled along
+          // it — conservative, and the box is small.
+          let near = Infinity;
+          for (let t = 0; t <= 8; t++) {
+            const x = seg.x1 + ((seg.x2 - seg.x1) * t) / 8;
+            const y = seg.y1 + ((seg.y2 - seg.y1) * t) / 8;
+            const dx = Math.max(loX - x, 0, x - hiX);
+            const dy = Math.max(loY - y, 0, y - hiY);
+            near = Math.min(near, Math.hypot(dx, dy));
+          }
+          // Also measure from the box's own corners, so a long segment that
+          // passes the box without a sample landing near it is still caught.
+          for (const [cx, cy] of corners) {
+            near = Math.min(near, pointSegment(cx, cy, seg));
+          }
+          if (near <= reachOf) segIdx.push(segStart + k);
+        }
+
+        const vertIdx: number[] = [];
+        for (let k = 0; k < vertCount; k++) {
+          const x = geo.vertices[k * 2];
+          const y = geo.vertices[k * 2 + 1];
+          const dx = Math.max(loX - x, 0, x - hiX);
+          const dy = Math.max(loY - y, 0, y - hiY);
+          if (Math.hypot(dx, dy) <= reachOf) vertIdx.push(vertStart + k);
+        }
+
+        binDescs.push(binSegs.length / 4, segIdx.length, binVerts.length / 2, vertIdx.length);
+        for (const k of segIdx) {
+          binSegs.push(
+            geo.segments[(k - segStart) * 4],
+            geo.segments[(k - segStart) * 4 + 1],
+            geo.segments[(k - segStart) * 4 + 2],
+            geo.segments[(k - segStart) * 4 + 3]
+          );
+        }
+        for (const k of vertIdx) {
+          binVerts.push(geo.vertices[(k - vertStart) * 2], geo.vertices[(k - vertStart) * 2 + 1]);
+        }
+      }
+    }
+
+    ranges.push({
+      segStart,
+      segCount,
+      vertStart,
+      vertCount,
+      a1: spec.a1,
+      a2: spec.a2,
+      bins,
+      binBase,
+      inradius: tilingInradius(spec),
+    });
   }
+
   tableCache = {
     segments: new Float32Array(segments),
     vertices: new Float32Array(vertices),
+    binDescs: new Float32Array(binDescs),
+    binSegs: new Float32Array(binSegs),
+    binVerts: new Float32Array(binVerts),
     ranges,
   };
   return tableCache;
 }
 
 /**
- * A square patch of the tiling, for a gallery thumbnail: the same segments the
+ * A square patch of the tiling, for a gallery thumbnail: the same edges the
  * shader walks, translated over enough cells to fill `[-h, h]^2` in edge units
  * and clipped to it. Drawing the thumbnail from the catalogue rather than from
  * a picture is what keeps the gallery honest — a thumbnail cannot show a
@@ -604,8 +720,7 @@ export function tilingPatch(id: TilingId, h: number): Segment[] {
   const span = Math.max(Math.hypot(...spec.a1), Math.hypot(...spec.a2));
   const reach = Math.ceil((h + 2) / Math.max(span, 0.2)) + 2;
   const verts: [number, number][] = [];
-  const { verts: base, segs: stated } = baseCorners(spec);
-  const segs: Segment[] = [];
+  const { verts: base } = baseCorners(spec);
   for (let i = -reach; i <= reach; i++) {
     for (let j = -reach; j <= reach; j++) {
       const dx = i * spec.a1[0] + j * spec.a2[0];
@@ -616,14 +731,10 @@ export function tilingPatch(id: TilingId, h: number): Segment[] {
         if (x < -h - 1.2 || x > h + 1.2 || y < -h - 1.2 || y > h + 1.2) continue;
         verts.push([x, y]);
       }
-      for (const t of stated) {
-        segs.push({ x1: t.x1 + dx, y1: t.y1 + dy, x2: t.x2 + dx, y2: t.y2 + dy });
-      }
     }
   }
-  segs.push(...unitEdges(verts));
   const inBox = (x: number, y: number) => x >= -h && x <= h && y >= -h && y <= h;
-  return segs.filter(
+  return unitEdges(verts).filter(
     (m) =>
       inBox(m.x1, m.y1) ||
       inBox(m.x2, m.y2) ||

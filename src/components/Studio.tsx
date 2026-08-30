@@ -814,6 +814,16 @@ function LayerFields() {
             info="Radius of the dot at every lattice point. Zero hides the dots."
             onChange={(vertexSize) => updateLayer(layer.id, { vertexSize })}
           />
+          <Slider
+            label="Fill"
+            value={layer.tileFill ?? LAYER_DEFAULTS.tileFill}
+            min={0}
+            max={1}
+            step={0.01}
+            defaultValue={LAYER_DEFAULTS.tileFill}
+            info="Inks the faces inward from their edges. A face fills only once its incircle clears the inset, so the slider sweeps from the largest faces alone through to solid — which is what makes one tiling look unlike another."
+            onChange={(tileFill) => updateLayer(layer.id, { tileFill })}
+          />
           <div className="flex items-center justify-between gap-3">
             <span className="flex items-center gap-1 text-[11px] text-[var(--text-secondary)]">
               Edges
