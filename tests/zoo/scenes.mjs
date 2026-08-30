@@ -300,11 +300,14 @@ export const cases = [
   {
     name: 'grid-tri-line-contours',
     coords: [2, 1],
-    note: 'a triangle lattice against a scalar partner — the lattice beat a scalar ranks',
+    note:
+      'a triangle lattice against a scalar partner — the line family is set ' +
+      'parallel to a lattice edge family (pitch (√3/2)·16 ≈ 13.86 at 30°) so a ' +
+      'real slow beat exists for the contour channel to draw',
     scene: scene(
       [
         layer('a', { type: 'grid-triangle', spacing: 16 }),
-        layer('b', { type: 'straight-lines', spacing: 15, rotation: 2 }),
+        layer('b', { type: 'straight-lines', spacing: 13, rotation: 30 }),
       ],
       view(CONTOURS)
     ),

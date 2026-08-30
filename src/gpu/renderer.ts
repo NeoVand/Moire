@@ -23,29 +23,41 @@ export interface RendererSync {
   view: ViewState;
 }
 
-/** How many line families a layer draws at once. A lattice draws several. */
-function familyCount(type: PatternType): number {
-  if (type === 'grid-square') return 2;
-  if (type === 'grid-hex' || type === 'grid-triangle') return 3;
-  return 1;
+/**
+ * Where a layer's ink truly lies, as line families: how many, at what pitch
+ * (as a fraction of `spacing`), and how much of each family's line is inked.
+ * The square grid is two full-duty families at the spacing itself. The
+ * triangle lattice's edges are three full lines at pitch (√3/2)s. The
+ * honeycomb is the trap: its walls also repeat at (√3/2)s, but each wall row
+ * is only a third inked — 3 edges of length s per cell of area √3·1.5·s².
+ */
+const LATTICE_ROW_PITCH = Math.sqrt(3) / 2;
+
+function familyInk(type: PatternType): { count: number; pitch: number; duty: number } {
+  if (type === 'grid-square') return { count: 2, pitch: 1, duty: 1 };
+  if (type === 'grid-hex') return { count: 3, pitch: LATTICE_ROW_PITCH, duty: 1 / 3 };
+  if (type === 'grid-triangle') return { count: 3, pitch: LATTICE_ROW_PITCH, duty: 1 };
+  return { count: 1, pitch: 1, duty: 1 };
 }
 
 /**
  * Coverage a layer would average over one of its own periods: a stroke of
- * half-width `h` on a pitch `s` inks `2h/s` of the paper, and a lattice inks that
- * much once per family it draws. It is the pivot the envelope's contrast expands
- * about — a display constant, not a measurement, so the eikonal factor is left out
- * and the layer's own spacing stands in for the local member gap.
+ * half-width `h` on a pitch `p` inks `2h·duty/p` of the paper, once per family
+ * the layer draws. It is the pivot the envelope's contrast expands about — a
+ * display constant, not a measurement, so the eikonal factor is left out and
+ * the kind's nominal row pitch stands in for the local member gap.
  *
- * Counting the families matters: a grid at a tenth of its pitch covers a fifth of
- * the paper, and calling that a tenth puts the pivot far brighter than the picture
- * it is expanding about, which at any real contrast drives the whole frame to
- * black.
+ * Getting the ink model roughly right matters in both directions: counting a
+ * grid's families keeps the pivot from sitting far brighter than the picture
+ * (which at any real contrast drives the frame to black), and honouring the
+ * honeycomb's third-duty walls keeps it from sitting far darker (which blew
+ * the envelope of a hex twist out to blank paper).
  */
 function nominalCoverage(layer: PatternLayer, pixel: number): number {
+  const { count, pitch, duty } = familyInk(layer.type);
   const halfT = Math.max(layer.thickness * 0.5, pixel * 1.15);
-  const perFamily = Math.min(1, (2 * halfT) / Math.max(layer.spacing, 1e-3));
-  const open = (1 - perFamily) ** familyCount(layer.type);
+  const perFamily = Math.min(1, (2 * halfT * duty) / Math.max(layer.spacing * pitch, 1e-3));
+  const open = (1 - perFamily) ** count;
   return (1 - open) * layer.opacity;
 }
 

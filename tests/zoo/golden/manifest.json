@@ -8,7 +8,7 @@
     "width": 640,
     "height": 480
   },
-  "updatedAt": "2026-08-30T18:12:57.318Z",
+  "updatedAt": "2026-08-30T18:13:36.548Z",
   "cases": {
     "lines-pair": {
       "coords": [
@@ -149,7 +149,7 @@
         2,
         1
       ],
-      "note": "a triangle lattice against a scalar partner — the lattice beat a scalar ranks"
+      "note": "a triangle lattice against a scalar partner — the line family is set parallel to a lattice edge family (pitch (√3/2)·16 ≈ 13.86 at 30°) so a real slow beat exists for the contour channel to draw"
     },
     "grid-trio-twist-contours": {
       "coords": [
