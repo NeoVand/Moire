@@ -83,6 +83,31 @@ function envelopePair(layers: PatternLayer[]): [number, number] | null {
 }
 
 /**
+ * The two-lattice (twist) mode of the envelope: engaged only when no scalar
+ * layer is visible, so lattices have no partner gradient to orient against.
+ * The topmost lattice becomes the reference; every other lattice matches its
+ * generators to the reference's, per pixel, and rides the SAME (u, golden)
+ * schedule — matched generators advance in lockstep across layers, so both
+ * slow characters of a twist pair (a1−b1 and a2−b2) survive the average
+ * exactly while every carrier and cross-beat is scrambled away. With one
+ * lattice alone the schedule just washes it to its own cell mean, which is the
+ * correct envelope of a lattice with nothing to beat against.
+ */
+function latticePair(layers: PatternLayer[]): [number, number] | null {
+  for (let i = Math.min(layers.length, MAX_LAYERS) - 1; i >= 0; i--) {
+    if (layers[i].visible && !isGrid(layers[i].type)) return null;
+  }
+  const grids: number[] = [];
+  for (let i = Math.min(layers.length, MAX_LAYERS) - 1; i >= 0 && grids.length < 2; i--) {
+    if (layers[i].visible && isGrid(layers[i].type)) grids.push(i);
+  }
+  if (grids.length === 0) return null;
+  return [grids[0], grids.length > 1 ? grids[1] : -1];
+}
+// (Only the reference index reaches the shader; every other lattice matches
+// against it, so a third or fourth lattice joins the same lockstep.)
+
+/**
  * How long an expression has to stand still before it becomes a shader.
  *
  * Field expressions are compiled into the material, so each new one is a pipeline
@@ -342,6 +367,8 @@ export class MoireRenderer {
     this.viewUniforms.ratioB.value = pair ? pair[1] : maskPair ? maskPair[1] : -1;
     this.viewUniforms.ratioBlend.value = state.view.ratioBlend;
     this.viewUniforms.ratioThreshold.value = state.view.ratioThreshold;
+    const latPair = envelope ? latticePair(state.layers) : null;
+    this.viewUniforms.latA.value = latPair ? latPair[0] : -1;
 
     for (let i = 0; i < this.slots.length; i++) {
       writeLayerSlot(this.slots[i], state.layers[i]);
