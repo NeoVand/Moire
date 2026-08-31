@@ -206,18 +206,25 @@ where the fringe is.
 
 \begin{figure*}[t]
   \centering
-  \Description{Two rows of six square panels. The top row is black-on-white line
-  patterns: a hyperbolic cross, two tight spiral nests side by side, three merging
-  blobs, four ring nests in a square, concentric circles, and an irregular mottled
-  texture. The bottom row shows the same six fields as smooth blue-to-yellow heat
-  maps: a saddle, a dipole with one dark and one bright pole, three bumps, four
-  vortices, a bullseye, and low-frequency noise. Each top panel's bands follow the
-  contours of the map below it.}
+  \Description{Two rows of six square panels. Each panel in the top row is cut
+  corner to corner by a black-and-white dashed rule: above the cut is a fine
+  black-on-white line texture, below it the same state with the texture gone and
+  only broad smooth bands remaining. The six are a hyperbolic cross, two tight
+  spiral nests side by side, three merging blobs, four ring nests in a square,
+  concentric circles, and an irregular mottled texture. The bottom row shows the
+  same six fields as smooth blue-to-yellow heat maps: a saddle, a dipole with one
+  dark and one bright pole, three bumps, four vortices, a bullseye, and
+  low-frequency noise. Each top panel's bands follow the contours of the map below
+  it.}
   \includegraphics[width=\linewidth]{figures/contour-fields.png}
   \panelrow{0.16467}{0.00239}{%
     saddle, dipole, bumps, swirl, ripple, terrain}
-  \caption{\figlead{Every preset the tool ships, encoded.} \emph{Top:} the rendered
-  superposition. \emph{Bottom:} the field each one encodes.
+  \caption{\figlead{Every preset the tool ships, encoded.} \emph{Top:} each panel
+  is cut corner to corner---the superposition as rendered above the seam, the same
+  two layers under the envelope view of \S\ref{sec:envelope} below it. The halves
+  are two readings of one state, not two pictures: nothing is filtered between
+  them, and the smooth side is the mean ink of the same two fields at the same
+  resolution. \emph{Bottom:} the field each one encodes.
   Every pattern above is two \textsc{parallel} layers of pitch
   $\contourCarrier$\,px differing only in one layer's field expression; the labels
   are the presets of \S\ref{sec:exprs}, whose sources are in
