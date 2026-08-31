@@ -55,22 +55,27 @@ We will use four properties, all immediate from~\eqref{eq:support}.
 \begin{figure}[t]
   \centering
   \begin{tikzpicture}[scale=0.92]
-    \def\sp{0.62}
+    % `\sp` is the inradius step, which is what the caption calls s. An equilateral
+    % triangle's circumradius is twice its inradius; the factor here used to be
+    % 1/cos(pi/6), which is the conversion for a *hexagon*, so the drawn triangles
+    % were smaller than their stated inradius by 1/sqrt(3). The step is set so the
+    % drawing is the size it always was, now under the right name.
+    \def\sp{0.358}
     \def\dx{0.30}
     \def\dy{0.075}
     \def\th{13}
     % rings
-    \foreach \n [evaluate=\n as \rr using \n*\sp] [evaluate=\n as \cx using \n*\dx*cos(\n*\th) - \n*\dy*sin(\n*\th)] [evaluate=\n as \cy using \n*\dx*sin(\n*\th) + \n*\dy*cos(\n*\th)] in {1,2,3,4,5} {
+    \foreach \n [evaluate=\n as \rr using 2*\n*\sp] [evaluate=\n as \cx using \n*\dx*cos(\n*\th) - \n*\dy*sin(\n*\th)] [evaluate=\n as \cy using \n*\dx*sin(\n*\th) + \n*\dy*cos(\n*\th)] in {1,2,3,4,5} {
       \draw[soft, thin, rotate around={\n*\th:(\cx,\cy)}]
-        (\cx,\cy) +(90:\rr/0.866) -- +(210:\rr/0.866) -- +(330:\rr/0.866) -- cycle;
+        (\cx,\cy) +(90:\rr) -- +(210:\rr) -- +(330:\rr) -- cycle;
       \fill[soft] (\cx,\cy) circle (0.7pt);
     }
     % highlight ring 4
-    \pgfmathsetmacro{\rr}{4*\sp}
+    \pgfmathsetmacro{\rr}{2*4*\sp}
     \pgfmathsetmacro{\cx}{4*\dx*cos(4*\th) - 4*\dy*sin(4*\th)}
     \pgfmathsetmacro{\cy}{4*\dx*sin(4*\th) + 4*\dy*cos(4*\th)}
     \draw[cool, thick, rotate around={4*\th:(\cx,\cy)}]
-      (\cx,\cy) +(90:\rr/0.866) -- +(210:\rr/0.866) -- +(330:\rr/0.866) -- cycle;
+      (\cx,\cy) +(90:\rr) -- +(210:\rr) -- +(330:\rr) -- cycle;
     \fill[cool] (\cx,\cy) circle (1.4pt);
     \node[cool, font=\footnotesize, anchor=west] at (\cx+0.1,\cy-0.24) {$c_n$};
     % center walk
@@ -78,27 +83,34 @@ We will use four properties, all immediate from~\eqref{eq:support}.
       \foreach \n in {1,...,5} { -- ({\n*\dx*cos(\n*\th) - \n*\dy*sin(\n*\th)}, {\n*\dx*sin(\n*\th) + \n*\dy*cos(\n*\th)}) };
     \fill[ink] (0,0) circle (1.2pt);
     \node[ink, font=\footnotesize, anchor=north east] at (0,-0.05) {$O$};
-    % query point
+    % query point. The arrow is drawn in world coordinates, so it is p - c_n; the
+    % pulled-back point q_n is that same vector read in ring n's own frame, which
+    % is a different vector, and rho is not rotation invariant -- labelling this
+    % arrow q_n would undercut the very thing the figure is about.
     \coordinate (P) at (2.05,1.62);
     \fill[accent] (P) circle (1.6pt);
     \node[accent, font=\footnotesize, anchor=south west] at (2.1,1.66) {$p$};
     \draw[accent, thin, -{Stealth[length=4pt]}] (\cx,\cy) -- (P);
-    \node[accent, font=\footnotesize] at (1.55,1.02) {$q_n$};
+    \node[accent, font=\footnotesize] at (1.58,1.0) {$p-c_n$};
     \node[soft, font=\footnotesize, anchor=west] at (2.35,-1.6) {$n{=}1..5$};
   \end{tikzpicture}
   \Description{A diagram of five nested triangles of increasing size, each rotated a
   little further than the last and each centered a little further from the origin, so
   their centers trace a short dotted spiral outwards. The fourth triangle and its
   center are picked out in blue and labelled, and an arrow runs from that center to a
-  query point marked outside the triangles.}
-  \caption{A walking family of triangles ($N=3$). Ring $n$ has inradius
-  $ns+\varphi$, its center $c_n = \Rot{n\theta}(n\delta)$ walks along the dotted
-  spiral, and its own frame is turned by $n\theta$. Rendering asks for the
-  distance from $p$ to the nearest ring; the residual of ring $n$ is measured in
-  that ring's frame, on the pulled-back point
-  $q_n = \Rot{-n\theta}\,p - n\delta$. Because each ring has a different frame,
-  no closed-form scalar field of $p$ has these rings as its level sets, and the
-  index field survives only as the answer to a search (\S\ref{sec:inverse}).}
+  query point marked inside the fourth triangle.}
+  \caption{A walking family of triangles ($N=3$), drawn with $\varphi=0$. Ring $n$
+  has inradius $ns+\varphi$, its center $c_n = \Rot{n\theta}(n\delta)$ walks along
+  the dotted spiral, and its own frame is turned by $n\theta$. Rendering asks for
+  the distance from $p$ to the nearest ring; the residual of ring $n$ is measured
+  in that ring's frame, on the pulled-back point
+  $q_n = \Rot{-n\theta}\,p - n\delta = \Rot{-n\theta}(p - c_n)$. The arrow is
+  $p-c_n$, which is that same displacement in world coordinates: the two have equal
+  length, but $\rad$ is not rotation invariant, so it is $q_n$ and not the arrow
+  that the residual is taken of. That is the difficulty in one picture---because
+  each ring has a different frame, no closed-form scalar field of $p$ has these
+  rings as its level sets, and the index field survives only as the answer to a
+  search (\S\ref{sec:inverse}).}
   \label{fig:family}
 \end{figure}
 

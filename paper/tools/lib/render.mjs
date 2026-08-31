@@ -319,12 +319,38 @@ export function fieldImage(v, fn, opts = {}) {
  * alone and laid over a render that never saw them.
  */
 export function overlayLevelSets(rgb, v, fn, opts = {}) {
-  const { color = [200, 24, 90], width = 1.1, offset = 0, opacity = 1, mask } = opts;
+  const {
+    color = [200, 24, 90],
+    width = 1.1,
+    offset = 0,
+    opacity = 1,
+    mask,
+    // `mask` is a criterion, and a criterion has an edge. Applied as a per-pixel
+    // yes/no the edge lands on the pixel grid, so a curve ends in a ragged taper
+    // that reads as a broken drawing rather than as the boundary of a claim. This
+    // is the width of the band, in units of the mask's own value, over which the
+    // curve fades out as it approaches the edge. The mask still admits exactly
+    // what it admitted: nothing is drawn on the far side of it.
+    maskFade = 0,
+    // Below this spacing between consecutive level sets, in device pixels, the
+    // curves cannot be told apart and drawing them produces speckle rather than
+    // information -- which is what happened at the centre of a rosette, where the
+    // index difference is singular and its level sets crowd below the pixel. Zero
+    // keeps the old behaviour.
+    minPitchPx = 0,
+  } = opts;
   const out = new Uint8Array(rgb);
   for (let y = 0; y < v.height; y++) {
     for (let x = 0; x < v.width; x++) {
       const p = worldOf(v, x, y, 1);
-      if (mask && !mask(p)) continue;
+      let admit = 1;
+      if (mask) {
+        const m = mask(p);
+        // A boolean mask keeps the old hard edge; a numeric one is the criterion's
+        // own value, faded over the last `maskFade` of its range.
+        admit = typeof m === 'number' ? 1 - smoothstep(-maskFade, 0, m) : m ? 1 : 0;
+        if (admit <= 0.002) continue;
+      }
       const val = fn(p) - offset;
       if (!Number.isFinite(val)) continue;
       // Distance to the nearest integer level, in pixels, via the local gradient.
@@ -333,9 +359,15 @@ export function overlayLevelSets(rgb, v, fn, opts = {}) {
       const gy = (fn({ x: p.x, y: p.y + h }) - fn({ x: p.x, y: p.y - h })) / (2 * h);
       const g = Math.hypot(gx, gy);
       if (!(g > 1e-12)) continue;
+      if (minPitchPx > 0) {
+        // One unit of the level index spans 1/g in world, hence zoom/g on screen.
+        const pitchPx = v.zoom / g;
+        admit *= smoothstep(minPitchPx * 0.7, minPitchPx, pitchPx);
+        if (admit <= 0.002) continue;
+      }
       const dWorld = periodicDist(val, 1) / g;
       const dPix = dWorld * v.zoom;
-      const alpha = opacity * (1 - smoothstep(width * 0.5, width * 0.5 + 0.9, dPix));
+      const alpha = opacity * admit * (1 - smoothstep(width * 0.5, width * 0.5 + 0.9, dPix));
       if (alpha <= 0.002) continue;
       const i = (y * v.width + x) * 3;
       for (let k = 0; k < 3; k++) out[i + k] = Math.round(out[i + k] + (color[k] - out[i + k]) * alpha);

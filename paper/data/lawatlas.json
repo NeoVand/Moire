@@ -1,6 +1,10 @@
 {
   "regime": 0.25,
-  "panel": 340,
+  "panel": 480,
+  "gutter": 13,
+  "panelFraction": 0.19575856443719414,
+  "gutterFraction": 0.005301794453507341,
+  "minPitchPx": 7.058823529411765,
   "scenes": [
     {
       "scene": "parallel-rotate",
@@ -10,17 +14,17 @@
     {
       "scene": "circle-parallel",
       "label": "circles under lines",
-      "admitted": 0.3907266435986159
+      "admitted": 0.39013888888888887
     },
     {
       "scene": "hexagon-hexagon",
       "label": "hexagons, 4 degrees",
-      "admitted": 0.9345328719723184
+      "admitted": 0.9345138888888889
     },
     {
       "scene": "circle-circle",
       "label": "circles, two centres",
-      "admitted": 0.217439446366782
+      "admitted": 0.21618055555555554
     },
     {
       "scene": "hyperbola-parallel",

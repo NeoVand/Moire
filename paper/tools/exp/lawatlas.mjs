@@ -26,7 +26,19 @@ mkdirSync(DATA, { recursive: true });
 const INK = '#15181c';
 const FRINGE = [214, 20, 84];
 const REGIME = 0.25;
-const V = view({ width: 340, height: 340, zoom: 1, superSample: 3 });
+// The plate prints five panels across the full text width. At 340 the panels
+// landed near 248 DPI, below what ACM asks for and visibly so: the crimson level
+// sets stair-stepped and the grey fields banded. 480 puts the same figure at
+// roughly 350 DPI.
+const PANEL = 480;
+const GUTTER = 13;
+// The world extent each panel covers. Held fixed while PANEL grew, so this is a
+// resolution change and not a different figure: raising the pixel count without
+// raising the zoom would have widened every view, and it did -- two of the
+// admitted fractions moved before this line went in.
+const WORLD = 340;
+const SCALE = PANEL / WORLD;
+const V = view({ width: PANEL, height: PANEL, zoom: SCALE, superSample: 3 });
 
 // The pairs are the ones measured in fringe.json, with the same settings, so the
 // figure and the table describe the same scenes.
@@ -88,9 +100,16 @@ for (const scene of SCENES) {
   const fringeField = lowPassLuma(both, V, sigma);
   const overlaid = overlayLevelSets(fringeField, V, D, {
     color: FRINGE,
-    width: 2.2,
+    width: 2.2 * SCALE,
     opacity: 1,
-    mask: (p) => ratio(p) <= REGIME,
+    // Signed distance to the criterion rather than a yes/no, so the curve fades
+    // out over the last tenth of the admitted range instead of ending on a pixel
+    // boundary. What is admitted is unchanged: nothing is drawn above eta = 1/4.
+    mask: (p) => ratio(p) - REGIME,
+    maskFade: REGIME * 0.1,
+    // Where the level sets crowd closer than this they cannot be drawn as
+    // separate curves. At a rosette centre they crowd without bound.
+    minPitchPx: 5 * SCALE,
   });
 
   // Share of the frame the criterion admits, on the same grid the panel uses, so
@@ -117,11 +136,25 @@ for (const scene of SCENES) {
 // tile() fills row by row, so interleave the two rows of five.
 const top = panels.filter((_, i) => i % 2 === 0);
 const bottom = panels.filter((_, i) => i % 2 === 1);
-const plate = tile([...top, ...bottom], SCENES.length, 9, 255);
+const plate = tile([...top, ...bottom], SCENES.length, GUTTER, 255);
 writePng(new URL('law-atlas.png', FIGS).pathname, plate.rgb, plate.width, plate.height);
 console.log(`wrote figures/law-atlas.png (${plate.width}x${plate.height})`);
 
 writeFileSync(
   new URL('lawatlas.json', DATA),
-  `${JSON.stringify({ regime: REGIME, panel: V.width, scenes: admitted }, null, 2)}\n`
+  `${JSON.stringify(
+    {
+      regime: REGIME,
+      panel: V.width,
+      gutter: GUTTER,
+      // The fractions \panelrow needs to centre the labels, restated here so the
+      // caption cannot drift from the geometry.
+      panelFraction: V.width / (SCENES.length * V.width + (SCENES.length - 1) * GUTTER),
+      gutterFraction: GUTTER / (SCENES.length * V.width + (SCENES.length - 1) * GUTTER),
+      minPitchPx: 5 * SCALE,
+      scenes: admitted,
+    },
+    null,
+    2
+  )}\n`
 );
