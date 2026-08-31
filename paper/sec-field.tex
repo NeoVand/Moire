@@ -152,7 +152,10 @@ below; if the gradients are merely near-constant, the error grows with their
 variation across $S$. In the hard-edged limit $b_i\to0$, provided
 $w_1+w_2\le\tfrac12$,
 \begin{equation}
-  \Phi(\Delta) = 2w_1+2w_2-\min\!\big(2\min(w_1,w_2),\,\max(0,\,w_1+w_2-\mathrm{pd}(\Delta,1))\big):
+  \begin{split}
+    \Phi(\Delta) = {}&2w_1+2w_2 \\
+      &{}-\min\!\big(2\min(w_1,w_2),\,\max(0,\,w_1+w_2-\mathrm{pd}(\Delta,1))\big):
+  \end{split}
   \label{eq:tent}
 \end{equation}
 a saturating tent in $D$---flat at $2\max(w_1,w_2)$ while one stroke lies
