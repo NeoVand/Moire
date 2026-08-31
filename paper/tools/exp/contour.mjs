@@ -27,7 +27,7 @@
 
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { fieldProgram, sampleField } from '../lib/fields.mjs';
-import { view, compose, envelope, fieldImage, tile, overlayLevelSets } from '../lib/render.mjs';
+import { view, compose, envelope, fieldImage, tile, overlayLevelSets, splitDiagonal } from '../lib/render.mjs';
 import { writePng } from '../lib/png.mjs';
 
 const DATA = new URL('../../data/', import.meta.url);
@@ -269,7 +269,13 @@ for (const spec of FIELDS) {
   report(stats);
   results.push(stats);
 
-  panels.push({ rgb, width: V.width, height: V.height });
+  // Each panel is cut corner to corner: the superposition above the seam, the same
+  // two layers under the envelope view below it. The render alone shows a texture
+  // and leaves the reader to take the fringes on trust; the envelope beside it is
+  // the fringe field itself, and putting them in one square says they are two
+  // readings of one state rather than two pictures.
+  const env = envelope(V, spec.layers, { contrast: 3.2 });
+  panels.push({ rgb: splitDiagonal(rgb, env, V), width: V.width, height: V.height });
   panels.push(fieldImage(V, (p) => spec.f(p), { name: 'viridis' }));
 }
 

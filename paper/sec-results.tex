@@ -83,48 +83,51 @@ visit.
     \includegraphics[width=\linewidth]{figures/artifact-holes-final.png}
     \caption{\ours{}, $\artHolesOursEv$ ev/px}
   \end{subfigure}
-  \Description{Four wide panels of the same black-on-white field of walking
-  hexagons, seen far from the family's center: layers of finely woven arcs
-  sweeping across the frame like drapery, with smooth dark bands between them.
-  The first and fourth are identical. The second is visibly paler, with whole
-  bands of the weave missing. The third is a pale gray copy of the pattern in
-  which only the lost segments are drawn, in magenta, showing that the losses
-  form broad coherent ribbons that follow the bands rather than scattered
-  pixels.}
-  \caption{Fixed enumeration deletes arcs, not pixels. The far field of a
+
+  \vspace{4pt}
+  % The crops used to be a figure of their own, which cost a float and a caption
+  % to say one thing about the row above it. They belong here, under the columns
+  % they magnify.
+  \begin{subfigure}{0.245\textwidth}
+    \includegraphics[width=\linewidth]{figures/inset-holes-reference.png}
+    \caption{$2\times$, \textsc{Reference}}
+  \end{subfigure}\hfill
+  \begin{subfigure}{0.245\textwidth}
+    \includegraphics[width=\linewidth]{figures/inset-holes-sweep.png}
+    \caption{$2\times$, \sweep{}}
+  \end{subfigure}\hfill
+  \begin{subfigure}{0.245\textwidth}
+    \phantom{\includegraphics[width=\linewidth]{figures/inset-holes-reference.png}}
+  \end{subfigure}\hfill
+  \begin{subfigure}{0.245\textwidth}
+    \includegraphics[width=\linewidth]{figures/inset-holes-final.png}
+    \caption{$2\times$, \ours{}}
+  \end{subfigure}
+  \Description{Two rows over the same black-on-white field of walking hexagons,
+  seen far from the family's center: layers of finely woven arcs sweeping across
+  the frame like drapery, with smooth dark bands between them. Top row: the
+  reference, the fixed-budget sweep which is visibly paler with whole bands of the
+  weave missing, a pale gray copy in which only the lost segments are drawn in
+  magenta showing that the losses form broad coherent ribbons rather than
+  scattered pixels, and the new method, which matches the reference. Bottom row:
+  two-times magnifications of the worst region under the first, second and fourth
+  columns. The reference and the new method are identical and continuous; in the
+  sweep several arcs stop part-way across and resume further on, leaving clean
+  gaps.}
+  \caption{\figlead{Fixed enumeration deletes arcs, not pixels.} The far field of a
   walking hexagon family whose drift aims at an edge---almost a full spacing
   long, $\lVert\delta\rVert=0.95s$, while the support ratio stays at
-  $\rad(-\delta)/s=0.82$; \sweep{} loses $\artHolesSweepDiff\%$ of the frame's
+  $\rad(-\delta)/s=0.82$. \sweep{} loses $\artHolesSweepDiff\%$ of the frame's
   pixels, and because the failure condition varies smoothly with $p$ the losses
-  organize into coherent ribbons that read as missing bands. \ours{} is
-  pixel-identical to the reference using $\artHolesSaving\times$ less work than
-  \sweep{}. Insets in Figure~\ref{fig:insets}.}
+  organize into coherent ribbons that read as missing bands.
+  \emph{Bottom row:} $2\times$ crops of the worst region, under the columns they
+  magnify. The missing ink is not noise; it is whole segments of whole rings,
+  which is why the artifact survives supersampling and reads as a modeling error
+  rather than an aliasing one. \ours{} costs $\artHolesSaving\times$ less work
+  than \sweep{} and is not merely close to the reference but identical to it:
+  columns (a) and (d), and (e) and (g), are the same image files.}
   \label{fig:holes}
 \end{figure*}
-
-\begin{figure}[t]
-  \centering
-  \begin{subfigure}{0.32\linewidth}
-    \includegraphics[width=\linewidth]{figures/inset-holes-reference.png}
-    \caption{\textsc{Reference}}
-  \end{subfigure}\hfill
-  \begin{subfigure}{0.32\linewidth}
-    \includegraphics[width=\linewidth]{figures/inset-holes-sweep.png}
-    \caption{\sweep{}}
-  \end{subfigure}\hfill
-  \begin{subfigure}{0.32\linewidth}
-    \includegraphics[width=\linewidth]{figures/inset-holes-final.png}
-    \caption{\ours{}}
-  \end{subfigure}
-  \Description{Three magnified crops of a hatched pattern of crossing arcs. The
-  first and third are identical and continuous. In the second, several arcs stop
-  part-way across the crop and resume further on, leaving clean gaps.}
-  \caption{$2\times$ crop of the worst region of Figure~\ref{fig:holes}. The
-  missing ink is not noise; it is whole segments of whole rings, which is why the
-  artifact survives supersampling and reads as a modeling error rather than an
-  aliasing one.}
-  \label{fig:insets}
-\end{figure}
 
 \begin{figure}[t]
   \centering
@@ -206,8 +209,7 @@ legible setting \emph{of this sweep}---the strided band of
 \S\ref{sec:limits}, which this sweep's cap excludes, is measured there
 separately and does lose ink.
 
-Figures~\ref{fig:holes} and~\ref{fig:insets} show what the \sweep{} column looks
-like on one scene, and Figure~\ref{fig:drift} isolates the drift constant. The
+Figure~\ref{fig:holes} shows what the \sweep{} column looks like on one scene, and Figure~\ref{fig:drift} isolates the drift constant. The
 GPU twin agrees with the CPU twin to \texttt{f32} precision at every point where
 the interval fits the budget.
 

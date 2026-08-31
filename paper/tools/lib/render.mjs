@@ -438,6 +438,53 @@ export function lowPassLuma(rgb, v, sigma, opts = {}) {
 }
 
 /** Side-by-side panel assembly with a hairline gutter, so figures stay one file. */
+/**
+ * Two renders of one scene in one panel, cut along a diagonal and separated by the
+ * dashed rule the teaser uses.
+ *
+ * The teaser cuts left/right, which suits a wide strip; a grid of square panels
+ * reads better cut corner to corner, and the diagonal gives each half a corner of
+ * its own rather than a tall slice. The seam runs from the bottom-left corner to
+ * the top-right, so `a` occupies the upper left and `b` the lower right.
+ *
+ * The rule alternates black and white dashes for the same reason it does there:
+ * it is the one style that stays visible against both a dark weave and a pale
+ * envelope. Width and dash length scale with the panel so a grid of small panels
+ * gets the same rule a large one does, in proportion.
+ */
+export function splitDiagonal(a, b, v, opts = {}) {
+  const { unit = v.width / 480, dash = 9, width = 2 } = opts;
+  const rgb = new Uint8Array(a.length);
+  // The cut is the line x/W + y/H = 1. Normalising by the gradient turns the
+  // implicit value into a signed distance in pixels, so the rule has an even
+  // thickness rather than one that varies with the panel's aspect.
+  const nx = 1 / v.width;
+  const ny = 1 / v.height;
+  const len = Math.hypot(nx, ny);
+  const half = Math.max(1, (width * unit) / 2);
+  const step = Math.max(3, dash * unit);
+  for (let y = 0; y < v.height; y++) {
+    for (let x = 0; x < v.width; x++) {
+      const i = (y * v.width + x) * 3;
+      const d = (nx * x + ny * y - 1) / len;
+      if (Math.abs(d) <= half) {
+        // Position along the seam, so the dashes march down it evenly.
+        const t = (-ny * x + nx * y) / len;
+        const ink = Math.floor(t / step) % 2 === 0 ? 0 : 255;
+        rgb[i] = ink;
+        rgb[i + 1] = ink;
+        rgb[i + 2] = ink;
+        continue;
+      }
+      const src = d < 0 ? a : b;
+      rgb[i] = src[i];
+      rgb[i + 1] = src[i + 1];
+      rgb[i + 2] = src[i + 2];
+    }
+  }
+  return rgb;
+}
+
 export function tile(panels, cols, gutter = 8, bg = 245) {
   const pw = panels[0].width;
   const ph = panels[0].height;
