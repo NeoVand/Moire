@@ -95,9 +95,12 @@ with a computable validity criterion: the heterodyne ratio $\het$, a
 will form before they commit to parameters. One subtlety runs through
 everything: a family's index convention is arbitrary, so $D$ is one
 representative of a lattice of integer combinations $k_1\idx_1+k_2\idx_2$, and
-the visible moir\'e is whichever low-order combination beats slowest
-(\S\ref{sec:visibility}). The criterion, and the tool, scan the characters up
-to order two.
+the visible moir\'e is whichever combination beats slowest against the
+contrast its order costs (\S\ref{sec:visibility}). Which combination that is
+turns out to be a best-approximation question with a classical answer: the
+visible-beat hierarchy of two pitches is the continued fraction of their
+ratio, and in two dimensions the winner is found exactly, at any order, by
+per-pixel lattice reduction (\S\ref{sec:selection}).
 
 For most families the index field is a closed form; Section~\ref{sec:catalog}
 lists the thirteen we ship, of which nine are one line of algebra each. The
@@ -150,9 +153,16 @@ shattered one, at identical cost.
   \item The fringe law: locally averaged ink is a saturating tent in the index
   difference, so fringes are its unit level sets. The law is exact under stated
   local hypotheses, per-pixel, with no periodicity assumption, and with a computable
-  validity criterion, the heterodyne ratio, scanned over the low-order
-  characters and drawable as a map
+  validity criterion, the heterodyne ratio, drawable as a map
   (Sections~\ref{sec:fringe}--\ref{sec:visibility}).
+
+  \item The selection principle: which beat is visible is best approximation,
+  answered by continued fractions in one dimension and by per-pixel
+  Lagrange--Gauss reduction of the gradient lattice in two, under an amplitude
+  weight that makes ``slowest visible beat'' well posed. The reduction
+  replaces an order cap that missed $\selCapMissPct\%$ of visible fringes in
+  random carrier pairs, and its winner drives the criterion, the envelope's
+  sweep schedule, and the contour overlay (\S\ref{sec:selection}).
 
   \item Walking families, and their inversion: a provably sufficient index
   interval from the support function of the generating shape, a Lipschitz skip
@@ -172,7 +182,10 @@ shattered one, at identical cost.
   contours without ever computing a contour. The fringes localize to a mean of
   $\contourWorstErr$\,px of the true level sets on the hardest field we tested,
   and the only sampling limit is an inequality between contour spacing and
-  carrier pitch (Section~\ref{sec:beyond}).
+  carrier pitch. A \emph{circle-valued} field goes further and mints
+  topological defects: fringes that end, with the signed count of endings
+  equal to the enclosed winding times the gain, exactly
+  (Section~\ref{sec:beyond}).
 
   \item An expression language for those fields, with the gradient the eikonal
   divide needs obtained by forward-mode differentiation rather than by hand, and

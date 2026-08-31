@@ -364,8 +364,11 @@ family, fractionally, and a distance field to it, so that superposition
 composites fields rather than pixels and no raster exists at any stage. In this
 model the fringes of a superposition are the unit level sets of the index-field
 difference, with a saturating tent profile that is exact under stated local
-hypotheses, without periodicity, and a per-pixel validity criterion scanned
-over the low-order beats. The hard case is a family whose members each carry
+hypotheses, without periodicity, and a per-pixel validity criterion. Which of
+the competing beats is visible turns out to be a best-approximation question:
+the beat hierarchy of two pitches is the continued fraction of their ratio,
+and per-pixel lattice reduction finds the winner at any order, where the
+order-two cap it replaces missed a fifth of visible fringes. The hard case is a family whose members each carry
 their own rigid motion: its index field has no closed form, and the nearest
 member must be searched for. The support function of the generating shape
 supplies a provably sufficient search interval, a Lipschitz skip rule, and an
@@ -375,7 +378,9 @@ agreement with brute force wherever the interval fits its budget. We present
 <span class="sc">Moiré</span>, a browser tool built on the model, and show that choosing two layers
 so that their index difference is an authored field turns the moiré into a
 live contour plot of that field, whose fringes localize to the true level sets
-within a mean of $0.80$ px on the hardest field tested.</p>
+within a mean of $0.80$ px on the hardest field tested; a
+circle-valued field goes further, ending fringes at authored defects whose
+signed endings count its winding exactly.</p>
     <p class="keywords">moiré, interference, distance fields, support functions, procedural
 patterns, interactive authoring, GPU rendering</p>
   </div>
@@ -399,32 +404,32 @@ other and turn it a few degrees. A third pattern appears: broad, slow bands that
 belong to neither sheet, made of ink already on the page and rearranged by
 nothing but the small difference between two nearly identical structures.
 Moiré has been a precision instrument since Rayleigh judged ruled gratings by
-the fringes they made against their own copies <span class="cite">[<a href="#ref-69">69</a>]</span> and
+the fringes they made against their own copies <span class="cite">[<a href="#ref-74">74</a>]</span> and
 Righi read grating displacement from fringe
-motion <span class="cite">[<a href="#ref-70">70</a>]</span>. It became an artistic medium in the
-1960s <span class="cite">[<a href="#ref-51">51</a>, <a href="#ref-53">53</a>, <a href="#ref-75">75</a>]</span>, and artists
-have built patterns for it since, by hand <span class="cite">[<a href="#ref-93">93</a>]</span> and by the
-plate <span class="cite">[<a href="#ref-48">48</a>]</span>; it acquired a complete Fourier
+motion <span class="cite">[<a href="#ref-75">75</a>]</span>. It became an artistic medium in the
+1960s <span class="cite">[<a href="#ref-56">56</a>, <a href="#ref-58">58</a>, <a href="#ref-80">80</a>]</span>, and artists
+have built patterns for it since, by hand <span class="cite">[<a href="#ref-99">99</a>]</span> and by the
+plate <span class="cite">[<a href="#ref-52">52</a>]</span>; it acquired a complete Fourier
 theory <span class="cite">[<a href="#ref-8">8</a>]</span>; it grounded a security-printing
-discipline <span class="cite">[<a href="#ref-18">18</a>, <a href="#ref-33">33</a>]</span>; and it reappeared at the
+discipline <span class="cite">[<a href="#ref-19">19</a>, <a href="#ref-34">34</a>]</span>; and it reappeared at the
 nanoscale, where two graphene sheets twisted by $1.1^\circ$ form a moiré
 superlattice whose slow beat reorganizes the material into a
-superconductor <span class="cite">[<a href="#ref-10">10</a>, <a href="#ref-16">16</a>]</span>. What it has not become
+superconductor <span class="cite">[<a href="#ref-11">11</a>, <a href="#ref-17">17</a>]</span>. What it has not become
 is a medium an artist can draw in interactively. This paper argues that the
 obstacle is a representation, and proposes a different one.</p>
 <p>Graphics has related to moiré in two nearly disjoint ways. The first is
 <em>suppression</em>: moiré is what undersampling looks like when the signal is
 repetitive; essentially the whole of texture filtering exists to prevent
-it <span class="cite">[<a href="#ref-32">32</a>, <a href="#ref-97">97</a>]</span>, and it remains a first-class
+it <span class="cite">[<a href="#ref-33">33</a>, <a href="#ref-103">103</a>]</span>, and it remains a first-class
 concern in neural rendering <span class="cite">[<a href="#ref-9">9</a>]</span>. The second is
 <em>synthesis</em>, a smaller literature that builds moiré on purpose: band
-moiré images <span class="cite">[<a href="#ref-33">33</a>]</span>, level-line moiré <span class="cite">[<a href="#ref-18">18</a>]</span>,
-target-driven phase modulation <span class="cite">[<a href="#ref-87">87</a>]</span>, variational layer
-design <span class="cite">[<a href="#ref-42">42</a>]</span>, artistic
-screening <span class="cite">[<a href="#ref-55">55</a>]</span>, micro-optics and curved
-fabrication <span class="cite">[<a href="#ref-72">72</a>, <a href="#ref-91">91</a>]</span>, and, running the
+moiré images <span class="cite">[<a href="#ref-34">34</a>]</span>, level-line moiré <span class="cite">[<a href="#ref-19">19</a>]</span>,
+target-driven phase modulation <span class="cite">[<a href="#ref-93">93</a>]</span>, variational layer
+design <span class="cite">[<a href="#ref-45">45</a>]</span>, artistic
+screening <span class="cite">[<a href="#ref-60">60</a>]</span>, micro-optics and curved
+fabrication <span class="cite">[<a href="#ref-77">77</a>, <a href="#ref-97">97</a>]</span>, and, running the
 amplification backwards, moiré as a sub-millimeter
-sensor <span class="cite">[<a href="#ref-15">15</a>, <a href="#ref-65">65</a>]</span>. Across that second
+sensor <span class="cite">[<a href="#ref-16">16</a>, <a href="#ref-70">70</a>]</span>. Across that second
 tradition one assumption is nearly universal: a layer is a rasterized image
 of a grating, possibly warped, multiplied against another. Authoring is
 therefore offline, since the layers must be solved for and then rasterized;
@@ -435,7 +440,7 @@ exist, but in all of them the fringe is an unmodelled side effect of drawing
 two dense patterns; what the literature does not contain, as far as we can
 find, is an interactive tool in which the moiré itself is represented,
 predicted, and stable under zoom. The nearest system,
-FabObscura <span class="cite">[<a href="#ref-78">78</a>]</span>, authors barrier-grid occlusion
+FabObscura <span class="cite">[<a href="#ref-83">83</a>]</span>, authors barrier-grid occlusion
 rather than interference. We think the gap is not a missing feature but a
 missing representation.</p>
 <figure class="paper-figure" id="fig-2"><img src="figures/two-traditions.png" width="1024" height="1098" alt=""><figcaption><span class="fignum">Fig. 2.</span> <strong>Raster versus field, same two families.</strong>  <em>Above:</em> the
@@ -467,16 +472,19 @@ them. The same section verifies the law against $107{,}691$ measurements
 over $12$ pairs of families, to a mean coverage error of
 <span class="nowrap">$0.0034$.</span>
 The locus and the profile shape have classical
-ancestors <span class="cite">[<a href="#ref-3">3</a>, <a href="#ref-52">52</a>, <a href="#ref-58">58</a>]</span>; what the
+ancestors <span class="cite">[<a href="#ref-3">3</a>, <a href="#ref-57">57</a>, <a href="#ref-63">63</a>]</span>; what the
 field form adds is a per-pixel statement about the actual compositing operator,
 with a computable validity criterion: the heterodyne ratio <span class="nowrap">$\het$,</span> a
 <em>field</em> that can be drawn, telling an author where in the frame a fringe
 will form before they commit to parameters. One subtlety runs through
 everything: a family's index convention is arbitrary, so $D$ is one
 representative of a lattice of integer combinations <span class="nowrap">$k_1\idx_1+k_2\idx_2$,</span> and
-the visible moiré is whichever low-order combination beats slowest
-(<a href="#sec-3-6">§3.6</a>). The criterion, and the tool, scan the characters up
-to order two.</p>
+the visible moiré is whichever combination beats slowest against the
+contrast its order costs (<a href="#sec-3-6">§3.6</a>). Which combination that is
+turns out to be a best-approximation question with a classical answer: the
+visible-beat hierarchy of two pitches is the continued fraction of their
+ratio, and in two dimensions the winner is found exactly, at any order, by
+per-pixel lattice reduction (<a href="#sec-3-7">§3.7</a>).</p>
 <p>For most families the index field is a closed form; Section <a href="#sec-4">4</a>
 lists the thirteen we ship, of which nine are one line of algebra each. The
 families that make the richest interference are not among them. What op
@@ -484,7 +492,7 @@ artists actually reach for are families whose members are not concentric:
 each ring displaced a little further than the last, or turned a little further,
 so the family shears, spirals, and finally unwinds into a pencil of
 near-parallel curves; Riley's <em>Blaze</em>, a nest of zigzag rings each turned
-against the last, is exactly such a family <span class="cite">[<a href="#ref-53">53</a>]</span>. We call
+against the last, is exactly such a family <span class="cite">[<a href="#ref-58">58</a>]</span>. We call
 these <em>walking families</em> (Section <a href="#sec-5">5</a>): member $n$ is the
 shape of radius <span class="nowrap">$ns+\varphi$,</span> displaced by $n\delta$ and turned by <span class="nowrap">$n\theta$.</span>
 Two extra parameters, and the closed form is gone: each member lives in its own
@@ -499,7 +507,7 @@ broken segments were a rasterization bug; they are an inversion bug.</p>
 metric in this setting (circle, square, triangle, regular $N$-gon) is a
 <em>support function</em>, and support functions supply exactly the constants the
 problem needs: a Lipschitz modulus that lets indices be skipped unevaluated, in
-the spirit of sphere tracing <span class="cite">[<a href="#ref-30">30</a>]</span>; an exact anisotropy floor;
+the spirit of sphere tracing <span class="cite">[<a href="#ref-31">31</a>]</span>; an exact anisotropy floor;
 and a subadditive drift rate $\rad(-\delta)$ that is strictly tighter than
 <span class="nowrap">$\lVert\delta\rVert$,</span> where using the loose constant declares whole bands of
 ordinary settings unsolvable. Together they give a closed interval of integers
@@ -524,9 +532,15 @@ shattered one, at identical cost.</p>
 <li><p>The fringe law: locally averaged ink is a saturating tent in the index
   difference, so fringes are its unit level sets. The law is exact under stated
   local hypotheses, per-pixel, with no periodicity assumption, and with a computable
-  validity criterion, the heterodyne ratio, scanned over the low-order
-  characters and drawable as a map
+  validity criterion, the heterodyne ratio, drawable as a map
   (Sections <a href="#sec-3-4">3.4</a>–<a href="#sec-3-6">3.6</a>).</p></li>
+<li><p>The selection principle: which beat is visible is best approximation,
+  answered by continued fractions in one dimension and by per-pixel
+  Lagrange–Gauss reduction of the gradient lattice in two, under an amplitude
+  weight that makes “slowest visible beat” well posed. The reduction
+  replaces an order cap that missed $21\%$ of visible fringes in
+  random carrier pairs, and its winner drives the criterion, the envelope's
+  sweep schedule, and the contour overlay (<a href="#sec-3-7">§3.7</a>).</p></li>
 <li><p>Walking families, and their inversion: a provably sufficient index
   interval from the support function of the generating shape, a Lipschitz skip
   rule, and an exact closed form for translated polygons of any side count
@@ -543,7 +557,10 @@ shattered one, at identical cost.</p>
   contours without ever computing a contour. The fringes localize to a mean of
   $0.80$ px of the true level sets on the hardest field we tested,
   and the only sampling limit is an inequality between contour spacing and
-  carrier pitch (Section <a href="#sec-9">9</a>).</p></li>
+  carrier pitch. A <em>circle-valued</em> field goes further and mints
+  topological defects: fringes that end, with the signed count of endings
+  equal to the enclosed winding times the gain, exactly
+  (Section <a href="#sec-9">9</a>).</p></li>
 <li><p>An expression language for those fields, with the gradient the eikonal
   divide needs obtained by forward-mode differentiation rather than by hand, and
   compiled to straight-line shader code rather than interpreted per pixel. The
@@ -562,17 +579,17 @@ papers that moves from analysis of screen interactions <span class="cite">[<a h
 to phase shifts <span class="cite">[<a href="#ref-4">4</a>]</span>, to synthesis under geometric
 transformation <span class="cite">[<a href="#ref-5">5</a>]</span>, and finally to aperiodic
 layers <span class="cite">[<a href="#ref-6">6</a>, <a href="#ref-7">7</a>]</span>, whose random-dot extreme is the Glass
-pattern <span class="cite">[<a href="#ref-27">27</a>]</span>. The account is still growing: Feng extends it to
+pattern <span class="cite">[<a href="#ref-28">28</a>]</span>. The account is still growing: Feng extends it to
 <em>objective</em> structures (ring, helical and lattice patterns whose members
 are related by progressive symmetry transformations) through an augmented
-Fourier approach <span class="cite">[<a href="#ref-23">23</a>]</span>. Those structures are the closest
+Fourier approach <span class="cite">[<a href="#ref-24">24</a>]</span>. Those structures are the closest
 formal relatives of our walking families (<a href="#sec-5">§5</a>), reached from the
 frequency side; we reach them per pixel, with a certificate, because a renderer
 has to. The spectral theory also supplies profiles, not only loci: the
 T-convolution theorem gives the moiré's intensity profile as a normalized
 cross-correlation of the layer profiles, in the image
 domain <span class="cite">[<a href="#ref-3">3</a>]</span>, trapezoidal for binary
-gratings <span class="cite">[<a href="#ref-58">58</a>]</span>, and extended to curved layers as the
+gratings <span class="cite">[<a href="#ref-63">63</a>]</span>, and extended to curved layers as the
 profile composed with the index difference <span class="cite">[<a href="#ref-5">5</a>]</span>. Our debt
 to this theory is correspondingly large; <a href="#sec-3-4">§3.4</a> states what the
 field form adds: exactness with stated local hypotheses, per-pixel stroke
@@ -580,37 +597,37 @@ widths, index fields with no closed form, and a drawable validity criterion.</p>
 <p><span class="paralead">The indicial equation.</span> Running alongside the spectral account is an older and more elementary one. Label
 the members of each layer, ask where a member of one crosses a member of the other
 in a fixed relation, and solve: Oster, Wasserman and Zwerling derive the fringe
-curves of the standard configurations this way <span class="cite">[<a href="#ref-52">52</a>]</span>, Amidror gives
+curves of the standard configurations this way <span class="cite">[<a href="#ref-57">57</a>]</span>, Amidror gives
 it as the geometric approach, complementary to the spectral one, with curved
 gratings read as indexed line families (Vol. I, §11.2
 of <span class="cite">[<a href="#ref-8">8</a>]</span>); the metrology literature develops
-it <span class="cite">[<a href="#ref-13">13</a>]</span>, at book length in Patorski and
-Kujawinska <span class="cite">[<a href="#ref-59">59</a>]</span>. This is the direct ancestor of our
+it <span class="cite">[<a href="#ref-14">14</a>]</span>, at book length in Patorski and
+Kujawinska <span class="cite">[<a href="#ref-64">64</a>]</span>. This is the direct ancestor of our
 Section <a href="#sec-3-4">3.4</a>, and our index field is its label made continuous and
 evaluated per pixel. We claim no credit for the locus. The indicial
 construction itself does not supply the coverage <em>between</em> the fringes
 (metrology reads intensity as fractional fringe order, following
-Sciammarella <span class="cite">[<a href="#ref-74">74</a>]</span>, and the spectral theory supplies
+Sciammarella <span class="cite">[<a href="#ref-79">79</a>]</span>, and the spectral theory supplies
 profiles as above), nor a statement of when the construction is meaningful.
 Theorem <a href="#thm-2">2</a> supplies the first as a closed-form profile of the
 actual compositing operator and <a href="#sec-3-6">§3.6</a> the second as a field
 that can be drawn.</p>
-<p><span class="paralead">Constructive synthesis.</span> Band moiré <span class="cite">[<a href="#ref-33">33</a>]</span> is the landmark generation method in graphics:
+<p><span class="paralead">Constructive synthesis.</span> Band moiré <span class="cite">[<a href="#ref-34">34</a>]</span> is the landmark generation method in graphics:
 a base layer of image bands, replicated and compressed along one axis, sampled by a
 revealing line grating, with a derived linear map from band space to moiré space
 that predicts the revealed image's orientation, scale and velocity. Applying
 nonlinear coordinate transforms to both layers yields curved layers whose
 superposition is still a clean periodic moiré. Level-line
-moiré <span class="cite">[<a href="#ref-18">18</a>]</span> changes the encoding: a bilevel target becomes an
+moiré <span class="cite">[<a href="#ref-19">19</a>]</span> changes the encoding: a bilevel target becomes an
 elevation profile, embedded as small local displacements of the base grating, and
 the superposition reveals the profile's <em>level lines</em>, which traverse the
 shape as the layers slide. Walger and Hersch multiplex up to seven such images in
-one base <span class="cite">[<a href="#ref-90">90</a>]</span>. Target-driven phase
-modulation <span class="cite">[<a href="#ref-87">87</a>]</span> is the strongest inverse formulation: given a
+one base <span class="cite">[<a href="#ref-96">96</a>]</span>. Target-driven phase
+modulation <span class="cite">[<a href="#ref-93">93</a>]</span> is the strongest inverse formulation: given a
 grayscale target, solve for two curvilinear gratings whose dominant difference
 component reproduces it, with a smoothness term distributing information between
 the layers and an appearance phase to disguise them. Lebanon and
-Bruckstein <span class="cite">[<a href="#ref-42">42</a>]</span> give the variational counterpart.</p>
+Bruckstein <span class="cite">[<a href="#ref-45">45</a>]</span> give the variational counterpart.</p>
 <p>These methods and ours are close in spirit and disjoint in mechanism. They solve
 an inverse problem to <em>produce</em> two layers; we make the forward problem cheap
 enough that a person can solve the inverse problem by hand, in real time, at any
@@ -623,28 +640,28 @@ step. We regard that as evidence the representation is the right one, not as a
 claim to have invented level-line moiré.</p>
 <p><span class="paralead">Halftoning.</span> Halftoning is where moiré is classically a hazard and occasionally a tool.
 Rotated dispersed dither disperses the spectral impulses of a Bayer array so that
-color separations do not beat <span class="cite">[<a href="#ref-54">54</a>, <a href="#ref-88">88</a>]</span>;
+color separations do not beat <span class="cite">[<a href="#ref-59">59</a>, <a href="#ref-94">94</a>]</span>;
 multi-color dithering extends the control to non-standard
-inks <span class="cite">[<a href="#ref-56">56</a>]</span>. Artistic
-screening <span class="cite">[<a href="#ref-55">55</a>]</span> turns the halftone dot into an
+inks <span class="cite">[<a href="#ref-61">61</a>]</span>. Artistic
+screening <span class="cite">[<a href="#ref-60">60</a>]</span> turns the halftone dot into an
 artist-supplied contour that grows with intensity and can be pushed through a
 conformal map, which makes the screen itself the designed object: the direct
 conceptual ancestor of band moiré, and a useful reminder that the expressive
 material here is the <em>carrier</em>, not the picture.</p>
 <p><span class="paralead">Physical realization and sensing.</span> Moiré magnifiers pair a micro-image array with a slightly mismatched lens
-array <span class="cite">[<a href="#ref-34">34</a>]</span>. EPFL's later work replaces printed revealers with
-cylindrical microlenses <span class="cite">[<a href="#ref-91">91</a>, <a href="#ref-92">92</a>]</span> and Saberpour
+array <span class="cite">[<a href="#ref-36">36</a>]</span>. EPFL's later work replaces printed revealers with
+cylindrical microlenses <span class="cite">[<a href="#ref-97">97</a>, <a href="#ref-98">98</a>]</span> and Saberpour
 et al. carry designed moiré onto curved fabricated
-surfaces <span class="cite">[<a href="#ref-72">72</a>]</span>. Refractive
-steganography <span class="cite">[<a href="#ref-57">57</a>]</span> and metallic-substrate
-hiding <span class="cite">[<a href="#ref-61">61</a>]</span> pursue the same hidden-image goal by other optics.
+surfaces <span class="cite">[<a href="#ref-77">77</a>]</span>. Refractive
+steganography <span class="cite">[<a href="#ref-62">62</a>]</span> and metallic-substrate
+hiding <span class="cite">[<a href="#ref-66">66</a>]</span> pursue the same hidden-image goal by other optics.
 Running the amplification backwards turns a moiré into a precise passive
-encoder: MoiréBoard for camera pose <span class="cite">[<a href="#ref-94">94</a>]</span>, MoiréTag for
-angle <span class="cite">[<a href="#ref-65">65</a>]</span>, MoiréWidgets for tangible
-controls <span class="cite">[<a href="#ref-15">15</a>]</span>. These works establish that the phase
+encoder: MoiréBoard for camera pose <span class="cite">[<a href="#ref-100">100</a>]</span>, MoiréTag for
+angle <span class="cite">[<a href="#ref-70">70</a>]</span>, MoiréWidgets for tangible
+controls <span class="cite">[<a href="#ref-16">16</a>]</span>. These works establish that the phase
 of a moiré is a quantity worth measuring to high precision, which is indirectly
 an argument for having it available in closed form.</p>
-<p><span class="paralead">Interactive authoring.</span> FabObscura <span class="cite">[<a href="#ref-78">78</a>]</span> is the nearest system-shaped relative:
+<p><span class="paralead">Interactive authoring.</span> FabObscura <span class="cite">[<a href="#ref-83">83</a>]</span> is the nearest system-shaped relative:
 it parameterizes barrier-grid occlusion patterns as functions, and couples a
 pattern editor to a live canvas and a fabrication export. Barrier-grid animation
 is a parallax technique rather than interference, so the mechanism differs, but its
@@ -655,9 +672,9 @@ security-printing design suites has existed for decades; in all of them the
 fringe is an unmodelled side effect of drawing two dense patterns, and nothing
 represents it, predicts it, or stabilizes it under zoom. Procedural moiré is
 likewise a staple of shader practice, going back to Glassner's tutorial
-treatment <span class="cite">[<a href="#ref-28">28</a>]</span> and Sen's product-delay
-constructions <span class="cite">[<a href="#ref-76">76</a>, <a href="#ref-77">77</a>]</span>, in the wider tradition of
-evaluating a pattern per point rather than storing it <span class="cite">[<a href="#ref-21">21</a>]</span>.
+treatment <span class="cite">[<a href="#ref-29">29</a>]</span> and Sen's product-delay
+constructions <span class="cite">[<a href="#ref-81">81</a>, <a href="#ref-82">82</a>]</span>, in the wider tradition of
+evaluating a pattern per point rather than storing it <span class="cite">[<a href="#ref-22">22</a>]</span>.
 The prevailing shader-sandbox idiom evaluates two periodic functions and
 combines them, typically as <code>abs(p1 - p2)</code>, a <em>value</em> composite
 rather than a distance composite; Section <a href="#sec-7-2">7.2</a> measures what
@@ -665,33 +682,33 @@ that costs: with no stroke width to stabilize, the pattern is a different
 pattern at every zoom level, and the displayed moiré is partly the
 sampler's own. Archival graphics has also drawn stripe families as level sets
 of a per-point phase field, on surfaces with prescribed spacing and
-singularities <span class="cite">[<a href="#ref-40">40</a>]</span> and as phase fields feeding a periodic
-profile <span class="cite">[<a href="#ref-86">86</a>]</span>; neither carries a distance field, a fringe
+singularities <span class="cite">[<a href="#ref-43">43</a>]</span> and as phase fields feeding a periodic
+profile <span class="cite">[<a href="#ref-92">92</a>]</span>; neither carries a distance field, a fringe
 law, or a moiré.</p>
 <p><span class="paralead">Moiré in visualization.</span> Direct use of interference to encode data is rare. MoireGraphs is the notable
 appearance of the word in the visualization literature, and it names a
 resemblance: a radial focus+context layout whose concentric rings of visual nodes
-<em>look</em> like a circular moiré <span class="cite">[<a href="#ref-35">35</a>]</span>. The place where
+<em>look</em> like a circular moiré <span class="cite">[<a href="#ref-37">37</a>]</span>. The place where
 fringes genuinely carry data is experimental mechanics and optical metrology.
 Moiré interferometry reads in-plane displacement: fringes are contour maps of
 displacement, with fringe order $N_x=fU$ for reference grating frequency <span class="nowrap">$f$,</span>
-and strains follow by differencing fringe orders <span class="cite">[<a href="#ref-63">63</a>, <a href="#ref-64">64</a>]</span>. Moiré topography reads surface height the same way (its
-fringes literally are elevation contours <span class="cite">[<a href="#ref-45">45</a>, <a href="#ref-83">83</a>]</span>), and Takeda's Fourier-transform method turned fringe
-images back into phase maps numerically <span class="cite">[<a href="#ref-84">84</a>]</span>. These are
+and strains follow by differencing fringe orders <span class="cite">[<a href="#ref-68">68</a>, <a href="#ref-69">69</a>]</span>. Moiré topography reads surface height the same way (its
+fringes literally are elevation contours <span class="cite">[<a href="#ref-48">48</a>, <a href="#ref-89">89</a>]</span>), and Takeda's Fourier-transform method turned fringe
+images back into phase maps numerically <span class="cite">[<a href="#ref-90">90</a>]</span>. These are
 measurement techniques, and their governing relation is exactly our fringe law
 read in the other direction. Section <a href="#sec-9">9</a> takes it as a design
 primitive instead: the encoded field is arbitrary, on screen, and live.</p>
 <p><span class="paralead">Distance fields and certified search.</span> The machinery we borrow from is the distance-field tradition: Taubin's
-first-order distance for implicit curves <span class="cite">[<a href="#ref-85">85</a>]</span>, guaranteed
-intersection from a Lipschitz constant <span class="cite">[<a href="#ref-36">36</a>]</span>, sphere tracing, which uses
-such a bound to skip space it can prove is empty <span class="cite">[<a href="#ref-30">30</a>]</span>, and its
-sharpening by <em>local</em> Lipschitz bounds along a segment <span class="cite">[<a href="#ref-25">25</a>]</span>;
+first-order distance for implicit curves <span class="cite">[<a href="#ref-91">91</a>]</span>, guaranteed
+intersection from a Lipschitz constant <span class="cite">[<a href="#ref-38">38</a>]</span>, sphere tracing, which uses
+such a bound to skip space it can prove is empty <span class="cite">[<a href="#ref-31">31</a>]</span>, and its
+sharpening by <em>local</em> Lipschitz bounds along a segment <span class="cite">[<a href="#ref-26">26</a>]</span>;
 adaptively sampled distance fields as a shape
-representation <span class="cite">[<a href="#ref-24">24</a>]</span>; and the now-standard practice of
+representation <span class="cite">[<a href="#ref-25">25</a>]</span>; and the now-standard practice of
 shading vector art from a distance rather than a coverage
-mask <span class="cite">[<a href="#ref-29">29</a>, <a href="#ref-66">66</a>, <a href="#ref-67">67</a>]</span>. Domain repetition
+mask <span class="cite">[<a href="#ref-30">30</a>, <a href="#ref-71">71</a>, <a href="#ref-72">72</a>]</span>. Domain repetition
 with per-copy transforms, and the neighbor-checking it forces, is documented
-practice <span class="cite">[<a href="#ref-68">68</a>]</span>; <a href="#sec-6">§6</a> replaces its fixed
+practice <span class="cite">[<a href="#ref-73">73</a>]</span>; <a href="#sec-6">§6</a> replaces its fixed
 neighbor budget with a certificate. Our index window
 (Section <a href="#sec-6-3">6.3</a>) is a sphere-tracing argument moved from space into
 <em>index</em> space, and our skip rule is segment tracing along the index axis:
@@ -700,26 +717,26 @@ number of <em>rings</em> we can prove cannot be nearest. The alternative discipl
 enumerating every cell a ray meets <span class="cite">[<a href="#ref-1">1</a>]</span>, is what the fixed sweep
 we replace amounts to. The closest methodological neighbors are the certified-query and
 range-analysis renderers, from Snyder's interval-based constrained minimization
-on procedural geometry <span class="cite">[<a href="#ref-81">81</a>]</span> to the implicit renderers
+on procedural geometry <span class="cite">[<a href="#ref-86">86</a>]</span> to the implicit renderers
 that bound a function over a spatial cell and subdivide until the bound
-decides <span class="cite">[<a href="#ref-37">37</a>, <a href="#ref-39">39</a>, <a href="#ref-79">79</a>]</span>. Section <a href="#sec-10">10</a>
+decides <span class="cite">[<a href="#ref-39">39</a>, <a href="#ref-42">42</a>, <a href="#ref-84">84</a>]</span>. Section <a href="#sec-10">10</a>
 argues that our domain being $\Z$ rather than $\R^2$ is what upgrades their
 tolerance into a certificate. Seen from optimization, the certified scan is a Piyavskii–Shubert
-search <span class="cite">[<a href="#ref-60">60</a>, <a href="#ref-80">80</a>]</span> run over $\Z$ instead of an interval of
+search <span class="cite">[<a href="#ref-65">65</a>, <a href="#ref-85">85</a>]</span> run over $\Z$ instead of an interval of
 <span class="nowrap">$\R$:</span> the same Lipschitz envelopes, with the stopping tolerance replaced by
 integer exhaustion. The support-function facts we need are standard
-convex geometry <span class="cite">[<a href="#ref-71">71</a>, <a href="#ref-73">73</a>]</span>, and the same
+convex geometry <span class="cite">[<a href="#ref-76">76</a>, <a href="#ref-78">78</a>]</span>, and the same
 object is what collision detection queries when it walks a Minkowski
-difference <span class="cite">[<a href="#ref-22">22</a>, <a href="#ref-26">26</a>]</span>, though there it prices one pair of
+difference <span class="cite">[<a href="#ref-23">23</a>, <a href="#ref-27">27</a>]</span>, though there it prices one pair of
 bodies, where here the certificate ranges over an indexed family of them; our
 contribution is noticing which four of its properties this problem is asking
 for.</p>
 <p><span class="paralead">Explicit geometry.</span> The nearest thing to an off-the-shelf answer is to emit the members as paths and
 hand them to a vector renderer. That tradition is mature: resolution-independent
-curves on programmable hardware <span class="cite">[<a href="#ref-43">43</a>]</span>, random-access rendering of
-general vector graphics <span class="cite">[<a href="#ref-47">47</a>]</span>, GPU-accelerated path
-rendering <span class="cite">[<a href="#ref-38">38</a>]</span>, analytic rasterization under a polynomial
-filter <span class="cite">[<a href="#ref-44">44</a>]</span>. For a single family at a legible zoom it
+curves on programmable hardware <span class="cite">[<a href="#ref-46">46</a>]</span>, random-access rendering of
+general vector graphics <span class="cite">[<a href="#ref-50">50</a>]</span>, GPU-accelerated path
+rendering <span class="cite">[<a href="#ref-41">41</a>]</span>, analytic rasterization under a polynomial
+filter <span class="cite">[<a href="#ref-47">47</a>]</span>. For a single family at a legible zoom it
 is the better tool, which we say plainly because our own first implementation was
 of exactly that kind. Two things end it, and <a href="#sec-8-5">§8.5</a> measures both.
 The count of members meeting the frame grows without bound as the view widens,
@@ -727,26 +744,26 @@ while a field costs the same per pixel at every zoom. And the compositing is
 wrong in the regime that matters: a path renderer antialiases each path
 separately and combines the results with <span class="sc">over</span>, which is derived from the
 assumption that the two coverages are <em>uncorrelated</em> sub-pixel
-areas <span class="cite">[<a href="#ref-62">62</a>]</span>. A moiré is that assumption failing: it is
+areas <span class="cite">[<a href="#ref-67">67</a>]</span>. A moiré is that assumption failing: it is
 precisely the spatial modulation of how the two families' strokes fall relative
 to one another, so <span class="sc">over</span> replaces the varying overlap with a constant
 one and the fringe field it carries is flattened, while the mean ink is barely
-touched. Analytic coverage of a whole scene at once <span class="cite">[<a href="#ref-17">17</a>]</span> does not
+touched. Analytic coverage of a whole scene at once <span class="cite">[<a href="#ref-18">18</a>]</span> does not
 have this defect, but it is not what per-path pipelines do. The distance
 composite of <a href="#sec-3">§3</a> is a union coverage, not a per-path one, which is
 why it does not arise here.</p>
 <p><span class="paralead">Prefiltering a pattern.</span> Where a procedural pattern is too fine to sample, the correct answer is to
 integrate it rather than to point-sample harder, a line that runs from the
-frequency analysis of aliasing <span class="cite">[<a href="#ref-20">20</a>, <a href="#ref-46">46</a>]</span> through
+frequency analysis of aliasing <span class="cite">[<a href="#ref-21">21</a>, <a href="#ref-49">49</a>]</span> through
 procedural noise and its filtering, surveyed by Lagae et
-al. <span class="cite">[<a href="#ref-41">41</a>]</span> and Bruneton and Neyret <span class="cite">[<a href="#ref-11">11</a>]</span>, to
+al. <span class="cite">[<a href="#ref-44">44</a>]</span> and Bruneton and Neyret <span class="cite">[<a href="#ref-12">12</a>]</span>, to
 normal-distribution methods for glinty
-surfaces <span class="cite">[<a href="#ref-95">95</a>, <a href="#ref-96">96</a>]</span>. Two things connect that work to ours. Our
+surfaces <span class="cite">[<a href="#ref-101">101</a>, <a href="#ref-102">102</a>]</span>. Two things connect that work to ours. Our
 saturated regime (<a href="#sec-8-6">§8.6</a>) is exactly a place where a correct analytic
 mean would replace a fallback we know to be approximate, and we do not have one for
 a walking family. And the glint problem has our structure (“which member of a
 dense indexed family lies within this footprint”), solved with a
-budget <span class="cite">[<a href="#ref-96">96</a>]</span> where an index interval might certify.</p>
+budget <span class="cite">[<a href="#ref-102">102</a>]</span> where an index interval might certify.</p>
 <h2 id="sec-3"><span class="secnum">3</span> Moiré as a field</h2>
 <h3 id="sec-3-1"><span class="secnum">3.1</span> A layer is two scalar fields</h3>
 <div class="theorem thm-def" id="thm-1"><p><span class="thm-head">Definition 1 (Family).</span> A <em>family</em> is a countable collection of curves $\{\gamma_n\}_{n\in\Z}$ in
@@ -768,7 +785,7 @@ offset. Then</p>
   d(p) \;\simeq\; \frac{\mathrm{pd}\!\left(\ph(p)-\varphi,\; s\right)}{\lVert\nabla\ph(p)\rVert},\]</div><span class="eq-no">(3)</span></div>
 <p>where $\mathrm{pd}(v,s)=\min_{k\in\Z}|v-ks|$ is the distance from $v$ to the
 lattice <span class="nowrap">$s\Z$.</span> The division is Taubin's first-order distance
-approximation for implicit curves <span class="cite">[<a href="#ref-85">85</a>]</span>, applied to a phase
+approximation for implicit curves <span class="cite">[<a href="#ref-91">91</a>]</span>, applied to a phase
 residual. Both fields are one line of shader code.</p>
 <h3 id="sec-3-2"><span class="secnum">3.2</span> The gradient is not optional</h3>
 <p>The division by $\lVert\nabla\ph\rVert$ in Eq. <a href="#eq-3">3</a> converts a phase
@@ -889,9 +906,9 @@ the average.</p>
 <p>Both halves of that sentence have classical ancestors, and we want to be exact
 about the debt. The locus: writing the two families as <span class="nowrap">$\idx_1=m$,</span> $\idx_2=n$
 and asking where members cross in a fixed relation $m-n=k$ is the <em>indicial
-equation</em> of Oster, Wasserman and Zwerling <span class="cite">[<a href="#ref-52">52</a>]</span>, which Amidror
+equation</em> of Oster, Wasserman and Zwerling <span class="cite">[<a href="#ref-57">57</a>]</span>, which Amidror
 presents as the geometric approach <span class="cite">[<a href="#ref-8">8</a>]</span>; read backwards it
-is the fringe-order law of moiré interferometry <span class="cite">[<a href="#ref-64">64</a>]</span>. The
+is the fringe-order law of moiré interferometry <span class="cite">[<a href="#ref-69">69</a>]</span>. The
 profile: for two black layers Eq. <a href="#eq-4">4</a> composes as a union, so the
 transmittances multiply, and (<a href="#eq-5">5</a>) can be rewritten as</p>
 <div class="equation" id="eq-7"><div class="eq-scroll">\[\Phi(\Delta) \;=\; 1-\big(T_1\star T_2\big)(\Delta),
@@ -900,12 +917,12 @@ transmittances multiply, and (<a href="#eq-5">5</a>) can be rewritten as</p>
 periodic gratings is Amidror's T-convolution
 theorem <span class="cite">[<a href="#ref-3">3</a>, <a href="#ref-8">8</a>]</span>, and which for binary
 gratings yields exactly the trapezoid of (<a href="#eq-6">6</a>), a shape known since
-Patorski et al. <span class="cite">[<a href="#ref-58">58</a>]</span>; Harthong reached the same profile by
-local averaging <span class="cite">[<a href="#ref-31">31</a>]</span>, and Amidror and Hersch extended it to
+Patorski et al. <span class="cite">[<a href="#ref-63">63</a>]</span>; Harthong reached the same profile by
+local averaging <span class="cite">[<a href="#ref-32">32</a>]</span>, and Amidror and Hersch extended it to
 curved layers as the profile composed with the index
 difference <span class="cite">[<a href="#ref-5">5</a>]</span>. Metrology, likewise, has read intensity
 between fringes as fractional fringe order since
-Sciammarella <span class="cite">[<a href="#ref-74">74</a>]</span>.</p>
+Sciammarella <span class="cite">[<a href="#ref-79">79</a>]</span>.</p>
 <p>What Theorem <a href="#thm-2">2</a> contributes is the statement itself. The
 classical results are Fourier identities about fixed global profiles composed
 with closed-form bending functions, with the visible moiré identified
@@ -947,7 +964,7 @@ same. $D=\idx_1-\idx_2$ is therefore one representative of a lattice of
 candidate beats (the integer combinations <span class="nowrap">$k_1\idx_1+k_2\idx_2$,</span> each a
 <em>character</em> of the pair), and the theorem holds for whichever character
 makes its own hypothesis true: the one that is slow against the carriers.
-$k=(1,1)$ is the classical <em>sum</em> moiré <span class="cite">[<a href="#ref-52">52</a>]</span>: where the two
+$k=(1,1)$ is the classical <em>sum</em> moiré <span class="cite">[<a href="#ref-57">57</a>]</span>: where the two
 index gradients anti-align it is the sum that beats slowly, and a
 difference-only reading misses fringes that stand in plain sight. (Our first
 envelope view held $\idx_1-\idx_2$ fixed while it averaged, and every
@@ -991,7 +1008,7 @@ full resolution of the frame, and it is identical at every zoom. Since the
 integrand is periodic in $u$ with period exactly <span class="nowrap">$1$,</span> a uniform grid of $M$ nodes
 integrates every harmonic exactly except those at nonzero multiples of <span class="nowrap">$M$,</span>
 the aliasing algebra of $M$-bucket phase-shifting
-interferometry <span class="cite">[<a href="#ref-12">12</a>, <a href="#ref-82">82</a>]</span>, of which this view
+interferometry <span class="cite">[<a href="#ref-13">13</a>, <a href="#ref-88">88</a>]</span>, of which this view
 is a synthetic instance, and the integrand's harmonic content decays fast
 enough that $M=24$ leaves an error far below one color step. Every
 “averaged ink” panel in this paper is (<a href="#eq-8">8</a>) at <span class="nowrap">$M=24$,</span> and
@@ -1017,9 +1034,13 @@ $w=(1,1)$ preserves $\idx_1-\idx_2$ and averages the sum moiré away;
 second-order beat such as $2\idx_1-\idx_2$ needs <span class="nowrap">$w=(1,2)$,</span> without which the
 view erases a fringe that is bold in the render. <span class="sc">Moiré</span> picks $w$ per pixel
 from the same character scan the criterion runs, so the view keeps whichever
-low-order beat the criterion found; each direction still covers a whole period
-of every family, so nothing else about the average changes.</p>
-<p>The rule scales to $K$ layers without amendment, and it says something
+beat the criterion certifies (<a href="#sec-3-7">§3.7</a>); each direction still
+covers a whole period of every family, so nothing else about the average
+changes.</p>
+<p>The rule scales to $K$ layers without amendment, and to any order: the winner
+$(k_1,k_2)$ in general rides <span class="nowrap">$w=(\lvert k_2\rvert,\mp k_1)$,</span> so the $(3,-1)$
+beat of a $3{:}1$ pitch ratio, which <a href="#sec-3-7">§3.7</a> finds by reduction,
+is held by $w=(1,3)$ (Figure <a href="#fig-7">7</a>). The rule also says something
 worth pausing on: the diagonal $w=(1,\dots,1)$ preserves exactly the
 <em>zero-sum</em> sublattice <span class="nowrap">$\{k:\sum_i k_i=0\}$,</span> every pairwise difference
 and every zero-sum ternary character at once. A beat between beats such as
@@ -1066,7 +1087,7 @@ pencil is first-order the same way, since its members rotate rather than slide, 
 its re-solved distance is sinusoidal in $u$ where (<a href="#eq-10">10</a>) is piecewise
 linear. Both errors are small fractions of a gap away from the loci of
 <a href="#sec-8-6">§8.6</a>, and we accept them rather than re-solve per tap. Two implementation facts belong in the open. The solver
-runs these views with the guard widened to a full pitch (Eq. <a href="#eq-25">25</a>'s
+runs these views with the guard widened to a full pitch (Eq. <a href="#eq-26">26</a>'s
 $\tfrac34 s$ would prove away the flanking members the sample needs), so the
 certified interval is instantiated at that wider <span class="nowrap">$G$.</span> And the search still runs
 once per pixel while the sweep is arithmetic: median frame times in the envelope
@@ -1109,25 +1130,32 @@ so it varies over the frame and can be drawn (Figure <a href="#fig-5">5</a>).
 (“Heterodyne” is borrowed from radio practice; in interferometry the word
 names a temporal frequency offset, which this is not.)</p>
 <p>Equation (<a href="#eq-11">11</a>) is the $k=(1,-1)$ instance of the character family of
-<a href="#sec-3-4">§3.4</a>, and the operative criterion scans the low orders: for each
-primitive $k=(k_1,k_2)$ with <span class="nowrap">$\lvert k_i\rvert\le2$,</span></p>
+<a href="#sec-3-4">§3.4</a>: for a general integer pair <span class="nowrap">$k=(k_1,k_2)$,</span></p>
 <div class="equation" id="eq-12"><div class="eq-scroll">\[\het_k(p) \;=\;
   \frac{\lVert k_1\nabla\idx_1+k_2\nabla\idx_2\rVert}
        {\tfrac12\lVert k_1\nabla\idx_1-k_2\nabla\idx_2\rVert},\]</div><span class="eq-no">(12)</span></div>
 <p>whose denominator is the mean carrier gradient in the relabeling that brings
-the carriers close, and the criterion is <span class="nowrap">$\min_k \het_k$.</span> The pair $(1,\mp1)$
-recovers the difference and sum moirés <span class="cite">[<a href="#ref-8">8</a>, <a href="#ref-52">52</a>]</span>;
+the carriers close. The pair $(1,\mp1)$
+recovers the difference and sum moirés <span class="cite">[<a href="#ref-8">8</a>, <a href="#ref-57">57</a>]</span>;
 where the two gradients anti-align the difference ratio diverges while a bold
-sum fringe stands in plain sight, and the $\lvert k\rvert=2$ pairs catch the
-rational-pitch beats the same way. Near-ties between orders resolve toward the
-lower order, whose fringe rides lower harmonics and carries the higher
-contrast. The scan stops at order two because the
-profile's harmonic content, and with it the fringe contrast, decays with
-<span class="nowrap">$\lvert k\rvert$;</span> higher orders exist <span class="cite">[<a href="#ref-3">3</a>]</span> and are a stated
-limitation (<a href="#sec-10">§10</a>). <span class="sc">Moiré</span> draws the minimum live, as a view
-toggled beside the envelope, and hands the winning character to the envelope's
-sweep, so an author sees where a fringe will form, and which beat it is,
-before committing to the parameters.</p>
+sum fringe stands in plain sight, and the higher pairs catch the
+rational-pitch beats the same way <span class="cite">[<a href="#ref-3">3</a>]</span>. Slowness alone,
+though, cannot rank the candidates: good rational approximations exist at
+every order, so the bare minimum of (<a href="#eq-12">12</a>) over all $k$ favors
+beats no ink can carry. The beat at $k$ rides layer $1$'s
+$\lvert k_1\rvert$th harmonic against layer $2$'s $\lvert k_2\rvert$th, and a
+stroke profile's harmonics decay like <span class="nowrap">$1/m$,</span> so its contrast falls like
+<span class="nowrap">$1/\lvert k_1k_2\rvert$.</span> The operative criterion is therefore the
+<em>weighted</em> merit</p>
+<div class="equation" id="eq-13"><div class="eq-scroll">\[\mu_k \;=\; \lvert k_1 k_2\rvert\,\het_k,\]</div><span class="eq-no">(13)</span></div>
+<p>minimized over the characters; <span class="nowrap">$\mu_{(1,\mp1)}=\het_{(1,\mp1)}$,</span> so the
+classical criterion is the order-one slice, and the weight doubles as the
+tie-breaker that keeps a near-tie from flickering toward the fainter beat.
+Which characters must be scanned is not a perceptual question, and
+<a href="#sec-3-7">§3.7</a> answers it exactly. <span class="sc">Moiré</span> draws the minimum live, as
+a view toggled beside the envelope, and hands the winning character to the
+envelope's sweep, so an author sees where a fringe will form, and which beat
+it is, before committing to the parameters.</p>
 <figure class="paper-figure wide" id="fig-5"><img src="figures/fringe-law.png" width="2136" height="420" alt=""><div class="panelrow"><span>(a) layer $1$</span><span>(b) layer $2$</span><span>(c) superposition</span><span>(d) averaged ink  $+\;\{D\in\Z\}$</span><span>(e) heterodyne ratio $\het$</span></div><figcaption><span class="fignum">Fig. 5.</span> <strong>The moiré is a contour plot of the index difference.</strong> 
   <strong>(a, b)</strong> Two circle families, rendered alone from their own distance
   fields. Their centers differ by $34$ units and their pitches by four percent, and
@@ -1145,9 +1173,90 @@ before committing to the parameters.</p>
   carriers are too different for a fringe to exist. The bright lobes are the
   region the overlay declines to describe, and in the superposition they are
   the region that reads as a rosette of crossings rather than as bands.</figcaption></figure>
-<p>We take $\min_k\het_k\le1/4$ as the operational definition of the fringe
+<p>We take $\min_k\mu_k\le1/4$ as the operational definition of the fringe
 regime.</p>
-<h3 id="sec-3-7"><span class="secnum">3.7</span> Verification</h3>
+<h3 id="sec-3-7"><span class="secnum">3.7</span> Which beat wins is best approximation</h3>
+<p>Fix a point and ask which character minimizes (<a href="#eq-13">13</a>) as ever higher
+orders are admitted. In one dimension the answer is a classical theorem. Two
+parallel families of pitches <span class="nowrap">$s_1$,</span> $s_2$ have collinear index gradients of
+magnitudes <span class="nowrap">$1/s_1$,</span> <span class="nowrap">$1/s_2$,</span> so the character $(p,-q)$ beats at spatial
+frequency $\lvert p/s_1-q/s_2\rvert=(1/s_1)\,\lvert q\rho-p\rvert$ with
+$\rho=s_1/s_2$ the pitch ratio: slowness <em>is</em> rational approximation
+error. The characters that set a new slowness record as the order budget
+grows are the best approximations of $\rho$ of the second kind, and by
+Lagrange's theorem those are exactly the convergents of its continued
+fraction <span class="cite">[<a href="#ref-40">40</a>]</span>. The visible-beat hierarchy of a
+two-pitch superposition is the continued fraction of its pitch ratio: the
+$2{:}1$ beat is a convergent, the $3{:}1$ beat is the next one, and the
+golden ratio, whose convergents converge slowest of all
+rationals <span class="cite">[<a href="#ref-35">35</a>]</span>, is the fringe desert. We verified the
+identification numerically over $207$ pitch ratios (the named
+constants plus a deterministic random spread): every record-setting character
+is a convergent, with no exceptions
+(<code>tools/ exp/ convergents.mjs</code>). The envelope's own
+quasi-random tap rule (supplemental § S3) is this theorem run backwards: its
+scrambled generator advances by the golden ratio precisely so that <em>no</em>
+integer character can survive the average.</p>
+<figure class="paper-figure wide" id="fig-6"><div class="subrow"><figure class="sub" style="flex-grow:0.415"><img src="figures/tikz-03c51927836b.png" width="866" height="663" alt=""><figcaption>(a) the convergent staircase</figcaption></figure><figure class="sub" style="flex-grow:0.565"><img src="figures/selection-stations.png" width="960" height="720" alt=""><figcaption>(b) rational stations, per pixel</figcaption></figure></div><figcaption><span class="fignum">Fig. 6.</span> <strong>Which beat wins is best approximation.</strong> 
+  <strong>(a)</strong> The winning character $(p,-q)$ of two parallel families, drawn
+  as the rational $p/q$ it locks to, against the pitch ratio <span class="nowrap">$\rho$,</span> as the
+  order budget grows from $2$ to <span class="nowrap">$16$:</span> a mode-locking staircase whose plateaus
+  are the convergents of $\rho$'s continued fraction, each budget splitting
+  the risers of the last. Near the golden ratio $\varphi$ (dashed), the
+  worst-approximable number, the coarse steps survive every budget: the
+  fringe desert. <strong>(b)</strong> The same arithmetic as geography.
+  Two radial pencils: the local pitch ratio of their index gradients sweeps
+  through the rationals along the axis, and the level sets of the per-pixel
+  <em>winning</em> character (crimson, drawn only where <span class="nowrap">$\mu_k\le1/4$,</span> computed
+  by the reduction of this section) resolve into discrete commensurate
+  pockets, one per admitted rational, dense toward the pencils exactly as the
+  rationals are dense. The render never saw the curves.</figcaption></figure>
+<p>In two dimensions the gradients need not be collinear, and the object that
+replaces the continued fraction is a lattice: the candidate beat frequencies
+$\{k_1\nabla\idx_1+k_2\nabla\idx_2 : k\in\Z^2\}$ are the integer combinations
+of the two carrier gradients, and the slowest character at <em>any</em> order is
+the shortest nonzero vector of that lattice. In rank two the shortest vector
+is not hard: Lagrange–Gauss reduction, the lattice form of the continued
+fraction and of Euclid's algorithm, finds it exactly in a handful of
+iterations <span class="cite">[<a href="#ref-51">51</a>]</span>. <span class="sc">Moiré</span> therefore runs the
+reduction <em>per pixel</em>: eight fixed iterations with the integer
+coordinates carried along (once a step fails to shrink, later steps rediscover
+the same failure, so the unroll needs no termination flag), then the weighted
+merit (<a href="#eq-13">13</a>) minimized over the reduced short vector and a bounded
+window around it. The window matters because the weighted winner need not be
+a shortest vector: a longer lattice vector can carry smaller integer
+coordinates. The six characters with $\lvert k_i\rvert\le2$ remain as a
+floor, and the reduction is licensed by the gradients: it runs where both
+index gradients are closed-form (<a href="#sec-4">§4</a>), while a walking
+family's gradient is a screen-space difference whose per-quad noise the
+reduction would read as slow high-order characters, so those pairs keep the
+order-two floor.</p>
+<p>The cap it replaces was not a small concession. Over $4{,}000$ random
+carrier pairs within a factor of four in pitch, a visible fringe exists
+($\min_k\mu_k&lt;1/4$ at order <span class="nowrap">$\le48$)</span> that the
+$\lvert k_i\rvert\le2$ scan declares absent in $858$ cases,
+$21\%$ of the visible fringes, clustering at pitch ratios near
+<span class="nowrap">$3$;</span> the shipped bounded scan misses $1$ and names the exhaustive
+winner in $99.8\%$ of trials
+(<code>tools/ exp/ convergents.mjs</code>). Figure <a href="#fig-7">7</a>
+shows what the difference looks like: at a $3{:}1$ pitch ratio the visible
+moiré is the character <span class="nowrap">$(3,-1)$,</span> which no order-two set contains, so the
+criterion read blank while the fringe stood in the render, and the envelope,
+whose sweep schedule is chosen by this scan
+(<a href="#sec-3-5">§3.5</a>), washed it out. On pairs whose local ratio varies
+across the frame, the stations of the convergent ladder become <em>places</em>
+(Figure <a href="#fig-6">6</a>b).</p>
+<figure class="paper-figure" id="fig-7"><div class="subrow"><figure class="sub" style="flex-grow:0.32"><img src="figures/pitch3-render.png" width="640" height="640" alt=""><figcaption>(a) render</figcaption></figure><figure class="sub" style="flex-grow:0.32"><img src="figures/pitch3-diag.png" width="640" height="640" alt=""><figcaption>(b) diagonal sweep</figcaption></figure><figure class="sub" style="flex-grow:0.32"><img src="figures/pitch3-sched.png" width="640" height="640" alt=""><figcaption>(c) $w=(1,3)$</figcaption></figure></div><figcaption><span class="fignum">Fig. 7.</span> <strong>The $3{:}1$ fringe no order cap can hold.</strong>  Two line
+  families at pitches $15$ and <span class="nowrap">$5$,</span> twisted <span class="nowrap">$2^\circ$.</span> <strong>(a)</strong> The render
+  carries a broad $(3,-1)$ fringe. <strong>(b)</strong> The mean ink over the diagonal
+  sweep, which preserves every zero-sum character at once and is all a fixed
+  convention can offer: the fringe is not zero-sum, so it washes out, and what
+  survives is the fast $(1,-1)$ difference at carrier scale, structure but not
+  a fringe. <strong>(c)</strong> The mean over the schedule $w=(1,3)$ that the
+  per-pixel reduction certifies (<span class="nowrap">$3w_1-1\cdot w_2=0$):</span> the fringe survives the
+  average exactly. Both averages are the construction of
+  <a href="#sec-3-5">§3.5</a> at $48$ taps and contrast <span class="nowrap">$3$.</span></figcaption></figure>
+<h3 id="sec-3-8"><span class="secnum">3.8</span> Verification</h3>
 <p>Theorem <a href="#thm-2">2</a> is a claim about a rendered image, so we measured it.
 For 12 scene pairs spanning straight, curved, isotropic,
 anisotropic, periodic and aperiodic families (one of them a walking family,
@@ -1203,9 +1312,9 @@ algebra below buys.</p>
 <h3 id="sec-4-1"><span class="secnum">4.1</span> Nine closed forms</h3>
 <p>For a family whose members are <span class="nowrap">$\{\ph=ns+\varphi\}$,</span> the index and distance fields
 of <a href="#sec-3">§3</a> are</p>
-<div class="equation" id="eq-13"><div class="eq-scroll">\[\idx(p)=\frac{\ph(p)-\varphi}{s},
+<div class="equation" id="eq-14"><div class="eq-scroll">\[\idx(p)=\frac{\ph(p)-\varphi}{s},
   \qquad
-  d(p)=\frac{\mathrm{periodicDist}\!\left(\ph(p)-\varphi,\,s\right)}{\lvert\nabla\ph(p)\rvert},\]</div><span class="eq-no">(13)</span></div>
+  d(p)=\frac{\mathrm{periodicDist}\!\left(\ph(p)-\varphi,\,s\right)}{\lvert\nabla\ph(p)\rvert},\]</div><span class="eq-no">(14)</span></div>
 <p>so a family is completely specified by the pair <span class="nowrap">$(\ph,\lvert\nabla\ph\rvert)$.</span>
 Table <a href="#tab-2">2</a> gives both for all nine, in ten rows: the hexagon row
 is the $N{=}6$ instance of the $N$-gon written out, beside the square and
@@ -1215,7 +1324,7 @@ apart from the free-side $N$-gon, and calls no transcendental function except wh
 the geometry genuinely contains an angle.</p>
 <figure class="paper-table wide" id="tab-2"><figcaption><span class="fignum">Table 2.</span> <strong>The nine phase families.</strong>  Each row is a complete
   specification: substitute $\ph$ and $\lvert\nabla\ph\rvert$ into
-  (<a href="#eq-13">13</a>) and the layer renders; the square, triangle and
+  (<a href="#eq-14">14</a>) and the layer renders; the square, triangle and
   hexagon rows are the <span class="nowrap">$N=4$,</span> <span class="nowrap">$3$,</span> $6$ instances of the $N$-gon row, written
   out because their support forms are transcendental-free. $\omega=2\pi f/32$ so that
   $f=1$ is one wave cycle per $32$ world units; $a=B/100$ for a bend slider <span class="nowrap">$B$;</span>
@@ -1245,10 +1354,10 @@ the hard case tractable.</p>
 equally spaced over <span class="nowrap">$\pi$.</span> There is no $\ph$ here whose level sets are the members:
 the index winds around the origin, so any candidate phase is circle-valued with
 a winding-number obstruction at the core (a phase singularity in the sense of
-Nye and Berry <span class="cite">[<a href="#ref-50">50</a>]</span>) and admits no global scalar lift.
+Nye and Berry <span class="cite">[<a href="#ref-54">54</a>]</span>) and admits no global scalar lift.
 What the family does have is a distance,</p>
-<div class="equation" id="eq-14"><div class="eq-scroll">\[d(p)=\max\!\Big(\lVert p\rVert\,\big\lvert\sin\mathrm{wrap}(\theta_p,\tfrac{\pi}{N})\big\rvert,
-  \;\; \varphi-\lVert p\rVert\Big),\]</div><span class="eq-no">(14)</span></div>
+<div class="equation" id="eq-15"><div class="eq-scroll">\[d(p)=\max\!\Big(\lVert p\rVert\,\big\lvert\sin\mathrm{wrap}(\theta_p,\tfrac{\pi}{N})\big\rvert,
+  \;\; \varphi-\lVert p\rVert\Big),\]</div><span class="eq-no">(15)</span></div>
 <p>which is what the renderer needs, and an index, the angular sector
 <span class="nowrap">$\lfloor \theta_p N/\pi\rfloor$,</span> which is what the fringe law needs. (Here
 and in Table <a href="#tab-2">2</a>, $\mathrm{wrap}(v,w)$ maps $v$ into
@@ -1265,7 +1374,7 @@ that the classical literature treats separately <span class="cite">[<a href="#r
 members by <em>two</em> integers, not one. The nearest lattice point is found by
 rounding in the lattice basis (for the hexagonal and triangular cases, cube
 rounding on <span class="nowrap">$(u,v,-u-v)$,</span> the $A_2$ closest-point rule of Conway and
-Sloane <span class="cite">[<a href="#ref-19">19</a>]</span>, exact and branch-light), and the layer offers
+Sloane <span class="cite">[<a href="#ref-20">20</a>]</span>, exact and branch-light), and the layer offers
 two distances from the result: to the nearest vertex, and to the nearest edge. The
 hexagonal edge distance is again a support form, $\min_k(\mathrm{apothem}-\langle
 q,n_k\rangle)$ over the six sides, so hexagon edges are hexagon sides and not
@@ -1297,32 +1406,32 @@ being a change of notation and starts costing something.</p>
 <h3 id="sec-5-1"><span class="secnum">5.1</span> Radial metrics are support functions</h3>
 <p>Fix a convex body $K\subset\R^2$ that is symmetric under rotation by $2\pi/N$ and
 contains the origin. Write</p>
-<div class="equation" id="eq-15"><div class="eq-scroll">\[\rad(q) \;=\; \max_{u \in U}\, \langle q, u\rangle,\]</div><span class="eq-no">(15)</span></div>
+<div class="equation" id="eq-16"><div class="eq-scroll">\[\rad(q) \;=\; \max_{u \in U}\, \langle q, u\rangle,\]</div><span class="eq-no">(16)</span></div>
 <p>where $U$ is the set of outward unit normals of $K$'s boundary. Then
 $\rad(q)=R$ is precisely the boundary of the copy of $K$ with inradius <span class="nowrap">$R$,</span> so
-$\rad$ is the natural “radius” for that shape. Equation (<a href="#eq-15">15</a>) says
-$\rad$ is the support function of $\mathrm{conv}(U)$ <span class="cite">[<a href="#ref-71">71</a>]</span>, and
+$\rad$ is the natural “radius” for that shape. Equation (<a href="#eq-16">16</a>) says
+$\rad$ is the support function of $\mathrm{conv}(U)$ <span class="cite">[<a href="#ref-76">76</a>]</span>, and
 the four cases our renderer exposes are all instances of it:</p>
-<div class="equation eq-align" id="eq-16"><div class="eq-scroll">\[\begin{align}
-  \text{circle:}\quad   &amp;\rad(q) = \lVert q\rVert          &amp;  U &amp;= S^1, \notag \tag{16}\\
-  \text{square:}\quad   &amp;\rad(q) = \max(|q_x|, |q_y|)      &amp;  U &amp;= \{\pm e_1, \pm e_2\}, \notag \tag{17}\\
-  \text{triangle:}\quad &amp;\rad(q) = \max\Bigl(q_x,\; \tfrac{\sqrt3}{2}|q_y| - \tfrac{1}{2}q_x\Bigr), \notag \tag{18}\\
+<div class="equation eq-align" id="eq-17"><div class="eq-scroll">\[\begin{align}
+  \text{circle:}\quad   &amp;\rad(q) = \lVert q\rVert          &amp;  U &amp;= S^1, \notag \tag{17}\\
+  \text{square:}\quad   &amp;\rad(q) = \max(|q_x|, |q_y|)      &amp;  U &amp;= \{\pm e_1, \pm e_2\}, \notag \tag{18}\\
+  \text{triangle:}\quad &amp;\rad(q) = \max\Bigl(q_x,\; \tfrac{\sqrt3}{2}|q_y| - \tfrac{1}{2}q_x\Bigr), \notag \tag{19}\\
   \text{hexagon:}\quad  &amp;\rad(q) = \max\Bigl(|q_x|,\; \tfrac{1}{2}|q_x| + \tfrac{\sqrt3}{2}|q_y|\Bigr).
   
- \tag{19}\end{align}\]</div></div>
-<p>The polygon forms in (<a href="#eq-19">19</a>) are the max over $N$ unit normals written
+ \tag{20}\end{align}\]</div></div>
+<p>The polygon forms in (<a href="#eq-20">20</a>) are the max over $N$ unit normals written
 out and folded by symmetry; for a free side count we evaluate
 $\lVert q\rVert\cos(\mathrm{wrap}(\arg q, 2\pi/N))$ instead, which is the same
 function. That the common cases avoid transcendentals entirely matters later:
 $\rad$ is the innermost call of the solver.</p>
-<p>We will use four properties, all immediate from (<a href="#eq-15">15</a>).</p>
+<p>We will use four properties, all immediate from (<a href="#eq-16">16</a>).</p>
 <ol>
 <li class="tagged"><span class="li-tag">(P1)</span><p><strong>$1$-Lipschitz.</strong> <span class="nowrap">$|\rad(a)-\rad(b)| \le \lVert a-b\rVert$,</span>
   since $U$ lies in the unit circle. This holds across corners, where $\nabla\rad$
   jumps.</p></li>
 <li class="tagged"><span class="li-tag">(P2)</span><p><strong>Anisotropy floor.</strong>
-  $\kappa\lVert q\rVert \le \rad(q) \le \lVert q\rVert$ with</p><div class="equation" id="eq-20"><div class="eq-scroll">\[\kappa \;=\; \min_{\lVert v\rVert=1}\rad(v) \;=\; \cos(\pi/N),\]</div><span class="eq-no">(20)</span></div><p>the inradius of <span class="nowrap">$\mathrm{conv}(U)$:</span> $1$ for the circle, $1/\sqrt2$ for the
-  square, $1/2$ for the triangle. Both constants in (<a href="#eq-20">20</a>) are attained,
+  $\kappa\lVert q\rVert \le \rad(q) \le \lVert q\rVert$ with</p><div class="equation" id="eq-21"><div class="eq-scroll">\[\kappa \;=\; \min_{\lVert v\rVert=1}\rad(v) \;=\; \cos(\pi/N),\]</div><span class="eq-no">(21)</span></div><p>the inradius of <span class="nowrap">$\mathrm{conv}(U)$:</span> $1$ for the circle, $1/\sqrt2$ for the
+  square, $1/2$ for the triangle. Both constants in (<a href="#eq-21">21</a>) are attained,
   so neither can be improved.</p></li>
 <li class="tagged"><span class="li-tag">(P3)</span><p><strong>Homogeneity and subadditivity.</strong> $\rad(tq)=t\rad(q)$ for
   $t\ge0$ and <span class="nowrap">$\rad(a+b)\le\rad(a)+\rad(b)$.</span> Note that $\rad$ is <em>not</em>
@@ -1333,7 +1442,7 @@ $\rad$ is the innermost call of the solver.</p>
 </ol>
 <h3 id="sec-5-2"><span class="secnum">5.2</span> The family, and the field it induces</h3>
 <p>A <em>walking family</em> is the sequence of curves</p>
-<figure class="paper-figure" id="fig-6"><img class="tikz" style="width:70.1%" src="figures/tikz-837e8ab76cdf.png" width="710" height="613" alt=""><figcaption><span class="fignum">Fig. 6.</span> A walking family of triangles (<span class="nowrap">$N=3$),</span> drawn with <span class="nowrap">$\varphi=0$.</span> Ring $n$
+<figure class="paper-figure" id="fig-8"><img class="tikz" style="width:70.1%" src="figures/tikz-837e8ab76cdf.png" width="710" height="613" alt=""><figcaption><span class="fignum">Fig. 8.</span> A walking family of triangles (<span class="nowrap">$N=3$),</span> drawn with <span class="nowrap">$\varphi=0$.</span> Ring $n$
   has inradius <span class="nowrap">$ns+\varphi$,</span> its center $c_n = \Rot{n\theta}(n\delta)$ walks along
   the dotted spiral, and its own frame is turned by <span class="nowrap">$n\theta$.</span> Rendering asks for
   the distance from $p$ to the nearest ring; the residual of ring $n$ is measured
@@ -1345,25 +1454,25 @@ $\rad$ is the innermost call of the solver.</p>
   each ring has a different frame, no closed-form scalar field of $p$ has these
   rings as its level sets, and the index field survives only as the answer to a
   search (<a href="#sec-6">§6</a>).</figcaption></figure>
-<div class="equation" id="eq-21"><div class="eq-scroll">\[\Gamma_n \;=\; \bigl\{\, p : \rad\bigl(\Rot{-n\theta}(p - c_n)\bigr) = ns+\varphi \,\bigr\},
-  \qquad c_n = \Rot{n\theta}(n\delta),\]</div><span class="eq-no">(21)</span></div>
+<div class="equation" id="eq-22"><div class="eq-scroll">\[\Gamma_n \;=\; \bigl\{\, p : \rad\bigl(\Rot{-n\theta}(p - c_n)\bigr) = ns+\varphi \,\bigr\},
+  \qquad c_n = \Rot{n\theta}(n\delta),\]</div><span class="eq-no">(22)</span></div>
 <p>for <span class="nowrap">$n\in\N_0$,</span> with spacing <span class="nowrap">$s&gt;0$,</span> phase $\varphi\ge0$ (so that every radius
 $ns+\varphi$ is nonnegative), per-index translation
-<span class="nowrap">$\delta\in\R^2$,</span> and per-index rotation <span class="nowrap">$\theta$.</span> Figure <a href="#fig-6">6</a> shows
+<span class="nowrap">$\delta\in\R^2$,</span> and per-index rotation <span class="nowrap">$\theta$.</span> Figure <a href="#fig-8">8</a> shows
 one. The three degenerate cases are familiar: $\delta=0,\theta=0$ gives
 concentric shapes; $\theta=0$ alone gives a family whose centers walk a straight
 line; and degenerating the shape to a half-plane, whose support set $U$ is a
 single normal, recovers parallel lines at spacing <span class="nowrap">$s$.</span></p>
 <p>Expanding $\Rot{-n\theta}(p - \Rot{n\theta}(n\delta))$ gives the pulled-back
 point</p>
-<div class="equation" id="eq-22"><div class="eq-scroll">\[q_n(p) \;=\; \Rot{-n\theta}\,p \;-\; n\delta,\]</div><span class="eq-no">(22)</span></div>
+<div class="equation" id="eq-23"><div class="eq-scroll">\[q_n(p) \;=\; \Rot{-n\theta}\,p \;-\; n\delta,\]</div><span class="eq-no">(23)</span></div>
 <p>which is the form we compute with: a rotation of $p$ that advances by $\theta$ per
 index, minus a translation that advances by $\delta$ per index. Define the
 <em>index residual</em></p>
-<div class="equation" id="eq-23"><div class="eq-scroll">\[h_p(n) \;=\; \rad\bigl(q_n(p)\bigr) - (ns + \varphi),\]</div><span class="eq-no">(23)</span></div>
+<div class="equation" id="eq-24"><div class="eq-scroll">\[h_p(n) \;=\; \rad\bigl(q_n(p)\bigr) - (ns + \varphi),\]</div><span class="eq-no">(24)</span></div>
 <p>positive when $p$ falls outside ring $n$ and negative when inside. The distance
 field the renderer wants is</p>
-<div class="equation" id="eq-24"><div class="eq-scroll">\[d(p) \;=\; \min_{n\in\N_0} \bigl|h_p(n)\bigr|.\]</div><span class="eq-no">(24)</span></div>
+<div class="equation" id="eq-25"><div class="eq-scroll">\[d(p) \;=\; \min_{n\in\N_0} \bigl|h_p(n)\bigr|.\]</div><span class="eq-no">(25)</span></div>
 <p>This is not the Euclidean distance to <span class="nowrap">$\Gamma_{n^\star}$;</span> it is the residual of
 the inradius metric, which agrees with Euclidean distance for circles and
 <em>under</em>estimates it for polygons, by a factor of at most <span class="nowrap">$1/\kappa$:</span>
@@ -1374,7 +1483,7 @@ weight near corners and changes nothing else. We keep the metric residual
 because it is what admits the bounds below; the Limitations of
 Section <a href="#sec-10">10</a> note the cost.</p>
 <h3 id="sec-5-3"><span class="secnum">5.3</span> The inversion problem</h3>
-<p>Equation (<a href="#eq-24">24</a>) is a minimization over an infinite discrete set, so
+<p>Equation (<a href="#eq-25">25</a>) is a minimization over an infinite discrete set, so
 every practical solver is an argument about which finitely many $n$ can be
 skipped. Three regimes are classical and one is not.</p>
 <p>When $\delta=0$ and <span class="nowrap">$\theta=0$,</span> $h_p(n) = \rad(p)-ns-\varphi$ is affine in <span class="nowrap">$n$,</span>
@@ -1386,7 +1495,7 @@ and piecewise linear; we give the exact solution in
 Section <a href="#sec-6-5">6.5</a>. We have not found it stated elsewhere, and its
 marginal case is the part that matters in practice.</p>
 <p>Everything else (any <span class="nowrap">$\theta\neq0$)</span> has no closed form, because $q_n$ in
-(<a href="#eq-22">22</a>) contains <span class="nowrap">$\Rot{-n\theta}p$,</span> and asking for $h_p(n)=0$ asks where a
+(<a href="#eq-23">23</a>) contains <span class="nowrap">$\Rot{-n\theta}p$,</span> and asking for $h_p(n)=0$ asks where a
 sinusoid in $n$ meets a line in <span class="nowrap">$n$.</span> That is transcendental, with a solution count
 that depends on the parameters. The question is therefore not how to solve it, but
 how few integers we can prove it suffices to test.</p>
@@ -1400,10 +1509,10 @@ interval.</p>
 $1-\mathrm{smoothstep}(h-a,\,h+a,\,d)$ for stroke half-width $h$ and
 antialiasing width $a$ (Eq. <a href="#eq-4">4</a>), so any $d$ above $h+a$ produces
 identical output. We therefore fix a <em>guard</em></p>
-<div class="equation" id="eq-25"><div class="eq-scroll">\[G \;=\; \max\bigl(h+a,\ \tfrac{3}{4}s\bigr)\]</div><span class="eq-no">(25)</span></div>
+<div class="equation" id="eq-26"><div class="eq-scroll">\[G \;=\; \max\bigl(h+a,\ \tfrac{3}{4}s\bigr)\]</div><span class="eq-no">(26)</span></div>
 <p>and require only</p>
-<div class="equation" id="eq-26"><div class="eq-scroll">\[\tilde d(p) \;=\; \min\bigl(d(p),\, G\bigr).\]</div><span class="eq-no">(26)</span></div>
-<p>Everything below is exact with respect to (<a href="#eq-26">26</a>), which is exact with
+<div class="equation" id="eq-27"><div class="eq-scroll">\[\tilde d(p) \;=\; \min\bigl(d(p),\, G\bigr).\]</div><span class="eq-no">(27)</span></div>
+<p>Everything below is exact with respect to (<a href="#eq-27">27</a>), which is exact with
 respect to the image: the clamp is the renderer's own quantization, and it
 changes no output pixel. (The envelope and ratio views of
 <a href="#sec-3-5">§3.5</a>–<a href="#sec-3-6">§3.6</a> need the field measured a whole
@@ -1417,14 +1526,14 @@ And it takes $G$ itself as a <em>reject</em> threshold, which is what makes the
 interval below finite.</p>
 <h3 id="sec-6-2"><span class="secnum">6.2</span> The drift constant</h3>
 <p>Everything turns on how fast ring $n$'s boundary can outrun its own radius. Using
-(P3) on (<a href="#eq-22">22</a>),</p>
-<div class="equation" id="eq-27"><div class="eq-scroll">\[\rad(q_n) \;=\; \rad\bigl(\Rot{-n\theta}p - n\delta\bigr)
-    \;\le\; \rad\bigl(\Rot{-n\theta}p\bigr) + n\,\rad(-\delta),\]</div><span class="eq-no">(27)</span></div>
+(P3) on (<a href="#eq-23">23</a>),</p>
+<div class="equation" id="eq-28"><div class="eq-scroll">\[\rad(q_n) \;=\; \rad\bigl(\Rot{-n\theta}p - n\delta\bigr)
+    \;\le\; \rad\bigl(\Rot{-n\theta}p\bigr) + n\,\rad(-\delta),\]</div><span class="eq-no">(28)</span></div>
 <p>so the per-index rate is exactly</p>
-<div class="equation" id="eq-28"><div class="eq-scroll">\[m \;=\; \rad(-\delta),\]</div><span class="eq-no">(28)</span></div>
+<div class="equation" id="eq-29"><div class="eq-scroll">\[m \;=\; \rad(-\delta),\]</div><span class="eq-no">(29)</span></div>
 <p>the support value of the metric in the direction <em>opposite</em> the walk. The
 obvious bound is <span class="nowrap">$m \le \lVert\delta\rVert$,</span> and $\lVert\delta\rVert$ is what a
-first implementation naturally uses. But (<a href="#eq-28">28</a>) is smaller, sometimes
+first implementation naturally uses. But (<a href="#eq-29">29</a>) is smaller, sometimes
 much smaller: $m=\max(|\delta_x|,|\delta_y|)$ for a square, and as little as
 $\lVert\delta\rVert/2$ for a triangle whose flat side leads the walk (the
 vertex trailing); with the vertex leading, $m=\lVert\delta\rVert$ and nothing
@@ -1433,7 +1542,7 @@ is gained.</p>
 finite if and only if <span class="nowrap">$m \neq s$,</span> with width <span class="nowrap">$\propto 1/|s-m|$.</span> Substituting
 $\lVert\delta\rVert$ for $m$ therefore declares an entire band of settings
 unbounded that are in fact tightly bounded, and a solver that falls back to
-subsampling on that band produces the failure in Figure <a href="#fig-11">11</a>: not holes,
+subsampling on that band produces the failure in Figure <a href="#fig-13">13</a>: not holes,
 but a wholesale thinning that removes two thirds of the ink and looks, to a user,
 like the pattern has changed. It is the largest single fidelity error we measured
 from any cause ($38.3\%$ of pixels), and it comes from a bound that
@@ -1441,9 +1550,9 @@ is merely loose rather than wrong.</p>
 <h3 id="sec-6-3"><span class="secnum">6.3</span> A provably sufficient interval of indices</h3>
 <p>Write <span class="nowrap">$r=\lVert p\rVert$,</span> <span class="nowrap">$L=\lVert\delta\rVert$,</span> <span class="nowrap">$m=\rad(-\delta)$,</span> and note
 $\rad(\Rot{-n\theta}p)\le r$ by (P2) and
-$\lVert q_n\rVert \ge |r - nL|$ by the triangle inequality on (<a href="#eq-22">22</a>);
+$\lVert q_n\rVert \ge |r - nL|$ by the triangle inequality on (<a href="#eq-23">23</a>);
 both are independent of <span class="nowrap">$\theta$.</span></p>
-<figure class="paper-figure wide" id="fig-7"><div class="subrow plots"><figure class="sub" style="flex-grow:277.9"><img src="figures/tikz-a2645638a610.png" width="1158" height="817" alt=""><figcaption>(a) The residual at one pixel.</figcaption></figure><figure class="sub" style="flex-grow:227.3"><img src="figures/tikz-f6755ce8f87a.png" width="947" height="814" alt=""><figcaption>(b) Worst-case stray against radius.</figcaption></figure></div><figcaption><span class="fignum">Fig. 7.</span> <strong>Certifying and skipping the index interval.</strong> 
+<figure class="paper-figure wide" id="fig-9"><div class="subrow plots"><figure class="sub" style="flex-grow:277.9"><img src="figures/tikz-a2645638a610.png" width="1158" height="817" alt=""><figcaption>(a) The residual at one pixel.</figcaption></figure><figure class="sub" style="flex-grow:227.3"><img src="figures/tikz-f6755ce8f87a.png" width="947" height="814" alt=""><figcaption>(b) Worst-case stray against radius.</figcaption></figure></div><figcaption><span class="fignum">Fig. 9.</span> <strong>Certifying and skipping the index interval.</strong> 
   <strong>(a)</strong> The residual at one pixel is sandwiched between two lines in <span class="nowrap">$n$,</span>
   which is enough to certify a finite interval. The naive index guess is
   <span class="nowrap">$49$;</span> the true nearest ring is <span class="nowrap">$41$,</span> $8$ rings away and
@@ -1459,30 +1568,30 @@ both are independent of <span class="nowrap">$\theta$.</span></p>
   <span class="nowrap">$r\approx500$,</span> a third of the way across the frame. The proven interval grows
   too, since the rings near a pixel genuinely become more numerous, but the
   Lipschitz skip keeps what we evaluate well below it.</figcaption></figure>
-<div class="theorem thm-plain" id="thm-3"><p><span class="thm-head">Lemma 3 (Two-sided envelope).</span> For all $n \ge 0$ and all <span class="nowrap">$\theta$,</span></p><div class="equation" id="eq-29"><div class="eq-scroll">\[\max\bigl\{\, \kappa\,|r - nL|,\ \ nm - r \,\bigr\} - (ns+\varphi)
-  \ \le\ h_p(n)\ \le\ r + nm - (ns+\varphi).\]</div><span class="eq-no">(29)</span></div></div>
-<div class="proof"><p><em class="proof-head">Proof.</em> The upper bound is (<a href="#eq-27">27</a>) with <span class="nowrap">$\rad(\Rot{-n\theta}p)\le r$.</span> For the
+<div class="theorem thm-plain" id="thm-3"><p><span class="thm-head">Lemma 3 (Two-sided envelope).</span> For all $n \ge 0$ and all <span class="nowrap">$\theta$,</span></p><div class="equation" id="eq-30"><div class="eq-scroll">\[\max\bigl\{\, \kappa\,|r - nL|,\ \ nm - r \,\bigr\} - (ns+\varphi)
+  \ \le\ h_p(n)\ \le\ r + nm - (ns+\varphi).\]</div><span class="eq-no">(30)</span></div></div>
+<div class="proof"><p><em class="proof-head">Proof.</em> The upper bound is (<a href="#eq-28">28</a>) with <span class="nowrap">$\rad(\Rot{-n\theta}p)\le r$.</span> For the
 first lower bound, (P2) gives <span class="nowrap">$\rad(q_n) \ge \kappa\lVert q_n\rVert \ge
 \kappa|r-nL|$.</span> For the second, subadditivity applied as
 $\rad(-n\delta) \le \rad(q_n) + \rad(-\Rot{-n\theta}p)$ gives
 <span class="nowrap">$\rad(q_n) \ge nm - r$.</span> Subtract $ns+\varphi$ throughout. <span class="qed">∎</span></p></div>
 <p>Both bounds are affine in $n$ (the first piecewise so), so intersecting them with
 the guard band $|h|\le G$ yields an interval by inspection.</p>
-<div class="theorem thm-plain" id="thm-4"><p><span class="thm-head">Theorem 4 (Sufficient interval).</span> Let</p><div class="equation" id="eq-30"><div class="eq-scroll">\[n_{\mathrm{lo}} = \max\left(0,\ \left\lfloor \frac{\kappa r - \varphi - G}{s + \kappa L} \right\rfloor\right),
+<div class="theorem thm-plain" id="thm-4"><p><span class="thm-head">Theorem 4 (Sufficient interval).</span> Let</p><div class="equation" id="eq-31"><div class="eq-scroll">\[n_{\mathrm{lo}} = \max\left(0,\ \left\lfloor \frac{\kappa r - \varphi - G}{s + \kappa L} \right\rfloor\right),
   \qquad
-  n_{\mathrm{hi}} = \left\lceil \frac{r + \varphi + G}{|s - m|} \right\rceil .\]</div><span class="eq-no">(30)</span></div><p>If <span class="nowrap">$m \neq s$,</span> then every $n$ with $|h_p(n)| \le G$ satisfies
-<span class="nowrap">$n_{\mathrm{lo}} \le n \le n_{\mathrm{hi}}$,</span> and consequently</p><div class="equation" id="eq-31"><div class="eq-scroll">\[\tilde d(p) \;=\; \min\Bigl(G,\ \min_{n_{\mathrm{lo}} \le n \le n_{\mathrm{hi}}} |h_p(n)|\Bigr).\]</div><span class="eq-no">(31)</span></div></div>
+  n_{\mathrm{hi}} = \left\lceil \frac{r + \varphi + G}{|s - m|} \right\rceil .\]</div><span class="eq-no">(31)</span></div><p>If <span class="nowrap">$m \neq s$,</span> then every $n$ with $|h_p(n)| \le G$ satisfies
+<span class="nowrap">$n_{\mathrm{lo}} \le n \le n_{\mathrm{hi}}$,</span> and consequently</p><div class="equation" id="eq-32"><div class="eq-scroll">\[\tilde d(p) \;=\; \min\Bigl(G,\ \min_{n_{\mathrm{lo}} \le n \le n_{\mathrm{hi}}} |h_p(n)|\Bigr).\]</div><span class="eq-no">(32)</span></div></div>
 <div class="proof"><p><em class="proof-head">Proof.</em> For the lower end, note first that every $n &lt; n_{\mathrm{lo}}$ lies on the
 branch $nL\le r$ automatically: $n(s+\kappa L) &lt; \kappa r - \varphi - G \le
-\kappa r$ gives <span class="nowrap">$\kappa nL &lt; \kappa r$.</span> On that branch (<a href="#eq-29">29</a>)
+\kappa r$ gives <span class="nowrap">$\kappa nL &lt; \kappa r$.</span> On that branch (<a href="#eq-30">30</a>)
 gives <span class="nowrap">$h_p(n) \ge \kappa r - \kappa nL - ns - \varphi &gt; G$,</span> so
 $|h_p(n)| &gt; G$ and no index below $n_{\mathrm{lo}}$ is admitted. For the upper
 end, if $s&gt;m$ then <span class="nowrap">$h_p(n) \le r + n(m-s) - \varphi$,</span> and $h_p(n)\ge -G$ forces
 <span class="nowrap">$n \le (r - \varphi + G)/(s-m)$;</span> if $m&gt;s$ then <span class="nowrap">$h_p(n) \ge n(m-s) - r - \varphi$,</span>
 and $h_p(n)\le G$ forces <span class="nowrap">$n \le (r + \varphi + G)/(m-s)$.</span> Both are bounded
-by (<a href="#eq-30">30</a>). Every excluded index has <span class="nowrap">$|h_p(n)|&gt;G$,</span> so it cannot lower
-the clamped minimum, giving (<a href="#eq-31">31</a>). <span class="qed">∎</span></p></div>
-<p>Three remarks. First, <em>$\theta$ does not appear</em> in (<a href="#eq-30">30</a>). The
+by (<a href="#eq-31">31</a>). Every excluded index has <span class="nowrap">$|h_p(n)|&gt;G$,</span> so it cannot lower
+the clamped minimum, giving (<a href="#eq-32">32</a>). <span class="qed">∎</span></p></div>
+<p>Three remarks. First, <em>$\theta$ does not appear</em> in (<a href="#eq-31">31</a>). The
 rotation destroys the closed form but does not widen the search: it is bounded
 away by <span class="nowrap">$\rad(\Rot{-n\theta}p)\le r$,</span> which is tight since some index does place
 $p$ along a vertex direction. Second, the interval is tight in the sense that both
@@ -1492,34 +1601,34 @@ $\rad$'s convexity class. Third, the interval degenerates only on the single loc
 rings genuinely pass within $G$ of a generic point. That is not a failure of the
 bound but a property of the family, and we return to it in
 Sections <a href="#sec-6-5">6.5</a> and <a href="#sec-8-6">8.6</a>.</p>
-<p>Figure <a href="#fig-7">7</a> works one pixel through. The naive guess is <span class="nowrap">$49$;</span>
+<p>Figure <a href="#fig-9">9</a> works one pixel through. The naive guess is <span class="nowrap">$49$;</span>
 the truth is <span class="nowrap">$41$,</span> $8$ rings away. The proven interval is
-<span class="nowrap">$[22,56]$,</span> and Figure <a href="#fig-7">7</a> shows why no constant would have done:
+<span class="nowrap">$[22,56]$,</span> and Figure <a href="#fig-9">9</a> shows why no constant would have done:
 we measured how far the nearest index actually strays from the naive guess, worst
 case over directions, and it grows linearly in <span class="nowrap">$r$:</span> past $r\approx500$ it
 exceeds the widest neighborhood our previous solver could even express. The same
 plot confirms the theorem empirically: over $13{,}458$ sampled pixels whose
-nearest ring is inside the guard, the argmin fell inside (<a href="#eq-30">30</a>) every
+nearest ring is inside the guard, the argmin fell inside (<a href="#eq-31">31</a>) every
 time.</p>
 <h3 id="sec-6-4"><span class="secnum">6.4</span> Skipping the interval</h3>
 <p>An interval is a proof, not yet an algorithm; near the origin it is a handful of
 indices, but at zoom-out it can be thousands. We shrink it with a Lipschitz
 argument in index space.</p>
 <div class="theorem thm-plain" id="thm-5"><p><span class="thm-head">Lemma 5 (Index Lipschitz bound).</span> For all <span class="nowrap">$n, n'\ge 0$,</span>
-$|h_p(n')-h_p(n)| \le \Lambda\,|n'-n|$ with</p><div class="equation" id="eq-32"><div class="eq-scroll">\[\Lambda \;=\; s + L + |\theta|\,r .\]</div><span class="eq-no">(32)</span></div></div>
+$|h_p(n')-h_p(n)| \le \Lambda\,|n'-n|$ with</p><div class="equation" id="eq-33"><div class="eq-scroll">\[\Lambda \;=\; s + L + |\theta|\,r .\]</div><span class="eq-no">(33)</span></div></div>
 <div class="proof"><p><em class="proof-head">Proof.</em> By (P1), <span class="nowrap">$|\rad(q_{n'})-\rad(q_n)| \le \lVert q_{n'}-q_n\rVert$.</span> From
-(<a href="#eq-22">22</a>), <span class="nowrap">$\lVert q_{n'}-q_n\rVert \le
+(<a href="#eq-23">23</a>), <span class="nowrap">$\lVert q_{n'}-q_n\rVert \le
 \lVert(\Rot{-n'\theta}-\Rot{-n\theta})p\rVert + |n'-n|L
 = 2r\bigl|\sin\tfrac{(n'-n)\theta}{2}\bigr| + |n'-n|L
 \le |n'-n|\,(|\theta| r + L)$.</span> The ring radius contributes <span class="nowrap">$s|n'-n|$.</span> <span class="qed">∎</span></p></div>
 <p>So from a sample with residual $|h_p(n)| = v$ and a current best <span class="nowrap">$b$,</span> no index
 within $(v-b)/\Lambda$ of $n$ can beat <span class="nowrap">$b$,</span> and the whole run can be skipped
-unevaluated. This is sphere tracing <span class="cite">[<a href="#ref-30">30</a>]</span> with the ray replaced by the
+unevaluated. This is sphere tracing <span class="cite">[<a href="#ref-31">31</a>]</span> with the ray replaced by the
 index axis. The loop is Algorithm <a href="#alg-1">1</a>.</p>
 <figure class="algorithm" id="alg-1"><figcaption><span class="fignum">Algorithm 1.</span> Ring scan, given <span class="nowrap">$p$,</span> the family parameters, the budget <span class="nowrap">$B$,</span> the guard
 <span class="nowrap">$G$,</span> and the accept threshold <span class="nowrap">$h-a$.</span> With
 <span class="nowrap">$\mathrm{span}=n_{\mathrm{hi}}-n_{\mathrm{lo}}+1$,</span> exact when
-$\mathrm{span}\le B$ (Theorem <a href="#thm-4">4</a>).</figcaption><div class="algorithm-body"><div class="alg-line " style="padding-left:0em">$[n_{\mathrm{lo}}, n_{\mathrm{hi}}] \gets$ interval from (<a href="#eq-30">30</a>); </div>
+$\mathrm{span}\le B$ (Theorem <a href="#thm-4">4</a>).</figcaption><div class="algorithm-body"><div class="alg-line " style="padding-left:0em">$[n_{\mathrm{lo}}, n_{\mathrm{hi}}] \gets$ interval from (<a href="#eq-31">31</a>); </div>
 <div class="alg-line " style="padding-left:0em">$\Lambda \gets s + L + |\theta| r$ </div>
 <div class="alg-line " style="padding-left:0em">$\sigma \gets 2^{\max(0,\,\lceil \log_2(\mathrm{span}/B) \rceil)}$ <span class="alg-comment">▷ $1$ when the interval fits</span></div>
 <div class="alg-line " style="padding-left:0em">$n \gets \sigma\lceil n_{\mathrm{lo}}/\sigma \rceil$ <span class="alg-comment">▷ anchored to the global lattice, not to $p$</span></div>
@@ -1536,7 +1645,7 @@ $\mathrm{span}\le B$ (Theorem <a href="#thm-4">4</a>).</figcaption><div class="
 <p><em>Carried motion.</em> $q_n$ advances by a fixed rotation and a fixed translation
 per index, so the loop carries $\cos(n\theta-\arg p)$ and $\sin(n\theta-\arg p)$
 through an angle-addition step instead of recomputing them. Combined with the
-transcendental-free forms in (<a href="#eq-19">19</a>), the inner iteration contains no
+transcendental-free forms in (<a href="#eq-20">20</a>), the inner iteration contains no
 transcendental function at all: it is a handful of multiplies, a max, and an
 absolute value. We re-anchor every $32$ carried steps, which keeps
 <code>f32</code> drift far below a pixel; at large $n$ the carried value is in fact steadier than
@@ -1552,7 +1661,7 @@ consequence, which is severe and free to avoid.</p>
 scan can be replaced by an exact $O(N)$ solution regardless of the interval
 width, including on the locus where the interval is infinite. Property (P4) is the reason,
 and we have not found it used for this.</p>
-<figure class="paper-figure" id="fig-8"><img class="tikz" style="width:100.0%" src="figures/tikz-fe9326e206eb.png" width="1029" height="688" alt=""><figcaption><span class="fignum">Fig. 8.</span> With $\theta=0$ the residual of a translated polygon is convex and
+<figure class="paper-figure" id="fig-10"><img class="tikz" style="width:100.0%" src="figures/tikz-fe9326e206eb.png" width="1029" height="688" alt=""><figcaption><span class="fignum">Fig. 10.</span> With $\theta=0$ the residual of a translated polygon is convex and
   piecewise linear in <span class="nowrap">$n$,</span> one segment per facet (hexagon, <span class="nowrap">$s=14$);</span> the hollow
   circles mark the handovers. When the drift is below the spacing (blue, <span class="nowrap">$m=10$)</span>
   it falls monotonically and crosses zero once, on some facet's own segment, so
@@ -1566,14 +1675,14 @@ and we have not found it used for this.</p>
   Table <a href="#tab-4">4</a>'s hexagon setting; the point and the drift are deliberately
   not parallel, since a $p$ collinear with $\delta$ keeps one facet active for
   every $n$ and would draw a single straight line here.</figcaption></figure>
-<p>With <span class="nowrap">$\theta=0$,</span> (<a href="#eq-22">22</a>) becomes affine in <span class="nowrap">$n$:</span> <span class="nowrap">$q_n = p - n\delta$.</span> Writing
+<p>With <span class="nowrap">$\theta=0$,</span> (<a href="#eq-23">23</a>) becomes affine in <span class="nowrap">$n$:</span> <span class="nowrap">$q_n = p - n\delta$.</span> Writing
 $a_k = \langle p, u_k\rangle$ and $b_k = \langle \delta, u_k\rangle$ over the $N$
 unit normals,</p>
-<div class="equation" id="eq-33"><div class="eq-scroll">\[h_p(n) \;=\; \max_{k}\,(a_k - n b_k) \;-\; ns - \varphi ,\]</div><span class="eq-no">(33)</span></div>
+<div class="equation" id="eq-34"><div class="eq-scroll">\[h_p(n) \;=\; \max_{k}\,(a_k - n b_k) \;-\; ns - \varphi ,\]</div><span class="eq-no">(34)</span></div>
 <p>a maximum of $N$ affine functions of $n$ minus an affine function: convex and
 piecewise linear, with at most $N$ breakpoints and slopes increasing in <span class="nowrap">$n$.</span> Its
 asymptotic slope is $m - s$ with <span class="nowrap">$m=\rad(-\delta)=\max_k(-b_k)$:</span> the same drift
-constant as (<a href="#eq-28">28</a>), arrived at independently.</p>
+constant as (<a href="#eq-29">29</a>), arrived at independently.</p>
 <div class="theorem thm-plain" id="thm-6"><p><span class="thm-head">Proposition 6.</span> Let <span class="nowrap">$\theta=0$,</span> let the shape be a polygon with $N$ facets, and let $p$ lie on
 or outside the innermost ring, <span class="nowrap">$\rad(p)\ge\varphi$.</span> (Inside it, $h_p$ is
 negative and strictly decreasing, so the answer is
@@ -1586,15 +1695,15 @@ negative and strictly decreasing, so the answer is
   (its solve is skipped), and $h_p \equiv a_{k^\star} - \varphi$ on the terminal
   segment, attained at every index past the crossover. $\tilde d(p)$ is the
   minimum of $|a_{k^\star}-\varphi|$ against the remaining facets' clamped
-  candidates as in (1), then clamped at <span class="nowrap">$G$.</span></p></li></ol><p>In both cases the cost is $2N+2$ evaluations of (<a href="#eq-33">33</a>), independent of
+  candidates as in (1), then clamped at <span class="nowrap">$G$.</span></p></li></ol><p>In both cases the cost is $2N+2$ evaluations of (<a href="#eq-34">34</a>), independent of
 <span class="nowrap">$r$,</span> <span class="nowrap">$s$,</span> and <span class="nowrap">$\delta$.</span></p></div>
-<div class="proof"><p><em class="proof-head">Proof.</em> By (<a href="#eq-33">33</a>) $h_p$ is convex with slopes $-(s+b_k)$ ordered increasingly
+<div class="proof"><p><em class="proof-head">Proof.</em> By (<a href="#eq-34">34</a>) $h_p$ is convex with slopes $-(s+b_k)$ ordered increasingly
 in <span class="nowrap">$n$.</span> If $m&lt;s$ then $s + b_k &gt; 0$ for every <span class="nowrap">$k$,</span> so every slope is negative and
 $h_p$ is strictly decreasing; being continuous with $h_p(0)=\rad(p)-\varphi\ge0$
 by hypothesis and <span class="nowrap">$h_p\to-\infty$,</span> it has one zero, attained
 on whichever segment is active there, whose linear equation is
 <span class="nowrap">$a_k - nb_k - ns - \varphi = 0$.</span> Convexity makes $|h_p|$ unimodal, so its integer
-minimum is adjacent to the real zero. If <span class="nowrap">$m=s$,</span> the maximum in (<a href="#eq-33">33</a>)
+minimum is adjacent to the real zero. If <span class="nowrap">$m=s$,</span> the maximum in (<a href="#eq-34">34</a>)
 is eventually attained by <span class="nowrap">$k^\star$,</span> and there
 $h_p(n) = a_{k^\star} + ns - ns - \varphi$ is constant; before the crossover
 $h_p$ is a strictly decreasing piecewise-linear function whose zero, if it has
@@ -1602,7 +1711,7 @@ one, is covered by the remaining facets' candidates. <span class="qed">∎</span
 <p>The square case (<span class="nowrap">$N=4$,</span> normals on the axes) is presumably folklore; the content
 of Proposition <a href="#thm-6">6</a> is that it generalizes to every side count
 and, more importantly, that case (2) exists.
-Figure <a href="#fig-8">8</a> plots both. The marginal case is the one that repays the
+Figure <a href="#fig-10">10</a> plots both. The marginal case is the one that repays the
 effort: it is exactly the locus where Theorem <a href="#thm-4">4</a> gives up, and it is
 not exotic. It is the family whose rings pile up along a line, which is a
 pattern users deliberately make. Any scan, of any budget, walks off the end of
@@ -1619,7 +1728,7 @@ scan rather than solving for facets that do not exist.</p>
 <h3 id="sec-6-6"><span class="secnum">6.6</span> Implementation</h3>
 <p>The solver exists twice: once in TypeScript for tests and once in WGSL for the
 renderer, generated as separate functions and composed as shader
-includes <span class="cite">[<a href="#ref-89">89</a>]</span>. The twins are checked against each other numerically on
+includes <span class="cite">[<a href="#ref-95">95</a>]</span>. The twins are checked against each other numerically on
 the GPU (Section <a href="#sec-8-1">8.1</a>) and the TypeScript side is checked against
 brute force in a unit test that sweeps shapes, spacings, offsets, and radii,
 including the marginal drift. Ring evaluation is branch-light: the interval, the
@@ -1632,7 +1741,7 @@ Theorem <a href="#thm-4">4</a> applies; both are reported and ablated in
 Section <a href="#sec-8">8</a>. Three numerical points. The shipped upper bound uses
 the two per-branch forms derived inside the proof of
 Theorem <a href="#thm-4">4</a>, $(r-\varphi+G)/(s-m)$ and <span class="nowrap">$(r+\varphi+G)/(m-s)$,</span>
-which are slightly tighter than the single display (<a href="#eq-30">30</a>). The
+which are slightly tighter than the single display (<a href="#eq-31">31</a>). The
 closed-form dispatch admits <span class="nowrap">$m \le s + 10^{-4}$,</span> and within $10^{-4}$ of the
 marginal drift the leading facet takes the flat-constant branch of
 Proposition <a href="#thm-6">6</a> rather than a crossing solve: the crossing there
@@ -1651,7 +1760,7 @@ formulation makes available and that we would not have found otherwise.</p>
 <p>The whole picture is a single full-screen fragment program. There is no geometry
 beyond one quad, no texture, no render target, and no rasterization of any layer
 into any buffer. The program is written in Three.js's shading
-language <span class="cite">[<a href="#ref-14">14</a>]</span> and runs through WebGPU <span class="cite">[<a href="#ref-89">89</a>]</span>; TSL matters here
+language <span class="cite">[<a href="#ref-15">15</a>]</span> and runs through WebGPU <span class="cite">[<a href="#ref-95">95</a>]</span>; TSL matters here
 only because it lets the same expression tree be assembled in TypeScript, which is
 how the CPU twin of <a href="#sec-6">§6</a> stays a twin.</p>
 <p>A layer is $19$ uniforms. Nine describe the family (type, previous type, morph
@@ -1680,9 +1789,9 @@ see what they typed.</p>
 <p>A family is a set of curves of zero width; ink comes from thresholding the
 distance field. Given a stroke thickness <span class="nowrap">$t$,</span> write $\mathrm{pixel}=1/\mathrm{zoom}$
 for the world size of a pixel and set</p>
-<div class="equation" id="eq-34"><div class="eq-scroll">\[h=\max\!\left(\tfrac{t}{2},\; 1.15\,\mathrm{pixel}\right),
+<div class="equation" id="eq-35"><div class="eq-scroll">\[h=\max\!\left(\tfrac{t}{2},\; 1.15\,\mathrm{pixel}\right),
   \qquad
-  a = 0.7\,\mathrm{pixel},\]</div><span class="eq-no">(34)</span></div>
+  a = 0.7\,\mathrm{pixel},\]</div><span class="eq-no">(35)</span></div>
 <p>then <span class="nowrap">$\alpha(d)=1-\mathrm{smoothstep}(h-a,\,h+a,\,d)$,</span> with $a$ the antialias
 band of Eq. <a href="#eq-4">4</a>.</p>
 <p>The floor $1.15\,\mathrm{pixel}$ is what keeps a zoomed-out pattern from
@@ -1690,7 +1799,7 @@ disintegrating. Without it, a hairline family at low zoom has strokes narrower
 than the sample spacing, and the picture breaks into speckle that is visually
 indistinguishable from the inversion failure of <a href="#sec-6">§6</a>; the
 two are easily attributed to each other. With it, the stroke can never be
-thinner than about a pixel, and the fringes survive (Figure <a href="#fig-9">9</a>).</p>
+thinner than about a pixel, and the fringes survive (Figure <a href="#fig-11">11</a>).</p>
 <p>To quantify what the floor does, take a spiral over a displaced circle family,
 fix a world window, and render it over $1.2$ decades of zoom twice:
 once at one sample per pixel, as the shader does, and once at $36$
@@ -1713,7 +1822,7 @@ one destroys it. The unbiased low-noise answer is the analytic mean of the
 family over the pixel, which for a walking family we do not have; that is the
 open problem of <a href="#sec-10">§10</a>. The floor predates this characterization; the
 measurement is what identified which of the two errors it chooses.</p>
-<p>Two things about (<a href="#eq-34">34</a>) are only correct because of the field view.
+<p>Two things about (<a href="#eq-35">35</a>) are only correct because of the field view.
 First, $h$ is a <em>world</em> distance, so it must be compared against a world
 distance, which is why the gradient divide of Table <a href="#tab-2">2</a> is not
 optional: applied to a phase residual, the floor guarantees nothing, because a
@@ -1723,7 +1832,7 @@ transparent. The solver of <a href="#sec-6">§6</a> is therefore not asked for
 <span class="nowrap">$\min_n d_n$;</span> it is asked whether any $d_n$ falls below <span class="nowrap">$h+a$,</span> and is
 free to <em>prove</em> the rest away without evaluating them. The guard and the skip
 rule are the same idea seen from two ends.</p>
-<figure class="paper-figure wide" id="fig-9"><img src="figures/zoom.png" width="2202" height="540" alt=""><div class="panelrow"><span>(a) zoom $2$</span><span>(b) zoom $1$</span><span>(c) zoom $0.25$</span><span>(d) zoom <span class="nowrap">$0.25$,</span> no floor</span></div><figcaption><span class="fignum">Fig. 9.</span> <strong>One scene over an eightfold zoom range, with and without
+<figure class="paper-figure wide" id="fig-11"><img src="figures/zoom.png" width="2202" height="540" alt=""><div class="panelrow"><span>(a) zoom $2$</span><span>(b) zoom $1$</span><span>(c) zoom $0.25$</span><span>(d) zoom <span class="nowrap">$0.25$,</span> no floor</span></div><figcaption><span class="fignum">Fig. 11.</span> <strong>One scene over an eightfold zoom range, with and without
   the stroke floor.</strong> 
   Two walking circle families, the tool's default preset, recomposed with its
   centers on the frame's diagonal.
@@ -1733,7 +1842,7 @@ rule are the same idea seen from two ends.</p>
   kernel to widen, and no resolution at which the pattern was ever committed. Stroke
   thickness is a <em>world</em> quantity and is the same number in all four panels,
   which is why the strokes get thinner on screen as the zoom falls. <strong>(d)</strong> the
-  same frame as (c) with the stroke floor of (<a href="#eq-34">34</a>) removed. All four are
+  same frame as (c) with the stroke floor of (<a href="#eq-35">35</a>) removed. All four are
   rendered at one sample per pixel, exactly as the shader does, so (c) and (d) differ
   in one constant and nothing else. The floor is what keeps the fringe system in (c);
   without it the sub-pixel strokes are hit or missed and the pattern goes pale and
@@ -1799,11 +1908,11 @@ therefore repeats without a join.</p>
 <p>We compare four solvers. <span class="sc">Sweep</span> is the fixed-budget enumeration our renderer
 shipped before this work: seed at <span class="nowrap">$\rad(p)/s$,</span> sweep a constant number of
 neighbors, refine with Newton. <span class="sc">Loose</span> is the interval of
-Theorem <a href="#thm-4">4</a> with the drift constant (<a href="#eq-28">28</a>) replaced by
+Theorem <a href="#thm-4">4</a> with the drift constant (<a href="#eq-29">29</a>) replaced by
 <span class="nowrap">$\lVert\delta\rVert$,</span> isolating the contribution of
 Section <a href="#sec-6-2">6.2</a>. <span class="sc">Window</span> is the full method. <span class="sc">Reference</span> is an
 exhaustive scan at stride $1$ with no budget and no interval, stopping only once
-the drift bound (<a href="#eq-27">27</a>) proves every further ring outside the guard.
+the drift bound (<a href="#eq-28">28</a>) proves every further ring outside the guard.
 It is independent of the window formula and the Lipschitz skip (the two
 mechanisms under test), though it shares the subadditivity bound itself,
 which the $13{,}458$-pixel argmin check of <a href="#sec-6-3">§6.3</a> tests
@@ -1873,7 +1982,7 @@ need more than $6{,}000$ evaluations per point are counted and excluded rather
 than measured (all sit in the saturated near-marginal band), and the $140$
 trivial concentric settings are skipped, leaving the $2{,}401$ measured
 settings of Table <a href="#tab-5">5</a>.</p>
-<figure class="paper-figure wide" id="fig-10"><div class="subrow"><figure class="sub" style="flex-grow:0.245"><figcaption>(a) <span class="sc">Reference</span></figcaption></figure><figure class="sub" style="flex-grow:0.245"><figcaption>(b) <span class="sc">Sweep</span>, $1100$ ev/px</figcaption></figure><figure class="sub" style="flex-grow:0.245"><figcaption>(c) lost ink (magenta)</figcaption></figure><figure class="sub" style="flex-grow:0.245"><figcaption>(d) <span class="sc">Window</span>, $72$ ev/px</figcaption></figure></div><figcaption><span class="fignum">Fig. 10.</span> <strong>Fixed enumeration deletes arcs, not pixels.</strong>  The far field of a
+<figure class="paper-figure wide" id="fig-12"><div class="subrow"><figure class="sub" style="flex-grow:0.245"><figcaption>(a) <span class="sc">Reference</span></figcaption></figure><figure class="sub" style="flex-grow:0.245"><figcaption>(b) <span class="sc">Sweep</span>, $1100$ ev/px</figcaption></figure><figure class="sub" style="flex-grow:0.245"><figcaption>(c) lost ink (magenta)</figcaption></figure><figure class="sub" style="flex-grow:0.245"><figcaption>(d) <span class="sc">Window</span>, $72$ ev/px</figcaption></figure></div><figcaption><span class="fignum">Fig. 12.</span> <strong>Fixed enumeration deletes arcs, not pixels.</strong>  The far field of a
   walking hexagon family whose drift aims at an edge: almost a full spacing
   long, <span class="nowrap">$\lVert\delta\rVert=0.95s$,</span> while the support ratio stays at
   <span class="nowrap">$\rad(-\delta)/s=0.82$.</span> <span class="sc">Sweep</span> loses $8.6\%$ of the frame's
@@ -1885,8 +1994,8 @@ settings of Table <a href="#tab-5">5</a>.</p>
   reads as a modeling error rather than an aliasing one. <span class="sc">Window</span> costs
   $15\times$ less work than <span class="sc">Sweep</span> and is not merely close to the
   reference but identical to it: columns (a) and (d) are the same two files.</figcaption></figure>
-<figure class="paper-figure" id="fig-11"><div class="subrow"><figure class="sub" style="flex-grow:0.32"><img src="figures/inset-drift-reference.png" width="800" height="536" alt=""><figcaption>(a) <span class="sc">Reference</span></figcaption></figure><figure class="sub" style="flex-grow:0.32"><img src="figures/inset-drift-window1.png" width="800" height="536" alt=""><figcaption>(b) <span class="sc">Loose</span></figcaption></figure><figure class="sub" style="flex-grow:0.32"><img src="figures/inset-drift-final.png" width="800" height="536" alt=""><figcaption>(c) <span class="sc">Window</span></figcaption></figure></div><figcaption><span class="fignum">Fig. 11.</span> The cost of a loose drift constant. <span class="sc">Loose</span> differs
-  from (<a href="#eq-28">28</a>) only by using $\lVert\delta\rVert$ in place of
+<figure class="paper-figure" id="fig-13"><div class="subrow"><figure class="sub" style="flex-grow:0.32"><img src="figures/inset-drift-reference.png" width="800" height="536" alt=""><figcaption>(a) <span class="sc">Reference</span></figcaption></figure><figure class="sub" style="flex-grow:0.32"><img src="figures/inset-drift-window1.png" width="800" height="536" alt=""><figcaption>(b) <span class="sc">Loose</span></figcaption></figure><figure class="sub" style="flex-grow:0.32"><img src="figures/inset-drift-final.png" width="800" height="536" alt=""><figcaption>(c) <span class="sc">Window</span></figcaption></figure></div><figcaption><span class="fignum">Fig. 13.</span> The cost of a loose drift constant. <span class="sc">Loose</span> differs
+  from (<a href="#eq-29">29</a>) only by using $\lVert\delta\rVert$ in place of
   <span class="nowrap">$\rad(-\delta)$.</span> That is enough to declare this setting's interval too wide to
   scan, so it subsamples: ink drops from $0.459$ to
   $0.152$ and $38.3\%$ of pixels change. The exact
@@ -1911,7 +2020,7 @@ supports is: exact wherever the interval fits the budget, and exact on every
 legible setting <em>of this sweep</em>; the strided band of
 <a href="#sec-8-6">§8.6</a>, which this sweep's cap excludes, is measured there
 separately and does lose ink.</p>
-<p>Figure <a href="#fig-10">10</a> shows what the <span class="sc">Sweep</span> column looks like on one scene, and Figure <a href="#fig-11">11</a> isolates the drift constant. The
+<p>Figure <a href="#fig-12">12</a> shows what the <span class="sc">Sweep</span> column looks like on one scene, and Figure <a href="#fig-13">13</a> isolates the drift constant. The
 GPU twin agrees with the CPU twin to <code>f32</code> precision at every point where
 the interval fits the budget.</p>
 <h3 id="sec-8-4"><span class="secnum">8.4</span> Ablation</h3>
@@ -1939,7 +2048,7 @@ material (§ S3).</p>
 fields. The comparison a reader is entitled to ask for is against not using
 fields at all: emit the members as paths and stroke them. We measure that on the
 same five pairs as Table <a href="#tab-1">1</a> and
-Figure <a href="#fig-17">17</a>, so the three can be read together, and entirely inside
+Figure <a href="#fig-20">20</a>, so the three can be read together, and entirely inside
 the tool's own controls (zoom clamped to <span class="nowrap">$[0.1, 10]$,</span> spacing to
 the slider's range), because both effects below grow without bound and it would
 be easy, and worthless, to demonstrate them somewhere the tool cannot go.</p>
@@ -1962,7 +2071,7 @@ the spacing), so the true coverage of their union is <span class="nowrap">$\sum_
 <span class="sc">over</span> is not that. Between two families the discrepancy is sharper and it
 is structural: <span class="sc">over</span> takes the overlap of two coverages to be
 <span class="nowrap">$\alpha_1\alpha_2$,</span> the value it would have if the two were uncorrelated
-sub-pixel areas <span class="cite">[<a href="#ref-62">62</a>]</span>. A moiré is exactly the failure of that
+sub-pixel areas <span class="cite">[<a href="#ref-67">67</a>]</span>. A moiré is exactly the failure of that
 independence. Whether the two families' strokes coincide or interleave is what
 varies across the frame, and it is the whole of the signal, so a rule that
 assumes a constant overlap returns a constant where the fringes were.</p>
@@ -1977,10 +2086,10 @@ the regime where a vector back end is the right tool and we do not claim
 otherwise. Past two members to a pixel it does not: over the $13$
 such settings the median loss is $89.5\%$ of the fringe contrast,
 rising to $97.7\%$ ($92.0\%$ without the
-carrier-suppressing blur). Figure <a href="#fig-12">12</a> is one of them, at the scene's
+carrier-suppressing blur). Figure <a href="#fig-14">14</a> is one of them, at the scene's
 own spacing and the tool's own zoom floor, with nothing unusual asked of it:
 $4.6\%$ of the ink lost, and $96.3\%$ of the pattern.</p>
-<figure class="paper-figure wide" id="fig-12"><img class="tikz" style="width:100.0%" src="figures/tikz-0e0a994c4820.png" width="2100" height="563" alt=""><figcaption><span class="fignum">Fig. 12.</span> <strong>What per-path compositing does to a moiré.</strong> 
+<figure class="paper-figure wide" id="fig-14"><img class="tikz" style="width:100.0%" src="figures/tikz-0e0a994c4820.png" width="2100" height="563" alt=""><figcaption><span class="fignum">Fig. 14.</span> <strong>What per-path compositing does to a moiré.</strong> 
   <em>Left:</em> two circle families at their own spacing, at the tool's zoom floor,
   where $3.9$ members share a pixel. <strong>(a)</strong> the true coverage of
   the union of the strokes; <strong>(b)</strong> the same strokes given <em>exact</em>
@@ -2010,12 +2119,12 @@ whose absence the rest of this section has been measuring.</p>
 <h3 id="sec-8-6"><span class="secnum">8.6</span> Where the guarantee ends</h3>
 <p>Theorem <a href="#thm-4">4</a> gives an interval; it does not promise a small one. Two
 questions follow: how often is it too wide to walk, and what happens then.</p>
-<figure class="paper-figure" id="fig-13"><img class="tikz" style="width:98.4%" src="figures/tikz-9d632f2b60dc.png" width="997" height="772" alt=""><figcaption><span class="fignum">Fig. 13.</span> The interval is wide only where the pattern is already solid.
+<figure class="paper-figure" id="fig-15"><img class="tikz" style="width:98.4%" src="figures/tikz-9d632f2b60dc.png" width="997" height="772" alt=""><figcaption><span class="fignum">Fig. 15.</span> The interval is wide only where the pattern is already solid.
   $55{,}692$ settings, binned by the $90$th-percentile interval span, against
   the ink fraction of the exact field. Past the budget $B=1{,}024$ (shaded) the median
   setting is $0.89$ ink: a nearly filled rectangle, where no point
   sample of the distance field is meaningful and the correct output is the filtered
-  mean <span class="cite">[<a href="#ref-49">49</a>]</span>. The insets are one walking circle family at both ends
+  mean <span class="cite">[<a href="#ref-53">53</a>]</span>. The insets are one walking circle family at both ends
   of the axis: a benign drift, whose pattern is open and whose interval is a few
   indices, and the near-marginal drift, where the interval explodes into a
   frame that is already solid ink. The dashed minimum shows that sparse
@@ -2029,7 +2138,7 @@ questions follow: how often is it too wide to walk, and what happens then.</p>
   and its least is <span class="nowrap">$0.07$,</span> so a wide interval there does not imply a
   solid frame. That band is what Proposition <a href="#thm-6">6</a> settles exactly at
   $\theta=0$ and what <a href="#sec-8-6">§8.6</a> concedes for <span class="nowrap">$\theta\ne0$.</span></figcaption></figure>
-<figure class="paper-figure" id="fig-14"><div class="subrow"><figure class="sub" style="flex-grow:0.32"><img src="figures/inset-anchor-reference.png" width="800" height="536" alt=""><figcaption>(a) exact</figcaption></figure><figure class="sub" style="flex-grow:0.32"><img src="figures/inset-anchor-pixel-anchored.png" width="800" height="536" alt=""><figcaption>(b) pixel-anchored</figcaption></figure><figure class="sub" style="flex-grow:0.32"><img src="figures/inset-anchor-lattice-anchored.png" width="800" height="536" alt=""><figcaption>(c) lattice-anchored</figcaption></figure></div><figcaption><span class="fignum">Fig. 14.</span> Two subsamplings of identical cost and different structure. $4\times$ crops of one scene
+<figure class="paper-figure" id="fig-16"><div class="subrow"><figure class="sub" style="flex-grow:0.32"><img src="figures/inset-anchor-reference.png" width="800" height="536" alt=""><figcaption>(a) exact</figcaption></figure><figure class="sub" style="flex-grow:0.32"><img src="figures/inset-anchor-pixel-anchored.png" width="800" height="536" alt=""><figcaption>(b) pixel-anchored</figcaption></figure><figure class="sub" style="flex-grow:0.32"><img src="figures/inset-anchor-lattice-anchored.png" width="800" height="536" alt=""><figcaption>(c) lattice-anchored</figcaption></figure></div><figcaption><span class="fignum">Fig. 16.</span> Two subsamplings of identical cost and different structure. $4\times$ crops of one scene
   with the budget forced to $64$ so the stride engages while the field is still
   legible. Both subsamplings spend $33$ evaluations per pixel and retain
   the same ink ($0.216$ vs $0.216$ of the exact
@@ -2044,7 +2153,7 @@ them (<span class="nowrap">$82\%$).</span> In the remaining $9{,}918$ the interv
 budget. Every one of those has $m$ within a factor of $4.2$ of <span class="nowrap">$s$;</span>
 the wide-interval regime is precisely the near-marginal band, as the theory
 predicts.</p>
-<p><em>What the field looks like there.</em> Figure <a href="#fig-13">13</a> answers this
+<p><em>What the field looks like there.</em> Figure <a href="#fig-15">15</a> answers this
 without needing an exhaustive reference, using the observation that any partial
 scan takes a minimum over a subset and therefore <em>over</em>-estimates $d$ and
 <em>under</em>-estimates ink: a measured ink fraction is a valid lower bound on the
@@ -2052,7 +2161,7 @@ true one. Ink rises monotonically with interval span, and past the budget the me
 setting is $0.89$ ink. These are fields whose curves are far denser than
 the pixel grid, the regime where point sampling any distance field is
 meaningless and the correct answer is a prefiltered
-mean <span class="cite">[<a href="#ref-11">11</a>, <a href="#ref-49">49</a>]</span>. Only $1{,}472$ settings
+mean <span class="cite">[<a href="#ref-12">12</a>, <a href="#ref-53">53</a>]</span>. Only $1{,}472$ settings
 ($2.6\%$ of the sweep) are both beyond the budget and
 legible. Legible here means under $50\%$ ink, where the fidelity sweep's
 threshold was <span class="nowrap">$70\%$;</span> the strided band is darker, so the stricter cut is the
@@ -2069,7 +2178,7 @@ claim correctness here and we do not claim a prefiltered mean; this is a genuine
 limitation, confined to a $2.6\%$ band of parameter space, and it
 is the obvious target for future work (Section <a href="#sec-10">10</a>).</p>
 <p><em>What we do about it.</em> What we can control is the <em>structure</em> of the
-error, and Figure <a href="#fig-14">14</a> is the one finding here we would ask an
+error, and Figure <a href="#fig-16">16</a> is the one finding here we would ask an
 implementor to keep.
 Both panels subsample by the same stride, spend the same $33$ evaluations
 per pixel, and retain statistically the same ink. Anchoring the stride to
@@ -2090,9 +2199,9 @@ something we write in a shader, then we may choose the fringes.</p>
 <p>Let $f:\R^2\to\R$ be any scalar field, and let $a&gt;0$ be a gain. Take a carrier:
 any family of phase $\ph_1$ and pitch <span class="nowrap">$s$.</span> Pair it with a second family defined
 by</p>
-<div class="equation" id="eq-35"><div class="eq-scroll">\[\ph_2(p) \;=\; \ph_1(p) \;-\; a\,s\,f(p).\]</div><span class="eq-no">(35)</span></div>
+<div class="equation" id="eq-36"><div class="eq-scroll">\[\ph_2(p) \;=\; \ph_1(p) \;-\; a\,s\,f(p).\]</div><span class="eq-no">(36)</span></div>
 <p>Both families have the same pitch, so $\idx_i=\ph_i/s$ and</p>
-<div class="equation" id="eq-36"><div class="eq-scroll">\[D(p) \;=\; \idx_1(p)-\idx_2(p) \;=\; a\,f(p).\]</div><span class="eq-no">(36)</span></div>
+<div class="equation" id="eq-37"><div class="eq-scroll">\[D(p) \;=\; \idx_1(p)-\idx_2(p) \;=\; a\,f(p).\]</div><span class="eq-no">(37)</span></div>
 <p>By Theorem <a href="#thm-2">2</a> the light fringes are <span class="nowrap">$\{D\in\Z\}$,</span> which is
 <span class="nowrap">$\{f=n/a\}$:</span> the contours of $f$ at interval <span class="nowrap">$c=1/a$.</span> Not an approximation of
 them, and not a discretization of them, but the same curves a contour tracer
@@ -2103,7 +2212,7 @@ of segments into curves, no decision about topology, and no resolution at which
 any of that would have happened. The contour is never computed. It is a place
 where two strokes coincide, and it is drawn by the same distance query and the
 same antialiasing the strokes already had.</p>
-<p>Because $a$ and $s$ appear only in the product <span class="nowrap">$as$,</span> (<a href="#eq-35">35</a>) is a
+<p>Because $a$ and $s$ appear only in the product <span class="nowrap">$as$,</span> (<a href="#eq-36">36</a>) is a
 <em>shift of the phase residual</em> and nothing else, which is why it costs so
 little to ship. <a href="#sec-4">§4</a> writes every family as $\{\ph=ns+\varphi\}$ and
 inks it through <span class="nowrap">$\mathrm{periodicDist}(\ph-\varphi,s)/|\nabla\ph|$;</span> encoding $f$
@@ -2137,7 +2246,7 @@ per pixel with no schedule and no fallback.</p>
 <p><span class="paralead">Exact gradients from forward-mode duals.</span> Nothing differentiates the expression symbolically. Both evaluators carry a
 forward-mode dual number $(v,\partial_x v,\partial_y v)$ through each operation,
 so $\nabla f$ falls out of the same traversal that produces <span class="nowrap">$f$,</span> exact to
-floating point and never a finite difference. Eq. <a href="#eq-35">35</a> then has the
+floating point and never a finite difference. Eq. <a href="#eq-36">36</a> then has the
 gradient it needs for the eikonal divide without the author supplying one, and
 the hand-derived gradients (the thing most likely to be silently wrong) are
 gone. Singular points are handled by clamps shared between the two
@@ -2210,8 +2319,58 @@ sampled at the same points, and they agree with each other to
 $4{\times}10^{-5}$ relative and with the <code>f64</code> CPU evaluator to the same
 order. Both are verified before either is timed, so a wrong answer cannot be
 mistaken for a fast one.</p>
-<figure class="paper-figure wide" id="fig-15"><img src="figures/contour-proof.png" width="2300" height="760" alt=""><div class="panelrow"><span>(a) as rendered</span><span>(b) envelope view</span><span>(c) with the true $\{f=nc\}$</span></div><figcaption><span class="fignum">Fig. 15.</span> <strong>A contour plot that was never contoured.</strong>  <span class="sc">Moiré</span>'s
-  <span class="sc">saddle</span> field encoded by (<a href="#eq-35">35</a>) into a carrier of pitch
+<h3 id="sec-9-3"><span class="secnum">9.3</span> Fields with winding: defects</h3>
+<p>Everything so far took $f$ single-valued, and one spelling in the language
+quietly is not. <code>theta</code> is a branch of the polar angle, well defined
+only modulo full turns, so <code>theta / tau</code> is a <em>circle-valued</em>
+field: defined modulo $1$ on the punctured plane, gaining one unit per
+positive loop around the origin. Encoded at an integer gain <span class="nowrap">$a=A$,</span> the index
+difference $D=A\,\theta/\tau$ is multivalued, but its fringe set
+$\{D\in\Z\}$ is perfectly well defined, and it is a pencil of $A$ rays. A
+fringe now does something no single-valued field permits: it <em>ends</em>.
+Along any loop $\gamma$ avoiding the singularities of <span class="nowrap">$f$,</span> the signed count
+of fringe crossings is the degree of the circle-valued map <span class="nowrap">$D\circ\gamma$,</span>
+which is $A$ times the total winding of $f$ enclosed; level sets cannot
+terminate where $D$ is regular, so the signed number of fringe endings inside
+$\gamma$ equals the enclosed charge times the gain: quantized, localized,
+additive over defects, and blind to any single-valued field added on top. We
+verified each clause by counting integer crossings on probe loops
+(<code>tools/ exp/ defects.mjs</code>): $22$ probes spanning
+gains $1$ to <span class="nowrap">$10$,</span> displaced defects, opposite-charge pairs, and a
+defect plus an exact field, every count exact.</p>
+<figure class="paper-figure wide" id="fig-17"><div class="subrow"><figure class="sub" style="flex-grow:0.325"><img src="figures/defect-fork.png" width="640" height="640" alt=""><figcaption>(a) one family, <span class="nowrap">$f=\theta/\tau$,</span> $a=5$</figcaption></figure><figure class="sub" style="flex-grow:0.325"><img src="figures/defect-pair.png" width="640" height="640" alt=""><figcaption>(b) over its unmodulated twin</figcaption></figure><figure class="sub" style="flex-grow:0.325"><img src="figures/defect-envelope.png" width="640" height="640" alt=""><figcaption>(c) envelope: five fringes end</figcaption></figure></div><figcaption><span class="fignum">Fig. 17.</span> <strong>A circle-valued field mints a defect.</strong>  <strong>(a)</strong> A line
+  family carrying $f=\theta/\tau$ at gain $5$ is the classical fork grating:
+  five extra members emanate from the origin, where the family's counting
+  fails to close. <strong>(b)</strong> Against an unmodulated twin the moiré carries
+  the defect. <strong>(c)</strong> The envelope view: five fringes <em>end</em> at the
+  origin, the picture no single-valued field can draw, and the signed count
+  of endings is exactly the winding times the gain. The dark spot is the
+  defect core <span class="nowrap">$r^\star=2As/\pi$,</span> where $\het$ crosses $1/4$ and the fringe
+  law honestly fails.</figcaption></figure>
+<p>Figure <a href="#fig-17">17</a> draws the smallest interesting case. A carrier plus
+$A\,\theta/\tau$ is the <em>fork grating</em>: $A$ extra members fan out of the
+origin, which is how holography prints screw-dislocated
+wavefronts <span class="cite">[<a href="#ref-10">10</a>]</span>, and the fringe that ends is the edge
+dislocation of Nye and Berry's wave-train
+taxonomy <span class="cite">[<a href="#ref-55">55</a>, <a href="#ref-87">87</a>]</span>. In
+singular optics these objects are measured; here they are <em>authored</em>,
+typed into the field box at frame rate, and the radial pencil of
+<a href="#sec-4">§4</a> turns out to be the same object one level down: its index
+is <span class="nowrap">$N\theta/\pi$,</span> a pure winding field, so the pencil is the charge-$2N$
+defect of the line family rather than an exception to the catalog.</p>
+<p>The topology is exact but not free: near the defect the fringe spacing
+$1/\lVert\nabla D\rVert = \tau r/A$ collapses, so the heterodyne ratio
+against the twin is <span class="nowrap">$\het = As/(\tau r)$,</span> crossing the regime line
+$1/4$ at the <em>core radius</em> <span class="nowrap">$r^\star = 2As/\pi$.</span> We measured the crossing
+against the evaluator's exact gradients and it lands on $r^\star$ to within
+<span class="nowrap">$10^{-4}$:</span> inside the core the fringe law fails, the ratio view says so
+(<a href="#sec-3-6">§3.6</a>), and the envelope's mask fades the region rather
+than inventing fringes in it: the theory draws a circle around its own
+failure. A <em>non-integer</em> gain has no well-defined fringe set at all; the
+tool renders the tear along the evaluator's branch cut, which carries the
+fractional winding, an honest picture of an impossible request.</p>
+<figure class="paper-figure wide" id="fig-18"><img src="figures/contour-proof.png" width="2300" height="760" alt=""><div class="panelrow"><span>(a) as rendered</span><span>(b) envelope view</span><span>(c) with the true $\{f=nc\}$</span></div><figcaption><span class="fignum">Fig. 18.</span> <strong>A contour plot that was never contoured.</strong>  <span class="sc">Moiré</span>'s
+  <span class="sc">saddle</span> field encoded by (<a href="#eq-36">36</a>) into a carrier of pitch
   $5.8$ px. <strong>(a)</strong> The superposition, as rendered: two
   line families and nothing else. <strong>(b)</strong> The same two layers under the
   envelope view of <a href="#sec-3-5">§3.5</a>: the carrier is gone and the fringe field
@@ -2221,7 +2380,7 @@ mistaken for a fast one.</p>
   top in pink. They are computed from $f$ alone and laid over a picture that never
   saw them. Note that $f=0$ is the asymptote pair, and the fringe field reproduces
   the crossing.</figcaption></figure>
-<h3 id="sec-9-3"><span class="secnum">9.3</span> Does the ink land on the curve?</h3>
+<h3 id="sec-9-4"><span class="secnum">9.4</span> Does the ink land on the curve?</h3>
 <p>Theorem <a href="#thm-2">2</a> is a statement about a locally averaged quantity, so it
 does not by itself promise that the visible bright band of a particular render is
 centered on the mathematical curve. That is a question about a rasterized image
@@ -2244,14 +2403,14 @@ $0.26$ px on average and $0.29$ px at the $95$th percentile,
 which is the floor of the method of measurement rather than of the method being
 measured.</p>
 <p>Against that floor, over $63{,}251$ probes on the $six$ presets of
-Figure <a href="#fig-16">16</a> (the expressions <span class="sc">Moiré</span> offers as starting
+Figure <a href="#fig-19">19</a> (the expressions <span class="sc">Moiré</span> offers as starting
 points, not a set chosen for the experiment), the mean displacement of the
 fringe peak from the true contour is
 $0.22$–$0.80$ px, with a worst $95$th percentile of
 $4.21$ px. That is the strongest statement this
 experiment can support: the fringe is on the curve to within our ability to say
 where the fringe is.</p>
-<figure class="paper-figure wide" id="fig-16"><img src="figures/contour-fields.png" width="3765" height="1249" alt=""><div class="panelrow"><span>saddle</span><span>dipole</span><span>bumps</span><span>swirl</span><span>ripple</span><span>terrain</span></div><figcaption><span class="fignum">Fig. 16.</span> <strong>Every preset the tool ships, encoded.</strong>  <em>Top:</em> each panel
+<figure class="paper-figure wide" id="fig-19"><img src="figures/contour-fields.png" width="3765" height="1249" alt=""><div class="panelrow"><span>saddle</span><span>dipole</span><span>bumps</span><span>swirl</span><span>ripple</span><span>terrain</span></div><figcaption><span class="fignum">Fig. 19.</span> <strong>Every preset the tool ships, encoded.</strong>  <em>Top:</em> each panel
   is cut corner to corner: the superposition as rendered above the seam, the same
   two layers under the envelope view of <a href="#sec-3-5">§3.5</a> below it. The halves
   are two readings of one state, not two pictures: nothing is filtered between
@@ -2261,21 +2420,21 @@ where the fringe is.</p>
   $5.8$ px differing only in one layer's field expression; the labels
   are the presets of <a href="#sec-9-2">§9.2</a>, whose sources are in
   the supplemental material (§ S2). The dipole is instructive: towards each pole the
-  equipotentials crowd, and past the limit (<a href="#eq-37">37</a>) no carrier can
+  equipotentials crowd, and past the limit (<a href="#eq-38">38</a>) no carrier can
   resolve them, so the render collapses into a dense scribble where the
   field is steepest, which reports the failure rather than hiding it. A contour tracer would emit dense
   polylines there without complaint.</figcaption></figure>
-<h3 id="sec-9-4"><span class="secnum">9.4</span> The sampling limit</h3>
+<h3 id="sec-9-5"><span class="secnum">9.5</span> The sampling limit</h3>
 <p>The interesting failure is visible in the dipole panel of
-Figure <a href="#fig-16">16</a>. Fringe spacing is <span class="nowrap">$c/|\nabla f|$,</span> so a field with
+Figure <a href="#fig-19">19</a>. Fringe spacing is <span class="nowrap">$c/|\nabla f|$,</span> so a field with
 a steep region has contours that pack together, and a carrier of pitch $s$ cannot
 carry a fringe much finer than itself. Empirically the fringe is legible while</p>
-<div class="equation" id="eq-37"><div class="eq-scroll">\[\frac{c}{|\nabla f|} \;\gtrsim\; 3s,\]</div><span class="eq-no">(37)</span></div>
+<div class="equation" id="eq-38"><div class="eq-scroll">\[\frac{c}{|\nabla f|} \;\gtrsim\; 3s,\]</div><span class="eq-no">(38)</span></div>
 <p>and this is the whole of the method's sampling limit: one inequality, in local
 quantities, both of which the renderer already has. It is a Nyquist statement
 about the <em>carrier</em>, not about the display, which is why raising the zoom
 does not help but lowering $s$ does.</p>
-<p>Two properties of (<a href="#eq-37">37</a>) are worth noting. First, it is a field, so it
+<p>Two properties of (<a href="#eq-38">38</a>) are worth noting. First, it is a field, so it
 can be drawn, as the heterodyne ratio of <a href="#sec-3-6">§3.6</a> can:
 before committing to <span class="nowrap">$c$,</span> an author can be shown which parts of the frame will
 resolve. Second, when it is violated the picture degrades <em>loudly</em>. The
@@ -2283,13 +2442,13 @@ unresolvable region fills with visible high-frequency structure (the dipole's
 poles turn into a black scribble), which is an honest report that the field is
 steeper there than the chosen interval can show. A contour tracer, by contrast, returns a dense set of polylines with no
 indication that the interval was too fine for the field.</p>
-<h3 id="sec-9-5"><span class="secnum">9.5</span> Other uses of the difference</h3>
-<p>Equation (<a href="#eq-35">35</a>) is one line, and $f$ in it is arbitrary. Several things
+<h3 id="sec-9-6"><span class="secnum">9.6</span> Other uses of the difference</h3>
+<p>Equation (<a href="#eq-36">36</a>) is one line, and $f$ in it is arbitrary. Several things
 follow that we have implemented but not studied, and we record them here
 because the field formulation makes them cheap enough to be worth recording.</p>
 <p><span class="paralead">Streamlines.</span> A divergence-free planar flow has a stream function
 $\Psi$ whose level sets are its streamlines. Encoding $\Psi$ by
-(<a href="#eq-35">35</a>) therefore draws the streamlines of the flow, with no
+(<a href="#eq-36">36</a>) therefore draws the streamlines of the flow, with no
 integration of trajectories, no seeding strategy, and no decision about how long
 to trace before stopping. <span class="sc">Moiré</span>'s <span class="sc">swirl</span> field is the stream function
 of four point vortices; encoding it draws closed streamlines around each vortex
@@ -2308,8 +2467,8 @@ the first pulled back through a map <span class="nowrap">$T$,</span> so <span cl
 p-T(p)\rangle/s$:</span> the component of the displacement along the family's gradient,
 in units of the pitch. The fringes are its contours. This is precisely what
 shadow moiré, moiré topography and moiré deflectometry measure with physical
-gratings <span class="cite">[<a href="#ref-63">63</a>, <a href="#ref-64">64</a>, <a href="#ref-83">83</a>]</span>, and it falls out of
-(<a href="#eq-36">36</a>) as the special case <span class="nowrap">$f=\ph_1-\ph_1\circ T$.</span> We note it not
+gratings <span class="cite">[<a href="#ref-68">68</a>, <a href="#ref-69">69</a>, <a href="#ref-89">89</a>]</span>, and it falls out of
+(<a href="#eq-37">37</a>) as the special case <span class="nowrap">$f=\ph_1-\ph_1\circ T$.</span> We note it not
 as a new result but as a sanity check on the formulation: the oldest quantitative
 use of moiré is a corollary of the fringe law, and the amplification factor those
 instruments are prized for is the $1/s$ in front. Nothing special is needed to get
@@ -2353,7 +2512,7 @@ conservative; it terminates on a tolerance. Here the domain is <span class="nowr
 is exact rather than conservative, and “enumerate the interval” is a terminating
 algorithm that returns the true minimum, not an approximation of it. Discreteness
 converts a tolerance into a proof. We suspect other rendering problems phrased as
-“which member of this indexed family is nearest” (glints <span class="cite">[<a href="#ref-95">95</a>, <a href="#ref-96">96</a>]</span>, tiled or stamped patterns <span class="cite">[<a href="#ref-41">41</a>]</span>, layered fibers) have the
+“which member of this indexed family is nearest” (glints <span class="cite">[<a href="#ref-101">101</a>, <a href="#ref-102">102</a>]</span>, tiled or stamped patterns <span class="cite">[<a href="#ref-44">44</a>]</span>, layered fibers) have the
 same structure available and are being solved with budgets instead.</p>
 <p><span class="paralead">What the representation provided, besides speed.</span> We began with the field formulation as a way to get resolution independence, and
 that is what it delivered. What we did not expect is that it would function as a
@@ -2379,14 +2538,15 @@ help and are not enough. We think the missing piece is a compositing rule for
 fields that is not union-of-ink, something that spends contrast rather than
 coverage, and we do not have one. Of the open problems in this paper it is the one that matters most, because it
 is what stands between a moiré and a display with more than one channel.</p>
-<p><span class="paralead">Limitations.</span> Five, in decreasing order of severity. <em>The character scan stops at order
-two.</em> The criterion and the envelope handle the integer beats
-$k_1\idx_1+k_2\idx_2$ with <span class="nowrap">$\lvert k_i\rvert\le2$;</span> higher-order moirés
-exist classically <span class="cite">[<a href="#ref-3">3</a>, <a href="#ref-8">8</a>]</span> and metrology
-multiplies fringes deliberately at order <span class="nowrap">$N$,</span> so a pitch ratio near $3{:}1$
-still defeats the criterion exactly as $2{:}1$ defeated its first-order
-predecessor. The scan generalizes mechanically; where to stop is a perceptual
-question (contrast falls with order) that we have not measured.
+<p><span class="paralead">Limitations.</span> Five, in decreasing order of severity. <em>The scan's reach follows its
+gradients.</em> The selection of <a href="#sec-3-7">§3.7</a> is order-free only where
+both index gradients are closed-form; a walking family's gradient is a
+screen-space difference, whose per-quad noise the reduction reads as slow
+high-order characters, so a pair involving one keeps the old order-two floor,
+and a lattice's candidate combinations are still an enumeration (the first
+three dual rings, supplemental § S3), so a sufficiently extreme lattice pair
+can beat outside them. Both caps are now exceptions that name their cause
+rather than a ceiling on the theory.
 <em>The marginal band.</em> On
 $\rad(-\delta)=s$ with $\theta\neq0$ the interval is genuinely infinite and we
 neither enumerate it nor prefilter it; we subsample, coherently, and accept up to
@@ -2394,8 +2554,9 @@ $28.7\%$ ink loss in the legible corner of that band
 (Section <a href="#sec-8-6">8.6</a>). Proposition <a href="#thm-6">6</a> solves the $\theta=0$
 slice exactly, which suggests the rotated case is not hopeless: the residual there
 is a sinusoid plus a line, and the indices where it can vanish are governed by the
-continued-fraction expansion of <span class="nowrap">$\theta/2\pi$.</span> We consider it the most
-promising follow-on. <em>The metric.</em> We minimize the residual of the inradius metric, not
+continued-fraction expansion of <span class="nowrap">$\theta/2\pi$:</span> the same arithmetic
+<a href="#sec-3-7">§3.7</a> made the criterion's, so the tools are already in the
+renderer. We consider it the most promising follow-on. <em>The metric.</em> We minimize the residual of the inradius metric, not
 Euclidean distance to the curve, which thickens strokes near polygon corners by up
 to <span class="nowrap">$1/\kappa$;</span> dividing by $\lVert\nabla\rad\rVert$ would fix it, at the cost of
 the exact envelopes. <em>Prefiltering.</em> We show the wide-interval regime is
@@ -2408,7 +2569,7 @@ are not level sets of a difference of scalars, and a lattice's index is a pair o
 integers, so a lattice pair produces a two-dimensional beat that the fringe law
 describes only along a chosen direction. They render correctly, and both are
 classical enough that the beat is well understood elsewhere
-<span class="cite">[<a href="#ref-8">8</a>, <a href="#ref-52">52</a>]</span>; they simply sit outside the theorem, and a
+<span class="cite">[<a href="#ref-8">8</a>, <a href="#ref-57">57</a>]</span>; they simply sit outside the theorem, and a
 vector-valued index law that covered them would be a genuine extension.</p>
 <p><span class="paralead">Future work.</span> Beyond the marginal band and prefiltering: the interval is computed per pixel from
 <span class="nowrap">$r$,</span> <span class="nowrap">$\Lambda$,</span> and <span class="nowrap">$\kappa$,</span> all of which vary smoothly, so a conservative
@@ -2433,14 +2594,19 @@ field exists only as the answer to a search.</p>
 <p>Three things follow. The pattern becomes a document rather than a raster:
 resolution-independent, so that one description is a thumbnail, a screen, and a
 plate. The fringe becomes predictable before it is drawn, because the local
-ratios $\het_k$ of Eq. <a href="#eq-12">12</a> say where one will appear, which beat it
-will be, and how it will run. And the fringe becomes <em>addressable</em>:
+ratios $\het_k$ of Eq. <a href="#eq-12">12</a> say where one will appear and how it
+will run, and <em>which</em> beat it will be is no longer scanned for but
+computed: the visible-beat hierarchy is the continued fraction of the local
+pitch ratio, found at any order by per-pixel lattice reduction
+(<a href="#sec-3-7">§3.7</a>), so the classical order cap is deleted rather than
+raised. And the fringe becomes <em>addressable</em>:
 choosing the index fields so that their difference is a field of interest turns
 the moiré into a contour plot of that field, which we verified localizes to a
 mean of $0.80$ px against ground truth on the hardest of
 six fields, written as expressions and differentiated as they
 are evaluated so that a field the author invents arrives with the gradient the
-renderer requires.</p>
+renderer requires; a circle-valued field ends fringes at defects whose signed
+endings count its winding exactly (<a href="#sec-9-3">§9.3</a>).</p>
 <p>Making this run at interactive rates cost the paper's other half. When each member
 of a family carries its own rigid motion there is no global index field, and the
 per-pixel question becomes an inversion over the integers. We showed that one
@@ -2476,108 +2642,114 @@ depending only on whether the samples are anchored to the family or to the pixel
 <li id="ref-7">Isaac Amidror. 2007. <em>The Theory of the Moire Phenomenon, Volume II: Aperiodic Layers</em>. Springer. <a href="https://doi.org/10.1007/1-4020-5458-0">doi:10.1007/1-4020-5458-0</a></li>
 <li id="ref-8">Isaac Amidror. 2009. <em>The Theory of the Moire Phenomenon, Volume I: Periodic Layers</em>. Springer. <a href="https://doi.org/10.1007/978-1-84882-181-1">doi:10.1007/978-1-84882-181-1</a></li>
 <li id="ref-9">Jonathan T. Barron, Ben Mildenhall, Matthew Tancik, Peter Hedman, Ricardo Martin-Brualla, and Pratul P. Srinivasan. 2021. <em>Mip-NeRF: A Multiscale Representation for Anti-Aliasing Neural Radiance Fields</em>. Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV), 5835–5844. <a href="https://doi.org/10.1109/ICCV48922.2021.00580">doi:10.1109/ICCV48922.2021.00580</a></li>
-<li id="ref-10">Rafi Bistritzer and Allan H. MacDonald. 2011. <em>Moire bands in twisted double-layer graphene</em>. Proceedings of the National Academy of Sciences 108, 30, 12233–12237. <a href="https://doi.org/10.1073/pnas.1108174108">doi:10.1073/pnas.1108174108</a></li>
-<li id="ref-11">Eric Bruneton and Fabrice Neyret. 2012. <em>A survey of nonlinear prefiltering methods for efficient and accurate surface shading</em>. IEEE Transactions on Visualization and Computer Graphics 18, 2, 242–260. <a href="https://doi.org/10.1109/TVCG.2011.81">doi:10.1109/TVCG.2011.81</a></li>
-<li id="ref-12">John H. Bruning, Donald R. Herriott, Joseph E. Gallagher, Daniel P. Rosenfeld, Andrew D. White, and Donald J. Brangaccio. 1974. <em>Digital Wavefront Measuring Interferometer for Testing Optical Surfaces and Lenses</em>. Applied Optics 13, 11, 2693–2703. <a href="https://doi.org/10.1364/AO.13.002693">doi:10.1364/AO.13.002693</a></li>
-<li id="ref-13">Olof Bryngdahl. 1974. <em>Moire: Formation and interpretation</em>. Journal of the Optical Society of America 64, 10, 1287–1294. <a href="https://doi.org/10.1364/JOSA.64.001287">doi:10.1364/JOSA.64.001287</a></li>
-<li id="ref-14">Ricardo Cabello and Three.js contributors. 2026. <em>three.js</em>. https://threejs.org/.</li>
-<li id="ref-15">Daniel Campos Zamora, Mustafa Doga Dogan, Alexa F. Siu, Eunyee Koh, and Chang Xiao. 2024. <em>MoireWidgets: High-Precision, Passive Tangible Interfaces via Moire Effect</em>. Proceedings of the CHI Conference on Human Factors in Computing Systems (CHI '24), 14. <a href="https://doi.org/10.1145/3613904.3642734">doi:10.1145/3613904.3642734</a></li>
-<li id="ref-16">Yuan Cao, Valla Fatemi, Shiang Fang, Kenji Watanabe, Takashi Taniguchi, Efthimios Kaxiras, and Pablo Jarillo-Herrero. 2018. <em>Unconventional superconductivity in magic-angle graphene superlattices</em>. Nature 556, 43–50. <a href="https://doi.org/10.1038/nature26160">doi:10.1038/nature26160</a></li>
-<li id="ref-17">Edwin Catmull. 1978. <em>A hidden-surface algorithm with anti-aliasing</em>. Proceedings of the 5th Annual Conference on Computer Graphics and Interactive Techniques (SIGGRAPH '78), 6–11. <a href="https://doi.org/10.1145/800248.807360">doi:10.1145/800248.807360</a></li>
-<li id="ref-18">Sylvain M. Chosson and Roger D. Hersch. 2014. <em>Beating Shapes Relying on Moire Level Lines</em>. ACM Transactions on Graphics 34, 1, 11. <a href="https://doi.org/10.1145/2644806">doi:10.1145/2644806</a></li>
-<li id="ref-19">John H. Conway and Neil J. A. Sloane. 1982. <em>Fast Quantizing and Decoding Algorithms for Lattice Quantizers and Codes</em>. IEEE Transactions on Information Theory 28, 2, 227–232. <a href="https://doi.org/10.1109/TIT.1982.1056484">doi:10.1109/TIT.1982.1056484</a></li>
-<li id="ref-20">Franklin C. Crow. 1977. <em>The aliasing problem in computer-generated shaded images</em>. Communications of the ACM 20, 11, 799–805. <a href="https://doi.org/10.1145/359863.359869">doi:10.1145/359863.359869</a></li>
-<li id="ref-21">David S. Ebert, F. Kenton Musgrave, Darwyn Peachey, Ken Perlin, and Steven Worley. 2003. <em>Texturing and Modeling: A Procedural Approach</em>. Morgan Kaufmann.</li>
-<li id="ref-22">Christer Ericson. 2004. <em>Real-Time Collision Detection</em>. Morgan Kaufmann. <a href="https://doi.org/10.1201/b14581">doi:10.1201/b14581</a></li>
-<li id="ref-23">Fan Feng. 2025. <em>Objective Moire Patterns</em>. Journal of Applied Mechanics 92, 8, 081002. <a href="https://doi.org/10.1115/1.4068060">doi:10.1115/1.4068060</a></li>
-<li id="ref-24">Sarah F. Frisken, Ronald N. Perry, Alyn P. Rockwood, and Thouis R. Jones. 2000. <em>Adaptively sampled distance fields: a general representation of shape for computer graphics</em>. Proceedings of the 27th Annual Conference on Computer Graphics and Interactive Techniques (SIGGRAPH '00), 249–254. <a href="https://doi.org/10.1145/344779.344899">doi:10.1145/344779.344899</a></li>
-<li id="ref-25">Eric Galin, Eric Guerin, Axel Paris, and Adrien Peytavie. 2020. <em>Segment Tracing Using Local Lipschitz Bounds</em>. Computer Graphics Forum 39, 2, 545–554. <a href="https://doi.org/10.1111/cgf.13951">doi:10.1111/cgf.13951</a></li>
-<li id="ref-26">Elmer G. Gilbert, Daniel W. Johnson, and S. Sathiya Keerthi. 1988. <em>A fast procedure for computing the distance between complex objects in three-dimensional space</em>. IEEE Journal on Robotics and Automation 4, 2, 193–203. <a href="https://doi.org/10.1109/56.2083">doi:10.1109/56.2083</a></li>
-<li id="ref-27">Leon Glass. 1969. <em>Moire effect from random dots</em>. Nature 223, 578–580. <a href="https://doi.org/10.1038/223578a0">doi:10.1038/223578a0</a></li>
-<li id="ref-28">Andrew S. Glassner. 1997. <em>Inside Moire Patterns</em>. IEEE Computer Graphics and Applications 17, 6, 97–101. <a href="https://doi.org/10.1109/38.626975">doi:10.1109/38.626975</a></li>
-<li id="ref-29">Chris Green. 2007. <em>Improved alpha-tested magnification for vector textures and special effects</em>. ACM SIGGRAPH 2007 Courses, 9–18. <a href="https://doi.org/10.1145/1281500.1281665">doi:10.1145/1281500.1281665</a></li>
-<li id="ref-30">John C. Hart. 1996. <em>Sphere tracing: a geometric method for the antialiased ray tracing of implicit surfaces</em>. The Visual Computer 12, 10, 527–545. <a href="https://doi.org/10.1007/s003710050084">doi:10.1007/s003710050084</a></li>
-<li id="ref-31">Jacques Harthong. 1981. <em>Le moire</em>. Advances in Applied Mathematics 2, 1, 24–75. <a href="https://doi.org/10.1016/0196-8858(81)90038-5">doi:10.1016/0196-8858(81)90038-5</a></li>
-<li id="ref-32">Paul S. Heckbert. 1986. <em>Survey of Texture Mapping</em>. IEEE Computer Graphics and Applications 6, 11, 56–67. <a href="https://doi.org/10.1109/MCG.1986.276672">doi:10.1109/MCG.1986.276672</a></li>
-<li id="ref-33">Roger D. Hersch and Sylvain Chosson. 2004. <em>Band Moire Images</em>. ACM Transactions on Graphics 23, 3, 239–247. <a href="https://doi.org/10.1145/1015706.1015709">doi:10.1145/1015706.1015709</a></li>
-<li id="ref-34">M. C. Hutley, R. Hunt, R. F. Stevens, and P. Savander. 1994. <em>The Moire Magnifier</em>. Pure and Applied Optics: Journal of the European Optical Society Part A 3, 2, 133–142. <a href="https://doi.org/10.1088/0963-9659/3/2/006">doi:10.1088/0963-9659/3/2/006</a></li>
-<li id="ref-35">T. J. Jankun-Kelly and Kwan-Liu Ma. 2003. <em>MoireGraphs: Radial Focus+Context Visualization and Interaction for Graphs with Visual Nodes</em>. IEEE Symposium on Information Visualization 2003 (INFOVIS 2003), 59–66. <a href="https://doi.org/10.1109/INFVIS.2003.1249009">doi:10.1109/INFVIS.2003.1249009</a></li>
-<li id="ref-36">Devendra Kalra and Alan H. Barr. 1989. <em>Guaranteed ray intersections with implicit surfaces</em>. Proceedings of SIGGRAPH '89, 297–306. <a href="https://doi.org/10.1145/74333.74364">doi:10.1145/74333.74364</a></li>
-<li id="ref-37">Matthew J. Keeter. 2020. <em>Massively parallel rendering of complex closed-form implicit surfaces</em>. ACM Transactions on Graphics 39, 4. <a href="https://doi.org/10.1145/3386569.3392429">doi:10.1145/3386569.3392429</a></li>
-<li id="ref-38">Mark J. Kilgard and Jeff Bolz. 2012. <em>GPU-accelerated path rendering</em>. ACM Transactions on Graphics 31, 6, 1–10. <a href="https://doi.org/10.1145/2366145.2366191">doi:10.1145/2366145.2366191</a></li>
-<li id="ref-39">Aaron Knoll, Younis Hijazi, Andrew Kensler, Mathias Schott, Charles Hansen, and Hans Hagen. 2009. <em>Fast ray tracing of arbitrary implicit surfaces with interval and affine arithmetic</em>. Computer Graphics Forum 28, 1, 26–40. <a href="https://doi.org/10.1111/j.1467-8659.2008.01189.x">doi:10.1111/j.1467-8659.2008.01189.x</a></li>
-<li id="ref-40">Felix Knoppel, Keenan Crane, Ulrich Pinkall, and Peter Schroder. 2015. <em>Stripe Patterns on Surfaces</em>. ACM Transactions on Graphics 34, 4, 39:1–39:11. <a href="https://doi.org/10.1145/2767000">doi:10.1145/2767000</a></li>
-<li id="ref-41">Ares Lagae, Sylvain Lefebvre, Rob Cook, Tony DeRose, George Drettakis, David S. Ebert, J. P. Lewis, Ken Perlin, and Matthias Zwicker. 2010. <em>A survey of procedural noise functions</em>. Computer Graphics Forum 29, 8, 2579–2600. <a href="https://doi.org/10.1111/j.1467-8659.2010.01827.x">doi:10.1111/j.1467-8659.2010.01827.x</a></li>
-<li id="ref-42">Guy Lebanon and Alfred M. Bruckstein. 2001. <em>Variational approach to moire pattern synthesis</em>. Journal of the Optical Society of America A 18, 6, 1371–1382. <a href="https://doi.org/10.1364/JOSAA.18.001371">doi:10.1364/JOSAA.18.001371</a></li>
-<li id="ref-43">Charles Loop and Jim Blinn. 2005. <em>Resolution independent curve rendering using programmable graphics hardware</em>. ACM Transactions on Graphics 24, 3, 1000–1009. <a href="https://doi.org/10.1145/1073204.1073303">doi:10.1145/1073204.1073303</a></li>
-<li id="ref-44">Josiah Manson and Scott Schaefer. 2013. <em>Analytic Rasterization of Curves with Polynomial Filters</em>. Computer Graphics Forum 32, 2pt4, 499–507. <a href="https://doi.org/10.1111/cgf.12070">doi:10.1111/cgf.12070</a></li>
-<li id="ref-45">D. M. Meadows, W. O. Johnson, and J. B. Allen. 1970. <em>Generation of Surface Contours by Moire Patterns</em>. Applied Optics 9, 4, 942–947. <a href="https://doi.org/10.1364/AO.9.000942">doi:10.1364/AO.9.000942</a></li>
-<li id="ref-46">Don P. Mitchell. 1990. <em>Robust ray intersection with interval arithmetic</em>. Proceedings of Graphics Interface '90, 68–74. <a href="https://doi.org/10.20380/GI1990.08">doi:10.20380/GI1990.08</a></li>
-<li id="ref-47">Diego Nehab and Hugues Hoppe. 2008. <em>Random-access rendering of general vector graphics</em>. ACM Transactions on Graphics 27, 5, 1–10. <a href="https://doi.org/10.1145/1409060.1409088">doi:10.1145/1409060.1409088</a></li>
-<li id="ref-48">Carsten Nicolai. 2010. <em>Moire Index</em>. Gestalten.</li>
-<li id="ref-49">Alan Norton, Alyn P. Rockwood, and Philip T. Skolmoski. 1982. <em>Clamping: A method of antialiasing textured surfaces by bandwidth limiting in object space</em>. Proceedings of SIGGRAPH '82, 1–8. <a href="https://doi.org/10.1145/800064.801252">doi:10.1145/800064.801252</a></li>
-<li id="ref-50">John F. Nye and Michael V. Berry. 1974. <em>Dislocations in Wave Trains</em>. Proceedings of the Royal Society of London A 336, 1605, 165–190. <a href="https://doi.org/10.1098/rspa.1974.0012">doi:10.1098/rspa.1974.0012</a></li>
-<li id="ref-51">Gerald Oster and Yasunori Nishijima. 1963. <em>Moire Patterns</em>. Scientific American 208, 5, 54–63. <a href="https://doi.org/10.1038/scientificamerican0563-54">doi:10.1038/scientificamerican0563-54</a></li>
-<li id="ref-52">Gerald Oster, Mark Wasserman, and Craig Zwerling. 1964. <em>Theoretical interpretation of moire patterns</em>. Journal of the Optical Society of America 54, 2, 169–175. <a href="https://doi.org/10.1364/JOSA.54.000169">doi:10.1364/JOSA.54.000169</a></li>
-<li id="ref-53">Gerald Oster. 1965. <em>Optical Art</em>. Applied Optics 4, 11, 1359–1369. <a href="https://doi.org/10.1364/AO.4.001359">doi:10.1364/AO.4.001359</a></li>
-<li id="ref-54">Victor Ostromoukhov, Roger D. Hersch, and Isaac Amidror. 1994. <em>Rotated Dispersed Dither: A New Technique for Digital Halftoning</em>. Proceedings of the 21st Annual Conference on Computer Graphics and Interactive Techniques (SIGGRAPH '94), 123–130. <a href="https://doi.org/10.1145/192161.192188">doi:10.1145/192161.192188</a></li>
-<li id="ref-55">Victor Ostromoukhov and Roger D. Hersch. 1995. <em>Artistic Screening</em>. Proceedings of the 22nd Annual Conference on Computer Graphics and Interactive Techniques (SIGGRAPH '95), 219–228. <a href="https://doi.org/10.1145/218380.218445">doi:10.1145/218380.218445</a></li>
-<li id="ref-56">Victor Ostromoukhov and Roger D. Hersch. 1999. <em>Multi-Color and Artistic Dithering</em>. Proceedings of the 26th Annual Conference on Computer Graphics and Interactive Techniques (SIGGRAPH '99), 425–432. <a href="https://doi.org/10.1145/311535.311605">doi:10.1145/311535.311605</a></li>
-<li id="ref-57">Marios Papas, Thomas Houit, Derek Nowrouzezahrai, Markus Gross, and Wojciech Jarosz. 2012. <em>The Magic Lens: Refractive Steganography</em>. ACM Transactions on Graphics 31, 6, 10. <a href="https://doi.org/10.1145/2366145.2366205">doi:10.1145/2366145.2366205</a></li>
-<li id="ref-58">Krzysztof Patorski, Suezou Yokozeki, and Tsuyoshi Suzuki. 1976. <em>Moire Profile Prediction by Using Fourier Series Formalism</em>. Japanese Journal of Applied Physics 15, 3, 443–456. <a href="https://doi.org/10.1143/JJAP.15.443">doi:10.1143/JJAP.15.443</a></li>
-<li id="ref-59">Krzysztof Patorski and Malgorzata Kujawinska. 1993. <em>Handbook of the Moire Fringe Technique</em>. Elsevier.</li>
-<li id="ref-60">S. A. Piyavskii. 1972. <em>An algorithm for finding the absolute extremum of a function</em>. USSR Computational Mathematics and Mathematical Physics 12, 4, 57–67. <a href="https://doi.org/10.1016/0041-5553(72)90115-2">doi:10.1016/0041-5553(72)90115-2</a></li>
-<li id="ref-61">Petar Pjanic and Roger D. Hersch. 2015. <em>Color Imaging and Pattern Hiding on a Metallic Substrate</em>. ACM Transactions on Graphics 34, 4, 10. <a href="https://doi.org/10.1145/2766944">doi:10.1145/2766944</a></li>
-<li id="ref-62">Thomas Porter and Tom Duff. 1984. <em>Compositing digital images</em>. Proceedings of the 11th Annual Conference on Computer Graphics and Interactive Techniques (SIGGRAPH '84), 253–259. <a href="https://doi.org/10.1145/800031.808606">doi:10.1145/800031.808606</a></li>
-<li id="ref-63">Daniel Post, Bongtae Han, and Peter Ifju. 1994. <em>High Sensitivity Moire: Experimental Analysis for Mechanics and Materials</em>. Springer. <a href="https://doi.org/10.1007/978-1-4612-4334-2">doi:10.1007/978-1-4612-4334-2</a></li>
-<li id="ref-64">Daniel Post and Bongtae Han. 2008. <em>Moire Interferometry</em>. Springer Handbook of Experimental Solid Mechanics, 627–654. <a href="https://doi.org/10.1007/978-0-387-30877-7\_22">doi:10.1007/978-0-387-30877-7\_22</a></li>
-<li id="ref-65">Simeng Qiu, Hadi Amata, and Wolfgang Heidrich. 2023. <em>MoireTag: Angular Measurement and Tracking with a Passive Marker</em>. ACM SIGGRAPH 2023 Conference Proceedings, 10. <a href="https://doi.org/10.1145/3588432.3591538">doi:10.1145/3588432.3591538</a></li>
-<li id="ref-66">Inigo Quilez. 2008. <em>Distance functions</em>. https://iquilezles.org/articles/distfunctions/.</li>
-<li id="ref-67">Inigo Quilez. 2019. <em>2D distance functions</em>. https://iquilezles.org/articles/distfunctions2d/.</li>
-<li id="ref-68">Inigo Quilez. 2023. <em>SDF Domain Repetition</em>. https://iquilezles.org/articles/sdfrepetition/.</li>
-<li id="ref-69">Lord Rayleigh. 1874. <em>On the manufacture and theory of diffraction-gratings</em>. The London, Edinburgh, and Dublin Philosophical Magazine and Journal of Science 47, 310, 81–93. <a href="https://doi.org/10.1080/14786447408640996">doi:10.1080/14786447408640996</a></li>
-<li id="ref-70">Augusto Righi. 1887. <em>Sui fenomeni che si producono colla sovrapposizione di due reticoli e sopra alcune loro applicazioni</em>. Il Nuovo Cimento 21, 203–229. <a href="https://doi.org/10.1007/BF02737370">doi:10.1007/BF02737370</a></li>
-<li id="ref-71">R. Tyrrell Rockafellar. 1970. <em>Convex Analysis</em>. Princeton University Press. <a href="https://doi.org/10.1515/9781400873173">doi:10.1515/9781400873173</a></li>
-<li id="ref-72">Artin Saberpour, Roger D. Hersch, Jiajing Fang, Rhaleb Zayer, Hans-Peter Seidel, and Vahid Babaei. 2020. <em>Fabrication of moire on curved surfaces</em>. Optics Express 28, 13, 19413–19427. <a href="https://doi.org/10.1364/OE.393843">doi:10.1364/OE.393843</a></li>
-<li id="ref-73">Rolf Schneider. 2014. <em>Convex Bodies: The Brunn–Minkowski Theory</em>. Cambridge University Press. <a href="https://doi.org/10.1017/CBO9781139003858">doi:10.1017/CBO9781139003858</a></li>
-<li id="ref-74">Cesar A. Sciammarella. 1965. <em>Basic Optical Law in the Interpretation of Moire Patterns Applied to the Analysis of Strains –- Part 1</em>. Experimental Mechanics 5, 5, 154–160. <a href="https://doi.org/10.1007/BF02324049">doi:10.1007/BF02324049</a></li>
-<li id="ref-75">William C. Seitz. 1965. <em>The Responsive Eye</em>. The Museum of Modern Art.</li>
-<li id="ref-76">Asok K. Sen. 1998. <em>A Product–Delay Algorithm for Graphic Design</em>. Computers &amp; Graphics 22, 6, 759–764. <a href="https://doi.org/10.1016/S0097-8493(98)00096-X">doi:10.1016/S0097-8493(98)00096-X</a></li>
-<li id="ref-77">Asok K. Sen. 2000. <em>Moire Patterns</em>. Computers &amp; Graphics 24, 3, 471–475. <a href="https://doi.org/10.1016/S0097-8493(00)00043-1">doi:10.1016/S0097-8493(00)00043-1</a></li>
-<li id="ref-78">Ticha Sethapakdi, Maxine Perroni-Scharf, Mingming Li, Jiaji Li, Justin Solomon, Arvind Satyanarayan, and Stefanie Mueller. 2025. <em>FabObscura: Computational Design and Fabrication for Interactive Barrier-Grid Animations</em>. Proceedings of the 38th Annual ACM Symposium on User Interface Software and Technology (UIST '25), 16. <a href="https://doi.org/10.1145/3746059.3747629">doi:10.1145/3746059.3747629</a></li>
-<li id="ref-79">Nicholas Sharp and Alec Jacobson. 2022. <em>Spelunking the deep: guaranteed queries on general neural implicit surfaces via range analysis</em>. ACM Transactions on Graphics 41, 4. <a href="https://doi.org/10.1145/3528223.3530155">doi:10.1145/3528223.3530155</a></li>
-<li id="ref-80">Bruno O. Shubert. 1972. <em>A sequential method seeking the global maximum of a function</em>. SIAM Journal on Numerical Analysis 9, 3, 379–388. <a href="https://doi.org/10.1137/0709036">doi:10.1137/0709036</a></li>
-<li id="ref-81">John M. Snyder. 1992. <em>Interval Analysis for Computer Graphics</em>. Proceedings of SIGGRAPH '92, 121–130. <a href="https://doi.org/10.1145/133994.134024">doi:10.1145/133994.134024</a></li>
-<li id="ref-82">Yves Surrel. 1996. <em>Design of Algorithms for Phase Measurements by the Use of Phase Stepping</em>. Applied Optics 35, 1, 51–60. <a href="https://doi.org/10.1364/AO.35.000051">doi:10.1364/AO.35.000051</a></li>
-<li id="ref-83">Hiroshi Takasaki. 1970. <em>Moire Topography</em>. Applied Optics 9, 6, 1467–1472. <a href="https://doi.org/10.1364/AO.9.001467">doi:10.1364/AO.9.001467</a></li>
-<li id="ref-84">Mitsuo Takeda, Hideki Ina, and Seiji Kobayashi. 1982. <em>Fourier-transform method of fringe-pattern analysis for computer-based topography and interferometry</em>. Journal of the Optical Society of America 72, 1, 156–160. <a href="https://doi.org/10.1364/JOSA.72.000156">doi:10.1364/JOSA.72.000156</a></li>
-<li id="ref-85">Gabriel Taubin. 1994. <em>Distance Approximations for Rasterizing Implicit Curves</em>. ACM Transactions on Graphics 13, 1, 3–42. <a href="https://doi.org/10.1145/174462.174531">doi:10.1145/174462.174531</a></li>
-<li id="ref-86">Thibault Tricard, Semyon Efremov, Cedric Zanni, Fabrice Neyret, Jonas Martinez, and Sylvain Lefebvre. 2019. <em>Procedural Phasor Noise</em>. ACM Transactions on Graphics 38, 4, 57:1–57:13. <a href="https://doi.org/10.1145/3306346.3322990">doi:10.1145/3306346.3322990</a></li>
-<li id="ref-87">Pei-Hen Tsai and Yung-Yu Chuang. 2013. <em>Target-Driven Moire Pattern Synthesis by Phase Modulation</em>. Proceedings of the IEEE International Conference on Computer Vision (ICCV), 1912–1919. <a href="https://doi.org/10.1109/ICCV.2013.240">doi:10.1109/ICCV.2013.240</a></li>
-<li id="ref-88">Robert Ulichney. 1987. <em>Digital Halftoning</em>. MIT Press. <a href="https://doi.org/10.7551/mitpress/2421.001.0001">doi:10.7551/mitpress/2421.001.0001</a></li>
-<li id="ref-89">W3C GPU for the Web Working Group. 2025. <em>WebGPU</em>. W3C Candidate Recommendation, https://www.w3.org/TR/webgpu/.</li>
-<li id="ref-90">Thomas Walger and Roger D. Hersch. 2015. <em>Hiding Information in Multiple Level-line Moires</em>. Proceedings of the 2015 ACM Symposium on Document Engineering (DocEng '15), 21–24. <a href="https://doi.org/10.1145/2682571.2797078">doi:10.1145/2682571.2797078</a></li>
-<li id="ref-91">Thomas Walger, Theophane Besson, Valentin Flauraud, Roger D. Hersch, and Juergen Brugger. 2019. <em>1D moire shapes by superposed layers of micro-lenses</em>. Optics Express 27, 26, 37419–37434. <a href="https://doi.org/10.1364/OE.27.037419">doi:10.1364/OE.27.037419</a></li>
-<li id="ref-92">Thomas Walger, Theophane Besson, Valentin Flauraud, Roger D. Hersch, and Juergen Brugger. 2020. <em>Level-line moires by superposition of cylindrical microlens gratings</em>. Journal of the Optical Society of America A 37, 2, 209–218. <a href="https://doi.org/10.1364/JOSAA.37.000209">doi:10.1364/JOSAA.37.000209</a></li>
-<li id="ref-93">James F. Watkins. 1982. <em>Kinetic Art: Producing Unusual Moire Effects by Means of Specially Prepared Drawings</em>. Leonardo 15, 2, 133–136. <a href="https://doi.org/10.2307/1574552">doi:10.2307/1574552</a></li>
-<li id="ref-94">Chang Xiao and Changxi Zheng. 2021. <em>MoireBoard: A Stable, Accurate and Low-cost Camera Tracking Method</em>. The 34th Annual ACM Symposium on User Interface Software and Technology (UIST '21), 881–893. <a href="https://doi.org/10.1145/3472749.3474793">doi:10.1145/3472749.3474793</a></li>
-<li id="ref-95">Ling-Qi Yan, Milov s Hav san, Wenzel Jakob, Jason Lawrence, Steve Marschner, and Ravi Ramamoorthi. 2014. <em>Rendering glints on high-resolution normal-mapped specular surfaces</em>. ACM Transactions on Graphics 33, 4. <a href="https://doi.org/10.1145/2601097.2601155">doi:10.1145/2601097.2601155</a></li>
-<li id="ref-96">Ling-Qi Yan, Milov s Hav san, Steve Marschner, and Ravi Ramamoorthi. 2016. <em>Position-normal distributions for efficient rendering of specular microstructure</em>. ACM Transactions on Graphics 35, 4. <a href="https://doi.org/10.1145/2897824.2925915">doi:10.1145/2897824.2925915</a></li>
-<li id="ref-97">Matthias Zwicker, Hanspeter Pfister, Jeroen van Baar, and Markus Gross. 2002. <em>EWA Splatting</em>. IEEE Transactions on Visualization and Computer Graphics 8, 3, 223–238. <a href="https://doi.org/10.1109/TVCG.2002.1021576">doi:10.1109/TVCG.2002.1021576</a></li></ol>
+<li id="ref-10">V. Yu. Bazhenov, M. V. Vasnetsov, and M. S. Soskin. 1990. <em>Laser Beams with Screw Dislocations in Their Wavefronts</em>. JETP Letters 52, 8, 429–431.</li>
+<li id="ref-11">Rafi Bistritzer and Allan H. MacDonald. 2011. <em>Moire bands in twisted double-layer graphene</em>. Proceedings of the National Academy of Sciences 108, 30, 12233–12237. <a href="https://doi.org/10.1073/pnas.1108174108">doi:10.1073/pnas.1108174108</a></li>
+<li id="ref-12">Eric Bruneton and Fabrice Neyret. 2012. <em>A survey of nonlinear prefiltering methods for efficient and accurate surface shading</em>. IEEE Transactions on Visualization and Computer Graphics 18, 2, 242–260. <a href="https://doi.org/10.1109/TVCG.2011.81">doi:10.1109/TVCG.2011.81</a></li>
+<li id="ref-13">John H. Bruning, Donald R. Herriott, Joseph E. Gallagher, Daniel P. Rosenfeld, Andrew D. White, and Donald J. Brangaccio. 1974. <em>Digital Wavefront Measuring Interferometer for Testing Optical Surfaces and Lenses</em>. Applied Optics 13, 11, 2693–2703. <a href="https://doi.org/10.1364/AO.13.002693">doi:10.1364/AO.13.002693</a></li>
+<li id="ref-14">Olof Bryngdahl. 1974. <em>Moire: Formation and interpretation</em>. Journal of the Optical Society of America 64, 10, 1287–1294. <a href="https://doi.org/10.1364/JOSA.64.001287">doi:10.1364/JOSA.64.001287</a></li>
+<li id="ref-15">Ricardo Cabello and Three.js contributors. 2026. <em>three.js</em>. https://threejs.org/.</li>
+<li id="ref-16">Daniel Campos Zamora, Mustafa Doga Dogan, Alexa F. Siu, Eunyee Koh, and Chang Xiao. 2024. <em>MoireWidgets: High-Precision, Passive Tangible Interfaces via Moire Effect</em>. Proceedings of the CHI Conference on Human Factors in Computing Systems (CHI '24), 14. <a href="https://doi.org/10.1145/3613904.3642734">doi:10.1145/3613904.3642734</a></li>
+<li id="ref-17">Yuan Cao, Valla Fatemi, Shiang Fang, Kenji Watanabe, Takashi Taniguchi, Efthimios Kaxiras, and Pablo Jarillo-Herrero. 2018. <em>Unconventional superconductivity in magic-angle graphene superlattices</em>. Nature 556, 43–50. <a href="https://doi.org/10.1038/nature26160">doi:10.1038/nature26160</a></li>
+<li id="ref-18">Edwin Catmull. 1978. <em>A hidden-surface algorithm with anti-aliasing</em>. Proceedings of the 5th Annual Conference on Computer Graphics and Interactive Techniques (SIGGRAPH '78), 6–11. <a href="https://doi.org/10.1145/800248.807360">doi:10.1145/800248.807360</a></li>
+<li id="ref-19">Sylvain M. Chosson and Roger D. Hersch. 2014. <em>Beating Shapes Relying on Moire Level Lines</em>. ACM Transactions on Graphics 34, 1, 11. <a href="https://doi.org/10.1145/2644806">doi:10.1145/2644806</a></li>
+<li id="ref-20">John H. Conway and Neil J. A. Sloane. 1982. <em>Fast Quantizing and Decoding Algorithms for Lattice Quantizers and Codes</em>. IEEE Transactions on Information Theory 28, 2, 227–232. <a href="https://doi.org/10.1109/TIT.1982.1056484">doi:10.1109/TIT.1982.1056484</a></li>
+<li id="ref-21">Franklin C. Crow. 1977. <em>The aliasing problem in computer-generated shaded images</em>. Communications of the ACM 20, 11, 799–805. <a href="https://doi.org/10.1145/359863.359869">doi:10.1145/359863.359869</a></li>
+<li id="ref-22">David S. Ebert, F. Kenton Musgrave, Darwyn Peachey, Ken Perlin, and Steven Worley. 2003. <em>Texturing and Modeling: A Procedural Approach</em>. Morgan Kaufmann.</li>
+<li id="ref-23">Christer Ericson. 2004. <em>Real-Time Collision Detection</em>. Morgan Kaufmann. <a href="https://doi.org/10.1201/b14581">doi:10.1201/b14581</a></li>
+<li id="ref-24">Fan Feng. 2025. <em>Objective Moire Patterns</em>. Journal of Applied Mechanics 92, 8, 081002. <a href="https://doi.org/10.1115/1.4068060">doi:10.1115/1.4068060</a></li>
+<li id="ref-25">Sarah F. Frisken, Ronald N. Perry, Alyn P. Rockwood, and Thouis R. Jones. 2000. <em>Adaptively sampled distance fields: a general representation of shape for computer graphics</em>. Proceedings of the 27th Annual Conference on Computer Graphics and Interactive Techniques (SIGGRAPH '00), 249–254. <a href="https://doi.org/10.1145/344779.344899">doi:10.1145/344779.344899</a></li>
+<li id="ref-26">Eric Galin, Eric Guerin, Axel Paris, and Adrien Peytavie. 2020. <em>Segment Tracing Using Local Lipschitz Bounds</em>. Computer Graphics Forum 39, 2, 545–554. <a href="https://doi.org/10.1111/cgf.13951">doi:10.1111/cgf.13951</a></li>
+<li id="ref-27">Elmer G. Gilbert, Daniel W. Johnson, and S. Sathiya Keerthi. 1988. <em>A fast procedure for computing the distance between complex objects in three-dimensional space</em>. IEEE Journal on Robotics and Automation 4, 2, 193–203. <a href="https://doi.org/10.1109/56.2083">doi:10.1109/56.2083</a></li>
+<li id="ref-28">Leon Glass. 1969. <em>Moire effect from random dots</em>. Nature 223, 578–580. <a href="https://doi.org/10.1038/223578a0">doi:10.1038/223578a0</a></li>
+<li id="ref-29">Andrew S. Glassner. 1997. <em>Inside Moire Patterns</em>. IEEE Computer Graphics and Applications 17, 6, 97–101. <a href="https://doi.org/10.1109/38.626975">doi:10.1109/38.626975</a></li>
+<li id="ref-30">Chris Green. 2007. <em>Improved alpha-tested magnification for vector textures and special effects</em>. ACM SIGGRAPH 2007 Courses, 9–18. <a href="https://doi.org/10.1145/1281500.1281665">doi:10.1145/1281500.1281665</a></li>
+<li id="ref-31">John C. Hart. 1996. <em>Sphere tracing: a geometric method for the antialiased ray tracing of implicit surfaces</em>. The Visual Computer 12, 10, 527–545. <a href="https://doi.org/10.1007/s003710050084">doi:10.1007/s003710050084</a></li>
+<li id="ref-32">Jacques Harthong. 1981. <em>Le moire</em>. Advances in Applied Mathematics 2, 1, 24–75. <a href="https://doi.org/10.1016/0196-8858(81)90038-5">doi:10.1016/0196-8858(81)90038-5</a></li>
+<li id="ref-33">Paul S. Heckbert. 1986. <em>Survey of Texture Mapping</em>. IEEE Computer Graphics and Applications 6, 11, 56–67. <a href="https://doi.org/10.1109/MCG.1986.276672">doi:10.1109/MCG.1986.276672</a></li>
+<li id="ref-34">Roger D. Hersch and Sylvain Chosson. 2004. <em>Band Moire Images</em>. ACM Transactions on Graphics 23, 3, 239–247. <a href="https://doi.org/10.1145/1015706.1015709">doi:10.1145/1015706.1015709</a></li>
+<li id="ref-35">Adolf Hurwitz. 1891. <em>Ueber die angenaherte Darstellung der Irrationalzahlen durch rationale Bruche</em>. Mathematische Annalen 39, 2, 279–284. <a href="https://doi.org/10.1007/BF01206656">doi:10.1007/BF01206656</a></li>
+<li id="ref-36">M. C. Hutley, R. Hunt, R. F. Stevens, and P. Savander. 1994. <em>The Moire Magnifier</em>. Pure and Applied Optics: Journal of the European Optical Society Part A 3, 2, 133–142. <a href="https://doi.org/10.1088/0963-9659/3/2/006">doi:10.1088/0963-9659/3/2/006</a></li>
+<li id="ref-37">T. J. Jankun-Kelly and Kwan-Liu Ma. 2003. <em>MoireGraphs: Radial Focus+Context Visualization and Interaction for Graphs with Visual Nodes</em>. IEEE Symposium on Information Visualization 2003 (INFOVIS 2003), 59–66. <a href="https://doi.org/10.1109/INFVIS.2003.1249009">doi:10.1109/INFVIS.2003.1249009</a></li>
+<li id="ref-38">Devendra Kalra and Alan H. Barr. 1989. <em>Guaranteed ray intersections with implicit surfaces</em>. Proceedings of SIGGRAPH '89, 297–306. <a href="https://doi.org/10.1145/74333.74364">doi:10.1145/74333.74364</a></li>
+<li id="ref-39">Matthew J. Keeter. 2020. <em>Massively parallel rendering of complex closed-form implicit surfaces</em>. ACM Transactions on Graphics 39, 4. <a href="https://doi.org/10.1145/3386569.3392429">doi:10.1145/3386569.3392429</a></li>
+<li id="ref-40">Aleksandr Ya. Khinchin. 1964. <em>Continued Fractions</em>. University of Chicago Press.</li>
+<li id="ref-41">Mark J. Kilgard and Jeff Bolz. 2012. <em>GPU-accelerated path rendering</em>. ACM Transactions on Graphics 31, 6, 1–10. <a href="https://doi.org/10.1145/2366145.2366191">doi:10.1145/2366145.2366191</a></li>
+<li id="ref-42">Aaron Knoll, Younis Hijazi, Andrew Kensler, Mathias Schott, Charles Hansen, and Hans Hagen. 2009. <em>Fast ray tracing of arbitrary implicit surfaces with interval and affine arithmetic</em>. Computer Graphics Forum 28, 1, 26–40. <a href="https://doi.org/10.1111/j.1467-8659.2008.01189.x">doi:10.1111/j.1467-8659.2008.01189.x</a></li>
+<li id="ref-43">Felix Knoppel, Keenan Crane, Ulrich Pinkall, and Peter Schroder. 2015. <em>Stripe Patterns on Surfaces</em>. ACM Transactions on Graphics 34, 4, 39:1–39:11. <a href="https://doi.org/10.1145/2767000">doi:10.1145/2767000</a></li>
+<li id="ref-44">Ares Lagae, Sylvain Lefebvre, Rob Cook, Tony DeRose, George Drettakis, David S. Ebert, J. P. Lewis, Ken Perlin, and Matthias Zwicker. 2010. <em>A survey of procedural noise functions</em>. Computer Graphics Forum 29, 8, 2579–2600. <a href="https://doi.org/10.1111/j.1467-8659.2010.01827.x">doi:10.1111/j.1467-8659.2010.01827.x</a></li>
+<li id="ref-45">Guy Lebanon and Alfred M. Bruckstein. 2001. <em>Variational approach to moire pattern synthesis</em>. Journal of the Optical Society of America A 18, 6, 1371–1382. <a href="https://doi.org/10.1364/JOSAA.18.001371">doi:10.1364/JOSAA.18.001371</a></li>
+<li id="ref-46">Charles Loop and Jim Blinn. 2005. <em>Resolution independent curve rendering using programmable graphics hardware</em>. ACM Transactions on Graphics 24, 3, 1000–1009. <a href="https://doi.org/10.1145/1073204.1073303">doi:10.1145/1073204.1073303</a></li>
+<li id="ref-47">Josiah Manson and Scott Schaefer. 2013. <em>Analytic Rasterization of Curves with Polynomial Filters</em>. Computer Graphics Forum 32, 2pt4, 499–507. <a href="https://doi.org/10.1111/cgf.12070">doi:10.1111/cgf.12070</a></li>
+<li id="ref-48">D. M. Meadows, W. O. Johnson, and J. B. Allen. 1970. <em>Generation of Surface Contours by Moire Patterns</em>. Applied Optics 9, 4, 942–947. <a href="https://doi.org/10.1364/AO.9.000942">doi:10.1364/AO.9.000942</a></li>
+<li id="ref-49">Don P. Mitchell. 1990. <em>Robust ray intersection with interval arithmetic</em>. Proceedings of Graphics Interface '90, 68–74. <a href="https://doi.org/10.20380/GI1990.08">doi:10.20380/GI1990.08</a></li>
+<li id="ref-50">Diego Nehab and Hugues Hoppe. 2008. <em>Random-access rendering of general vector graphics</em>. ACM Transactions on Graphics 27, 5, 1–10. <a href="https://doi.org/10.1145/1409060.1409088">doi:10.1145/1409060.1409088</a></li>
+<li id="ref-51">Phong Q. Nguyen and Damien Stehle. 2009. <em>Low-Dimensional Lattice Basis Reduction Revisited</em>. ACM Transactions on Algorithms 5, 4, 46:1–46:48. <a href="https://doi.org/10.1145/1597036.1597050">doi:10.1145/1597036.1597050</a></li>
+<li id="ref-52">Carsten Nicolai. 2010. <em>Moire Index</em>. Gestalten.</li>
+<li id="ref-53">Alan Norton, Alyn P. Rockwood, and Philip T. Skolmoski. 1982. <em>Clamping: A method of antialiasing textured surfaces by bandwidth limiting in object space</em>. Proceedings of SIGGRAPH '82, 1–8. <a href="https://doi.org/10.1145/800064.801252">doi:10.1145/800064.801252</a></li>
+<li id="ref-54">John F. Nye and Michael V. Berry. 1974. <em>Dislocations in Wave Trains</em>. Proceedings of the Royal Society of London A 336, 1605, 165–190. <a href="https://doi.org/10.1098/rspa.1974.0012">doi:10.1098/rspa.1974.0012</a></li>
+<li id="ref-55">John F. Nye and Michael V. Berry. 1974. <em>Dislocations in Wave Trains</em>. Proceedings of the Royal Society of London A 336, 1605, 165–190. <a href="https://doi.org/10.1098/rspa.1974.0012">doi:10.1098/rspa.1974.0012</a></li>
+<li id="ref-56">Gerald Oster and Yasunori Nishijima. 1963. <em>Moire Patterns</em>. Scientific American 208, 5, 54–63. <a href="https://doi.org/10.1038/scientificamerican0563-54">doi:10.1038/scientificamerican0563-54</a></li>
+<li id="ref-57">Gerald Oster, Mark Wasserman, and Craig Zwerling. 1964. <em>Theoretical interpretation of moire patterns</em>. Journal of the Optical Society of America 54, 2, 169–175. <a href="https://doi.org/10.1364/JOSA.54.000169">doi:10.1364/JOSA.54.000169</a></li>
+<li id="ref-58">Gerald Oster. 1965. <em>Optical Art</em>. Applied Optics 4, 11, 1359–1369. <a href="https://doi.org/10.1364/AO.4.001359">doi:10.1364/AO.4.001359</a></li>
+<li id="ref-59">Victor Ostromoukhov, Roger D. Hersch, and Isaac Amidror. 1994. <em>Rotated Dispersed Dither: A New Technique for Digital Halftoning</em>. Proceedings of the 21st Annual Conference on Computer Graphics and Interactive Techniques (SIGGRAPH '94), 123–130. <a href="https://doi.org/10.1145/192161.192188">doi:10.1145/192161.192188</a></li>
+<li id="ref-60">Victor Ostromoukhov and Roger D. Hersch. 1995. <em>Artistic Screening</em>. Proceedings of the 22nd Annual Conference on Computer Graphics and Interactive Techniques (SIGGRAPH '95), 219–228. <a href="https://doi.org/10.1145/218380.218445">doi:10.1145/218380.218445</a></li>
+<li id="ref-61">Victor Ostromoukhov and Roger D. Hersch. 1999. <em>Multi-Color and Artistic Dithering</em>. Proceedings of the 26th Annual Conference on Computer Graphics and Interactive Techniques (SIGGRAPH '99), 425–432. <a href="https://doi.org/10.1145/311535.311605">doi:10.1145/311535.311605</a></li>
+<li id="ref-62">Marios Papas, Thomas Houit, Derek Nowrouzezahrai, Markus Gross, and Wojciech Jarosz. 2012. <em>The Magic Lens: Refractive Steganography</em>. ACM Transactions on Graphics 31, 6, 10. <a href="https://doi.org/10.1145/2366145.2366205">doi:10.1145/2366145.2366205</a></li>
+<li id="ref-63">Krzysztof Patorski, Suezou Yokozeki, and Tsuyoshi Suzuki. 1976. <em>Moire Profile Prediction by Using Fourier Series Formalism</em>. Japanese Journal of Applied Physics 15, 3, 443–456. <a href="https://doi.org/10.1143/JJAP.15.443">doi:10.1143/JJAP.15.443</a></li>
+<li id="ref-64">Krzysztof Patorski and Malgorzata Kujawinska. 1993. <em>Handbook of the Moire Fringe Technique</em>. Elsevier.</li>
+<li id="ref-65">S. A. Piyavskii. 1972. <em>An algorithm for finding the absolute extremum of a function</em>. USSR Computational Mathematics and Mathematical Physics 12, 4, 57–67. <a href="https://doi.org/10.1016/0041-5553(72)90115-2">doi:10.1016/0041-5553(72)90115-2</a></li>
+<li id="ref-66">Petar Pjanic and Roger D. Hersch. 2015. <em>Color Imaging and Pattern Hiding on a Metallic Substrate</em>. ACM Transactions on Graphics 34, 4, 10. <a href="https://doi.org/10.1145/2766944">doi:10.1145/2766944</a></li>
+<li id="ref-67">Thomas Porter and Tom Duff. 1984. <em>Compositing digital images</em>. Proceedings of the 11th Annual Conference on Computer Graphics and Interactive Techniques (SIGGRAPH '84), 253–259. <a href="https://doi.org/10.1145/800031.808606">doi:10.1145/800031.808606</a></li>
+<li id="ref-68">Daniel Post, Bongtae Han, and Peter Ifju. 1994. <em>High Sensitivity Moire: Experimental Analysis for Mechanics and Materials</em>. Springer. <a href="https://doi.org/10.1007/978-1-4612-4334-2">doi:10.1007/978-1-4612-4334-2</a></li>
+<li id="ref-69">Daniel Post and Bongtae Han. 2008. <em>Moire Interferometry</em>. Springer Handbook of Experimental Solid Mechanics, 627–654. <a href="https://doi.org/10.1007/978-0-387-30877-7\_22">doi:10.1007/978-0-387-30877-7\_22</a></li>
+<li id="ref-70">Simeng Qiu, Hadi Amata, and Wolfgang Heidrich. 2023. <em>MoireTag: Angular Measurement and Tracking with a Passive Marker</em>. ACM SIGGRAPH 2023 Conference Proceedings, 10. <a href="https://doi.org/10.1145/3588432.3591538">doi:10.1145/3588432.3591538</a></li>
+<li id="ref-71">Inigo Quilez. 2008. <em>Distance functions</em>. https://iquilezles.org/articles/distfunctions/.</li>
+<li id="ref-72">Inigo Quilez. 2019. <em>2D distance functions</em>. https://iquilezles.org/articles/distfunctions2d/.</li>
+<li id="ref-73">Inigo Quilez. 2023. <em>SDF Domain Repetition</em>. https://iquilezles.org/articles/sdfrepetition/.</li>
+<li id="ref-74">Lord Rayleigh. 1874. <em>On the manufacture and theory of diffraction-gratings</em>. The London, Edinburgh, and Dublin Philosophical Magazine and Journal of Science 47, 310, 81–93. <a href="https://doi.org/10.1080/14786447408640996">doi:10.1080/14786447408640996</a></li>
+<li id="ref-75">Augusto Righi. 1887. <em>Sui fenomeni che si producono colla sovrapposizione di due reticoli e sopra alcune loro applicazioni</em>. Il Nuovo Cimento 21, 203–229. <a href="https://doi.org/10.1007/BF02737370">doi:10.1007/BF02737370</a></li>
+<li id="ref-76">R. Tyrrell Rockafellar. 1970. <em>Convex Analysis</em>. Princeton University Press. <a href="https://doi.org/10.1515/9781400873173">doi:10.1515/9781400873173</a></li>
+<li id="ref-77">Artin Saberpour, Roger D. Hersch, Jiajing Fang, Rhaleb Zayer, Hans-Peter Seidel, and Vahid Babaei. 2020. <em>Fabrication of moire on curved surfaces</em>. Optics Express 28, 13, 19413–19427. <a href="https://doi.org/10.1364/OE.393843">doi:10.1364/OE.393843</a></li>
+<li id="ref-78">Rolf Schneider. 2014. <em>Convex Bodies: The Brunn–Minkowski Theory</em>. Cambridge University Press. <a href="https://doi.org/10.1017/CBO9781139003858">doi:10.1017/CBO9781139003858</a></li>
+<li id="ref-79">Cesar A. Sciammarella. 1965. <em>Basic Optical Law in the Interpretation of Moire Patterns Applied to the Analysis of Strains –- Part 1</em>. Experimental Mechanics 5, 5, 154–160. <a href="https://doi.org/10.1007/BF02324049">doi:10.1007/BF02324049</a></li>
+<li id="ref-80">William C. Seitz. 1965. <em>The Responsive Eye</em>. The Museum of Modern Art.</li>
+<li id="ref-81">Asok K. Sen. 1998. <em>A Product–Delay Algorithm for Graphic Design</em>. Computers &amp; Graphics 22, 6, 759–764. <a href="https://doi.org/10.1016/S0097-8493(98)00096-X">doi:10.1016/S0097-8493(98)00096-X</a></li>
+<li id="ref-82">Asok K. Sen. 2000. <em>Moire Patterns</em>. Computers &amp; Graphics 24, 3, 471–475. <a href="https://doi.org/10.1016/S0097-8493(00)00043-1">doi:10.1016/S0097-8493(00)00043-1</a></li>
+<li id="ref-83">Ticha Sethapakdi, Maxine Perroni-Scharf, Mingming Li, Jiaji Li, Justin Solomon, Arvind Satyanarayan, and Stefanie Mueller. 2025. <em>FabObscura: Computational Design and Fabrication for Interactive Barrier-Grid Animations</em>. Proceedings of the 38th Annual ACM Symposium on User Interface Software and Technology (UIST '25), 16. <a href="https://doi.org/10.1145/3746059.3747629">doi:10.1145/3746059.3747629</a></li>
+<li id="ref-84">Nicholas Sharp and Alec Jacobson. 2022. <em>Spelunking the deep: guaranteed queries on general neural implicit surfaces via range analysis</em>. ACM Transactions on Graphics 41, 4. <a href="https://doi.org/10.1145/3528223.3530155">doi:10.1145/3528223.3530155</a></li>
+<li id="ref-85">Bruno O. Shubert. 1972. <em>A sequential method seeking the global maximum of a function</em>. SIAM Journal on Numerical Analysis 9, 3, 379–388. <a href="https://doi.org/10.1137/0709036">doi:10.1137/0709036</a></li>
+<li id="ref-86">John M. Snyder. 1992. <em>Interval Analysis for Computer Graphics</em>. Proceedings of SIGGRAPH '92, 121–130. <a href="https://doi.org/10.1145/133994.134024">doi:10.1145/133994.134024</a></li>
+<li id="ref-87">Marat S. Soskin and Mikhail V. Vasnetsov. 2001. <em>Singular Optics</em>. Progress in Optics 42, 219–276. <a href="https://doi.org/10.1016/S0079-6638(01)80018-4">doi:10.1016/S0079-6638(01)80018-4</a></li>
+<li id="ref-88">Yves Surrel. 1996. <em>Design of Algorithms for Phase Measurements by the Use of Phase Stepping</em>. Applied Optics 35, 1, 51–60. <a href="https://doi.org/10.1364/AO.35.000051">doi:10.1364/AO.35.000051</a></li>
+<li id="ref-89">Hiroshi Takasaki. 1970. <em>Moire Topography</em>. Applied Optics 9, 6, 1467–1472. <a href="https://doi.org/10.1364/AO.9.001467">doi:10.1364/AO.9.001467</a></li>
+<li id="ref-90">Mitsuo Takeda, Hideki Ina, and Seiji Kobayashi. 1982. <em>Fourier-transform method of fringe-pattern analysis for computer-based topography and interferometry</em>. Journal of the Optical Society of America 72, 1, 156–160. <a href="https://doi.org/10.1364/JOSA.72.000156">doi:10.1364/JOSA.72.000156</a></li>
+<li id="ref-91">Gabriel Taubin. 1994. <em>Distance Approximations for Rasterizing Implicit Curves</em>. ACM Transactions on Graphics 13, 1, 3–42. <a href="https://doi.org/10.1145/174462.174531">doi:10.1145/174462.174531</a></li>
+<li id="ref-92">Thibault Tricard, Semyon Efremov, Cedric Zanni, Fabrice Neyret, Jonas Martinez, and Sylvain Lefebvre. 2019. <em>Procedural Phasor Noise</em>. ACM Transactions on Graphics 38, 4, 57:1–57:13. <a href="https://doi.org/10.1145/3306346.3322990">doi:10.1145/3306346.3322990</a></li>
+<li id="ref-93">Pei-Hen Tsai and Yung-Yu Chuang. 2013. <em>Target-Driven Moire Pattern Synthesis by Phase Modulation</em>. Proceedings of the IEEE International Conference on Computer Vision (ICCV), 1912–1919. <a href="https://doi.org/10.1109/ICCV.2013.240">doi:10.1109/ICCV.2013.240</a></li>
+<li id="ref-94">Robert Ulichney. 1987. <em>Digital Halftoning</em>. MIT Press. <a href="https://doi.org/10.7551/mitpress/2421.001.0001">doi:10.7551/mitpress/2421.001.0001</a></li>
+<li id="ref-95">W3C GPU for the Web Working Group. 2025. <em>WebGPU</em>. W3C Candidate Recommendation, https://www.w3.org/TR/webgpu/.</li>
+<li id="ref-96">Thomas Walger and Roger D. Hersch. 2015. <em>Hiding Information in Multiple Level-line Moires</em>. Proceedings of the 2015 ACM Symposium on Document Engineering (DocEng '15), 21–24. <a href="https://doi.org/10.1145/2682571.2797078">doi:10.1145/2682571.2797078</a></li>
+<li id="ref-97">Thomas Walger, Theophane Besson, Valentin Flauraud, Roger D. Hersch, and Juergen Brugger. 2019. <em>1D moire shapes by superposed layers of micro-lenses</em>. Optics Express 27, 26, 37419–37434. <a href="https://doi.org/10.1364/OE.27.037419">doi:10.1364/OE.27.037419</a></li>
+<li id="ref-98">Thomas Walger, Theophane Besson, Valentin Flauraud, Roger D. Hersch, and Juergen Brugger. 2020. <em>Level-line moires by superposition of cylindrical microlens gratings</em>. Journal of the Optical Society of America A 37, 2, 209–218. <a href="https://doi.org/10.1364/JOSAA.37.000209">doi:10.1364/JOSAA.37.000209</a></li>
+<li id="ref-99">James F. Watkins. 1982. <em>Kinetic Art: Producing Unusual Moire Effects by Means of Specially Prepared Drawings</em>. Leonardo 15, 2, 133–136. <a href="https://doi.org/10.2307/1574552">doi:10.2307/1574552</a></li>
+<li id="ref-100">Chang Xiao and Changxi Zheng. 2021. <em>MoireBoard: A Stable, Accurate and Low-cost Camera Tracking Method</em>. The 34th Annual ACM Symposium on User Interface Software and Technology (UIST '21), 881–893. <a href="https://doi.org/10.1145/3472749.3474793">doi:10.1145/3472749.3474793</a></li>
+<li id="ref-101">Ling-Qi Yan, Milov s Hav san, Wenzel Jakob, Jason Lawrence, Steve Marschner, and Ravi Ramamoorthi. 2014. <em>Rendering glints on high-resolution normal-mapped specular surfaces</em>. ACM Transactions on Graphics 33, 4. <a href="https://doi.org/10.1145/2601097.2601155">doi:10.1145/2601097.2601155</a></li>
+<li id="ref-102">Ling-Qi Yan, Milov s Hav san, Steve Marschner, and Ravi Ramamoorthi. 2016. <em>Position-normal distributions for efficient rendering of specular microstructure</em>. ACM Transactions on Graphics 35, 4. <a href="https://doi.org/10.1145/2897824.2925915">doi:10.1145/2897824.2925915</a></li>
+<li id="ref-103">Matthias Zwicker, Hanspeter Pfister, Jeroen van Baar, and Markus Gross. 2002. <em>EWA Splatting</em>. IEEE Transactions on Visualization and Computer Graphics 8, 3, 223–238. <a href="https://doi.org/10.1109/TVCG.2002.1021576">doi:10.1109/TVCG.2002.1021576</a></li></ol>
 <h2 class="part">Appendix</h2>
 <h2 id="sec-A1"><span class="secnum">A</span> Proofs</h2>
 <h3 id="sec-A-1"><span class="secnum">A.1</span> The fringe law</h3>
 <div class="proof"><p><em class="proof-head">Proof of Theorem <a href="#thm-2">2</a>.</em> Recall the setting. Layer $i$ has index field
 <span class="nowrap">$\idx_i$,</span> and its ink at a point $q$ comes from thresholding the Euclidean distance
-to the nearest member,</p><div class="equation" id="eq-38"><div class="eq-scroll">\[d_i(q)=\frac{\mathrm{pd}\big(\idx_i(q),1\big)}{\lVert\nabla\idx_i(q)\rVert},\]</div><span class="eq-no">(38)</span></div><p>against the half-width $h_i$ with an antialiasing band <span class="nowrap">$a$,</span> giving
+to the nearest member,</p><div class="equation" id="eq-39"><div class="eq-scroll">\[d_i(q)=\frac{\mathrm{pd}\big(\idx_i(q),1\big)}{\lVert\nabla\idx_i(q)\rVert},\]</div><span class="eq-no">(39)</span></div><p>against the half-width $h_i$ with an antialiasing band <span class="nowrap">$a$,</span> giving
 <span class="nowrap">$\alpha_i(q)=1-\mathrm{smoothstep}(h_i-a,\,h_i+a,\,d_i(q))$.</span> Here
 $\mathrm{pd}(x,1)=\min_{n\in\Z}\lvert x-n\rvert$ is the distance to the nearest
 integer. The two layers share a color and composite as a union,
 <span class="nowrap">$\alpha=\alpha_1+\alpha_2-\alpha_1\alpha_2$.</span></p><p>\paragraph{Step 1: move the threshold into index units.}
-Substituting (<a href="#eq-38">38</a>), the condition $d_i\le h_i$ is
+Substituting (<a href="#eq-39">39</a>), the condition $d_i\le h_i$ is
 <span class="nowrap">$\mathrm{pd}(\idx_i,1)\le h_i\lVert\nabla\idx_i\rVert$.</span> Writing
 $w_i=h_i\lVert\nabla\idx_i\rVert$ and $b_i=a\lVert\nabla\idx_i\rVert$ for the
-half-width and band <em>measured in index units</em>, and</p><div class="equation" id="eq-39"><div class="eq-scroll">\[A_i(v)=1-\mathrm{smoothstep}\big(w_i-b_i,\;w_i+b_i,\;\mathrm{pd}(v,1)\big),\]</div><span class="eq-no">(39)</span></div><p>we have exactly <span class="nowrap">$\alpha_i(q)=A_i(\idx_i(q))$.</span> This is the only place the eikonal
+half-width and band <em>measured in index units</em>, and</p><div class="equation" id="eq-40"><div class="eq-scroll">\[A_i(v)=1-\mathrm{smoothstep}\big(w_i-b_i,\;w_i+b_i,\;\mathrm{pd}(v,1)\big),\]</div><span class="eq-no">(40)</span></div><p>we have exactly <span class="nowrap">$\alpha_i(q)=A_i(\idx_i(q))$.</span> This is the only place the eikonal
 factor of <a href="#sec-3-2">§3.2</a> is used, and it is used twice: once to make the
 threshold comparable to a length, and once to make $w_i$ and $b_i$ constants
 rather than functions of <span class="nowrap">$q$,</span> which is where the theorem's constant-gradient
@@ -2588,25 +2760,25 @@ Let <span class="nowrap">$g=\tfrac12(\nabla\idx_1+\nabla\idx_2)$,</span> let <sp
 <span class="nowrap">$T=1/\lVert g\rVert$,</span> and parameterize $S$ by arclength <span class="nowrap">$t\in[-T/2,T/2]$,</span> so
 <span class="nowrap">$q(t)=p+tu$.</span> With $\nabla\idx_1$ constant on <span class="nowrap">$S$,</span> the map $t\mapsto
 v=\idx_1(q(t))$ is affine with slope <span class="nowrap">$\langle\nabla\idx_1,u\rangle$,</span> hence a
-measure-preserving reparameterization onto an interval of length</p><div class="equation" id="eq-40"><div class="eq-scroll">\[\langle\nabla\idx_1,u\rangle\,T
+measure-preserving reparameterization onto an interval of length</p><div class="equation" id="eq-41"><div class="eq-scroll">\[\langle\nabla\idx_1,u\rangle\,T
   \;=\;\frac{\langle\nabla\idx_1,u\rangle}{\lVert g\rVert}
   \;=\;1+\tfrac12\,\frac{\langle\nabla D,u\rangle}{\lVert g\rVert}
-  \;=\;1+O(\het),\]</div><span class="eq-no">(40)</span></div><p>since $\nabla\idx_1=g+\tfrac12\nabla D$ and <span class="nowrap">$\het=\lVert\nabla D\rVert/\lVert
+  \;=\;1+O(\het),\]</div><span class="eq-no">(41)</span></div><p>since $\nabla\idx_1=g+\tfrac12\nabla D$ and <span class="nowrap">$\het=\lVert\nabla D\rVert/\lVert
 g\rVert$;</span> when $D$ is constant on $S$ the middle term vanishes and the length is
 exactly <span class="nowrap">$1$.</span> So averaging over $S$ in $t$ is averaging over one unit period in
 <span class="nowrap">$v$,</span> exactly in the constant case and to first order in $\het$ otherwise; and
 because both $A_1$ and $A_2$ are $1$-periodic, the choice of representative
 period does not matter.</p><p>\paragraph{Step 3: the constant case.}
 By definition <span class="nowrap">$\idx_2=\idx_1-D$,</span> so in the new variable the second layer's
-argument is <span class="nowrap">$v-D$.</span> If $D$ is constant on <span class="nowrap">$S$,</span> equal to <span class="nowrap">$D(p)$,</span> then</p><div class="equation eq-align" id="eq-41"><div class="eq-scroll">\[\begin{align}
+argument is <span class="nowrap">$v-D$.</span> If $D$ is constant on <span class="nowrap">$S$,</span> equal to <span class="nowrap">$D(p)$,</span> then</p><div class="equation eq-align" id="eq-42"><div class="eq-scroll">\[\begin{align}
   \bar\alpha(p)
   &amp;=\int_0^1\Big[A_1(v)+A_2\big(v-D(p)\big)-A_1(v)A_2\big(v-D(p)\big)\Big]\mathrm{d}v
-  \notag \tag{41}\\
+  \notag \tag{42}\\
   &amp;=\Phi\big(D(p)\big),
- \tag{42}\end{align}\]</div></div><p>which is (<a href="#eq-5">5</a>). Every dependence on $p$ has been absorbed into the single
+ \tag{43}\end{align}\]</div></div><p>which is (<a href="#eq-5">5</a>). Every dependence on $p$ has been absorbed into the single
 number <span class="nowrap">$D(p)$:</span> the individual index fields have disappeared, and with them any
 notion of periodicity, orientation, or curvature of either family. This is the
-content of the theorem.</p><p>@@FLOAT24@@</p><p>\paragraph{Step 4: the hard-edged limit.}
+content of the theorem.</p><p>@@FLOAT27@@</p><p>\paragraph{Step 4: the hard-edged limit.}
 Let <span class="nowrap">$b_i\to0$,</span> so $A_i$ becomes the indicator of
 <span class="nowrap">$\{\mathrm{pd}(v,1)\le w_i\}$,</span> an interval of length $2w_i$ per period. Then
 <span class="nowrap">$\int_0^1 A_i=2w_i$,</span> and $\int_0^1A_1(v)A_2(v-\Delta)\,\mathrm{d}v$ is the
@@ -2618,7 +2790,7 @@ at <span class="nowrap">$2\min(w_1,w_2)$,</span> and once they separate it is ze
 overlap across the far side of the period would need <span class="nowrap">$w_1+w_2&gt;1-t\ge\tfrac12$,</span>
 which the theorem's hypothesis $w_1+w_2\le\tfrac12$ excludes; this is where
 that hypothesis is used, and without it (<a href="#eq-6">6</a>) overcounts (the integral
-form (<a href="#eq-5">5</a>) does not). Hence</p><div class="equation" id="eq-43"><div class="eq-scroll">\[\Phi(\Delta)=2w_1+2w_2-\min\!\big(2\min(w_1,w_2),\;\max\big(0,\;w_1+w_2-t\big)\big),\]</div><span class="eq-no">(43)</span></div><p>which is (<a href="#eq-6">6</a>). It is piecewise linear in <span class="nowrap">$t$,</span> with slope $0$ while one
+form (<a href="#eq-5">5</a>) does not). Hence</p><div class="equation" id="eq-44"><div class="eq-scroll">\[\Phi(\Delta)=2w_1+2w_2-\min\!\big(2\min(w_1,w_2),\;\max\big(0,\;w_1+w_2-t\big)\big),\]</div><span class="eq-no">(44)</span></div><p>which is (<a href="#eq-6">6</a>). It is piecewise linear in <span class="nowrap">$t$,</span> with slope $0$ while one
 stroke lies inside the other, slope $1$ while they partially overlap, and slope $0$
 after they separate: a tent with a flat floor and a flat top, minimized at
 $\Delta\in\Z$ at the value $2\max(w_1,w_2)$ and maximized at $2w_1+2w_2$ wherever
@@ -2632,11 +2804,11 @@ $\lvert\mu\rvert\le\het+O(\het^2)$ by the definition of $\het$ (with equality
 when $\nabla D$ is parallel to <span class="nowrap">$u$).</span> Put
 <span class="nowrap">$F(v,\Delta)=A_1(v)+A_2(v-\Delta)-A_1(v)A_2(v-\Delta)$,</span> so that
 <span class="nowrap">$\Phi(\Delta)=\int_0^1F(v,\Delta)\,\mathrm{d}v$.</span> Averaging over the period and
-expanding in <span class="nowrap">$\mu$,</span></p><div class="equation" id="eq-44"><div class="eq-scroll">\[\bar\alpha(p)=\Phi\big(D(p)\big)
+expanding in <span class="nowrap">$\mu$,</span></p><div class="equation" id="eq-45"><div class="eq-scroll">\[\bar\alpha(p)=\Phi\big(D(p)\big)
   +\mu\int_{-1/2}^{1/2}\!\! (v-v_p)\,\partial_\Delta F\big(v,D(p)\big)\,\mathrm{d}v
-  +O(\mu^2).\]</div><span class="eq-no">(44)</span></div><p>The integral is bounded: <span class="nowrap">$\partial_\Delta F(v,\Delta)=A_2'(v-\Delta)\,(A_1(v)-1)$,</span>
+  +O(\mu^2).\]</div><span class="eq-no">(45)</span></div><p>The integral is bounded: <span class="nowrap">$\partial_\Delta F(v,\Delta)=A_2'(v-\Delta)\,(A_1(v)-1)$,</span>
 $\lvert v-v_p\rvert\le\tfrac12$ on the period, <span class="nowrap">$\lvert A_1-1\rvert\le1$,</span> and
-$\int_0^1\lvert A_2'\rvert\le2$ for the single-bump profile (<a href="#eq-39">39</a>),
+$\int_0^1\lvert A_2'\rvert\le2$ for the single-bump profile (<a href="#eq-40">40</a>),
 so the correction is at most $\lvert\mu\rvert$ in absolute value. Hence
 <span class="nowrap">$\bar\alpha(p)=\Phi(D(p))+O(\het)$,</span> as claimed. <span class="qed">∎</span></p></div>
 <div class="theorem thm-def" id="thm-7"><p><span class="thm-head">Remark 7.</span> The first-order term does not vanish identically. It is odd in
@@ -2648,7 +2820,7 @@ there, and on a plateaued extremum the position is not $O(\het)$-stable at all;
 the measured statistic is consistent with this: the light fringes of
 Table <a href="#tab-1">1</a> sit at mean index gap $0.036$ from an integer
 rather than at <span class="nowrap">$0$,</span> a fraction of the regime bound <span class="nowrap">$\het=1/4$.</span></p></div>
-<p>Figure <a href="#fig-17">17</a> is the theorem and its hypothesis drawn together, on five
+<p>Figure <a href="#fig-20">20</a> is the theorem and its hypothesis drawn together, on five
 of the pairs Table <a href="#tab-1">1</a> measures.</p>
 <p><span class="paralead">The remaining proofs.</span> Each bound of <a href="#sec-6">§6</a> is short and is
 proved where it is stated: the drift constant in <a href="#sec-6-2">§6.2</a>, the two-sided

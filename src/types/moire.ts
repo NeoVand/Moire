@@ -1,5 +1,7 @@
 import type { TilingId } from '../gpu/tilings';
-import { createAnimator, createTiming, type Animator, type MotionDoc } from './motion';
+// Explicit extension: the paper's figure scripts import this file under
+// `node --experimental-strip-types`, which does not resolve extensionless paths.
+import { createAnimator, createTiming, type Animator, type MotionDoc } from './motion.ts';
 
 export type PatternType =
   | 'straight-lines'

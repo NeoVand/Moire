@@ -889,5 +889,44 @@ ${FIELD_PRESETS.map(
   );
 }
 
+// ----------------------------------------------------- selection (convergents)
+section('data/convergents.json : which beat wins is best approximation');
+{
+  const conv = load('convergents.json');
+  const s = conv.summary;
+  macro('selRatios', s.oneD.ratiosChecked);
+  macro('selRecordsMatch', s.oneD.recordsMatchConvergents);
+  if (s.oneD.mismatches !== 0) {
+    throw new Error('convergents.json reports 1D mismatches; the prose claims none');
+  }
+  macro('selTrials', th(s.twoD.trials));
+  macro('selCapMiss', s.twoD.fringeMissedByCap);
+  macro('selCapMissPct', pc(s.twoD.fringeMissedByCap / s.twoD.trials, 0));
+  macro('selShipMiss', s.twoD.fringeMissedByShaderScan);
+  macro('selShipAgree', th(s.twoD.shaderScanMatchesBruteForce));
+  macro('selShipAgreePct', pc(s.twoD.shaderScanMatchesBruteForce / s.twoD.trials, 1));
+  macro('selTruthOrder', s.twoD.truthBudget);
+  console.log(
+    `selection: cap misses ${s.twoD.fringeMissedByCap}/${s.twoD.trials}, ` +
+      `shipped scan misses ${s.twoD.fringeMissedByShaderScan}`
+  );
+}
+
+// ------------------------------------------------------------------- defects
+section('data/defects.json : fringe endings count the enclosed charge');
+{
+  const def = load('defects.json');
+  const gated = def.probes.filter((p) => p.expect !== null);
+  const failed = def.probes.filter((p) => !p.pass);
+  if (failed.length) {
+    throw new Error(`defects.json has ${failed.length} failing probes; the prose claims none`);
+  }
+  macro('defProbes', gated.length);
+  macro('defChargeMax', Math.max(...gated.map((p) => Math.abs(p.expect ?? 0))));
+  const worstCore = Math.max(...def.core.map((c) => c.relError));
+  macro('defCoreWorst', worstCore < 1e-4 ? '10^{-4}' : r(worstCore, 4));
+  console.log(`defects: ${gated.length} probes exact, core law within ${worstCore}`);
+}
+
 writeFileSync(new URL('numbers.tex', PAPER), out.join('\n') + '\n');
 console.log(`\nwrote numbers.tex (${out.filter((l) => l.startsWith('\\newcommand')).length} macros)`);

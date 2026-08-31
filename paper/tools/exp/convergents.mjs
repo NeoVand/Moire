@@ -332,6 +332,28 @@ writeFileSync(
   JSON.stringify({ summary, fan, mismatchSample: mismatches.slice(0, 3) }, null, 1)
 );
 
+// The fan as a CSV for the paper's pgfplots panel: the winning character
+// (p, q) against the pitch ratio, one (p, q) pair per order budget. The
+// figure plots the locked ratio p/q, whose plateaus against rho are the
+// mode-locking staircase of the convergents.
+const fanCsv = ['rho,p2,q2,p4,q4,p8,q8,p16,q16'];
+for (const row of fan) {
+  fanCsv.push(
+    [
+      row.rho,
+      row.A2[0],
+      row.A2[1],
+      row.A4[0],
+      row.A4[1],
+      row.A8[0],
+      row.A8[1],
+      row.A16[0],
+      row.A16[1],
+    ].join(',')
+  );
+}
+writeFileSync(new URL('../../data/convergent-fan.csv', import.meta.url), fanCsv.join('\n') + '\n');
+
 console.log('1D: record-setting beats vs continued-fraction convergents');
 console.log(
   `  ${matched}/${checked} ratios: every record-setter is a convergent` +

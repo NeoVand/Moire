@@ -64,14 +64,15 @@ coverage, and we do not have one. Of the open problems in this paper it is the o
 is what stands between a moir\'e and a display with more than one channel.
 
 \paragraph{Limitations.}
-Five, in decreasing order of severity. \emph{The character scan stops at order
-two.} The criterion and the envelope handle the integer beats
-$k_1\idx_1+k_2\idx_2$ with $\lvert k_i\rvert\le2$; higher-order moir\'es
-exist classically~\cite{Amidror1994TConv, Amidror2009Theory} and metrology
-multiplies fringes deliberately at order $N$, so a pitch ratio near $3{:}1$
-still defeats the criterion exactly as $2{:}1$ defeated its first-order
-predecessor. The scan generalizes mechanically; where to stop is a perceptual
-question (contrast falls with order) that we have not measured.
+Five, in decreasing order of severity. \emph{The scan's reach follows its
+gradients.} The selection of \S\ref{sec:selection} is order-free only where
+both index gradients are closed-form; a walking family's gradient is a
+screen-space difference, whose per-quad noise the reduction reads as slow
+high-order characters, so a pair involving one keeps the old order-two floor,
+and a lattice's candidate combinations are still an enumeration (the first
+three dual rings, supplemental \S S3), so a sufficiently extreme lattice pair
+can beat outside them. Both caps are now exceptions that name their cause
+rather than a ceiling on the theory.
 \emph{The marginal band.} On
 $\rad(-\delta)=s$ with $\theta\neq0$ the interval is genuinely infinite and we
 neither enumerate it nor prefilter it; we subsample, coherently, and accept up to
@@ -79,8 +80,9 @@ $\degLegibleWorst\%$ ink loss in the legible corner of that band
 (Section~\ref{sec:limits}). Proposition~\ref{prop:closed} solves the $\theta=0$
 slice exactly, which suggests the rotated case is not hopeless: the residual there
 is a sinusoid plus a line, and the indices where it can vanish are governed by the
-continued-fraction expansion of $\theta/2\pi$. We consider it the most
-promising follow-on. \emph{The metric.} We minimize the residual of the inradius metric, not
+continued-fraction expansion of $\theta/2\pi$: the same arithmetic
+\S\ref{sec:selection} made the criterion's, so the tools are already in the
+renderer. We consider it the most promising follow-on. \emph{The metric.} We minimize the residual of the inradius metric, not
 Euclidean distance to the curve, which thickens strokes near polygon corners by up
 to $1/\kappa$; dividing by $\lVert\nabla\rad\rVert$ would fix it, at the cost of
 the exact envelopes. \emph{Prefiltering.} We show the wide-interval regime is
@@ -124,14 +126,19 @@ field exists only as the answer to a search.
 Three things follow. The pattern becomes a document rather than a raster:
 resolution-independent, so that one description is a thumbnail, a screen, and a
 plate. The fringe becomes predictable before it is drawn, because the local
-ratios $\het_k$ of Eq.~\ref{eq:ratiok} say where one will appear, which beat it
-will be, and how it will run. And the fringe becomes \emph{addressable}:
+ratios $\het_k$ of Eq.~\ref{eq:ratiok} say where one will appear and how it
+will run, and \emph{which} beat it will be is no longer scanned for but
+computed: the visible-beat hierarchy is the continued fraction of the local
+pitch ratio, found at any order by per-pixel lattice reduction
+(\S\ref{sec:selection}), so the classical order cap is deleted rather than
+raised. And the fringe becomes \emph{addressable}:
 choosing the index fields so that their difference is a field of interest turns
 the moir\'e into a contour plot of that field, which we verified localizes to a
 mean of $\contourWorstErr$\,px against ground truth on the hardest of
 \contourFieldCount{} fields, written as expressions and differentiated as they
 are evaluated so that a field the author invents arrives with the gradient the
-renderer requires.
+renderer requires; a circle-valued field ends fringes at defects whose signed
+endings count its winding exactly (\S\ref{sec:defects}).
 
 Making this run at interactive rates cost the paper's other half. When each member
 of a family carries its own rigid motion there is no global index field, and the

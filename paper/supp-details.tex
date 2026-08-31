@@ -10,8 +10,11 @@ ablation.
 The envelope view advances the ranked layers at the integer rates that hold the
 criterion's winning character fixed (\S\ref{sec:visibility}) and averages over
 $u\in[0,1)$: the plain diagonal for a difference beat, $(1,-1)$ for a sum beat,
-$(1,2)$ and its relatives for the second-order beats, every other layer riding
-the diagonal. On $K$ layers the diagonal alone preserves the zero-sum
+and $(\lvert k_2\rvert,\mp k_1)$ in general -- $(1,2)$ for a $(2,-1)$ beat,
+$(1,3)$ for the $3{:}1$ pair's $(3,-1)$, any order the per-pixel reduction of
+\S\ref{sec:selection} certifies -- every other layer riding the diagonal. A
+rate of $q$ samples each period $M/q$ times at $M$ taps, so deep convergents
+want the tap dial raised. On $K$ layers the diagonal alone preserves the zero-sum
 sublattice, rank $K-1$, so the only per-pixel decision is whether a
 non-zero-sum character wins and which pair spends the deviation; the scan
 compares all pairs among the three topmost scalar families together with the
@@ -58,10 +61,10 @@ the sectors thirty degrees away. So the candidates are the first three dual
 rings, each counted either way, and each weighted by where its kind puts
 ink: the honeycomb's fundamental is its second ring, the square grid has
 nothing at $(2,1)$ or $(2,2)$ at all, and the weight multiplies the match
-error so a near-tie resolves toward the family that carries contrast. (The
-enumeration is still finite; higher coincidence rings exist, exactly as the
-scalar characters beyond $\lvert k\rvert=2$ do, and sit outside the
-schedule.)
+error so a near-tie resolves toward the family that carries contrast. (This
+enumeration is still finite; higher coincidence rings exist and sit outside
+the schedule -- unlike the scalar characters, whose scan is order-free by the
+reduction of \S\ref{sec:selection}.)
 Every combination is linear in position, so its index gradient is exact, and the
 view holds still, per pixel, the one whose gradient best matches the ranked
 partner's, forward or backward. The complementary direction runs a golden-ratio

@@ -165,8 +165,11 @@ family, fractionally, and a distance field to it, so that superposition
 composites fields rather than pixels and no raster exists at any stage. In this
 model the fringes of a superposition are the unit level sets of the index-field
 difference, with a saturating tent profile that is exact under stated local
-hypotheses, without periodicity, and a per-pixel validity criterion scanned
-over the low-order beats. The hard case is a family whose members each carry
+hypotheses, without periodicity, and a per-pixel validity criterion. Which of
+the competing beats is visible turns out to be a best-approximation question:
+the beat hierarchy of two pitches is the continued fraction of their ratio,
+and per-pixel lattice reduction finds the winner at any order, where the
+order-two cap it replaces missed a fifth of visible fringes. The hard case is a family whose members each carry
 their own rigid motion: its index field has no closed form, and the nearest
 member must be searched for. The support function of the generating shape
 supplies a provably sufficient search interval, a Lipschitz skip rule, and an
@@ -176,7 +179,9 @@ agreement with brute force wherever the interval fits its budget. We present
 \Moire{}, a browser tool built on the model, and show that choosing two layers
 so that their index difference is an authored field turns the moir\'e into a
 live contour plot of that field, whose fringes localize to the true level sets
-within a mean of $\contourWorstErr$\,px on the hardest field tested.
+within a mean of $\contourWorstErr$\,px on the hardest field tested; a
+circle-valued field goes further, ending fringes at authored defects whose
+signed endings count its winding exactly.
 \end{abstract}
 
 \begin{CCSXML}
