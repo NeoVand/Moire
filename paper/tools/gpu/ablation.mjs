@@ -92,6 +92,12 @@ const RETRIES = 4;
 const SETTLE_MS = 60;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+/** Half the interquartile range of a sorted array, by nearest-rank quartiles. */
+const iqrHalf = (sorted) => {
+  if (sorted.length < 4) return (sorted[sorted.length - 1] - sorted[0]) / 2;
+  const q = (f) => sorted[Math.min(sorted.length - 1, Math.max(0, Math.round(f * (sorted.length - 1))))];
+  return (q(0.75) - q(0.25)) / 2;
+};
 const median = (xs) => {
   const v = [...xs].sort((a, b) => a - b);
   const m = v.length >> 1;
@@ -200,8 +206,11 @@ export async function ablation(root, opts = {}) {
         ratio: Math.round(mid * 1e4) / 1e4,
         ratios: ratios.map((v) => Math.round(v * 1e4) / 1e4),
         // Half the interquartile range of the ratio, relative to the ratio: how
-        // well determined the published number is.
-        ratioSpread: Math.round(((ratios[ratios.length - 1] - ratios[0]) / 2 / mid) * 1e4) / 1e4,
+        // well determined the published median is. Deliberately NOT the full range
+        // -- a single preempted pass is an outlier, not an error bar, and using the
+        // range put +-665% on ratios whose medians agreed with the published table
+        // to a few percent.
+        ratioSpread: Math.round((iqrHalf(ratios) / mid) * 1e4) / 1e4,
       };
     }
     out[key] = row;
