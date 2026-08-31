@@ -3,7 +3,9 @@ import {
   ArrowHorizontalIcon,
   ArrowReloadHorizontalIcon,
   ArrowRightToLineIcon,
+  EaseInIcon,
   EaseInOutIcon,
+  EaseOutIcon,
   PauseIcon,
   PlayIcon,
   PreviousIcon,
@@ -56,8 +58,10 @@ const MODES: { id: MotionMode; label: string; hint: string; icon: HugeIcon }[] =
 ];
 
 const EASES: { id: MotionEase; label: string; hint: string; icon: HugeIcon }[] = [
-  { id: 'inOut', label: 'Eased', hint: 'Slow at both ends.', icon: EaseInOutIcon },
   { id: 'linear', label: 'Linear', hint: 'Constant rate throughout.', icon: SlashIcon },
+  { id: 'in', label: 'In', hint: 'Starts slowly, arrives at speed.', icon: EaseInIcon },
+  { id: 'out', label: 'Out', hint: 'Leaves at speed, settles slowly.', icon: EaseOutIcon },
+  { id: 'inOut', label: 'Both', hint: 'Slow at both ends.', icon: EaseInOutIcon },
 ];
 
 const seg = (active: boolean) =>
@@ -296,7 +300,7 @@ export function MotionPanel() {
 
         <div className="grid gap-1.5">
           <span className={rowLabel}>Easing</span>
-          <div className={`${group} grid-cols-2`}>
+          <div className={`${group} grid-cols-4`}>
             {EASES.map((e) => (
               <button
                 key={e.id}

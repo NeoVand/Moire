@@ -10,7 +10,7 @@
  */
 
 export type MotionMode = 'loop' | 'bounce' | 'once';
-export type MotionEase = 'linear' | 'inOut';
+export type MotionEase = 'linear' | 'in' | 'out' | 'inOut';
 
 /**
  * A shared schedule. Several animators can point at one, which is how a dozen
@@ -105,7 +105,17 @@ export function scheduleOf(
 const frac = (v: number) => v - Math.floor(v);
 /** 0 → 1 → 0 across the unit interval: the there-and-back of a bounce. */
 const triangle = (v: number) => (v < 0.5 ? v * 2 : 2 - v * 2);
-const easeInOut = (v: number) => (v < 0.5 ? 4 * v * v * v : 1 - (-2 * v + 2) ** 3 / 2);
+/**
+ * Cubic, all four of them. Cubic rather than quadratic because it is the shape
+ * every other tool means by "eased", so a motion authored here reads the way it
+ * would anywhere else.
+ */
+const EASE: Record<MotionEase, (v: number) => number> = {
+  linear: (v) => v,
+  in: (v) => v * v * v,
+  out: (v) => 1 - (1 - v) ** 3,
+  inOut: (v) => (v < 0.5 ? 4 * v * v * v : 1 - (-2 * v + 2) ** 3 / 2),
+};
 
 /**
  * Where this animator's knob should be at time `t`. Pure, total, and defined for
@@ -129,7 +139,7 @@ export function sampleAnimator(a: Animator, timings: Timing[], t: number): numbe
     u = frac(elapsed / period + a.phase);
   }
 
-  const eased = s.ease === 'inOut' ? easeInOut(u) : u;
+  const eased = (EASE[s.ease] ?? EASE.linear)(u);
   return a.from + eased * (a.to - a.from);
 }
 

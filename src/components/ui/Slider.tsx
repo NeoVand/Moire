@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { KeyframeIcon, RefreshCwIcon } from '@hugeicons/core-free-icons';
+import { PlayIcon, RefreshCwIcon } from '@hugeicons/core-free-icons';
 import { Icon } from './Icon';
 import { InfoTip } from './Tip';
 import { useParamRegistration, type ParamPath } from '../../store/params';
@@ -180,7 +180,7 @@ export function Slider({
                   : 'text-[var(--text-muted)] opacity-0 group-hover/slider:opacity-100 focus-visible:opacity-100'
               } hover:text-[var(--text-primary)]`}
             >
-              <Icon icon={KeyframeIcon} size={11} />
+              <Icon icon={PlayIcon} size={11} />
             </button>
           )}
         </span>

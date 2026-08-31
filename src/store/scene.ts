@@ -120,7 +120,7 @@ function parseLayer(raw: unknown, index: number): PatternLayer {
 }
 
 const MODES = new Set<MotionMode>(['loop', 'bounce', 'once']);
-const EASES = new Set<MotionEase>(['linear', 'inOut']);
+const EASES = new Set<MotionEase>(['linear', 'in', 'out', 'inOut']);
 
 function mode(v: unknown, fallback: MotionMode): MotionMode {
   return MODES.has(v as MotionMode) ? (v as MotionMode) : fallback;
