@@ -73,6 +73,26 @@ const chip = (active: boolean) =>
   }`;
 
 const group = 'flex gap-0.5 rounded-md bg-[var(--bg-primary)] p-0.5';
+
+/**
+ * Bits per pixel per frame, as a starting guess, refined by measurement.
+ *
+ * These cannot be derived. At high quality the encoders here run on a fixed
+ * quantizer rather than a fixed bitrate -- constant quality, not constant size --
+ * so what a frame costs depends on what is in it, and this content is unusually
+ * dense: hairlines everywhere is close to the worst case for a video encoder.
+ * Measured on real takes it ranges from about 1.3 bits a pixel at small sizes to
+ * 0.4 at 4K, where the same field spreads over four times the pixels.
+ *
+ * So the number below is only ever the first answer. Every completed take
+ * replaces it with what that take actually cost, at which point the estimate
+ * stops being a guess about encoders and becomes a measurement of this machine
+ * encoding this picture.
+ */
+const FIRST_GUESS_BPP: Record<string, number> = { mp4: 0.8, webm: 1.5 };
+
+const MB = (bytes: number) =>
+  bytes >= 995e6 ? `${(bytes / 1e9).toFixed(1)} GB` : `${Math.max(0.1, bytes / 1e6).toFixed(1)} MB`;
 const rowLabel = 'text-[9px] uppercase tracking-[0.09em] text-[var(--text-muted)]';
 const button =
   'flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-[var(--border)] ' +
@@ -86,6 +106,11 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
   const [t1, setT1] = useState(6);
   const [format, setFormat] = useState<'frames' | VideoFormat>('mp4');
   const [videoHeight, setVideoHeight] = useState(1080);
+  // Bits per pixel per frame, per format, learned from finished takes.
+  const measured = useRef<Record<string, number>>({});
+  // Bytes and pixels of the preview PNG, which is this content at this aspect —
+  // the only honest basis for guessing what a folder of PNGs will weigh.
+  const pngSample = useRef<{ bytes: number; pixels: number } | null>(null);
   const [encodable, setEncodable] = useState<Set<VideoFormat>>(new Set());
   const [preview, setPreview] = useState<string | null>(null);
   const [progress, setProgress] = useState<RecordProgress | null>(null);
@@ -130,6 +155,8 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
       do {
         again.current = false;
         const blob = await capturePng({ scale: 1, aspect: aspectRef.current });
+        const shot = captureSize({ scale: 1, aspect: aspectRef.current });
+        if (shot) pngSample.current = { bytes: blob.size, pixels: shot.width * shot.height };
         const url = URL.createObjectURL(blob);
         if (previewUrl.current) URL.revokeObjectURL(previewUrl.current);
         previewUrl.current = url;
@@ -220,6 +247,11 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
         abort.current.signal
       );
       const file = video?.result();
+      if (file && videoSize && out.frames > 0) {
+        // What it actually cost, for the next estimate.
+        measured.current[format] =
+          (file.size * 8) / (videoSize.width * videoSize.height * out.frames);
+      }
       if (file && !out.cancelled) {
         downloadVideo(file, format as VideoFormat, name.trim() || 'moire');
         setStatus({
@@ -246,6 +278,20 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
       void refreshPreview();
     }
   };
+
+  // What the next take will weigh. Marked with a tilde and meant as one: it is
+  // right to a factor a reader can plan around, not to a megabyte.
+  const estimate = (() => {
+    if (format === 'frames') {
+      const s = pngSample.current;
+      if (!s || !stillSize) return null;
+      const perFrame = (s.bytes / s.pixels) * stillSize.width * stillSize.height;
+      return perFrame * frames;
+    }
+    if (!videoSize) return null;
+    const bpp = measured.current[format] ?? FIRST_GUESS_BPP[format] ?? 1;
+    return (bpp * videoSize.width * videoSize.height * frames) / 8;
+  })();
 
   const btn =
     'grid size-7 place-items-center rounded-md text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] disabled:opacity-30';
@@ -496,6 +542,10 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
           >
             <Icon icon={format === 'frames' ? FolderOpenIcon : Camera01Icon} size={13} />
             {format === 'frames' ? 'Record frames…' : `Record ${format.toUpperCase()}`}
+            <span className="font-mono text-[10px] tabular-nums text-[var(--text-muted)]">
+              {frames} frames
+              {estimate !== null && ` · ~${MB(estimate)}`}
+            </span>
           </button>
         )}
 
