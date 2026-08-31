@@ -146,6 +146,14 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
     void refreshPreview();
   }, [refreshPreview, aspect]);
 
+  // What a take produced is true of that take and of nothing else. Left on
+  // screen while the settings move underneath it, "238 frames, 4.2 MB" stops
+  // describing the last recording and starts looking like a prediction of the
+  // next one -- which it is not, and which is why the count appeared frozen.
+  useEffect(() => {
+    setStatus(null);
+  }, [format, fps, t0, t1, scale, aspect, videoHeight]);
+
   // The range is offered rather than imposed: it is set once, when the panel
   // opens, so that adjusting it by hand is not undone by the next edit.
   useEffect(() => {
@@ -497,6 +505,7 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
               status.error ? 'text-[#c0392b]' : 'text-[var(--text-muted)]'
             }`}
           >
+            {!status.error && <span className="text-[var(--text-secondary)]">Last take: </span>}
             {status.text}
           </p>
         )}
