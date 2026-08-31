@@ -258,6 +258,24 @@ const gpu = load('gpu.json');
   macro('gpuSquareOld', r(ms('square off @1', 'sweep'), 2));
   macro('gpuSquareClosed', r(ms('square off @1', 'final'), 2));
   macro('gpuSquareClosedGain', r(ms('square off @1', 'sweep') / ms('square off @1', 'final'), 1));
+  // The speed-ups below are quoted in the abstract, so a contaminated measurement
+  // reaches further here than anywhere else in the paper. Older gpu.json files
+  // carry a single pass per cell and no stability figure at all; say so rather
+  // than quoting them silently.
+  if (gpu.worstSecondOverMin === undefined) {
+    console.warn(
+      '  WARNING: gpu.json predates the repeated timings in tools/gpu/run.mjs -- one ' +
+        'pass per cell, with no check that anything else was using the GPU. The ' +
+        'abstract quotes speed-ups derived from it. Re-run tools/gpu/run.mjs.'
+    );
+  } else if (gpu.worstSecondOverMin > 0.15) {
+    throw new Error(
+      `gpu.json: in some cell the second fastest pass sat ${pc(gpu.worstSecondOverMin)}% above ` +
+        `the fastest, so the minimum may be one lucky scheduling window. The abstract ` +
+        `quotes speed-ups from these numbers. Re-run tools/gpu/run.mjs with nothing ` +
+        `else using the GPU.`
+    );
+  }
   macro('gpuAdapter', gpu.meta.adapter.architecture);
 
   const cell = (v) => `$${r(v, 2)}$`;

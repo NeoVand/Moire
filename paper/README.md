@@ -105,9 +105,16 @@ const json = await gpu.report(root);   // a JSON string
 await fetch('http://localhost:5199/data/gpu.json', { method: 'POST', body: json });
 ```
 
-`report()` returns a string; post it as-is. Table 6 has its own driver, because its
-four scenes were once defined only in a console session and two of them were not
-recoverable from the repository:
+`report()` returns a string; post it as-is. It walks the whole solver grid five
+times over and keeps the fastest pass per cell, because anything else using the GPU
+only ever adds time: with one pass per cell, one scene can be inflated while its
+neighbour is clean, and the speed-up between them -- which the abstract quotes --
+becomes partly a report on the machine. `worstSecondOverMin` says whether a second
+pass reached the same floor; `numbers.mjs` refuses the file above 0.15. Pass
+`{timingRepeats: n}` to change the count.
+
+Table 6 has its own driver, because its four scenes were once defined only in a
+console session and two of them were not recoverable from the repository:
 
 ```js
 const abl = await import(`/@fs/${root}/paper/tools/gpu/ablation.mjs`);

@@ -295,19 +295,61 @@ export async function report(root, opts = {}) {
   out.fieldCost = fieldCost;
 
   // 2. Cost of one full-frame pass, per solver generation.
-  for (const [name, spec] of Object.entries(SETTINGS)) {
-    for (const zoom of ZOOMS) {
-      const { key, spec: s } = expand(name, spec, zoom);
-      out.timings[key] = {};
-      for (const solver of SOLVERS) {
-        try {
-          out.timings[key][solver] = await time(solver, s, { reps: opts.reps ?? 24 });
-        } catch (e) {
-          out.timings[key][solver] = { error: String(e.message ?? e) };
+  //
+  // Repeated, and reduced by minimum. A single measurement per cell is not a
+  // measurement: anything else using the GPU only ever adds time to a pass, so on
+  // a machine that is not idle one cell can be inflated while its neighbour is
+  // clean, and the speed-up between them -- which is what Table 3 and the abstract
+  // quote -- is then partly a report on the machine. The whole grid is walked once
+  // per pass rather than each cell repeated in place, so the three solvers of a
+  // scene sit next to each other in time and any slow drift between passes is
+  // shared by all of them. Same reasoning, and the same reduction, as
+  // tools/gpu/ablation.mjs.
+  const timingReps = opts.reps ?? 24;
+  const timingPasses = opts.timingRepeats ?? 5;
+  const samples = {};
+  for (let pass = 0; pass < timingPasses; pass++) {
+    for (const [name, spec] of Object.entries(SETTINGS)) {
+      for (const zoom of ZOOMS) {
+        const { key, spec: s } = expand(name, spec, zoom);
+        samples[key] ??= {};
+        for (const solver of SOLVERS) {
+          samples[key][solver] ??= [];
+          try {
+            samples[key][solver].push(await time(solver, s, { reps: timingReps }));
+          } catch (e) {
+            samples[key][solver].push({ error: String(e.message ?? e) });
+          }
         }
       }
     }
   }
+  // Reduce, and record how well determined each minimum is: if a second pass
+  // reached the same floor, the floor is the machine's rather than one lucky
+  // scheduling window.
+  let worstSecond = 0;
+  for (const [key, bySolver] of Object.entries(samples)) {
+    out.timings[key] = {};
+    for (const [solver, runs] of Object.entries(bySolver)) {
+      const bad = runs.find((r) => r.error);
+      if (bad) {
+        out.timings[key][solver] = { error: bad.error };
+        continue;
+      }
+      const ms = runs.map((r) => r.passMs).sort((a, b) => a - b);
+      const second = ms.length > 1 ? ms[1] / ms[0] - 1 : 0;
+      if (second > worstSecond) worstSecond = second;
+      out.timings[key][solver] = {
+        // The fastest pass, carried whole so wallMs and nsPerPixel belong to it
+        // rather than being mixed across passes.
+        ...runs.find((r) => r.passMs === ms[0]),
+        samples: ms,
+        secondOverMin: Math.round(second * 1e4) / 1e4,
+      };
+    }
+  }
+  out.timingPasses = timingPasses;
+  out.worstSecondOverMin = Math.round(worstSecond * 1e4) / 1e4;
 
   // 3. One mechanism at a time, on the settings that stress the scan.
   const ablationCases = ['triangle rot+off @1', 'hard: off near spacing @1', 'hexagon rot+off @0.15'];
