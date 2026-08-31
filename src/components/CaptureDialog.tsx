@@ -20,7 +20,7 @@ import {
 } from '../gpu/recorder';
 import {
   VIDEO_FORMATS,
-  VIDEO_HEIGHTS,
+  VIDEO_SIZES,
   downloadVideo,
   encodableFormats,
   videoFrameSize,
@@ -410,14 +410,15 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
           {videoSize && (
             <>
               <div className={group}>
-                {VIDEO_HEIGHTS.map((h) => (
+                {VIDEO_SIZES.map((v) => (
                   <button
-                    key={h}
+                    key={v.height}
                     type="button"
-                    className={chip(videoHeight === h)}
-                    onClick={() => setVideoHeight(h)}
+                    title={`${v.height} lines`}
+                    className={chip(videoHeight === v.height)}
+                    onClick={() => setVideoHeight(v.height)}
                   >
-                    {h}p
+                    {v.label}
                   </button>
                 ))}
               </div>
@@ -430,8 +431,8 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
 
         {videoSize && videoSize.height !== videoHeight && (
           <p className="text-[9px] leading-[1.4] text-[var(--text-muted)]">
-            Held to {videoSize.width}×{videoSize.height}: this codec will not encode the frame
-            that aspect asks for at {videoHeight}p.
+            Held to {videoSize.width}×{videoSize.height}: this codec will not encode a frame
+            that wide at {videoHeight} lines.
           </p>
         )}
 

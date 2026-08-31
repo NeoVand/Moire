@@ -44,26 +44,36 @@ export const VIDEO_FORMATS: VideoFormatInfo[] = [
 ];
 
 /**
- * The heights offered, and the reason there is a list at all.
+ * The sizes offered, and the reason there is a list at all.
  *
  * A still is sized as a multiple of the window, because a picture for print is
  * asked for that way. A recording is not: encoders have hard limits, and the
  * multiplier that gives a fine still gives an impossible video. A 2x export of a
  * large window is 6840x3944, which no H.264 encoder will accept and which nobody
  * wanted a video at anyway.
+ *
+ * Named the way people ask for them rather than by line count, with the lines in
+ * the tooltip -- "4K" is what somebody wants, and 2160p is how it is spelled.
  */
-export const VIDEO_HEIGHTS = [720, 1080, 1440, 2160];
+export const VIDEO_SIZES: { height: number; label: string }[] = [
+  { height: 720, label: 'HD' },
+  { height: 1080, label: 'Full HD' },
+  { height: 1440, label: '2K' },
+  { height: 2160, label: '4K' },
+];
 
 /**
  * The largest frame each codec will really take.
  *
  * H.264's top level is 8192x4320 on paper, but hardware encoders in practice
- * refuse well below that and the failure is a wall of codec string. Holding to
- * 4K keeps every machine in the room. VP9 is more forgiving.
+ * refuse well below that and the failure is a wall of codec string. DCI 4K is
+ * the honest ceiling: it clears UHD at sixteen by nine with room over, so asking
+ * for 4K gives 4K, while an unusually wide frame is still held somewhere every
+ * machine can encode rather than somewhere only some can.
  */
 const CODEC_MAX_PIXELS: Record<VideoFormatInfo['codec'], number> = {
-  avc: 3840 * 2160,
-  vp9: 4096 * 2160,
+  avc: 4096 * 2304,
+  vp9: 4096 * 2304,
 };
 
 /** The frame this format will accept nearest the one asked for, always even. */
