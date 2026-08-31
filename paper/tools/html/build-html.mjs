@@ -195,6 +195,21 @@ function compileTikz(tikzTex, widthPt = LINEWIDTH_PT) {
   return { src: `figures/${png}`, widthPt: (pxWidth / 300) * 72 };
 }
 
+/**
+ * The \newcommand definitions a float makes for its own picture.
+ *
+ * A tikzpicture is compiled as a standalone, so anything the float defined
+ * above it -- a strip width, a panel height -- is simply not there, and the
+ * failure is an undefined control sequence from a file the author never wrote.
+ * These are one-line, argument-free shorthands for measurements the figure's
+ * own experiment reported; carrying them into the standalone is enough. Macros
+ * with arguments or brace-nested bodies belong in the shared preamble above.
+ */
+function localDefs(before) {
+  const found = before.match(/\\newcommand\{\\[A-Za-z]+\}\{[^{}]*\}/g);
+  return found ? `${found.join('\n')}\n` : '';
+}
+
 // ------------------------------------------------------------ the algorithm
 
 function algorithmicToHtml(tex) {
@@ -342,7 +357,10 @@ function figureToHtml(inner, star, num, id) {
     else {
       const st = extractEnv(stex, 'tikzpicture');
       if (st) {
-        const r = compileTikz(stex.slice(st.start, st.end), width * widthBase);
+        const r = compileTikz(
+          localDefs(stex.slice(0, st.start)) + stex.slice(st.start, st.end),
+          width * widthBase
+        );
         img = r.src;
         imgWidthPt = r.widthPt;
       }
@@ -360,7 +378,10 @@ function figureToHtml(inner, star, num, id) {
   let tikzHtml = '';
   let te;
   while ((te = extractEnv(tex, 'tikzpicture'))) {
-    const { src, widthPt } = compileTikz(tex.slice(te.start, te.end), star ? LINEWIDTH_PT : COLUMNWIDTH_PT);
+    const { src, widthPt } = compileTikz(
+      localDefs(tex.slice(0, te.start)) + tex.slice(te.start, te.end),
+      star ? LINEWIDTH_PT : COLUMNWIDTH_PT
+    );
     // A column-float plot spans the text column, like it spans its column in
     // print; only an intrinsically narrow drawing sits below full width.
     const pct = Math.min(100, Math.max((widthPt / COLUMNWIDTH_PT) * 100, 55));
