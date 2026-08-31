@@ -15,6 +15,8 @@ import {
 import { clampZoom } from '../gpu/camera';
 import { beginLayerMorph, endLayerMorph } from '../gpu/typeMorph';
 import type { SceneData } from './scene';
+import { writeParamInto } from './params';
+import { MOTION_NONE, type Animator, type MotionDoc, type Timing } from '../types/motion';
 
 export type LayerPatch = Omit<Partial<PatternLayer>, 'position' | 'offset' | 'scale'> & {
   position?: Partial<Vec2>;
@@ -112,6 +114,16 @@ export interface ProjectStore {
   resetView: () => void;
   setBackgroundColor: (color: string) => void;
   setView: (patch: Partial<ViewState>) => void;
+  /**
+   * What each knob does over time. Part of the document, so a shot travels as
+   * one file and a clip is that file plus two times.
+   */
+  motion: MotionDoc;
+  setMotion: (patch: Partial<MotionDoc>) => void;
+  putAnimator: (animator: Animator) => void;
+  removeAnimator: (id: string) => void;
+  putTiming: (timing: Timing) => void;
+  removeTiming: (id: string) => void;
   /** Replace the whole construction with a parsed scene file, wholesale. */
   loadScene: (scene: SceneData) => void;
   /** Back to the construction the tool opens on, view settings included. */
@@ -228,6 +240,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   camera: initial.camera,
   backgroundColor: initial.backgroundColor,
   view: { ...VIEW_DEFAULTS },
+  motion: MOTION_NONE,
 
   selectLayer: (id) => set({ selectedLayerId: id }),
 
@@ -293,6 +306,14 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   removeLayer: (id) => {
     abortIntro();
     endLayerMorph(id);
+    // Motion on a layer that no longer exists would be a silent no-op that the
+    // motion list still lists. Take it with the layer.
+    set((s) => ({
+      motion: {
+        ...s.motion,
+        animators: s.motion.animators.filter((a) => !a.path.startsWith(`layer.${id}.`)),
+      },
+    }));
     set((s) => {
       if (s.layers.length <= 1) return s;
       const layers = s.layers.filter((layer) => layer.id !== id);
@@ -381,8 +402,47 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       camera: { zoom: clampZoom(scene.camera.zoom), pan: scene.camera.pan },
       backgroundColor: scene.backgroundColor,
       view: { ...VIEW_DEFAULTS, ...scene.view },
+      motion: scene.motion ?? MOTION_NONE,
     });
   },
+
+  setMotion: (patch) => set((s) => ({ motion: { ...s.motion, ...patch } })),
+
+  putAnimator: (animator) =>
+    set((s) => ({
+      motion: {
+        ...s.motion,
+        animators: s.motion.animators.some((a) => a.id === animator.id)
+          ? s.motion.animators.map((a) => (a.id === animator.id ? animator : a))
+          : [...s.motion.animators, animator],
+      },
+    })),
+
+  removeAnimator: (id) =>
+    set((s) => ({
+      motion: { ...s.motion, animators: s.motion.animators.filter((a) => a.id !== id) },
+    })),
+
+  putTiming: (timing) =>
+    set((s) => ({
+      motion: {
+        ...s.motion,
+        timings: s.motion.timings.some((t) => t.id === timing.id)
+          ? s.motion.timings.map((t) => (t.id === timing.id ? timing : t))
+          : [...s.motion.timings, timing],
+      },
+    })),
+
+  removeTiming: (id) =>
+    set((s) => ({
+      motion: {
+        ...s.motion,
+        // Animators pointing at a deleted timing fall back to their own
+        // schedule rather than stopping: the fields are always there.
+        timings: s.motion.timings.filter((t) => t.id !== id),
+        animators: s.motion.animators.map((a) => (a.timing === id ? { ...a, timing: null } : a)),
+      },
+    })),
 
   resetProject: () => {
     // The default *project*, not the intro's rest pose: a new document should be
@@ -396,6 +456,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       camera: fresh.camera,
       backgroundColor: fresh.backgroundColor,
       view: { ...VIEW_DEFAULTS },
+      motion: MOTION_NONE,
     });
   },
 
@@ -431,13 +492,25 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
  * ideas of what a construction is.
  */
 export function sceneOf(s: ProjectStore = useProjectStore.getState()): SceneData {
-  return {
+  const scene: SceneData = {
     layers: s.layers,
     selectedLayerId: s.selectedLayerId,
     camera: s.camera,
     backgroundColor: s.backgroundColor,
     view: s.view,
+    motion: s.motion,
   };
+
+  // An animated knob is somewhere between its two ends at any instant, and that
+  // instant is not a fact about the construction. Writing it down would mean a
+  // document that drifts a little every time it is saved, and a file exported
+  // mid-swing that opens somewhere nobody chose. So each animated path goes back
+  // to its `from`, which is the value the animation departs from and the only one
+  // of the two that is a resting place.
+  for (const a of s.motion.animators) {
+    if (a.enabled) writeParamInto(scene, a.path, a.from);
+  }
+  return scene;
 }
 
 export function useSelectedLayer(): PatternLayer | null {

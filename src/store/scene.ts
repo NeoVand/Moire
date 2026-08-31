@@ -2,6 +2,16 @@ import type { CameraState, PatternLayer, PatternType, Vec2 } from '../types/moir
 import { FIELD_NONE, MAX_LAYERS, PATTERN_META, createLayer } from '../types/moire';
 import { TILING_IDS, type TilingId } from '../gpu/tilings';
 import type { ViewState } from './project';
+import {
+  MOTION_NONE,
+  createAnimator,
+  createTiming,
+  type Animator,
+  type MotionDoc,
+  type MotionEase,
+  type MotionMode,
+  type Timing,
+} from '../types/motion';
 
 /**
  * The scene file: everything a construction is, nothing the session is. A JSON
@@ -18,9 +28,13 @@ export interface SceneData {
   camera: CameraState;
   backgroundColor: string;
   view: Partial<ViewState>;
+  /** Absent in a version-1 file, which simply has no motion in it. */
+  motion?: MotionDoc;
 }
 
-const SCENE_VERSION = 1;
+// 2 added `motion`. Version-1 files load unchanged: a scene without motion is a
+// scene whose knobs do not move, which is exactly what it was.
+const SCENE_VERSION = 2;
 const TYPES = new Set<PatternType>(PATTERN_META.map((m) => m.id));
 const TILINGS = new Set<string>(TILING_IDS);
 
@@ -34,6 +48,7 @@ export function serializeScene(scene: SceneData): string {
       camera: scene.camera,
       backgroundColor: scene.backgroundColor,
       view: scene.view,
+      motion: scene.motion ?? MOTION_NONE,
     },
     null,
     2
@@ -104,6 +119,66 @@ function parseLayer(raw: unknown, index: number): PatternLayer {
   };
 }
 
+const MODES = new Set<MotionMode>(['loop', 'bounce', 'once']);
+const EASES = new Set<MotionEase>(['linear', 'inOut']);
+
+function mode(v: unknown, fallback: MotionMode): MotionMode {
+  return MODES.has(v as MotionMode) ? (v as MotionMode) : fallback;
+}
+function ease(v: unknown, fallback: MotionEase): MotionEase {
+  return EASES.has(v as MotionEase) ? (v as MotionEase) : fallback;
+}
+
+/**
+ * Motion, forgivingly. An animator whose path names a layer the file does not
+ * contain is dropped rather than kept as something the motion list would show
+ * and nothing would move -- the same reasoning as taking a layer's animators
+ * with the layer. Anything else missing lands on a default.
+ */
+function parseMotion(raw: unknown, layerIds: Set<string>): MotionDoc {
+  if (typeof raw !== 'object' || raw === null) return MOTION_NONE;
+  const r = raw as Record<string, unknown>;
+
+  const timings: Timing[] = (Array.isArray(r.timings) ? r.timings : [])
+    .filter((t): t is Record<string, unknown> => typeof t === 'object' && t !== null)
+    .map((t) =>
+      createTiming({
+        id: str(t.id, ''),
+        name: str(t.name, 'Timing'),
+        delay: num(t.delay, 0),
+        period: num(t.period, 6),
+        mode: mode(t.mode, 'bounce'),
+        ease: ease(t.ease, 'inOut'),
+      })
+    );
+  const timingIds = new Set(timings.map((t) => t.id));
+
+  const animators: Animator[] = (Array.isArray(r.animators) ? r.animators : [])
+    .filter((a): a is Record<string, unknown> => typeof a === 'object' && a !== null)
+    .map((a) => {
+      const path = str(a.path, '');
+      const owner = path.startsWith('layer.') ? path.split('.')[1] : null;
+      if (!path || (owner !== null && !layerIds.has(owner))) return null;
+      const linked = str(a.timing, '');
+      return createAnimator(path, {
+        id: str(a.id, ''),
+        from: num(a.from, 0),
+        to: num(a.to, 1),
+        timing: timingIds.has(linked) ? linked : null,
+        delay: num(a.delay, 0),
+        period: num(a.period, 6),
+        mode: mode(a.mode, 'bounce'),
+        ease: ease(a.ease, 'inOut'),
+        phase: num(a.phase, 0),
+        hold: bool(a.hold, false),
+        enabled: bool(a.enabled, true),
+      });
+    })
+    .filter((a): a is Animator => a !== null);
+
+  return { timings, animators, playOnLoad: bool(r.playOnLoad, false) };
+}
+
 const VIEW_KEYS: (keyof ViewState)[] = [
   'envelope',
   'envelopeContrast',
@@ -165,5 +240,6 @@ export function parseScene(text: string): SceneData {
     },
     backgroundColor: str(r.backgroundColor, '#ffffff'),
     view,
+    motion: parseMotion(r.motion, seen),
   };
 }

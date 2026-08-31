@@ -12,7 +12,11 @@ import {
   writeSession,
   type ProjectRecord,
 } from './db';
+import * as db from './db';
+import * as motion from '../types/motion';
 import * as params from './params';
+import * as transport from './transport';
+import { useTransportStore } from './transport';
 import { sceneOf, useProjectStore } from './project';
 import { parseScene, serializeScene } from './scene';
 
@@ -62,6 +66,17 @@ export interface LibraryStore {
   loadSceneText: (text: string) => void;
 }
 
+/**
+ * A document that asks to play does so from the beginning. Resuming wherever the
+ * clock happened to be would mean the same file never opens looking the same way
+ * twice, which is the opposite of what the rest of this is for.
+ */
+function startIfAsked() {
+  const { motion } = useProjectStore.getState();
+  useTransportStore.getState().stop();
+  if (motion.playOnLoad) useTransportStore.getState().play();
+}
+
 /** The scene as it stands, as the string everything else stores and compares. */
 function currentText(): string {
   return serializeScene(sceneOf());
@@ -96,6 +111,8 @@ async function thumbnail(): Promise<Blob | undefined> {
 
 /** The text of the last named save, for the dirty flag. */
 let savedText: string | null = null;
+/** The text of the last session write, so an unchanged document is not rewritten. */
+let sessionText: string | null = null;
 
 export const useLibraryStore = create<LibraryStore>((set, get) => ({
   hydrated: false,
@@ -118,6 +135,8 @@ export const useLibraryStore = create<LibraryStore>((set, get) => ({
         // gone stale against the current format fails here rather than loading
         // half of itself.
         useProjectStore.getState().loadScene(parseScene(session.scene));
+        sessionText = session.scene;
+        startIfAsked();
         const owner = session.projectId ? await readProject(session.projectId) : null;
         savedText = owner?.scene ?? null;
         set({
@@ -187,6 +206,7 @@ export const useLibraryStore = create<LibraryStore>((set, get) => ({
     const rec = await readProject(id);
     if (!rec) return;
     useProjectStore.getState().loadScene(parseScene(rec.scene));
+    startIfAsked();
     savedText = rec.scene;
     set({ projectId: id, name: rec.name, dirty: false });
     await writeSession(id, rec.scene);
@@ -225,6 +245,7 @@ export const useLibraryStore = create<LibraryStore>((set, get) => ({
 
   loadSceneText: (text) => {
     useProjectStore.getState().loadScene(parseScene(text));
+    startIfAsked();
     savedText = null;
     set({ projectId: null, name: 'Untitled', dirty: false });
   },
@@ -238,7 +259,10 @@ if (import.meta.env.DEV) {
   (window as unknown as Record<string, unknown>).__moire = {
     project: useProjectStore,
     library: useLibraryStore,
+    db,
     params,
+    motion,
+    transport,
   };
 }
 
@@ -250,9 +274,21 @@ let timer: ReturnType<typeof setTimeout> | null = null;
 useProjectStore.subscribe(() => {
   const lib = useLibraryStore.getState();
   if (!lib.hydrated || !lib.available) return;
-  if (timer) clearTimeout(timer);
+  // Throttle, not debounce. A debounce resets its timer on every change, so a
+  // stream of them postpones the write forever -- and a previewing animation is
+  // exactly that stream, sixty a second, indefinitely. Leaving a scheduled timer
+  // alone bounds the wait instead: a burst still coalesces into one write, and a
+  // stream writes on a fixed beat.
+  if (timer) return;
   timer = setTimeout(() => {
+    timer = null;
     const scene = currentText();
+    // A previewing animation rewrites the store every frame while saying nothing
+    // new about the construction, since sceneOf() puts animated knobs back at
+    // rest. Comparing the text is what stops that becoming a write a second,
+    // forever, on a document nobody is editing.
+    if (scene === sessionText) return;
+    sessionText = scene;
     void writeSession(useLibraryStore.getState().projectId, scene);
     const dirty = savedText !== null && savedText !== scene;
     if (dirty !== useLibraryStore.getState().dirty) useLibraryStore.setState({ dirty });

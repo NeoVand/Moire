@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useProjectStore } from './project';
 import type { PatternLayer } from '../types/moire';
 import type { ViewState } from './project';
+import type { SceneData } from './scene';
 
 /**
  * Every animatable number in the document, addressed by a stable path.
@@ -165,6 +166,92 @@ export function writeParam(path: ParamPath, value: number): void {
     }
     s.updateLayer(id, { [a]: value });
   }
+}
+
+/**
+ * Set many addressed values at once, in as few store writes as the shape of the
+ * document allows: one per touched layer, one for the view, one for the camera.
+ *
+ * A frame of motion can move a dozen knobs, and pushing each through writeParam
+ * would be a dozen store updates and a dozen renders for one frame. Grouping
+ * them is what makes sixty frames a second the same cost as one drag.
+ */
+export function applyParams(values: Map<ParamPath, number>): void {
+  if (values.size === 0) return;
+  const s = useProjectStore.getState();
+
+  const view: Record<string, number> = {};
+  const camera: { zoom?: number; pan?: { x: number; y: number } } = {};
+  const byLayer = new Map<string, Record<string, unknown>>();
+  let anyView = false;
+  let anyCamera = false;
+
+  for (const [path, value] of values) {
+    const parts = path.split('.');
+    if (parts[0] === 'view') {
+      view[parts[1]] = value;
+      anyView = true;
+    } else if (parts[0] === 'camera') {
+      if (parts[1] === 'zoom') camera.zoom = value;
+      else if (parts[1] === 'pan' && (parts[2] === 'x' || parts[2] === 'y')) {
+        camera.pan = { ...(camera.pan ?? s.camera.pan), [parts[2]]: value };
+      }
+      anyCamera = true;
+    } else if (parts[0] === 'layer') {
+      const [, id, a, b] = parts;
+      const patch = byLayer.get(id) ?? {};
+      if (a === 'field') {
+        const layer = s.layers.find((l) => l.id === id);
+        if (!layer) continue;
+        patch.field = { ...layer.field, ...(patch.field as object), [b]: value };
+      } else if (a === 'position' || a === 'offset' || a === 'scale') {
+        if (b !== 'x' && b !== 'y') continue;
+        patch[a] = { ...(patch[a] as object), [b]: value };
+      } else {
+        patch[a] = value;
+      }
+      byLayer.set(id, patch);
+    }
+  }
+
+  if (anyView) s.setView(view as Partial<ViewState>);
+  if (anyCamera) s.setCamera(camera);
+  for (const [id, patch] of byLayer) s.updateLayer(id, patch);
+}
+
+/**
+ * The same addressing, but into a plain scene object rather than the live store.
+ * Used to put a document back at rest before it is written down.
+ */
+export function writeParamInto(scene: SceneData, path: ParamPath, value: number): void {
+  const parts = path.split('.');
+
+  if (parts[0] === 'view') {
+    (scene.view as Record<string, number>)[parts[1]] = value;
+    return;
+  }
+  if (parts[0] === 'camera') {
+    if (parts[1] === 'zoom') scene.camera = { ...scene.camera, zoom: value };
+    else if (parts[1] === 'pan' && (parts[2] === 'x' || parts[2] === 'y')) {
+      scene.camera = { ...scene.camera, pan: { ...scene.camera.pan, [parts[2]]: value } };
+    }
+    return;
+  }
+  if (parts[0] !== 'layer') return;
+
+  const [, id, a, b] = parts;
+  const i = scene.layers.findIndex((l) => l.id === id);
+  if (i < 0) return;
+  const layer = { ...scene.layers[i] } as Record<string, unknown>;
+  if (a === 'field') {
+    layer.field = { ...(layer.field as object), [b]: value };
+  } else if (a === 'position' || a === 'offset' || a === 'scale') {
+    if (b !== 'x' && b !== 'y') return;
+    layer[a] = { ...(layer[a] as object), [b]: value };
+  } else {
+    layer[a] = value;
+  }
+  scene.layers = scene.layers.map((l, j) => (j === i ? (layer as unknown as typeof l) : l));
 }
 
 /** Whether a path still names something in the document. */
