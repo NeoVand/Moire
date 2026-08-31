@@ -4,6 +4,7 @@ import {
   ArrowLeft01Icon,
   AudioWave02Icon,
   BookOpen02Icon,
+  Folder01Icon,
   Copy01Icon,
   Delete02Icon,
   DragDropVerticalIcon,
@@ -26,8 +27,10 @@ import {
   type PatternFamily,
   type PatternType,
 } from '../types/moire';
+import { useLibraryStore } from '../store/library';
 import { VIEW_DEFAULTS, useProjectStore, useSelectedLayer } from '../store/project';
 import { ExportDialog } from './ExportDialog';
+import { ProjectsDialog } from './ProjectsDialog';
 import { FieldEditor } from './FieldEditor';
 import { FAMILY_ICONS, PATTERN_ICONS } from './patternIcons';
 import { ColorField } from './ui/ColorField';
@@ -936,6 +939,24 @@ function LayerFields() {
   );
 }
 
+function ProjectsControl() {
+  const [open, setOpen] = useState(false);
+  const dirty = useLibraryStore((s) => s.dirty);
+  return (
+    <>
+      <IconButton
+        icon={Folder01Icon}
+        label={dirty ? 'Projects — unsaved changes' : 'Projects'}
+        active={open}
+        onClick={() => setOpen((prev) => !prev)}
+        size={14}
+        dense
+      />
+      {open && <ProjectsDialog onClose={() => setOpen(false)} />}
+    </>
+  );
+}
+
 function ExportControl() {
   const [open, setOpen] = useState(false);
   return (
@@ -990,6 +1011,7 @@ function Chrome({ onToggle }: { onToggle: () => void }) {
         size={14}
         dense
       />
+      <ProjectsControl />
       <ExportControl />
       <IconButton icon={ArrowLeft01Icon} label="Hide studio" onClick={onToggle} size={14} dense />
     </div>

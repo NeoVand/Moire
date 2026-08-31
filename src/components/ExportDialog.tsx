@@ -1,12 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  FileDownloadIcon,
-  FileUploadIcon,
-  ImageDownloadIcon,
-} from '@hugeicons/core-free-icons';
+import { ImageDownloadIcon } from '@hugeicons/core-free-icons';
 import { capturePng, captureSize, exportPng } from '../gpu/capture';
 import { useProjectStore } from '../store/project';
-import { parseScene, serializeScene } from '../store/scene';
 import { FloatingPanel } from './ui/FloatingPanel';
 import { Icon } from './ui/Icon';
 import { InfoTip } from './ui/Tip';
@@ -17,8 +12,8 @@ import { InfoTip } from './ui/Tip';
  * the zoom scaled to match, so a bigger export is a sharper picture of the same
  * view, and a different aspect extends the frame about its centre rather than
  * cropping it — the pattern is defined everywhere, so there is always more
- * picture past the edge. The scene side moves the whole construction as a JSON
- * that loads back exactly.
+ * picture past the edge. Constructions themselves live in the
+ * projects panel; this dialog is only the picture.
  */
 
 const ASPECTS: { label: string; ratio: string; value: number }[] = [
@@ -48,15 +43,6 @@ function AspectShape({ value, fallback }: { value: number; fallback: number }) {
   );
 }
 
-function downloadText(name: string, text: string) {
-  const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = name;
-  link.click();
-  URL.revokeObjectURL(url);
-}
-
 const chip = (active: boolean) =>
   `rounded-md px-2 py-0.5 font-mono text-[10px] tabular-nums ${
     active
@@ -74,7 +60,6 @@ export function ExportDialog({ onClose }: { onClose: () => void }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [status, setStatus] = useState<{ text: string; error: boolean } | null>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const previewUrl = useRef<string | null>(null);
   const rendering = useRef(false);
@@ -151,38 +136,6 @@ export function ExportDialog({ onClose }: { onClose: () => void }) {
     }
   };
 
-  const saveScene = () => {
-    const s = useProjectStore.getState();
-    const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-    downloadText(
-      `moire-scene-${stamp}.json`,
-      serializeScene({
-        layers: s.layers,
-        selectedLayerId: s.selectedLayerId,
-        camera: s.camera,
-        backgroundColor: s.backgroundColor,
-        view: s.view,
-      })
-    );
-    setStatus(null);
-  };
-
-  const loadScene = async (file: File) => {
-    try {
-      const scene = parseScene(await file.text());
-      useProjectStore.getState().loadScene(scene);
-      setStatus({
-        text: `Loaded ${scene.layers.length} layer${scene.layers.length === 1 ? '' : 's'}.`,
-        error: false,
-      });
-    } catch (err) {
-      setStatus({
-        text: err instanceof Error ? err.message : 'Could not read the file.',
-        error: true,
-      });
-    }
-  };
-
   return (
     <FloatingPanel
       id="export"
@@ -192,15 +145,7 @@ export function ExportDialog({ onClose }: { onClose: () => void }) {
       mark={<Icon icon={ImageDownloadIcon} size={14} />}
       title="Export"
     >
-      <div
-        className="grid gap-2.5"
-        onDragOver={(e) => e.preventDefault()}
-        onDrop={(e) => {
-          e.preventDefault();
-          const file = e.dataTransfer.files?.[0];
-          if (file) void loadScene(file);
-        }}
-      >
+      <div className="grid gap-2.5">
         <div className="flex h-[190px] items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] p-2">
           {preview ? (
             <img
@@ -282,34 +227,6 @@ export function ExportDialog({ onClose }: { onClose: () => void }) {
           <Icon icon={ImageDownloadIcon} size={13} />
           Download image
         </button>
-        <div className="mt-0.5 flex items-center gap-1 border-t border-[var(--border)] pt-2 text-[11px] text-[var(--text-secondary)]">
-          Scene
-          <InfoTip
-            text="The whole construction as a JSON — layers, fields, camera, and view — loading back exactly. Drop a scene file anywhere on this panel to open it."
-            label="Scene"
-          />
-        </div>
-        <div className="flex gap-2">
-          <button type="button" className={button} onClick={saveScene}>
-            <Icon icon={FileDownloadIcon} size={13} />
-            Save JSON
-          </button>
-          <button type="button" className={button} onClick={() => fileRef.current?.click()}>
-            <Icon icon={FileUploadIcon} size={13} />
-            Load…
-          </button>
-        </div>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="application/json,.json"
-          className="hidden"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) void loadScene(file);
-            e.target.value = '';
-          }}
-        />
         {status && (
           <p
             className={`text-[10.5px] leading-[1.4] ${

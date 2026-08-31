@@ -114,6 +114,8 @@ export interface ProjectStore {
   setView: (patch: Partial<ViewState>) => void;
   /** Replace the whole construction with a parsed scene file, wholesale. */
   loadScene: (scene: SceneData) => void;
+  /** Back to the construction the tool opens on, view settings included. */
+  resetProject: () => void;
   playIntro: () => void;
   cancelIntro: () => void;
 }
@@ -382,6 +384,21 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     });
   },
 
+  resetProject: () => {
+    // The default *project*, not the intro's rest pose: a new document should be
+    // the picture the tool is about, not the frame the opening animation starts
+    // from.
+    abortIntro();
+    const fresh = createDefaultProject();
+    set({
+      layers: fresh.layers,
+      selectedLayerId: fresh.selectedLayerId,
+      camera: fresh.camera,
+      backgroundColor: fresh.backgroundColor,
+      view: { ...VIEW_DEFAULTS },
+    });
+  },
+
   cancelIntro: () => stopIntro(),
 
   playIntro: () => {
@@ -407,6 +424,21 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     introRaf = requestAnimationFrame(step);
   },
 }));
+
+/**
+ * The document, as the scene file sees it. One definition, so the export button,
+ * the autosave and a saved project cannot drift into three slightly different
+ * ideas of what a construction is.
+ */
+export function sceneOf(s: ProjectStore = useProjectStore.getState()): SceneData {
+  return {
+    layers: s.layers,
+    selectedLayerId: s.selectedLayerId,
+    camera: s.camera,
+    backgroundColor: s.backgroundColor,
+    view: s.view,
+  };
+}
 
 export function useSelectedLayer(): PatternLayer | null {
   return useProjectStore((s) => s.layers.find((layer) => layer.id === s.selectedLayerId) ?? null);

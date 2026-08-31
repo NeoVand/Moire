@@ -9,6 +9,7 @@ import {
   screenDeltaToWorld,
   worldDeltaToLayerPosition,
 } from '../gpu/camera';
+import { useLibraryStore } from '../store/library';
 import { useProjectStore } from '../store/project';
 
 type DragMode = 'move' | 'rotate' | 'pan';
@@ -63,7 +64,11 @@ export function MoireStage() {
           }
         );
         setReady(true);
-        useProjectStore.getState().playIntro();
+        // An author who left something on screen gets it back, not an animation
+        // over the top of it. A restored session is the tool already in use.
+        if (!useLibraryStore.getState().projectId && !useLibraryStore.getState().restored) {
+          useProjectStore.getState().playIntro();
+        }
       })
       .catch((err: unknown) => {
         const message = err instanceof Error ? err.message : String(err);
