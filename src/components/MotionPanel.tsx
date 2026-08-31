@@ -337,11 +337,32 @@ export function MotionPanel() {
               onChange={(delay) => edit({ delay, timing: null })}
             />
           </label>
+          {/* Waiting and starting part way round are different things, and only
+              one of them is any use to a loop: a delay moves the whole cycle
+              later, which for something endless is invisible after the first
+              pass. An offset is what puts two knobs permanently out of step. */}
           {s.mode !== 'once' && (
-            <p className="text-[9px] leading-[1.4] text-[var(--text-muted)]">
-              {Math.round(s.period * (s.mode === 'bounce' ? 2 : 1) * 10) / 10}s for a full cycle,
-              which is the length a clip has to fit.
-            </p>
+            <>
+              <label
+                className="flex items-center justify-between gap-2"
+                title="Where in its cycle this begins. Two knobs 25% apart stay a quarter-cycle out of step."
+              >
+                <span className="text-[10.5px] text-[var(--text-secondary)]">Start part way</span>
+                <NumberField
+                  value={Math.round((a.phase || 0) * 1000) / 10}
+                  step={5}
+                  min={0}
+                  max={100}
+                  decimals={0}
+                  suffix="%"
+                  onChange={(pct) => edit({ phase: (pct % 100) / 100 })}
+                />
+              </label>
+              <p className="text-[9px] leading-[1.4] text-[var(--text-muted)]">
+                {Math.round(s.period * (s.mode === 'bounce' ? 2 : 1) * 10) / 10}s for a full cycle,
+                which is the length a clip has to fit.
+              </p>
+            </>
           )}
         </div>
 

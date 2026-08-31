@@ -126,6 +126,10 @@ export function sampleAnimator(a: Animator, timings: Timing[], t: number): numbe
   const s = scheduleOf(a, timings);
   const period = Math.max(1e-3, s.period);
   const elapsed = Math.max(0, t - s.delay);
+  // A scene written before phase existed has none, and an undefined here would
+  // turn the whole sample into NaN rather than into a knob that simply does not
+  // start part way round.
+  const phase = Number.isFinite(a.phase) ? a.phase : 0;
 
   let u: number;
   if (s.mode === 'once') {
@@ -134,9 +138,9 @@ export function sampleAnimator(a: Animator, timings: Timing[], t: number): numbe
     // A bounce covers the interval twice per cycle, so its cycle is two periods.
     // Period always means the same thing -- the time to cross from one end to the
     // other -- which is what lets the mode be changed without changing the speed.
-    u = triangle(frac(elapsed / (period * 2) + a.phase));
+    u = triangle(frac(elapsed / (period * 2) + phase));
   } else {
-    u = frac(elapsed / period + a.phase);
+    u = frac(elapsed / period + phase);
   }
 
   const eased = (EASE[s.ease] ?? EASE.linear)(u);
