@@ -586,25 +586,27 @@ const abl = load('ablation.json');
           `Re-run paper/tools/gpu/ablation.mjs after repairing the patch.`
       );
     }
-    return scene[mech].passMs / scene.full.passMs;
+    // Prefer the paired ratio when the data carries one: each of its repeats has
+    // its own baseline measured beside it, so it is free of the drift that a
+    // quotient of two separately reduced times would inherit.
+    return scene[mech].ratio ?? scene[mech].passMs / scene.full.passMs;
   };
 
   // Two things this table cannot be trusted without, both learned the hard way.
-  if (abl.worstMedianOverMin === undefined) {
+  if (abl.worstRatioSpread === undefined) {
     console.warn(
       '  WARNING: ablation.json predates tools/gpu/ablation.mjs. It was measured ' +
         'against a solver whose accept exit has since changed from a return to a ' +
         'break, so its baselines are stale. Re-run tools/gpu/ablation.mjs.'
     );
-  } else if (abl.worstMedianOverMin > 0.1) {
+  } else if (abl.worstRatioSpread > 0.12) {
     // Each cell is the fastest of several passes, since contention only ever adds
-    // time. This asks whether that fastest pass was itself well determined: if the
-    // typical pass sat well above it, the device was shared throughout and even the
-    // minimum may carry someone else's work.
+    // time. This asks whether that fastest pass was a fluke: if a second pass
+    // reached the same floor, the floor is the machine's.
     throw new Error(
-      `ablation.json: the typical pass sat up to ${pc(abl.worstMedianOverMin)}% above the ` +
-        `fastest one, so the minima are not clean. Re-run tools/gpu/ablation.mjs with ` +
-        `nothing else using the GPU.`
+      `ablation.json: a published ratio varied by +-${pc(abl.worstRatioSpread)}% across repeats, ` +
+        `which is the size of several of the effects in the table. Re-run ` +
+        `tools/gpu/ablation.mjs with nothing else using the GPU.`
     );
   }
   // Two decimals reads well below 10; a 90x entry does not need them.

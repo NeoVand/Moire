@@ -80,7 +80,7 @@ const REPS = 32;
 // it, which is the signature of a few preempted passes rather than of a noisy
 // quantity. An earlier version of this file published the median and gated on
 // max - min, and that gate was measuring contamination rather than uncertainty.
-const REPEATS = 5;
+const REPEATS = 7;
 // A starved pass throws rather than returning a fast number. At this frame size a
 // long unbroken run of dispatches gets preempted often enough that this fires
 // several times an hour, so retry with a growing backoff -- the same measurement
@@ -144,6 +144,11 @@ export async function ablation(root, opts = {}) {
     samples[key] = { full: [] };
     for (const label of Object.keys(ABLATIONS)) samples[key][label] = [];
   }
+  // `full` is re-measured next to every ablation rather than once at the top of a
+  // pass. The table publishes ratios, and a laptop throttles measurably over the
+  // couple of minutes a pass takes, so a baseline taken at the start of the pass
+  // makes every later ablation look slower than it is. Pairing them cancels any
+  // drift the two share. This is what stopped the ratios moving 15% between runs.
   for (let pass = 0; pass < repeats; pass++) {
     for (const key of Object.keys(SCENES)) {
       const spec = specFor(key);
@@ -152,7 +157,13 @@ export async function ablation(root, opts = {}) {
         // A patch that no longer matches its source is a stale experiment, not a
         // fast one. probe.mjs throws; record it rather than swallowing it, so the
         // failure reaches numbers.mjs instead of a plausible number.
-        samples[key][label].push(await timeRetried(spec, patches, reps));
+        const base = await timeRetried(spec, null, reps);
+        const got = await timeRetried(spec, patches, reps);
+        samples[key][label].push(
+          got.error || base.error
+            ? { error: got.error ?? base.error }
+            : { ...got, baseMs: base.passMs, ratio: got.passMs / base.passMs }
+        );
       }
     }
   }
@@ -167,35 +178,48 @@ export async function ablation(root, opts = {}) {
       }
       const pass = runs.map((r) => r.passMs);
       const lo = Math.min(...pass);
+      const base = { passMs: lo, wallMs: Math.min(...runs.map((r) => r.wallMs)),
+        megapixels: runs[0].megapixels, nsPerPixel: Math.min(...runs.map((r) => r.nsPerPixel)),
+        samples: pass };
+      if (label === 'full') {
+        row[label] = base;
+        continue;
+      }
+      // Reduce the paired RATIOS, not the times. Each ratio already has its own
+      // baseline, so the median across passes is the published figure and the
+      // spread of those ratios is the honest error bar on it. A minimum would be
+      // wrong here: noise moves a ratio in both directions, unlike a time.
+      const ratios = runs.map((r) => r.ratio).sort((a, b) => a - b);
+      const mid = median(ratios);
       row[label] = {
-        passMs: lo,
-        wallMs: Math.min(...runs.map((r) => r.wallMs)),
-        megapixels: runs[0].megapixels,
-        nsPerPixel: Math.min(...runs.map((r) => r.nsPerPixel)),
-        // Every sample, so the reduction can be audited rather than trusted.
-        samples: pass,
-        // How far the typical pass sits above the fastest one. Near zero means the
-        // minimum is well determined; large means even the fastest pass may have
-        // been sharing the device, and the number should not be published.
-        medianOverMin: Math.round((median(pass) / lo - 1) * 1e4) / 1e4,
+        // `passMs` stays the measured floor, for reference. `ratio` is the figure
+        // the table publishes, and numbers.mjs reads it in preference: dividing two
+        // separately reduced times would throw away the pairing that makes it
+        // trustworthy.
+        ...base,
+        ratio: Math.round(mid * 1e4) / 1e4,
+        ratios: ratios.map((v) => Math.round(v * 1e4) / 1e4),
+        // Half the interquartile range of the ratio, relative to the ratio: how
+        // well determined the published number is.
+        ratioSpread: Math.round(((ratios[ratios.length - 1] - ratios[0]) / 2 / mid) * 1e4) / 1e4,
       };
     }
     out[key] = row;
   }
   out.megapixels = out[Object.keys(SCENES)[0]].full.megapixels;
 
-  // The gate: how far any cell's typical pass sat above its fastest. This asks
-  // whether the minimum is well determined, which is the question, rather than how
-  // badly the worst pass was preempted, which is not.
+  // The gate: the widest error bar on any published ratio. This is the quantity the
+  // table prints, so it is the one whose stability decides whether the table can be
+  // printed at all.
   let worst = 0;
   for (const key of Object.keys(SCENES)) {
-    for (const label of ['full', ...Object.keys(ABLATIONS)]) {
+    for (const label of Object.keys(ABLATIONS)) {
       const r = out[key][label];
-      if (!r || r.error) continue;
-      if (r.medianOverMin > worst) worst = r.medianOverMin;
+      if (!r || r.error || r.ratioSpread === undefined) continue;
+      if (r.ratioSpread > worst) worst = r.ratioSpread;
     }
   }
-  out.worstMedianOverMin = Math.round(worst * 1e4) / 1e4;
+  out.worstRatioSpread = Math.round(worst * 1e4) / 1e4;
 
   // The reconstruction check.
   const row = out[RECONSTRUCTED];

@@ -281,9 +281,12 @@ characters range over integer combinations of generators (supplemental \S S3).
 \begin{figure*}[t]
   \centering
   \begin{tikzpicture}
-    % the grey field is a separate layer behind the (transparent) render;
-    % shrink it by moving these two corners.
-    \fill[color={rgb,255:red,244;green,242;blue,238}]
+    % A ground behind the (transparent) render. It is the page's own white: the
+    % floors carry their own warm tint inside the render, so nothing floats
+    % without a tinted block here, and this was the only figure in the paper that
+    % brought its own background colour to the page. Shrink it by moving these two
+    % corners; put a colour back here if the render is ever made fully opaque.
+    \fill[white]
       (0,0) rectangle (\linewidth,0.39972\linewidth);
     \node[anchor=south west, inner sep=0] (img) at (0,0)
       {\includegraphics[width=\linewidth]{figures/charhills}};
