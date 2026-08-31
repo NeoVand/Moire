@@ -281,47 +281,55 @@ $\vecFigInk\%$ of the ink lost, and $\vecFigContrast\%$ of the pattern.
 
 \begin{figure*}[t]
   \centering
-  % The strip and the plot are set to one height, so the row reads as a single
-  % graphic. The strip is 3 square panels and 2 gutters, 1220px wide, so at
-  % 0.685\textwidth each panel is square and the block is 0.2246\textwidth tall;
-  % the axis box is set under that to leave room for its own labels.
-  \begin{subfigure}[t]{0.685\textwidth}
-    \includegraphics[width=\linewidth]{figures/vector-wash.png}
-    \panelrow{0.32895}{0.00658}{%
-      (a) union coverage,
-      (b) per-path \textsc{over},
-      {(c) difference, $\vecFigAmp\times$}}
-  \end{subfigure}\hfill
-  \begin{subfigure}[t]{0.30\textwidth}
-    \begin{tikzpicture}
-      % The strip beside this is 0.685\textwidth of a 510pt text width at 1220:400,
-      % so its panels stand 4.03cm tall. `height` here is the axis box plus its
-      % labels, so it is set above that and only the x-label hangs below the
-      % panels' own captions. Sizes are absolute because \linewidth inside a
-      % subfigure is the subfigure's, and inheriting it made the plot a third the
-      % height of the images it sits next to.
-      \begin{axis}[paperaxis, width=5.3cm, height=5.2cm,
-        xlabel={members sharing a pixel}, ylabel={fringe contrast lost (\%)},
-        xmode=log, xmin=0.52, xmax=13, ymin=-5, ymax=105,
-        ytick={0,25,50,75,100}, yticklabels={0,,50,,100},
-        xtick={0.6,1,2,5,10}, xticklabels={$0.6$,$1$,$2$,$5$,$10$},
-        minor x tick num=0,
-        grid=major, grid style={gray!14, very thin},
-        axis line style={gray!55},
-      ]
-        % Where a pixel still sees at most one member: the regime a path renderer
-        % is built for. A filled region, so `only marks` cannot sit on the axis --
-        % it would apply here too and the band would silently vanish.
-        \addplot[draw=none, fill=soft!18, forget plot] coordinates
-          {(0.52,-5) (1,-5) (1,105) (0.52,105)} \closedcycle;
-        \addplot[soft!75, dashed, thin, forget plot] coordinates {(1,-5) (1,105)};
-        % One series. Which of the five scenes a point came from is not the claim.
-        \addplot[accent, only marks, mark=*, mark size=1.6pt,
-                 mark options={fill=accent, draw=white, line width=0.4pt}]
-          table [x=mpp, y=lost, col sep=comma] {data/vector-pooled.csv};
-      \end{axis}
-    \end{tikzpicture}
-  \end{subfigure}
+  % One picture, not two subfigures.
+  %
+  % Aligning an image against a plot cannot be done by putting them in subfigures
+  % and hoping: `[t]` aligns the boxes, and a plot's box begins at its topmost tick
+  % label while an image's begins at the image. Figure 7 gets away with subfigures
+  % because both of its halves are axes of identical declared size. Here the axis
+  % frame is instead pinned directly to the strip's own corners, so the two line up
+  % top and bottom by construction and no length has to be guessed.
+  %
+  % STRIP is the image width; the file is 1520x500, so the strip -- and therefore
+  % the axis frame -- stands STRIP*500/1520 tall. GAP has to clear the y-label and
+  % its ticks, since `at` places the frame and the labels hang to its left.
+  \newcommand{\stripw}{11cm}
+  \newcommand{\striph}{3.6184cm}
+  \begin{tikzpicture}
+    \node[anchor=north west, inner sep=0] (strip) at (0,0)
+      {\includegraphics[width=\stripw]{figures/vector-wash.png}};
+    % Panel labels, centred under each panel. The fractions are the ones
+    % tools/exp/vector.mjs reports for the layout it wrote.
+    \begin{scope}[shift={(strip.south west)},
+        x={($(strip.south east)-(strip.south west)$)},
+        y={($(strip.north west)-(strip.south west)$)}]
+      \node[font=\footnotesize, anchor=north, inner sep=2.5pt] at (0.16447,0) {(a) union coverage};
+      \node[font=\footnotesize, anchor=north, inner sep=2.5pt] at (0.5,0) {(b) per-path \textsc{over}};
+      \node[font=\footnotesize, anchor=north, inner sep=2.5pt] at (0.83553,0) {(c) difference, $\vecFigAmp\times$};
+    \end{scope}
+    \begin{axis}[paperaxis, scale only axis,
+      at={($(strip.north east)+(1.34cm,0)$)}, anchor=north west,
+      width=5.42cm, height=\striph,
+      xlabel={members sharing a pixel}, ylabel={fringe contrast lost (\%)},
+      xmode=log, xmin=0.52, xmax=13, ymin=-5, ymax=105,
+      ytick={0,25,50,75,100}, yticklabels={0,,50,,100},
+      xtick={0.6,1,2,5,10}, xticklabels={$0.6$,$1$,$2$,$5$,$10$},
+      minor x tick num=0,
+      grid=major, grid style={gray!14, very thin},
+      axis line style={gray!55},
+    ]
+      % Where a pixel still sees at most one member: the regime a path renderer is
+      % built for. A filled region, so `only marks` cannot sit on the axis -- it
+      % would apply here too and the band would silently vanish.
+      \addplot[draw=none, fill=soft!18, forget plot] coordinates
+        {(0.52,-5) (1,-5) (1,105) (0.52,105)} \closedcycle;
+      \addplot[soft!75, dashed, thin, forget plot] coordinates {(1,-5) (1,105)};
+      % One series. Which of the five scenes a point came from is not the claim.
+      \addplot[accent, only marks, mark=*, mark size=1.5pt,
+               mark options={fill=accent, draw=white, line width=0.4pt}]
+        table [x=mpp, y=lost, col sep=comma] {data/vector-pooled.csv};
+    \end{axis}
+  \end{tikzpicture}
   \Description{Left: three square panels of a circular moire rosette. The first
   shows strong radiating light and dark rays; the second, drawn by compositing each
   path separately, is almost flat grey with the rays gone; the third is a pink and

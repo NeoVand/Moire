@@ -119,7 +119,7 @@ async function timeRetried(spec, patches, reps) {
   return { error: String(last?.message ?? last), retries: RETRIES };
 }
 
-function specFor(key) {
+function specFor(key, frame = FRAME) {
   const { zoom, spec } = SCENES[key];
   const band = strokeBand(zoom, spec.thickness ?? 1.5);
   return {
@@ -132,7 +132,7 @@ function specFor(key) {
     zoom,
     accept: band.accept,
     reject: band.reject,
-    ...FRAME,
+    ...frame,
   };
 }
 
@@ -140,7 +140,12 @@ export async function ablation(root, opts = {}) {
   const meta = await init(root);
   const reps = opts.reps ?? REPS;
   const repeats = opts.repeats ?? REPEATS;
-  const out = { generated: 'paper/tools/gpu/ablation.mjs', device: meta, reps, repeats };
+  // FRAME is sized for a laptop-class adapter. On a much faster one the passes may
+  // land near that device's timestamp granularity, where the guard in probe.mjs
+  // starts refusing them; `frame` raises the work per pass without touching
+  // anything else. `megapixels` records what was actually used.
+  const frame = opts.frame ?? FRAME;
+  const out = { generated: 'paper/tools/gpu/ablation.mjs', device: meta, reps, repeats, frame };
 
   // Every scene x mechanism, `repeats` times, interleaved so that a machine that
   // warms or throttles part way through spreads that across all of them rather
@@ -157,7 +162,7 @@ export async function ablation(root, opts = {}) {
   // drift the two share. This is what stopped the ratios moving 15% between runs.
   for (let pass = 0; pass < repeats; pass++) {
     for (const key of Object.keys(SCENES)) {
-      const spec = specFor(key);
+      const spec = specFor(key, frame);
       samples[key].full.push(await timeRetried(spec, null, reps));
       for (const [label, patches] of Object.entries(ABLATIONS)) {
         // A patch that no longer matches its source is a stale experiment, not a

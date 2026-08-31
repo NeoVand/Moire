@@ -593,6 +593,23 @@ const abl = load('ablation.json');
   };
 
   // Two things this table cannot be trusted without, both learned the hard way.
+  // Table 3 and Table 6 are both GPU measurements, and Section 8.1 names a single
+  // adapter for both. If they come from different machines that sentence is wrong
+  // about one of them, and the two tables cannot be read against each other.
+  if (abl.device?.adapter && gpu.meta?.adapter) {
+    const same =
+      abl.device.adapter.vendor === gpu.meta.adapter.vendor &&
+      abl.device.adapter.architecture === gpu.meta.adapter.architecture;
+    if (!same) {
+      throw new Error(
+        `ablation.json was measured on ${abl.device.adapter.vendor}/${abl.device.adapter.architecture} ` +
+          `but gpu.json on ${gpu.meta.adapter.vendor}/${gpu.meta.adapter.architecture}. ` +
+          `\u00a78.1 names one adapter for both tables. Re-run tools/gpu/run.mjs and ` +
+          `tools/gpu/ablation.mjs on the same machine.`
+      );
+    }
+  }
+
   if (abl.worstRatioSpread === undefined) {
     console.warn(
       '  WARNING: ablation.json predates tools/gpu/ablation.mjs. It was measured ' +

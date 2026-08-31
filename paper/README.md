@@ -115,8 +115,21 @@ const json = await abl.ablation(root);   // runs the matrix five times over
 await fetch('http://localhost:5199/data/ablation.json', { method: 'POST', body: json });
 ```
 
-Run it on a quiet machine -- no dev server beyond the one serving the page, no
-other GPU work. It reports `worstRelativeSpread`, and `numbers.mjs` refuses the
+Open `/paper/tools/gpu/bench.html` for this, not the Studio: the Studio drives its
+own WebGPU render loop, and measuring against it put more spread on the published
+ratios than the effects the table reports.
+
+**Run Table 3 and Table 6 on the same machine.** Section 8.1 names one adapter for
+both, so `numbers.mjs` refuses to build if `gpu.json` and `ablation.json` disagree
+about the device. Moving to a faster GPU therefore means re-running `run.mjs` as
+well -- and worth knowing before you do: the prose around Table 3 argues from
+absolute times ("over budget for a 60 Hz frame"), which is an argument about
+laptop-class hardware and the hardware the Studio's users actually have. A
+desktop card will make the old solver look fine and take that motivation away. If
+you want the faster machine for its quietness, the honest framing is a second
+adapter reported alongside, not a replacement.
+
+Run it with nothing else on the GPU. It reports `worstRelativeSpread`, and `numbers.mjs` refuses the
 table if that exceeds 0.15, because at that point the repeat-to-repeat variation
 is as large as the effects the table is about. The current `data/ablation.json`
 predates the change that made the scan's accept exit a `break`, so its baselines
