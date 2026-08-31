@@ -112,8 +112,8 @@ whole frame black---which is how we found the bug.
 
 \subsection{Reading the ablation's negative rows}
 
-Removing the carried rotation or the accept-early-exit makes the dense ablation
-scenes $8$--$19\%$ \emph{faster}. Removing the accept exit is faster because in a
+Removing the carried rotation or the accept-early-exit makes the three scanning
+ablation scenes $\ablCostLo$--$\ablCostHi\%$ \emph{faster}. Removing the accept exit is faster because in a
 heavily inked region almost every lane would exit anyway, and the branch only
 adds divergence: with $32$ lanes in lockstep, one slow lane sets the pace, so an
 early exit that helps $31$ of them helps nobody. Both mechanisms stay because

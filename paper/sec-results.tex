@@ -67,65 +67,55 @@ visit.
 
 \begin{figure*}[t]
   \centering
+  % One column per solver: the wide frame, the window the detail comes from, and
+  % the detail. The window is drawn here rather than baked into the PNGs so that
+  % the four wide files stay the raw renders -- which is what lets the caption
+  % claim two of them are byte-identical.
   \begin{subfigure}{0.245\textwidth}
-    \includegraphics[width=\linewidth]{figures/artifact-holes-reference.png}
+    \detailpanel{figures/artifact-holes-reference.png}{figures/inset-holes-reference.png}%
+      {\artHolesBoxL}{\artHolesBoxB}{\artHolesBoxR}{\artHolesBoxT}
     \caption{\textsc{Reference}}
   \end{subfigure}\hfill
   \begin{subfigure}{0.245\textwidth}
-    \includegraphics[width=\linewidth]{figures/artifact-holes-sweep.png}
+    \detailpanel{figures/artifact-holes-sweep.png}{figures/inset-holes-sweep.png}%
+      {\artHolesBoxL}{\artHolesBoxB}{\artHolesBoxR}{\artHolesBoxT}
     \caption{\sweep{}, $\artHolesSweepEv$ ev/px}
   \end{subfigure}\hfill
   \begin{subfigure}{0.245\textwidth}
-    \includegraphics[width=\linewidth]{figures/artifact-holes-sweep-drop.png}
+    \detailpanel{figures/artifact-holes-sweep-drop.png}{figures/inset-holes-sweep-drop.png}%
+      {\artHolesBoxL}{\artHolesBoxB}{\artHolesBoxR}{\artHolesBoxT}
     \caption{lost ink (magenta)}
   \end{subfigure}\hfill
   \begin{subfigure}{0.245\textwidth}
-    \includegraphics[width=\linewidth]{figures/artifact-holes-final.png}
+    \detailpanel{figures/artifact-holes-final.png}{figures/inset-holes-final.png}%
+      {\artHolesBoxL}{\artHolesBoxB}{\artHolesBoxR}{\artHolesBoxT}
     \caption{\ours{}, $\artHolesOursEv$ ev/px}
   \end{subfigure}
-
-  \vspace{4pt}
-  % The crops used to be a figure of their own, which cost a float and a caption
-  % to say one thing about the row above it. They belong here, under the columns
-  % they magnify.
-  \begin{subfigure}{0.245\textwidth}
-    \includegraphics[width=\linewidth]{figures/inset-holes-reference.png}
-    \caption{$2\times$, \textsc{Reference}}
-  \end{subfigure}\hfill
-  \begin{subfigure}{0.245\textwidth}
-    \includegraphics[width=\linewidth]{figures/inset-holes-sweep.png}
-    \caption{$2\times$, \sweep{}}
-  \end{subfigure}\hfill
-  \begin{subfigure}{0.245\textwidth}
-    \phantom{\includegraphics[width=\linewidth]{figures/inset-holes-reference.png}}
-  \end{subfigure}\hfill
-  \begin{subfigure}{0.245\textwidth}
-    \includegraphics[width=\linewidth]{figures/inset-holes-final.png}
-    \caption{$2\times$, \ours{}}
-  \end{subfigure}
-  \Description{Two rows over the same black-on-white field of walking hexagons,
+  \Description{Four columns over the same black-on-white field of walking hexagons,
   seen far from the family's center: layers of finely woven arcs sweeping across
-  the frame like drapery, with smooth dark bands between them. Top row: the
-  reference, the fixed-budget sweep which is visibly paler with whole bands of the
-  weave missing, a pale gray copy in which only the lost segments are drawn in
-  magenta showing that the losses form broad coherent ribbons rather than
-  scattered pixels, and the new method, which matches the reference. Bottom row:
-  two-times magnifications of the worst region under the first, second and fourth
-  columns. The reference and the new method are identical and continuous; in the
-  sweep several arcs stop part-way across and resume further on, leaving clean
-  gaps.}
+  the frame like drapery, with smooth dark bands between them. Each column is a
+  wide frame with a blue rectangle marking the same window near its middle, two
+  thin blue rules leading down from that rectangle, and the magnified contents of
+  the window below. The columns are the reference; the fixed-budget sweep, which
+  is visibly paler with whole bands of the weave missing; a pale gray copy in
+  which only the lost segments are drawn in magenta, showing that the losses form
+  broad coherent ribbons rather than scattered pixels; and the new method, which
+  matches the reference. In the magnifications the reference and the new method
+  are identical and continuous, while in the sweep several arcs stop part-way
+  across and resume further on, leaving clean gaps that the magenta fills as
+  unbroken strokes.}
   \caption{\figlead{Fixed enumeration deletes arcs, not pixels.} The far field of a
   walking hexagon family whose drift aims at an edge---almost a full spacing
   long, $\lVert\delta\rVert=0.95s$, while the support ratio stays at
   $\rad(-\delta)/s=0.82$. \sweep{} loses $\artHolesSweepDiff\%$ of the frame's
   pixels, and because the failure condition varies smoothly with $p$ the losses
-  organize into coherent ribbons that read as missing bands.
-  \emph{Bottom row:} $2\times$ crops of the worst region, under the columns they
-  magnify. The missing ink is not noise; it is whole segments of whole rings,
-  which is why the artifact survives supersampling and reads as a modeling error
-  rather than an aliasing one. \ours{} costs $\artHolesSaving\times$ less work
-  than \sweep{} and is not merely close to the reference but identical to it:
-  columns (a) and (d), and (e) and (g), are the same image files.}
+  organize into coherent ribbons that read as missing bands. Under each frame is
+  the boxed window at $2\times$, the window being the worst one \sweep{} leaves
+  anywhere in the middle of the frame. The missing ink is not noise; it is whole
+  segments of whole rings, which is why the artifact survives supersampling and
+  reads as a modeling error rather than an aliasing one. \ours{} costs
+  $\artHolesSaving\times$ less work than \sweep{} and is not merely close to the
+  reference but identical to it: columns (a) and (d) are the same two files.}
   \label{fig:holes}
 \end{figure*}
 
@@ -224,9 +214,11 @@ $\ablClosedMarginal\times$, because without it the scan must walk a $2^{16}$-wid
 interval to find an answer that Proposition~\ref{prop:closed} reads off in one
 comparison.
 
-Two entries are below $1$: removing the carried rotation or the accept-early-exit
-is $\ablCostLo$--$\ablCostHi\%$ \emph{faster} in these dense scenes, a wavefront-%
-divergence effect. We keep both because they are what make sparse and mid-density
+Two rows run below $1$ wherever the solver actually scans: removing the carried
+rotation or the accept-early-exit is $\ablCostLo$--$\ablCostHi\%$ \emph{faster} in
+the three scanning scenes, a wavefront-divergence effect. On the marginal drift
+neither is worth anything either way, because the closed form answers before a
+scan begins. We keep both because they are what make sparse and mid-density
 scenes cheap; the divergence reading, and why narrowing the interval rather than
 exiting sooner is the productive lever on a GPU, are in the supplemental
 material (\S S3).

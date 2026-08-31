@@ -111,12 +111,14 @@ for (const [key, spec] of Object.entries(CASES)) {
   }
   const refName = Object.keys(spec.solvers)[0];
   const names = Object.keys(spec.solvers);
+  const drops = {};
   for (const [name, rgb] of Object.entries(images)) {
     if (name === refName) continue;
     out[key].solvers[name].diff = imageDiff(images[refName], rgb);
+    drops[name] = dropMap(images[refName], rgb, spec.width, spec.height, 2);
     writePng(
       join(FIGURES, `artifact-${key}-${name}-drop.png`),
-      dropMap(images[refName], rgb, spec.width, spec.height, 2),
+      drops[name],
       spec.width,
       spec.height
     );
@@ -133,6 +135,14 @@ for (const [key, spec] of Object.entries(CASES)) {
   for (const [name, rgb] of Object.entries(images)) {
     const c = cropScale(rgb, spec.width, spec.height, box, inset.scale);
     writePng(join(FIGURES, `inset-${key}-${name}.png`), c.rgb, c.width, c.height);
+  }
+  // The drop map gets the same crop. Without it a figure that magnifies three of
+  // its four columns has a hole in the second row, and the one column left out is
+  // the one where magnification pays best: it shows the lost ink as unbroken
+  // segments rather than as a pink haze.
+  for (const [name, rgb] of Object.entries(drops)) {
+    const c = cropScale(rgb, spec.width, spec.height, box, inset.scale);
+    writePng(join(FIGURES, `inset-${key}-${name}-drop.png`), c.rgb, c.width, c.height);
   }
   console.log(
     `${key.padEnd(7)} ${Object.entries(out[key].solvers)

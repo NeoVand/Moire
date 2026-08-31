@@ -225,11 +225,21 @@ export function dropMap(ref, test, width, height, grow = 1) {
 }
 
 /** Window of the given size holding the most dropped pixels, on a coarse stride. */
-export function worstWindow(ref, test, width, height, boxW, boxH) {
+/**
+ * The window of the given size losing the most ink, searched over the middle of
+ * the frame only. The margin is not a statistical choice -- every candidate is a
+ * genuine worst case and the figures quote the loss over the whole frame, not
+ * over this window -- it is a drawing one: a window flush against an edge cannot
+ * be drawn as a box with rules running from it to the magnification below, and
+ * reads as a mistake rather than as a region.
+ */
+export function worstWindow(ref, test, width, height, boxW, boxH, margin = 0.15) {
   let best = { x: 0, y: 0, count: -1 };
   const step = 24;
-  for (let y = 0; y + boxH <= height; y += step) {
-    for (let x = 0; x + boxW <= width; x += step) {
+  const mx = Math.min(Math.round(width * margin), Math.floor((width - boxW) / 2));
+  const my = Math.min(Math.round(height * margin), Math.floor((height - boxH) / 2));
+  for (let y = my; y + boxH <= height - my; y += step) {
+    for (let x = mx; x + boxW <= width - mx; x += step) {
       let count = 0;
       for (let yy = y; yy < y + boxH; yy += 3) {
         for (let xx = x; xx < x + boxW; xx += 3) {

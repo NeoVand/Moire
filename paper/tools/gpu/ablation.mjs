@@ -80,6 +80,12 @@ const REPS = 32;
 // it, which is the signature of a few preempted passes rather than of a noisy
 // quantity. An earlier version of this file published the median and gated on
 // max - min, and that gate was measuring contamination rather than uncertainty.
+// A later one moved the median onto the paired ratios instead, which is worse
+// still: a ratio between a 0.65 ms baseline and a 66 ms ablation is not a
+// symmetric quantity, and preemptions on the small side pull it down by a third
+// while preemptions on the large side cannot pull it back. What is reduced by
+// minimum here is therefore each side separately, and the ratio is taken between
+// the two floors.
 const REPEATS = 7;
 // A starved pass throws rather than returning a fast number. At this frame size a
 // long unbroken run of dispatches gets preempted often enough that this fires
@@ -92,17 +98,6 @@ const RETRIES = 4;
 const SETTLE_MS = 60;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-/** Half the interquartile range of a sorted array, by nearest-rank quartiles. */
-const iqrHalf = (sorted) => {
-  if (sorted.length < 4) return (sorted[sorted.length - 1] - sorted[0]) / 2;
-  const q = (f) => sorted[Math.min(sorted.length - 1, Math.max(0, Math.round(f * (sorted.length - 1))))];
-  return (q(0.75) - q(0.25)) / 2;
-};
-const median = (xs) => {
-  const v = [...xs].sort((a, b) => a - b);
-  const m = v.length >> 1;
-  return v.length % 2 ? v[m] : (v[m - 1] + v[m]) / 2;
-};
 
 async function timeRetried(spec, patches, reps) {
   let last;
@@ -136,6 +131,13 @@ function specFor(key, frame = FRAME) {
   };
 }
 
+// How close the second-fastest pass came to the fastest. Zero means two passes
+// agreed on the floor exactly.
+function secondOverMin(xs) {
+  const s = [...xs].sort((a, b) => a - b);
+  return s.length < 2 ? Infinity : s[1] / s[0] - 1;
+}
+
 export async function ablation(root, opts = {}) {
   const meta = await init(root);
   const reps = opts.reps ?? REPS;
@@ -160,16 +162,36 @@ export async function ablation(root, opts = {}) {
   // couple of minutes a pass takes, so a baseline taken at the start of the pass
   // makes every later ablation look slower than it is. Pairing them cancels any
   // drift the two share. This is what stopped the ratios moving 15% between runs.
+  // The matrix takes long enough that a run which has quietly died and a run which
+  // is simply slow look the same from outside. `globalThis.__prog` says which.
+  const total = repeats * Object.keys(SCENES).length * (1 + Object.keys(ABLATIONS).length * 2);
+  const started = performance.now();
+  let done = 0;
+  const tick = (what) => {
+    done += 1;
+    const elapsed = (performance.now() - started) / 1000;
+    globalThis.__prog = {
+      done,
+      total,
+      pct: Math.round((done / total) * 100),
+      what,
+      elapsedS: Math.round(elapsed),
+      etaS: Math.round((elapsed / done) * (total - done)),
+    };
+  };
   for (let pass = 0; pass < repeats; pass++) {
     for (const key of Object.keys(SCENES)) {
       const spec = specFor(key, frame);
       samples[key].full.push(await timeRetried(spec, null, reps));
+      tick(`${pass + 1}/${repeats} ${key} full`);
       for (const [label, patches] of Object.entries(ABLATIONS)) {
         // A patch that no longer matches its source is a stale experiment, not a
         // fast one. probe.mjs throws; record it rather than swallowing it, so the
         // failure reaches numbers.mjs instead of a plausible number.
         const base = await timeRetried(spec, null, reps);
+        tick(`${pass + 1}/${repeats} ${key} ${label} base`);
         const got = await timeRetried(spec, patches, reps);
+        tick(`${pass + 1}/${repeats} ${key} ${label}`);
         samples[key][label].push(
           got.error || base.error
             ? { error: got.error ?? base.error }
@@ -196,44 +218,51 @@ export async function ablation(root, opts = {}) {
         row[label] = base;
         continue;
       }
-      // Reduce the paired RATIOS, not the times. Each ratio already has its own
-      // baseline, so the median across passes is the published figure and the
-      // spread of those ratios is the honest error bar on it. A minimum would be
-      // wrong here: noise moves a ratio in both directions, unlike a time.
+      // Divide the two FLOORS. Reducing the paired ratios instead -- which this
+      // did, by their median -- is not neutral when the two sides differ in
+      // duration by two orders of magnitude: the same 0.3 ms preemption is half a
+      // percent on a 66 ms ablated pass and fifty percent on a 0.65 ms baseline, so
+      // stalls on the baseline drag the ratio down and stalls on the ablation
+      // cannot lift it back. On the marginal-drift scene that asymmetry was
+      // costing the largest ratio in the table a third of its value. Contention
+      // only ever adds time, so the fastest pass on each side is the one least
+      // contaminated by it, and both floors are drawn from the same interleaved
+      // schedule, which is what the pairing was for.
+      const baseFloor = Math.min(...runs.map((r) => r.baseMs));
       const ratios = runs.map((r) => r.ratio).sort((a, b) => a - b);
-      const mid = median(ratios);
       row[label] = {
-        // `passMs` stays the measured floor, for reference. `ratio` is the figure
-        // the table publishes, and numbers.mjs reads it in preference: dividing two
-        // separately reduced times would throw away the pairing that makes it
-        // trustworthy.
         ...base,
-        ratio: Math.round(mid * 1e4) / 1e4,
+        baseMs: Math.round(baseFloor * 1e4) / 1e4,
+        ratio: Math.round((lo / baseFloor) * 1e4) / 1e4,
+        // Kept so the reduction can be second-guessed from the file alone.
         ratios: ratios.map((v) => Math.round(v * 1e4) / 1e4),
-        // Half the interquartile range of the ratio, relative to the ratio: how
-        // well determined the published median is. Deliberately NOT the full range
-        // -- a single preempted pass is an outlier, not an error bar, and using the
-        // range put +-665% on ratios whose medians agreed with the published table
-        // to a few percent.
-        ratioSpread: Math.round((iqrHalf(ratios) / mid) * 1e4) / 1e4,
+        // Whether each floor was actually reached, as the second-fastest pass over
+        // the fastest. A floor two passes agree on is a floor; a floor one pass
+        // found is a number that got lucky. This replaces an error bar on the
+        // ratio, which at these durations was measuring how busy the machine was
+        // rather than how well determined the effect is. It is the same test
+        // run.mjs applies to Table 3.
+        secondOverMin: Math.round(
+          Math.max(secondOverMin(pass), secondOverMin(runs.map((r) => r.baseMs))) * 1e4
+        ) / 1e4,
       };
     }
     out[key] = row;
   }
   out.megapixels = out[Object.keys(SCENES)[0]].full.megapixels;
 
-  // The gate: the widest error bar on any published ratio. This is the quantity the
-  // table prints, so it is the one whose stability decides whether the table can be
-  // printed at all.
+  // The gate: the worst floor in the matrix. Every published ratio is a quotient of
+  // two floors, so a floor no second pass could reach is the one thing that would
+  // make the table a report on the machine rather than on the solver.
   let worst = 0;
   for (const key of Object.keys(SCENES)) {
     for (const label of Object.keys(ABLATIONS)) {
       const r = out[key][label];
-      if (!r || r.error || r.ratioSpread === undefined) continue;
-      if (r.ratioSpread > worst) worst = r.ratioSpread;
+      if (!r || r.error || r.secondOverMin === undefined) continue;
+      if (r.secondOverMin > worst) worst = r.secondOverMin;
     }
   }
-  out.worstRatioSpread = Math.round(worst * 1e4) / 1e4;
+  out.worstSecondOverMin = Math.round(worst * 1e4) / 1e4;
 
   // The reconstruction check.
   const row = out[RECONSTRUCTED];

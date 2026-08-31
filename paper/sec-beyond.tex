@@ -271,9 +271,8 @@ $\Psi$ whose level sets are its streamlines. Encoding $\Psi$ by
 \eqref{eq:encode} therefore draws the streamlines of the flow, with no
 integration of trajectories, no seeding strategy, and no decision about how long
 to trace before stopping. \Moire{}'s \textsc{swirl} field is the stream function
-of four point vortices, and Figure~\ref{fig:instrument} (top) is that field
-encoded: closed streamlines around each vortex, and the separatrices between them,
-drawn by two line families.
+of four point vortices; encoding it draws closed streamlines around each vortex
+and the separatrices between them, out of two \textsc{parallel} layers.
 
 \paragraph{Two fields at once.} Two carriers, each with its own encoded partner,
 give two independent differences, hence two fringe systems whose crossings are
@@ -296,36 +295,13 @@ as a new result but as a sanity check on the formulation: the oldest quantitativ
 use of moir\'e is a corollary of the fringe law, and the amplification factor those
 instruments are prized for is the $1/s$ in front. Nothing special is needed to get
 it: a vertical carrier and the \textsc{bumps} field is a grating photographed
-against its own shadow on a bumpy surface (Figure~\ref{fig:instrument}, bottom).
+against its own shadow on a bumpy surface.
 
 \paragraph{Error and disagreement.} Nothing requires $f$ to be a physical field.
 Encoding the difference between an approximation and a reference makes the
 fringes the contours of the error, at an interval the author sets, in a display
 whose ink is legible at any zoom. We found this useful while
 debugging the renderer in this paper.
-
-\begin{figure}[t]
-  \centering
-  \Description{A two-by-two grid of square black-and-white panels. The left column
-  is fine line work; the right column is the same content as smooth bands. The top
-  row shows closed loops circling four centers arranged in a square, with saddle
-  points between them, the pattern of a four-vortex flow. The bottom row shows broad
-  bands bulging around blob-shaped regions, the pattern a warped grating makes
-  against an unwarped one.}
-  \includegraphics[width=\linewidth]{figures/instrument.png}
-  \panelrow{0.49558}{0.00885}{%
-    as rendered, envelope view}
-  \caption{\figlead{Two things in one difference.} \emph{Top:} \Moire{}'s
-  \textsc{swirl} field---the stream function of four point vortices---encoded by
-  \eqref{eq:encode}, so the fringes are the streamlines of the flow. No trajectory
-  was integrated, no seed was placed, and the picture is a pair of \textsc{parallel}
-  layers. \emph{Bottom:} \textsc{bumps} against the same carrier, which is a
-  carrier against a warped copy of itself: the classical shadow-moir\'e arrangement,
-  whose fringes are contours of the displacement along the carrier direction.
-  \emph{Right column:} the same two states under the envelope view
-  (\S\ref{sec:envelope}), which is how an author reads a field off the tool.}
-  \label{fig:instrument}
-\end{figure}
 
 None of this is a new measurement principle; interferometry has used fringe
 counting for a century. What is new is where it now sits. These are two extra

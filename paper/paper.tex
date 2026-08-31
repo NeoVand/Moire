@@ -52,6 +52,30 @@
 % Figure captions read as standalone paragraphs, so they get a lead-in.
 \newcommand{\figlead}[1]{\textbf{#1}\ }
 
+% A panel and its magnification as one column: the window drawn on the wide view,
+% the detail hanging under it, and two rules joining the window's lower corners to
+% the detail's upper ones, so the reader is told what is a close-up of what
+% without having to be told in the caption. The four coordinates are fractions of
+% the wide image, origin bottom left, and come from the experiment that chose the
+% window rather than from the eye.
+\newcommand{\detailpanel}[6]{%
+  \begin{tikzpicture}[inner sep=0, outer sep=0]
+    \node[anchor=south west] (zo) at (0,0) {\includegraphics[width=\linewidth]{#2}};
+    \node[anchor=south west] (im) at ($(zo.north west)+(0,0.34cm)$)
+      {\includegraphics[width=\linewidth]{#1}};
+    \begin{scope}[shift={(im.south west)},
+      x={($(im.south east)-(im.south west)$)},
+      y={($(im.north west)-(im.south west)$)}]
+      \coordinate (dpl) at (#3,#4);
+      \coordinate (dpr) at (#5,#4);
+      \draw[cool, line width=0.8pt] (#3,#4) rectangle (#5,#6);
+    \end{scope}
+    \draw[cool, line width=0.4pt] (dpl) -- (zo.north west);
+    \draw[cool, line width=0.4pt] (dpr) -- (zo.north east);
+    \draw[cool, line width=0.8pt] (zo.south west) rectangle (zo.north east);
+  \end{tikzpicture}%
+}
+
 % Two narrow columns full of monospaced identifiers and inline mathematics leave
 % TeX few break points; a little emergency stretch is cheaper than a slug of
 % overfull lines.

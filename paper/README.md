@@ -63,7 +63,6 @@ node tools/exp/math.mjs        # data for the explanatory plots
 node tools/exp/plate.mjs       # the thirteen-family catalog plate
 node tools/exp/teaser.mjs      # the teaser strip
 node tools/exp/traditions.mjs  # raster pipeline versus field pipeline
-node tools/exp/instrument.mjs  # streamlines and shadow moiré
 node tools/numbers.mjs         # collect data/ into numbers.tex and the tables
 ```
 
@@ -136,11 +135,20 @@ desktop card will make the old solver look fine and take that motivation away. I
 you want the faster machine for its quietness, the honest framing is a second
 adapter reported alongside, not a replacement.
 
-Run it with nothing else on the GPU. It reports `worstRelativeSpread`, and `numbers.mjs` refuses the
-table if that exceeds 0.15, because at that point the repeat-to-repeat variation
-is as large as the effects the table is about. The current `data/ablation.json`
-predates the change that made the scan's accept exit a `break`, so its baselines
-are stale and `numbers.mjs` says so on every run until it is regenerated.
+Run it with nothing else on the GPU. Each cell is a quotient of two floors -- the
+fastest of seven passes on each side, contention being able only to add time --
+and the file reports `worstSecondOverMin`, how far the second-fastest pass sat
+above the fastest anywhere in the matrix. `numbers.mjs` refuses the table above
+0.15, because a floor only one pass ever reached is a scheduling accident rather
+than a measurement. `window.__prog` carries a percentage and an ETA while it runs,
+which is worth watching: the run takes about nine minutes, and a run that Vite has
+quietly reloaded out from under looks exactly like a slow one.
+
+Reduce each side and then divide; do not reduce the ratios. The two sides of a
+cell can differ in duration by two orders of magnitude, and a preemption that is
+half a percent on the ablated pass is fifty percent on the baseline, so a median
+of paired ratios is pulled down and cannot be pulled back. That cost the table's
+largest entry a third of its value before it was noticed.
 
 Two traps worth knowing. `probe.mjs` throws on a timestamp delta of zero rather
 than reporting a fast number, because a pass that fails validation and a pass that

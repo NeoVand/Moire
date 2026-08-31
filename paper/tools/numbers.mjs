@@ -513,6 +513,17 @@ const art = load('artifacts.json');
   macro('artAnchorRefInk', r(s('anchor', 'reference').ink, 3));
   macro('artAnchorLatticeInk', r(s('anchor', 'lattice-anchored').ink, 3));
   macro('artAnchorPixelInk', r(s('anchor', 'pixel-anchored').ink, 3));
+  // The locator box Figure~\ref{fig:holes} draws over its wide panels, as
+  // fractions of the image with the origin at bottom left, so the drawn window
+  // is the window worstWindow() actually chose.
+  {
+    const b = art.holes.inset;
+    const [w, h] = art.holes.size;
+    macro('artHolesBoxL', r(b.x / w, 4));
+    macro('artHolesBoxR', r((b.x + b.w) / w, 4));
+    macro('artHolesBoxB', r(1 - (b.y + b.h) / h, 4));
+    macro('artHolesBoxT', r(1 - b.y / h, 4));
+  }
 }
 
 section('data/fidelity.json : the sweep against the exhaustive reference');
@@ -652,20 +663,20 @@ const abl = load('ablation.json');
     }
   }
 
-  if (abl.worstRatioSpread === undefined) {
+  if (abl.worstSecondOverMin === undefined) {
     console.warn(
-      '  WARNING: ablation.json predates tools/gpu/ablation.mjs. It was measured ' +
-        'against a solver whose accept exit has since changed from a return to a ' +
-        'break, so its baselines are stale. Re-run tools/gpu/ablation.mjs.'
+      '  WARNING: ablation.json predates the current tools/gpu/ablation.mjs and ' +
+        'carries no floor check. Re-run tools/gpu/ablation.mjs.'
     );
-  } else if (abl.worstRatioSpread > 0.12) {
-    // Each cell is the fastest of several passes, since contention only ever adds
-    // time. This asks whether that fastest pass was a fluke: if a second pass
-    // reached the same floor, the floor is the machine's.
+  } else if (abl.worstSecondOverMin > 0.15) {
+    // Every cell is a quotient of two floors, each the fastest of several passes,
+    // since contention only ever adds time. This asks whether those fastest passes
+    // were flukes: if a second pass reached the same floor, the floor is the
+    // machine's and not an accident of scheduling.
     throw new Error(
-      `ablation.json: a published ratio varied by +-${pc(abl.worstRatioSpread)}% across repeats, ` +
-        `which is the size of several of the effects in the table. Re-run ` +
-        `tools/gpu/ablation.mjs with nothing else using the GPU.`
+      `ablation.json: some floor was reached only once -- the second-fastest pass ` +
+        `was ${pc(abl.worstSecondOverMin)}% above it. Re-run tools/gpu/ablation.mjs ` +
+        `with nothing else using the GPU.`
     );
   }
   // Two decimals reads well below 10; a 90x entry does not need them.

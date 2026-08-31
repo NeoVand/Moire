@@ -68,6 +68,46 @@ number $D(p)$: the individual index fields have disappeared, and with them any
 notion of periodicity, orientation, or curvature of either family. This is the
 content of the theorem.
 
+% Declared here rather than beside the sentence that discusses it. A figure* can
+% only be set at the top of a page, and read at its reference this one had no page
+% top left to reach: it fell past the end of the appendix onto a page of its own.
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{figures/law-atlas.png}
+  \panelrow{0.19576}{0.00530}{%
+    (a) two combs,
+    (b) circles under lines,
+    {(c) hexagons, $4^\circ$},
+    {(d) circles, two centers},
+    (e) hyperbolae under lines}
+  \Description{Two rows of five square panels. The top row shows five moire
+  superpositions: two nearly parallel line combs; concentric circles crossed by
+  horizontal lines; two hexagon families four degrees apart; two circle families with
+  displaced centers; and rectangular hyperbolae under diagonal lines. The bottom row
+  shows the same five frames blurred to gray fringe fields, with crimson curves drawn
+  on the light fringes. The crimson curves cover the whole panel in the first, are
+  confined to a central wedge in the second, radiate as six rays in the third, appear
+  only in the outer regions in the fourth, and are entirely absent in the fifth.}
+  \caption{\figlead{The law and the criterion, across the catalog.} \emph{Top:} five
+  of the pairs measured in Table~\ref{tab:fringe}, rendered from their distance
+  fields. \emph{Bottom:} each frame low-passed to its fringe field, with the unit
+  level sets of $D=\idx_1-\idx_2$ over it in crimson, drawn only where
+  $\het\le1/4$ and fading out over the last tenth of that range, so a curve ending
+  is the criterion's edge and not the pixel grid's. Ordered by the fraction of the frame the criterion admits: $\atlasCombs\%$,
+  $\atlasCircleLines\%$, $\atlasHex\%$, $\atlasCircles\%$, $\atlasControl\%$.
+  Column~(b) is masked to a wedge, outside which the circles and the lines cross at
+  a wide angle; (d) near its two centers, where the superposition is a rosette and
+  not a fringe field at all; and (e) everywhere---the criterion refuses the whole
+  frame, and the gray panel is flat. Curves are also suppressed wherever consecutive level
+  sets fall closer together than they can be drawn apart---at the center of (c)
+  the difference is singular and its level sets crowd without bound, so anything
+  drawn there would be speckle rather than a curve. The curves come from the two
+  index fields and the mask from their gradients, so the whole bottom row costs two
+  gradients per pixel and reads no raster---which is why the tool can tell a user
+  that a pair of layers will not interfere before it draws them.}
+  \label{fig:lawatlas}
+\end{figure*}
+
 \paragraph{Step 4: the hard-edged limit.}
 Let $b_i\to0$, so $A_i$ becomes the indicator of
 $\{\mathrm{pd}(v,1)\le w_i\}$, an interval of length $2w_i$ per period. Then
@@ -129,50 +169,8 @@ rather than at $0$, a fraction of the regime bound $\het=1/4$.
 Figure~\ref{fig:lawatlas} is the theorem and its hypothesis drawn together, on five
 of the pairs Table~\ref{tab:fringe} measures.
 
-\begin{figure*}[t]
-  \centering
-  \includegraphics[width=\textwidth]{figures/law-atlas.png}
-  \panelrow{0.19576}{0.00530}{%
-    (a) two combs,
-    (b) circles under lines,
-    {(c) hexagons, $4^\circ$},
-    {(d) circles, two centers},
-    (e) hyperbolae under lines}
-  \Description{Two rows of five square panels. The top row shows five moire
-  superpositions: two nearly parallel line combs; concentric circles crossed by
-  horizontal lines; two hexagon families four degrees apart; two circle families with
-  displaced centers; and rectangular hyperbolae under diagonal lines. The bottom row
-  shows the same five frames blurred to gray fringe fields, with crimson curves drawn
-  on the light fringes. The crimson curves cover the whole panel in the first, are
-  confined to a central wedge in the second, radiate as six rays in the third, appear
-  only in the outer regions in the fourth, and are entirely absent in the fifth.}
-  \caption{\figlead{The law and the criterion, across the catalog.} \emph{Top:} five
-  of the pairs measured in Table~\ref{tab:fringe}, rendered from their distance
-  fields. \emph{Bottom:} each frame low-passed to its fringe field, with the unit
-  level sets of $D=\idx_1-\idx_2$ over it in crimson, drawn only where
-  $\het\le1/4$ and fading out over the last tenth of that range, so a curve ending
-  is the criterion's edge and not the pixel grid's. The curves come from the two
-  index fields; the mask comes from their gradients; neither reads the image.
-  Ordered by the fraction of the frame the criterion admits: $\atlasCombs\%$,
-  $\atlasCircleLines\%$, $\atlasHex\%$, $\atlasCircles\%$, $\atlasControl\%$.
-  Column~(b) is masked to a wedge because outside it the circles and the lines
-  cross at a wide angle. Column~(d) is masked near the two centers, where the
-  superposition is a rosette and not a fringe field at all. Column~(e) draws
-  nothing, and there is nothing there: the criterion refuses the whole frame, and
-  the gray panel is flat. Curves are also suppressed wherever consecutive level
-  sets fall closer together than they can be drawn apart---at the center of (c)
-  the difference is singular and its level sets crowd without bound, so anything
-  drawn there would be speckle rather than a curve. The whole bottom row costs two
-  gradients per pixel and no raster, which is why the tool can tell a user that a
-  pair of layers will not interfere before it draws them.}
-  \label{fig:lawatlas}
-\end{figure*}
-
-\subsection{Remaining proofs}
-
-The bounds of \S\ref{sec:inverse} are proved where they are stated: the drift
-constant in \S\ref{sec:drift}, the two-sided envelope as
-Lemma~\ref{lem:envelope}, the sufficient interval as Theorem~\ref{thm:window},
-the Lipschitz skip bound as Lemma~\ref{lem:lipschitz}, and the closed form for
-translated polygons as Proposition~\ref{prop:closed}; each is short and stated
-in place.
+\paragraph{The remaining proofs.} Each bound of \S\ref{sec:inverse} is short and is
+proved where it is stated: the drift constant in \S\ref{sec:drift}, the two-sided
+envelope as Lemma~\ref{lem:envelope}, the sufficient interval as
+Theorem~\ref{thm:window}, the Lipschitz skip as Lemma~\ref{lem:lipschitz}, the
+translated-polygon closed form as Proposition~\ref{prop:closed}.

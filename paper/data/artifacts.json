@@ -10,12 +10,12 @@
       "reference": {
         "ink": 0.375,
         "evalsPerPixel": 436,
-        "seconds": 7.2
+        "seconds": 6.6
       },
       "sweep": {
         "ink": 0.32,
         "evalsPerPixel": 1100,
-        "seconds": 70,
+        "seconds": 69.5,
         "diff": {
           "fractionDiffering": 0.0857,
           "meanAbs": 13.75,
@@ -34,8 +34,8 @@
       }
     },
     "inset": {
-      "x": 384,
-      "y": 0,
+      "x": 492,
+      "y": 120,
       "w": 380,
       "h": 254
     }
@@ -51,7 +51,7 @@
       "reference": {
         "ink": 0.459,
         "evalsPerPixel": 100,
-        "seconds": 1.7
+        "seconds": 1.6
       },
       "window1": {
         "ink": 0.152,
@@ -75,7 +75,7 @@
       }
     },
     "inset": {
-      "x": 504,
+      "x": 492,
       "y": 408,
       "w": 200,
       "h": 134
@@ -116,8 +116,8 @@
       }
     },
     "inset": {
-      "x": 144,
-      "y": 0,
+      "x": 804,
+      "y": 528,
       "w": 200,
       "h": 134
     }

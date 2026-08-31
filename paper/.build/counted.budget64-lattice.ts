@@ -104,6 +104,15 @@ function ringResidual(
  */
 type Hit = [r: number, n: number];
 
+/**
+ * A hit plus the scan's two runners-up, signed. The closed forms report the
+ * sentinel pair: their residual is monotone around the winner, so the index
+ * neighbours ARE the residual neighbours and nothing more is needed. The
+ * rotated scan is where they differ — past the fold radius the members
+ * adjacent in residual are other branches of the family, indices far from n.
+ */
+type ScanHit = [r: number, n: number, alt2: number, alt3: number];
+
 const MISS: Hit = [1e6, -1];
 
 /** Whichever of two hits is nearer the family. */
@@ -263,11 +272,11 @@ function circleQuadraticResidual(
   const B = -2 * (dot(p, offset) + spacing * phase);
   const C = r * r - phase * phase;
   const guess = Math.max(0, (r - phase) / Math.max(spacing, 1e-5));
-  let res = checkWindow(p, guess, offset, 0, spacing, phase, shape, sides, 3);
+  let res = checkWindow(p, guess, offset, 0, spacing, phase, shape, sides, 4);
 
   if (Math.abs(A) < 1e-8) {
     if (Math.abs(B) > 1e-8) {
-      res = consider(res, p, -C / B, offset, 0, spacing, phase, shape, sides, 3);
+      res = consider(res, p, -C / B, offset, 0, spacing, phase, shape, sides, 4);
     }
     return res;
   }
@@ -279,8 +288,8 @@ function circleQuadraticResidual(
     const sd = Math.sqrt(disc);
     const q = -0.5 * (Bs + (Bs >= 0 ? sd : -sd));
     if (Math.abs(q) > 1e-12) {
-      res = consider(res, p, (q / A) * scale, offset, 0, spacing, phase, shape, sides, 3);
-      res = consider(res, p, (Cs / q) * scale, offset, 0, spacing, phase, shape, sides, 3);
+      res = consider(res, p, (q / A) * scale, offset, 0, spacing, phase, shape, sides, 4);
+      res = consider(res, p, (Cs / q) * scale, offset, 0, spacing, phase, shape, sides, 4);
     }
   }
   return res;
@@ -354,7 +363,6 @@ function polygonTranslatedResidual(
   // only reason a closed form is worth having here.
   const seed = Math.max(0, (shapeRadius(p, shape, sides) - phase) / spacing);
   let res = bracketFlat(MISS, p, seed, offset, spacing, phase, shape, sides);
-  const marginal = Math.abs(spacing - ringDrift(offset, shape, sides)) < 1e-4;
 
   // The normals are a rotation apart, so carry them instead of calling trig N times.
   const step = TAU / facets;
@@ -370,9 +378,14 @@ function polygonTranslatedResidual(
     ny = ss * nx + cs * ny;
     nx = rx;
     const den = spacing + b;
-    if (Math.abs(den) > 1e-6) {
+    // A facet within 1e-4 of flat takes the constant candidate rather than a
+    // crossing solve at n ~ 1/den, mirroring the WGSL twin: the shader's f32
+    // turns that far crossing into garbage, and a twin that solved it in f64
+    // would silently disagree. The tolerance matches the dispatch's own
+    // m ≤ s + 1e-4, so the whole near-marginal band reads as flat.
+    if (Math.abs(den) > 1e-4) {
       res = bracketFlat(res, p, (a - phase) / den, offset, spacing, phase, shape, sides);
-    } else if (marginal) {
+    } else {
       // s + bₖ = 0 on the facet that leads at large n: h is flat there, so the
       // value it is flat at is the distance, attained at every index past the
       // crossover. Every index does equally well, so there is no one index to
@@ -512,7 +525,7 @@ function ringScan(
   sides: number,
   acceptBelow: number,
   guard: number
-): Hit {
+): ScanHit {
   const radius = length2(p);
   const angle = Math.atan2(p.y, p.x);
   const offLen = length2(offset);
@@ -526,6 +539,11 @@ function ringScan(
   // Anchored to multiples of the stride, not to lo, so neighbouring pixels agree
   // on which rings exist. A stride that shifted with p would break rings apart.
   const stride = ringStride(hi - lo + 1);
+  // A caller that measures the phase (acceptBelow = 0) gets the runners-up too:
+  // the skip bar must then protect the THIRD-nearest member, not just the
+  // nearest, so the trio's members are proven rather than sampled. The plain
+  // render keeps the tighter bar and its early exit — it only asks for ink.
+  const wantTrio = acceptBelow <= 0;
 
   const ct = Math.cos(theta * stride);
   const st = Math.sin(theta * stride);
@@ -541,20 +559,40 @@ function ringScan(
   let best = 1e6;
   let bestSigned = 1e6;
   let bestN = -1;
+  let alt2 = 1e6;
+  let alt2Signed = 1e6;
+  let alt3 = 1e6;
+  let alt3Signed = 1e6;
   for (let i = 0; i < RING_BUDGET; i++) {
     if (n > hi) break;
     const signed =
       shapeRadius({ x: radius * c - offX, y: -radius * sn - offY }, shape, sides) - ringR;
     const gap = Math.abs(signed);
     if (gap < best) {
+      // The runners-up are only ever read when a trio is wanted, and the plain
+      // render — which is most frames — never asks for one.
+      if (wantTrio) {
+        alt3 = alt2;
+        alt3Signed = alt2Signed;
+        alt2 = best;
+        alt2Signed = bestSigned;
+      }
       best = gap;
       bestSigned = signed;
       bestN = n;
+    } else if (wantTrio && gap < alt2) {
+      alt3 = alt2;
+      alt3Signed = alt2Signed;
+      alt2 = gap;
+      alt2Signed = signed;
+    } else if (wantTrio && gap < alt3) {
+      alt3 = gap;
+      alt3Signed = signed;
     }
     if (acceptBelow > 0 && best <= acceptBelow) break;
     // No index within (gap − bar)/slope of here can beat bar, so the next index
     // worth looking at is the first lattice point past that run.
-    const bar = Math.min(best, guard);
+    const bar = Math.min(wantTrio ? alt3 : best, guard);
     const safe = Math.floor((gap - bar) / slope) + 1;
     const jump = Math.max(1, Math.ceil(safe / stride)) * stride;
     n += jump;
@@ -575,7 +613,7 @@ function ringScan(
   }
   // `best <= acceptBelow < guard` whenever the loop exited early, so clamping
   // here cannot discard an accepted hit.
-  return best <= guard ? [bestSigned, bestN] : [guard, -1];
+  return best <= guard ? [bestSigned, bestN, alt2Signed, alt3Signed] : [guard, -1, 1e6, 1e6];
 }
 
 /**
@@ -677,7 +715,7 @@ export function ringPhaseCpu(
 
   // The solvers work in ring-radius units, so the guard has to be there too.
   const guard = Math.max(rejectAbove, s * 0.75) / scale;
-  const [r, n] = ringSignedCpu(
+  const [r, n, alt2, alt3] = ringSignedCpu(
     p,
     offset,
     theta,
@@ -698,16 +736,34 @@ export function ringPhaseCpu(
 
   // Rings are ordered by residual, not by index: increasing n lowers h, and past
   // the marginal drift h turns around, so which side a neighbour lands on is not
-  // fixed. The trio is a set, so it does not matter.
+  // fixed. The trio is a set, so it does not matter. Under rotation past the
+  // fold radius (≈ spacing/θ) it is sharper than that: the members adjacent in
+  // residual are other BRANCHES of the family, indices far from n, which the
+  // scan's runners-up carry — report the index neighbours there and the trio
+  // spans a whole fold, the measured gap overstates the local period, and the
+  // envelope's slide leaves the carrier standing in sector-shaped patches.
   const above =
     n >= 0 ? ringResidual(p, n + 1, offset, theta, s, phi, shape, sides) : 1e6;
   const below =
     n >= 1 ? ringResidual(p, n - 1, offset, theta, s, phi, shape, sides) : 1e6;
+  const cands: number[] = [];
+  for (const c of [above, below, alt2, alt3]) {
+    if (c < 1e5 && Math.abs(c - r) > 1e-9) cands.push(c);
+  }
+  cands.sort((a, b) => Math.abs(a - r) - Math.abs(b - r));
+  const first = cands.length ? cands[0] : 1e6;
+  // The slot partner prefers the nearest member on the OTHER side of r, so the
+  // trio flanks the winner when the family does; a one-sided crowd falls back
+  // to the second-nearest, keeping the set honest either way.
+  const opposite = cands.find((c) => (c - r) * (first - r) < 0);
+  const second = opposite ?? (cands.length > 1 ? cands[1] : 1e6);
+  const upSlot = first >= 1e5 || first > r ? first : second;
+  const downSlot = first >= 1e5 || first > r ? second : first;
 
   return {
     r: r * scale,
-    rUp: neighbour(above, r, s, 1) * scale,
-    rDown: neighbour(below, r, s, -1) * scale,
+    rUp: neighbour(upSlot, r, s, 1) * scale,
+    rDown: neighbour(downSlot, r, s, -1) * scale,
     floor: 0,
   };
 }
@@ -722,24 +778,25 @@ function ringSignedCpu(
   sides: number,
   acceptBelow: number,
   guard: number
-): Hit {
+): ScanHit {
   const hasOff = dot(offset, offset) > 1e-8;
   const hasRot = Math.abs(theta) > 1e-8;
+  const flat = (hit: Hit): ScanHit => [hit[0], hit[1], 1e6, 1e6];
 
   // Circles ignore θ when δ = 0: rotating a radial metric is a no-op.
   if (!hasOff && (!hasRot || shape <= 1)) {
     const adj = shapeRadius(p, shape, sides) - phase;
     const n = adj < 0 ? 0 : Math.round(adj / s);
-    return [centeredResidual(shapeRadius(p, shape, sides), s, phase), n];
+    return flat([centeredResidual(shapeRadius(p, shape, sides), s, phase), n]);
   }
   if (!hasRot) {
-    if (shape <= 1) return circleQuadraticResidual(p, offset, s, phase, shape, sides);
+    if (shape <= 1) return flat(circleQuadraticResidual(p, offset, s, phase, shape, sides));
     // h is convex in n here, so the crossing is a linear solve on one facet.
     // Only a drift that outruns the spacing can hide the answer at a breakpoint
     // instead of a crossing, and that case falls through to the scan.
     const facets = facetCount(shape, sides);
     if (facets > 0 && ringDrift(offset, shape, sides) <= s + 1e-4) {
-      return polygonTranslatedResidual(p, offset, s, phase, shape, sides, facets);
+      return flat(polygonTranslatedResidual(p, offset, s, phase, shape, sides, facets));
     }
   }
   return ringScan(p, offset, theta, s, phase, shape, sides, acceptBelow, guard);
