@@ -24,7 +24,7 @@ paper the direct route is clearly right.
 
 SIGGRAPH 2026 and SIGGRAPH Asia 2026 deadlines have both passed. SIGGRAPH 2027
 dates are not officially published. Direct TOG has no deadline, no page limit
-(this paper is 29 pages), no travel obligation, and averages 2.5 months to a
+(this paper is 30 pages), no travel obligation, and averages 2.5 months to a
 decision. It also has a graded outcome ladder — Accept / Accept with minor
 revisions / Provisionally accept with major revisions / Revise and Resubmit /
 Reject — rather than SIGGRAPH's effectively binary result.

@@ -85,6 +85,19 @@ reproducibility, antialiasing included. It matters for one claim: the sub-pixel
 offset measured in \S\ref{sec:beyond} would otherwise be confounded by an unknown
 display pipeline.
 
+\subsection{The clips are renders too}
+
+The moving figures in the supplemental video are made the same way and for the
+same reason. Each frame is drawn by the shipped renderer at an explicit
+timestamp and an explicit size---frame $n$ at $t_0+n/\mathrm{fps}$, never at
+whatever moment the browser's animation callback happened to reach---and handed
+to the encoder in order, so the rate a clip claims is the rate it has. Nothing
+is captured from a screen. A clip is therefore a function of the range it names
+rather than of the machine that made it, and re-recording the same range from
+the same scene file gives the same frames. This is the same property
+\S\ref{sec:time} relies on: the renderer holds no state, so a frame is
+determined by the clock and by nothing else.
+
 \subsection{Running it}
 
 The experiments need only a recent Node with TypeScript stripping enabled, since

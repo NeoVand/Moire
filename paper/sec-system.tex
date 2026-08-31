@@ -4,7 +4,7 @@
 \Moire{} is a browser tool. It is also the reason the previous three sections
 exist: every bound in them was forced by something an author could do with a
 slider and we could not draw fast enough or correctly enough. This section
-describes the program, and concentrates on the four decisions that the field
+describes the program, and concentrates on the five decisions that the field
 formulation makes available and that we would not have found otherwise.
 
 \subsection{One pass, twelve slots, compiled once}
@@ -169,5 +169,37 @@ waits on \texttt{compileAsync}, easing two default concentric layers into the
 loaded preset with the same morph machinery, so the first thing an author sees is
 the mechanism moving into place. Everything else is deliberately thin: one collapsible panel, the envelope and
 ratio views of \S\ref{sec:envelope}--\S\ref{sec:visibility} as header
-toggles, a PNG export, and a JSON scene file that saves the construction---layers, camera, background---and nothing else. There are no layer effects and
-no inspector; the pattern is the document.
+toggles, a still and clip export, and a JSON scene file that saves the
+construction---layers, camera, background, and what moves
+(\S\ref{sec:time})---and nothing else. A looping parameter is written into that
+file at the value its cycle departs from rather than wherever the clock had
+carried it, since the instant a file happened to be saved at is a fact about the
+session and not about the pattern. There are no layer effects and no inspector;
+the pattern is the document.
+
+\subsection{A frame is a function of the clock}
+\label{sec:time}
+
+Nothing in the renderer accumulates. There is no history buffer, no progressive
+refinement, no temporal filter and no cached raster: a frame is determined by
+the twelve slots' uniforms and the handful of camera and view uniforms beside
+them, and by nothing else. The animation model is built to keep it that way. An animated parameter is
+a function $v(t)$ evaluated afresh every frame rather than a value advanced by
+$v \leftarrow v+\dot v\,\Delta t$, and several parameters may share one
+\emph{timing}---a delay, a period, a mode and an easing---so that a dozen knobs
+move as one gesture instead of as a dozen that drift apart. Parameters that are
+functions of the clock, over a renderer that holds no state, make the frame
+itself a function of the clock.
+
+Two things follow that a renderer carrying state does not get. Scrubbing is
+exact: the frame at $t$ is computed rather than replayed, so seeking backwards
+costs what seeking forwards costs and neither depends on where the clock has
+been. And capture need not run in real time. The recorder is the clock rather
+than an observer of it---it asks for frame $n$ at exactly $t_0+n/\mathrm{fps}$,
+renders once synchronously at a stated size, waits for the pixels however long
+they take, and only then advances---so a file at $2160$p and $120$\,fps comes
+out of a renderer that never has to reach that rate, and the same range recorded
+twice is the same file twice. The clip's length is not guessed either: every
+animator states its own period, and the tool offers the least common multiple of
+them, which is the shortest range at which every cycle has closed and the clip
+therefore repeats without a join.
