@@ -4,7 +4,7 @@ import {
   ENVELOPE_TAPS,
   MAX_LAYERS,
   createDefaultProject,
-  createIntroRestProject,
+  createIntroMotion,
   createLayer,
   defaultBend,
   defaultCurveSpacing,
@@ -16,7 +16,13 @@ import { clampZoom } from '../gpu/camera';
 import { beginLayerMorph, endLayerMorph } from '../gpu/typeMorph';
 import type { SceneData } from './scene';
 import { writeParamInto } from './params';
-import { MOTION_NONE, type Animator, type MotionDoc, type Timing } from '../types/motion';
+import {
+  MOTION_NONE,
+  scheduleOf,
+  type Animator,
+  type MotionDoc,
+  type Timing,
+} from '../types/motion';
 
 export type LayerPatch = Omit<Partial<PatternLayer>, 'position' | 'offset' | 'scale'> & {
   position?: Partial<Vec2>;
@@ -213,7 +219,11 @@ function applyLayerType(layer: PatternLayer, type: PatternType): PatternLayer {
   };
 }
 
-const initial = createIntroRestProject();
+// The construction the tool opens on, and the animation that arrives at it. The
+// document holds the destination, not the pose the opening departs from: `once`
+// releases when it lands, so what is on screen afterwards is what gets saved.
+const initial = createDefaultProject();
+const initialMotion = createIntroMotion();
 
 export const useProjectStore = create<ProjectStore>((set, get) => ({
   layers: initial.layers,
@@ -221,7 +231,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   camera: initial.camera,
   backgroundColor: initial.backgroundColor,
   view: { ...VIEW_DEFAULTS },
-  motion: MOTION_NONE,
+  motion: initialMotion,
 
   selectLayer: (id) => set({ selectedLayerId: id }),
 
@@ -451,14 +461,22 @@ export function sceneOf(s: ProjectStore = useProjectStore.getState()): SceneData
     motion: s.motion,
   };
 
-  // An animated knob is somewhere between its two ends at any instant, and that
-  // instant is not a fact about the construction. Writing it down would mean a
-  // document that drifts a little every time it is saved, and a file exported
-  // mid-swing that opens somewhere nobody chose. So each animated path goes back
-  // to its `from`, which is the value the animation departs from and the only one
-  // of the two that is a resting place.
+  // A looping knob is somewhere between its two ends at any instant, and that
+  // instant is a fact about the clock rather than about the construction:
+  // writing it down would mean a document that drifts every time it is saved,
+  // and a file exported mid-swing that opens somewhere nobody chose. So loop and
+  // bounce go back to their `from`, the value the cycle departs from.
+  //
+  // `once` is left exactly as it stands. It is a transition, not a cycle: before
+  // it runs the document is at the start, after it runs the document is at the
+  // destination, and after a hand has moved the knob the document is wherever the
+  // hand put it. All three are things somebody meant.
   for (const a of s.motion.animators) {
-    if (a.enabled) writeParamInto(scene, a.path, a.from);
+    // Through scheduleOf, since an animator on a shared timing takes its mode
+    // from the timing and not from its own fields.
+    if (a.enabled && scheduleOf(a, s.motion.timings).mode !== 'once') {
+      writeParamInto(scene, a.path, a.from);
+    }
   }
   return scene;
 }

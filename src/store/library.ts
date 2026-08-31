@@ -67,6 +67,27 @@ export interface LibraryStore {
 }
 
 /**
+ * The shipped example, written once and never again. It is the document already
+ * in the store -- the default construction plus its opening animation -- so the
+ * thing on the shelf and the thing on screen cannot disagree.
+ */
+async function seedOpening() {
+  try {
+    if ((await listProjects()).length > 0) return;
+    const id = newProjectId();
+    await putProject({
+      id,
+      name: 'Opening',
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      scene: currentText(),
+    });
+  } catch {
+    // A shelf that could not be stocked is not a reason to fail to start.
+  }
+}
+
+/**
  * A document that asks to play does so from the beginning. Resuming wherever the
  * clock happened to be would mean the same file never opens looking the same way
  * twice, which is the opposite of what the rest of this is for.
@@ -129,6 +150,12 @@ export const useLibraryStore = create<LibraryStore>((set, get) => ({
       return;
     }
     const session = await readSession();
+    if (!session) {
+      // First visit: put the opening on the shelf, so the animation that plays
+      // is a project the author can open, read and take apart rather than
+      // something the application does to them.
+      await seedOpening();
+    }
     if (session) {
       try {
         // Through the same parser a dropped file goes through: a scene that has
@@ -150,6 +177,9 @@ export const useLibraryStore = create<LibraryStore>((set, get) => ({
       }
     }
     set({ hydrated: true });
+    // Whether or not anything was restored: a document that asks to play does so,
+    // and on a first visit that document is the opening.
+    startIfAsked();
     void get().refresh();
   },
 

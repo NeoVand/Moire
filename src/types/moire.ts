@@ -1,4 +1,5 @@
 import type { TilingId } from '../gpu/tilings';
+import { createAnimator, createTiming, type Animator, type MotionDoc } from './motion';
 
 export type PatternType =
   | 'straight-lines'
@@ -330,6 +331,75 @@ export function createIntroRestProject(): MoireProject {
       })
     ),
   };
+}
+
+/**
+ * The opening animation, as motion the document carries.
+ *
+ * It used to be a hand-written interpolation with its own clock; then a
+ * transient transition on the shared clock; and it is now simply an animation,
+ * because `once` releases its knob when it arrives. That last rule is what makes
+ * the difference: without it every field of every layer would stay owned by an
+ * animator forever and the construction could never be edited.
+ *
+ * One shared timing and a thin animator per field that actually differs, which
+ * is the shape shared timings exist for -- a dozen knobs moving as one gesture,
+ * retimed by editing one number.
+ */
+const INTRO_SCALARS = [
+  'spacing',
+  'thickness',
+  'rotation',
+  'phase',
+  'rotationOffset',
+  'sides',
+  'vertexSize',
+  'lineCount',
+  'bend',
+  'frequency',
+  'tileFill',
+  'opacity',
+] as const;
+
+const INTRO_VECTORS = ['position', 'offset', 'scale'] as const;
+
+export function createIntroMotion(): MotionDoc {
+  const rest = createIntroRestProject().layers;
+  const dest = createDefaultProject().layers;
+  const timing = createTiming({
+    id: 'opening',
+    name: 'Opening',
+    delay: 0.28,
+    period: 1.7,
+    mode: 'once',
+    ease: 'inOut',
+  });
+  const animators: Animator[] = [];
+  const add = (path: string, from: number, to: number) => {
+    if (Math.abs(from - to) > 1e-9) {
+      animators.push(createAnimator(path, { from, to, timing: timing.id }));
+    }
+  };
+
+  dest.forEach((d, i) => {
+    const r = rest[i];
+    if (!r) return;
+    for (const k of INTRO_SCALARS) add(`layer.${d.id}.${k}`, r[k], d[k]);
+    for (const v of INTRO_VECTORS) {
+      add(`layer.${d.id}.${v}.x`, r[v].x, d[v].x);
+      add(`layer.${d.id}.${v}.y`, r[v].y, d[v].y);
+    }
+    // The expression itself cannot be interpolated, so a layer arriving with a
+    // field it did not start with fades that field in from nothing instead.
+    add(
+      `layer.${d.id}.field.amount`,
+      r.field.source === d.field.source ? r.field.amount : 0,
+      d.field.amount
+    );
+    add(`layer.${d.id}.field.scale`, r.field.scale, d.field.scale);
+  });
+
+  return { timings: [timing], animators, playOnLoad: true };
 }
 
 export const MAX_LAYERS = 12;

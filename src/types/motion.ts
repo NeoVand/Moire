@@ -144,6 +144,22 @@ export function sampleAnimator(a: Animator, timings: Timing[], t: number): numbe
 }
 
 /**
+ * Whether a `once` animation has finished and let go of its knob.
+ *
+ * A crossing that has arrived has nothing left to say, and going on writing its
+ * destination every frame would mean the knob could never be touched again: a
+ * hand would move it and the next frame would move it back. So `once` releases,
+ * which is what makes it a transition rather than a clamp. Seeking back before
+ * the end takes it again, so a recording is unaffected.
+ *
+ * Loop and bounce never release. They have no end to arrive at.
+ */
+export function isSpent(a: Animator, timings: Timing[], t: number): boolean {
+  const s = scheduleOf(a, timings);
+  return s.mode === 'once' && t > s.delay + Math.max(1e-3, s.period);
+}
+
+/**
  * Every knob's value at time `t`, as a plain map. Later animators on the same
  * path win, which is arbitrary but has to be something; the editor is what stops
  * two animators sharing a path in the first place.
@@ -158,6 +174,7 @@ export function sampleMotion(
     if (!a.enabled) continue;
     if (!opts.includeHeld && a.hold) continue;
     if (opts.skip?.(a)) continue;
+    if (isSpent(a, motion.timings, t)) continue;
     out.set(a.path, sampleAnimator(a, motion.timings, t));
   }
   return out;
