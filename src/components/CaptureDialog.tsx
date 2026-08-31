@@ -20,8 +20,10 @@ import {
 } from '../gpu/recorder';
 import {
   VIDEO_FORMATS,
+  VIDEO_HEIGHTS,
   downloadVideo,
   encodableFormats,
+  videoFrameSize,
   videoSink,
   type VideoFormat,
 } from '../gpu/video';
@@ -80,6 +82,7 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
   const [t0, setT0] = useState(0);
   const [t1, setT1] = useState(6);
   const [format, setFormat] = useState<'frames' | VideoFormat>('mp4');
+  const [videoHeight, setVideoHeight] = useState(1080);
   const [encodable, setEncodable] = useState<Set<VideoFormat>>(new Set());
   const [preview, setPreview] = useState<string | null>(null);
   const [progress, setProgress] = useState<RecordProgress | null>(null);
@@ -106,7 +109,12 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
   // Within a hundredth of what the motion actually asks for.
   const fitted = Math.abs(t1 - span.end) < 0.01 && t0 === 0;
 
-  const size = captureSize({ scale, aspect });
+  const stillSize = captureSize({ scale, aspect });
+  const canvasAspect = stillSize ? stillSize.width / stillSize.height : 16 / 9;
+  const videoSize =
+    format === 'frames'
+      ? null
+      : videoFrameSize(format, videoHeight, aspect || canvasAspect);
   const frames = frameCount({ t0, t1, fps });
 
   const refreshPreview = useCallback(async () => {
@@ -144,15 +152,14 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
   }, []);
 
   useEffect(() => {
-    if (!size) return;
     let live = true;
-    void encodableFormats(size.width, size.height).then((set) => {
+    void encodableFormats(videoHeight, aspect || canvasAspect).then((set) => {
       if (live) setEncodable(set);
     });
     return () => {
       live = false;
     };
-  }, [size?.width, size?.height]);
+  }, [videoHeight, aspect, canvasAspect]);
 
   // The preview follows the construction, but not while recording: a thumbnail
   // is not worth a render between every pair of captured frames.
@@ -186,14 +193,17 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
     const dir = wantsFrames ? await pickDirectory() : null;
     if (wantsFrames && !dir) return;
 
-    const video = wantsFrames
-      ? null
-      : videoSink({ format, width: size?.width ?? 1920, height: size?.height ?? 1080, fps });
+    const video =
+      wantsFrames || !videoSize
+        ? null
+        : videoSink({ format, width: videoSize.width, height: videoSize.height, fps });
     abort.current = new AbortController();
     setProgress({ frame: 0, frames, elapsed: 0 });
     try {
       const out = await recordFrames(
-        { t0, t1, fps, scale, aspect },
+        // A recording lands on a stated height; a folder of stills keeps the
+        // still export's multiplier, which is what that control is for.
+        { t0, t1, fps, aspect, ...(videoSize ? { height: videoSize.height } : { scale }) },
         video ?? directorySink(dir!),
         setProgress,
         abort.current.signal
@@ -275,9 +285,9 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
                 </button>
               ))}
             </div>
-            {size && (
+            {stillSize && (
               <span className="font-mono text-[10px] tabular-nums text-[var(--text-muted)]">
-                {size.width}×{size.height}
+                {stillSize.width}×{stillSize.height}
               </span>
             )}
           </div>
@@ -375,7 +385,7 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
           )}
         </div>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex flex-wrap items-center gap-1.5">
           <div className={group}>
             <button type="button" className={chip(format === 'frames')} onClick={() => setFormat('frames')}>
               frames
@@ -397,7 +407,33 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
               </button>
             ))}
           </div>
+          {videoSize && (
+            <>
+              <div className={group}>
+                {VIDEO_HEIGHTS.map((h) => (
+                  <button
+                    key={h}
+                    type="button"
+                    className={chip(videoHeight === h)}
+                    onClick={() => setVideoHeight(h)}
+                  >
+                    {h}p
+                  </button>
+                ))}
+              </div>
+              <span className="font-mono text-[10px] tabular-nums text-[var(--text-muted)]">
+                {videoSize.width}×{videoSize.height}
+              </span>
+            </>
+          )}
         </div>
+
+        {videoSize && videoSize.height !== videoHeight && (
+          <p className="text-[9px] leading-[1.4] text-[var(--text-muted)]">
+            Held to {videoSize.width}×{videoSize.height}: this codec will not encode the frame
+            that aspect asks for at {videoHeight}p.
+          </p>
+        )}
 
         {animators === 0 && (
           <p className="text-[10px] leading-[1.4] text-[var(--text-muted)]">

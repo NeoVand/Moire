@@ -3,6 +3,8 @@ export interface CaptureOptions {
   scale?: number;
   /** Target aspect (width / height); 0 or absent keeps the canvas's own. */
   aspect?: number;
+  /** An exact frame height in pixels, which overrides `scale` when given. */
+  height?: number;
 }
 
 type CaptureFn = (opts?: CaptureOptions) => Promise<Blob>;

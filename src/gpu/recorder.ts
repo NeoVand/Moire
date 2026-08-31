@@ -32,6 +32,8 @@ export interface RecordOptions {
   scale?: number;
   /** Target aspect, or 0 for the canvas's own. */
   aspect?: number;
+  /** An exact frame height, for a recording that must land on a stated size. */
+  height?: number;
 }
 
 /**
@@ -109,7 +111,7 @@ export async function recordFrames(
       // The canvas is only valid inside this callback -- the renderer restores
       // its display size as soon as it returns -- so the sink does its work here
       // rather than being handed something that will change under it.
-      await captureWith({ scale: opts.scale, aspect: opts.aspect }, async (canvas) => {
+      await captureWith({ scale: opts.scale, aspect: opts.aspect, height: opts.height }, async (canvas) => {
         await sink.frame(n, {
           canvas: async () => canvas,
           png: () =>

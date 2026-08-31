@@ -44,20 +44,67 @@ export const VIDEO_FORMATS: VideoFormatInfo[] = [
 ];
 
 /**
+ * The heights offered, and the reason there is a list at all.
+ *
+ * A still is sized as a multiple of the window, because a picture for print is
+ * asked for that way. A recording is not: encoders have hard limits, and the
+ * multiplier that gives a fine still gives an impossible video. A 2x export of a
+ * large window is 6840x3944, which no H.264 encoder will accept and which nobody
+ * wanted a video at anyway.
+ */
+export const VIDEO_HEIGHTS = [720, 1080, 1440, 2160];
+
+/**
+ * The largest frame each codec will really take.
+ *
+ * H.264's top level is 8192x4320 on paper, but hardware encoders in practice
+ * refuse well below that and the failure is a wall of codec string. Holding to
+ * 4K keeps every machine in the room. VP9 is more forgiving.
+ */
+const CODEC_MAX_PIXELS: Record<VideoFormatInfo['codec'], number> = {
+  avc: 3840 * 2160,
+  vp9: 4096 * 2160,
+};
+
+/** The frame this format will accept nearest the one asked for, always even. */
+export function videoFrameSize(
+  format: VideoFormat,
+  height: number,
+  aspect: number
+): { width: number; height: number } {
+  const info = VIDEO_FORMATS.find((f) => f.id === format) ?? VIDEO_FORMATS[0];
+  const max = CODEC_MAX_PIXELS[info.codec];
+  let h = height;
+  let w = h * aspect;
+  if (w * h > max) {
+    const k = Math.sqrt(max / (w * h));
+    w *= k;
+    h *= k;
+  }
+  return {
+    width: Math.max(2, Math.round(w / 2) * 2),
+    height: Math.max(2, Math.round(h / 2) * 2),
+  };
+}
+
+/**
  * Which of them this browser can actually encode. Asked rather than assumed:
  * hardware support for H.264 in particular is not universal, and a format that
  * cannot be encoded should be greyed out before a take rather than failing
  * after one.
  */
 export async function encodableFormats(
-  width: number,
-  height: number
+  height: number,
+  aspect: number
 ): Promise<Set<VideoFormat>> {
   const out = new Set<VideoFormat>();
   await Promise.all(
     VIDEO_FORMATS.map(async (f) => {
       try {
-        if (await canEncodeVideo(f.codec, { width, height })) out.add(f.id);
+        // Asked at the size that would actually be used, since the answer depends
+        // on it -- a codec available at 1080p can be refused at 4K.
+        const size = videoFrameSize(f.id, height, aspect);
+        if (await canEncodeVideo(f.codec, size)) out.add(f.id);
       } catch {
         // An unsupported codec throws rather than answering; same conclusion.
       }

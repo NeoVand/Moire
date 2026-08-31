@@ -509,32 +509,38 @@ export class MoireRenderer {
    * multiplies the zoom uniform so the framing is identical by construction:
    * world extent is buffer over zoom, and both scale together.
    */
-  private exportFrame(opts: { scale?: number; aspect?: number } = {}) {
+  private exportFrame(opts: { scale?: number; aspect?: number; height?: number } = {}) {
     const scale = Math.max(opts.scale ?? 1, 0.05);
     const bufW = Math.max(1, Math.round(this.lastWidth * (this.lastDpr || 1)));
     const bufH = Math.max(1, Math.round(this.lastHeight * (this.lastDpr || 1)));
     const aspect = opts.aspect || bufW / bufH;
     const coverByWidth = aspect <= bufW / bufH;
-    let width = coverByWidth ? bufW * scale : bufH * scale * aspect;
+    // A stated height wins over a multiplier. A still is sized relative to the
+    // window because that is how a picture for print is asked for; a recording is
+    // sized absolutely, because 1080p means 1080p and an encoder has opinions
+    // about what it will accept.
+    let width = opts.height ? opts.height * aspect : coverByWidth ? bufW * scale : bufH * scale * aspect;
     let height = width / aspect;
     const cap = 8192 / Math.max(width, height);
     if (cap < 1) {
       width *= cap;
       height *= cap;
     }
-    width = Math.max(2, Math.round(width));
-    height = Math.max(2, Math.round(height));
+    // Even in both directions: every video encoder in use requires it, and a
+    // still loses nothing by it.
+    width = Math.max(2, Math.round(width / 2) * 2);
+    height = Math.max(2, Math.round(height / 2) * 2);
     const zScale = coverByWidth ? width / bufW : height / bufH;
     return { width, height, zScale };
   }
 
   /** The pixel size `snapshot` would render for these options, without rendering. */
-  snapshotSize(opts: { scale?: number; aspect?: number } = {}): { width: number; height: number } {
+  snapshotSize(opts: { scale?: number; aspect?: number; height?: number } = {}): { width: number; height: number } {
     const { width, height } = this.exportFrame(opts);
     return { width, height };
   }
 
-  async snapshot(opts: { scale?: number; aspect?: number } = {}): Promise<Blob> {
+  async snapshot(opts: { scale?: number; aspect?: number; height?: number } = {}): Promise<Blob> {
     return this.snapshotWith(opts, (canvas) => encodeCanvasPng(canvas));
   }
 
@@ -546,7 +552,7 @@ export class MoireRenderer {
    * moment the callback is done with it either way.
    */
   async snapshotWith<T>(
-    opts: { scale?: number; aspect?: number } = {},
+    opts: { scale?: number; aspect?: number; height?: number } = {},
     read: (canvas: HTMLCanvasElement) => Promise<T> | T
   ): Promise<T> {
     // An export that lands inside a field rebuild waits for it rather than failing.
