@@ -108,7 +108,7 @@ const fringe = load('fringe.json');
   // Table.
   const rows = fringe.scenes.map((s) => {
     if (!s.regime) {
-      return `${s.name.replace(/-/g, '\\hspace{0.5pt}-\\hspace{0.5pt}')} & ${s.note} & --- & --- & --- & --- & --- & $0$ \\\\`;
+      return `\\texttt{${s.name}} & ${s.note} & --- & --- & --- & --- & --- & $0$ \\\\`;
     }
     const g = s.regime;
     return (
@@ -193,8 +193,8 @@ const grad = load('gradient.json');
 \\caption{\\figlead{How wrong an undivided phase residual is.} For each curve
 family, whether the shipped shader divided by $\\lVert\\nabla\\ph\\rVert$, how many
 settings of that family's own sliders we swept, the worst
-$\\lVert\\nabla\\ph\\rVert$ found on a $1400\\times880$ frame --- which is exactly
-the factor by which the stroke was too thin --- and the share of the frame where
+$\\lVert\\nabla\\ph\\rVert$ found on a $1400\\times880$ frame---which is exactly
+the factor by which the stroke was too thin---and the share of the frame where
 the stroke was off by more than $10\\%$. The parabola was correct all along; the
 other three were not.}
 \\label{tab:gradient}
@@ -304,7 +304,9 @@ const gpu = load('gpu.json');
   zoom-out, where the index interval is widest. The last three rows are the hard
   cases of Section~\\ref{sec:limits}: an offset close to the spacing, and the
   marginal drift $m=s$ itself. Bold marks the shipped method, not the row minimum:
-  \\loose{} is faster on the nonagon row, and loses ink globally
+  where $\\rad(-\\delta)=\\lVert\\delta\\rVert$ (circles; zero offset) the two
+  intervals coincide and \\loose{} saves only the constant's cost, on the nonagon
+  row it is faster outright, and it loses ink globally
   (Table~\\ref{tab:fidelity}).}
   \\label{tab:gpu}
   \\begin{tabular}{llrrr}
@@ -468,10 +470,10 @@ const cost = load('cost.json');
 \\begin{table}[t]
   \\centering
   \\small
-  \\caption{Mean evaluations of $\\rad$ per pixel, CPU rasteriser, and fraction of
+  \\caption{Mean evaluations of $\\rad$ per pixel, CPU rasterizer, and fraction of
   pixels differing from \\textsc{Reference} by more than $8/255$. \\ours{} agrees
   with brute force to within that tolerance at every pixel of all ${COST_ROWS.length} scenes
-  while doing less work than the exhaustive scan that defines them.}
+  while doing less work than the exhaustive scan that defines the reference.}
   \\label{tab:cost}
   \\begin{tabular}{@{}lrrrr@{}}
     \\toprule

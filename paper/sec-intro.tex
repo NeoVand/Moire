@@ -22,10 +22,10 @@ obstacle is a representation, and proposes a different one.
 
 Graphics has related to moir\'e in two nearly disjoint ways. The first is
 \emph{suppression}: moir\'e is what undersampling looks like when the signal is
-repetitive, essentially the whole of texture filtering exists to prevent
+repetitive; essentially the whole of texture filtering exists to prevent
 it~\cite{Heckbert1986Survey, Zwicker2002EWA}, and it remains a first-class
 concern in neural rendering~\cite{Barron2021MipNeRF}. The second is
-\emph{synthesis}: a smaller literature builds moir\'e on purpose---band
+\emph{synthesis}, a smaller literature that builds moir\'e on purpose: band
 moir\'e images~\cite{Hersch2004Band}, level-line moir\'e~\cite{Chosson2014Beating},
 target-driven phase modulation~\cite{Tsai2013Target}, variational layer
 design~\cite{Lebanon2001Variational}, artistic
@@ -33,7 +33,7 @@ screening~\cite{Ostromoukhov1995Artistic}, micro-optics and curved
 fabrication~\cite{Walger2019Moire, Saberpour2020Fabrication}, and, running the
 amplification backwards, moir\'e as a sub-millimeter
 sensor~\cite{Qiu2023MoireTag, CamposZamora2024MoireWidgets}. Across that second
-tradition one assumption is nearly universal: a layer is a raster---an image
+tradition one assumption is nearly universal: a layer is a rasterized image
 of a grating, possibly warped, multiplied against another. Authoring is
 therefore offline, since the layers must be solved for and then rasterized;
 playback is physical, printed transparencies slid by hand; and the pattern has
@@ -42,7 +42,7 @@ a resolution, so displaying it at any other scale can destroy it or invent it
 exist, but in all of them the fringe is an unmodelled side effect of drawing
 two dense patterns; what the literature does not contain, as far as we can
 find, is an interactive tool in which the moir\'e itself is represented,
-predicted, and stable under zoom---the nearest system,
+predicted, and stable under zoom. The nearest system,
 FabObscura~\cite{Sethapakdi2025FabObscura}, authors barrier-grid occlusion
 rather than interference. We think the gap is not a missing feature but a
 missing representation.
@@ -59,7 +59,7 @@ missing representation.
   \caption{\figlead{Raster versus field, same two families.} \emph{Above:} the
   standard synthesis pipeline reused at a scale it was not rasterized for. Each
   layer is rasterized to a bilevel plate, the plates are multiplied, and the
-  product is displayed at a different scale---which is what photographing,
+  product is displayed at a different scale, which is what photographing,
   scanning or zooming a printed pair amounts to. (Printed at press resolution and
   viewed in place, the plates never resample; every \emph{screen} reuse of them
   does, and the screen is where an interactive tool lives.) The strokes break into dashes, the
@@ -81,15 +81,16 @@ pixel, with no grid anywhere. The distance field is what a renderer thresholds
 into ink; the index field is what the theory works with, and our central
 observation is that the interference lives entirely in it: \emph{the fringes of
 a superposition are the unit level sets of the difference of the two index
-fields}. Section~\ref{sec:fringe} makes this precise---the locally averaged
+fields}. Section~\ref{sec:fringe} makes this precise: the locally averaged
 ink is a function of $D=\idx_1-\idx_2$ alone, a saturating tent rather than a
 sinusoid, exact under stated local hypotheses and first-order accurate beyond
-them---and verifies it against $\fringeSamples$ measurements over
-$\fringeScenes$ pairs of families to a mean coverage error of $\fringeMeanErr$.
+them. The same section verifies the law against $\fringeSamples$ measurements
+over $\fringeScenes$ pairs of families, to a mean coverage error of
+$\fringeMeanErr$.
 The locus and the profile shape have classical
 ancestors~\cite{Oster1964, Patorski1976Profile, Amidror1994TConv}; what the
 field form adds is a per-pixel statement about the actual compositing operator,
-with a computable validity criterion---the heterodyne ratio $\het$, a
+with a computable validity criterion: the heterodyne ratio $\het$, a
 \emph{field} that can be drawn, telling an author where in the frame a fringe
 will form before they commit to parameters. One subtlety runs through
 everything: a family's index convention is arbitrary, so $D$ is one
@@ -101,7 +102,8 @@ to order two.
 For most families the index field is a closed form; Section~\ref{sec:catalog}
 lists the thirteen we ship, of which nine are one line of algebra each. The
 families that make the richest interference are not among them. What op
-artists actually reach for are families whose members are not concentric---each ring displaced a little further than the last, or turned a little further,
+artists actually reach for are families whose members are not concentric:
+each ring displaced a little further than the last, or turned a little further,
 so the family shears, spirals, and finally unwinds into a pencil of
 near-parallel curves; Riley's \emph{Blaze}, a nest of zigzag rings each turned
 against the last, is exactly such a family~\cite{Oster1965Optical}. We call
@@ -117,22 +119,23 @@ every pixel whether or not it was needed. For a long time we believed these
 broken segments were a rasterization bug; they are an inversion bug.
 
 Section~\ref{sec:inverse} replaces the guess with a certificate. Every radial
-metric in this setting---circle, square, triangle, regular $N$-gon---is a
+metric in this setting (circle, square, triangle, regular $N$-gon) is a
 \emph{support function}, and support functions supply exactly the constants the
 problem needs: a Lipschitz modulus that lets indices be skipped unevaluated, in
 the spirit of sphere tracing~\cite{Hart1996Sphere}; an exact anisotropy floor;
 and a subadditive drift rate $\rad(-\delta)$ that is strictly tighter than
 $\lVert\delta\rVert$, where using the loose constant declares whole bands of
 ordinary settings unsolvable. Together they give a closed interval of integers
-that provably contains every member passing within a stroke width of the pixel---an interval that, unexpectedly, does not involve the rotation $\theta$ at
-all---and, when $\theta=0$, a closed form for translated polygons of any side
+that provably contains every member passing within a stroke width of the pixel
+(an interval that, unexpectedly, does not involve the rotation $\theta$ at
+all) and, when $\theta=0$, a closed form for translated polygons of any side
 count, including a marginal case in which the residual is eventually constant
 and no enumeration of any finite length can succeed. Measured on the GPU the
 certified solver is $\gpuSpeedLo$--$\gpuSpeedHi\times$ faster than the fixed
 enumeration it replaces across rotated settings, at equal or better fidelity,
 and faster than an exhaustive scan given the same termination bound. Where the
-interval genuinely explodes---the tangent-pencil locus, where unboundedly
-many members really do crowd a point---Section~\ref{sec:limits} shows the
+interval genuinely explodes, on the tangent-pencil locus where unboundedly
+many members really do crowd a point, Section~\ref{sec:limits} shows the
 choice that matters is not how much to subsample but how: anchored to the
 family, the error reads as a thinner pattern; anchored to the pixel, as a
 shattered one, at identical cost.
@@ -145,8 +148,8 @@ shattered one, at identical cost.
   raster at any stage (Section~\ref{sec:field}).
 
   \item The fringe law: locally averaged ink is a saturating tent in the index
-  difference, so fringes are its unit level sets---exact under stated local
-  hypotheses, per-pixel, with no periodicity assumption, and with a computable
+  difference, so fringes are its unit level sets. The law is exact under stated
+  local hypotheses, per-pixel, with no periodicity assumption, and with a computable
   validity criterion, the heterodyne ratio, scanned over the low-order
   characters and drawable as a map
   (Sections~\ref{sec:fringe}--\ref{sec:visibility}).
@@ -173,6 +176,8 @@ shattered one, at identical cost.
 
   \item An expression language for those fields, with the gradient the eikonal
   divide needs obtained by forward-mode differentiation rather than by hand, and
-  compiled to straight-line shader code rather than interpreted per pixel---which is what makes an arbitrary user-written field affordable, by
-  $\fieldGainLo$--$\fieldGainHi\times$ (Section~\ref{sec:exprs}).
+  compiled to straight-line shader code rather than interpreted per pixel. The
+  compilation is what makes an arbitrary user-written field affordable:
+  $\fieldGainLo$--$\fieldGainHi\times$ cheaper than the interpreter it replaced
+  (Section~\ref{sec:exprs}).
 \end{itemize}

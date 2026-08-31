@@ -74,8 +74,8 @@ before either is timed.
 
 No figure in this paper is a capture of the running application. The pattern figures
 come from a CPU rasterizer that mirrors the shader's \texttt{composite.ts} term for
-term---same world transform, same $1.15$-pixel stroke floor, same $0.7$-pixel
-antialiasing band, same accept/reject guards, same alpha composite---so a figure
+term (same world transform, same $1.15$-pixel stroke floor, same $0.7$-pixel
+antialiasing band, same accept/reject guards, same alpha composite), so a figure
 can be rendered with a solver that no longer exists in the shader, and per-pixel
 work can be counted while it is drawn. Where a figure needs the walking families it
 calls the shipped solver through the experiments' own instrumented loader.
@@ -89,8 +89,8 @@ display pipeline.
 
 The moving figures in the supplemental video are made the same way and for the
 same reason. Each frame is drawn by the shipped renderer at an explicit
-timestamp and an explicit size---frame $n$ at $t_0+n/\mathrm{fps}$, never at
-whatever moment the browser's animation callback happened to reach---and handed
+timestamp and an explicit size (frame $n$ at $t_0+n/\mathrm{fps}$, never at
+whatever moment the browser's animation callback happened to reach) and handed
 to the encoder in order, so the rate a clip claims is the rate it has. Nothing
 is captured from a screen. A clip is therefore a function of the range it names
 rather than of the machine that made it, and re-recording the same range from

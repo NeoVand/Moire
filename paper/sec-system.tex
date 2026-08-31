@@ -2,8 +2,8 @@
 \label{sec:system}
 
 \Moire{} is a browser tool. It is also the reason the previous three sections
-exist: every bound in them was forced by something an author could do with a
-slider and we could not draw fast enough or correctly enough. This section
+exist: every bound in them was forced by something an author could reach with a
+slider that we could not yet draw fast enough, or correctly enough. This section
 describes the program, and concentrates on the five decisions that the field
 formulation makes available and that we would not have found otherwise.
 
@@ -16,9 +16,9 @@ language~\cite{ThreeJS} and runs through WebGPU~\cite{WebGPU}; TSL matters here
 only because it lets the same expression tree be assembled in TypeScript, which is
 how the CPU twin of \S\ref{sec:inverse} stays a twin.
 
-A layer is $19$ uniforms. Nine describe the family---type, previous type, morph
+A layer is $19$ uniforms. Nine describe the family (type, previous type, morph
 parameter, spacing, phase, side count, per-member offset, per-member rotation,
-line count---and the rest describe its appearance and placement. Crucially there
+line count) and the rest describe its appearance and placement. Crucially there
 are always \emph{twelve} of these slots, allocated and compiled at startup, each
 gated by an \texttt{active} uniform. Adding a layer writes uniforms. Deleting or
 hiding one writes $\texttt{active}=0$. Neither touches the node graph.
@@ -28,7 +28,7 @@ natural way to write the renderer is to build the shader from the current layer
 list, which means every add, delete and hide rebuilds it. In WebGPU a rebuild is a
 pipeline creation, and pipeline creation is tens to hundreds of milliseconds during
 which the canvas cannot present. The result is a tool that stutters exactly when
-an author is composing---the moment when they are most likely to be exploring
+an author is composing, the moment when they are most likely to be exploring
 rather than committing. Fixing the layer count and paying for twelve unconditionally
 costs a few branches per pixel and makes layer count free. Frames are then driven
 by a dirty flag on the store, coalesced to one render per animation frame.
@@ -51,15 +51,16 @@ for the world size of a pixel and set
 \begin{equation}
   h=\max\!\left(\tfrac{t}{2},\; 1.15\,\mathrm{pixel}\right),
   \qquad
-  \varepsilon = 0.7\,\mathrm{pixel},
+  a = 0.7\,\mathrm{pixel},
   \label{eq:stroke}
 \end{equation}
-then $\alpha(d)=1-\mathrm{smoothstep}(h-\varepsilon,\,h+\varepsilon,\,d)$.
+then $\alpha(d)=1-\mathrm{smoothstep}(h-a,\,h+a,\,d)$, with $a$ the antialias
+band of Eq.~\ref{eq:alpha}.
 
 The floor $1.15\,\mathrm{pixel}$ is what keeps a zoomed-out pattern from
 disintegrating. Without it, a hairline family at low zoom has strokes narrower
 than the sample spacing, and the picture breaks into speckle that is visually
-indistinguishable from the inversion failure of \S\ref{sec:inverse}---the
+indistinguishable from the inversion failure of \S\ref{sec:inverse}; the
 two are easily attributed to each other. With it, the stroke can never be
 thinner than about a pixel, and the fringes survive (Figure~\ref{fig:zoom}).
 
@@ -70,7 +71,7 @@ samples per pixel as a prefiltered reference. Each rule is compared against the
 properly sampled version of \emph{its own} intent, so that sampling error is
 isolated from any difference in what was being drawn. At the coarsest zoom,
 where one carrier period is $\zoomCoarsestPeriod$\,px, the standard deviation
-of the per-pixel ink error is
+of the per-pixel ink error is:
 \begin{center}\small
 \begin{tabular}{@{}lrr@{}}
   \toprule
@@ -81,8 +82,8 @@ of the per-pixel ink error is
   phase residual, no floor  & $\zoomValueNoise$   &---\\
   \bottomrule
 \end{tabular}
-\end{center}---a factor of $\zoomNoiseRatio$. So the floor does suppress the speckle, and by a
-lot. But the same experiment prices it: even sampled perfectly, the clamped stroke
+\end{center}\noindent The gap is a factor of $\zoomNoiseRatio$. So the floor
+does suppress the speckle, and by a lot. But the same experiment prices it: even sampled perfectly, the clamped stroke
 lays down up to $\zoomFloorInkGain$ more ink per pixel than the hairline it stands
 in for, because a stroke held at a pixel wide inside a period that is narrower than
 that must overlap itself.
@@ -92,8 +93,8 @@ and very noisy estimate of the pattern into a biased and nearly noiseless one, a
 it is the right trade only because a moir\'e is read as structure rather than as
 tone: a frame that is uniformly too dark preserves the pattern, and a peppered
 one destroys it. The unbiased low-noise answer is the analytic mean of the
-family over the pixel, which for a walking family we do not have---the open
-problem of \S\ref{sec:future}. The floor predates this characterization; the
+family over the pixel, which for a walking family we do not have; that is the
+open problem of \S\ref{sec:future}. The floor predates this characterization; the
 measurement is what identified which of the two errors it chooses.
 
 Two things about \eqref{eq:stroke} are only correct because of the field view.
@@ -101,9 +102,9 @@ First, $h$ is a \emph{world} distance, so it must be compared against a world
 distance, which is why the gradient divide of Table~\ref{tab:catalog} is not
 optional: applied to a phase residual, the floor guarantees nothing, because a
 phase unit is not a length. Second, having a hard $h$ means we know in advance
-which distances cannot matter. Anything beyond $h+\varepsilon$ is fully
+which distances cannot matter. Anything beyond $h+a$ is fully
 transparent. The solver of \S\ref{sec:inverse} is therefore not asked for
-$\min_n d_n$; it is asked whether any $d_n$ falls below $h+\varepsilon$, and is
+$\min_n d_n$; it is asked whether any $d_n$ falls below $h+a$, and is
 free to \emph{prove} the rest away without evaluating them. The guard and the skip
 rule are the same idea seen from two ends.
 
@@ -123,7 +124,7 @@ rule are the same idea seen from two ends.
   visibly speckled, with the fringe arms no longer readable.}
   \caption{\figlead{One scene over an eightfold zoom range, with and without
   the stroke floor.}
-  Two walking circle families---the tool's default preset, recomposed with its
+  Two walking circle families, the tool's default preset, recomposed with its
   centers on the frame's diagonal.
   \textbf{(a--c)}~zoom $2$,
   $1$ and $0.25$. Nothing is resampled between them: each is the same pair of scalar
@@ -155,7 +156,7 @@ distances rather than images means there is one stroke at all times, travelling
 from one geometry to the other, instead of two strokes cross-fading. The store snaps to the
 target immediately, so the eased value lives only in the uniform and no
 undo, export or reload can catch a half-morphed state. Switching to a family for
-which the per-member motion is meaningless---lines, lattices, curves---also
+which the per-member motion is meaningless (lines, lattices, curves) also
 zeroes the two walking parameters, because leaving them set produces a layer whose
 sliders visibly do nothing.
 
@@ -170,8 +171,8 @@ loaded preset with the same morph machinery, so the first thing an author sees i
 the mechanism moving into place. Everything else is deliberately thin: one collapsible panel, the envelope and
 ratio views of \S\ref{sec:envelope}--\S\ref{sec:visibility} as header
 toggles, a still and clip export, and a JSON scene file that saves the
-construction---layers, camera, background, and what moves
-(\S\ref{sec:time})---and nothing else. A looping parameter is written into that
+construction and nothing else: layers, camera, background, and what moves
+(\S\ref{sec:time}). A looping parameter is written into that
 file at the value its cycle departs from rather than wherever the clock had
 carried it, since the instant a file happened to be saved at is a fact about the
 session and not about the pattern. There are no layer effects and no inspector;
@@ -186,7 +187,7 @@ the twelve slots' uniforms and the handful of camera and view uniforms beside
 them, and by nothing else. The animation model is built to keep it that way. An animated parameter is
 a function $v(t)$ evaluated afresh every frame rather than a value advanced by
 $v \leftarrow v+\dot v\,\Delta t$, and several parameters may share one
-\emph{timing}---a delay, a period, a mode and an easing---so that a dozen knobs
+\emph{timing} (a delay, a period, a mode and an easing) so that a dozen knobs
 move as one gesture instead of as a dozen that drift apart. Parameters that are
 functions of the clock, over a renderer that holds no state, make the frame
 itself a function of the clock.
@@ -195,9 +196,9 @@ Two things follow that a renderer carrying state does not get. Scrubbing is
 exact: the frame at $t$ is computed rather than replayed, so seeking backwards
 costs what seeking forwards costs and neither depends on where the clock has
 been. And capture need not run in real time. The recorder is the clock rather
-than an observer of it---it asks for frame $n$ at exactly $t_0+n/\mathrm{fps}$,
+than an observer of it: it asks for frame $n$ at exactly $t_0+n/\mathrm{fps}$,
 renders once synchronously at a stated size, waits for the pixels however long
-they take, and only then advances---so a file at $2160$p and $120$\,fps comes
+they take, and only then advances. So a file at $2160$p and $120$\,fps comes
 out of a renderer that never has to reach that rate, and the same range recorded
 twice is the same file twice. The clip's length is not guessed either: every
 animator states its own period, and the tool offers the least common multiple of

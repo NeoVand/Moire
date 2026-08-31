@@ -12,22 +12,23 @@ $\lVert\delta\rVert$, isolating the contribution of
 Section~\ref{sec:drift}. \ours{} is the full method. \textsc{Reference} is an
 exhaustive scan at stride $1$ with no budget and no interval, stopping only once
 the drift bound \eqref{eq:driftup} proves every further ring outside the guard.
-It is independent of the window formula and the Lipschitz skip---the two
-mechanisms under test---though it shares the subadditivity bound itself,
+It is independent of the window formula and the Lipschitz skip (the two
+mechanisms under test), though it shares the subadditivity bound itself,
 which the $\winChecks$-pixel argmin check of \S\ref{sec:window} tests
 separately against an unbounded scan.
 
 The GPU numbers come from a standalone WebGPU harness that extracts the WGSL of
 each solver generation directly from its source file, compiles it into an
 identical compute kernel, and times a pass with GPU timestamp queries over a
-$1200\times800$ point grid---$0.96$\,Mpixel of solver work with no
+$1200\times800$ point grid: $0.96$\,Mpixel of solver work with no
 rasterization, no compositing, and no browser frame overhead in the measurement.
 Each measurement spans $\gpuReps$ dispatches under one pair of timestamps, after
 $\gpuWarm$ warm-up passes: this adapter's counter ticks every $65.5$\,\textmu s,
 and the fastest settings here run in a few ticks, so timing a single dispatch
 reports the tick rather than the kernel. The value we report is the fastest of
 $\gpuPasses$ such measurements, since anything else using the device can only add
-time to a pass, never remove it. On an Apple \texttt{\gpuAdapter} adapter. The CPU numbers come from a rasterizer that
+time to a pass, never remove it; all GPU numbers are from one Apple
+\texttt{\gpuAdapter} adapter. The CPU numbers come from a rasterizer that
 mirrors the shader's compositing term for term, instrumented to count calls to
 $\rad$; this is the only way to render an image with a solver that no longer
 exists in the shader, and the only way to get a per-pixel work map.
@@ -45,7 +46,8 @@ in the supplemental reproduction guide (their values are adapter-specific).
 Table~\ref{tab:gpu} gives GPU pass times. Across rotated settings \ours{} is
 $\gpuSpeedLo$--$\gpuSpeedHi\times$ faster than \sweep{}. The absolute numbers are
 what changed the tool: a single rotated triangle family went from
-$\gpuTriRotOne$\,ms per megapixel---alone, over budget for a $60$\,Hz frame---to $\gpuTriRotOneNew$\,ms, so a dozen layers now fit in the frame that one layer
+$\gpuTriRotOne$\,ms per megapixel (alone, over budget for a $60$\,Hz frame)
+to $\gpuTriRotOneNew$\,ms, so a dozen layers now fit in the frame that one layer
 used to miss. At $6.7\times$ zoom-out, where \sweep{} degrades to
 $\gpuTriRotOffOut$\,ms, \ours{} costs $\gpuTriRotOffOutNew$\,ms. The
 translation-only row shows Proposition~\ref{prop:closed} in isolation:
@@ -56,7 +58,7 @@ transcendentals.
 Table~\ref{tab:cost} counts CPU evaluations of $\rad$ per pixel and, in the last
 column, disagreement with the exhaustive reference. Two things stand out. \ours{}
 costs $\costOursLo$--$\costOursHi$ evaluations per pixel where \sweep{} costs
-$\costSweepLo$--$\costSweepHi$---a $\costVsSweepLo$--$\costVsSweepHi\times$
+$\costSweepLo$--$\costSweepHi$, a $\costVsSweepLo$--$\costVsSweepHi\times$
 reduction in the quantity the shader actually pays for. And \ours{} is cheaper than
 \textsc{Reference} itself, by $\costVsRefLo$--$\costVsRefHi\times$, despite
 \textsc{Reference} being given a termination
@@ -105,7 +107,7 @@ visit.
   across and resume further on, leaving clean gaps that the magenta fills as
   unbroken strokes.}
   \caption{\figlead{Fixed enumeration deletes arcs, not pixels.} The far field of a
-  walking hexagon family whose drift aims at an edge---almost a full spacing
+  walking hexagon family whose drift aims at an edge: almost a full spacing
   long, $\lVert\delta\rVert=0.95s$, while the support ratio stays at
   $\rad(-\delta)/s=0.82$. \sweep{} loses $\artHolesSweepDiff\%$ of the frame's
   pixels, and because the failure condition varies smoothly with $p$ the losses
@@ -145,9 +147,9 @@ visit.
   \label{fig:drift}
 \end{figure}
 
-We swept the slider-reachable parameter grid---five shapes $\times$ seven
+We swept the slider-reachable parameter grid (five shapes $\times$ seven
 spacings from $1$ to $80$ $\times$ six offsets $\times$ four rotations
-$\times$ four zoom levels---and compared every solver against
+$\times$ four zoom levels) and compared every solver against
 \textsc{Reference} at $240$ quasi-random points each, classifying a point as
 lost ink where a solver's coverage falls more than $0.5$ below the reference's
 and as invented ink for the converse; a setting ``has holes'' when more than
@@ -184,8 +186,8 @@ settings of Table~\ref{tab:fidelity}.
 \end{table}
 
 The row that matters is the third block. Wherever the proven interval fits the
-budget---the regime in which Theorem~\ref{thm:window} claims exactness---\ours{}
-disagrees with brute force at zero points out of $\fidSettings$ settings, while
+budget, the regime in which Theorem~\ref{thm:window} claims exactness, \ours{}
+disagrees with brute force in zero of the $\fidSettings$ settings, while
 \sweep{} disagrees in $\fidSweepEnvelopeHoles$ settings and loses up to
 $\fidSweepEnvelopeWorst\%$ of the ink, and \loose{} up to $\fidLooseWorst\%$. The
 theorem is the difference between an image and a damaged one.
@@ -195,7 +197,7 @@ certified interval, and all of them are saturated: every one has an exact ink
 fraction above $70\%$, the sweep's legibility threshold. Across the
 $\fidLegible$ legible settings, \ours{} loses nothing anywhere. The claim this
 supports is: exact wherever the interval fits the budget, and exact on every
-legible setting \emph{of this sweep}---the strided band of
+legible setting \emph{of this sweep}; the strided band of
 \S\ref{sec:limits}, which this sweep's cap excludes, is measured there
 separately and does lose ink.
 
@@ -231,13 +233,13 @@ fields. The comparison a reader is entitled to ask for is against not using
 fields at all: emit the members as paths and stroke them. We measure that on the
 same \vecScenes{} pairs as Table~\ref{tab:fringe} and
 Figure~\ref{fig:lawatlas}, so the three can be read together, and entirely inside
-the tool's own controls---zoom clamped to $[\vecZoomLo, \vecZoomHi]$, spacing to
-the slider's range---because both effects below grow without bound and it would
+the tool's own controls (zoom clamped to $[\vecZoomLo, \vecZoomHi]$, spacing to
+the slider's range), because both effects below grow without bound and it would
 be easy, and worthless, to demonstrate them somewhere the tool cannot go.
 
 \paragraph{The count does not stay still.}
 Members are the level sets $\idx = ns + \varphi$, so how many meet the frame is
-the number of integers whose level lies in $\idx$'s range over it---exact, with
+the number of integers whose level lies in $\idx$'s range over it: exact, with
 nothing enumerated. Their total arc length follows from the coarea formula as
 $s^{-1}\!\int\lVert\nabla\idx\rVert$, which is independent of any flattening
 tolerance and so belongs to no particular back end. Both grow linearly as the
@@ -251,9 +253,9 @@ stated as a cost.
 \paragraph{The compositing is wrong where the moir\'e is.}
 The deeper problem is not speed. A path renderer antialiases each path against
 the frame buffer and combines with \textsc{over}, so $N$ members give
-$1-\prod_i(1-\alpha_i)$. Within one family the strokes are disjoint---a point
+$1-\prod_i(1-\alpha_i)$. Within one family the strokes are disjoint (a point
 lies within half a stroke width of at most one member, since the width is below
-the spacing---so the true coverage of their union is $\sum_i \alpha_i$, and
+the spacing), so the true coverage of their union is $\sum_i \alpha_i$, and
 \textsc{over} is not that. Between two families the discrepancy is sharper and it
 is structural: \textsc{over} takes the overlap of two coverages to be
 $\alpha_1\alpha_2$, the value it would have if the two were uncorrelated
@@ -263,12 +265,12 @@ varies across the frame, and it is the whole of the signal, so a rule that
 assumes a constant overlap returns a constant where the fringes were.
 
 To isolate that rule from any renderer's antialiasing quality we give the vector
-side \emph{exact} per-path coverage---every $\alpha_i$ measured at $\vecSamples$
-samples per pixel---and compare against the true union measured on the same
+side \emph{exact} per-path coverage, every $\alpha_i$ measured at $\vecSamples$
+samples per pixel, and compare against the true union measured on the same
 samples. What is left is the compositing alone. Across $\vecSettings$ settings
 where a pattern is still legible, the mean ink barely moves: \textsc{over} loses
 at most $\vecWorstInk\%$ of it. The fringe contrast is another matter. Below one
-member to a pixel it survives, costing at most $\vecQuietContrast\%$---this is
+member to a pixel it survives, costing at most $\vecQuietContrast\%$; this is
 the regime where a vector back end is the right tool and we do not claim
 otherwise. Past two members to a pixel it does not: over the $\vecCrowdedSettings$
 such settings the median loss is $\vecCrowdedMedian\%$ of the fringe contrast,
@@ -330,7 +332,7 @@ $\vecFigInk\%$ of the ink lost, and $\vecFigContrast\%$ of the pattern.
   \end{tikzpicture}
   \Description{Left: three square panels of a circular moire rosette. The first
   shows strong radiating light and dark rays; the second, drawn by compositing each
-  path separately, is almost flat grey with the rays gone; the third is a pink and
+  path separately, is almost flat gray with the rays gone; the third is a pink and
   blue difference map showing where ink went missing. Right: a scatter plot of
   fringe contrast lost against members sharing a pixel, on a log axis, pooling five
   scenes. Left of a marked boundary at one member per pixel every point sits near
@@ -348,7 +350,7 @@ $\vecFigInk\%$ of the ink lost, and $\vecFigContrast\%$ of the pattern.
   \emph{Right:} that loss against how many members share a pixel, one mark per
   setting, pooling all $\vecScenes{}$ pairs over the $\vecSettings$ settings
   reachable with the tool's own zoom and spacing controls. In the shaded band a
-  pixel still sees at most one member and \textsc{over} is accurate---this is the
+  pixel still sees at most one member and \textsc{over} is accurate; this is the
   regime a vector back end is built for. The rise past it is not an antialiasing
   artifact, since both sides are given exact per-path coverage; it is
   \textsc{over} pricing the overlap of two families as $\alpha_1\alpha_2$ when the
@@ -364,7 +366,7 @@ the criterion of \S\ref{sec:visibility} and the contour authoring of
 \S\ref{sec:beyond} are differences of kind: each is a statement about
 $D = \idx_1 - \idx_2$, and explicit geometry has no $\idx$ to difference. Recovering
 the fringe field from paths means rasterizing them and low-passing the
-image---the raster round trip this representation exists to avoid, and the one
+image: the raster round trip this representation exists to avoid, and the one
 whose absence the rest of this section has been measuring.
 
 \subsection{Where the guarantee ends}
@@ -409,17 +411,17 @@ whose absence the rest of this section has been measuring.
   \caption{The interval is wide only where the pattern is already solid.
   $\satSettings$ settings, binned by the $90$th-percentile interval span, against
   the ink fraction of the exact field. Past the budget $B=\satBudget$ (shaded) the median
-  setting is $\satMedianInk$ ink---a nearly filled rectangle, where no point
+  setting is $\satMedianInk$ ink: a nearly filled rectangle, where no point
   sample of the distance field is meaningful and the correct output is the filtered
   mean~\cite{Norton1982}. The insets are one walking circle family at both ends
   of the axis: a benign drift, whose pattern is open and whose interval is a few
-  indices, and the near-marginal drift, where the interval explodes---into a
+  indices, and the near-marginal drift, where the interval explodes into a
   frame that is already solid ink. The dashed minimum shows that sparse
   exceptions exist. The last bin is not a tail and is worth naming: it holds
   $\satCapSettings$ settings, more than the two before it, because the interval
   there does not close at all and they pile against the span cap rather than
   spreading. $\satCapNearMarginal$ of them have $\rad(-\delta)$ within
-  $5\%$ of $s$---the marginal band of \S\ref{sec:closed}, whose whole span lies
+  $5\%$ of $s$: the marginal band of \S\ref{sec:closed}, whose whole span lies
   between $\satCapDriftLo$ and $\satCapDriftHi$ of the spacing. It is also the
   one bin where the headline does not hold: its median is $\satCapMedianInk$ ink
   and its least is $\satCapMinInk$, so a wide interval there does not imply a
@@ -453,7 +455,7 @@ whose absence the rest of this section has been measuring.
   $\artAnchorRefInk$). Anchoring the stride to the pixel's own interval (center) makes
   neighboring pixels sample different rings, and the pattern shatters into dashes
   and hooks. Anchoring it to the global index lattice (right) makes them agree, and
-  the same missing ink becomes a thinner family of whole straight lines---a
+  the same missing ink becomes a thinner family of whole straight lines, a
   plausible pattern rather than a broken one. The two differ by one line of code.}
   \label{fig:anchor}
 \end{figure}
@@ -474,11 +476,11 @@ scan takes a minimum over a subset and therefore \emph{over}-estimates $d$ and
 \emph{under}-estimates ink: a measured ink fraction is a valid lower bound on the
 true one. Ink rises monotonically with interval span, and past the budget the median
 setting is $\satMedianInk$ ink. These are fields whose curves are far denser than
-the pixel grid---the regime where point sampling any distance field is
+the pixel grid, the regime where point sampling any distance field is
 meaningless and the correct answer is a prefiltered
 mean~\cite{Norton1982, Bruneton2012}. Only $\satStridedLegible$ settings
 ($\satStridedLegiblePct\%$ of the sweep) are both beyond the budget and
-legible---legible meaning under $50\%$ ink here, where the fidelity sweep's
+legible. Legible here means under $50\%$ ink, where the fidelity sweep's
 threshold was $70\%$; the strided band is darker, so the stricter cut is the
 informative one.
 
@@ -499,7 +501,7 @@ error, and Figure~\ref{fig:anchor} is the one finding here we would ask an
 implementor to keep.
 Both panels subsample by the same stride, spend the same $\artAnchorEv$ evaluations
 per pixel, and retain statistically the same ink. Anchoring the stride to
-$n_{\mathrm{lo}}$---which depends on the pixel---makes adjacent pixels sample
+$n_{\mathrm{lo}}$, which depends on the pixel, makes adjacent pixels sample
 disjoint subsets of rings, and the pattern disintegrates into dashes. Anchoring it
 to multiples of the stride makes every pixel in a neighborhood agree on which
 rings exist, and the same amount of missing ink becomes a thinner family of whole

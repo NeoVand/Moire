@@ -23,8 +23,8 @@ Both families have the same pitch, so $\idx_i=\ph_i/s$ and
 \end{equation}
 By Theorem~\ref{thm:fringe} the light fringes are $\{D\in\Z\}$, which is
 $\{f=n/a\}$: the contours of $f$ at interval $c=1/a$. Not an approximation of
-them, and not a discretisation of them---the same curves a contour tracer would
-be trying to find.
+them, and not a discretization of them, but the same curves a contour tracer
+would be trying to find.
 
 Notice everything that does \emph{not} appear. There is no
 marching squares, no cell table, no ambiguous saddle, no polyline, no stitching
@@ -44,7 +44,8 @@ direction in that divide is the radial direction from the layer origin, a
 first-order convenience).
 
 The gradient term is not optional. Omit it and the modulated family's strokes
-thin wherever the field is steep---by the factor $|\nabla\ph_2|$---which is the same eikonal bug \S\ref{sec:catalog} found in the curve families,
+thin wherever the field is steep, by the factor $|\nabla\ph_2|$, which is the
+same eikonal bug \S\ref{sec:catalog} found in the curve families,
 reintroduced through the back door. So a field is not usable unless $\nabla f$
 comes with it, which is the whole of the next subsection.
 
@@ -54,9 +55,9 @@ comes with it, which is the whole of the next subsection.
 $f$ is arbitrary in the mathematics and has to be arbitrary in the tool, or the
 contribution reduces to a fixed menu of fields. Our first version was such a
 menu: six fields as branches in the shader, each with its gradient
-differentiated by hand and transcribed into WGSL and into TypeScript---two
-derivations and four transcriptions per field, all required to agree and none
-checked by a compiler. Adding a seventh field meant editing the renderer, so
+differentiated by hand and transcribed into WGSL and into TypeScript. That is
+two derivations and four transcriptions per field, all required to agree and
+none checked by a compiler. Adding a seventh field meant editing the renderer, so
 neither an author nor we could extend it.
 
 So the tool takes an expression. \texttt{x\^{}2 - y\^{}2} is the saddle,
@@ -66,7 +67,7 @@ the offering. The language is deliberately small: the two coordinates, the polar
 sugar \texttt{r} and \texttt{theta}, $\pi$, $\tau$ and $e$, the arithmetic
 operators with \texttt{\^{}} right-associative, and sixteen functions. There are
 no variables, no conditionals and no loops, so a program is a bounded expression
-tree and evaluating it is a bounded amount of work---which is what lets it run
+tree and evaluating it is a bounded amount of work, which is what lets it run
 per pixel with no schedule and no fallback.
 
 \paragraph{Exact gradients from forward-mode duals.}
@@ -75,12 +76,13 @@ forward-mode dual number $(v,\partial_x v,\partial_y v)$ through each operation,
 so $\nabla f$ falls out of the same traversal that produces $f$, exact to
 floating point and never a finite difference. Eq.~\ref{eq:encode} then has the
 gradient it needs for the eikonal divide without the author supplying one, and
-the hand-derived gradients---the thing most likely to be silently wrong---are gone. Singular points are handled by clamps shared between the two
+the hand-derived gradients (the thing most likely to be silently wrong) are
+gone. Singular points are handled by clamps shared between the two
 evaluators, so a pole is the same finite number on both sides rather than a
 \texttt{NaN} on one.
 
 One rule in that traversal deserves stating. In the chain rule $\partial(g\circ h)=g'(h)\,\partial h$, a factor that is
-\emph{exactly} zero contributes nothing---even when the other factor
+\emph{exactly} zero contributes nothing, even when the other factor
 overflowed. A plain multiply gives $0\cdot\infty=\mathrm{NaN}$, and one
 \texttt{NaN} anywhere in a gradient poisons the divide in Eq.~\ref{eq:eikonal}
 and blanks the layer. The zeros are not rare: a constant's partials are zero, a
@@ -88,7 +90,7 @@ coordinate's cross-partial is zero, and $\mathrm{floor}$ and $\mathrm{sign}$
 have zero slope everywhere. The CPU evaluator multiplies through a helper that
 tests for an exact zero at runtime; the emitter folds the same zeros at compile
 time, which covers every structural zero but not a slope that becomes zero only
-at runtime behind a domain guard---a divergence we accept and document in the
+at runtime behind a domain guard, a divergence we accept and document in the
 source. This is the ordinary hazard of automatic differentiation in floating
 point, and it is easy to reach here because an author can write
 \texttt{log(-1)} into a text box.
@@ -96,7 +98,8 @@ point, and it is easy to reach here because an author can write
 \paragraph{Compiling instead of interpreting.}
 The bytecode is a stack machine, which invites the obvious implementation: hand
 the program to the fragment shader in a uniform buffer and walk it. We did, and it
-worked, and it cost $\interpPerOp$\,ms per megapixel \emph{per instruction}---$\interpHi$ for the longest preset, which at a retina canvas is most of a frame
+worked, and it cost $\interpPerOp$\,ms per megapixel \emph{per instruction}:
+$\interpHi$ for the longest preset, which at a retina canvas is most of a frame
 for one field on one layer of twelve. Worse, an \emph{empty} program cost
 $\fieldEmptyCost$, or $\fieldEmptyGain\times$ a kernel with no field machinery at
 all, because the shader has to be handed the program before it can discover there
@@ -105,7 +108,7 @@ is nothing in it. Every author paid for the feature whether or not they used it.
 The fix is to stop interpreting. \texttt{fields/emit.ts} unrolls the bytecode
 into straight-line code: the compile-time stack holds the \emph{names} of values
 rather than values, so there is no runtime stack, no dispatch, no loop and no
-program to pass. \texttt{dup} becomes free---it pushes a name twice. Constants
+program to pass. \texttt{dup} becomes free: it pushes a name twice. Constants
 are spelled into the source where the shader compiler folds them. And the zero
 rule above, applied at emission, deletes most of the gradient arithmetic before
 it is ever written: a term whose factor is the literal $0$ is not emitted at all,
@@ -115,7 +118,7 @@ $\fieldStmtHi$ statements. A layer with no field emits nothing.
 \input{tab-compile}
 
 Table~\ref{tab:compile} prices both generations against each other. Interpreted,
-cost tracks program length at $\interpPerOp$ per instruction---the signature of a
+cost tracks program length at $\interpPerOp$ per instruction: the signature of a
 dispatch loop, and the reason the feature could not have been open-ended.
 Compiled, it stops tracking length and starts tracking content: \textsc{ripple}
 is the shortest program in the table and compiles to nearly four times the cost of
@@ -134,7 +137,7 @@ Unrolling raises an obvious risk: the shader now runs code no human wrote, and
 its only reference is an interpreter written in a different language. So the
 emitter is backend-agnostic and there are two backends. WGSL ships. A JavaScript
 backend exists so the test suite can generate a program, run it, and hold it
-against the interpreter on the same inputs without a browser---which is how the
+against the interpreter on the same inputs without a browser, which is how the
 zero rule above was found. On the GPU we check further: the interpreter and the
 unrolled code are compiled into the same kernel over the same bindings and
 sampled at the same points, and they agree with each other to
@@ -158,7 +161,7 @@ mistaken for a fast one.
     (c) with the true $\{f=nc\}$}
   \caption{\figlead{A contour plot that was never contoured.} \Moire{}'s
   \textsc{saddle} field encoded by \eqref{eq:encode} into a carrier of pitch
-  $\contourCarrier$\,px. \textbf{(a)} The superposition, as rendered---two
+  $\contourCarrier$\,px. \textbf{(a)} The superposition, as rendered: two
   line families and nothing else. \textbf{(b)} The same two layers under the
   envelope view of \S\ref{sec:envelope}: the carrier is gone and the fringe field
   is what is left, its bright bands the level sets of the saddle. This is not a
@@ -178,8 +181,8 @@ centered on the mathematical curve. That is a question about a rasterized image
 and it deserves a measurement rather than an argument.
 
 We measure it as follows. Pick a point, walk it onto the nearest true level set
-$\{f=nc\}$ by Newton steps along $\nabla f$---exact, since \S\ref{sec:exprs}
-differentiates every field as it evaluates it---and call the landing
+$\{f=nc\}$ by Newton steps along $\nabla f$ (exact, since \S\ref{sec:exprs}
+differentiates every field as it evaluates it) and call the landing
 point $q$. Low-pass the render along the carrier direction, enough to erase both
 families' strokes and no more, so that nothing is smeared across the fringe we are
 about to locate. Then sample that low-passed image along the contour normal
@@ -197,10 +200,11 @@ which is the floor of the method of measurement rather than of the method being
 measured.
 
 Against that floor, over $\contourProbes$ probes on the $\fieldCount$ presets of
-Figure~\ref{fig:contourfields}---the expressions \Moire{} offers as starting
-points, not a set chosen for the experiment---the mean displacement of the fringe peak from
-the true contour is $\contourBestErr$--$\contourWorstErr$\,px, with a worst
-$95$th percentile of $\contourWorstP$\,px. That is the strongest statement this
+Figure~\ref{fig:contourfields} (the expressions \Moire{} offers as starting
+points, not a set chosen for the experiment), the mean displacement of the
+fringe peak from the true contour is
+$\contourBestErr$--$\contourWorstErr$\,px, with a worst $95$th percentile of
+$\contourWorstP$\,px. That is the strongest statement this
 experiment can support: the fringe is on the curve to within our ability to say
 where the fringe is.
 
@@ -220,7 +224,7 @@ where the fringe is.
   \panelrow{0.16467}{0.00239}{%
     saddle, dipole, bumps, swirl, ripple, terrain}
   \caption{\figlead{Every preset the tool ships, encoded.} \emph{Top:} each panel
-  is cut corner to corner---the superposition as rendered above the seam, the same
+  is cut corner to corner: the superposition as rendered above the seam, the same
   two layers under the envelope view of \S\ref{sec:envelope} below it. The halves
   are two readings of one state, not two pictures: nothing is filtered between
   them, and the smooth side is the mean ink of the same two fields at the same
@@ -230,7 +234,7 @@ where the fringe is.
   are the presets of \S\ref{sec:exprs}, whose sources are in
   the supplemental material (\S S2). The dipole is instructive: towards each pole the
   equipotentials crowd, and past the limit \eqref{eq:contournyquist} no carrier can
-  resolve them---so the render collapses into a dense scribble where the
+  resolve them, so the render collapses into a dense scribble where the
   field is steepest, which reports the failure rather than hiding it. A contour tracer would emit dense
   polylines there without complaint.}
   \label{fig:contourfields}
@@ -255,8 +259,8 @@ Two properties of \eqref{eq:contournyquist} are worth noting. First, it is a fie
 can be drawn, as the heterodyne ratio of \S\ref{sec:visibility} can:
 before committing to $c$, an author can be shown which parts of the frame will
 resolve. Second, when it is violated the picture degrades \emph{loudly}. The
-unresolvable region fills with visible high-frequency structure---the dipole's
-poles turn into a black scribble---which is an honest report that the field is
+unresolvable region fills with visible high-frequency structure (the dipole's
+poles turn into a black scribble), which is an honest report that the field is
 steeper there than the chosen interval can show. A contour tracer, by contrast, returns a dense set of polylines with no
 indication that the interval was too fine for the field.
 

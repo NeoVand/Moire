@@ -328,7 +328,7 @@ footer a:hover { color: var(--accent); text-decoration: none; }
   <div class="hero wide"><figure class="paper-figure" id="fig-1"><img src="figures/teaser-row1.png" width="3900" height="960" alt=""><div class="panelrow"><span>(1) two ring families</span><span>(2) a terrain field</span><span>(3) counter-spirals</span><span>(4) a saddle field</span></div><img src="figures/teaser-row2.png" width="3900" height="960" alt=""><div class="panelrow"><span>(5) a four-vortex flow</span><span>(6) one walking family</span><span>(7) two triangle families</span><span>(8) two walking families</span></div><figcaption><span class="fignum">Fig. 1.</span> <strong>Eight superpositions rendered directly from fields, with no
   intermediate raster.</strong>  Each panel is cut at the dashed rule: to its left the
   pattern as drawn, to its right the same parameters under the envelope view of
-  <a href="#sec-3-5">§3.5</a> — the stack averaged over one period of its own phase,
+  <a href="#sec-3-5">§3.5</a>: the stack averaged over one period of its own phase,
   which removes the carrier exactly and leaves the fringe field it was
   carrying. The same bands cross the rule textured on one side and smooth on
   the other because the right half is not a filter applied to the left: both
@@ -336,7 +336,7 @@ footer a:hover { color: var(--accent); text-decoration: none; }
   fractional index and a distance, so the pattern is identical at every zoom
   and every parameter is live.
   <strong>(1)</strong> Rings about two centers: hyperbolae where the radii differ by a
-  whole spacing — Theorem <a href="#thm-2">2</a> in its simplest instance — and
+  whole spacing (Theorem <a href="#thm-2">2</a> in its simplest instance) and
   ellipses where they agree, the difference and sum moirés at once.
   <strong>(2)</strong> Two identical line families, one displaced by a <em>chosen</em>
   field: the fringes are that field's contours (<a href="#sec-9">§9</a>), here a
@@ -345,7 +345,8 @@ footer a:hover { color: var(--accent); text-decoration: none; }
   angle alone, and the fringes are a fan of rays. <strong>(4)</strong> The construction
   of (2) carrying a saddle. <strong>(5)</strong> The same again, carrying the stream
   function of four point vortices: the fringes are the flow's streamlines, and
-  no trajectory was integrated. <strong>(6)</strong> A <em>single</em> walking family — member $n$ turned by <span class="nowrap">$n\theta$,</span> pushed by $n\delta$ — with no global index
+  no trajectory was integrated. <strong>(6)</strong> A <em>single</em> walking family
+  (member $n$ turned by <span class="nowrap">$n\theta$,</span> pushed by <span class="nowrap">$n\delta$)</span> with no global index
   field and no partner layer: it interferes with itself, and finding the
   nearest member is the search problem of <a href="#sec-6">§6</a>.
   <strong>(7)</strong> Two concentric triangle families, detuned and turned.
@@ -358,23 +359,23 @@ footer a:hover { color: var(--accent); text-decoration: none; }
 to neither. Graphics treats moiré as an aliasing artifact to filter away, or
 as a printed pair of gratings solved offline and slid by hand; neither supports
 interactive authoring of the pattern itself. We represent a layer instead
-as two scalar fields — an index field naming the nearest member of a curve
-family, fractionally, and a distance field to it — so superposition composites
-fields rather than pixels and no raster exists at any stage. In this model the
-fringes of a superposition are the unit level sets of the index-field
-difference, with a saturating tent profile — exact under stated local
-hypotheses, without periodicity — and a per-pixel validity criterion scanned
+as two scalar fields, an index field naming the nearest member of a curve
+family, fractionally, and a distance field to it, so that superposition
+composites fields rather than pixels and no raster exists at any stage. In this
+model the fringes of a superposition are the unit level sets of the index-field
+difference, with a saturating tent profile that is exact under stated local
+hypotheses, without periodicity, and a per-pixel validity criterion scanned
 over the low-order beats. The hard case is a family whose members each carry
 their own rigid motion: its index field has no closed form, and the nearest
 member must be searched for. The support function of the generating shape
 supplies a provably sufficient search interval, a Lipschitz skip rule, and an
-exact closed form for translated polygons — $10$–$35\times$
+exact closed form for translated polygons: $10$–$35\times$
 faster than the fixed enumeration it replaces across rotated settings, in exact
 agreement with brute force wherever the interval fits its budget. We present
-<span class="sc">Moiré</span>, a browser tool built on the model, and show that choosing the index
-difference turns a moiré into a live contour plot of any authored field,
-whose fringes localize to the true level sets within a mean of
-$0.80$ px on the hardest field tested.</p>
+<span class="sc">Moiré</span>, a browser tool built on the model, and show that choosing two layers
+so that their index difference is an authored field turns the moiré into a
+live contour plot of that field, whose fringes localize to the true level sets
+within a mean of $0.80$ px on the hardest field tested.</p>
     <p class="keywords">moiré, interference, distance fields, support functions, procedural
 patterns, interactive authoring, GPU rendering</p>
   </div>
@@ -413,10 +414,10 @@ is a medium an artist can draw in interactively. This paper argues that the
 obstacle is a representation, and proposes a different one.</p>
 <p>Graphics has related to moiré in two nearly disjoint ways. The first is
 <em>suppression</em>: moiré is what undersampling looks like when the signal is
-repetitive, essentially the whole of texture filtering exists to prevent
+repetitive; essentially the whole of texture filtering exists to prevent
 it <span class="cite">[<a href="#ref-32">32</a>, <a href="#ref-97">97</a>]</span>, and it remains a first-class
 concern in neural rendering <span class="cite">[<a href="#ref-9">9</a>]</span>. The second is
-<em>synthesis</em>: a smaller literature builds moiré on purpose — band
+<em>synthesis</em>, a smaller literature that builds moiré on purpose: band
 moiré images <span class="cite">[<a href="#ref-33">33</a>]</span>, level-line moiré <span class="cite">[<a href="#ref-18">18</a>]</span>,
 target-driven phase modulation <span class="cite">[<a href="#ref-87">87</a>]</span>, variational layer
 design <span class="cite">[<a href="#ref-42">42</a>]</span>, artistic
@@ -424,7 +425,7 @@ screening <span class="cite">[<a href="#ref-55">55</a>]</span>, micro-optics an
 fabrication <span class="cite">[<a href="#ref-72">72</a>, <a href="#ref-91">91</a>]</span>, and, running the
 amplification backwards, moiré as a sub-millimeter
 sensor <span class="cite">[<a href="#ref-15">15</a>, <a href="#ref-65">65</a>]</span>. Across that second
-tradition one assumption is nearly universal: a layer is a raster — an image
+tradition one assumption is nearly universal: a layer is a rasterized image
 of a grating, possibly warped, multiplied against another. Authoring is
 therefore offline, since the layers must be solved for and then rasterized;
 playback is physical, printed transparencies slid by hand; and the pattern has
@@ -433,14 +434,14 @@ a resolution, so displaying it at any other scale can destroy it or invent it
 exist, but in all of them the fringe is an unmodelled side effect of drawing
 two dense patterns; what the literature does not contain, as far as we can
 find, is an interactive tool in which the moiré itself is represented,
-predicted, and stable under zoom — the nearest system,
+predicted, and stable under zoom. The nearest system,
 FabObscura <span class="cite">[<a href="#ref-78">78</a>]</span>, authors barrier-grid occlusion
 rather than interference. We think the gap is not a missing feature but a
 missing representation.</p>
 <figure class="paper-figure" id="fig-2"><img src="figures/two-traditions.png" width="1024" height="1098" alt=""><figcaption><span class="fignum">Fig. 2.</span> <strong>Raster versus field, same two families.</strong>  <em>Above:</em> the
   standard synthesis pipeline reused at a scale it was not rasterized for. Each
   layer is rasterized to a bilevel plate, the plates are multiplied, and the
-  product is displayed at a different scale — which is what photographing,
+  product is displayed at a different scale, which is what photographing,
   scanning or zooming a printed pair amounts to. (Printed at press resolution and
   viewed in place, the plates never resample; every <em>screen</em> reuse of them
   does, and the screen is where an interactive tool lives.) The strokes break into dashes, the
@@ -459,15 +460,16 @@ pixel, with no grid anywhere. The distance field is what a renderer thresholds
 into ink; the index field is what the theory works with, and our central
 observation is that the interference lives entirely in it: <em>the fringes of
 a superposition are the unit level sets of the difference of the two index
-fields</em>. Section <a href="#sec-3-4">3.4</a> makes this precise — the locally averaged
+fields</em>. Section <a href="#sec-3-4">3.4</a> makes this precise: the locally averaged
 ink is a function of $D=\idx_1-\idx_2$ alone, a saturating tent rather than a
 sinusoid, exact under stated local hypotheses and first-order accurate beyond
-them — and verifies it against $107{,}691$ measurements over
-$12$ pairs of families to a mean coverage error of <span class="nowrap">$0.0034$.</span>
+them. The same section verifies the law against $107{,}691$ measurements
+over $12$ pairs of families, to a mean coverage error of
+<span class="nowrap">$0.0034$.</span>
 The locus and the profile shape have classical
 ancestors <span class="cite">[<a href="#ref-3">3</a>, <a href="#ref-52">52</a>, <a href="#ref-58">58</a>]</span>; what the
 field form adds is a per-pixel statement about the actual compositing operator,
-with a computable validity criterion — the heterodyne ratio <span class="nowrap">$\het$,</span> a
+with a computable validity criterion: the heterodyne ratio <span class="nowrap">$\het$,</span> a
 <em>field</em> that can be drawn, telling an author where in the frame a fringe
 will form before they commit to parameters. One subtlety runs through
 everything: a family's index convention is arbitrary, so $D$ is one
@@ -478,7 +480,8 @@ to order two.</p>
 <p>For most families the index field is a closed form; Section <a href="#sec-4">4</a>
 lists the thirteen we ship, of which nine are one line of algebra each. The
 families that make the richest interference are not among them. What op
-artists actually reach for are families whose members are not concentric — each ring displaced a little further than the last, or turned a little further,
+artists actually reach for are families whose members are not concentric:
+each ring displaced a little further than the last, or turned a little further,
 so the family shears, spirals, and finally unwinds into a pencil of
 near-parallel curves; Riley's <em>Blaze</em>, a nest of zigzag rings each turned
 against the last, is exactly such a family <span class="cite">[<a href="#ref-53">53</a>]</span>. We call
@@ -493,22 +496,23 @@ not speckle, so whole sides of whole rings disappear, and the budget is paid at
 every pixel whether or not it was needed. For a long time we believed these
 broken segments were a rasterization bug; they are an inversion bug.</p>
 <p>Section <a href="#sec-6">6</a> replaces the guess with a certificate. Every radial
-metric in this setting — circle, square, triangle, regular $N$-gon — is a
+metric in this setting (circle, square, triangle, regular $N$-gon) is a
 <em>support function</em>, and support functions supply exactly the constants the
 problem needs: a Lipschitz modulus that lets indices be skipped unevaluated, in
 the spirit of sphere tracing <span class="cite">[<a href="#ref-30">30</a>]</span>; an exact anisotropy floor;
 and a subadditive drift rate $\rad(-\delta)$ that is strictly tighter than
 <span class="nowrap">$\lVert\delta\rVert$,</span> where using the loose constant declares whole bands of
 ordinary settings unsolvable. Together they give a closed interval of integers
-that provably contains every member passing within a stroke width of the pixel — an interval that, unexpectedly, does not involve the rotation $\theta$ at
-all — and, when <span class="nowrap">$\theta=0$,</span> a closed form for translated polygons of any side
+that provably contains every member passing within a stroke width of the pixel
+(an interval that, unexpectedly, does not involve the rotation $\theta$ at
+all) and, when <span class="nowrap">$\theta=0$,</span> a closed form for translated polygons of any side
 count, including a marginal case in which the residual is eventually constant
 and no enumeration of any finite length can succeed. Measured on the GPU the
 certified solver is $10$–$35\times$ faster than the fixed
 enumeration it replaces across rotated settings, at equal or better fidelity,
 and faster than an exhaustive scan given the same termination bound. Where the
-interval genuinely explodes — the tangent-pencil locus, where unboundedly
-many members really do crowd a point — Section <a href="#sec-8-6">8.6</a> shows the
+interval genuinely explodes, on the tangent-pencil locus where unboundedly
+many members really do crowd a point, Section <a href="#sec-8-6">8.6</a> shows the
 choice that matters is not how much to subsample but how: anchored to the
 family, the error reads as a thinner pattern; anchored to the pixel, as a
 shattered one, at identical cost.</p>
@@ -518,8 +522,8 @@ shattered one, at identical cost.</p>
   distance field, superposition is field compositing, and the pattern has no
   raster at any stage (Section <a href="#sec-3">3</a>).</p></li>
 <li><p>The fringe law: locally averaged ink is a saturating tent in the index
-  difference, so fringes are its unit level sets — exact under stated local
-  hypotheses, per-pixel, with no periodicity assumption, and with a computable
+  difference, so fringes are its unit level sets. The law is exact under stated
+  local hypotheses, per-pixel, with no periodicity assumption, and with a computable
   validity criterion, the heterodyne ratio, scanned over the low-order
   characters and drawable as a map
   (Sections <a href="#sec-3-4">3.4</a>–<a href="#sec-3-6">3.6</a>).</p></li>
@@ -542,8 +546,10 @@ shattered one, at identical cost.</p>
   carrier pitch (Section <a href="#sec-9">9</a>).</p></li>
 <li><p>An expression language for those fields, with the gradient the eikonal
   divide needs obtained by forward-mode differentiation rather than by hand, and
-  compiled to straight-line shader code rather than interpreted per pixel — which is what makes an arbitrary user-written field affordable, by
-  $37$–$281\times$ (Section <a href="#sec-9-2">9.2</a>).</p></li>
+  compiled to straight-line shader code rather than interpreted per pixel. The
+  compilation is what makes an arbitrary user-written field affordable:
+  $37$–$281\times$ cheaper than the interpreter it replaced
+  (Section <a href="#sec-9-2">9.2</a>).</p></li>
 </ul>
 <h2 id="sec-2"><span class="secnum">2</span> Related work</h2>
 <p><span class="paralead">Spectral theory.</span> The standard account of moiré is spectral. Superposing two transparencies
@@ -557,8 +563,8 @@ to phase shifts <span class="cite">[<a href="#ref-4">4</a>]</span>, to synthesi
 transformation <span class="cite">[<a href="#ref-5">5</a>]</span>, and finally to aperiodic
 layers <span class="cite">[<a href="#ref-6">6</a>, <a href="#ref-7">7</a>]</span>, whose random-dot extreme is the Glass
 pattern <span class="cite">[<a href="#ref-27">27</a>]</span>. The account is still growing: Feng extends it to
-<em>objective</em> structures — ring, helical and lattice patterns whose members
-are related by progressive symmetry transformations — through an augmented
+<em>objective</em> structures (ring, helical and lattice patterns whose members
+are related by progressive symmetry transformations) through an augmented
 Fourier approach <span class="cite">[<a href="#ref-23">23</a>]</span>. Those structures are the closest
 formal relatives of our walking families (<a href="#sec-5">§5</a>), reached from the
 frequency side; we reach them per pixel, with a certificate, because a renderer
@@ -569,22 +575,23 @@ domain <span class="cite">[<a href="#ref-3">3</a>]</span>, trapezoidal for bina
 gratings <span class="cite">[<a href="#ref-58">58</a>]</span>, and extended to curved layers as the
 profile composed with the index difference <span class="cite">[<a href="#ref-5">5</a>]</span>. Our debt
 to this theory is correspondingly large; <a href="#sec-3-4">§3.4</a> states what the
-field form adds — exactness with stated local hypotheses, per-pixel stroke
+field form adds: exactness with stated local hypotheses, per-pixel stroke
 widths, index fields with no closed form, and a drawable validity criterion.</p>
 <p><span class="paralead">The indicial equation.</span> Running alongside the spectral account is an older and more elementary one. Label
 the members of each layer, ask where a member of one crosses a member of the other
 in a fixed relation, and solve: Oster, Wasserman and Zwerling derive the fringe
 curves of the standard configurations this way <span class="cite">[<a href="#ref-52">52</a>]</span>, Amidror gives
-it as the geometric approach, complementary to the spectral one — curved
+it as the geometric approach, complementary to the spectral one, with curved
 gratings read as indexed line families (Vol. I, §11.2
-of <span class="cite">[<a href="#ref-8">8</a>]</span>) — and the metrology literature develops
+of <span class="cite">[<a href="#ref-8">8</a>]</span>); the metrology literature develops
 it <span class="cite">[<a href="#ref-13">13</a>]</span>, at book length in Patorski and
 Kujawinska <span class="cite">[<a href="#ref-59">59</a>]</span>. This is the direct ancestor of our
 Section <a href="#sec-3-4">3.4</a>, and our index field is its label made continuous and
 evaluated per pixel. We claim no credit for the locus. The indicial
-construction itself does not supply the coverage <em>between</em> the fringes — metrology reads intensity as fractional fringe order, following
+construction itself does not supply the coverage <em>between</em> the fringes
+(metrology reads intensity as fractional fringe order, following
 Sciammarella <span class="cite">[<a href="#ref-74">74</a>]</span>, and the spectral theory supplies
-profiles as above — nor a statement of when the construction is meaningful.
+profiles as above), nor a statement of when the construction is meaningful.
 Theorem <a href="#thm-2">2</a> supplies the first as a closed-form profile of the
 actual compositing operator and <a href="#sec-3-6">§3.6</a> the second as a field
 that can be drawn.</p>
@@ -621,7 +628,7 @@ multi-color dithering extends the control to non-standard
 inks <span class="cite">[<a href="#ref-56">56</a>]</span>. Artistic
 screening <span class="cite">[<a href="#ref-55">55</a>]</span> turns the halftone dot into an
 artist-supplied contour that grows with intensity and can be pushed through a
-conformal map, which makes the screen itself the designed object — the direct
+conformal map, which makes the screen itself the designed object: the direct
 conceptual ancestor of band moiré, and a useful reminder that the expressive
 material here is the <em>carrier</em>, not the picture.</p>
 <p><span class="paralead">Physical realization and sensing.</span> Moiré magnifiers pair a micro-image array with a slightly mismatched lens
@@ -645,15 +652,15 @@ design stance — find the right parameterization, then expose it directly r
 than making the user reason about pixels — is the one we tried to adopt. Outside
 archival venues a stratum of interactive moiré toys, web generators, and
 security-printing design suites has existed for decades; in all of them the
-fringe is an unmodelled side effect of drawing two dense patterns — nothing
+fringe is an unmodelled side effect of drawing two dense patterns, and nothing
 represents it, predicts it, or stabilizes it under zoom. Procedural moiré is
 likewise a staple of shader practice, going back to Glassner's tutorial
 treatment <span class="cite">[<a href="#ref-28">28</a>]</span> and Sen's product-delay
 constructions <span class="cite">[<a href="#ref-76">76</a>, <a href="#ref-77">77</a>]</span>, in the wider tradition of
 evaluating a pattern per point rather than storing it <span class="cite">[<a href="#ref-21">21</a>]</span>.
 The prevailing shader-sandbox idiom evaluates two periodic functions and
-combines them, typically as <code>abs(p1 - p2)</code> — a <em>value</em> composite
-rather than a distance composite, and Section <a href="#sec-7-2">7.2</a> measures what
+combines them, typically as <code>abs(p1 - p2)</code>, a <em>value</em> composite
+rather than a distance composite; Section <a href="#sec-7-2">7.2</a> measures what
 that costs: with no stroke width to stabilize, the pattern is a different
 pattern at every zoom level, and the displayed moiré is partly the
 sampler's own. Archival graphics has also drawn stripe families as level sets
@@ -668,8 +675,8 @@ resemblance: a radial focus+context layout whose concentric rings of visual node
 fringes genuinely carry data is experimental mechanics and optical metrology.
 Moiré interferometry reads in-plane displacement: fringes are contour maps of
 displacement, with fringe order $N_x=fU$ for reference grating frequency <span class="nowrap">$f$,</span>
-and strains follow by differencing fringe orders <span class="cite">[<a href="#ref-63">63</a>, <a href="#ref-64">64</a>]</span>. Moiré topography reads surface height the same way — its
-fringes literally are elevation contours <span class="cite">[<a href="#ref-45">45</a>, <a href="#ref-83">83</a>]</span> — and Takeda's Fourier-transform method turned fringe
+and strains follow by differencing fringe orders <span class="cite">[<a href="#ref-63">63</a>, <a href="#ref-64">64</a>]</span>. Moiré topography reads surface height the same way (its
+fringes literally are elevation contours <span class="cite">[<a href="#ref-45">45</a>, <a href="#ref-83">83</a>]</span>), and Takeda's Fourier-transform method turned fringe
 images back into phase maps numerically <span class="cite">[<a href="#ref-84">84</a>]</span>. These are
 measurement techniques, and their governing relation is exactly our fringe law
 read in the other direction. Section <a href="#sec-9">9</a> takes it as a design
@@ -703,16 +710,16 @@ search <span class="cite">[<a href="#ref-60">60</a>, <a href="#ref-80">80</a>]<
 integer exhaustion. The support-function facts we need are standard
 convex geometry <span class="cite">[<a href="#ref-71">71</a>, <a href="#ref-73">73</a>]</span>, and the same
 object is what collision detection queries when it walks a Minkowski
-difference <span class="cite">[<a href="#ref-22">22</a>, <a href="#ref-26">26</a>]</span> — though there it prices one pair of
+difference <span class="cite">[<a href="#ref-22">22</a>, <a href="#ref-26">26</a>]</span>, though there it prices one pair of
 bodies, where here the certificate ranges over an indexed family of them; our
 contribution is noticing which four of its properties this problem is asking
 for.</p>
 <p><span class="paralead">Explicit geometry.</span> The nearest thing to an off-the-shelf answer is to emit the members as paths and
-hand them to a vector renderer. That tradition is mature — resolution-independent
+hand them to a vector renderer. That tradition is mature: resolution-independent
 curves on programmable hardware <span class="cite">[<a href="#ref-43">43</a>]</span>, random-access rendering of
 general vector graphics <span class="cite">[<a href="#ref-47">47</a>]</span>, GPU-accelerated path
 rendering <span class="cite">[<a href="#ref-38">38</a>]</span>, analytic rasterization under a polynomial
-filter <span class="cite">[<a href="#ref-44">44</a>]</span> — and for a single family at a legible zoom it
+filter <span class="cite">[<a href="#ref-44">44</a>]</span>. For a single family at a legible zoom it
 is the better tool, which we say plainly because our own first implementation was
 of exactly that kind. Two things end it, and <a href="#sec-8-5">§8.5</a> measures both.
 The count of members meeting the frame grows without bound as the view widens,
@@ -720,10 +727,10 @@ while a field costs the same per pixel at every zoom. And the compositing is
 wrong in the regime that matters: a path renderer antialiases each path
 separately and combines the results with <span class="sc">over</span>, which is derived from the
 assumption that the two coverages are <em>uncorrelated</em> sub-pixel
-areas <span class="cite">[<a href="#ref-62">62</a>]</span>. A moiré is that assumption failing — it is
-precisely the spatial modulation of how the two families' strokes fall relative to
-one another — so <span class="sc">over</span> replaces the varying overlap with a constant one
-and the fringe field it carries is flattened, while the mean ink is barely
+areas <span class="cite">[<a href="#ref-62">62</a>]</span>. A moiré is that assumption failing: it is
+precisely the spatial modulation of how the two families' strokes fall relative
+to one another, so <span class="sc">over</span> replaces the varying overlap with a constant
+one and the fringe field it carries is flattened, while the mean ink is barely
 touched. Analytic coverage of a whole scene at once <span class="cite">[<a href="#ref-17">17</a>]</span> does not
 have this defect, but it is not what per-path pipelines do. The distance
 composite of <a href="#sec-3">§3</a> is a union coverage, not a per-path one, which is
@@ -737,8 +744,8 @@ normal-distribution methods for glinty
 surfaces <span class="cite">[<a href="#ref-95">95</a>, <a href="#ref-96">96</a>]</span>. Two things connect that work to ours. Our
 saturated regime (<a href="#sec-8-6">§8.6</a>) is exactly a place where a correct analytic
 mean would replace a fallback we know to be approximate, and we do not have one for
-a walking family. And the glint problem has our structure — “which member of a
-dense indexed family lies within this footprint” — solved with a
+a walking family. And the glint problem has our structure (“which member of a
+dense indexed family lies within this footprint”), solved with a
 budget <span class="cite">[<a href="#ref-96">96</a>]</span> where an index interval might certify.</p>
 <h2 id="sec-3"><span class="secnum">3</span> Moiré as a field</h2>
 <h3 id="sec-3-1"><span class="secnum">3.1</span> A layer is two scalar fields</h3>
@@ -768,8 +775,9 @@ residual. Both fields are one line of shader code.</p>
 residual into a length. It is easy to omit, and we omitted it. Our shader applied
 it for the parabola family and not for the wave, hyperbola or spiral, with two
 consequences.</p>
-<figure class="paper-figure" id="fig-3"><img src="figures/gradient-compare.png" width="1166" height="773" alt=""><div class="panelrow"><span>wave</span><span>hyperbola</span><span>spiral</span></div><figcaption><span class="fignum">Fig. 3.</span> <strong>A phase residual is not a distance.</strong>  Top: what our shader drew
-  for the wave, hyperbola and spiral families — the phase residual, undivided.
+<figure class="paper-figure" id="fig-3"><img src="figures/gradient-compare.png" width="1166" height="773" alt=""><div class="panelrow"><span>wave</span><span>hyperbola</span><span>spiral</span></div><figcaption><span class="fignum">Fig. 3.</span> <strong>A phase residual is not a distance.</strong>  Top: for the wave,
+  hyperbola and spiral families, what our shader drew was the phase residual,
+  undivided.
   Strokes thin by exactly the factor the family is steep by, so the pattern fades
   where it should saturate and the hyperbola's asymptotes disappear. Bottom: the
   same settings with Eq. <a href="#eq-3">3</a>. Our shader applied the division for the
@@ -799,9 +807,9 @@ the previous behavior was hiding it.</p>
 <p>Eq. <a href="#eq-3">3</a> is an eikonal approximation and it is exact only where the
 family is locally a foliation with steady gradient. The one family in our
 catalog that violates this is the hyperbola, whose gradient blows up on the
-asymptote pair — the degenerate $n=0$ level set, where the foliation folds;
-Section <a href="#sec-4">4</a> excludes that member from the family for exactly
-this reason.</p>
+asymptote pair (the degenerate $n=0$ level set, where the foliation folds);
+Section <a href="#sec-4">4</a> excludes that member from the family for this
+reason.</p>
 <h3 id="sec-3-3"><span class="secnum">3.3</span> Compositing</h3>
 <p>Layers composite as ink over paper. With stroke half-width $h_i$ and antialias
 band <span class="nowrap">$a$,</span> layer $i$ contributes coverage</p>
@@ -846,7 +854,7 @@ variation across <span class="nowrap">$S$.</span> In the hard-edged limit <span 
 <span class="nowrap">$w_1+w_2\le\tfrac12$,</span></p><div class="equation" id="eq-6"><div class="eq-scroll">\[\begin{split}
     \Phi(\Delta) = {}&amp;2w_1+2w_2 \\
       &amp;{}-\min\!\big(2\min(w_1,w_2),\,\max(0,\,w_1+w_2-\mathrm{pd}(\Delta,1))\big):
-  \end{split}\]</div><span class="eq-no">(6)</span></div><p>a saturating tent in $D$ — flat at $2\max(w_1,w_2)$ while one stroke lies
+  \end{split}\]</div><span class="eq-no">(6)</span></div><p>a saturating tent in <span class="nowrap">$D$:</span> flat at $2\max(w_1,w_2)$ while one stroke lies
 inside the other (<span class="nowrap">$\mathrm{pd}(D,1)\le|w_1-w_2|$),</span> rising with unit slope, and
 saturating at $2w_1+2w_2$ once the strokes clear each other. For equal widths
 the floor is a single point and the profile is the familiar tent. (Past
@@ -872,8 +880,8 @@ far from that limit we are, which is why the verification below both
 restricts to $\het\le1/4$ and reports the residual rather than claiming zero.
 Four further remarks.</p>
 <p><span class="paralead">The locus and the profile shape are classical; the statement is not.</span> $\Phi$ is periodic with period $1$ and extremal at $D\in\Z$ and
-<span class="nowrap">$D\in\Z+\tfrac12$.</span> So the light fringes are exactly $\{D\in\Z\}$ — where the two
-families' members locally coincide and their strokes overlap, wasting ink — and
+<span class="nowrap">$D\in\Z+\tfrac12$.</span> So the light fringes are exactly $\{D\in\Z\}$ (where the two
+families' members locally coincide and their strokes overlap, wasting ink) and
 the dark fringes are exactly <span class="nowrap">$\{D\in\Z+\tfrac12\}$,</span> where the members interleave
 and the ink is maximally spread. The moiré is the contour plot of
 $\idx_1-\idx_2$ at unit interval, and nothing else about either family survives
@@ -920,13 +928,14 @@ predicts. It also explains a design behavior we had noticed but not
 understood: past a certain stroke thickness, thickening the strokes stops changing the
 fringe and only darkens the whole frame. The dependence on stroke widths is the
 classical opening-ratio dependence of the trapezoid, here live under a slider.</p>
-<p><span class="paralead">No periodicity is required — and no closed form either.</span> $\idx_1$ and $\idx_2$ are arbitrary. The theorem's hypotheses are local
+<p><span class="paralead">No periodicity is required, and no closed form either.</span> $\idx_1$ and $\idx_2$ are arbitrary. The theorem's hypotheses are local
 (affineness of $D$ over one carrier period, and the eikonal condition) and say
 nothing about global structure. A spiral is admissible. Two hyperbola families are
 admissible. So, more delicately, is a <em>walking</em> family
 (<a href="#sec-5">§5</a>), whose index field exists without having a formula.
-Wherever consecutive members bracket the point — everywhere, when the drift
-stays below the spacing, and away from the family's envelope curves otherwise — the nearest index $n^\star$ plus the fractional residual
+Wherever consecutive members bracket the point (everywhere when the drift
+stays below the spacing, and away from the family's envelope curves
+otherwise), the nearest index $n^\star$ plus the fractional residual
 $h_p(n^\star)/(h_p(n^\star)-h_p(n^\star{+}1))$ is a continuous scalar field whose
 level sets are exactly the members. It is an index field computed by search
 rather than written down, the theorem does not care about the difference, and
@@ -935,8 +944,8 @@ holding on it.</p>
 <p><span class="paralead">The difference is one character among many.</span> Nothing fixes a family's index convention: relabel its members by any affine
 integer map and $\idx$ changes while every curve, stroke and pixel stays the
 same. $D=\idx_1-\idx_2$ is therefore one representative of a lattice of
-candidate beats — the integer combinations <span class="nowrap">$k_1\idx_1+k_2\idx_2$,</span> each a
-<em>character</em> of the pair — and the theorem holds for whichever character
+candidate beats (the integer combinations <span class="nowrap">$k_1\idx_1+k_2\idx_2$,</span> each a
+<em>character</em> of the pair), and the theorem holds for whichever character
 makes its own hypothesis true: the one that is slow against the carriers.
 $k=(1,1)$ is the classical <em>sum</em> moiré <span class="cite">[<a href="#ref-52">52</a>]</span>: where the two
 index gradients anti-align it is the sum that beats slowly, and a
@@ -959,9 +968,9 @@ characters range over integer combinations of generators (supplemental § S3).</
   <strong>Left:</strong> the difference <span class="nowrap">$D=\idx_1-\idx_2$.</span> Its levels are the
   confocal hyperbolae; where the sheet lies flat they spread into the broad
   fringes the eye picks out of the moiré below, and on the steep wall
-  between the centres they crowd at the carrier's own scale. <strong>Right:</strong>
-  the sum $\idx_1+\idx_2$ over the same floor is steep nearly everywhere  — 
-  its levels crowd into texture, no broad fringe forms, and the one flat
+  between the centers they crowd at the carrier's own scale. <strong>Right:</strong>
+  the sum $\idx_1+\idx_2$ over the same floor is steep nearly everywhere: its
+  levels crowd into texture, no broad fringe forms, and the one flat
   stretch, the inter-focal segment, carries the sum's one visible fringe.
   The criterion of <a href="#sec-3-6">§3.6</a> is this comparison made pointwise:
   the visible moiré is the character whose hill lies flattest.</figcaption></figure>
@@ -988,11 +997,11 @@ enough that $M=24$ leaves an error far below one color step. Every
 “averaged ink” panel in this paper is (<a href="#eq-8">8</a>) at <span class="nowrap">$M=24$,</span> and
 it is a toggle in <span class="sc">Moiré</span>, not a post-process.</p>
 <p>Written that way, (<a href="#eq-8">8</a>) is an integral over the diagonal of the
-<em>index torus</em> $[0,1)^K$ — one circle per family — and the choice of the
+<em>index torus</em> <span class="nowrap">$[0,1)^K$,</span> one circle per family, and the choice of the
 diagonal is exactly Theorem <a href="#thm-2">2</a>'s hypothesis rather than a
 convenience. The alternative deserves stating, because we implemented it
-first. Sweeping a rigid translation of the whole stack is
-geometrically exact where advancing an index is bookkeeping, and it is unusable:
+first. Sweeping a rigid translation of the whole stack is a motion the layers
+could really make, where advancing an index is bookkeeping; it is also unusable:
 the taps then sample a two-dimensional disc for strokes that cover a few percent
 of it, so a handful of taps carry the answer and the rest carry noise. Sixty-four
 of them left the carrier standing and the fringes mottled. The diagonal is a
@@ -1004,7 +1013,7 @@ $w=(w_1,\dots,w_K)$ of the torus annihilates every character
 $k$ with $k\cdot w\neq0$ and preserves those with <span class="nowrap">$k\cdot w=0$,</span> so <em>the
 sweep must run orthogonal to the character it is meant to keep</em>. The diagonal
 $w=(1,1)$ preserves $\idx_1-\idx_2$ and averages the sum moiré away;
-$w=(1,-1)$ — the second family swept backwards — preserves the sum; and a
+<span class="nowrap">$w=(1,-1)$,</span> the second family swept backwards, preserves the sum; and a
 second-order beat such as $2\idx_1-\idx_2$ needs <span class="nowrap">$w=(1,2)$,</span> without which the
 view erases a fringe that is bold in the render. <span class="sc">Moiré</span> picks $w$ per pixel
 from the same character scan the criterion runs, so the view keeps whichever
@@ -1012,7 +1021,7 @@ low-order beat the criterion found; each direction still covers a whole period
 of every family, so nothing else about the average changes.</p>
 <p>The rule scales to $K$ layers without amendment, and it says something
 worth pausing on: the diagonal $w=(1,\dots,1)$ preserves exactly the
-<em>zero-sum</em> sublattice $\{k:\sum_i k_i=0\}$ — every pairwise difference
+<em>zero-sum</em> sublattice <span class="nowrap">$\{k:\sum_i k_i=0\}$,</span> every pairwise difference
 and every zero-sum ternary character at once. A beat between beats such as
 <span class="nowrap">$k=(1,1,-2)$,</span> slow wherever <span class="nowrap">$\nabla\idx_1+\nabla\idx_2\approx2\nabla\idx_3$,</span>
 rides the diagonal for free; three ring families arrange that conspiracy
@@ -1022,7 +1031,7 @@ third family carries them, so its duty cycle must stay off one half). What
 costs a deviation is only a winning character that is <em>not</em> zero-sum,
 and the deviation must be chosen against every layer it touches: deviating
 the top pair's rates for a sum beat can scramble a slower difference beat
-the second layer makes with the <em>third</em> — a fringe that stands in the
+the second layer makes with the <em>third</em>, a fringe that stands in the
 render and washes from the view, which is how our two-layer scan first
 failed on three. <span class="sc">Moiré</span> therefore scans all pairs among the three topmost
 families, plus the zero-sum ternaries, and spends a rate deviation only on
@@ -1037,7 +1046,7 @@ change <em>which</em> members are nearby. So the solver is asked once per pixel 
 a <em>phase sample</em></p>
 <div class="equation" id="eq-9"><div class="eq-scroll">\[\Pi(p) \;=\; \big(\,z,\; z^{\uparrow},\; z^{\downarrow},\; \ell\,\big),\]</div><span class="eq-no">(9)</span></div>
 <p>the signed distances to the nearest member and to the two flanking it, together
-with a floor $\ell$ that does not participate. A tap at $u$ then reads</p>
+with a floor $\ell$ that does not take part in the slide. A tap at $u$ then reads</p>
 <div class="equation" id="eq-10"><div class="eq-scroll">\[d(p;u) \;=\; \max\Big(\min_{k\in\{z,z^{\uparrow},z^{\downarrow}\}} \lvert k - u\,\mathrm{gap} \rvert,\; \ell\Big),\]</div><span class="eq-no">(10)</span></div>
 <p>where $\mathrm{gap}=\lvert z^{\uparrow}-z\rvert$ is the <em>local</em> member gap.
 For the nine phase families of <a href="#sec-4">§4</a>, whose residual is periodic
@@ -1046,19 +1055,19 @@ instructions. For the two family classes without a phase function it is a
 first-order model, and for the walking family the gap in (<a href="#eq-10">10</a>) is a
 choice between two inequivalent meanings of “advance the index.” Advancing
 the <em>phase</em> by $u\,s$ slides every residual by exactly that amount, but it
-does not map a walking family to itself  —  radii grow while every pose stays
-put  —  so a sweep at rate $s$ has no unit period to average over and
+does not map a walking family to itself (radii grow while every pose stays
+put), so a sweep at rate $s$ has no unit period to average over and
 under-covers the local carrier, leaving visible residue in the view. Sliding by
 the measured <em>local gap</em> covers exactly one local carrier period, which is
 what the average (<a href="#eq-8">8</a>) needs; the price is that no re-solve
 reproduces it exactly where the flanking gaps are unequal. We choose the gap
 deliberately: exact for the integral's purpose, first-order per tap. The radial
-pencil is first-order the same way  —  its members rotate rather than slide, so
+pencil is first-order the same way, since its members rotate rather than slide, and so
 its re-solved distance is sinusoidal in $u$ where (<a href="#eq-10">10</a>) is piecewise
 linear. Both errors are small fractions of a gap away from the loci of
 <a href="#sec-8-6">§8.6</a>, and we accept them rather than re-solve per tap. Two implementation facts belong in the open. The solver
-runs these views with the guard widened to a full pitch — Eq. <a href="#eq-25">25</a>'s
-$\tfrac34 s$ would prove away the flanking members the sample needs — so the
+runs these views with the guard widened to a full pitch (Eq. <a href="#eq-25">25</a>'s
+$\tfrac34 s$ would prove away the flanking members the sample needs), so the
 certified interval is instantiated at that wider <span class="nowrap">$G$.</span> And the search still runs
 once per pixel while the sweep is arithmetic: median frame times in the envelope
 view went from hundreds of milliseconds to within the 60 Hz budget.</p>
@@ -1080,17 +1089,18 @@ plainly present in the render vanish from the view. Those details, and the
 contrast pivot the view expands about, are in the supplemental material (§ S3).</p>
 <p>One caveat remains, and it is structural rather than a matter of implementation.
 The average is over the diagonal, so where Theorem <a href="#thm-2">2</a>'s hypothesis
-fails — where $\het$ is large — the view still shows $\Phi(D)$ faithfully, but
+fails, where $\het$ is large, the view still shows $\Phi(D)$ faithfully, but
 $\Phi(D)$ is no longer what the eye will average. The two are therefore meant to be
 read together: the envelope jointly with the ratio map beside it.</p>
 <h3 id="sec-3-6"><span class="secnum">3.6</span> When is there a fringe at all?</h3>
-<p>Theorem <a href="#thm-2">2</a> needs $D$ to be nearly constant over one carrier period.
-Both requirements are about the same ratio. Define the <em>heterodyne ratio</em></p>
+<p>Theorem <a href="#thm-2">2</a> needs $D$ to be nearly constant over one carrier
+period, and a beat is worth calling a fringe only when it is broad against that
+period. Both requirements are the same ratio. Define the <em>heterodyne ratio</em></p>
 <div class="equation" id="eq-11"><div class="eq-scroll">\[\het(p) = \frac{\lVert\nabla D(p)\rVert}{\lVert g(p)\rVert}
   = \frac{\lVert\nabla\idx_1-\nabla\idx_2\rVert}
          {\big\lVert\tfrac12(\nabla\idx_1+\nabla\idx_2)\big\rVert}.\]</div><span class="eq-no">(11)</span></div>
 <p>$D$ changes by $\het$ across one carrier period, so $\het\ll1$ is exactly the
-condition that a fringe be large compared with the carrier  — 
+condition that a fringe be large compared with the carrier;
 Figure <a href="#fig-4">4</a> draws it as the flatness of $D$'s graph against the
 carriers' slope. Its numerator is the
 classical local moiré frequency, the vector difference of the two local
@@ -1125,25 +1135,25 @@ before committing to the parameters.</p>
   that is in neither layer. <strong>(d)</strong> The theorem is a statement about averaged
   ink, so this is that average: the envelope view of <a href="#sec-3-5">§3.5</a>, which
   integrates the same two fields over one period of their common phase and so
-  removes the carriers without blurring anything — with the unit level sets of
+  removes the carriers without blurring anything, with the unit level sets of
   $D=\idx_1-\idx_2$ laid over it in crimson. Those curves are computed from the two
   index fields alone and never from the image, and they land on the light fringes.
   They are drawn only where
   <span class="nowrap">$\het\le1/4$,</span> which is why they stop short of the two lobes flanking the centers.
   <strong>(e)</strong> The heterodyne ratio $\het$ of Eq. <a href="#eq-11">11</a> over the same
   frame, dark where Theorem <a href="#thm-2">2</a> applies and bright where the two
-  carriers are too different for a fringe to exist. The bright lobes are exactly the
-  region the overlay declines to describe, and in the superposition they are exactly
+  carriers are too different for a fringe to exist. The bright lobes are the
+  region the overlay declines to describe, and in the superposition they are
   the region that reads as a rosette of crossings rather than as bands.</figcaption></figure>
 <p>We take $\min_k\het_k\le1/4$ as the operational definition of the fringe
 regime.</p>
 <h3 id="sec-3-7"><span class="secnum">3.7</span> Verification</h3>
 <p>Theorem <a href="#thm-2">2</a> is a claim about a rendered image, so we measured it.
-For eleven scene pairs spanning straight, curved, isotropic, anisotropic, periodic
-and aperiodic families (one of them a walking family, whose index field is the
-searched-for local one above) we compute the exact one-period directional mean
-of the union from the fields themselves, with no raster and hence no sampler
-error, and
+For 12 scene pairs spanning straight, curved, isotropic,
+anisotropic, periodic and aperiodic families (one of them a walking family,
+whose index field is the searched-for local one above) we compute the exact
+one-period directional mean of the union from the fields themselves, with no
+raster and hence no sampler error, and
 compare it against $\Phi$ evaluated at the window center. There is no fitting and no free
 parameter. Points are excluded on three stated grounds, each the empirical form
 of one of the theorem's hypotheses, so what is verified is the conditional
@@ -1164,7 +1174,7 @@ fringes at <span class="nowrap">$D\in\Z$)</span> and $0.5$ (dark fringes at <spa
 profile plateaus (low swing), the darkest decile spreads across the flat top and
 its mean falls short of $0.5$ by construction. <em>In regime</em> is the share of admissible samples with <span class="nowrap">$\het\le1/4$.</span> The
 last row has none: with those settings no fringe exists, and the criterion says so
-without rendering.</figcaption><div class="table-scroll"><table><tr><th>Scene</th><th>Families</th><th>$n$</th><th>mean</th><th>p99</th><th>swing</th><th>light / dark</th><th>in regime</th></tr><tr><th><code>parallel-rotate</code></th><th>two line families 6 degrees apart</th><th>14,641</th><th>0.0000</th><th>0.0000</th><th>0.320</th><th>0.024 / 0.474</th><th>100%</th></tr><tr><td><code>parallel-pitch</code></td><td>same direction, pitch mismatched by 4 percent</td><td>14,641</td><td>0.0059</td><td>0.0189</td><td>0.326</td><td>0.026 / 0.470</td><td>100%</td></tr><tr><td><code>circle-circle</code></td><td>circle families with displaced centres</td><td>6,118</td><td>0.0000</td><td>0.0001</td><td>0.277</td><td>0.028 / 0.465</td><td>45%</td></tr><tr><td><code>circle-parallel</code></td><td>circles under lines; D is not periodic in p</td><td>3,952</td><td>0.0000</td><td>0.0000</td><td>0.242</td><td>0.034 / 0.475</td><td>27%</td></tr><tr><td><code>hexagon-hexagon</code></td><td>anisotropic metric, hexagons 4 degrees apart</td><td>13,382</td><td>0.0000</td><td>0.0000</td><td>0.260</td><td>0.024 / 0.475</td><td>95%</td></tr><tr><td><code>square-circle</code></td><td>two different norms at the same spacing</td><td>3,524</td><td>0.0000</td><td>0.0001</td><td>0.242</td><td>0.002 / 0.460</td><td>25%</td></tr><tr><td><code>spiral-circle</code></td><td>aperiodic family: Archimedean spiral over circles</td><td>14,041</td><td>0.0000</td><td>0.0001</td><td>0.243</td><td>0.031 / 0.461</td><td>100%</td></tr><tr><td><code>parabola-parabola</code></td><td>curved families, bend mismatched by 8 percent</td><td>484</td><td>0.0166</td><td>0.0329</td><td>0.169</td><td>0.160 / 0.218</td><td>100%</td></tr><tr><td><code>wave-parallel</code></td><td>a wave family over lines</td><td>14,641</td><td>0.0003</td><td>0.0011</td><td>0.118</td><td>0.011 / 0.170</td><td>100%</td></tr><tr><td><code>hyperbola-hyperbola</code></td><td>rectangular hyperbolae, spacing mismatched by 4 percent</td><td>11,036</td><td>0.0079</td><td>0.0214</td><td>0.640</td><td>0.123 / 0.430</td><td>100%</td></tr><tr><td><code>walking-circle</code></td><td>a walking family (member $n$ displaced by <span class="nowrap">$n\delta$)</span> over concentric circles</td><td>11,231</td><td>0.0159</td><td>0.0731</td><td>0.388</td><td>0.037 / 0.403</td><td>82%</td></tr><tr><td>hyperbola - parallel</td><td>hyperbolae under lines: almost no fringe regime exists</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>$0$</td></tr></table></div></figure>
+without rendering.</figcaption><div class="table-scroll"><table><tr><th>Scene</th><th>Families</th><th>$n$</th><th>mean</th><th>p99</th><th>swing</th><th>light / dark</th><th>in regime</th></tr><tr><th><code>parallel-rotate</code></th><th>two line families 6 degrees apart</th><th>14,641</th><th>0.0000</th><th>0.0000</th><th>0.320</th><th>0.024 / 0.474</th><th>100%</th></tr><tr><td><code>parallel-pitch</code></td><td>same direction, pitch mismatched by 4 percent</td><td>14,641</td><td>0.0059</td><td>0.0189</td><td>0.326</td><td>0.026 / 0.470</td><td>100%</td></tr><tr><td><code>circle-circle</code></td><td>circle families with displaced centers</td><td>6,118</td><td>0.0000</td><td>0.0001</td><td>0.277</td><td>0.028 / 0.465</td><td>45%</td></tr><tr><td><code>circle-parallel</code></td><td>circles under lines; D is not periodic in p</td><td>3,952</td><td>0.0000</td><td>0.0000</td><td>0.242</td><td>0.034 / 0.475</td><td>27%</td></tr><tr><td><code>hexagon-hexagon</code></td><td>anisotropic metric, hexagons 4 degrees apart</td><td>13,382</td><td>0.0000</td><td>0.0000</td><td>0.260</td><td>0.024 / 0.475</td><td>95%</td></tr><tr><td><code>square-circle</code></td><td>two different norms at the same spacing</td><td>3,524</td><td>0.0000</td><td>0.0001</td><td>0.242</td><td>0.002 / 0.460</td><td>25%</td></tr><tr><td><code>spiral-circle</code></td><td>aperiodic family: Archimedean spiral over circles</td><td>14,041</td><td>0.0000</td><td>0.0001</td><td>0.243</td><td>0.031 / 0.461</td><td>100%</td></tr><tr><td><code>parabola-parabola</code></td><td>curved families, bend mismatched by 8 percent</td><td>484</td><td>0.0166</td><td>0.0329</td><td>0.169</td><td>0.160 / 0.218</td><td>100%</td></tr><tr><td><code>wave-parallel</code></td><td>a wave family over lines</td><td>14,641</td><td>0.0003</td><td>0.0011</td><td>0.118</td><td>0.011 / 0.170</td><td>100%</td></tr><tr><td><code>hyperbola-hyperbola</code></td><td>rectangular hyperbolae, spacing mismatched by 4 percent</td><td>11,036</td><td>0.0079</td><td>0.0214</td><td>0.640</td><td>0.123 / 0.430</td><td>100%</td></tr><tr><td><code>walking-circle</code></td><td>a walking family (member $n$ displaced by <span class="nowrap">$n\delta$)</span> over concentric circles</td><td>11,231</td><td>0.0159</td><td>0.0731</td><td>0.388</td><td>0.037 / 0.403</td><td>82%</td></tr><tr><td><code>hyperbola-parallel</code></td><td>hyperbolae under lines: almost no fringe regime exists</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>$0$</td></tr></table></div></figure>
 <p>Table <a href="#tab-1">1</a> reports the result. Across $107{,}691$ admissible
 in-regime samples the mean absolute coverage error is $0.0034$ and the
 worst $99$th percentile over any scene is <span class="nowrap">$0.073$,</span> against a fringe swing of
@@ -1185,7 +1195,7 @@ rendering.</p>
 level sets are the members, and its gradient magnitude, which converts a phase
 residual into a distance. This section is the list, and it is deliberately short:
 thirteen families, of which nine are one line of algebra each. The four that
-are not — the radial pencil and the three lattices — and the reason they
+are not (the radial pencil and the three lattices), and the reason they
 are not, set up the rest of the paper.
 The supplemental material (§ S1) draws all thirteen, each alone and then beating
 against a perturbed copy of itself, which is the fastest way to see what the
@@ -1197,7 +1207,10 @@ of <a href="#sec-3">§3</a> are</p>
   \qquad
   d(p)=\frac{\mathrm{periodicDist}\!\left(\ph(p)-\varphi,\,s\right)}{\lvert\nabla\ph(p)\rvert},\]</div><span class="eq-no">(13)</span></div>
 <p>so a family is completely specified by the pair <span class="nowrap">$(\ph,\lvert\nabla\ph\rvert)$.</span>
-Table <a href="#tab-2">2</a> gives both for all nine (ten rows: three are written-out instances of the $N$-gon). Every entry is <span class="nowrap">$O(1)$,</span> branch-free
+Table <a href="#tab-2">2</a> gives both for all nine, in ten rows: the hexagon row
+is the $N{=}6$ instance of the $N$-gon written out, beside the square and
+triangle (families of their own), because those three support forms need no
+transcendentals. Every entry is <span class="nowrap">$O(1)$,</span> branch-free
 apart from the free-side $N$-gon, and calls no transcendental function except where
 the geometry genuinely contains an angle.</p>
 <figure class="paper-table wide" id="tab-2"><figcaption><span class="fignum">Table 2.</span> <strong>The nine phase families.</strong>  Each row is a complete
@@ -1231,17 +1244,17 @@ the hard case tractable.</p>
 <p><span class="paralead">The radial pencil.</span> $N$ undirected lines through the layer origin,
 equally spaced over <span class="nowrap">$\pi$.</span> There is no $\ph$ here whose level sets are the members:
 the index winds around the origin, so any candidate phase is circle-valued with
-a winding-number obstruction at the core — a phase singularity in the sense of
-Nye and Berry <span class="cite">[<a href="#ref-50">50</a>]</span> — and admits no global scalar lift.
+a winding-number obstruction at the core (a phase singularity in the sense of
+Nye and Berry <span class="cite">[<a href="#ref-50">50</a>]</span>) and admits no global scalar lift.
 What the family does have is a distance,</p>
 <div class="equation" id="eq-14"><div class="eq-scroll">\[d(p)=\max\!\Big(\lVert p\rVert\,\big\lvert\sin\mathrm{wrap}(\theta_p,\tfrac{\pi}{N})\big\rvert,
   \;\; \varphi-\lVert p\rVert\Big),\]</div><span class="eq-no">(14)</span></div>
-<p>which is what the renderer needs (here and in Table <a href="#tab-2">2</a>,
-$\mathrm{wrap}(v,w)$ maps $v$ into <span class="nowrap">$[-w/2,w/2)$;</span> the formula is exact except
-in the corner wedge where a line meets the opened disc, where it understates
-the distance to the trimmed member by a bounded factor), and an index — the
-angular sector $\lfloor \theta_p N/\pi\rfloor$ — which is what the fringe
-law needs. The second
+<p>which is what the renderer needs, and an index, the angular sector
+<span class="nowrap">$\lfloor \theta_p N/\pi\rfloor$,</span> which is what the fringe law needs. (Here
+and in Table <a href="#tab-2">2</a>, $\mathrm{wrap}(v,w)$ maps $v$ into
+<span class="nowrap">$[-w/2,w/2)$.</span> The distance formula is exact except in the corner wedge where
+a line meets the opened disc, where it understates the distance to the
+trimmed member by a bounded factor.) The second
 term is the parameter the interface calls <em>Start</em>: it opens a disc of radius
 $\varphi$ around the origin, because $N$ lines crossing at a point is a black dot,
 and opening the center is the standard fix. Because the sector index is piecewise
@@ -1250,9 +1263,9 @@ produce fringes in the sense of Theorem <a href="#thm-2">2</a>; it produces the
 that the classical literature treats separately <span class="cite">[<a href="#ref-8">8</a>]</span>.</p>
 <p><span class="paralead">Lattices.</span> Square, hexagonal and triangular lattices index their
 members by <em>two</em> integers, not one. The nearest lattice point is found by
-rounding in the lattice basis — for the hexagonal and triangular cases, cube
+rounding in the lattice basis (for the hexagonal and triangular cases, cube
 rounding on <span class="nowrap">$(u,v,-u-v)$,</span> the $A_2$ closest-point rule of Conway and
-Sloane <span class="cite">[<a href="#ref-19">19</a>]</span>, exact and branch-light — and the layer offers
+Sloane <span class="cite">[<a href="#ref-19">19</a>]</span>, exact and branch-light), and the layer offers
 two distances from the result: to the nearest vertex, and to the nearest edge. The
 hexagonal edge distance is again a support form, $\min_k(\mathrm{apothem}-\langle
 q,n_k\rangle)$ over the six sides, so hexagon edges are hexagon sides and not
@@ -1263,7 +1276,7 @@ that stretching a lattice keeps its strokes metrically correct.</p>
 <p>The consequence for the theory is plain. Theorem <a href="#thm-2">2</a>
 is about the difference of two <em>scalar</em> index fields. A lattice's index is in
 <span class="nowrap">$\Z^2$,</span> so the difference of two lattice indices is in $\Z^2$ as well, and the
-theorem applies to it componentwise — once per generating line family. This is
+theorem applies to it componentwise, once per generating line family. This is
 the classical situation, where a $2$-D screen superposition has a fringe
 system per pair of generating frequency vectors and the visible moiré is whichever
 pair beats slowest <span class="cite">[<a href="#ref-5">5</a>, <a href="#ref-8">8</a>]</span>. The field
@@ -1271,7 +1284,7 @@ formulation does not remove that bookkeeping. It localizes it: each component is
 scalar field we can evaluate, difference, and map.</p>
 <h3 id="sec-4-3"><span class="secnum">4.3</span> A family with no closed-form index</h3>
 <p>Take any of the concentric rows of Table <a href="#tab-2">2</a> and give member $n$ its
-own rigid motion — displace it by <span class="nowrap">$n\delta$,</span> turn it by <span class="nowrap">$n\theta$.</span> The picture is
+own rigid motion: displace it by <span class="nowrap">$n\delta$,</span> turn it by <span class="nowrap">$n\theta$.</span> The picture is
 still a family of nested shapes, the parameters are two sliders, and the result is
 the geometry of much op art. But $\ph$ is gone: each member now lives in
 its own frame, so no closed-form expression in $p$ has these curves as its level
@@ -1328,7 +1341,7 @@ $\rad$ is the innermost call of the solver.</p>
   <span class="nowrap">$q_n = \Rot{-n\theta}\,p - n\delta = \Rot{-n\theta}(p - c_n)$.</span> The arrow is
   <span class="nowrap">$p-c_n$,</span> which is that same displacement in world coordinates: the two have equal
   length, but $\rad$ is not rotation invariant, so it is $q_n$ and not the arrow
-  that the residual is taken of. That is the difficulty in one picture — because
+  that the residual is taken of. That is the difficulty in one picture: because
   each ring has a different frame, no closed-form scalar field of $p$ has these
   rings as its level sets, and the index field survives only as the answer to a
   search (<a href="#sec-6">§6</a>).</figcaption></figure>
@@ -1339,8 +1352,8 @@ $ns+\varphi$ is nonnegative), per-index translation
 <span class="nowrap">$\delta\in\R^2$,</span> and per-index rotation <span class="nowrap">$\theta$.</span> Figure <a href="#fig-6">6</a> shows
 one. The three degenerate cases are familiar: $\delta=0,\theta=0$ gives
 concentric shapes; $\theta=0$ alone gives a family whose centers walk a straight
-line; and letting $s\to\infty$ with the shape a half-plane recovers parallel
-lines.</p>
+line; and degenerating the shape to a half-plane, whose support set $U$ is a
+single normal, recovers parallel lines at spacing <span class="nowrap">$s$.</span></p>
 <p>Expanding $\Rot{-n\theta}(p - \Rot{n\theta}(n\delta))$ gives the pulled-back
 point</p>
 <div class="equation" id="eq-22"><div class="eq-scroll">\[q_n(p) \;=\; \Rot{-n\theta}\,p \;-\; n\delta,\]</div><span class="eq-no">(22)</span></div>
@@ -1353,7 +1366,8 @@ field the renderer wants is</p>
 <div class="equation" id="eq-24"><div class="eq-scroll">\[d(p) \;=\; \min_{n\in\N_0} \bigl|h_p(n)\bigr|.\]</div><span class="eq-no">(24)</span></div>
 <p>This is not the Euclidean distance to <span class="nowrap">$\Gamma_{n^\star}$;</span> it is the residual of
 the inradius metric, which agrees with Euclidean distance for circles and
-<em>under</em>estimates it for polygons, by a factor of at most $1/\kappa$ — (P1) gives residual $\le$ distance always, and the gauge comparison gives
+<em>under</em>estimates it for polygons, by a factor of at most <span class="nowrap">$1/\kappa$:</span>
+(P1) gives residual $\le$ distance always, and the gauge comparison gives
 distance $\le$ residual<span class="nowrap">$/\kappa$.</span> Renderers of this kind consume $d$ through a
 smoothstep of width one pixel, so the distinction thickens apparent stroke
 weight near corners and changes nothing else. We keep the metric residual
@@ -1368,10 +1382,10 @@ so $d(p) = \mathrm{dist}\bigl((\rad(p)-\varphi) \bmod s\bigr)$ exactly: one
 evaluation. When the shape is a circle and <span class="nowrap">$\theta=0$,</span> $\lVert p - n\delta\rVert =
 ns+\varphi$ is a quadratic in $n$ whose roots bracket the answer; two integer
 evaluations suffice. When $\theta=0$ and the shape is a polygon, $h_p$ is convex
-and piecewise linear — we give the exact solution in
-Section <a href="#sec-6-5">6.5</a>; we have not found it stated elsewhere, and its
+and piecewise linear; we give the exact solution in
+Section <a href="#sec-6-5">6.5</a>. We have not found it stated elsewhere, and its
 marginal case is the part that matters in practice.</p>
-<p>Everything else — any $\theta\neq0$ — has no closed form, because $q_n$ in
+<p>Everything else (any <span class="nowrap">$\theta\neq0$)</span> has no closed form, because $q_n$ in
 (<a href="#eq-22">22</a>) contains <span class="nowrap">$\Rot{-n\theta}p$,</span> and asking for $h_p(n)=0$ asks where a
 sinusoid in $n$ meets a line in <span class="nowrap">$n$.</span> That is transcendental, with a solution count
 that depends on the parameters. The question is therefore not how to solve it, but
@@ -1427,7 +1441,8 @@ is merely loose rather than wrong.</p>
 <h3 id="sec-6-3"><span class="secnum">6.3</span> A provably sufficient interval of indices</h3>
 <p>Write <span class="nowrap">$r=\lVert p\rVert$,</span> <span class="nowrap">$L=\lVert\delta\rVert$,</span> <span class="nowrap">$m=\rad(-\delta)$,</span> and note
 $\rad(\Rot{-n\theta}p)\le r$ by (P2) and
-$\lVert q_n\rVert \ge |r - nL|$ by the triangle inequality on (<a href="#eq-22">22</a>) — both independent of <span class="nowrap">$\theta$.</span></p>
+$\lVert q_n\rVert \ge |r - nL|$ by the triangle inequality on (<a href="#eq-22">22</a>);
+both are independent of <span class="nowrap">$\theta$.</span></p>
 <figure class="paper-figure wide" id="fig-7"><div class="subrow plots"><figure class="sub" style="flex-grow:277.9"><img src="figures/tikz-a2645638a610.png" width="1158" height="817" alt=""><figcaption>(a) The residual at one pixel.</figcaption></figure><figure class="sub" style="flex-grow:227.3"><img src="figures/tikz-f6755ce8f87a.png" width="947" height="814" alt=""><figcaption>(b) Worst-case stray against radius.</figcaption></figure></div><figcaption><span class="fignum">Fig. 7.</span> <strong>Certifying and skipping the index interval.</strong> 
   <strong>(a)</strong> The residual at one pixel is sandwiched between two lines in <span class="nowrap">$n$,</span>
   which is enough to certify a finite interval. The naive index guess is
@@ -1440,7 +1455,7 @@ $\lVert q_n\rVert \ge |r - nL|$ by the triangle inequality on (<a href="#eq-22"
   could have been enough, measured. Triangles, <span class="nowrap">$\theta=0.02$,</span> $96$ directions
   per radius; the stray is the worst seen out to that radius. The nearest index
   leaves any fixed neighborhood of the naive guess and the gap grows linearly,
-  so a budget is a horizontal line that the requirement crosses — here at
+  so a budget is a horizontal line that the requirement crosses, here at
   <span class="nowrap">$r\approx500$,</span> a third of the way across the frame. The proven interval grows
   too, since the rings near a pixel genuinely become more numerous, but the
   Lipschitz skip keeps what we evaluate well below it.</figcaption></figure>
@@ -1481,7 +1496,7 @@ Sections <a href="#sec-6-5">6.5</a> and <a href="#sec-8-6">8.6</a>.</p>
 the truth is <span class="nowrap">$41$,</span> $8$ rings away. The proven interval is
 <span class="nowrap">$[22,56]$,</span> and Figure <a href="#fig-7">7</a> shows why no constant would have done:
 we measured how far the nearest index actually strays from the naive guess, worst
-case over directions, and it grows linearly in $r$ — past $r\approx500$ it
+case over directions, and it grows linearly in <span class="nowrap">$r$:</span> past $r\approx500$ it
 exceeds the widest neighborhood our previous solver could even express. The same
 plot confirms the theorem empirically: over $13{,}458$ sampled pixels whose
 nearest ring is inside the guard, the argmin fell inside (<a href="#eq-30">30</a>) every
@@ -1557,7 +1572,7 @@ unit normals,</p>
 <div class="equation" id="eq-33"><div class="eq-scroll">\[h_p(n) \;=\; \max_{k}\,(a_k - n b_k) \;-\; ns - \varphi ,\]</div><span class="eq-no">(33)</span></div>
 <p>a maximum of $N$ affine functions of $n$ minus an affine function: convex and
 piecewise linear, with at most $N$ breakpoints and slopes increasing in <span class="nowrap">$n$.</span> Its
-asymptotic slope is $m - s$ with $m=\rad(-\delta)=\max_k(-b_k)$ — the same drift
+asymptotic slope is $m - s$ with <span class="nowrap">$m=\rad(-\delta)=\max_k(-b_k)$:</span> the same drift
 constant as (<a href="#eq-28">28</a>), arrived at independently.</p>
 <div class="theorem thm-plain" id="thm-6"><p><span class="thm-head">Proposition 6.</span> Let <span class="nowrap">$\theta=0$,</span> let the shape be a polygon with $N$ facets, and let $p$ lie on
 or outside the innermost ring, <span class="nowrap">$\rad(p)\ge\varphi$.</span> (Inside it, $h_p$ is
@@ -1589,7 +1604,7 @@ of Proposition <a href="#thm-6">6</a> is that it generalizes to every side coun
 and, more importantly, that case (2) exists.
 Figure <a href="#fig-8">8</a> plots both. The marginal case is the one that repays the
 effort: it is exactly the locus where Theorem <a href="#thm-4">4</a> gives up, and it is
-not exotic — it is the family whose rings pile up along a line, which is a
+not exotic. It is the family whose rings pile up along a line, which is a
 pattern users deliberately make. Any scan, of any budget, walks off the end of
 that flat segment without reaching the indices that carry the answer. Handling it
 costs one comparison. Table <a href="#tab-6">6</a> measures the difference at
@@ -1616,19 +1631,20 @@ that the loop terminates on the $m=s$ locus when the closed form does not apply
 Theorem <a href="#thm-4">4</a> applies; both are reported and ablated in
 Section <a href="#sec-8">8</a>. Three numerical points. The shipped upper bound uses
 the two per-branch forms derived inside the proof of
-Theorem <a href="#thm-4">4</a> — $(r-\varphi+G)/(s-m)$ and $(r+\varphi+G)/(m-s)$ — which are slightly tighter than the single display (<a href="#eq-30">30</a>). The
+Theorem <a href="#thm-4">4</a>, $(r-\varphi+G)/(s-m)$ and <span class="nowrap">$(r+\varphi+G)/(m-s)$,</span>
+which are slightly tighter than the single display (<a href="#eq-30">30</a>). The
 closed-form dispatch admits <span class="nowrap">$m \le s + 10^{-4}$,</span> and within $10^{-4}$ of the
 marginal drift the leading facet takes the flat-constant branch of
 Proposition <a href="#thm-6">6</a> rather than a crossing solve: the crossing there
 sits at an index of order <span class="nowrap">$1/|s-m|$,</span> where <code>f32</code> evaluation is
-catastrophic, so the whole near-marginal band reads as flat — the same answer
+catastrophic, so the whole near-marginal band reads as flat, the same answer
 the capped scan reaches, on both twins. And the side count is capped at $24$
 facets; beyond it (unreachable from the interface) the dispatch falls through
 to the scan, which remains exact.</p>
 <h2 id="sec-7"><span class="secnum">7</span> <span class="sc">Moiré</span></h2>
 <p><span class="sc">Moiré</span> is a browser tool. It is also the reason the previous three sections
-exist: every bound in them was forced by something an author could do with a
-slider and we could not draw fast enough or correctly enough. This section
+exist: every bound in them was forced by something an author could reach with a
+slider that we could not yet draw fast enough, or correctly enough. This section
 describes the program, and concentrates on the five decisions that the field
 formulation makes available and that we would not have found otherwise.</p>
 <h3 id="sec-7-1"><span class="secnum">7.1</span> One pass, twelve slots, compiled once</h3>
@@ -1638,9 +1654,9 @@ into any buffer. The program is written in Three.js's shading
 language <span class="cite">[<a href="#ref-14">14</a>]</span> and runs through WebGPU <span class="cite">[<a href="#ref-89">89</a>]</span>; TSL matters here
 only because it lets the same expression tree be assembled in TypeScript, which is
 how the CPU twin of <a href="#sec-6">§6</a> stays a twin.</p>
-<p>A layer is $19$ uniforms. Nine describe the family — type, previous type, morph
+<p>A layer is $19$ uniforms. Nine describe the family (type, previous type, morph
 parameter, spacing, phase, side count, per-member offset, per-member rotation,
-line count — and the rest describe its appearance and placement. Crucially there
+line count) and the rest describe its appearance and placement. Crucially there
 are always <em>twelve</em> of these slots, allocated and compiled at startup, each
 gated by an <code>active</code> uniform. Adding a layer writes uniforms. Deleting or
 hiding one writes <span class="nowrap">$\texttt{active}=0$.</span> Neither touches the node graph.</p>
@@ -1649,7 +1665,7 @@ natural way to write the renderer is to build the shader from the current layer
 list, which means every add, delete and hide rebuilds it. In WebGPU a rebuild is a
 pipeline creation, and pipeline creation is tens to hundreds of milliseconds during
 which the canvas cannot present. The result is a tool that stutters exactly when
-an author is composing — the moment when they are most likely to be exploring
+an author is composing, the moment when they are most likely to be exploring
 rather than committing. Fixing the layer count and paying for twelve unconditionally
 costs a few branches per pixel and makes layer count free. Frames are then driven
 by a dirty flag on the store, coalesced to one render per animation frame.</p>
@@ -1666,12 +1682,13 @@ distance field. Given a stroke thickness <span class="nowrap">$t$,</span> write 
 for the world size of a pixel and set</p>
 <div class="equation" id="eq-34"><div class="eq-scroll">\[h=\max\!\left(\tfrac{t}{2},\; 1.15\,\mathrm{pixel}\right),
   \qquad
-  \varepsilon = 0.7\,\mathrm{pixel},\]</div><span class="eq-no">(34)</span></div>
-<p>then <span class="nowrap">$\alpha(d)=1-\mathrm{smoothstep}(h-\varepsilon,\,h+\varepsilon,\,d)$.</span></p>
+  a = 0.7\,\mathrm{pixel},\]</div><span class="eq-no">(34)</span></div>
+<p>then <span class="nowrap">$\alpha(d)=1-\mathrm{smoothstep}(h-a,\,h+a,\,d)$,</span> with $a$ the antialias
+band of Eq. <a href="#eq-4">4</a>.</p>
 <p>The floor $1.15\,\mathrm{pixel}$ is what keeps a zoomed-out pattern from
 disintegrating. Without it, a hairline family at low zoom has strokes narrower
 than the sample spacing, and the picture breaks into speckle that is visually
-indistinguishable from the inversion failure of <a href="#sec-6">§6</a> — the
+indistinguishable from the inversion failure of <a href="#sec-6">§6</a>; the
 two are easily attributed to each other. With it, the stroke can never be
 thinner than about a pixel, and the fringes survive (Figure <a href="#fig-9">9</a>).</p>
 <p>To quantify what the floor does, take a spiral over a displaced circle family,
@@ -1681,10 +1698,10 @@ samples per pixel as a prefiltered reference. Each rule is compared against the
 properly sampled version of <em>its own</em> intent, so that sampling error is
 isolated from any difference in what was being drawn. At the coarsest zoom,
 where one carrier period is $1.5$ px, the standard deviation
-of the per-pixel ink error is</p>
+of the per-pixel ink error is:</p>
 <div class="table-scroll"><table><tr><th></th><th>worst noise</th><th>at coarsest zoom</th></tr><tr><th>with the floor</th><th>$0.046$</th><th>$0.0015$</th></tr><tr><td>floor removed</td><td>$0.115$</td><td>$0.115$</td></tr><tr><td>phase residual, no floor</td><td>$0.118$</td><td>—</td></tr></table></div>
-<p>— a factor of <span class="nowrap">$77$.</span> So the floor does suppress the speckle, and by a
-lot. But the same experiment prices it: even sampled perfectly, the clamped stroke
+<p>The gap is a factor of <span class="nowrap">$77$.</span> So the floor
+does suppress the speckle, and by a lot. But the same experiment prices it: even sampled perfectly, the clamped stroke
 lays down up to $0.61$ more ink per pixel than the hairline it stands
 in for, because a stroke held at a pixel wide inside a period that is narrower than
 that must overlap itself.</p>
@@ -1693,22 +1710,22 @@ and very noisy estimate of the pattern into a biased and nearly noiseless one, a
 it is the right trade only because a moiré is read as structure rather than as
 tone: a frame that is uniformly too dark preserves the pattern, and a peppered
 one destroys it. The unbiased low-noise answer is the analytic mean of the
-family over the pixel, which for a walking family we do not have — the open
-problem of <a href="#sec-10">§10</a>. The floor predates this characterization; the
+family over the pixel, which for a walking family we do not have; that is the
+open problem of <a href="#sec-10">§10</a>. The floor predates this characterization; the
 measurement is what identified which of the two errors it chooses.</p>
 <p>Two things about (<a href="#eq-34">34</a>) are only correct because of the field view.
 First, $h$ is a <em>world</em> distance, so it must be compared against a world
 distance, which is why the gradient divide of Table <a href="#tab-2">2</a> is not
 optional: applied to a phase residual, the floor guarantees nothing, because a
 phase unit is not a length. Second, having a hard $h$ means we know in advance
-which distances cannot matter. Anything beyond $h+\varepsilon$ is fully
+which distances cannot matter. Anything beyond $h+a$ is fully
 transparent. The solver of <a href="#sec-6">§6</a> is therefore not asked for
-<span class="nowrap">$\min_n d_n$;</span> it is asked whether any $d_n$ falls below <span class="nowrap">$h+\varepsilon$,</span> and is
+<span class="nowrap">$\min_n d_n$;</span> it is asked whether any $d_n$ falls below <span class="nowrap">$h+a$,</span> and is
 free to <em>prove</em> the rest away without evaluating them. The guard and the skip
 rule are the same idea seen from two ends.</p>
 <figure class="paper-figure wide" id="fig-9"><img src="figures/zoom.png" width="2202" height="540" alt=""><div class="panelrow"><span>(a) zoom $2$</span><span>(b) zoom $1$</span><span>(c) zoom $0.25$</span><span>(d) zoom <span class="nowrap">$0.25$,</span> no floor</span></div><figcaption><span class="fignum">Fig. 9.</span> <strong>One scene over an eightfold zoom range, with and without
   the stroke floor.</strong> 
-  Two walking circle families — the tool's default preset, recomposed with its
+  Two walking circle families, the tool's default preset, recomposed with its
   centers on the frame's diagonal.
   <strong>(a–c)</strong> zoom <span class="nowrap">$2$,</span>
   $1$ and <span class="nowrap">$0.25$.</span> Nothing is resampled between them: each is the same pair of scalar
@@ -1735,7 +1752,7 @@ distances rather than images means there is one stroke at all times, travelling
 from one geometry to the other, instead of two strokes cross-fading. The store snaps to the
 target immediately, so the eased value lives only in the uniform and no
 undo, export or reload can catch a half-morphed state. Switching to a family for
-which the per-member motion is meaningless — lines, lattices, curves — also
+which the per-member motion is meaningless (lines, lattices, curves) also
 zeroes the two walking parameters, because leaving them set produces a layer whose
 sliders visibly do nothing.</p>
 <h3 id="sec-7-4"><span class="secnum">7.4</span> Direct manipulation of a field</h3>
@@ -1748,8 +1765,8 @@ loaded preset with the same morph machinery, so the first thing an author sees i
 the mechanism moving into place. Everything else is deliberately thin: one collapsible panel, the envelope and
 ratio views of <a href="#sec-3-5">§3.5</a>–<a href="#sec-3-6">§3.6</a> as header
 toggles, a still and clip export, and a JSON scene file that saves the
-construction — layers, camera, background, and what moves
-(<a href="#sec-7-5">§7.5</a>) — and nothing else. A looping parameter is written into that
+construction and nothing else: layers, camera, background, and what moves
+(<a href="#sec-7-5">§7.5</a>). A looping parameter is written into that
 file at the value its cycle departs from rather than wherever the clock had
 carried it, since the instant a file happened to be saved at is a fact about the
 session and not about the pattern. There are no layer effects and no inspector;
@@ -1761,7 +1778,7 @@ the twelve slots' uniforms and the handful of camera and view uniforms beside
 them, and by nothing else. The animation model is built to keep it that way. An animated parameter is
 a function $v(t)$ evaluated afresh every frame rather than a value advanced by
 <span class="nowrap">$v \leftarrow v+\dot v\,\Delta t$,</span> and several parameters may share one
-<em>timing</em> — a delay, a period, a mode and an easing — so that a dozen knobs
+<em>timing</em> (a delay, a period, a mode and an easing) so that a dozen knobs
 move as one gesture instead of as a dozen that drift apart. Parameters that are
 functions of the clock, over a renderer that holds no state, make the frame
 itself a function of the clock.</p>
@@ -1769,9 +1786,9 @@ itself a function of the clock.</p>
 exact: the frame at $t$ is computed rather than replayed, so seeking backwards
 costs what seeking forwards costs and neither depends on where the clock has
 been. And capture need not run in real time. The recorder is the clock rather
-than an observer of it — it asks for frame $n$ at exactly <span class="nowrap">$t_0+n/\mathrm{fps}$,</span>
+than an observer of it: it asks for frame $n$ at exactly <span class="nowrap">$t_0+n/\mathrm{fps}$,</span>
 renders once synchronously at a stated size, waits for the pixels however long
-they take, and only then advances — so a file at $2160$p and $120$ fps comes
+they take, and only then advances. So a file at $2160$p and $120$ fps comes
 out of a renderer that never has to reach that rate, and the same range recorded
 twice is the same file twice. The clip's length is not guessed either: every
 animator states its own period, and the tool offers the least common multiple of
@@ -1787,21 +1804,22 @@ Theorem <a href="#thm-4">4</a> with the drift constant (<a href="#eq-28">28</a
 Section <a href="#sec-6-2">6.2</a>. <span class="sc">Window</span> is the full method. <span class="sc">Reference</span> is an
 exhaustive scan at stride $1$ with no budget and no interval, stopping only once
 the drift bound (<a href="#eq-27">27</a>) proves every further ring outside the guard.
-It is independent of the window formula and the Lipschitz skip — the two
-mechanisms under test — though it shares the subadditivity bound itself,
+It is independent of the window formula and the Lipschitz skip (the two
+mechanisms under test), though it shares the subadditivity bound itself,
 which the $13{,}458$-pixel argmin check of <a href="#sec-6-3">§6.3</a> tests
 separately against an unbounded scan.</p>
 <p>The GPU numbers come from a standalone WebGPU harness that extracts the WGSL of
 each solver generation directly from its source file, compiles it into an
 identical compute kernel, and times a pass with GPU timestamp queries over a
-$1200\times800$ point grid — $0.96$ Mpixel of solver work with no
+$1200\times800$ point grid: $0.96$ Mpixel of solver work with no
 rasterization, no compositing, and no browser frame overhead in the measurement.
 Each measurement spans $24$ dispatches under one pair of timestamps, after
 $4$ warm-up passes: this adapter's counter ticks every $65.5$ \textmu s,
 and the fastest settings here run in a few ticks, so timing a single dispatch
 reports the tick rather than the kernel. The value we report is the fastest of
 $5$ such measurements, since anything else using the device can only add
-time to a pass, never remove it. On an Apple <code>metal-3</code> adapter. The CPU numbers come from a rasterizer that
+time to a pass, never remove it; all GPU numbers are from one Apple
+<code>metal-3</code> adapter. The CPU numbers come from a rasterizer that
 mirrors the shader's compositing term for term, instrumented to count calls to
 <span class="nowrap">$\rad$;</span> this is the only way to render an image with a solver that no longer
 exists in the shader, and the only way to get a per-pixel work map.</p>
@@ -1813,7 +1831,8 @@ in the supplemental reproduction guide (their values are adapter-specific).</p>
 <p>Table <a href="#tab-3">3</a> gives GPU pass times. Across rotated settings <span class="sc">Window</span> is
 $10$–$35\times$ faster than <span class="sc">Sweep</span>. The absolute numbers are
 what changed the tool: a single rotated triangle family went from
-$13.1$ ms per megapixel — alone, over budget for a $60$ Hz frame — to $0.37$ ms, so a dozen layers now fit in the frame that one layer
+$13.1$ ms per megapixel (alone, over budget for a $60$ Hz frame)
+to $0.37$ ms, so a dozen layers now fit in the frame that one layer
 used to miss. At $6.7\times$ zoom-out, where <span class="sc">Sweep</span> degrades to
 $26.1$ ms, <span class="sc">Window</span> costs $1.85$ ms. The
 translation-only row shows Proposition <a href="#thm-6">6</a> in isolation:
@@ -1825,25 +1844,27 @@ transcendentals.</p>
   zoom-out, where the index interval is widest. The last three rows are the hard
   cases of Section <a href="#sec-8-6">8.6</a>: an offset close to the spacing, and the
   marginal drift $m=s$ itself. Bold marks the shipped method, not the row minimum:
-  <span class="sc">Loose</span> is faster on the nonagon row, and loses ink globally
+  where $\rad(-\delta)=\lVert\delta\rVert$ (circles; zero offset) the two
+  intervals coincide and <span class="sc">Loose</span> saves only the constant's cost, on the nonagon
+  row it is faster outright, and it loses ink globally
   (Table <a href="#tab-5">5</a>).</figcaption><div class="table-scroll"><table><tr><th>Family</th><th>Zoom</th><th><span class="sc">Sweep</span></th><th><span class="sc">Loose</span></th><th><span class="sc">Window</span></th></tr><tr><th>Circle, rotation + offset</th><th>$1$</th><th>$9.84$</th><th>$0.34$</th><th>$\mathbf{0.37}$</th></tr><tr><td>Circle, rotation + offset</td><td>$0.15$</td><td>$14.82$</td><td>$1.19$</td><td>$\mathbf{1.22}$</td></tr><tr><td>Square, rotation</td><td>$1$</td><td>$8.56$</td><td>$0.27$</td><td>$\mathbf{0.30}$</td></tr><tr><td>Square, rotation + offset</td><td>$0.15$</td><td>$12.93$</td><td>$0.87$</td><td>$\mathbf{0.88}$</td></tr><tr><td>Square, offset only</td><td>$1$</td><td>$0.95$</td><td>$0.95$</td><td>$\mathbf{0.18}$</td></tr><tr><td>Triangle, rotation</td><td>$1$</td><td>$13.14$</td><td>$0.48$</td><td>$\mathbf{0.37}$</td></tr><tr><td>Triangle, rotation</td><td>$0.15$</td><td>$18.44$</td><td>$1.45$</td><td>$\mathbf{1.03}$</td></tr><tr><td>Triangle, rotation + offset</td><td>$1$</td><td>$15.64$</td><td>$0.73$</td><td>$\mathbf{0.53}$</td></tr><tr><td>Triangle, rotation + offset</td><td>$0.15$</td><td>$26.13$</td><td>$2.67$</td><td>$\mathbf{1.85}$</td></tr><tr><td>Hexagon, rotation + offset</td><td>$0.15$</td><td>$23.44$</td><td>$2.23$</td><td>$\mathbf{1.83}$</td></tr><tr><td>Nonagon, rotation + offset</td><td>$0.15$</td><td>$22.66$</td><td>$2.06$</td><td>$\mathbf{2.25}$</td></tr><tr class="rule-above"><td>Offset near spacing</td><td>$1$</td><td>$40.34$</td><td>$2.58$</td><td>$\mathbf{1.68}$</td></tr><tr><td>Offset near spacing</td><td>$0.15$</td><td>$45.00$</td><td>$7.17$</td><td>$\mathbf{6.10}$</td></tr><tr><td>Marginal drift <span class="nowrap">$m=s$,</span> rotated</td><td>$1$</td><td>$63.00$</td><td>$30.24$</td><td>$\mathbf{19.26}$</td></tr></table></div></figure>
-<figure class="paper-table" id="tab-4"><figcaption><span class="fignum">Table 4.</span> Mean evaluations of $\rad$ per pixel, CPU rasteriser, and fraction of
+<figure class="paper-table" id="tab-4"><figcaption><span class="fignum">Table 4.</span> Mean evaluations of $\rad$ per pixel, CPU rasterizer, and fraction of
   pixels differing from <span class="sc">Reference</span> by more than <span class="nowrap">$8/255$.</span> <span class="sc">Window</span> agrees
   with brute force to within that tolerance at every pixel of all 7 scenes
-  while doing less work than the exhaustive scan that defines them.</figcaption><div class="table-scroll"><table><tr><th></th><th colspan="3" class="center">evaluations / pixel</th><th><span class="sc">Window</span></th></tr><tr><th>Scene</th><th><span class="sc">Ref.</span></th><th><span class="sc">Sweep</span></th><th><span class="sc">Window</span></th><th>differ</th></tr><tr><th>Triangle, rotation</th><th>$21.9$</th><th>$192.3$</th><th>$7.6$</th><th>$0.0\%$</th></tr><tr><td>Hexagon, rotation, zoomed out</td><td>$84.3$</td><td>$180.0$</td><td>$9.0$</td><td>$0.0\%$</td></tr><tr><td>Triangle, translation</td><td>$19.2$</td><td>$195.4$</td><td>$11.0$</td><td>$0.0\%$</td></tr><tr><td>Triangle, offset $=$ spacing</td><td>$46.0$</td><td>$283.6$</td><td>$11.0$</td><td>$0.0\%$</td></tr><tr><td>Square, rotation + translation</td><td>$23.5$</td><td>$201.9$</td><td>$7.8$</td><td>$0.0\%$</td></tr><tr><td>Deep zoom-out, small rotation</td><td>$43.5$</td><td>$194.1$</td><td>$\mathbf{7.5}$</td><td>$0.0\%$</td></tr><tr><td>Two circle families, interfering</td><td>$49.5$</td><td>$360.8$</td><td>$11.1$</td><td>$0.0\%$</td></tr></table></div></figure>
+  while doing less work than the exhaustive scan that defines the reference.</figcaption><div class="table-scroll"><table><tr><th></th><th colspan="3" class="center">evaluations / pixel</th><th><span class="sc">Window</span></th></tr><tr><th>Scene</th><th><span class="sc">Ref.</span></th><th><span class="sc">Sweep</span></th><th><span class="sc">Window</span></th><th>differ</th></tr><tr><th>Triangle, rotation</th><th>$21.9$</th><th>$192.3$</th><th>$7.6$</th><th>$0.0\%$</th></tr><tr><td>Hexagon, rotation, zoomed out</td><td>$84.3$</td><td>$180.0$</td><td>$9.0$</td><td>$0.0\%$</td></tr><tr><td>Triangle, translation</td><td>$19.2$</td><td>$195.4$</td><td>$11.0$</td><td>$0.0\%$</td></tr><tr><td>Triangle, offset $=$ spacing</td><td>$46.0$</td><td>$283.6$</td><td>$11.0$</td><td>$0.0\%$</td></tr><tr><td>Square, rotation + translation</td><td>$23.5$</td><td>$201.9$</td><td>$7.8$</td><td>$0.0\%$</td></tr><tr><td>Deep zoom-out, small rotation</td><td>$43.5$</td><td>$194.1$</td><td>$\mathbf{7.5}$</td><td>$0.0\%$</td></tr><tr><td>Two circle families, interfering</td><td>$49.5$</td><td>$360.8$</td><td>$11.1$</td><td>$0.0\%$</td></tr></table></div></figure>
 <p>Table <a href="#tab-4">4</a> counts CPU evaluations of $\rad$ per pixel and, in the last
 column, disagreement with the exhaustive reference. Two things stand out. <span class="sc">Window</span>
 costs $7.5$–$11.1$ evaluations per pixel where <span class="sc">Sweep</span> costs
-$180$–$361$ — a $18$–$33\times$
+$180$–<span class="nowrap">$361$,</span> a $18$–$33\times$
 reduction in the quantity the shader actually pays for. And <span class="sc">Window</span> is cheaper than
 <span class="sc">Reference</span> itself, by $1.7$–<span class="nowrap">$9.4\times$,</span> despite
 <span class="sc">Reference</span> being given a termination
 certificate: the Lipschitz rule skips indices the exhaustive scan is obliged to
 visit.</p>
 <h3 id="sec-8-3"><span class="secnum">8.3</span> Fidelity</h3>
-<p>We swept the slider-reachable parameter grid — five shapes $\times$ seven
+<p>We swept the slider-reachable parameter grid (five shapes $\times$ seven
 spacings from $1$ to $80$ $\times$ six offsets $\times$ four rotations
-$\times$ four zoom levels — and compared every solver against
+$\times$ four zoom levels) and compared every solver against
 <span class="sc">Reference</span> at $240$ quasi-random points each, classifying a point as
 lost ink where a solver's coverage falls more than $0.5$ below the reference's
 and as invented ink for the converse; a setting “has holes” when more than
@@ -1853,7 +1874,7 @@ than measured (all sit in the saturated near-marginal band), and the $140$
 trivial concentric settings are skipped, leaving the $2{,}401$ measured
 settings of Table <a href="#tab-5">5</a>.</p>
 <figure class="paper-figure wide" id="fig-10"><div class="subrow"><figure class="sub" style="flex-grow:0.245"><figcaption>(a) <span class="sc">Reference</span></figcaption></figure><figure class="sub" style="flex-grow:0.245"><figcaption>(b) <span class="sc">Sweep</span>, $1100$ ev/px</figcaption></figure><figure class="sub" style="flex-grow:0.245"><figcaption>(c) lost ink (magenta)</figcaption></figure><figure class="sub" style="flex-grow:0.245"><figcaption>(d) <span class="sc">Window</span>, $72$ ev/px</figcaption></figure></div><figcaption><span class="fignum">Fig. 10.</span> <strong>Fixed enumeration deletes arcs, not pixels.</strong>  The far field of a
-  walking hexagon family whose drift aims at an edge — almost a full spacing
+  walking hexagon family whose drift aims at an edge: almost a full spacing
   long, <span class="nowrap">$\lVert\delta\rVert=0.95s$,</span> while the support ratio stays at
   <span class="nowrap">$\rad(-\delta)/s=0.82$.</span> <span class="sc">Sweep</span> loses $8.6\%$ of the frame's
   pixels, and because the failure condition varies smoothly with $p$ the losses
@@ -1877,8 +1898,8 @@ settings of Table <a href="#tab-5">5</a>.</p>
   pattern is still visible. No solver ever invented ink, since all three minimize
   over a subset of <span class="nowrap">$\N_0$.</span></figcaption><div class="table-scroll"><table><tr><th></th><th><span class="sc">Sweep</span></th><th><span class="sc">Loose</span></th><th><span class="sc">Window</span></th></tr><tr><th>settings with holes</th><th>$160$</th><th>$46$</th><th>$146$</th></tr><tr><td>worst ink lost</td><td>$32.9\%$</td><td>$48.3\%$</td><td>$13.8\%$</td></tr><tr class="rule-above"><td><em>in interval</em>: settings</td><td>$41$</td><td>$13$</td><td>$\mathbf{0}$</td></tr><tr><td><em>in interval</em>: worst</td><td>$29.6\%$</td><td>$48.3\%$</td><td>$\mathbf{0.0\%}$</td></tr><tr class="rule-above"><td><em>legible</em>: settings</td><td>$3$</td><td>$0$</td><td>$\mathbf{0}$</td></tr><tr><td><em>legible</em>: worst</td><td>$4.2\%$</td><td>$0.0\%$</td><td>$\mathbf{0.0\%}$</td></tr></table></div></figure>
 <p>The row that matters is the third block. Wherever the proven interval fits the
-budget — the regime in which Theorem <a href="#thm-4">4</a> claims exactness — <span class="sc">Window</span>
-disagrees with brute force at zero points out of $2{,}401$ settings, while
+budget, the regime in which Theorem <a href="#thm-4">4</a> claims exactness, <span class="sc">Window</span>
+disagrees with brute force in zero of the $2{,}401$ settings, while
 <span class="sc">Sweep</span> disagrees in $41$ settings and loses up to
 $29.6\%$ of the ink, and <span class="sc">Loose</span> up to <span class="nowrap">$48.3\%$.</span> The
 theorem is the difference between an image and a damaged one.</p>
@@ -1887,7 +1908,7 @@ certified interval, and all of them are saturated: every one has an exact ink
 fraction above <span class="nowrap">$70\%$,</span> the sweep's legibility threshold. Across the
 $1{,}534$ legible settings, <span class="sc">Window</span> loses nothing anywhere. The claim this
 supports is: exact wherever the interval fits the budget, and exact on every
-legible setting <em>of this sweep</em> — the strided band of
+legible setting <em>of this sweep</em>; the strided band of
 <a href="#sec-8-6">§8.6</a>, which this sweep's cap excludes, is measured there
 separately and does lose ink.</p>
 <p>Figure <a href="#fig-10">10</a> shows what the <span class="sc">Sweep</span> column looks like on one scene, and Figure <a href="#fig-11">11</a> isolates the drift constant. The
@@ -1919,11 +1940,11 @@ fields. The comparison a reader is entitled to ask for is against not using
 fields at all: emit the members as paths and stroke them. We measure that on the
 same five pairs as Table <a href="#tab-1">1</a> and
 Figure <a href="#fig-17">17</a>, so the three can be read together, and entirely inside
-the tool's own controls — zoom clamped to <span class="nowrap">$[0.1, 10]$,</span> spacing to
-the slider's range — because both effects below grow without bound and it would
+the tool's own controls (zoom clamped to <span class="nowrap">$[0.1, 10]$,</span> spacing to
+the slider's range), because both effects below grow without bound and it would
 be easy, and worthless, to demonstrate them somewhere the tool cannot go.</p>
 <p><span class="paralead">The count does not stay still.</span> Members are the level sets <span class="nowrap">$\idx = ns + \varphi$,</span> so how many meet the frame is
-the number of integers whose level lies in $\idx$'s range over it — exact, with
+the number of integers whose level lies in $\idx$'s range over it: exact, with
 nothing enumerated. Their total arc length follows from the coarea formula as
 <span class="nowrap">$s^{-1}\!\int\lVert\nabla\idx\rVert$,</span> which is independent of any flattening
 tolerance and so belongs to no particular back end. Both grow linearly as the
@@ -1935,9 +1956,9 @@ pixel, at every zoom, which is the resolution independence of <a href="#sec-3">�
 stated as a cost.</p>
 <p><span class="paralead">The compositing is wrong where the moiré is.</span> The deeper problem is not speed. A path renderer antialiases each path against
 the frame buffer and combines with <span class="sc">over</span>, so $N$ members give
-<span class="nowrap">$1-\prod_i(1-\alpha_i)$.</span> Within one family the strokes are disjoint — a point
+<span class="nowrap">$1-\prod_i(1-\alpha_i)$.</span> Within one family the strokes are disjoint (a point
 lies within half a stroke width of at most one member, since the width is below
-the spacing — so the true coverage of their union is <span class="nowrap">$\sum_i \alpha_i$,</span> and
+the spacing), so the true coverage of their union is <span class="nowrap">$\sum_i \alpha_i$,</span> and
 <span class="sc">over</span> is not that. Between two families the discrepancy is sharper and it
 is structural: <span class="sc">over</span> takes the overlap of two coverages to be
 <span class="nowrap">$\alpha_1\alpha_2$,</span> the value it would have if the two were uncorrelated
@@ -1946,12 +1967,12 @@ independence. Whether the two families' strokes coincide or interleave is what
 varies across the frame, and it is the whole of the signal, so a rule that
 assumes a constant overlap returns a constant where the fringes were.</p>
 <p>To isolate that rule from any renderer's antialiasing quality we give the vector
-side <em>exact</em> per-path coverage — every $\alpha_i$ measured at $144$
-samples per pixel — and compare against the true union measured on the same
+side <em>exact</em> per-path coverage, every $\alpha_i$ measured at $144$
+samples per pixel, and compare against the true union measured on the same
 samples. What is left is the compositing alone. Across $27$ settings
 where a pattern is still legible, the mean ink barely moves: <span class="sc">over</span> loses
 at most $13.9\%$ of it. The fringe contrast is another matter. Below one
-member to a pixel it survives, costing at most $7.5\%$ — this is
+member to a pixel it survives, costing at most <span class="nowrap">$7.5\%$;</span> this is
 the regime where a vector back end is the right tool and we do not claim
 otherwise. Past two members to a pixel it does not: over the $13$
 such settings the median loss is $89.5\%$ of the fringe contrast,
@@ -1972,7 +1993,7 @@ $4.6\%$ of the ink lost, and $96.3\%$ of the pattern.</p>
   <em>Right:</em> that loss against how many members share a pixel, one mark per
   setting, pooling all $five{}$ pairs over the $27$ settings
   reachable with the tool's own zoom and spacing controls. In the shaded band a
-  pixel still sees at most one member and <span class="sc">over</span> is accurate — this is the
+  pixel still sees at most one member and <span class="sc">over</span> is accurate; this is the
   regime a vector back end is built for. The rise past it is not an antialiasing
   artifact, since both sides are given exact per-path coverage; it is
   <span class="sc">over</span> pricing the overlap of two families as $\alpha_1\alpha_2$ when the
@@ -1984,7 +2005,7 @@ the criterion of <a href="#sec-3-6">§3.6</a> and the contour authoring of
 <a href="#sec-9">§9</a> are differences of kind: each is a statement about
 <span class="nowrap">$D = \idx_1 - \idx_2$,</span> and explicit geometry has no $\idx$ to difference. Recovering
 the fringe field from paths means rasterizing them and low-passing the
-image — the raster round trip this representation exists to avoid, and the one
+image: the raster round trip this representation exists to avoid, and the one
 whose absence the rest of this section has been measuring.</p>
 <h3 id="sec-8-6"><span class="secnum">8.6</span> Where the guarantee ends</h3>
 <p>Theorem <a href="#thm-4">4</a> gives an interval; it does not promise a small one. Two
@@ -1992,17 +2013,17 @@ questions follow: how often is it too wide to walk, and what happens then.</p>
 <figure class="paper-figure" id="fig-13"><img class="tikz" style="width:98.4%" src="figures/tikz-9d632f2b60dc.png" width="997" height="772" alt=""><figcaption><span class="fignum">Fig. 13.</span> The interval is wide only where the pattern is already solid.
   $55{,}692$ settings, binned by the $90$th-percentile interval span, against
   the ink fraction of the exact field. Past the budget $B=1{,}024$ (shaded) the median
-  setting is $0.89$ ink — a nearly filled rectangle, where no point
+  setting is $0.89$ ink: a nearly filled rectangle, where no point
   sample of the distance field is meaningful and the correct output is the filtered
   mean <span class="cite">[<a href="#ref-49">49</a>]</span>. The insets are one walking circle family at both ends
   of the axis: a benign drift, whose pattern is open and whose interval is a few
-  indices, and the near-marginal drift, where the interval explodes — into a
+  indices, and the near-marginal drift, where the interval explodes into a
   frame that is already solid ink. The dashed minimum shows that sparse
   exceptions exist. The last bin is not a tail and is worth naming: it holds
   $1{,}170$ settings, more than the two before it, because the interval
   there does not close at all and they pile against the span cap rather than
   spreading. $1{,}155$ of them have $\rad(-\delta)$ within
-  $5\%$ of $s$ — the marginal band of <a href="#sec-6-5">§6.5</a>, whose whole span lies
+  $5\%$ of <span class="nowrap">$s$:</span> the marginal band of <a href="#sec-6-5">§6.5</a>, whose whole span lies
   between $0.93$ and $1.03$ of the spacing. It is also the
   one bin where the headline does not hold: its median is $0.69$ ink
   and its least is <span class="nowrap">$0.07$,</span> so a wide interval there does not imply a
@@ -2015,7 +2036,7 @@ questions follow: how often is it too wide to walk, and what happens then.</p>
   <span class="nowrap">$0.489$).</span> Anchoring the stride to the pixel's own interval (center) makes
   neighboring pixels sample different rings, and the pattern shatters into dashes
   and hooks. Anchoring it to the global index lattice (right) makes them agree, and
-  the same missing ink becomes a thinner family of whole straight lines — a
+  the same missing ink becomes a thinner family of whole straight lines, a
   plausible pattern rather than a broken one. The two differ by one line of code.</figcaption></figure>
 <p><em>How often.</em> Over $55{,}692$ settings spanning the whole parameter space
 our interface exposes, the interval fits the $B=1{,}024$ budget in $45{,}774$ of
@@ -2029,11 +2050,11 @@ scan takes a minimum over a subset and therefore <em>over</em>-estimates $d$ and
 <em>under</em>-estimates ink: a measured ink fraction is a valid lower bound on the
 true one. Ink rises monotonically with interval span, and past the budget the median
 setting is $0.89$ ink. These are fields whose curves are far denser than
-the pixel grid — the regime where point sampling any distance field is
+the pixel grid, the regime where point sampling any distance field is
 meaningless and the correct answer is a prefiltered
 mean <span class="cite">[<a href="#ref-11">11</a>, <a href="#ref-49">49</a>]</span>. Only $1{,}472$ settings
 ($2.6\%$ of the sweep) are both beyond the budget and
-legible — legible meaning under $50\%$ ink here, where the fidelity sweep's
+legible. Legible here means under $50\%$ ink, where the fidelity sweep's
 threshold was <span class="nowrap">$70\%$;</span> the strided band is darker, so the stricter cut is the
 informative one.</p>
 <p><em>What we lose there.</em> For those we cannot use the exhaustive reference, so we
@@ -2052,7 +2073,7 @@ error, and Figure <a href="#fig-14">14</a> is the one finding here we would ask
 implementor to keep.
 Both panels subsample by the same stride, spend the same $33$ evaluations
 per pixel, and retain statistically the same ink. Anchoring the stride to
-$n_{\mathrm{lo}}$ — which depends on the pixel — makes adjacent pixels sample
+<span class="nowrap">$n_{\mathrm{lo}}$,</span> which depends on the pixel, makes adjacent pixels sample
 disjoint subsets of rings, and the pattern disintegrates into dashes. Anchoring it
 to multiples of the stride makes every pixel in a neighborhood agree on which
 rings exist, and the same amount of missing ink becomes a thinner family of whole
@@ -2074,8 +2095,8 @@ by</p>
 <div class="equation" id="eq-36"><div class="eq-scroll">\[D(p) \;=\; \idx_1(p)-\idx_2(p) \;=\; a\,f(p).\]</div><span class="eq-no">(36)</span></div>
 <p>By Theorem <a href="#thm-2">2</a> the light fringes are <span class="nowrap">$\{D\in\Z\}$,</span> which is
 <span class="nowrap">$\{f=n/a\}$:</span> the contours of $f$ at interval <span class="nowrap">$c=1/a$.</span> Not an approximation of
-them, and not a discretisation of them — the same curves a contour tracer would
-be trying to find.</p>
+them, and not a discretization of them, but the same curves a contour tracer
+would be trying to find.</p>
 <p>Notice everything that does <em>not</em> appear. There is no
 marching squares, no cell table, no ambiguous saddle, no polyline, no stitching
 of segments into curves, no decision about topology, and no resolution at which
@@ -2092,16 +2113,17 @@ thirteen families (for the concentric and walking families the carrier
 direction in that divide is the radial direction from the layer origin, a
 first-order convenience).</p>
 <p>The gradient term is not optional. Omit it and the modulated family's strokes
-thin wherever the field is steep — by the factor $|\nabla\ph_2|$ — which is the same eikonal bug <a href="#sec-4">§4</a> found in the curve families,
+thin wherever the field is steep, by the factor <span class="nowrap">$|\nabla\ph_2|$,</span> which is the
+same eikonal bug <a href="#sec-4">§4</a> found in the curve families,
 reintroduced through the back door. So a field is not usable unless $\nabla f$
 comes with it, which is the whole of the next subsection.</p>
 <h3 id="sec-9-2"><span class="secnum">9.2</span> Writing the field</h3>
 <p>$f$ is arbitrary in the mathematics and has to be arbitrary in the tool, or the
 contribution reduces to a fixed menu of fields. Our first version was such a
 menu: six fields as branches in the shader, each with its gradient
-differentiated by hand and transcribed into WGSL and into TypeScript — two
-derivations and four transcriptions per field, all required to agree and none
-checked by a compiler. Adding a seventh field meant editing the renderer, so
+differentiated by hand and transcribed into WGSL and into TypeScript. That is
+two derivations and four transcriptions per field, all required to agree and
+none checked by a compiler. Adding a seventh field meant editing the renderer, so
 neither an author nor we could extend it.</p>
 <p>So the tool takes an expression. <code>x\^2 - y\^2</code> is the saddle,
 <code>cos(tau * r)</code> is the bullseye, and $six$ presets
@@ -2110,18 +2132,19 @@ the offering. The language is deliberately small: the two coordinates, the polar
 sugar <code>r</code> and <code>theta</code>, <span class="nowrap">$\pi$,</span> $\tau$ and <span class="nowrap">$e$,</span> the arithmetic
 operators with <code>\^</code> right-associative, and sixteen functions. There are
 no variables, no conditionals and no loops, so a program is a bounded expression
-tree and evaluating it is a bounded amount of work — which is what lets it run
+tree and evaluating it is a bounded amount of work, which is what lets it run
 per pixel with no schedule and no fallback.</p>
 <p><span class="paralead">Exact gradients from forward-mode duals.</span> Nothing differentiates the expression symbolically. Both evaluators carry a
 forward-mode dual number $(v,\partial_x v,\partial_y v)$ through each operation,
 so $\nabla f$ falls out of the same traversal that produces <span class="nowrap">$f$,</span> exact to
 floating point and never a finite difference. Eq. <a href="#eq-35">35</a> then has the
 gradient it needs for the eikonal divide without the author supplying one, and
-the hand-derived gradients — the thing most likely to be silently wrong — are gone. Singular points are handled by clamps shared between the two
+the hand-derived gradients (the thing most likely to be silently wrong) are
+gone. Singular points are handled by clamps shared between the two
 evaluators, so a pole is the same finite number on both sides rather than a
 <code>NaN</code> on one.</p>
 <p>One rule in that traversal deserves stating. In the chain rule <span class="nowrap">$\partial(g\circ h)=g'(h)\,\partial h$,</span> a factor that is
-<em>exactly</em> zero contributes nothing — even when the other factor
+<em>exactly</em> zero contributes nothing, even when the other factor
 overflowed. A plain multiply gives <span class="nowrap">$0\cdot\infty=\mathrm{NaN}$,</span> and one
 <code>NaN</code> anywhere in a gradient poisons the divide in Eq. <a href="#eq-3">3</a>
 and blanks the layer. The zeros are not rare: a constant's partials are zero, a
@@ -2129,13 +2152,14 @@ coordinate's cross-partial is zero, and $\mathrm{floor}$ and $\mathrm{sign}$
 have zero slope everywhere. The CPU evaluator multiplies through a helper that
 tests for an exact zero at runtime; the emitter folds the same zeros at compile
 time, which covers every structural zero but not a slope that becomes zero only
-at runtime behind a domain guard — a divergence we accept and document in the
+at runtime behind a domain guard, a divergence we accept and document in the
 source. This is the ordinary hazard of automatic differentiation in floating
 point, and it is easy to reach here because an author can write
 <code>log(-1)</code> into a text box.</p>
 <p><span class="paralead">Compiling instead of interpreting.</span> The bytecode is a stack machine, which invites the obvious implementation: hand
 the program to the fragment shader in a uniform buffer and walk it. We did, and it
-worked, and it cost $0.102$ ms per megapixel <em>per instruction</em> — $6.9$ for the longest preset, which at a retina canvas is most of a frame
+worked, and it cost $0.102$ ms per megapixel <em>per instruction</em>:
+$6.9$ for the longest preset, which at a retina canvas is most of a frame
 for one field on one layer of twelve. Worse, an <em>empty</em> program cost
 <span class="nowrap">$0.045$,</span> or $5\times$ a kernel with no field machinery at
 all, because the shader has to be handed the program before it can discover there
@@ -2143,7 +2167,7 @@ is nothing in it. Every author paid for the feature whether or not they used it.
 <p>The fix is to stop interpreting. <code>fields/emit.ts</code> unrolls the bytecode
 into straight-line code: the compile-time stack holds the <em>names</em> of values
 rather than values, so there is no runtime stack, no dispatch, no loop and no
-program to pass. <code>dup</code> becomes free — it pushes a name twice. Constants
+program to pass. <code>dup</code> becomes free: it pushes a name twice. Constants
 are spelled into the source where the shader compiler folds them. And the zero
 rule above, applied at emission, deletes most of the gradient arithmetic before
 it is ever written: a term whose factor is the literal $0$ is not emitted at all,
@@ -2162,7 +2186,7 @@ $73$ statements. A layer with no field emits nothing.</p>
   $0.0087$ a kernel with no field call at all costs, which is to say it has
   disappeared into the noise.</figcaption><div class="table-scroll"><table><tr><th>Preset</th><th>Instr.</th><th>Stmts</th><th>Interpreted</th><th>Unrolled</th><th>Ratio</th></tr><tr><th><span class="sc">saddle</span></th><th>$7$</th><th>$6$</th><th>$0.781$</th><th>$\mathbf{0.0050}$</th><th>$156\times$</th></tr><tr><td><span class="sc">dipole</span></td><td>$31$</td><td>$40$</td><td>$3.217$</td><td>$\mathbf{0.0216}$</td><td>$149\times$</td></tr><tr><td><span class="sc">bumps</span></td><td>$51$</td><td>$69$</td><td>$5.292$</td><td>$\mathbf{0.0188}$</td><td>$281\times$</td></tr><tr><td><span class="sc">swirl</span></td><td>$67$</td><td>$73$</td><td>$6.891$</td><td>$\mathbf{0.0273}$</td><td>$252\times$</td></tr><tr><td><span class="sc">ripple</span></td><td>$6$</td><td>$11$</td><td>$0.634$</td><td>$\mathbf{0.0173}$</td><td>$37\times$</td></tr><tr><td><span class="sc">terrain</span></td><td>$64$</td><td>$69$</td><td>$6.359$</td><td>$\mathbf{0.0547}$</td><td>$116\times$</td></tr><tr class="rule-above"><td>empty program</td><td>$0$</td><td>$0$</td><td>$0.045$</td><td>$0$</td><td>—</td></tr><tr><td>no field call</td><td>—</td><td>—</td><td colspan="2" class="center">$0.0087$</td><td>—</td></tr></table></div></figure>
 <p>Table <a href="#tab-7">7</a> prices both generations against each other. Interpreted,
-cost tracks program length at $0.102$ per instruction — the signature of a
+cost tracks program length at $0.102$ per instruction: the signature of a
 dispatch loop, and the reason the feature could not have been open-ended.
 Compiled, it stops tracking length and starts tracking content: <span class="sc">ripple</span>
 is the shortest program in the table and compiles to nearly four times the cost of
@@ -2179,7 +2203,7 @@ no longer a thing the frame budget has to account for.</p>
 its only reference is an interpreter written in a different language. So the
 emitter is backend-agnostic and there are two backends. WGSL ships. A JavaScript
 backend exists so the test suite can generate a program, run it, and hold it
-against the interpreter on the same inputs without a browser — which is how the
+against the interpreter on the same inputs without a browser, which is how the
 zero rule above was found. On the GPU we check further: the interpreter and the
 unrolled code are compiled into the same kernel over the same bindings and
 sampled at the same points, and they agree with each other to
@@ -2188,7 +2212,7 @@ order. Both are verified before either is timed, so a wrong answer cannot be
 mistaken for a fast one.</p>
 <figure class="paper-figure wide" id="fig-15"><img src="figures/contour-proof.png" width="2300" height="760" alt=""><div class="panelrow"><span>(a) as rendered</span><span>(b) envelope view</span><span>(c) with the true $\{f=nc\}$</span></div><figcaption><span class="fignum">Fig. 15.</span> <strong>A contour plot that was never contoured.</strong>  <span class="sc">Moiré</span>'s
   <span class="sc">saddle</span> field encoded by (<a href="#eq-35">35</a>) into a carrier of pitch
-  $5.8$ px. <strong>(a)</strong> The superposition, as rendered — two
+  $5.8$ px. <strong>(a)</strong> The superposition, as rendered: two
   line families and nothing else. <strong>(b)</strong> The same two layers under the
   envelope view of <a href="#sec-3-5">§3.5</a>: the carrier is gone and the fringe field
   is what is left, its bright bands the level sets of the saddle. This is not a
@@ -2203,8 +2227,8 @@ does not by itself promise that the visible bright band of a particular render i
 centered on the mathematical curve. That is a question about a rasterized image
 and it deserves a measurement rather than an argument.</p>
 <p>We measure it as follows. Pick a point, walk it onto the nearest true level set
-$\{f=nc\}$ by Newton steps along $\nabla f$ — exact, since <a href="#sec-9-2">§9.2</a>
-differentiates every field as it evaluates it — and call the landing
+$\{f=nc\}$ by Newton steps along $\nabla f$ (exact, since <a href="#sec-9-2">§9.2</a>
+differentiates every field as it evaluates it) and call the landing
 point <span class="nowrap">$q$.</span> Low-pass the render along the carrier direction, enough to erase both
 families' strokes and no more, so that nothing is smeared across the fringe we are
 about to locate. Then sample that low-passed image along the contour normal
@@ -2220,14 +2244,15 @@ $0.26$ px on average and $0.29$ px at the $95$th percentile,
 which is the floor of the method of measurement rather than of the method being
 measured.</p>
 <p>Against that floor, over $63{,}251$ probes on the $six$ presets of
-Figure <a href="#fig-16">16</a> — the expressions <span class="sc">Moiré</span> offers as starting
-points, not a set chosen for the experiment — the mean displacement of the fringe peak from
-the true contour is $0.22$–$0.80$ px, with a worst
-$95$th percentile of $4.21$ px. That is the strongest statement this
+Figure <a href="#fig-16">16</a> (the expressions <span class="sc">Moiré</span> offers as starting
+points, not a set chosen for the experiment), the mean displacement of the
+fringe peak from the true contour is
+$0.22$–$0.80$ px, with a worst $95$th percentile of
+$4.21$ px. That is the strongest statement this
 experiment can support: the fringe is on the curve to within our ability to say
 where the fringe is.</p>
 <figure class="paper-figure wide" id="fig-16"><img src="figures/contour-fields.png" width="3765" height="1249" alt=""><div class="panelrow"><span>saddle</span><span>dipole</span><span>bumps</span><span>swirl</span><span>ripple</span><span>terrain</span></div><figcaption><span class="fignum">Fig. 16.</span> <strong>Every preset the tool ships, encoded.</strong>  <em>Top:</em> each panel
-  is cut corner to corner — the superposition as rendered above the seam, the same
+  is cut corner to corner: the superposition as rendered above the seam, the same
   two layers under the envelope view of <a href="#sec-3-5">§3.5</a> below it. The halves
   are two readings of one state, not two pictures: nothing is filtered between
   them, and the smooth side is the mean ink of the same two fields at the same
@@ -2237,7 +2262,7 @@ where the fringe is.</p>
   are the presets of <a href="#sec-9-2">§9.2</a>, whose sources are in
   the supplemental material (§ S2). The dipole is instructive: towards each pole the
   equipotentials crowd, and past the limit (<a href="#eq-37">37</a>) no carrier can
-  resolve them — so the render collapses into a dense scribble where the
+  resolve them, so the render collapses into a dense scribble where the
   field is steepest, which reports the failure rather than hiding it. A contour tracer would emit dense
   polylines there without complaint.</figcaption></figure>
 <h3 id="sec-9-4"><span class="secnum">9.4</span> The sampling limit</h3>
@@ -2254,8 +2279,8 @@ does not help but lowering $s$ does.</p>
 can be drawn, as the heterodyne ratio of <a href="#sec-3-6">§3.6</a> can:
 before committing to <span class="nowrap">$c$,</span> an author can be shown which parts of the frame will
 resolve. Second, when it is violated the picture degrades <em>loudly</em>. The
-unresolvable region fills with visible high-frequency structure — the dipole's
-poles turn into a black scribble — which is an honest report that the field is
+unresolvable region fills with visible high-frequency structure (the dipole's
+poles turn into a black scribble), which is an honest report that the field is
 steeper there than the chosen interval can show. A contour tracer, by contrast, returns a dense set of polylines with no
 indication that the interval was too fine for the field.</p>
 <h3 id="sec-9-5"><span class="secnum">9.5</span> Other uses of the difference</h3>
@@ -2317,8 +2342,8 @@ change.</p>
 <p>Conversely, the method fails cleanly where the hypotheses fail. A non-convex
 generator has no support-function representation, so (P2) and (P4) go and with them
 the interval and the closed form; the Lipschitz skip survives, since it needs only
-(P1). A motion that is not affine in the index — rings whose rotation
-accelerates, say — loses the affine envelopes but keeps a Lipschitz bound if the
+(P1). A motion that is not affine in the index (rings whose rotation
+accelerates, say) loses the affine envelopes but keeps a Lipschitz bound if the
 motion is Lipschitz in <span class="nowrap">$n$,</span> so Algorithm <a href="#alg-1">1</a> would still run, only
 without a certificate.</p>
 <p><span class="paralead">Why the discrete setting is favorable.</span> Why does this problem admit a stronger guarantee than the
@@ -2328,16 +2353,16 @@ conservative; it terminates on a tolerance. Here the domain is <span class="nowr
 is exact rather than conservative, and “enumerate the interval” is a terminating
 algorithm that returns the true minimum, not an approximation of it. Discreteness
 converts a tolerance into a proof. We suspect other rendering problems phrased as
-“which member of this indexed family is nearest” — glints <span class="cite">[<a href="#ref-95">95</a>, <a href="#ref-96">96</a>]</span>, tiled or stamped patterns <span class="cite">[<a href="#ref-41">41</a>]</span>, layered fibers — have the
+“which member of this indexed family is nearest” (glints <span class="cite">[<a href="#ref-95">95</a>, <a href="#ref-96">96</a>]</span>, tiled or stamped patterns <span class="cite">[<a href="#ref-41">41</a>]</span>, layered fibers) have the
 same structure available and are being solved with budgets instead.</p>
 <p><span class="paralead">What the representation provided, besides speed.</span> We began with the field formulation as a way to get resolution independence, and
 that is what it delivered. What we did not expect is that it would function as a
-debugging method. Four shipped bugs — the missing eikonal divide
-(<a href="#sec-3-2">§3.2</a>; supplemental § S2), a stroke floor applied in phase units,
-a subsampling anchor nobody had noticed was a choice (<a href="#sec-8">§8</a>), and
-an envelope pivot that counted a hex lattice as one family when it draws three
-(<a href="#sec-3-5">§3.5</a>) — were found the same way: writing the layer's
-definition down and watching a unit fail to agree. A representation that names
+debugging method. Four shipped bugs were found the same way, by writing the
+layer's definition down and watching a unit fail to agree: the missing eikonal
+divide (<a href="#sec-3-2">§3.2</a>; supplemental § S2), a stroke floor applied in
+phase units, a subsampling anchor nobody had noticed was a choice
+(<a href="#sec-8">§8</a>), and an envelope pivot that counted a hex lattice as one
+family when it draws three (<a href="#sec-3-5">§3.5</a>). A representation that names
 the quantities forces the units to agree, and most of our bugs were units. It
 also says which quantities must never be written twice. Each of our first six
 fields carried a gradient derived by hand and transcribed into two languages;
@@ -2351,8 +2376,8 @@ is. This bound binds in exactly one place we wanted to go: displaying two encode
 fields at once (<a href="#sec-9">§9</a>) needs four families, and four families of
 strokes at a pitch fine enough to carry fringes saturates. Hue and pitch separation
 help and are not enough. We think the missing piece is a compositing rule for
-fields that is not union-of-ink — something that spends contrast rather than
-coverage — and we do not have one. Of the open problems in this paper it is the one that matters most, because it
+fields that is not union-of-ink, something that spends contrast rather than
+coverage, and we do not have one. Of the open problems in this paper it is the one that matters most, because it
 is what stands between a moiré and a display with more than one channel.</p>
 <p><span class="paralead">Limitations.</span> Five, in decreasing order of severity. <em>The character scan stops at order
 two.</em> The criterion and the envelope handle the integer beats
@@ -2361,7 +2386,7 @@ exist classically <span class="cite">[<a href="#ref-3">3</a>, <a href="#ref-8">
 multiplies fringes deliberately at order <span class="nowrap">$N$,</span> so a pitch ratio near $3{:}1$
 still defeats the criterion exactly as $2{:}1$ defeated its first-order
 predecessor. The scan generalizes mechanically; where to stop is a perceptual
-question — contrast falls with order — that we have not measured.
+question (contrast falls with order) that we have not measured.
 <em>The marginal band.</em> On
 $\rad(-\delta)=s$ with $\theta\neq0$ the interval is genuinely infinite and we
 neither enumerate it nor prefilter it; we subsample, coherently, and accept up to
@@ -2377,7 +2402,7 @@ the exact envelopes. <em>Prefiltering.</em> We show the wide-interval regime is
 saturated but do not integrate the field there; a correct analytic mean over a
 walking family is open, and would replace the subsampling fallback with something
 principled rather than merely coherent. <em>Families without a scalar index.</em>
-Four of our thirteen — the radial pencil and the three lattices — have no
+Four of our thirteen (the radial pencil and the three lattices) have no
 phase function in the sense of <a href="#sec-4">§4</a>: the pencil's index is an angle, so its fringes
 are not level sets of a difference of scalars, and a lattice's index is a pair of
 integers, so a lattice pair produces a two-dimensional beat that the fringe law
@@ -2388,7 +2413,7 @@ vector-valued index law that covered them would be a genuine extension.</p>
 <p><span class="paralead">Future work.</span> Beyond the marginal band and prefiltering: the interval is computed per pixel from
 <span class="nowrap">$r$,</span> <span class="nowrap">$\Lambda$,</span> and <span class="nowrap">$\kappa$,</span> all of which vary smoothly, so a conservative
 interval could be computed once per tile and shared, which on a GPU trades
-divergence for a slightly wider scan — probably a win at zoom-out given the
+divergence for a slightly wider scan, probably a win at zoom-out given the
 divergence measurements in Table <a href="#tab-6">6</a>. And since the residual's
 zero set is a curve in $(p, n)$ space, a screen-space continuation that carried
 $n^\star$ from pixel to pixel would reduce the search to a local refinement almost
@@ -2397,13 +2422,13 @@ continuation breaks.</p>
 <h2 id="sec-11"><span class="secnum">11</span> Conclusion</h2>
 <p>Moiré has been drawn the same way for a century and a half: put down two layers
 of marks and let the overlap do the rest. Drawn that way, the fringe is an
-accident of sampling — what the overlap happened to produce, rather than what
+accident of sampling: what the overlap happened to produce, rather than what
 was asked for. We have argued that a moiré layer is better described by two
 scalar fields, an index and a distance, and that with those in hand the fringes
 stop being an accident. They are the unit level sets of the difference of the
 index fields (Theorem <a href="#thm-2">2</a>), a statement that under its local
 hypotheses needs no periodicity, no lattice, and no Fourier transform, and that
-we measured holding on every family we tested — including one whose index
+we measured holding on every family we tested, including one whose index
 field exists only as the answer to a search.</p>
 <p>Three things follow. The pattern becomes a document rather than a raster:
 resolution-independent, so that one description is a thumbnail, a screen, and a
@@ -2419,7 +2444,7 @@ renderer requires.</p>
 <p>Making this run at interactive rates cost the paper's other half. When each member
 of a family carries its own rigid motion there is no global index field, and the
 per-pixel question becomes an inversion over the integers. We showed that one
-classical object — the support function of the generating shape — supplies
+classical object, the support function of the generating shape, supplies
 everything needed to replace the usual fixed-window guess with a certificate: a
 Lipschitz modulus, an exact anisotropy floor <span class="nowrap">$\cos(\pi/N)$,</span> an exact drift rate
 <span class="nowrap">$\rad(-\delta)$,</span> and, when the per-index rotation vanishes, convexity of the
@@ -2438,7 +2463,7 @@ field formulation is a good way to make a pattern precise, but an instrument
 that moves is a good way to find out which parts of it are false.</p>
 <p>Two lessons we would carry elsewhere. A bound that is merely loose, not wrong, can
 still produce a visibly broken image whenever the fallback for a loose bound is
-approximation — so the tightness of a constant is not always a performance
+approximation, so the tightness of a constant is not always a performance
 question. And when approximation is unavoidable, its structure matters more than
 its magnitude: the same missing ink reads as a thinner pattern or a shattered one
 depending only on whether the samples are anchored to the family or to the pixel.</p>
@@ -2555,7 +2580,7 @@ $w_i=h_i\lVert\nabla\idx_i\rVert$ and $b_i=a\lVert\nabla\idx_i\rVert$ for the
 half-width and band <em>measured in index units</em>, and</p><div class="equation" id="eq-39"><div class="eq-scroll">\[A_i(v)=1-\mathrm{smoothstep}\big(w_i-b_i,\;w_i+b_i,\;\mathrm{pd}(v,1)\big),\]</div><span class="eq-no">(39)</span></div><p>we have exactly <span class="nowrap">$\alpha_i(q)=A_i(\idx_i(q))$.</span> This is the only place the eikonal
 factor of <a href="#sec-3-2">§3.2</a> is used, and it is used twice: once to make the
 threshold comparable to a length, and once to make $w_i$ and $b_i$ constants
-rather than functions of $q$ — which is where the theorem's constant-gradient
+rather than functions of <span class="nowrap">$q$,</span> which is where the theorem's constant-gradient
 hypothesis enters, and why it cannot be dropped. The verification in
 <a href="#sec-3-4">§3.4</a> excludes samples whose gradient varies by more than $15\%$
 across a period for exactly this reason.</p><p>\paragraph{Step 2: reparameterize the segment by index.}
@@ -2591,11 +2616,11 @@ partially overlap; once one lies inside the other (<span class="nowrap">$t\le|w_
 at <span class="nowrap">$2\min(w_1,w_2)$,</span> and once they separate it is zero, so
 <span class="nowrap">$\mathrm{overlap}=\min\big(2\min(w_1,w_2),\,\max(0,\,w_1+w_2-t)\big)$.</span> A second
 overlap across the far side of the period would need <span class="nowrap">$w_1+w_2&gt;1-t\ge\tfrac12$,</span>
-which the theorem's hypothesis $w_1+w_2\le\tfrac12$ excludes — this is where
+which the theorem's hypothesis $w_1+w_2\le\tfrac12$ excludes; this is where
 that hypothesis is used, and without it (<a href="#eq-6">6</a>) overcounts (the integral
-form (<a href="#eq-5">5</a>) does not). Hence</p><div class="equation" id="eq-43"><div class="eq-scroll">\[\Phi(\Delta)=2w_1+2w_2-\min\!\big(2\min(w_1,w_2),\;\max\big(0,\;w_1+w_2-t\big)\big),\]</div><span class="eq-no">(43)</span></div><p>which is (<a href="#eq-6">6</a>). It is piecewise linear in <span class="nowrap">$t$:</span> slope $0$ while one
-stroke lies inside the other, slope $1$ while they partially overlap, slope $0$
-after they separate — a tent with a flat floor and a flat top, minimized at
+form (<a href="#eq-5">5</a>) does not). Hence</p><div class="equation" id="eq-43"><div class="eq-scroll">\[\Phi(\Delta)=2w_1+2w_2-\min\!\big(2\min(w_1,w_2),\;\max\big(0,\;w_1+w_2-t\big)\big),\]</div><span class="eq-no">(43)</span></div><p>which is (<a href="#eq-6">6</a>). It is piecewise linear in <span class="nowrap">$t$,</span> with slope $0$ while one
+stroke lies inside the other, slope $1$ while they partially overlap, and slope $0$
+after they separate: a tent with a flat floor and a flat top, minimized at
 $\Delta\in\Z$ at the value $2\max(w_1,w_2)$ and maximized at $2w_1+2w_2$ wherever
 <span class="nowrap">$t\ge w_1+w_2$.</span> Note that the plateau is reached strictly inside the period
 whenever <span class="nowrap">$w_1+w_2&lt;\tfrac12$,</span> which is the regime the tool operates in and the
@@ -2616,7 +2641,7 @@ so the correction is at most $\lvert\mu\rvert$ in absolute value. Hence
 <span class="nowrap">$\bar\alpha(p)=\Phi(D(p))+O(\het)$,</span> as claimed. <span class="qed">∎</span></p></div>
 <div class="theorem thm-def" id="thm-7"><p><span class="thm-head">Remark 7.</span> The first-order term does not vanish identically. It is odd in
 $(v-v_p)$ against a factor that is not even, so no symmetry argument kills it,
-and one should expect a genuine $O(\het)$ perturbation of the profile — a
+and one should expect a genuine $O(\het)$ perturbation of the profile: a
 slight asymmetry leaning in the direction the carrier is changing. Its effect
 on the <em>positions</em> of the extrema depends also on the profile's curvature
 there, and on a plateaued extremum the position is not $O(\het)$-stable at all;

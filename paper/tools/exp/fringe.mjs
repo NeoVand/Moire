@@ -60,7 +60,7 @@ const SCENES = [
   },
   {
     name: 'circle-circle',
-    note: 'circle families with displaced centres',
+    note: 'circle families with displaced centers',
     a: { kind: 'concentric', shape: 'circle', spacing: 7, position: { x: -40, y: 0 } },
     b: { kind: 'concentric', shape: 'circle', spacing: 7, position: { x: 40, y: 0 } },
     thickness: 1.8,

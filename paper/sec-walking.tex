@@ -97,7 +97,7 @@ We will use four properties, all immediate from~\eqref{eq:support}.
   \Description{A diagram of five nested triangles of increasing size, each rotated a
   little further than the last and each centered a little further from the origin, so
   their centers trace a short dotted spiral outwards. The fourth triangle and its
-  center are picked out in blue and labelled, and an arrow runs from that center to a
+  center are picked out in blue and labeled, and an arrow runs from that center to a
   query point marked inside the fourth triangle.}
   \caption{A walking family of triangles ($N=3$), drawn with $\varphi=0$. Ring $n$
   has inradius $ns+\varphi$, its center $c_n = \Rot{n\theta}(n\delta)$ walks along
@@ -107,7 +107,7 @@ We will use four properties, all immediate from~\eqref{eq:support}.
   $q_n = \Rot{-n\theta}\,p - n\delta = \Rot{-n\theta}(p - c_n)$. The arrow is
   $p-c_n$, which is that same displacement in world coordinates: the two have equal
   length, but $\rad$ is not rotation invariant, so it is $q_n$ and not the arrow
-  that the residual is taken of. That is the difficulty in one picture---because
+  that the residual is taken of. That is the difficulty in one picture: because
   each ring has a different frame, no closed-form scalar field of $p$ has these
   rings as its level sets, and the index field survives only as the answer to a
   search (\S\ref{sec:inverse}).}
@@ -125,8 +125,8 @@ $ns+\varphi$ is nonnegative), per-index translation
 $\delta\in\R^2$, and per-index rotation $\theta$. Figure~\ref{fig:family} shows
 one. The three degenerate cases are familiar: $\delta=0,\theta=0$ gives
 concentric shapes; $\theta=0$ alone gives a family whose centers walk a straight
-line; and letting $s\to\infty$ with the shape a half-plane recovers parallel
-lines.
+line; and degenerating the shape to a half-plane, whose support set $U$ is a
+single normal, recovers parallel lines at spacing $s$.
 
 Expanding $\Rot{-n\theta}(p - \Rot{n\theta}(n\delta))$ gives the pulled-back
 point
@@ -149,7 +149,8 @@ field the renderer wants is
 \end{equation}
 This is not the Euclidean distance to $\Gamma_{n^\star}$; it is the residual of
 the inradius metric, which agrees with Euclidean distance for circles and
-\emph{under}estimates it for polygons, by a factor of at most $1/\kappa$---(P1) gives residual $\le$ distance always, and the gauge comparison gives
+\emph{under}estimates it for polygons, by a factor of at most $1/\kappa$:
+(P1) gives residual $\le$ distance always, and the gauge comparison gives
 distance $\le$ residual$/\kappa$. Renderers of this kind consume $d$ through a
 smoothstep of width one pixel, so the distinction thickens apparent stroke
 weight near corners and changes nothing else. We keep the metric residual
@@ -167,11 +168,11 @@ so $d(p) = \mathrm{dist}\bigl((\rad(p)-\varphi) \bmod s\bigr)$ exactly: one
 evaluation. When the shape is a circle and $\theta=0$, $\lVert p - n\delta\rVert =
 ns+\varphi$ is a quadratic in $n$ whose roots bracket the answer; two integer
 evaluations suffice. When $\theta=0$ and the shape is a polygon, $h_p$ is convex
-and piecewise linear---we give the exact solution in
-Section~\ref{sec:closed}; we have not found it stated elsewhere, and its
+and piecewise linear; we give the exact solution in
+Section~\ref{sec:closed}. We have not found it stated elsewhere, and its
 marginal case is the part that matters in practice.
 
-Everything else---any $\theta\neq0$---has no closed form, because $q_n$ in
+Everything else (any $\theta\neq0$) has no closed form, because $q_n$ in
 \eqref{eq:qn} contains $\Rot{-n\theta}p$, and asking for $h_p(n)=0$ asks where a
 sinusoid in $n$ meets a line in $n$. That is transcendental, with a solution count
 that depends on the parameters. The question is therefore not how to solve it, but

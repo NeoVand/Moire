@@ -147,7 +147,7 @@ is merely loose rather than wrong.
   could have been enough, measured. Triangles, $\theta=0.02$, $96$ directions
   per radius; the stray is the worst seen out to that radius. The nearest index
   leaves any fixed neighborhood of the naive guess and the gap grows linearly,
-  so a budget is a horizontal line that the requirement crosses---here at
+  so a budget is a horizontal line that the requirement crosses, here at
   $r\approx500$, a third of the way across the frame. The proven interval grows
   too, since the rings near a pixel genuinely become more numerous, but the
   Lipschitz skip keeps what we evaluate well below it.}
@@ -156,7 +156,8 @@ is merely loose rather than wrong.
 
 Write $r=\lVert p\rVert$, $L=\lVert\delta\rVert$, $m=\rad(-\delta)$, and note
 $\rad(\Rot{-n\theta}p)\le r$ by (P2) and
-$\lVert q_n\rVert \ge |r - nL|$ by the triangle inequality on~\eqref{eq:qn}---both independent of $\theta$.
+$\lVert q_n\rVert \ge |r - nL|$ by the triangle inequality on~\eqref{eq:qn};
+both are independent of $\theta$.
 
 \begin{lemma}[Two-sided envelope]
 \label{lem:envelope}
@@ -224,7 +225,7 @@ Figure~\ref{fig:residual} works one pixel through. The naive guess is $\figNaive
 the truth is $\figTrue$, $\figGap$ rings away. The proven interval is
 $[\figLo,\figHi]$, and Figure~\ref{fig:fan} shows why no constant would have done:
 we measured how far the nearest index actually strays from the naive guess, worst
-case over directions, and it grows linearly in $r$---past $r\approx500$ it
+case over directions, and it grows linearly in $r$: past $r\approx500$ it
 exceeds the widest neighborhood our previous solver could even express. The same
 plot confirms the theorem empirically: over $\winChecks$ sampled pixels whose
 nearest ring is inside the guard, the argmin fell inside~\eqref{eq:window} every
@@ -375,7 +376,7 @@ unit normals,
 \end{equation}
 a maximum of $N$ affine functions of $n$ minus an affine function: convex and
 piecewise linear, with at most $N$ breakpoints and slopes increasing in $n$. Its
-asymptotic slope is $m - s$ with $m=\rad(-\delta)=\max_k(-b_k)$---the same drift
+asymptotic slope is $m - s$ with $m=\rad(-\delta)=\max_k(-b_k)$: the same drift
 constant as~\eqref{eq:drift}, arrived at independently.
 
 \begin{proposition}
@@ -420,7 +421,7 @@ of Proposition~\ref{prop:closed} is that it generalizes to every side count
 and, more importantly, that case (2) exists.
 Figure~\ref{fig:convex} plots both. The marginal case is the one that repays the
 effort: it is exactly the locus where Theorem~\ref{thm:window} gives up, and it is
-not exotic---it is the family whose rings pile up along a line, which is a
+not exotic. It is the family whose rings pile up along a line, which is a
 pattern users deliberately make. Any scan, of any budget, walks off the end of
 that flat segment without reaching the indices that carry the answer. Handling it
 costs one comparison. Table~\ref{tab:ablation} measures the difference at
@@ -452,12 +453,13 @@ that the loop terminates on the $m=s$ locus when the closed form does not apply
 Theorem~\ref{thm:window} applies; both are reported and ablated in
 Section~\ref{sec:results}. Three numerical points. The shipped upper bound uses
 the two per-branch forms derived inside the proof of
-Theorem~\ref{thm:window}---$(r-\varphi+G)/(s-m)$ and $(r+\varphi+G)/(m-s)$---which are slightly tighter than the single display \eqref{eq:window}. The
+Theorem~\ref{thm:window}, $(r-\varphi+G)/(s-m)$ and $(r+\varphi+G)/(m-s)$,
+which are slightly tighter than the single display \eqref{eq:window}. The
 closed-form dispatch admits $m \le s + 10^{-4}$, and within $10^{-4}$ of the
 marginal drift the leading facet takes the flat-constant branch of
 Proposition~\ref{prop:closed} rather than a crossing solve: the crossing there
 sits at an index of order $1/|s-m|$, where \texttt{f32} evaluation is
-catastrophic, so the whole near-marginal band reads as flat---the same answer
+catastrophic, so the whole near-marginal band reads as flat, the same answer
 the capped scan reaches, on both twins. And the side count is capped at $24$
 facets; beyond it (unreachable from the interface) the dispatch falls through
 to the scan, which remains exact.

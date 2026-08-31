@@ -120,7 +120,7 @@
     },
     {
       "name": "circle-circle",
-      "note": "circle families with displaced centres",
+      "note": "circle families with displaced centers",
       "all": {
         "n": 13648,
         "mean": 0.0001,

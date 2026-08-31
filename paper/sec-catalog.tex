@@ -5,7 +5,7 @@ Section~\ref{sec:field} asked a layer for two things: a phase function $\ph$ who
 level sets are the members, and its gradient magnitude, which converts a phase
 residual into a distance. This section is the list, and it is deliberately short:
 thirteen families, of which nine are one line of algebra each. The four that
-are not---the radial pencil and the three lattices---and the reason they
+are not (the radial pencil and the three lattices), and the reason they
 are not, set up the rest of the paper.
 The supplemental material (\S S1) draws all thirteen, each alone and then beating
 against a perturbed copy of itself, which is the fastest way to see what the
@@ -22,7 +22,10 @@ of \S\ref{sec:field} are
   \label{eq:closedpair}
 \end{equation}
 so a family is completely specified by the pair $(\ph,\lvert\nabla\ph\rvert)$.
-Table~\ref{tab:catalog} gives both for all nine (ten rows: three are written-out instances of the $N$-gon). Every entry is $O(1)$, branch-free
+Table~\ref{tab:catalog} gives both for all nine, in ten rows: the hexagon row
+is the $N{=}6$ instance of the $N$-gon written out, beside the square and
+triangle (families of their own), because those three support forms need no
+transcendentals. Every entry is $O(1)$, branch-free
 apart from the free-side $N$-gon, and calls no transcendental function except where
 the geometry genuinely contains an angle.
 
@@ -114,20 +117,20 @@ the hard case tractable.
 \paragraph{The radial pencil.} $N$ undirected lines through the layer origin,
 equally spaced over $\pi$. There is no $\ph$ here whose level sets are the members:
 the index winds around the origin, so any candidate phase is circle-valued with
-a winding-number obstruction at the core---a phase singularity in the sense of
-Nye and Berry~\cite{Nye1974Dislocations}---and admits no global scalar lift.
+a winding-number obstruction at the core (a phase singularity in the sense of
+Nye and Berry~\cite{Nye1974Dislocations}) and admits no global scalar lift.
 What the family does have is a distance,
 \begin{equation}
   d(p)=\max\!\Big(\lVert p\rVert\,\big\lvert\sin\mathrm{wrap}(\theta_p,\tfrac{\pi}{N})\big\rvert,
   \;\; \varphi-\lVert p\rVert\Big),
   \label{eq:radial}
 \end{equation}
-which is what the renderer needs (here and in Table~\ref{tab:catalog},
-$\mathrm{wrap}(v,w)$ maps $v$ into $[-w/2,w/2)$; the formula is exact except
-in the corner wedge where a line meets the opened disc, where it understates
-the distance to the trimmed member by a bounded factor), and an index---the
-angular sector $\lfloor \theta_p N/\pi\rfloor$---which is what the fringe
-law needs. The second
+which is what the renderer needs, and an index, the angular sector
+$\lfloor \theta_p N/\pi\rfloor$, which is what the fringe law needs. (Here
+and in Table~\ref{tab:catalog}, $\mathrm{wrap}(v,w)$ maps $v$ into
+$[-w/2,w/2)$. The distance formula is exact except in the corner wedge where
+a line meets the opened disc, where it understates the distance to the
+trimmed member by a bounded factor.) The second
 term is the parameter the interface calls \emph{Start}: it opens a disc of radius
 $\varphi$ around the origin, because $N$ lines crossing at a point is a black dot,
 and opening the center is the standard fix. Because the sector index is piecewise
@@ -137,9 +140,9 @@ that the classical literature treats separately~\cite{Amidror2009Theory}.
 
 \paragraph{Lattices.} Square, hexagonal and triangular lattices index their
 members by \emph{two} integers, not one. The nearest lattice point is found by
-rounding in the lattice basis---for the hexagonal and triangular cases, cube
+rounding in the lattice basis (for the hexagonal and triangular cases, cube
 rounding on $(u,v,-u-v)$, the $A_2$ closest-point rule of Conway and
-Sloane~\cite{Conway1982Fast}, exact and branch-light---and the layer offers
+Sloane~\cite{Conway1982Fast}, exact and branch-light), and the layer offers
 two distances from the result: to the nearest vertex, and to the nearest edge. The
 hexagonal edge distance is again a support form, $\min_k(\mathrm{apothem}-\langle
 q,n_k\rangle)$ over the six sides, so hexagon edges are hexagon sides and not
@@ -151,7 +154,7 @@ that stretching a lattice keeps its strokes metrically correct.
 The consequence for the theory is plain. Theorem~\ref{thm:fringe}
 is about the difference of two \emph{scalar} index fields. A lattice's index is in
 $\Z^2$, so the difference of two lattice indices is in $\Z^2$ as well, and the
-theorem applies to it componentwise---once per generating line family. This is
+theorem applies to it componentwise, once per generating line family. This is
 the classical situation, where a $2$-D screen superposition has a fringe
 system per pair of generating frequency vectors and the visible moir\'e is whichever
 pair beats slowest~\cite{Amidror2009Theory, Amidror1998Fourier}. The field
@@ -161,7 +164,7 @@ scalar field we can evaluate, difference, and map.
 \subsection{A family with no closed-form index}
 
 Take any of the concentric rows of Table~\ref{tab:catalog} and give member $n$ its
-own rigid motion---displace it by $n\delta$, turn it by $n\theta$. The picture is
+own rigid motion: displace it by $n\delta$, turn it by $n\theta$. The picture is
 still a family of nested shapes, the parameters are two sliders, and the result is
 the geometry of much op art. But $\ph$ is gone: each member now lives in
 its own frame, so no closed-form expression in $p$ has these curves as its level

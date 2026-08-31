@@ -43,8 +43,9 @@ residual. Both fields are one line of shader code.
   hyperbola family and a spiral family, drawn twice. In the top row the strokes fade
   to nothing towards the edges where the curves crowd together; in the bottom row
   those same regions are solid black.}
-  \caption{\figlead{A phase residual is not a distance.} Top: what our shader drew
-  for the wave, hyperbola and spiral families---the phase residual, undivided.
+  \caption{\figlead{A phase residual is not a distance.} Top: for the wave,
+  hyperbola and spiral families, what our shader drew was the phase residual,
+  undivided.
   Strokes thin by exactly the factor the family is steep by, so the pattern fades
   where it should saturate and the hyperbola's asymptotes disappear. Bottom: the
   same settings with Eq.~\ref{eq:eikonal}. Our shader applied the division for the
@@ -85,9 +86,9 @@ the previous behavior was hiding it.
 Eq.~\ref{eq:eikonal} is an eikonal approximation and it is exact only where the
 family is locally a foliation with steady gradient. The one family in our
 catalog that violates this is the hyperbola, whose gradient blows up on the
-asymptote pair---the degenerate $n=0$ level set, where the foliation folds;
-Section~\ref{sec:catalog} excludes that member from the family for exactly
-this reason.
+asymptote pair (the degenerate $n=0$ level set, where the foliation folds);
+Section~\ref{sec:catalog} excludes that member from the family for this
+reason.
 
 \subsection{Compositing}
 
@@ -158,7 +159,7 @@ $w_1+w_2\le\tfrac12$,
   \end{split}
   \label{eq:tent}
 \end{equation}
-a saturating tent in $D$---flat at $2\max(w_1,w_2)$ while one stroke lies
+a saturating tent in $D$: flat at $2\max(w_1,w_2)$ while one stroke lies
 inside the other ($\mathrm{pd}(D,1)\le|w_1-w_2|$), rising with unit slope, and
 saturating at $2w_1+2w_2$ once the strokes clear each other. For equal widths
 the floor is a single point and the profile is the familiar tent. (Past
@@ -188,8 +189,8 @@ Four further remarks.
 
 \paragraph{The locus and the profile shape are classical; the statement is not.}
 $\Phi$ is periodic with period $1$ and extremal at $D\in\Z$ and
-$D\in\Z+\tfrac12$. So the light fringes are exactly $\{D\in\Z\}$---where the two
-families' members locally coincide and their strokes overlap, wasting ink---and
+$D\in\Z+\tfrac12$. So the light fringes are exactly $\{D\in\Z\}$ (where the two
+families' members locally coincide and their strokes overlap, wasting ink) and
 the dark fringes are exactly $\{D\in\Z+\tfrac12\}$, where the members interleave
 and the ink is maximally spread. The moir\'e is the contour plot of
 $\idx_1-\idx_2$ at unit interval, and nothing else about either family survives
@@ -244,14 +245,15 @@ understood: past a certain stroke thickness, thickening the strokes stops changi
 fringe and only darkens the whole frame. The dependence on stroke widths is the
 classical opening-ratio dependence of the trapezoid, here live under a slider.
 
-\paragraph{No periodicity is required---and no closed form either.}
+\paragraph{No periodicity is required, and no closed form either.}
 $\idx_1$ and $\idx_2$ are arbitrary. The theorem's hypotheses are local
 (affineness of $D$ over one carrier period, and the eikonal condition) and say
 nothing about global structure. A spiral is admissible. Two hyperbola families are
 admissible. So, more delicately, is a \emph{walking} family
 (\S\ref{sec:walking}), whose index field exists without having a formula.
-Wherever consecutive members bracket the point---everywhere, when the drift
-stays below the spacing, and away from the family's envelope curves otherwise---the nearest index $n^\star$ plus the fractional residual
+Wherever consecutive members bracket the point (everywhere when the drift
+stays below the spacing, and away from the family's envelope curves
+otherwise), the nearest index $n^\star$ plus the fractional residual
 $h_p(n^\star)/(h_p(n^\star)-h_p(n^\star{+}1))$ is a continuous scalar field whose
 level sets are exactly the members. It is an index field computed by search
 rather than written down, the theorem does not care about the difference, and
@@ -262,8 +264,8 @@ holding on it.
 Nothing fixes a family's index convention: relabel its members by any affine
 integer map and $\idx$ changes while every curve, stroke and pixel stays the
 same. $D=\idx_1-\idx_2$ is therefore one representative of a lattice of
-candidate beats---the integer combinations $k_1\idx_1+k_2\idx_2$, each a
-\emph{character} of the pair---and the theorem holds for whichever character
+candidate beats (the integer combinations $k_1\idx_1+k_2\idx_2$, each a
+\emph{character} of the pair), and the theorem holds for whichever character
 makes its own hypothesis true: the one that is slow against the carriers.
 $k=(1,1)$ is the classical \emph{sum} moir\'e~\cite{Oster1964}: where the two
 index gradients anti-align it is the sum that beats slowly, and a
@@ -318,19 +320,19 @@ characters range over integer combinations of generators (supplemental \S S3).
   to the floor by dashed vertical corner posts. Left: the surface is the
   graph of the index difference, a twisted sheet carrying broad crimson
   bands that widen where the sheet lies flat and crowd into a wall between
-  the ring centres; labels read the graph of D, contours at integer D,
+  the ring centers; labels read the graph of D, contours at integer D,
   and two ring families. Right: the same floor under the graph of the
   index sum, a bowl covered in tightly crowded blue rings with one bold
-  flat bar between the centres, labelled the sum.}
+  flat bar between the centers, labeled the sum.}
   \caption{\figlead{Characters as hills over the pattern.}
   Two identical ring families (floor); above them, the graph of an integer
   character of their indices, its integer levels drawn on the surface.
   \textbf{Left:} the difference $D=\idx_1-\idx_2$. Its levels are the
   confocal hyperbolae; where the sheet lies flat they spread into the broad
   fringes the eye picks out of the moir\'e below, and on the steep wall
-  between the centres they crowd at the carrier's own scale. \textbf{Right:}
-  the sum $\idx_1+\idx_2$ over the same floor is steep nearly everywhere ---
-  its levels crowd into texture, no broad fringe forms, and the one flat
+  between the centers they crowd at the carrier's own scale. \textbf{Right:}
+  the sum $\idx_1+\idx_2$ over the same floor is steep nearly everywhere: its
+  levels crowd into texture, no broad fringe forms, and the one flat
   stretch, the inter-focal segment, carries the sum's one visible fringe.
   The criterion of \S\ref{sec:visibility} is this comparison made pointwise:
   the visible moir\'e is the character whose hill lies flattest.}
@@ -367,11 +369,11 @@ enough that $M=\envTaps$ leaves an error far below one color step. Every
 it is a toggle in \Moire{}, not a post-process.
 
 Written that way, \eqref{eq:meanink} is an integral over the diagonal of the
-\emph{index torus} $[0,1)^K$---one circle per family---and the choice of the
+\emph{index torus} $[0,1)^K$, one circle per family, and the choice of the
 diagonal is exactly Theorem~\ref{thm:fringe}'s hypothesis rather than a
 convenience. The alternative deserves stating, because we implemented it
-first. Sweeping a rigid translation of the whole stack is
-geometrically exact where advancing an index is bookkeeping, and it is unusable:
+first. Sweeping a rigid translation of the whole stack is a motion the layers
+could really make, where advancing an index is bookkeeping; it is also unusable:
 the taps then sample a two-dimensional disc for strokes that cover a few percent
 of it, so a handful of taps carry the answer and the rest carry noise. Sixty-four
 of them left the carrier standing and the fringes mottled. The diagonal is a
@@ -384,7 +386,7 @@ $w=(w_1,\dots,w_K)$ of the torus annihilates every character
 $k$ with $k\cdot w\neq0$ and preserves those with $k\cdot w=0$, so \emph{the
 sweep must run orthogonal to the character it is meant to keep}. The diagonal
 $w=(1,1)$ preserves $\idx_1-\idx_2$ and averages the sum moir\'e away;
-$w=(1,-1)$---the second family swept backwards---preserves the sum; and a
+$w=(1,-1)$, the second family swept backwards, preserves the sum; and a
 second-order beat such as $2\idx_1-\idx_2$ needs $w=(1,2)$, without which the
 view erases a fringe that is bold in the render. \Moire{} picks $w$ per pixel
 from the same character scan the criterion runs, so the view keeps whichever
@@ -393,7 +395,7 @@ of every family, so nothing else about the average changes.
 
 The rule scales to $K$ layers without amendment, and it says something
 worth pausing on: the diagonal $w=(1,\dots,1)$ preserves exactly the
-\emph{zero-sum} sublattice $\{k:\sum_i k_i=0\}$---every pairwise difference
+\emph{zero-sum} sublattice $\{k:\sum_i k_i=0\}$, every pairwise difference
 and every zero-sum ternary character at once. A beat between beats such as
 $k=(1,1,-2)$, slow wherever $\nabla\idx_1+\nabla\idx_2\approx2\nabla\idx_3$,
 rides the diagonal for free; three ring families arrange that conspiracy
@@ -403,7 +405,7 @@ third family carries them, so its duty cycle must stay off one half). What
 costs a deviation is only a winning character that is \emph{not} zero-sum,
 and the deviation must be chosen against every layer it touches: deviating
 the top pair's rates for a sum beat can scramble a slower difference beat
-the second layer makes with the \emph{third}---a fringe that stands in the
+the second layer makes with the \emph{third}, a fringe that stands in the
 render and washes from the view, which is how our two-layer scan first
 failed on three. \Moire{} therefore scans all pairs among the three topmost
 families, plus the zero-sum ternaries, and spends a rate deviation only on
@@ -424,7 +426,7 @@ a \emph{phase sample}
   \label{eq:phasesample}
 \end{equation}
 the signed distances to the nearest member and to the two flanking it, together
-with a floor $\ell$ that does not participate. A tap at $u$ then reads
+with a floor $\ell$ that does not take part in the slide. A tap at $u$ then reads
 \begin{equation}
   d(p;u) \;=\; \max\Big(\min_{k\in\{z,z^{\uparrow},z^{\downarrow}\}} \lvert k - u\,\mathrm{gap} \rvert,\; \ell\Big),
   \label{eq:slide}
@@ -436,19 +438,19 @@ instructions. For the two family classes without a phase function it is a
 first-order model, and for the walking family the gap in \eqref{eq:slide} is a
 choice between two inequivalent meanings of ``advance the index.'' Advancing
 the \emph{phase} by $u\,s$ slides every residual by exactly that amount, but it
-does not map a walking family to itself --- radii grow while every pose stays
-put --- so a sweep at rate $s$ has no unit period to average over and
+does not map a walking family to itself (radii grow while every pose stays
+put), so a sweep at rate $s$ has no unit period to average over and
 under-covers the local carrier, leaving visible residue in the view. Sliding by
 the measured \emph{local gap} covers exactly one local carrier period, which is
 what the average \eqref{eq:meanink} needs; the price is that no re-solve
 reproduces it exactly where the flanking gaps are unequal. We choose the gap
 deliberately: exact for the integral's purpose, first-order per tap. The radial
-pencil is first-order the same way --- its members rotate rather than slide, so
+pencil is first-order the same way, since its members rotate rather than slide, and so
 its re-solved distance is sinusoidal in $u$ where \eqref{eq:slide} is piecewise
 linear. Both errors are small fractions of a gap away from the loci of
 \S\ref{sec:limits}, and we accept them rather than re-solve per tap. Two implementation facts belong in the open. The solver
-runs these views with the guard widened to a full pitch---Eq.~\ref{eq:guard}'s
-$\tfrac34 s$ would prove away the flanking members the sample needs---so the
+runs these views with the guard widened to a full pitch (Eq.~\ref{eq:guard}'s
+$\tfrac34 s$ would prove away the flanking members the sample needs), so the
 certified interval is instantiated at that wider $G$. And the search still runs
 once per pixel while the sweep is arithmetic: median frame times in the envelope
 view went from hundreds of milliseconds to within the 60\,Hz budget.
@@ -473,15 +475,16 @@ contrast pivot the view expands about, are in the supplemental material (\S S3).
 
 One caveat remains, and it is structural rather than a matter of implementation.
 The average is over the diagonal, so where Theorem~\ref{thm:fringe}'s hypothesis
-fails---where $\het$ is large---the view still shows $\Phi(D)$ faithfully, but
+fails, where $\het$ is large, the view still shows $\Phi(D)$ faithfully, but
 $\Phi(D)$ is no longer what the eye will average. The two are therefore meant to be
 read together: the envelope jointly with the ratio map beside it.
 
 \subsection{When is there a fringe at all?}
 \label{sec:visibility}
 
-Theorem~\ref{thm:fringe} needs $D$ to be nearly constant over one carrier period.
-Both requirements are about the same ratio. Define the \emph{heterodyne ratio}
+Theorem~\ref{thm:fringe} needs $D$ to be nearly constant over one carrier
+period, and a beat is worth calling a fringe only when it is broad against that
+period. Both requirements are the same ratio. Define the \emph{heterodyne ratio}
 \begin{equation}
   \het(p) = \frac{\lVert\nabla D(p)\rVert}{\lVert g(p)\rVert}
   = \frac{\lVert\nabla\idx_1-\nabla\idx_2\rVert}
@@ -489,7 +492,7 @@ Both requirements are about the same ratio. Define the \emph{heterodyne ratio}
   \label{eq:ratio}
 \end{equation}
 $D$ changes by $\het$ across one carrier period, so $\het\ll1$ is exactly the
-condition that a fringe be large compared with the carrier ---
+condition that a fringe be large compared with the carrier;
 Figure~\ref{fig:hills} draws it as the flatness of $D$'s graph against the
 carriers' slope. Its numerator is the
 classical local moir\'e frequency, the vector difference of the two local
@@ -545,15 +548,15 @@ before committing to the parameters.
   that is in neither layer. \textbf{(d)} The theorem is a statement about averaged
   ink, so this is that average: the envelope view of \S\ref{sec:envelope}, which
   integrates the same two fields over one period of their common phase and so
-  removes the carriers without blurring anything---with the unit level sets of
+  removes the carriers without blurring anything, with the unit level sets of
   $D=\idx_1-\idx_2$ laid over it in crimson. Those curves are computed from the two
   index fields alone and never from the image, and they land on the light fringes.
   They are drawn only where
   $\het\le1/4$, which is why they stop short of the two lobes flanking the centers.
   \textbf{(e)} The heterodyne ratio $\het$ of Eq.~\ref{eq:ratio} over the same
   frame, dark where Theorem~\ref{thm:fringe} applies and bright where the two
-  carriers are too different for a fringe to exist. The bright lobes are exactly the
-  region the overlay declines to describe, and in the superposition they are exactly
+  carriers are too different for a fringe to exist. The bright lobes are the
+  region the overlay declines to describe, and in the superposition they are
   the region that reads as a rosette of crossings rather than as bands.}
   \label{fig:visibility}
 \end{figure*}
@@ -564,11 +567,11 @@ regime.
 \subsection{Verification}
 
 Theorem~\ref{thm:fringe} is a claim about a rendered image, so we measured it.
-For eleven scene pairs spanning straight, curved, isotropic, anisotropic, periodic
-and aperiodic families (one of them a walking family, whose index field is the
-searched-for local one above) we compute the exact one-period directional mean
-of the union from the fields themselves, with no raster and hence no sampler
-error, and
+For \fringeScenes{} scene pairs spanning straight, curved, isotropic,
+anisotropic, periodic and aperiodic families (one of them a walking family,
+whose index field is the searched-for local one above) we compute the exact
+one-period directional mean of the union from the fields themselves, with no
+raster and hence no sampler error, and
 compare it against $\Phi$ evaluated at the window center. There is no fitting and no free
 parameter. Points are excluded on three stated grounds, each the empirical form
 of one of the theorem's hypotheses, so what is verified is the conditional

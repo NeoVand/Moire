@@ -13,8 +13,8 @@ to phase shifts~\cite{Amidror1996Fourier}, to synthesis under geometric
 transformation~\cite{Amidror1998Fourier}, and finally to aperiodic
 layers~\cite{Amidror2003Moire, AmidrorII}, whose random-dot extreme is the Glass
 pattern~\cite{Glass1969Moire}. The account is still growing: Feng extends it to
-\emph{objective} structures---ring, helical and lattice patterns whose members
-are related by progressive symmetry transformations---through an augmented
+\emph{objective} structures (ring, helical and lattice patterns whose members
+are related by progressive symmetry transformations) through an augmented
 Fourier approach~\cite{Feng2025Objective}. Those structures are the closest
 formal relatives of our walking families (\S\ref{sec:walking}), reached from the
 frequency side; we reach them per pixel, with a certificate, because a renderer
@@ -25,7 +25,7 @@ domain~\cite{Amidror1994TConv}, trapezoidal for binary
 gratings~\cite{Patorski1976Profile}, and extended to curved layers as the
 profile composed with the index difference~\cite{Amidror1998Fourier}. Our debt
 to this theory is correspondingly large; \S\ref{sec:fringe} states what the
-field form adds---exactness with stated local hypotheses, per-pixel stroke
+field form adds: exactness with stated local hypotheses, per-pixel stroke
 widths, index fields with no closed form, and a drawable validity criterion.
 
 \paragraph{The indicial equation.}
@@ -33,16 +33,17 @@ Running alongside the spectral account is an older and more elementary one. Labe
 the members of each layer, ask where a member of one crosses a member of the other
 in a fixed relation, and solve: Oster, Wasserman and Zwerling derive the fringe
 curves of the standard configurations this way~\cite{Oster1964}, Amidror gives
-it as the geometric approach, complementary to the spectral one---curved
+it as the geometric approach, complementary to the spectral one, with curved
 gratings read as indexed line families (Vol.~I, \S11.2
-of~\cite{Amidror2009Theory})---and the metrology literature develops
+of~\cite{Amidror2009Theory}); the metrology literature develops
 it~\cite{Bryngdahl1974Moire}, at book length in Patorski and
 Kujawinska~\cite{Patorski1993Handbook}. This is the direct ancestor of our
 Section~\ref{sec:fringe}, and our index field is its label made continuous and
 evaluated per pixel. We claim no credit for the locus. The indicial
-construction itself does not supply the coverage \emph{between} the fringes---metrology reads intensity as fractional fringe order, following
+construction itself does not supply the coverage \emph{between} the fringes
+(metrology reads intensity as fractional fringe order, following
 Sciammarella~\cite{Sciammarella1965Basic}, and the spectral theory supplies
-profiles as above---nor a statement of when the construction is meaningful.
+profiles as above), nor a statement of when the construction is meaningful.
 Theorem~\ref{thm:fringe} supplies the first as a closed-form profile of the
 actual compositing operator and \S\ref{sec:visibility} the second as a field
 that can be drawn.
@@ -84,7 +85,7 @@ multi-color dithering extends the control to non-standard
 inks~\cite{Ostromoukhov1999MultiColor}. Artistic
 screening~\cite{Ostromoukhov1995Artistic} turns the halftone dot into an
 artist-supplied contour that grows with intensity and can be pushed through a
-conformal map, which makes the screen itself the designed object---the direct
+conformal map, which makes the screen itself the designed object: the direct
 conceptual ancestor of band moir\'e, and a useful reminder that the expressive
 material here is the \emph{carrier}, not the picture.
 
@@ -112,15 +113,15 @@ design stance---find the right parameterization, then expose it directly rather
 than making the user reason about pixels---is the one we tried to adopt. Outside
 archival venues a stratum of interactive moir\'e toys, web generators, and
 security-printing design suites has existed for decades; in all of them the
-fringe is an unmodelled side effect of drawing two dense patterns---nothing
+fringe is an unmodelled side effect of drawing two dense patterns, and nothing
 represents it, predicts it, or stabilizes it under zoom. Procedural moir\'e is
 likewise a staple of shader practice, going back to Glassner's tutorial
 treatment~\cite{Glassner1997Inside} and Sen's product-delay
 constructions~\cite{Sen1998Product, Sen2000Moire}, in the wider tradition of
 evaluating a pattern per point rather than storing it~\cite{Ebert2003Texturing}.
 The prevailing shader-sandbox idiom evaluates two periodic functions and
-combines them, typically as \texttt{abs(p1 - p2)}---a \emph{value} composite
-rather than a distance composite, and Section~\ref{sec:zoom} measures what
+combines them, typically as \texttt{abs(p1 - p2)}, a \emph{value} composite
+rather than a distance composite; Section~\ref{sec:zoom} measures what
 that costs: with no stroke width to stabilize, the pattern is a different
 pattern at every zoom level, and the displayed moir\'e is partly the
 sampler's own. Archival graphics has also drawn stripe families as level sets
@@ -138,9 +139,9 @@ fringes genuinely carry data is experimental mechanics and optical metrology.
 Moir\'e interferometry reads in-plane displacement: fringes are contour maps of
 displacement, with fringe order $N_x=fU$ for reference grating frequency $f$,
 and strains follow by differencing fringe orders~\cite{Post2008Moire,
-Post1994High}. Moir\'e topography reads surface height the same way---its
+Post1994High}. Moir\'e topography reads surface height the same way (its
 fringes literally are elevation contours~\cite{Takasaki1970Moire,
-Meadows1970Contours}---and Takeda's Fourier-transform method turned fringe
+Meadows1970Contours}), and Takeda's Fourier-transform method turned fringe
 images back into phase maps numerically~\cite{Takeda1982Fourier}. These are
 measurement techniques, and their governing relation is exactly our fringe law
 read in the other direction. Section~\ref{sec:beyond} takes it as a design
@@ -176,18 +177,18 @@ $\R$: the same Lipschitz envelopes, with the stopping tolerance replaced by
 integer exhaustion. The support-function facts we need are standard
 convex geometry~\cite{Rockafellar1970Convex, Schneider2014Convex}, and the same
 object is what collision detection queries when it walks a Minkowski
-difference~\cite{GJK1988, Ericson2004}---though there it prices one pair of
+difference~\cite{GJK1988, Ericson2004}, though there it prices one pair of
 bodies, where here the certificate ranges over an indexed family of them; our
 contribution is noticing which four of its properties this problem is asking
 for.
 
 \paragraph{Explicit geometry.}
 The nearest thing to an off-the-shelf answer is to emit the members as paths and
-hand them to a vector renderer. That tradition is mature---resolution-independent
+hand them to a vector renderer. That tradition is mature: resolution-independent
 curves on programmable hardware~\cite{LoopBlinn2005}, random-access rendering of
 general vector graphics~\cite{NehabHoppe2008}, GPU-accelerated path
 rendering~\cite{KilgardBolz2012}, analytic rasterization under a polynomial
-filter~\cite{MansonSchaefer2013}---and for a single family at a legible zoom it
+filter~\cite{MansonSchaefer2013}. For a single family at a legible zoom it
 is the better tool, which we say plainly because our own first implementation was
 of exactly that kind. Two things end it, and \S\ref{sec:vector} measures both.
 The count of members meeting the frame grows without bound as the view widens,
@@ -195,10 +196,10 @@ while a field costs the same per pixel at every zoom. And the compositing is
 wrong in the regime that matters: a path renderer antialiases each path
 separately and combines the results with \textsc{over}, which is derived from the
 assumption that the two coverages are \emph{uncorrelated} sub-pixel
-areas~\cite{PorterDuff1984}. A moir\'e is that assumption failing---it is
-precisely the spatial modulation of how the two families' strokes fall relative to
-one another---so \textsc{over} replaces the varying overlap with a constant one
-and the fringe field it carries is flattened, while the mean ink is barely
+areas~\cite{PorterDuff1984}. A moir\'e is that assumption failing: it is
+precisely the spatial modulation of how the two families' strokes fall relative
+to one another, so \textsc{over} replaces the varying overlap with a constant
+one and the fringe field it carries is flattened, while the mean ink is barely
 touched. Analytic coverage of a whole scene at once~\cite{Catmull1978} does not
 have this defect, but it is not what per-path pipelines do. The distance
 composite of \S\ref{sec:field} is a union coverage, not a per-path one, which is
@@ -214,6 +215,6 @@ normal-distribution methods for glinty
 surfaces~\cite{Yan2014, Yan2016}. Two things connect that work to ours. Our
 saturated regime (\S\ref{sec:limits}) is exactly a place where a correct analytic
 mean would replace a fallback we know to be approximate, and we do not have one for
-a walking family. And the glint problem has our structure---``which member of a
-dense indexed family lies within this footprint''---solved with a
+a walking family. And the glint problem has our structure (``which member of a
+dense indexed family lies within this footprint''), solved with a
 budget~\cite{Yan2016} where an index interval might certify.

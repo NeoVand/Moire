@@ -30,7 +30,7 @@ half-width and band \emph{measured in index units}, and
 we have exactly $\alpha_i(q)=A_i(\idx_i(q))$. This is the only place the eikonal
 factor of \S\ref{sec:eikonal} is used, and it is used twice: once to make the
 threshold comparable to a length, and once to make $w_i$ and $b_i$ constants
-rather than functions of $q$---which is where the theorem's constant-gradient
+rather than functions of $q$, which is where the theorem's constant-gradient
 hypothesis enters, and why it cannot be dropped. The verification in
 \S\ref{sec:fringe} excludes samples whose gradient varies by more than $15\%$
 across a period for exactly this reason.
@@ -95,15 +95,17 @@ content of the theorem.
   $\het\le1/4$ and fading out over the last tenth of that range, so a curve ending
   is the criterion's edge and not the pixel grid's. Ordered by the fraction of the frame the criterion admits: $\atlasCombs\%$,
   $\atlasCircleLines\%$, $\atlasHex\%$, $\atlasCircles\%$, $\atlasControl\%$.
-  Column~(b) is masked to a wedge, outside which the circles and the lines cross at
-  a wide angle; (d) near its two centers, where the superposition is a rosette and
-  not a fringe field at all; and (e) everywhere---the criterion refuses the whole
-  frame, and the gray panel is flat. Curves are also suppressed wherever consecutive level
-  sets fall closer together than they can be drawn apart---at the center of (c)
+Column~(b) is masked to a wedge, outside which the circles and the lines cross at
+a wide angle; (d) near its two centers, where the superposition is a rosette and
+not a fringe field at all; and (e) everywhere: the criterion refuses the whole
+frame, and the one structure the gray panel keeps, the bright corridor along the
+asymptotes, belongs to the hyperbola family alone rather than to any beat
+between the pair. Curves are also suppressed wherever consecutive level
+  sets fall closer together than they can be drawn apart: at the center of (c)
   the difference is singular and its level sets crowd without bound, so anything
   drawn there would be speckle rather than a curve. The curves come from the two
   index fields and the mask from their gradients, so the whole bottom row costs two
-  gradients per pixel and reads no raster---which is why the tool can tell a user
+  gradients per pixel and reads no raster, which is why the tool can tell a user
   that a pair of layers will not interfere before it draws them.}
   \label{fig:lawatlas}
 \end{figure*}
@@ -118,15 +120,15 @@ partially overlap; once one lies inside the other ($t\le|w_1-w_2|$) it saturates
 at $2\min(w_1,w_2)$, and once they separate it is zero, so
 $\mathrm{overlap}=\min\big(2\min(w_1,w_2),\,\max(0,\,w_1+w_2-t)\big)$. A second
 overlap across the far side of the period would need $w_1+w_2>1-t\ge\tfrac12$,
-which the theorem's hypothesis $w_1+w_2\le\tfrac12$ excludes---this is where
+which the theorem's hypothesis $w_1+w_2\le\tfrac12$ excludes; this is where
 that hypothesis is used, and without it \eqref{eq:tent} overcounts (the integral
 form \eqref{eq:phi} does not). Hence
 \begin{equation}
   \Phi(\Delta)=2w_1+2w_2-\min\!\big(2\min(w_1,w_2),\;\max\big(0,\;w_1+w_2-t\big)\big),
 \end{equation}
-which is \eqref{eq:tent}. It is piecewise linear in $t$: slope $0$ while one
-stroke lies inside the other, slope $1$ while they partially overlap, slope $0$
-after they separate---a tent with a flat floor and a flat top, minimized at
+which is \eqref{eq:tent}. It is piecewise linear in $t$, with slope $0$ while one
+stroke lies inside the other, slope $1$ while they partially overlap, and slope $0$
+after they separate: a tent with a flat floor and a flat top, minimized at
 $\Delta\in\Z$ at the value $2\max(w_1,w_2)$ and maximized at $2w_1+2w_2$ wherever
 $t\ge w_1+w_2$. Note that the plateau is reached strictly inside the period
 whenever $w_1+w_2<\tfrac12$, which is the regime the tool operates in and the
@@ -157,7 +159,7 @@ $\bar\alpha(p)=\Phi(D(p))+O(\het)$, as claimed.
 \begin{remark}
 The first-order term does not vanish identically. It is odd in
 $(v-v_p)$ against a factor that is not even, so no symmetry argument kills it,
-and one should expect a genuine $O(\het)$ perturbation of the profile---a
+and one should expect a genuine $O(\het)$ perturbation of the profile: a
 slight asymmetry leaning in the direction the carrier is changing. Its effect
 on the \emph{positions} of the extrema depends also on the profile's curvature
 there, and on a plateaued extremum the position is not $O(\het)$-stable at all;

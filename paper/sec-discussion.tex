@@ -18,8 +18,8 @@ change.
 Conversely, the method fails cleanly where the hypotheses fail. A non-convex
 generator has no support-function representation, so (P2) and (P4) go and with them
 the interval and the closed form; the Lipschitz skip survives, since it needs only
-(P1). A motion that is not affine in the index---rings whose rotation
-accelerates, say---loses the affine envelopes but keeps a Lipschitz bound if the
+(P1). A motion that is not affine in the index (rings whose rotation
+accelerates, say) loses the affine envelopes but keeps a Lipschitz bound if the
 motion is Lipschitz in $n$, so Algorithm~\ref{alg:scan} would still run, only
 without a certificate.
 
@@ -31,19 +31,19 @@ conservative; it terminates on a tolerance. Here the domain is $\N_0$, the inter
 is exact rather than conservative, and ``enumerate the interval'' is a terminating
 algorithm that returns the true minimum, not an approximation of it. Discreteness
 converts a tolerance into a proof. We suspect other rendering problems phrased as
-``which member of this indexed family is nearest''---glints~\cite{Yan2014,
-Yan2016}, tiled or stamped patterns~\cite{Lagae2010}, layered fibers---have the
+``which member of this indexed family is nearest'' (glints~\cite{Yan2014,
+Yan2016}, tiled or stamped patterns~\cite{Lagae2010}, layered fibers) have the
 same structure available and are being solved with budgets instead.
 
 \paragraph{What the representation provided, besides speed.}
 We began with the field formulation as a way to get resolution independence, and
 that is what it delivered. What we did not expect is that it would function as a
-debugging method. Four shipped bugs---the missing eikonal divide
-(\S\ref{sec:eikonal}; supplemental \S S2), a stroke floor applied in phase units,
-a subsampling anchor nobody had noticed was a choice (\S\ref{sec:results}), and
-an envelope pivot that counted a hex lattice as one family when it draws three
-(\S\ref{sec:envelope})---were found the same way: writing the layer's
-definition down and watching a unit fail to agree. A representation that names
+debugging method. Four shipped bugs were found the same way, by writing the
+layer's definition down and watching a unit fail to agree: the missing eikonal
+divide (\S\ref{sec:eikonal}; supplemental \S S2), a stroke floor applied in
+phase units, a subsampling anchor nobody had noticed was a choice
+(\S\ref{sec:results}), and an envelope pivot that counted a hex lattice as one
+family when it draws three (\S\ref{sec:envelope}). A representation that names
 the quantities forces the units to agree, and most of our bugs were units. It
 also says which quantities must never be written twice. Each of our first six
 fields carried a gradient derived by hand and transcribed into two languages;
@@ -59,8 +59,8 @@ is. This bound binds in exactly one place we wanted to go: displaying two encode
 fields at once (\S\ref{sec:beyond}) needs four families, and four families of
 strokes at a pitch fine enough to carry fringes saturates. Hue and pitch separation
 help and are not enough. We think the missing piece is a compositing rule for
-fields that is not union-of-ink---something that spends contrast rather than
-coverage---and we do not have one. Of the open problems in this paper it is the one that matters most, because it
+fields that is not union-of-ink, something that spends contrast rather than
+coverage, and we do not have one. Of the open problems in this paper it is the one that matters most, because it
 is what stands between a moir\'e and a display with more than one channel.
 
 \paragraph{Limitations.}
@@ -71,7 +71,7 @@ exist classically~\cite{Amidror1994TConv, Amidror2009Theory} and metrology
 multiplies fringes deliberately at order $N$, so a pitch ratio near $3{:}1$
 still defeats the criterion exactly as $2{:}1$ defeated its first-order
 predecessor. The scan generalizes mechanically; where to stop is a perceptual
-question---contrast falls with order---that we have not measured.
+question (contrast falls with order) that we have not measured.
 \emph{The marginal band.} On
 $\rad(-\delta)=s$ with $\theta\neq0$ the interval is genuinely infinite and we
 neither enumerate it nor prefilter it; we subsample, coherently, and accept up to
@@ -87,7 +87,7 @@ the exact envelopes. \emph{Prefiltering.} We show the wide-interval regime is
 saturated but do not integrate the field there; a correct analytic mean over a
 walking family is open, and would replace the subsampling fallback with something
 principled rather than merely coherent. \emph{Families without a scalar index.}
-Four of our thirteen---the radial pencil and the three lattices---have no
+Four of our thirteen (the radial pencil and the three lattices) have no
 phase function in the sense of \S\ref{sec:catalog}: the pencil's index is an angle, so its fringes
 are not level sets of a difference of scalars, and a lattice's index is a pair of
 integers, so a lattice pair produces a two-dimensional beat that the fringe law
@@ -101,7 +101,7 @@ vector-valued index law that covered them would be a genuine extension.
 Beyond the marginal band and prefiltering: the interval is computed per pixel from
 $r$, $\Lambda$, and $\kappa$, all of which vary smoothly, so a conservative
 interval could be computed once per tile and shared, which on a GPU trades
-divergence for a slightly wider scan---probably a win at zoom-out given the
+divergence for a slightly wider scan, probably a win at zoom-out given the
 divergence measurements in Table~\ref{tab:ablation}. And since the residual's
 zero set is a curve in $(p, n)$ space, a screen-space continuation that carried
 $n^\star$ from pixel to pixel would reduce the search to a local refinement almost
@@ -112,13 +112,13 @@ continuation breaks.
 
 Moir\'e has been drawn the same way for a century and a half: put down two layers
 of marks and let the overlap do the rest. Drawn that way, the fringe is an
-accident of sampling---what the overlap happened to produce, rather than what
+accident of sampling: what the overlap happened to produce, rather than what
 was asked for. We have argued that a moir\'e layer is better described by two
 scalar fields, an index and a distance, and that with those in hand the fringes
 stop being an accident. They are the unit level sets of the difference of the
 index fields (Theorem~\ref{thm:fringe}), a statement that under its local
 hypotheses needs no periodicity, no lattice, and no Fourier transform, and that
-we measured holding on every family we tested---including one whose index
+we measured holding on every family we tested, including one whose index
 field exists only as the answer to a search.
 
 Three things follow. The pattern becomes a document rather than a raster:
@@ -136,7 +136,7 @@ renderer requires.
 Making this run at interactive rates cost the paper's other half. When each member
 of a family carries its own rigid motion there is no global index field, and the
 per-pixel question becomes an inversion over the integers. We showed that one
-classical object---the support function of the generating shape---supplies
+classical object, the support function of the generating shape, supplies
 everything needed to replace the usual fixed-window guess with a certificate: a
 Lipschitz modulus, an exact anisotropy floor $\cos(\pi/N)$, an exact drift rate
 $\rad(-\delta)$, and, when the per-index rotation vanishes, convexity of the
@@ -157,7 +157,7 @@ that moves is a good way to find out which parts of it are false.
 
 Two lessons we would carry elsewhere. A bound that is merely loose, not wrong, can
 still produce a visibly broken image whenever the fallback for a loose bound is
-approximation---so the tightness of a constant is not always a performance
+approximation, so the tightness of a constant is not always a performance
 question. And when approximation is unavoidable, its structure matters more than
 its magnitude: the same missing ink reads as a thinner pattern or a shattered one
 depending only on whether the samples are anchored to the family or to the pixel.

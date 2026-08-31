@@ -160,23 +160,23 @@ Superpose two dense families of curves and a third pattern appears that belongs
 to neither. Graphics treats moir\'e as an aliasing artifact to filter away, or
 as a printed pair of gratings solved offline and slid by hand; neither supports
 interactive authoring of the pattern itself. We represent a layer instead
-as two scalar fields---an index field naming the nearest member of a curve
-family, fractionally, and a distance field to it---so superposition composites
-fields rather than pixels and no raster exists at any stage. In this model the
-fringes of a superposition are the unit level sets of the index-field
-difference, with a saturating tent profile---exact under stated local
-hypotheses, without periodicity---and a per-pixel validity criterion scanned
+as two scalar fields, an index field naming the nearest member of a curve
+family, fractionally, and a distance field to it, so that superposition
+composites fields rather than pixels and no raster exists at any stage. In this
+model the fringes of a superposition are the unit level sets of the index-field
+difference, with a saturating tent profile that is exact under stated local
+hypotheses, without periodicity, and a per-pixel validity criterion scanned
 over the low-order beats. The hard case is a family whose members each carry
 their own rigid motion: its index field has no closed form, and the nearest
 member must be searched for. The support function of the generating shape
 supplies a provably sufficient search interval, a Lipschitz skip rule, and an
-exact closed form for translated polygons---$\gpuSpeedLo$--$\gpuSpeedHi\times$
+exact closed form for translated polygons: $\gpuSpeedLo$--$\gpuSpeedHi\times$
 faster than the fixed enumeration it replaces across rotated settings, in exact
 agreement with brute force wherever the interval fits its budget. We present
-\Moire{}, a browser tool built on the model, and show that choosing the index
-difference turns a moir\'e into a live contour plot of any authored field,
-whose fringes localize to the true level sets within a mean of
-$\contourWorstErr$\,px on the hardest field tested.
+\Moire{}, a browser tool built on the model, and show that choosing two layers
+so that their index difference is an authored field turns the moir\'e into a
+live contour plot of that field, whose fringes localize to the true level sets
+within a mean of $\contourWorstErr$\,px on the hardest field tested.
 \end{abstract}
 
 \begin{CCSXML}
@@ -221,7 +221,7 @@ patterns, interactive authoring, GPU rendering}
   \caption{\figlead{Eight superpositions rendered directly from fields, with no
   intermediate raster.} Each panel is cut at the dashed rule: to its left the
   pattern as drawn, to its right the same parameters under the envelope view of
-  \S\ref{sec:envelope}---the stack averaged over one period of its own phase,
+  \S\ref{sec:envelope}: the stack averaged over one period of its own phase,
   which removes the carrier exactly and leaves the fringe field it was
   carrying. The same bands cross the rule textured on one side and smooth on
   the other because the right half is not a filter applied to the left: both
@@ -229,7 +229,7 @@ patterns, interactive authoring, GPU rendering}
   fractional index and a distance, so the pattern is identical at every zoom
   and every parameter is live.
   \textbf{(1)}~Rings about two centers: hyperbolae where the radii differ by a
-  whole spacing---Theorem~\ref{thm:fringe} in its simplest instance---and
+  whole spacing (Theorem~\ref{thm:fringe} in its simplest instance) and
   ellipses where they agree, the difference and sum moir\'es at once.
   \textbf{(2)}~Two identical line families, one displaced by a \emph{chosen}
   field: the fringes are that field's contours (\S\ref{sec:beyond}), here a
@@ -238,7 +238,8 @@ patterns, interactive authoring, GPU rendering}
   angle alone, and the fringes are a fan of rays. \textbf{(4)}~The construction
   of (2) carrying a saddle. \textbf{(5)}~The same again, carrying the stream
   function of four point vortices: the fringes are the flow's streamlines, and
-  no trajectory was integrated. \textbf{(6)}~A \emph{single} walking family---member $n$ turned by $n\theta$, pushed by $n\delta$---with no global index
+  no trajectory was integrated. \textbf{(6)}~A \emph{single} walking family
+  (member $n$ turned by $n\theta$, pushed by $n\delta$) with no global index
   field and no partner layer: it interferes with itself, and finding the
   nearest member is the search problem of \S\ref{sec:inverse}.
   \textbf{(7)}~Two concentric triangle families, detuned and turned.
