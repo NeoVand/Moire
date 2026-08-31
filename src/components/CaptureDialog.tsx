@@ -18,7 +18,16 @@ import {
   recordFrames,
   type RecordProgress,
 } from '../gpu/recorder';
+import {
+  VIDEO_FORMATS,
+  downloadVideo,
+  encodableFormats,
+  videoSink,
+  type VideoFormat,
+} from '../gpu/video';
+import { useLibraryStore } from '../store/library';
 import { useProjectStore } from '../store/project';
+import { motionSpan } from '../types/motion';
 import { useTransportStore } from '../store/transport';
 import { FloatingPanel } from './ui/FloatingPanel';
 import { Icon } from './ui/Icon';
@@ -70,6 +79,8 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
   const [fps, setFps] = useState(60);
   const [t0, setT0] = useState(0);
   const [t1, setT1] = useState(6);
+  const [format, setFormat] = useState<'frames' | VideoFormat>('mp4');
+  const [encodable, setEncodable] = useState<Set<VideoFormat>>(new Set());
   const [preview, setPreview] = useState<string | null>(null);
   const [progress, setProgress] = useState<RecordProgress | null>(null);
   const [status, setStatus] = useState<{ text: string; error: boolean } | null>(null);
@@ -87,8 +98,13 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
   const pause = useTransportStore((s) => s.pause);
   const stop = useTransportStore((s) => s.stop);
   const seek = useTransportStore((s) => s.seek);
-  const animators = useProjectStore((s) => s.motion.animators.length);
+  const name = useLibraryStore((s) => s.name);
+  const motion = useProjectStore((s) => s.motion);
+  const animators = motion.animators.length;
   const playing = state === 'playing';
+  const span = motionSpan(motion);
+  // Within a hundredth of what the motion actually asks for.
+  const fitted = Math.abs(t1 - span.end) < 0.01 && t0 === 0;
 
   const size = captureSize({ scale, aspect });
   const frames = frameCount({ t0, t1, fps });
@@ -119,6 +135,25 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
     void refreshPreview();
   }, [refreshPreview, aspect]);
 
+  // The range is offered rather than imposed: it is set once, when the panel
+  // opens, so that adjusting it by hand is not undone by the next edit.
+  useEffect(() => {
+    const s = motionSpan(useProjectStore.getState().motion);
+    if (!s.empty) setT1(Math.round(s.end * 100) / 100);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!size) return;
+    let live = true;
+    void encodableFormats(size.width, size.height).then((set) => {
+      if (live) setEncodable(set);
+    });
+    return () => {
+      live = false;
+    };
+  }, [size?.width, size?.height]);
+
   // The preview follows the construction, but not while recording: a thumbnail
   // is not worth a render between every pair of captured frames.
   useEffect(() => {
@@ -147,23 +182,37 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
 
   const record = async () => {
     setStatus(null);
-    const dir = await pickDirectory();
-    if (!dir) return;
+    const wantsFrames = format === 'frames';
+    const dir = wantsFrames ? await pickDirectory() : null;
+    if (wantsFrames && !dir) return;
+
+    const video = wantsFrames
+      ? null
+      : videoSink({ format, width: size?.width ?? 1920, height: size?.height ?? 1080, fps });
     abort.current = new AbortController();
     setProgress({ frame: 0, frames, elapsed: 0 });
     try {
       const out = await recordFrames(
         { t0, t1, fps, scale, aspect },
-        directorySink(dir),
+        video ?? directorySink(dir!),
         setProgress,
         abort.current.signal
       );
-      setStatus({
-        text: out.cancelled
-          ? `Stopped after ${out.frames} of ${frames} frames.`
-          : `Wrote ${out.frames} frames.`,
-        error: false,
-      });
+      const file = video?.result();
+      if (file && !out.cancelled) {
+        downloadVideo(file, format as VideoFormat, name.trim() || 'moire');
+        setStatus({
+          text: `${out.frames} frames, ${(file.size / 1e6).toFixed(1)} MB.`,
+          error: false,
+        });
+      } else {
+        setStatus({
+          text: out.cancelled
+            ? `Stopped after ${out.frames} of ${frames} frames.`
+            : `Wrote ${out.frames} frames.`,
+          error: false,
+        });
+      }
     } catch (err) {
       console.error(err);
       setStatus({
@@ -281,10 +330,10 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
         <div className="grid gap-1.5">
           <div className="flex items-center gap-2">
             <span className="text-[10.5px] text-[var(--text-secondary)]">From</span>
-            <NumberField value={t0} step={0.5} min={0} suffix="s" onChange={setT0} />
+            <NumberField value={t0} step={0.5} min={0} decimals={2} suffix="s" onChange={setT0} />
             <span className="flex-1" />
             <span className="text-[10.5px] text-[var(--text-secondary)]">To</span>
-            <NumberField value={t1} step={0.5} min={0} suffix="s" onChange={setT1} />
+            <NumberField value={t1} step={0.5} min={0} decimals={2} suffix="s" onChange={setT1} />
           </div>
           <div className="flex items-center gap-1.5">
             <div className={group}>
@@ -297,6 +346,56 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
             <span className="font-mono text-[10px] tabular-nums text-[var(--text-muted)]">
               {frames} frames
             </span>
+            <span className="flex-1" />
+            <button
+              type="button"
+              title={
+                span.empty
+                  ? 'Nothing moves yet'
+                  : span.seamless
+                    ? `${span.end.toFixed(2)}s is one whole cycle of everything moving, so the clip loops without a join`
+                    : `${span.end.toFixed(2)}s is when the motion has finished saying what it has to say`
+              }
+              onClick={() => {
+                setT0(0);
+                setT1(Math.round(span.end * 100) / 100);
+              }}
+              disabled={span.empty || fitted}
+              className={chip(fitted && !span.empty)}
+            >
+              fit
+            </button>
+          </div>
+          {!span.empty && (
+            <p className="text-[9px] leading-[1.4] text-[var(--text-muted)]">
+              {fitted && span.seamless
+                ? 'One whole cycle of everything moving, so this loops without a join.'
+                : `The motion here runs ${span.end.toFixed(2)}s${span.seamless ? ' to a clean loop' : ''}.`}
+            </p>
+          )}
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          <div className={group}>
+            <button type="button" className={chip(format === 'frames')} onClick={() => setFormat('frames')}>
+              frames
+            </button>
+            {VIDEO_FORMATS.map((f) => (
+              <button
+                key={f.id}
+                type="button"
+                className={chip(format === f.id)}
+                onClick={() => setFormat(f.id)}
+                disabled={encodable.size > 0 && !encodable.has(f.id)}
+                title={
+                  encodable.size > 0 && !encodable.has(f.id)
+                    ? `This browser cannot encode ${f.label} at this size`
+                    : `A single ${f.label} file`
+                }
+              >
+                {f.label}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -347,8 +446,8 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
                 : 'This browser cannot write a folder of frames'
             }
           >
-            <Icon icon={FolderOpenIcon} size={13} />
-            Record frames…
+            <Icon icon={format === 'frames' ? FolderOpenIcon : Camera01Icon} size={13} />
+            {format === 'frames' ? 'Record frames…' : `Record ${format.toUpperCase()}`}
           </button>
         )}
 

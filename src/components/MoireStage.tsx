@@ -60,6 +60,7 @@ export function MoireStage() {
           {
             settle: () => gpu.settle(),
             info: () => ({ backend: gpu.backendName() }),
+            with: (opts, read) => gpu.snapshotWith(opts, read),
           }
         );
         setReady(true);

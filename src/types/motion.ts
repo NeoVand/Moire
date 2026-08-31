@@ -179,3 +179,81 @@ export function sampleMotion(
   }
   return out;
 }
+
+/** Greatest common divisor over the quantised cycle lengths. */
+function gcd(a: number, b: number): number {
+  while (b) [a, b] = [b, a % b];
+  return a;
+}
+
+export interface MotionSpan {
+  /** Where a clip of this document should end, in seconds. */
+  end: number;
+  /** True when playing that range back to back has no visible join. */
+  seamless: boolean;
+  /** Nothing enabled moves, so any range would be one still picture repeated. */
+  empty: boolean;
+}
+
+/**
+ * How long this document has something to say.
+ *
+ * A range picked by hand is either short enough to cut the motion off or long
+ * enough to spend most of the file on a picture that has stopped changing, and
+ * the document already knows better than a guess: every animator states its own
+ * schedule.
+ *
+ * For a `once` the answer is when it lands. For anything cyclic it is a common
+ * multiple of the cycles -- which is the difference between a clip that loops
+ * and a clip that jumps, because a range that cuts a cycle part way through will
+ * always jump when it repeats. Two knobs at 3s and 4s need 12s to come back
+ * together; asking for 6 would look wrong every time round and it would not be
+ * obvious why.
+ *
+ * The common multiple is taken over hundredths of a second, and abandoned if it
+ * runs past a minute: cycles that share no reasonable multiple get the longest
+ * of them instead, which does not loop and is not pretending to.
+ */
+const QUANTUM = 100; // hundredths of a second
+const LOOP_CAP = 60 * QUANTUM;
+
+export function motionSpan(motion: MotionDoc): MotionSpan {
+  const live = motion.animators.filter((a) => a.enabled);
+  if (live.length === 0) return { end: 6, seamless: false, empty: true };
+
+  let onceEnd = 0;
+  let maxDelay = 0;
+  let cycleLcm = 0;
+  let longestCycle = 0;
+  let anyCyclic = false;
+  let allPrompt = true;
+
+  for (const a of live) {
+    const s = scheduleOf(a, motion.timings);
+    maxDelay = Math.max(maxDelay, s.delay);
+    if (s.delay > 1e-6) allPrompt = false;
+    if (s.mode === 'once') {
+      onceEnd = Math.max(onceEnd, s.delay + s.period);
+      continue;
+    }
+    anyCyclic = true;
+    const cycle = s.mode === 'bounce' ? s.period * 2 : s.period;
+    longestCycle = Math.max(longestCycle, cycle);
+    const ticks = Math.max(1, Math.round(cycle * QUANTUM));
+    cycleLcm = cycleLcm === 0 ? ticks : (cycleLcm / gcd(cycleLcm, ticks)) * ticks;
+    if (cycleLcm > LOOP_CAP) cycleLcm = -1;
+    if (cycleLcm === -1) break;
+  }
+
+  if (!anyCyclic) return { end: Math.max(0.1, onceEnd), seamless: false, empty: false };
+
+  const usable = cycleLcm > 0 && cycleLcm <= LOOP_CAP;
+  const loop = usable ? cycleLcm / QUANTUM : longestCycle;
+  return {
+    end: Math.max(0.1, Math.max(onceEnd, maxDelay + loop)),
+    // A join is invisible only when the cycles all close together and nothing
+    // was still waiting to start.
+    seamless: usable && allPrompt && onceEnd <= 1e-6,
+    empty: false,
+  };
+}

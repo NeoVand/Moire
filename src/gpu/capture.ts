@@ -6,9 +6,15 @@ export interface CaptureOptions {
 }
 
 type CaptureFn = (opts?: CaptureOptions) => Promise<Blob>;
+type CaptureWithFn = <T>(
+  opts: CaptureOptions,
+  read: (canvas: HTMLCanvasElement) => Promise<T> | T
+) => Promise<T>;
 type SizeFn = (opts?: CaptureOptions) => { width: number; height: number };
 
 export interface CaptureExtras {
+  /** Render once and hand the canvas over, for callers that want pixels. */
+  with?: CaptureWithFn;
   /** Resolves when no shader rebuild is pending — a capture after it is current. */
   settle?: () => Promise<void>;
   /** Which backend three initialised; the zoo records it beside its goldens. */
@@ -33,6 +39,18 @@ export function registerCapture(
 export async function capturePng(opts: CaptureOptions = {}): Promise<Blob> {
   if (!captureFn) throw new Error('Canvas is not ready');
   return captureFn(opts);
+}
+
+/**
+ * Render one frame and let the caller read the canvas directly. The canvas stays
+ * at the requested size until the callback returns.
+ */
+export async function captureWith<T>(
+  opts: CaptureOptions,
+  read: (canvas: HTMLCanvasElement) => Promise<T> | T
+): Promise<T> {
+  if (!extraFns.with) throw new Error('Canvas is not ready');
+  return extraFns.with(opts, read);
 }
 
 /** The pixel size an export would have, for showing before rendering it. */

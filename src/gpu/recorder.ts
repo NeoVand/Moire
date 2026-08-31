@@ -1,4 +1,6 @@
-import { capturePng, captureSettle, captureSize } from './capture';
+import { captureSettle, captureSize, captureWith } from './capture';
+import { applyParams, readParam } from '../store/params';
+import { useProjectStore } from '../store/project';
 import { applyMotionAt, useTransportStore } from '../store/transport';
 
 /**
@@ -32,9 +34,21 @@ export interface RecordOptions {
   aspect?: number;
 }
 
+/**
+ * One captured frame, offered two ways.
+ *
+ * A sink writing files wants a PNG; a sink feeding an encoder wants the pixels.
+ * Neither should pay for the other, so both are lazy: the canvas is the render
+ * itself, and the PNG is only encoded if somebody asks for one.
+ */
+export interface CapturedFrame {
+  canvas: () => Promise<HTMLCanvasElement>;
+  png: () => Promise<Blob>;
+}
+
 export interface RecordSink {
   /** Called once per frame, in order. */
-  frame: (index: number, blob: Blob) => Promise<void>;
+  frame: (index: number, frame: CapturedFrame) => Promise<void>;
   /** Called after the last frame, successful or not. */
   close?: () => Promise<void>;
 }
@@ -64,6 +78,15 @@ export async function recordFrames(
   const frames = frameCount(opts);
   const transport = useTransportStore.getState();
   const restore = { state: transport.state, t: transport.t };
+  // Where every animated knob stood before the take. Putting the clock back is
+  // not enough to put the picture back: a `once` that has already landed applies
+  // nothing at all, so restoring the time would leave the document sitting on the
+  // last frame recorded. The values have to be remembered directly.
+  const held = new Map<string, number>();
+  for (const a of useProjectStore.getState().motion.animators) {
+    const v = readParam(a.path);
+    if (v !== undefined) held.set(a.path, v);
+  }
   const started = performance.now();
   let written = 0;
   let cancelled = false;
@@ -83,15 +106,25 @@ export async function recordFrames(
       const t = opts.t0 + n / opts.fps;
       useTransportStore.setState({ t });
       applyMotionAt(t, { includeHeld: true });
-      const blob = await capturePng({ scale: opts.scale, aspect: opts.aspect });
-      await sink.frame(n, blob);
+      // The canvas is only valid inside this callback -- the renderer restores
+      // its display size as soon as it returns -- so the sink does its work here
+      // rather than being handed something that will change under it.
+      await captureWith({ scale: opts.scale, aspect: opts.aspect }, async (canvas) => {
+        await sink.frame(n, {
+          canvas: async () => canvas,
+          png: () =>
+            new Promise<Blob>((res, rej) =>
+              canvas.toBlob((b) => (b ? res(b) : rej(new Error('Could not encode the frame.'))), 'image/png')
+            ),
+        });
+      });
       written = n + 1;
       onProgress?.({ frame: written, frames, elapsed: (performance.now() - started) / 1000 });
     }
   } finally {
     await sink.close?.();
     useTransportStore.setState({ recording: false, ...restore });
-    applyMotionAt(restore.t, { includeHeld: false });
+    applyParams(held);
   }
 
   return { frames: written, cancelled };
@@ -166,11 +199,11 @@ export async function pickDirectory(): Promise<DirectoryHandle | null> {
  */
 export function directorySink(dir: DirectoryHandle): RecordSink {
   return {
-    async frame(index, blob) {
+    async frame(index, frame) {
       try {
         const file = await dir.getFileHandle(frameName(index), { create: true });
         const stream = await file.createWritable();
-        await stream.write(blob);
+        await stream.write(await frame.png());
         await stream.close();
       } catch (err) {
         // The first frame is the probe: a folder that cannot be written to fails

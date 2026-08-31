@@ -535,6 +535,20 @@ export class MoireRenderer {
   }
 
   async snapshot(opts: { scale?: number; aspect?: number } = {}): Promise<Blob> {
+    return this.snapshotWith(opts, (canvas) => encodeCanvasPng(canvas));
+  }
+
+  /**
+   * One render at an explicit size, with the canvas held at that size until the
+   * callback returns. A recording wants the pixels rather than a PNG of them --
+   * encoding every frame to PNG only to decode it again for the encoder would
+   * double the work and lose nothing but time -- and the canvas is restored the
+   * moment the callback is done with it either way.
+   */
+  async snapshotWith<T>(
+    opts: { scale?: number; aspect?: number } = {},
+    read: (canvas: HTMLCanvasElement) => Promise<T> | T
+  ): Promise<T> {
     // An export that lands inside a field rebuild waits for it rather than failing.
     await this.building;
     if (
@@ -561,7 +575,7 @@ export class MoireRenderer {
       this.renderer.setSize(width, height, false);
       this.cameraUniforms.zoom.value = zoom0 * zScale;
       this.renderer.render(this.scene, this.camera);
-      return await encodeCanvasPng(this.canvas);
+      return await read(this.canvas);
     } finally {
       this.cameraUniforms.zoom.value = zoom0;
       this.renderer.setPixelRatio(this.lastDpr || 1);
