@@ -115,12 +115,12 @@ interface DirectoryHandle {
   requestPermission?(opts: { mode: 'read' | 'readwrite' }): Promise<PermissionState>;
 }
 
-/** Raised when the folder was chosen but may not be written to. */
-export class DirectoryDenied extends Error {
-  constructor() {
-    super('That folder was opened for reading only. Choose it again and allow saving.');
-    this.name = 'DirectoryDenied';
-  }
+/**
+ * Whether writing was actually refused, as opposed to failing for some other
+ * reason. Only the browser knows, and it says so with this name.
+ */
+function isRefusal(err: unknown): boolean {
+  return err instanceof DOMException && (err.name === 'NotAllowedError' || err.name === 'SecurityError');
 }
 
 export function directoryPickerAvailable(): boolean {
@@ -130,12 +130,17 @@ export function directoryPickerAvailable(): boolean {
 /**
  * A folder, opened for writing.
  *
- * The mode matters and is easy to miss: a picker called with no options hands
- * back a handle that can only be *read*, and the failure surfaces much later as
- * "the request is not allowed by the user agent" from the first getFileHandle --
- * a message that sounds like the browser refusing the feature rather than the
- * page never having asked for the right thing. So the mode is stated, and then
- * checked, because a handle can be granted read and refused write.
+ * The mode is the whole of it, and it is easy to miss: a picker called with no
+ * options hands back a handle that can only be read, and the failure surfaces
+ * much later from the first getFileHandle as "the request is not allowed by the
+ * user agent" -- which sounds like the browser refusing the feature rather than
+ * the page never having asked for the right thing.
+ *
+ * There is deliberately no queryPermission/requestPermission dance afterwards.
+ * requestPermission needs transient user activation, and awaiting the picker
+ * spends it, so the call returns "prompt" without ever showing a prompt and a
+ * perfectly writable folder gets reported as refused. The picker has already put
+ * the question to the author; asking again from outside a gesture can only lie.
  */
 export async function pickDirectory(): Promise<DirectoryHandle | null> {
   const pick = (
@@ -144,21 +149,12 @@ export async function pickDirectory(): Promise<DirectoryHandle | null> {
     }
   ).showDirectoryPicker;
   if (!pick) return null;
-
-  let dir: DirectoryHandle;
   try {
-    dir = await pick({ mode: 'readwrite' });
+    return await pick({ mode: 'readwrite' });
   } catch {
     // The picker was dismissed, which is not an error worth reporting.
     return null;
   }
-
-  const mode = { mode: 'readwrite' } as const;
-  const held = (await dir.queryPermission?.(mode)) ?? 'granted';
-  if (held === 'granted') return dir;
-  const asked = (await dir.requestPermission?.(mode)) ?? 'denied';
-  if (asked !== 'granted') throw new DirectoryDenied();
-  return dir;
 }
 
 /**
@@ -171,10 +167,23 @@ export async function pickDirectory(): Promise<DirectoryHandle | null> {
 export function directorySink(dir: DirectoryHandle): RecordSink {
   return {
     async frame(index, blob) {
-      const file = await dir.getFileHandle(frameName(index), { create: true });
-      const stream = await file.createWritable();
-      await stream.write(blob);
-      await stream.close();
+      try {
+        const file = await dir.getFileHandle(frameName(index), { create: true });
+        const stream = await file.createWritable();
+        await stream.write(blob);
+        await stream.close();
+      } catch (err) {
+        // The first frame is the probe: a folder that cannot be written to fails
+        // here, before anything has been written and while the count still reads
+        // zero, rather than half way through a take.
+        if (isRefusal(err)) {
+          throw new Error(
+            `Not allowed to write into ${dir.name ?? 'that folder'}. Pick one inside your ` +
+              `home folder — Downloads or Documents — rather than a system or cloud location.`
+          );
+        }
+        throw err;
+      }
     },
   };
 }
