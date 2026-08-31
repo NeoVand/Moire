@@ -128,8 +128,6 @@ export interface ProjectStore {
   loadScene: (scene: SceneData) => void;
   /** Back to the construction the tool opens on, view settings included. */
   resetProject: () => void;
-  playIntro: () => void;
-  cancelIntro: () => void;
 }
 
 function nextId(): string {
@@ -151,11 +149,11 @@ function lerp(a: number, b: number, t: number) {
   return a + (b - a) * t;
 }
 
-function easeInOutCubic(t: number) {
+export function easeInOutCubic(t: number) {
   return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
 }
 
-function mixLayer(from: PatternLayer, to: PatternLayer, t: number): PatternLayer {
+export function mixLayer(from: PatternLayer, to: PatternLayer, t: number): PatternLayer {
   return {
     ...to,
     position: {
@@ -215,23 +213,6 @@ function applyLayerType(layer: PatternLayer, type: PatternType): PatternLayer {
   };
 }
 
-const INTRO_DELAY = 280;
-const INTRO_MS = 1700;
-let introRaf = 0;
-let introAborted = false;
-
-function stopIntro() {
-  if (introRaf) {
-    cancelAnimationFrame(introRaf);
-    introRaf = 0;
-  }
-}
-
-function abortIntro() {
-  introAborted = true;
-  stopIntro();
-}
-
 const initial = createIntroRestProject();
 
 export const useProjectStore = create<ProjectStore>((set, get) => ({
@@ -245,7 +226,6 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   selectLayer: (id) => set({ selectedLayerId: id }),
 
   updateLayer: (id, patch) => {
-    abortIntro();
     set((s) => ({
       layers: s.layers.map((layer) => (layer.id === id ? mergeLayer(layer, patch) : layer)),
     }));
@@ -259,7 +239,6 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     })),
 
   addLayer: (type = 'concentric-circles') => {
-    abortIntro();
     const { layers, selectedLayerId } = get();
     if (layers.length >= MAX_LAYERS) return;
     const selected = layers.find((layer) => layer.id === selectedLayerId);
@@ -304,7 +283,6 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     })),
 
   removeLayer: (id) => {
-    abortIntro();
     endLayerMorph(id);
     // Motion on a layer that no longer exists would be a silent no-op that the
     // motion list still lists. Take it with the layer.
@@ -324,7 +302,6 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   },
 
   duplicateLayer: (id) => {
-    abortIntro();
     const { layers } = get();
     if (layers.length >= MAX_LAYERS) return;
     const source = layers.find((layer) => layer.id === id);
@@ -352,7 +329,6 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     }),
 
   setLayerType: (id, type) => {
-    abortIntro();
     const layer = get().layers.find((item) => item.id === id);
     if (!layer || layer.type === type) return;
     beginLayerMorph(id, layer.type, type);
@@ -395,7 +371,6 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
 
   loadScene: (scene) => {
     // A load during the intro would be animated over; the intro yields.
-    abortIntro();
     set({
       layers: scene.layers,
       selectedLayerId: scene.selectedLayerId,
@@ -448,7 +423,6 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     // The default *project*, not the intro's rest pose: a new document should be
     // the picture the tool is about, not the frame the opening animation starts
     // from.
-    abortIntro();
     const fresh = createDefaultProject();
     set({
       layers: fresh.layers,
@@ -460,30 +434,6 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     });
   },
 
-  cancelIntro: () => stopIntro(),
-
-  playIntro: () => {
-    if (introAborted) return;
-    stopIntro();
-    const from = get().layers.map((layer) => ({
-      ...layer,
-      position: { ...layer.position },
-      offset: { ...layer.offset },
-      scale: { ...layer.scale },
-    }));
-    const to = createDefaultProject().layers;
-    const started = performance.now();
-    const step = (now: number) => {
-      const t = Math.min(1, Math.max(0, (now - started - INTRO_DELAY) / INTRO_MS));
-      const e = easeInOutCubic(t);
-      set({
-        layers: from.map((layer, i) => mixLayer(layer, to[i] ?? layer, e)),
-      });
-      if (t < 1) introRaf = requestAnimationFrame(step);
-      else introRaf = 0;
-    };
-    introRaf = requestAnimationFrame(step);
-  },
 }));
 
 /**

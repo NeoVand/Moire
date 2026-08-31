@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { sampleMotion, type Animator } from '../types/motion';
 import { applyParams, type ParamPath } from './params';
-import { useProjectStore } from './project';
+import { easeInOutCubic, mixLayer, useProjectStore } from './project';
+import type { PatternLayer } from '../types/moire';
 
 /**
  * The clock, and the loop that pushes its readings into the document.
@@ -115,6 +116,44 @@ export function applyMotionAt(t: number, opts: { includeHeld?: boolean } = {}): 
   }
 }
 
+/**
+ * The opening transition: the whole stack eased from one pose to another, once,
+ * at load.
+ *
+ * Deliberately *not* document motion, and the attempt to make it so is what
+ * settled the question. An animator owns its path's value -- that is the rule
+ * that lets a hand grab an animated knob and lets a document be saved at rest --
+ * so an intro built from animators would leave every field of every layer owned
+ * by one forever after, unable to be edited and saved back to the pose the
+ * animation departs from. The intro is a transition *into* a document, not a
+ * property of one.
+ *
+ * What it does share is the clock, the yield-to-a-hand rule, and the writes-state
+ * -only discipline. It has no rAF of its own, no abort flag, and no six scattered
+ * calls to cancel it: touching anything ends it, through the same subscription
+ * that pauses the transport.
+ */
+let intro: {
+  from: PatternLayer[];
+  to: PatternLayer[];
+  start: number;
+  delay: number;
+  span: number;
+} | null = null;
+
+export function playIntro(
+  from: PatternLayer[],
+  to: PatternLayer[],
+  delay = 0.28,
+  span = 1.7
+): void {
+  intro = { from, to, start: preview, delay, span };
+}
+
+export function endIntro(): void {
+  intro = null;
+}
+
 let raf = 0;
 let lastFrame = 0;
 /** Wall time for idle preview, in seconds since the loop started. */
@@ -127,6 +166,23 @@ function tick(now: number) {
   preview += dt;
 
   const transport = useTransportStore.getState();
+
+  if (intro) {
+    const u = Math.min(1, Math.max(0, (preview - intro.start - intro.delay) / intro.span));
+    const e = easeInOutCubic(u);
+    const { from, to } = intro;
+    applying = true;
+    try {
+      useProjectStore.setState({
+        layers: from.map((layer, i) => mixLayer(layer, to[i] ?? layer, e)),
+      });
+    } finally {
+      applying = false;
+    }
+    if (u >= 1) intro = null;
+    return;
+  }
+
   const { motion } = useProjectStore.getState();
   if (motion.animators.length === 0) return;
   // A hand on a knob wins for as long as it is there. Recording never yields:
@@ -170,6 +226,7 @@ export function stopTransport(): void {
  */
 useProjectStore.subscribe(() => {
   if (applying) return;
+  intro = null;
   const { state, recording } = useTransportStore.getState();
   if (state === 'playing' && !recording) useTransportStore.setState({ state: 'paused' });
 });

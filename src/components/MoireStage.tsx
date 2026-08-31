@@ -11,6 +11,8 @@ import {
 } from '../gpu/camera';
 import { useLibraryStore } from '../store/library';
 import { useProjectStore } from '../store/project';
+import { endIntro, playIntro } from '../store/transport';
+import { createDefaultProject } from '../types/moire';
 
 type DragMode = 'move' | 'rotate' | 'pan';
 
@@ -66,8 +68,9 @@ export function MoireStage() {
         setReady(true);
         // An author who left something on screen gets it back, not an animation
         // over the top of it. A restored session is the tool already in use.
-        if (!useLibraryStore.getState().projectId && !useLibraryStore.getState().restored) {
-          useProjectStore.getState().playIntro();
+        const lib = useLibraryStore.getState();
+        if (!lib.projectId && !lib.restored) {
+          playIntro(useProjectStore.getState().layers, createDefaultProject().layers);
         }
       })
       .catch((err: unknown) => {
@@ -87,7 +90,7 @@ export function MoireStage() {
 
     return () => {
       cancelled = true;
-      useProjectStore.getState().cancelIntro();
+      endIntro();
       unsub();
       registerCapture(null);
       gpu.dispose();
