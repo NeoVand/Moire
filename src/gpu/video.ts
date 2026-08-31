@@ -9,6 +9,9 @@ import {
 } from 'mediabunny';
 import type { RecordSink } from './recorder';
 
+/** The quality every recording is made at, and the one every check must ask about. */
+const QUALITY = QUALITY_HIGH;
+
 /**
  * Frames into a file, without going through PNG on the way.
  *
@@ -105,16 +108,22 @@ export function videoFrameSize(
  */
 export async function encodableFormats(
   height: number,
-  aspect: number
+  aspect: number,
+  fps: number
 ): Promise<Set<VideoFormat>> {
   const out = new Set<VideoFormat>();
   await Promise.all(
     VIDEO_FORMATS.map(async (f) => {
       try {
-        // Asked at the size that would actually be used, since the answer depends
-        // on it -- a codec available at 1080p can be refused at 4K.
+        // Asked about the configuration that will actually be used -- the size,
+        // the rate and the quality. Asking with the library's defaults instead
+        // answers a different question, and answers it yes while the real
+        // configuration is refused: a codec available at 1080p can be refused at
+        // 4K, and one available at 30 refused at 120.
         const size = videoFrameSize(f.id, height, aspect);
-        if (await canEncodeVideo(f.codec, size)) out.add(f.id);
+        if (await canEncodeVideo(f.codec, { ...size, framerate: fps, quality: QUALITY })) {
+          out.add(f.id);
+        }
       } catch {
         // An unsupported codec throws rather than answering; same conclusion.
       }
@@ -146,7 +155,7 @@ export function videoSink(opts: VideoSinkOptions): VideoSink {
     format: info.id === 'mp4' ? new Mp4OutputFormat() : new WebMOutputFormat(),
     target: new BufferTarget(),
   });
-  const source = new CanvasSource(canvas, { codec: info.codec, bitrate: QUALITY_HIGH });
+  const source = new CanvasSource(canvas, { codec: info.codec, quality: QUALITY });
   output.addVideoTrack(source, { frameRate: opts.fps });
 
   let started = false;
@@ -155,16 +164,24 @@ export function videoSink(opts: VideoSinkOptions): VideoSink {
   return {
     async frame(index, frame) {
       if (!ctx) throw new Error('Could not open a 2D context for encoding.');
+      // Opened before the first frame rather than lazily inside it, so a
+      // configuration this machine will not take fails here -- with whatever the
+      // encoder says about it -- rather than several frames later as a flush.
       if (!started) {
         await output.start();
         started = true;
       }
-      const canvasIn = await frame.canvas();
-      ctx.drawImage(canvasIn, 0, 0, canvas.width, canvas.height);
+      ctx.drawImage(await frame.canvas(), 0, 0, canvas.width, canvas.height);
       await source.add(index / opts.fps, 1 / opts.fps);
     },
-    async close() {
+    async close(ok) {
       if (!started) return;
+      if (!ok) {
+        // A take that went wrong is thrown away, not finished. Asking a failed
+        // encoder to finalize buries the real error under a flushing error.
+        await output.cancel().catch(() => {});
+        return;
+      }
       await output.finalize();
       const buffer = (output.target as BufferTarget).buffer;
       if (buffer) blob = new Blob([buffer], { type: info.mime });

@@ -51,8 +51,13 @@ export interface CapturedFrame {
 export interface RecordSink {
   /** Called once per frame, in order. */
   frame: (index: number, frame: CapturedFrame) => Promise<void>;
-  /** Called after the last frame, successful or not. */
-  close?: () => Promise<void>;
+  /**
+   * Called once the run is over. `ok` is false if a frame threw or the take was
+   * abandoned, which matters to a sink holding an encoder: finishing a file and
+   * throwing one away are different operations, and asking a broken encoder to
+   * finish reports its own failure instead of the one that caused it.
+   */
+  close?: (ok: boolean) => Promise<void>;
 }
 
 export interface RecordProgress {
@@ -92,6 +97,7 @@ export async function recordFrames(
   const started = performance.now();
   let written = 0;
   let cancelled = false;
+  let failed = false;
 
   // Recording suspends every rule that exists for the sake of someone watching:
   // held animators run, a hand on a knob no longer yields, and the transport
@@ -123,8 +129,11 @@ export async function recordFrames(
       written = n + 1;
       onProgress?.({ frame: written, frames, elapsed: (performance.now() - started) / 1000 });
     }
+  } catch (err) {
+    failed = true;
+    throw err;
   } finally {
-    await sink.close?.();
+    await sink.close?.(!failed && !cancelled);
     useTransportStore.setState({ recording: false, ...restore });
     applyParams(held);
   }

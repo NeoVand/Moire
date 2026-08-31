@@ -191,13 +191,13 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
 
   useEffect(() => {
     let live = true;
-    void encodableFormats(videoHeight, aspect || canvasAspect).then((set) => {
+    void encodableFormats(videoHeight, aspect || canvasAspect, fps).then((set) => {
       if (live) setEncodable(set);
     });
     return () => {
       live = false;
     };
-  }, [videoHeight, aspect, canvasAspect]);
+  }, [videoHeight, aspect, canvasAspect, fps]);
 
   // The preview follows the construction, but not while recording: a thumbnail
   // is not worth a render between every pair of captured frames.
