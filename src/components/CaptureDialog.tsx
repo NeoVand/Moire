@@ -60,7 +60,10 @@ const ASPECTS: { label: string; ratio: string; value: number }[] = [
 ];
 
 const SCALES = [1, 2, 4];
-const RATES = [24, 30, 60];
+// 120 for slow motion and for panning shots on a high-refresh display, where the
+// difference from 60 is visible on this content: hairlines crossing at speed are
+// exactly what a low sample rate turns into strobing.
+const RATES = [24, 30, 60, 120];
 
 const chip = (active: boolean) =>
   `rounded-md px-2 py-[3px] font-mono text-[10px] tabular-nums transition-colors ${
