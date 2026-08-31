@@ -217,6 +217,13 @@ TOG", do **not** cite it in the manuscript (that identifies you), and **do**
 upload the public version as *Supplemental File(s) not for review*, ideally with
 a note on how the two differ.
 
+`node tools/arxiv.mjs` builds that public version — `build/arxiv.pdf` and
+`build/arxiv-supplemental.pdf` — from these same sources. The note on how the two
+differ is short and true by construction: **the text is identical; the public
+version shows the byline, drops the referees' line numbers, and omits the ACM
+copyright block.** Nothing else changes, because both are generated from
+`paper.tex` rather than maintained apart.
+
 ACM permits posting every version — preprint, submitted, accepted, peer-reviewed
 — to your homepage, arXiv, and any non-commercial repository, and asks you to
 add the DOI once published. It does **not** permit ResearchGate, Academia.edu,
