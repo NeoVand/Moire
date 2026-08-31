@@ -22,8 +22,12 @@ each solver generation directly from its source file, compiles it into an
 identical compute kernel, and times a pass with GPU timestamp queries over a
 $1200\times800$ point grid---$0.96$\,Mpixel of solver work with no
 rasterization, no compositing, and no browser frame overhead in the measurement.
-Reported values are the median of $9$ passes after $3$ warm-up passes, on an
-Apple \texttt{\gpuAdapter} adapter. The CPU numbers come from a rasterizer that
+Each measurement spans $\gpuReps$ dispatches under one pair of timestamps, after
+$\gpuWarm$ warm-up passes: this adapter's counter ticks every $65.5$\,\textmu s,
+and the fastest settings here run in a few ticks, so timing a single dispatch
+reports the tick rather than the kernel. The value we report is the fastest of
+$\gpuPasses$ such measurements, since anything else using the device can only add
+time to a pass, never remove it. On an Apple \texttt{\gpuAdapter} adapter. The CPU numbers come from a rasterizer that
 mirrors the shader's compositing term for term, instrumented to count calls to
 $\rad$; this is the only way to render an image with a solver that no longer
 exists in the shader, and the only way to get a per-pixel work map.
@@ -417,7 +421,16 @@ whose absence the rest of this section has been measuring.
   of the axis: a benign drift, whose pattern is open and whose interval is a few
   indices, and the near-marginal drift, where the interval explodes---into a
   frame that is already solid ink. The dashed minimum shows that sparse
-  exceptions exist.}
+  exceptions exist. The last bin is not a tail and is worth naming: it holds
+  $\satCapSettings$ settings, more than the two before it, because the interval
+  there does not close at all and they pile against the span cap rather than
+  spreading. $\satCapNearMarginal$ of them have $\rad(-\delta)$ within
+  $5\%$ of $s$---the marginal band of \S\ref{sec:closed}, whose whole span lies
+  between $\satCapDriftLo$ and $\satCapDriftHi$ of the spacing. It is also the
+  one bin where the headline does not hold: its median is $\satCapMedianInk$ ink
+  and its least is $\satCapMinInk$, so a wide interval there does not imply a
+  solid frame. That band is what Proposition~\ref{prop:closed} settles exactly at
+  $\theta=0$ and what \S\ref{sec:limits} concedes for $\theta\ne0$.}
   \label{fig:saturation}
 \end{figure}
 

@@ -12,22 +12,22 @@
   the field $32$ times and stores once, so what is timed is the
   arithmetic rather than the store. Interpreted cost is linear in program length;
   compiled cost is not, and \textsc{saddle} compiled is cheaper than the
-  $0.0071$ a kernel with no field call at all costs, which is to say it has
+  $0.0087$ a kernel with no field call at all costs, which is to say it has
   disappeared into the noise.}
   \label{tab:compile}
   \begin{tabular}{@{}lrrrrr@{}}
     \toprule
     Preset & Instr. & Stmts & Interpreted & Unrolled & Ratio \\
     \midrule
-    \textsc{saddle} & $7$ & $6$ & $0.771$ & $\mathbf{0.0043}$ & $179\times$ \\
-    \textsc{dipole} & $31$ & $40$ & $3.189$ & $\mathbf{0.0213}$ & $150\times$ \\
-    \textsc{bumps} & $51$ & $69$ & $5.269$ & $\mathbf{0.0199}$ & $265\times$ \\
-    \textsc{swirl} & $67$ & $73$ & $6.865$ & $\mathbf{0.0270}$ & $254\times$ \\
-    \textsc{ripple} & $6$ & $11$ & $0.627$ & $\mathbf{0.0156}$ & $40\times$ \\
-    \textsc{terrain} & $64$ & $69$ & $6.652$ & $\mathbf{0.0540}$ & $123\times$ \\
+    \textsc{saddle} & $7$ & $6$ & $0.781$ & $\mathbf{0.0050}$ & $156\times$ \\
+    \textsc{dipole} & $31$ & $40$ & $3.217$ & $\mathbf{0.0216}$ & $149\times$ \\
+    \textsc{bumps} & $51$ & $69$ & $5.292$ & $\mathbf{0.0188}$ & $281\times$ \\
+    \textsc{swirl} & $67$ & $73$ & $6.891$ & $\mathbf{0.0273}$ & $252\times$ \\
+    \textsc{ripple} & $6$ & $11$ & $0.634$ & $\mathbf{0.0173}$ & $37\times$ \\
+    \textsc{terrain} & $64$ & $69$ & $6.359$ & $\mathbf{0.0547}$ & $116\times$ \\
     \midrule
-    empty program & $0$ & $0$ & $0.044$ & $0$ & --- \\
-    no field call & --- & --- & \multicolumn{2}{c}{$0.0071$} & --- \\
+    empty program & $0$ & $0$ & $0.045$ & $0$ & --- \\
+    no field call & --- & --- & \multicolumn{2}{c}{$0.0087$} & --- \\
     \bottomrule
   \end{tabular}
 \end{table}

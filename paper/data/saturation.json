@@ -10,5 +10,16 @@
   "driftRatioRangeWhenStrided": [
     0,
     4.165
-  ]
+  ],
+  "cap": {
+    "span": 65536,
+    "settings": 1170,
+    "medianInk": 0.695,
+    "minInk": 0.066,
+    "nearMarginal": 1155,
+    "driftRatioRange": [
+      0.931,
+      1.029
+    ]
+  }
 }

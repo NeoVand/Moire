@@ -149,6 +149,31 @@ const summary = {
   driftRatioRangeWhenStrided: strided.length
     ? [Math.min(...strided.map((r) => r.driftRatio)), Math.max(...strided.map((r) => r.driftRatio))]
     : null,
+  // The last bin of the figure, characterised.
+  //
+  // It is the most conspicuous thing in that plot -- the median ink drops away
+  // there while every other bin sits flat -- and it is not a thin tail: it holds
+  // more settings than the two bins before it. It is the marginal band, where
+  // rho(-delta) = s and the interval does not close at all, so the settings pile
+  // up against the span cap instead of spreading. Naming it turns an unexplained
+  // dip into the one place the theory says the interval is genuinely infinite.
+  cap: (() => {
+    const at = rows.filter((r) => r.spanP90 >= 65536);
+    if (!at.length) return null;
+    const ink = at.map((r) => r.inkAtLeast).sort((a, b) => a - b);
+    return {
+      span: 65536,
+      settings: at.length,
+      medianInk: ink[ink.length >> 1],
+      minInk: ink[0],
+      // How many sit on the marginal locus rho(-delta) = s.
+      nearMarginal: at.filter((r) => Math.abs(r.driftRatio - 1) < 0.05).length,
+      driftRatioRange: [
+        Math.min(...at.map((r) => r.driftRatio)),
+        Math.max(...at.map((r) => r.driftRatio)),
+      ],
+    };
+  })(),
 };
 writeFileSync(join(DATA, 'saturation.json'), `${JSON.stringify(summary, null, 2)}\n`);
 

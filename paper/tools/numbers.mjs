@@ -276,6 +276,17 @@ const gpu = load('gpu.json');
         `else using the GPU.`
     );
   }
+  // How the timing is actually taken, so 8.1 cannot describe a harness that is not
+  // the one that ran. Read from the data where it records them; the fallbacks are
+  // probe.mjs's own defaults, and the warning fires if a file predates recording.
+  if (gpu.timingReps === undefined || gpu.timingWarm === undefined) {
+    console.warn(
+      '  note: gpu.json does not record reps/warm; using probe.mjs defaults (24, 4) for the protocol text.'
+    );
+  }
+  macro('gpuReps', gpu.timingReps ?? 24);
+  macro('gpuWarm', gpu.timingWarm ?? 4);
+  macro('gpuPasses', gpu.timingPasses ?? 1);
   macro('gpuAdapter', gpu.meta.adapter.architecture);
 
   const cell = (v) => `$${r(v, 2)}$`;
@@ -529,6 +540,19 @@ const fid = load('fidelity.json');
 
 section('data/saturation.json : the interval-width sweep');
 const sat = load('saturation.json');
+{
+  // The figure's last bin. Quoted so the caption can name it rather than leaving
+  // the one visible anomaly in the plot to be read as noise.
+  const cap = sat.cap;
+  if (!cap) throw new Error('saturation.json has no cap block; re-run tools/exp/saturation.mjs');
+  macro('satCapSettings', th(cap.settings));
+  macro('satCapMedianInk', r(cap.medianInk, 2));
+  macro('satCapMinInk', r(cap.minInk, 2));
+  macro('satCapNearMarginal', th(cap.nearMarginal));
+  macro('satCapDriftLo', r(cap.driftRatioRange[0], 2));
+  macro('satCapDriftHi', r(cap.driftRatioRange[1], 2));
+  macro('satCapSpan', '2^{16}');
+}
 {
   macro('satSettings', th(sat.settings));
   macro('satFitting', th(sat.fitting));

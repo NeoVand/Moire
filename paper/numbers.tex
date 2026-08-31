@@ -33,33 +33,36 @@
 \newcommand{\gradSpiralFrame}{0}
 
 % ---- data/gpu.json : 1200x800 = 0.96 Mpixel, one full-screen layer
-\newcommand{\gpuSpeedLo}{11}
-\newcommand{\gpuSpeedHi}{37}
-\newcommand{\gpuTriRotOne}{14.4}
-\newcommand{\gpuTriRotOneNew}{0.39}
-\newcommand{\gpuTriRotOffOut}{27.9}
-\newcommand{\gpuTriRotOffOutNew}{1.64}
-\newcommand{\gpuSquareOld}{0.92}
-\newcommand{\gpuSquareClosed}{0.20}
-\newcommand{\gpuSquareClosedGain}{4.7}
+\newcommand{\gpuSpeedLo}{10}
+\newcommand{\gpuSpeedHi}{35}
+\newcommand{\gpuTriRotOne}{13.1}
+\newcommand{\gpuTriRotOneNew}{0.37}
+\newcommand{\gpuTriRotOffOut}{26.1}
+\newcommand{\gpuTriRotOffOutNew}{1.85}
+\newcommand{\gpuSquareOld}{0.95}
+\newcommand{\gpuSquareClosed}{0.18}
+\newcommand{\gpuSquareClosedGain}{5.2}
+\newcommand{\gpuReps}{24}
+\newcommand{\gpuWarm}{4}
+\newcommand{\gpuPasses}{5}
 \newcommand{\gpuAdapter}{metal-3}
 
 % ---- data/gpu.json : interpreting a field expression against unrolling it
-\newcommand{\interpPerOp}{0.103}
+\newcommand{\interpPerOp}{0.102}
 \newcommand{\interpLo}{0.63}
 \newcommand{\interpHi}{6.9}
 \newcommand{\interpHiOps}{67}
-\newcommand{\unrolledLo}{0.0043}
-\newcommand{\unrolledCeil}{0.054}
-\newcommand{\fieldBaseline}{0.0071}
-\newcommand{\fieldEmptyCost}{0.044}
-\newcommand{\fieldEmptyGain}{6}
+\newcommand{\unrolledLo}{0.0050}
+\newcommand{\unrolledCeil}{0.055}
+\newcommand{\fieldBaseline}{0.0087}
+\newcommand{\fieldEmptyCost}{0.045}
+\newcommand{\fieldEmptyGain}{5}
 \newcommand{\fieldOpsLo}{6}
 \newcommand{\fieldOpsHi}{67}
 \newcommand{\fieldStmtHi}{73}
 \newcommand{\fieldTwinWorst}{4{\times}10^{-5}}
-\newcommand{\fieldGainLo}{40}
-\newcommand{\fieldGainHi}{265}
+\newcommand{\fieldGainLo}{37}
+\newcommand{\fieldGainHi}{281}
 
 % ---- data/cost.json : CPU metric evaluations per pixel, mean
 \newcommand{\costScenes}{7}
@@ -101,6 +104,13 @@
 \newcommand{\fidOursWorst}{13.8}
 
 % ---- data/saturation.json : the interval-width sweep
+\newcommand{\satCapSettings}{1{,}170}
+\newcommand{\satCapMedianInk}{0.69}
+\newcommand{\satCapMinInk}{0.07}
+\newcommand{\satCapNearMarginal}{1{,}155}
+\newcommand{\satCapDriftLo}{0.93}
+\newcommand{\satCapDriftHi}{1.03}
+\newcommand{\satCapSpan}{2^{16}}
 \newcommand{\satSettings}{55{,}692}
 \newcommand{\satFitting}{45{,}774}
 \newcommand{\satFittingPct}{82}

@@ -371,6 +371,37 @@ async function runTimed(pipeline, bind, count, opts = {}) {
     device.queue.submit([enc.finish()]);
   };
 
+  /**
+   * `n` dispatches under one timestamp span, as separate compute passes in one
+   * encoder so each still carries the barrier a separate submission would.
+   *
+   * Timing a single dispatch is only meaningful well above the counter's tick, and
+   * on Apple parts that tick is 65.5 us. The solver's fast cells run in 0.2 ms, so
+   * a single-dispatch measurement resolved them to about three ticks and reported
+   * one of two quantised values -- samples of [0.13, 0.2, 0.2, 0.2, 0.2], a 0.07 ms
+   * step that is exactly one tick. Those cells are the shipped solver's own
+   * numbers, so the quantisation landed on the speed-ups the abstract quotes.
+   * Spanning `n` of them divides the tick by `n`.
+   */
+  const dispatchSpan = (n) => {
+    const enc = device.createCommandEncoder();
+    for (let i = 0; i < n; i++) {
+      const stamps = {};
+      if (i === 0) stamps.beginningOfPassWriteIndex = 0;
+      if (i === n - 1) stamps.endOfPassWriteIndex = 1;
+      const pass = enc.beginComputePass(
+        i === 0 || i === n - 1 ? { timestampWrites: { querySet, ...stamps } } : {}
+      );
+      pass.setPipeline(pipeline);
+      pass.setBindGroup(0, bind);
+      pass.dispatchWorkgroups(groups);
+      pass.end();
+    }
+    enc.resolveQuerySet(querySet, 0, 2, resolveBuf, 0);
+    enc.copyBufferToBuffer(resolveBuf, 0, readBuf, 0, 16);
+    device.queue.submit([enc.finish()]);
+  };
+
   for (let i = 0; i < warm; i++) dispatch(false);
   await device.queue.onSubmittedWorkDone();
 
@@ -381,12 +412,12 @@ async function runTimed(pipeline, bind, count, opts = {}) {
 
   let passMs = null;
   if (hasTimestamps) {
-    dispatch(true);
+    dispatchSpan(reps);
     await device.queue.onSubmittedWorkDone();
     await readBuf.mapAsync(GPUMapMode.READ);
     const stamps = new BigUint64Array(readBuf.getMappedRange().slice(0));
     readBuf.unmap();
-    passMs = Number(stamps[1] - stamps[0]) / 1e6;
+    passMs = Number(stamps[1] - stamps[0]) / 1e6 / reps;
     // Millions of invocations never take zero ticks, so an empty delta means the
     // pass was dropped rather than fast.
     if (passMs === 0) throw new Error('probe: timestamp delta of zero, the pass did not run');
