@@ -111,7 +111,7 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
   // Bytes and pixels of the preview PNG, which is this content at this aspect —
   // the only honest basis for guessing what a folder of PNGs will weigh.
   const pngSample = useRef<{ bytes: number; pixels: number } | null>(null);
-  const [encodable, setEncodable] = useState<Set<VideoFormat>>(new Set());
+  const [encodable, setEncodable] = useState<Set<VideoFormat> | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [progress, setProgress] = useState<RecordProgress | null>(null);
   const [status, setStatus] = useState<{ text: string; error: boolean } | null>(null);
@@ -189,13 +189,20 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Finding out costs a real encode, so it happens when the settings settle
+  // rather than on every keystroke, and null means "not known yet" rather than
+  // "none" -- greying every format out while checking would be a lie.
   useEffect(() => {
     let live = true;
-    void encodableFormats(videoHeight, aspect || canvasAspect, fps).then((set) => {
-      if (live) setEncodable(set);
-    });
+    setEncodable(null);
+    const timer = setTimeout(() => {
+      void encodableFormats(videoHeight, aspect || canvasAspect, fps).then((set) => {
+        if (live) setEncodable(set);
+      });
+    }, 200);
     return () => {
       live = false;
+      clearTimeout(timer);
     };
   }, [videoHeight, aspect, canvasAspect, fps]);
 
@@ -268,8 +275,14 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
       }
     } catch (err) {
       console.error(err);
+      const flush = err instanceof Error && /flush/i.test(err.message);
       setStatus({
-        text: err instanceof Error ? err.message : 'The recording failed.',
+        text: flush
+          ? `The encoder gave up on ${videoSize?.width}×${videoSize?.height} at ${fps} a second. ` +
+            `Drop the rate or the size and try again.`
+          : err instanceof Error
+            ? err.message
+            : 'The recording failed.',
         error: true,
       });
     } finally {
@@ -292,6 +305,12 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
     const bpp = measured.current[format] ?? FIRST_GUESS_BPP[format] ?? 1;
     return (bpp * videoSize.width * videoSize.height * frames) / 8;
   })();
+
+  // A format greyed out in the row above is still the one selected, and a record
+  // button that stays live over it is an invitation to the failure this check
+  // exists to prevent.
+  const refused = format !== 'frames' && !!encodable && !encodable.has(format);
+  const alternative = VIDEO_FORMATS.find((f) => encodable?.has(f.id));
 
   const btn =
     'grid size-7 place-items-center rounded-md text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] disabled:opacity-30';
@@ -453,10 +472,10 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
                 type="button"
                 className={chip(format === f.id)}
                 onClick={() => setFormat(f.id)}
-                disabled={encodable.size > 0 && !encodable.has(f.id)}
+                disabled={!!encodable && !encodable.has(f.id)}
                 title={
-                  encodable.size > 0 && !encodable.has(f.id)
-                    ? `This browser cannot encode ${f.label} at this size`
+                  encodable && !encodable.has(f.id)
+                    ? `This machine will not encode ${f.label} at this size and rate`
                     : `A single ${f.label} file`
                 }
               >
@@ -485,6 +504,23 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
             </>
           )}
         </div>
+
+        {videoSize && encodable === null && (
+          <p className="text-[9px] leading-[1.4] text-[var(--text-muted)]">
+            Checking what this machine will encode at {videoSize.width}×{videoSize.height},
+            {' '}{fps} a second…
+          </p>
+        )}
+
+        {refused && videoSize && (
+          <p className="text-[10px] leading-[1.4] text-[#c0392b]">
+            This machine will not encode {format.toUpperCase()} at {videoSize.width}×
+            {videoSize.height}, {fps} a second.{' '}
+            {alternative
+              ? `${alternative.label} will, or drop the rate.`
+              : 'Drop the rate or the size — 4K tends to stop above 60.'}
+          </p>
+        )}
 
         {videoSize && videoSize.height !== videoHeight && (
           <p className="text-[9px] leading-[1.4] text-[var(--text-muted)]">
@@ -533,7 +569,7 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
             type="button"
             className={button}
             onClick={() => void record()}
-            disabled={!directoryPickerAvailable()}
+            disabled={refused || (format === 'frames' && !directoryPickerAvailable())}
             title={
               directoryPickerAvailable()
                 ? 'Choose a folder; one PNG per frame is written into it'

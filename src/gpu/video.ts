@@ -101,11 +101,80 @@ export function videoFrameSize(
 }
 
 /**
- * Which of them this browser can actually encode. Asked rather than assumed:
- * hardware support for H.264 in particular is not universal, and a format that
- * cannot be encoded should be greyed out before a take rather than failing
- * after one.
+ * Whether this machine will really encode that configuration, found out by
+ * encoding it.
+ *
+ * Asking is not enough. Chrome's VideoEncoder.isConfigSupported returns true for
+ * H.264 at 3840x2160 and 120 frames a second, and the encoder then fails part
+ * way through a take with "Flushing error" -- a message from Chromium, not from
+ * the muxer, and one that names the flush rather than the cause. The capability
+ * API describes the codec; the hardware has its own opinion about throughput,
+ * and only the hardware knows it.
+ *
+ * So six frames are actually encoded, at the real size, rate and quality, into a
+ * buffer that is thrown away. A configuration this machine cannot manage fails
+ * here in about fifty milliseconds instead of half way through a recording, and
+ * the answer is cached because it cannot change while the page is open.
  */
+const probes = new Map<string, Promise<boolean>>();
+
+const PROBE_FRAMES = 6;
+
+async function probe(info: VideoFormatInfo, width: number, height: number, fps: number) {
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return false;
+
+  const output = new Output({
+    format: info.id === 'mp4' ? new Mp4OutputFormat() : new WebMOutputFormat(),
+    target: new BufferTarget(),
+  });
+  const source = new CanvasSource(canvas, { codec: info.codec, quality: QUALITY });
+  output.addVideoTrack(source, { frameRate: fps });
+
+  try {
+    await output.start();
+    for (let i = 0; i < PROBE_FRAMES; i++) {
+      // Not a blank frame: an encoder can accept flat colour and refuse detail,
+      // and this tool draws nothing but detail.
+      ctx.fillStyle = i % 2 ? '#ffffff' : '#000000';
+      ctx.fillRect(0, 0, width, height);
+      ctx.fillStyle = '#808080';
+      for (let k = 0; k < 64; k++) ctx.fillRect(((k * 97) % width), 0, 2, height);
+      await source.add(i / fps, 1 / fps);
+    }
+    await output.finalize();
+    return true;
+  } catch {
+    await output.cancel().catch(() => {});
+    return false;
+  }
+}
+
+export function encodable(format: VideoFormat, width: number, height: number, fps: number) {
+  const info = VIDEO_FORMATS.find((f) => f.id === format) ?? VIDEO_FORMATS[0];
+  const key = `${format}:${width}x${height}@${fps}`;
+  let hit = probes.get(key);
+  if (!hit) {
+    hit = (async () => {
+      try {
+        // The cheap question first, since it is memoized and instant, and its
+        // "no" is trustworthy even though its "yes" is not.
+        if (!(await canEncodeVideo(info.codec, { width, height, framerate: fps, quality: QUALITY }))) {
+          return false;
+        }
+      } catch {
+        return false;
+      }
+      return probe(info, width, height, fps);
+    })();
+    probes.set(key, hit);
+  }
+  return hit;
+}
+
 export async function encodableFormats(
   height: number,
   aspect: number,
@@ -114,19 +183,8 @@ export async function encodableFormats(
   const out = new Set<VideoFormat>();
   await Promise.all(
     VIDEO_FORMATS.map(async (f) => {
-      try {
-        // Asked about the configuration that will actually be used -- the size,
-        // the rate and the quality. Asking with the library's defaults instead
-        // answers a different question, and answers it yes while the real
-        // configuration is refused: a codec available at 1080p can be refused at
-        // 4K, and one available at 30 refused at 120.
-        const size = videoFrameSize(f.id, height, aspect);
-        if (await canEncodeVideo(f.codec, { ...size, framerate: fps, quality: QUALITY })) {
-          out.add(f.id);
-        }
-      } catch {
-        // An unsupported codec throws rather than answering; same conclusion.
-      }
+      const size = videoFrameSize(f.id, height, aspect);
+      if (await encodable(f.id, size.width, size.height, fps)) out.add(f.id);
     })
   );
   return out;
