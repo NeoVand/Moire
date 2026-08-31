@@ -403,6 +403,85 @@ export const cases = [
       view(ENVELOPE)
     ),
   },
+  // ---- higher-order beats: the reduction scan's reason to exist ----
+  // Line families at a 3:1 pitch ratio and a 2° twist. The visible fringe is
+  // the (3,-1) character, which no |k| <= 2 enumeration contains: the capped
+  // scan held a phantom (2,-1) schedule and washed the true fringe out of
+  // the envelope, declared "no fringe" in the ratio map while fringes stood
+  // in the render, and drew no contour. The per-pixel Gauss reduction finds
+  // (3,-1) exactly; these three views each guard one consumer of the winner.
+  {
+    name: 'pitch-3to1-envelope',
+    coords: [1, 1],
+    note: 'lines at 3:1 pitch — the (3,-1) fringe must survive the average',
+    scene: scene(
+      [
+        layer('a', { type: 'straight-lines', spacing: 15, thickness: 3 }),
+        layer('b', { type: 'straight-lines', spacing: 5, thickness: 2, rotation: 2 }),
+      ],
+      view(ENVELOPE)
+    ),
+  },
+  {
+    name: 'pitch-3to1-contours',
+    coords: [1, 1],
+    note: 'lines at 3:1 pitch — contours must draw the (3,-1) skeleton',
+    scene: scene(
+      [
+        layer('a', { type: 'straight-lines', spacing: 15, thickness: 3 }),
+        layer('b', { type: 'straight-lines', spacing: 5, thickness: 2, rotation: 2 }),
+      ],
+      view(CONTOURS)
+    ),
+  },
+  {
+    name: 'pitch-3to1-ratio',
+    coords: [1, 1],
+    note: 'lines at 3:1 pitch — the map must darken along the (3,-1) beat',
+    scene: scene(
+      [
+        layer('a', { type: 'straight-lines', spacing: 15, thickness: 3 }),
+        layer('b', { type: 'straight-lines', spacing: 5, thickness: 2, rotation: 2 }),
+      ],
+      view({ ratio: true })
+    ),
+  },
+  // The deep end of the ladder: 5:2 pitch, a 1° twist, and thicknesses that
+  // keep the fifth and second harmonics strong (duty 0.12 and 0.25 — a duty
+  // of 1/2 on layer b would null the second harmonic and the beat with it).
+  // The winner is (5,-2): reduction reaches it in two steps. The physical
+  // mean here carries a second, faster beat — (2,-1) at fifty units, forced
+  // by the ratio itself — and a one-character sweep must wash it; the
+  // contrast and tap dials are raised so the held (5,-2) fringe is legible
+  // in the golden over the rate-5 schedule's sampling residue.
+  {
+    name: 'pitch-5to2-envelope',
+    coords: [1, 1],
+    note: 'lines at 5:2 pitch — the (5,-2) fringe must survive the average',
+    scene: scene(
+      [
+        layer('a', { type: 'straight-lines', spacing: 25, thickness: 3 }),
+        layer('b', { type: 'straight-lines', spacing: 10, thickness: 2.5, rotation: 1 }),
+      ],
+      view({ envelope: true, envelopeContrast: 6, envelopeTaps: 48 })
+    ),
+  },
+  // Ring families at 3:1 pitch with offset centres: the local gradient pair,
+  // and with it the (3,-1) merit, varies over the frame, so this map golden
+  // guards the per-pixel-ness of the reduction — a global character choice
+  // (or the old cap) cannot reproduce its structure.
+  {
+    name: 'rings-3to1-ratio',
+    coords: [1, 1],
+    note: 'offset ring families at 3:1 — the map structure is per-pixel reduction',
+    scene: scene(
+      [
+        layer('a', { type: 'concentric-circles', spacing: 7.5, thickness: 2, position: { x: -40 } }),
+        layer('b', { type: 'concentric-circles', spacing: 2.5, thickness: 1.2, position: { x: 40 } }),
+      ],
+      view({ ratio: true })
+    ),
+  },
 
   // ---- curves ----
   {
@@ -438,6 +517,42 @@ export const cases = [
     scene: scene(
       [
         layer('a', { type: 'straight-lines', field: { source: GAUSS, amount: 5, scale: 180 } }),
+        layer('b', { type: 'straight-lines' }),
+      ],
+      view(ENVELOPE)
+    ),
+  },
+  // A circle-valued field mints a defect: theta/tau at amount 5 is a
+  // charge-5 fork — five extra members fan out of the origin, and the
+  // fringe field against the plain twin is five fringes ENDING at the
+  // defect, which no exact (single-valued) field can draw. The winding is
+  // what paper/tools/exp/defects.mjs counts; these two goldens pin the
+  // drawing (the fork grating) and the envelope (fringes that end).
+  {
+    name: 'line-fork-render',
+    coords: [1, 1],
+    note: 'theta/tau at amount 5 — the charge-5 fork grating, plain render',
+    scene: scene(
+      [
+        layer('a', {
+          type: 'straight-lines',
+          field: { source: 'theta / tau', amount: 5, scale: 200 },
+        }),
+        layer('b', { type: 'straight-lines' }),
+      ],
+      view()
+    ),
+  },
+  {
+    name: 'line-fork-envelope',
+    coords: [1, 1],
+    note: 'the fork pair enveloped — five fringes ending at the defect',
+    scene: scene(
+      [
+        layer('a', {
+          type: 'straight-lines',
+          field: { source: 'theta / tau', amount: 5, scale: 200 },
+        }),
         layer('b', { type: 'straight-lines' }),
       ],
       view(ENVELOPE)

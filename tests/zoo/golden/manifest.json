@@ -8,7 +8,7 @@
     "width": 640,
     "height": 480
   },
-  "updatedAt": "2026-08-31T21:05:47.074Z",
+  "updatedAt": "2026-08-31T22:39:54.199Z",
   "cases": {
     "tiling-kagome": {
       "coords": [
@@ -183,6 +183,55 @@
       ],
       "note": "mixed classes: a line family against a ring family"
     },
+    "rings-sum-handover": {
+      "coords": [
+        1,
+        1
+      ],
+      "note": "equal-pitch rings — the sum eye must fade into the ray fan seamlessly"
+    },
+    "walk-pair-envelope": {
+      "coords": [
+        1,
+        1
+      ],
+      "note": "two walking circle families — schedule boundaries must not stipple"
+    },
+    "pitch-3to1-envelope": {
+      "coords": [
+        1,
+        1
+      ],
+      "note": "lines at 3:1 pitch — the (3,-1) fringe must survive the average"
+    },
+    "pitch-3to1-contours": {
+      "coords": [
+        1,
+        1
+      ],
+      "note": "lines at 3:1 pitch — contours must draw the (3,-1) skeleton"
+    },
+    "pitch-3to1-ratio": {
+      "coords": [
+        1,
+        1
+      ],
+      "note": "lines at 3:1 pitch — the map must darken along the (3,-1) beat"
+    },
+    "pitch-5to2-envelope": {
+      "coords": [
+        1,
+        1
+      ],
+      "note": "lines at 5:2 pitch — the (5,-2) fringe must survive the average"
+    },
+    "rings-3to1-ratio": {
+      "coords": [
+        1,
+        1
+      ],
+      "note": "offset ring families at 3:1 — the map structure is per-pixel reduction"
+    },
     "wave-pair-envelope": {
       "coords": [
         1,
@@ -203,6 +252,20 @@
         1
       ],
       "note": "a Gaussian-warped line family against a plain twin, enveloped"
+    },
+    "line-fork-render": {
+      "coords": [
+        1,
+        1
+      ],
+      "note": "theta/tau at amount 5 — the charge-5 fork grating, plain render"
+    },
+    "line-fork-envelope": {
+      "coords": [
+        1,
+        1
+      ],
+      "note": "the fork pair enveloped — five fringes ending at the defect"
     },
     "line-field-contours": {
       "coords": [
@@ -294,20 +357,6 @@
         2
       ],
       "note": "the eta map of a square-lattice twist pair — matched dual-ring families beat slowly everywhere, so the map reads uniformly deep in the fringe regime"
-    },
-    "rings-sum-handover": {
-      "coords": [
-        1,
-        1
-      ],
-      "note": "equal-pitch rings — the sum eye must fade into the ray fan seamlessly"
-    },
-    "walk-pair-envelope": {
-      "coords": [
-        1,
-        1
-      ],
-      "note": "two walking circle families — schedule boundaries must not stipple"
     }
   }
 }

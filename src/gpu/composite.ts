@@ -636,12 +636,15 @@ function solveLayers(slots, fields, view, world, pixel) {
 // kA*phiA + kB*phiB that varies slowly against the carriers, so each
 // candidate character k gets eta_k = |kA gA + kB gB| / (|kA gA - kB gB| / 2)
 // -- beat gradient over the mean gradient of the carriers in the labeling
-// that brings them close -- and the criterion is the minimum over a small
-// character set. (1,-1) and (1,1) are the classical difference and sum
-// moires; the |k| = 2 pairs are the second-order beats, e.g. two line
-// families near a 2:1 pitch ratio beating in 2*phi1 - phi2, which a
-// first-order-only criterion declares "no fringe" while the fringe stands
-// in the render. eta << 1 is the fringe regime; past 1/4 no fringe forms.
+// that brings them close -- times the amplitude weight |kA kB| (a beat at
+// (kA, kB) rides one layer's |kA|-th harmonic and the other's |kB|-th, and
+// a stroke profile's harmonics decay like 1/m, so the weight is what makes
+// "slowest visible beat" well-posed: unweighted, good rational
+// approximations exist at every order and the minimum favours beats no ink
+// can carry). The criterion is the minimum weighted merit over the
+// candidates. (1,-1) and (1,1) are the classical difference and sum moires
+// at weight 1, exactly as before; higher orders pay their weight. The
+// merit << 1 is the fringe regime; past 1/4 no fringe forms.
 function scanCharacters(view, solved, latGrads) {
   const xiA = float(0).toVar();
   const xiB = float(0).toVar();
@@ -685,23 +688,38 @@ function scanCharacters(view, solved, latGrads) {
   const gradA = mix(vec2(unwrap(dFdx(xiA)), unwrap(dFdy(xiA))), sgA, okA);
   const gradB = mix(vec2(unwrap(dFdx(xiB)), unwrap(dFdy(xiB))), sgB, okB);
   const gradC = mix(vec2(unwrap(dFdx(xiC)), unwrap(dFdy(xiC))), sgC, okC);
-  // Primitive characters with |k| <= 2, scanned over every pair among the
-  // three ranked layers. On K layers the superposition lives on T^K and the
-  // characters are k in Z^K; the diagonal sweep w = (1,...,1) preserves the
-  // whole zero-sum sublattice (k summing to zero) at once — every pairwise
+  // Candidate characters, scanned over every pair among the three ranked
+  // layers. On K layers the superposition lives on T^K and the characters
+  // are k in Z^K; the diagonal sweep w = (1,...,1) preserves the whole
+  // zero-sum sublattice (k summing to zero) at once — every pairwise
   // difference and every zero-sum ternary beat — so those need no schedule
   // at all, and every unranked layer rides the diagonal. What needs a
   // deviation is a winning character that is NOT zero-sum (a sum beat, a
-  // second-order beat): its pair takes the rates (wP, wQ) with
+  // higher-order beat): its pair takes the rates (wP, wQ) with
   // kP wP + kQ wQ = 0 while everything else stays at 1. Scanning only one
   // pair chose that deviation blind: a sum beat between the top two layers
   // would scramble a slower difference beat the second layer makes with the
   // THIRD — the fringe stood in the render and washed from the view. The
-  // scan now compares all three pairs and deviates only for the global
-  // winner. Higher orders exist classically but their fringes are fainter
-  // (the profile's harmonic content decays), so the scan stops where the
-  // eye does.
-  const CHARACTERS = [
+  // scan compares all three pairs and deviates only for the global winner.
+  //
+  // The candidates are NOT an order cap. A |k| <= 2 enumeration missed a
+  // fifth of the visible fringes in random carrier pairs (858 of 4000,
+  // clustering at pitch ratios near 3 — paper/tools/exp/convergents.mjs):
+  // two line families at 3:1 beat in (3,-1), which no small cap contains,
+  // so the envelope held a phantom (2,-1) schedule and washed a fringe that
+  // stood plainly in the render. The slowest character at ANY order is the
+  // shortest vector of the 2D lattice {a gP + b gQ}, and Lagrange-Gauss
+  // reduction finds it in a handful of iterations — the 2D form of reading
+  // a continued fraction's convergents, which is exactly what the visible
+  // beat hierarchy is in 1D. The scan therefore reduces the pair's gradient
+  // lattice per pixel (integer coordinates carried along in floats) and
+  // scans the reduced short vector s plus the window {i s + j t : |i| <= 3,
+  // j in {1, 2}} under the amplitude weight — the weighted winner is not
+  // always a shortest vector, because a longer lattice vector can carry
+  // smaller integer coordinates, and the second row is what catches those
+  // (1 miss in 4000 with it, 5 without). The old six stay as a compile-time
+  // floor so no degenerate reduction can ever do worse than the cap did.
+  const SHIPPED = [
     [1, -1],
     [1, 1],
     [2, -1],
@@ -718,10 +736,17 @@ function scanCharacters(view, solved, latGrads) {
   const bGate = float(1).sub(validB).mul(1e5);
   const validC = step(float(-0.5), float(view.ratioC));
   const cGate = float(1).sub(validC).mul(1e5);
+  // `ok` is the pair's licence to reduce: 1 only when BOTH gradients are
+  // analytic. A walking family's gradient is a per-quad dFdx sample, and the
+  // reduction takes gradients seriously enough to be poisoned by that noise:
+  // two noisy vectors accidentally near-parallel read as a slow high-order
+  // character, the schedule deviates to hold it, and the true first-order
+  // fringe washes out in quad-sized patches. Walking pairs keep the
+  // compile-time floor, which never reaches past order two.
   const PAIRS = [
-    { gP: gradA, gQ: gradB, xP: xiA, xQ: xiB, gate: bGate, who: 0 },
-    { gP: gradA, gQ: gradC, xP: xiA, xQ: xiC, gate: cGate, who: 1 },
-    { gP: gradB, gQ: gradC, xP: xiB, xQ: xiC, gate: cGate, who: 2 },
+    { gP: gradA, gQ: gradB, xP: xiA, xQ: xiB, gate: bGate, who: 0, ok: okA.mul(okB) },
+    { gP: gradA, gQ: gradC, xP: xiA, xQ: xiC, gate: cGate, who: 1, ok: okA.mul(okC) },
+    { gP: gradB, gQ: gradC, xP: xiB, xQ: xiC, gate: cGate, who: 2, ok: okB.mul(okC) },
   ];
   const etaBest = float(1e6).toVar();
   const pickBest = float(1e6).toVar();
@@ -741,47 +766,118 @@ function scanCharacters(view, solved, latGrads) {
   // centres, and the rate turns a phase residual into screen pixels.
   const beatVal = float(0).toVar();
   const beatRate = float(0).toVar();
-  PAIRS.forEach(({ gP, gQ, xP, xQ, gate, who }) => {
-    CHARACTERS.forEach(([ka, kb]) => {
-      const beat = gP.mul(ka).add(gQ.mul(kb));
-      const carrier = gP.mul(ka).sub(gQ.mul(kb));
-      const e = length(beat)
-        .div(max(length(carrier).mul(0.5), float(1e-6)))
-        .add(gate);
-      const wP = Math.abs(kb);
-      const wQ = kb < 0 ? ka : -ka;
-      If(e.lessThan(etaBest), () => etaBest.assign(e));
-      // The heat map shows the true minimum, but the sweep-character choice
-      // penalises order two: a second-order fringe rides second harmonics,
-      // so its contrast is lower by roughly |cos(pi*duty)| and a near-tie
-      // should resolve toward the first-order beat -- also keeps the
-      // per-pixel choice from flickering between characters of comparable
-      // slowness. A zero-sum winner leaves every rate at 1, so ties among
-      // zero-sum characters cost nothing whichever way they fall.
-      const order2 = Math.max(Math.abs(ka), Math.abs(kb)) > 1;
-      const ep = order2 ? e.mul(1.5) : e;
-      if (ka + kb === 0) {
-        If(ep.lessThan(zeroBest), () => zeroBest.assign(ep));
-      }
-      const rA = who === 2 ? 1 : wP;
-      const rB = who === 0 ? wQ : who === 2 ? wP : 1;
-      const rC = who === 0 ? 1 : wQ;
-      If(ep.lessThan(pickBest), () => {
-        pickBest.assign(ep);
-        rateA.assign(rA);
-        rateB.assign(rB);
-        rateC.assign(rC);
-        beatVal.assign(xP.mul(ka).add(xQ.mul(kb)));
+  PAIRS.forEach(({ gP, gQ, xP, xQ, gate, who, ok }) => {
+    // One candidate (a, b): its merit joins the heat map (wMap), and the
+    // zero-sum ledger and the pick (wPick). Everything is sign-invariant —
+    // (a, b) and (-a, -b) are the same character, and the merit, the
+    // weight, the rates, and the contour residual all survive the flip —
+    // so candidates need no canonical sign. `skip` pushes a candidate out
+    // (a zero coordinate is one layer's own carrier, not a beat). The
+    // weight doubles as the near-tie resolver the old 1.5 penalty was:
+    // comparable slowness resolves toward the lower order, whose ink
+    // carries more contrast, and the per-pixel choice cannot flicker
+    // between them.
+    const consider = (a, b, beat, wMap, wPick, skip) => {
+      const carrier = gP.mul(a).sub(gQ.mul(b));
+      const eRaw = length(beat).div(max(length(carrier).mul(0.5), float(1e-6)));
+      const eMap = eRaw.mul(wMap).add(gate).add(skip).toVar();
+      const ePick = eRaw.mul(wPick).add(gate).add(skip).toVar();
+      If(eMap.lessThan(etaBest), () => etaBest.assign(eMap));
+      If(ePick.lessThan(zeroBest).and(a.add(b).abs().lessThan(0.5)), () =>
+        zeroBest.assign(ePick)
+      );
+      // The schedule that holds (a, b) fixed: wP a + wQ b = 0.
+      const wP = b.abs();
+      const wQ = a.negate().mul(b.sign());
+      If(ePick.lessThan(pickBest), () => {
+        pickBest.assign(ePick);
+        rateA.assign(who === 2 ? float(1) : wP);
+        rateB.assign(who === 0 ? wQ : who === 2 ? wP : float(1));
+        rateC.assign(who === 0 ? float(1) : wQ);
+        beatVal.assign(xP.mul(a).add(xQ.mul(b)));
         beatRate.assign(length(beat));
       });
+    };
+
+    // The compile-time floor. On an analytic pair its order-two entries pay
+    // the same |a b| weight the window candidates do (one merit currency,
+    // so the argmin is coherent); on a walking pair — dFdx gradients — the
+    // weight blends back to the old tuned behaviour, raw eta on the heat
+    // map and a 1.5 pick penalty, which those gradients were tuned against
+    // (the weight bump alone stippled walk-pair-envelope's handover rims).
+    // First-order entries weigh 1 under both regimes.
+    SHIPPED.forEach(([ka, kb]) => {
+      const w = Math.abs(ka * kb);
+      const pen = Math.max(Math.abs(ka), Math.abs(kb)) > 1 ? 1.5 : 1;
+      consider(
+        float(ka),
+        float(kb),
+        gP.mul(ka).add(gQ.mul(kb)),
+        mix(float(1), float(w), ok),
+        mix(float(pen), float(w), ok),
+        float(0)
+      );
     });
+
+    // Lagrange-Gauss reduction of the pair's gradient lattice, the integer
+    // coordinates carried along in floats (exact far past any weight the
+    // scan keeps). Eight steps unrolled: once a step's remainder fails to
+    // shrink, every later step recomputes and rejects the same remainder,
+    // so the unroll needs no done flag. The quotient clamp keeps a
+    // degenerate pair (an absent slot's zero gradient, a near-flat layer)
+    // finite; its candidates then lose on the gates.
+    const uV = vec2(0).toVar();
+    const uK = vec2(0).toVar();
+    const wV = vec2(0).toVar();
+    const wK = vec2(0).toVar();
+    If(gP.dot(gP).lessThan(gQ.dot(gQ)), () => {
+      uV.assign(gQ);
+      uK.assign(vec2(0, 1));
+      wV.assign(gP);
+      wK.assign(vec2(1, 0));
+    }).Else(() => {
+      uV.assign(gP);
+      uK.assign(vec2(1, 0));
+      wV.assign(gQ);
+      wK.assign(vec2(0, 1));
+    });
+    for (let it = 0; it < 8; it += 1) {
+      const mu = round(uV.dot(wV).div(max(wV.dot(wV), float(1e-12)))).clamp(-64, 64);
+      const rV = uV.sub(wV.mul(mu)).toVar();
+      const rK = uK.sub(wK.mul(mu)).toVar();
+      If(rV.dot(rV).lessThan(wV.dot(wV)), () => {
+        uV.assign(wV);
+        uK.assign(wK);
+        wV.assign(rV);
+        wK.assign(rK);
+      });
+    }
+
+    // The short vector s and the two-row window {i s + j t}. The beat
+    // vector comes straight from the reduced basis — the cancellation is
+    // already done, which is what f32 wants — while the carrier and the
+    // contour value are formed from the integer coordinates.
+    const windowCand = (i, j) => {
+      const a = wK.x.mul(i).add(uK.x.mul(j));
+      const b = wK.y.mul(i).add(uK.y.mul(j));
+      const nz = step(float(0.5), a.abs()).mul(step(float(0.5), b.abs())).mul(ok);
+      const wgt = a.abs().mul(b.abs());
+      consider(a, b, wV.mul(i).add(uV.mul(j)), wgt, wgt, float(1).sub(nz).mul(1e5));
+    };
+    windowCand(1, 0);
+    for (let j = 1; j <= 2; j += 1) {
+      for (let i = -3; i <= 3; i += 1) windowCand(i, j);
+    }
   });
   // Zero-sum ternary characters — beats BETWEEN beats, like (1,1,-2) slow
   // where 2/s3 = 1/s1 + 1/s2 and the three directions conspire. They join
   // the scan for the heat map's sake; as zero-sum characters they already
   // ride the diagonal, so a ternary winner asks for no rate deviation at
-  // all, and the same 1.5 penalty as order two keeps near-ties with a
-  // first-order pairwise beat resolving toward the stronger fringe.
+  // all. On an analytic trio their amplitude weight is |ka kb kc| = 2, the
+  // same currency the pairwise candidates pay; on a walking trio the blend
+  // falls back to the old raw map entry and 1.5 pick penalty, like the
+  // pairwise floor.
+  const okT = okA.mul(okB).mul(okC);
   const TERNARY = [
     [1, 1, -2],
     [1, -2, 1],
@@ -793,13 +889,13 @@ function scanCharacters(view, solved, latGrads) {
       length(gradA).mul(Math.abs(ka)),
       max(length(gradB).mul(Math.abs(kb)), length(gradC).mul(Math.abs(kc)))
     );
-    const e = length(beat)
-      .div(max(carrier.mul(0.5), float(1e-6)))
-      .add(cGate);
-    If(e.lessThan(etaBest), () => etaBest.assign(e));
-    If(e.mul(1.5).lessThan(zeroBest), () => zeroBest.assign(e.mul(1.5)));
-    If(e.mul(1.5).lessThan(pickBest), () => {
-      pickBest.assign(e.mul(1.5));
+    const eRaw = length(beat).div(max(carrier.mul(0.5), float(1e-6)));
+    const eMap = eRaw.mul(mix(float(1), float(2), okT)).add(cGate).toVar();
+    const ePick = eRaw.mul(mix(float(1.5), float(2), okT)).add(cGate).toVar();
+    If(eMap.lessThan(etaBest), () => etaBest.assign(eMap));
+    If(ePick.lessThan(zeroBest), () => zeroBest.assign(ePick));
+    If(ePick.lessThan(pickBest), () => {
+      pickBest.assign(ePick);
       rateA.assign(1);
       rateB.assign(1);
       rateC.assign(1);
@@ -818,8 +914,8 @@ function scanCharacters(view, solved, latGrads) {
   // fade lives inside the band where both beats are comparably visible.
   //
   // The second factor retires the deviation as the winner itself stops
-  // making fringes. A sum or second-order beat can keep winning while its
-  // own eta climbs well past the threshold — its "fringes" are then a bare
+  // making fringes. A sum or higher-order beat can keep winning while its
+  // own merit climbs well past the threshold — its "fringes" are then a bare
   // carrier or two wide, and holding the schedule for them paints an annulus
   // of hash that ends in a hard rim where the pick finally flips (two
   // displaced ring families drew that rim around their midpoint). There the
