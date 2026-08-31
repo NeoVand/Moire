@@ -1,0 +1,23 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>Moire GPU bench</title>
+<!--
+  A deliberately empty page on the dev server's origin, for the timing harness.
+
+  The measurements were being taken with the Studio open, which drives its own
+  WebGPU render loop continuously: the probe was timing its passes against a
+  compositor and a renderer competing for the same device. That showed up as
+  repeat-to-repeat spread larger than the effects the ablation table reports, and
+  as probe.mjs's zero-delta guard firing outright on a starved pass. Nothing is
+  loaded here but the harness, so the device is idle between passes.
+
+  Serve the repo (npm run dev) and open /paper/tools/gpu/bench.html.
+-->
+<style>
+  body { font: 13px/1.5 ui-monospace, monospace; margin: 2rem; color: #15181c; }
+  #log { white-space: pre-wrap; }
+</style>
+<body>
+  <p>GPU bench page. Nothing renders here on purpose &mdash; run the harness from the console.</p>
+  <div id="log"></div>
+</body>

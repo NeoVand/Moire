@@ -63,17 +63,35 @@ const EXPECT = {
   'no Lipschitz skip': { atMost: 1.1 },
 };
 
+// 3.84 megapixels of solver work, which is what the table's caption quotes. It is
+// also what keeps the two translated columns measurable: at a quarter of this they
+// finish in about 0.16 ms, and the timestamp counter on Apple parts ticks every
+// 65.5 us, so the ratios there were dominated by the tick rather than by the
+// mechanism -- the first run at 1200x800 reported a spread of 867%.
+const FRAME = { width: 2400, height: 1600 };
 const REPS = 32;
-// The whole matrix, several times. A single pass is not a measurement: on a busy
-// machine the ratios here moved by more than the effects the table reports, and
-// probe.mjs's zero-delta guard fires outright when a pass is starved. Taking the
-// median of REPEATS passes and publishing the spread makes both problems visible
-// instead of silent.
+// The whole matrix, several times, reduced by MINIMUM rather than by median.
+//
+// Contention can only ever add time to a pass, never remove it, so the fastest of
+// several repeats is the one least contaminated by everything else on the machine
+// -- the standard reduction for a microbenchmark, and the right one here. The
+// evidence that it is right is in the data: across every cell of a five-repeat run
+// the median was exactly equal to the minimum while the maxima ranged up to 4.5x
+// it, which is the signature of a few preempted passes rather than of a noisy
+// quantity. An earlier version of this file published the median and gated on
+// max - min, and that gate was measuring contamination rather than uncertainty.
 const REPEATS = 5;
-// A starved pass throws rather than returning a fast number. Retry it a few times
-// before giving up, since the cause is usually transient contention.
-const RETRIES = 3;
+// A starved pass throws rather than returning a fast number. At this frame size a
+// long unbroken run of dispatches gets preempted often enough that this fires
+// several times an hour, so retry with a growing backoff -- the same measurement
+// succeeds on its own immediately afterwards, which is what says it is contention
+// and not a limit.
+const RETRIES = 4;
+// Yield between measurements so the compositor is not competing with the pass
+// being timed. Cheap next to the pass itself, and it is what stops most retries.
+const SETTLE_MS = 60;
 
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const median = (xs) => {
   const v = [...xs].sort((a, b) => a - b);
   const m = v.length >> 1;
@@ -83,15 +101,16 @@ const median = (xs) => {
 async function timeRetried(spec, patches, reps) {
   let last;
   for (let attempt = 0; attempt <= RETRIES; attempt++) {
+    await sleep(attempt === 0 ? SETTLE_MS : 250 * 2 ** (attempt - 1));
     try {
       return await time('final', spec, patches ? { patches, reps } : { reps });
     } catch (e) {
       last = e;
-      // Let the queue drain before trying again.
-      await new Promise((r) => setTimeout(r, 250));
     }
   }
-  throw last;
+  // Never abort the matrix over one cell: record it and let numbers.mjs refuse
+  // the table, which is a legible failure rather than a lost run.
+  return { error: String(last?.message ?? last), retries: RETRIES };
 }
 
 function specFor(key) {
@@ -107,8 +126,7 @@ function specFor(key) {
     zoom,
     accept: band.accept,
     reject: band.reject,
-    width: 1200,
-    height: 800,
+    ...FRAME,
   };
 }
 
@@ -134,11 +152,7 @@ export async function ablation(root, opts = {}) {
         // A patch that no longer matches its source is a stale experiment, not a
         // fast one. probe.mjs throws; record it rather than swallowing it, so the
         // failure reaches numbers.mjs instead of a plausible number.
-        try {
-          samples[key][label].push(await timeRetried(spec, patches, reps));
-        } catch (e) {
-          samples[key][label].push({ error: String(e.message ?? e) });
-        }
+        samples[key][label].push(await timeRetried(spec, patches, reps));
       }
     }
   }
@@ -152,36 +166,36 @@ export async function ablation(root, opts = {}) {
         continue;
       }
       const pass = runs.map((r) => r.passMs);
+      const lo = Math.min(...pass);
       row[label] = {
-        passMs: median(pass),
-        wallMs: median(runs.map((r) => r.wallMs)),
+        passMs: lo,
+        wallMs: Math.min(...runs.map((r) => r.wallMs)),
         megapixels: runs[0].megapixels,
-        nsPerPixel: median(runs.map((r) => r.nsPerPixel)),
-        // What the median is hiding. A spread comparable to the effect the table
-        // reports means the machine was not quiet enough to publish from.
-        samples: pass.length,
-        passMsMin: Math.min(...pass),
-        passMsMax: Math.max(...pass),
+        nsPerPixel: Math.min(...runs.map((r) => r.nsPerPixel)),
+        // Every sample, so the reduction can be audited rather than trusted.
+        samples: pass,
+        // How far the typical pass sits above the fastest one. Near zero means the
+        // minimum is well determined; large means even the fastest pass may have
+        // been sharing the device, and the number should not be published.
+        medianOverMin: Math.round((median(pass) / lo - 1) * 1e4) / 1e4,
       };
     }
     out[key] = row;
   }
   out.megapixels = out[Object.keys(SCENES)[0]].full.megapixels;
 
-  // The spread of each published ratio across the repeats, as a fraction of the
-  // ratio itself. Anything large here is a warning not to quote the table.
-  let worstSpread = 0;
+  // The gate: how far any cell's typical pass sat above its fastest. This asks
+  // whether the minimum is well determined, which is the question, rather than how
+  // badly the worst pass was preempted, which is not.
+  let worst = 0;
   for (const key of Object.keys(SCENES)) {
-    const f = out[key].full;
-    for (const label of Object.keys(ABLATIONS)) {
+    for (const label of ['full', ...Object.keys(ABLATIONS)]) {
       const r = out[key][label];
-      if (r.error || f.error) continue;
-      const rel = r.passMs / f.passMs;
-      const spread = (r.passMsMax - r.passMsMin) / f.passMs / Math.max(rel, 1e-9);
-      if (spread > worstSpread) worstSpread = spread;
+      if (!r || r.error) continue;
+      if (r.medianOverMin > worst) worst = r.medianOverMin;
     }
   }
-  out.worstRelativeSpread = Math.round(worstSpread * 1e4) / 1e4;
+  out.worstMedianOverMin = Math.round(worst * 1e4) / 1e4;
 
   // The reconstruction check.
   const row = out[RECONSTRUCTED];

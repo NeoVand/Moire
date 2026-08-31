@@ -535,13 +535,33 @@ for (let i = 0; i < depth; i++) {
 }
 writeFileSync(new URL('vector-conflation.csv', DATA), `${confCsv.join('\n')}\n`);
 
+// The same points pooled into one series. The figure plots this: which of the
+// five scenes a point came from is not the claim -- that the loss tracks how many
+// members share a pixel, on all of them, is -- and five marks with a five-entry
+// key was a worse drawing of a simpler fact.
+const pooledCsv = ['mpp,lost,scene'];
+for (const s of confBySlug) {
+  for (const r of s.rows) pooledCsv.push(`${r.membersPerPixel},${(100 * r.contrastLost).toFixed(2)},${s.slug}`);
+}
+writeFileSync(new URL('vector-pooled.csv', DATA), `${pooledCsv.join('\n')}\n`);
+
 // And the picture: what the two rules actually draw. Deliberately not the worst
 // setting measured, which is reached by fining the spacing as well as zooming out.
 // This is the scene at its own spacing, at the tool's own zoom floor -- nothing
 // unusual asked of it.
 const SHOW = { slug: 'circle-circle', scale: 1, zoom: MIN_ZOOM };
 const showScene = scaled(SCENES.find((s) => s.slug === SHOW.slug), SHOW.scale);
-const shown = conflation(showScene, SHOW.zoom, { images: true, panel: 300 });
+// 300 px across three panels printed at 239 DPI, under ACM's floor -- caught by
+// the same audit that found the other two. The zoom is a property of the scene
+// here, not of the panel, so raising this widens the view: SHOW.zoom is held and
+// the frame simply carries more pixels of the same world.
+// The strip prints at 0.685 of a 510pt text width, so 3 panels plus 2 gutters have
+// to clear 1452px to reach ACM's 300 DPI. 500 leaves margin; the first two attempts
+// (300, then 400) landed at 239 and 252 because the figure got wider at the same
+// time as the panels did.
+const SHOW_PANEL = 500;
+const SHOW_GUTTER = 10;
+const shown = conflation(showScene, SHOW.zoom, { images: true, panel: SHOW_PANEL });
 const P = shown.panel;
 // Both coverage panels get the same linear stretch, computed from the reference
 // alone: without it the fringes sit in an 8% band about mid grey and neither panel
@@ -591,11 +611,16 @@ function diffPanel(a, b) {
 const strip = tile(
   [inkPanel(shown.covTrue), inkPanel(shown.covOver), diffPanel(shown.covTrue, shown.covOver)],
   3,
-  10,
+  SHOW_GUTTER,
   255
 );
 writePng(new URL('vector-wash.png', FIGS).pathname, strip.rgb, strip.width, strip.height);
+// The fractions \panelrow needs to centre the labels under the panels, so the
+// caption's geometry is written by the same code that lays the strip out.
+const stripW = 3 * SHOW_PANEL + 2 * SHOW_GUTTER;
 out.figure = {
+  panelFraction: Math.round((SHOW_PANEL / stripW) * 1e5) / 1e5,
+  gutterFraction: Math.round((SHOW_GUTTER / stripW) * 1e5) / 1e5,
   scene: SHOW.slug,
   spacingScale: SHOW.scale,
   zoom: SHOW.zoom,

@@ -133,7 +133,11 @@ writeFileSync(
 );
 
 // Renders: shipped versus corrected, for the three families that drop the term.
-const V = view({ width: 300, height: 300, zoom: 0.62, superSample: 3 });
+// 300 px printed at 273 DPI. The world extent is held fixed by scaling the zoom
+// with the panel, so this is resolution and not a wider view.
+const GPANEL = 380;
+const GSCALE = GPANEL / 300;
+const V = view({ width: GPANEL, height: GPANEL, zoom: 0.62 * GSCALE, superSample: 3 });
 const PANELS = [
   { name: 'wave', cfg: { kind: 'wave', spacing: 16, bend: 10, frequency: 1.5, thickness: 2.4 } },
   { name: 'hyperbola', cfg: { kind: 'hyperbola', spacing: 22, phase: 10, thickness: 2.4 } },
@@ -155,7 +159,7 @@ for (const p of PANELS) {
   });
 }
 
-const both = tile([...shipped, ...corrected], 3, 10);
+const both = tile([...shipped, ...corrected], 3, Math.round(10 * GSCALE));
 writePng(new URL('gradient-compare.png', FIGS).pathname, both.rgb, both.width, both.height);
 console.log(`\nwrote figures/gradient-compare.png (${both.width}x${both.height})`);
 console.log('wrote data/gradient.json');

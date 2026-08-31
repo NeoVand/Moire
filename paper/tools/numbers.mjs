@@ -590,17 +590,21 @@ const abl = load('ablation.json');
   };
 
   // Two things this table cannot be trusted without, both learned the hard way.
-  if (abl.worstRelativeSpread === undefined) {
+  if (abl.worstMedianOverMin === undefined) {
     console.warn(
-      '  WARNING: ablation.json predates tools/gpu/ablation.mjs and carries no spread. ' +
-        'It was measured against a solver whose accept exit has since changed from a ' +
-        'return to a break, so its baselines are stale. Re-run it on a quiet machine.'
+      '  WARNING: ablation.json predates tools/gpu/ablation.mjs. It was measured ' +
+        'against a solver whose accept exit has since changed from a return to a ' +
+        'break, so its baselines are stale. Re-run tools/gpu/ablation.mjs.'
     );
-  } else if (abl.worstRelativeSpread > 0.15) {
+  } else if (abl.worstMedianOverMin > 0.1) {
+    // Each cell is the fastest of several passes, since contention only ever adds
+    // time. This asks whether that fastest pass was itself well determined: if the
+    // typical pass sat well above it, the device was shared throughout and even the
+    // minimum may carry someone else's work.
     throw new Error(
-      `ablation.json: ratios varied by up to ${pc(abl.worstRelativeSpread)}% across repeats, ` +
-        `which is the size of the effects the table reports. Re-run on a quiet machine ` +
-        `(no dev server, no browser) before quoting it.`
+      `ablation.json: the typical pass sat up to ${pc(abl.worstMedianOverMin)}% above the ` +
+        `fastest one, so the minima are not clean. Re-run tools/gpu/ablation.mjs with ` +
+        `nothing else using the GPU.`
     );
   }
   // Two decimals reads well below 10; a 90x entry does not need them.

@@ -281,44 +281,44 @@ $\vecFigInk\%$ of the ink lost, and $\vecFigContrast\%$ of the pattern.
 
 \begin{figure*}[t]
   \centering
-  \begin{subfigure}[b]{0.545\textwidth}
+  % The strip and the plot are set to one height, so the row reads as a single
+  % graphic. The strip is 3 square panels and 2 gutters, 1220px wide, so at
+  % 0.685\textwidth each panel is square and the block is 0.2246\textwidth tall;
+  % the axis box is set under that to leave room for its own labels.
+  \begin{subfigure}[t]{0.685\textwidth}
     \includegraphics[width=\linewidth]{figures/vector-wash.png}
-    \panelrow{0.32}{0.011}{%
+    \panelrow{0.32895}{0.00658}{%
       (a) union coverage,
       (b) per-path \textsc{over},
       {(c) difference, $\vecFigAmp\times$}}
-    \vspace{2pt}
   \end{subfigure}\hfill
-  \begin{subfigure}[b]{0.43\textwidth}
+  \begin{subfigure}[t]{0.30\textwidth}
     \begin{tikzpicture}
-      \begin{axis}[paperaxis, width=\linewidth, height=4.9cm,
-        xlabel={members sharing a pixel, $1/(s\,\text{zoom})$},
-        ylabel={fringe contrast lost (\%)},
-        xmode=log, xmin=0.5, xmax=12, ymin=-4, ymax=104,
-        legend style={at={(0.5,-0.42)}, anchor=north, draw=none, fill=none,
-                      /tikz/every even column/.append style={column sep=0.26cm}},
-        legend columns=3, mark size=1.9pt,
+      % The strip beside this is 0.685\textwidth of a 510pt text width at 1220:400,
+      % so its panels stand 4.03cm tall. `height` here is the axis box plus its
+      % labels, so it is set above that and only the x-label hangs below the
+      % panels' own captions. Sizes are absolute because \linewidth inside a
+      % subfigure is the subfigure's, and inheriting it made the plot a third the
+      % height of the images it sits next to.
+      \begin{axis}[paperaxis, width=5.3cm, height=5.2cm,
+        xlabel={members sharing a pixel}, ylabel={fringe contrast lost (\%)},
+        xmode=log, xmin=0.52, xmax=13, ymin=-5, ymax=105,
+        ytick={0,25,50,75,100}, yticklabels={0,,50,,100},
+        xtick={0.6,1,2,5,10}, xticklabels={$0.6$,$1$,$2$,$5$,$10$},
+        minor x tick num=0,
+        grid=major, grid style={gray!14, very thin},
+        axis line style={gray!55},
       ]
-        % The one-member-per-pixel band. This has to be a filled path, so `only
-        % marks` cannot live on the axis -- it would apply here too and the region
-        % would vanish. Each scatter carries it instead.
-        \addplot[draw=none, fill=soft!20, forget plot] coordinates
-          {(0.5,-4) (1,-4) (1,104) (0.5,104)} \closedcycle;
-        \addplot[cool, only marks, mark=*] table [x=parallel-rotate_mpp, y=parallel-rotate_lost, col sep=comma]
-          {data/vector-conflation.csv};
-        \addlegendentry{two combs}
-        \addplot[accent, only marks, mark=square*] table [x=circle-parallel_mpp, y=circle-parallel_lost, col sep=comma]
-          {data/vector-conflation.csv};
-        \addlegendentry{circles, lines}
-        \addplot[warm, only marks, mark=triangle*, mark size=2.4pt] table [x=hexagon-hexagon_mpp, y=hexagon-hexagon_lost, col sep=comma]
-          {data/vector-conflation.csv};
-        \addlegendentry{hexagons}
-        \addplot[ink, only marks, mark=diamond*, mark size=2.4pt] table [x=circle-circle_mpp, y=circle-circle_lost, col sep=comma]
-          {data/vector-conflation.csv};
-        \addlegendentry{two centres}
-        \addplot[soft, only marks, mark=pentagon*] table [x=hyperbola-parallel_mpp, y=hyperbola-parallel_lost, col sep=comma]
-          {data/vector-conflation.csv};
-        \addlegendentry{hyperbolae}
+        % Where a pixel still sees at most one member: the regime a path renderer
+        % is built for. A filled region, so `only marks` cannot sit on the axis --
+        % it would apply here too and the band would silently vanish.
+        \addplot[draw=none, fill=soft!18, forget plot] coordinates
+          {(0.52,-5) (1,-5) (1,105) (0.52,105)} \closedcycle;
+        \addplot[soft!75, dashed, thin, forget plot] coordinates {(1,-5) (1,105)};
+        % One series. Which of the five scenes a point came from is not the claim.
+        \addplot[accent, only marks, mark=*, mark size=1.6pt,
+                 mark options={fill=accent, draw=white, line width=0.4pt}]
+          table [x=mpp, y=lost, col sep=comma] {data/vector-pooled.csv};
       \end{axis}
     \end{tikzpicture}
   \end{subfigure}
@@ -326,9 +326,9 @@ $\vecFigInk\%$ of the ink lost, and $\vecFigContrast\%$ of the pattern.
   shows strong radiating light and dark rays; the second, drawn by compositing each
   path separately, is almost flat grey with the rays gone; the third is a pink and
   blue difference map showing where ink went missing. Right: a scatter plot of
-  fringe contrast lost against members sharing a pixel, on a log axis, for five
-  scenes. Below one member per pixel, in a shaded band, all points sit near zero;
-  past two members per pixel most points rise above eighty percent.}
+  fringe contrast lost against members sharing a pixel, on a log axis, pooling five
+  scenes. Left of a marked boundary at one member per pixel every point sits near
+  zero; past two members per pixel most points rise above eighty percent.}
   \caption{\figlead{What per-path compositing does to a moir\'e.}
   \emph{Left:} two circle families at their own spacing, at the tool's zoom floor,
   where $\vecFigMembers$ members share a pixel. \textbf{(a)} the true coverage of
@@ -339,13 +339,16 @@ $\vecFigInk\%$ of the ink lost, and $\vecFigContrast\%$ of the pattern.
   so the pair shows a difference of rule and not of display. The mean ink differs
   by $\vecFigInk\%$; the fringe contrast differs by $\vecFigContrast\%$. The
   pattern is not dimmed, it is gone.
-  \emph{Right:} that loss against how many members share a pixel, over
-  $\vecSettings$ settings reached with the tool's own zoom and spacing controls.
-  In the shaded band a pixel sees at most one member and \textsc{over} is
-  accurate---this is the regime a vector back end is built for. The rise past it
-  is not an antialiasing artifact, since both sides are given exact per-path
-  coverage; it is \textsc{over} pricing the overlap of two families as
-  $\alpha_1\alpha_2$ when the correlation between them \emph{is} the moir\'e.}
+  \emph{Right:} that loss against how many members share a pixel, one mark per
+  setting, pooling all $\vecScenes{}$ pairs over the $\vecSettings$ settings
+  reachable with the tool's own zoom and spacing controls. In the shaded band a
+  pixel still sees at most one member and \textsc{over} is accurate---this is the
+  regime a vector back end is built for. The rise past it is not an antialiasing
+  artifact, since both sides are given exact per-path coverage; it is
+  \textsc{over} pricing the overlap of two families as $\alpha_1\alpha_2$ when the
+  correlation between them \emph{is} the moir\'e. The low band of points past two
+  members is the hyperbola pair, whose fringe field is one wide wedge rather than a
+  set of fringes, and so has proportionally less to lose.}
   \label{fig:vector}
 \end{figure*}
 

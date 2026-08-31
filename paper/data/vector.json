@@ -1330,18 +1330,20 @@
     }
   },
   "figure": {
+    "panelFraction": 0.32895,
+    "gutterFraction": 0.00658,
     "scene": "circle-circle",
     "spacingScale": 1,
     "zoom": 0.1,
-    "panel": 300,
+    "panel": 500,
     "amplification": 4,
-    "membersPerPixel": 3.914,
-    "trueInk": 0.45,
-    "overInk": 0.4292,
-    "inkLost": 0.0463,
-    "fringeContrastTrue": 0.0959,
-    "fringeContrastOver": 0.0045,
-    "contrastLost": 0.9533,
+    "membersPerPixel": 3.9125,
+    "trueInk": 0.4502,
+    "overInk": 0.4293,
+    "inkLost": 0.0464,
+    "fringeContrastTrue": 0.1278,
+    "fringeContrastOver": 0.0047,
+    "contrastLost": 0.9632,
     "worstPixelError": 0.1859
   }
 }
