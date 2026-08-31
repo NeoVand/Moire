@@ -355,6 +355,55 @@ export const cases = [
     ),
   },
 
+  // A sum-beat region inside a difference-beat frame: two equal-pitch ring
+  // families. The sum character wins around the midpoint (the elliptic eye)
+  // and the difference everywhere else, so the envelope must hand one sweep
+  // schedule over to the other. The guarded artifact is the hard-edged disc
+  // of carrier hash that a per-pixel schedule switch paints around the eye:
+  // devW must fade the deviated schedule out as its winner leaves the fringe
+  // regime, so the eye closes into the ray fan with no rim.
+  {
+    name: 'rings-sum-handover',
+    coords: [1, 1],
+    note: 'equal-pitch rings — the sum eye must fade into the ray fan seamlessly',
+    scene: scene(
+      [
+        layer('a', { type: 'concentric-circles', spacing: 8, position: { x: -40 } }),
+        layer('b', { type: 'concentric-circles', spacing: 8, position: { x: 40 } }),
+      ],
+      view(ENVELOPE)
+    ),
+  },
+  // Two walking families under the envelope: both layers' index fields exist
+  // only as search output, so the scan's gradients ride dFdx and the winner
+  // used to flip per quad along the fold-sector boundaries — hard stippled
+  // edges between smooth fringe regions. The schedule handover has to keep
+  // those boundaries soft.
+  {
+    name: 'walk-pair-envelope',
+    coords: [1, 1],
+    note: 'two walking circle families — schedule boundaries must not stipple',
+    scene: scene(
+      [
+        layer('a', {
+          type: 'concentric-circles',
+          spacing: 8,
+          offset: { x: 2.4, y: 0.6 },
+          rotationOffset: 0.015,
+          position: { x: -20 },
+        }),
+        layer('b', {
+          type: 'concentric-circles',
+          spacing: 8,
+          offset: { x: -2.2, y: -0.5 },
+          rotationOffset: -0.012,
+          position: { x: 20 },
+        }),
+      ],
+      view(ENVELOPE)
+    ),
+  },
+
   // ---- curves ----
   {
     name: 'wave-pair-envelope',

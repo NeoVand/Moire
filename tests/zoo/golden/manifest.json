@@ -8,8 +8,89 @@
     "width": 640,
     "height": 480
   },
-  "updatedAt": "2026-08-30T20:38:36.502Z",
+  "updatedAt": "2026-08-31T21:05:47.074Z",
   "cases": {
+    "tiling-kagome": {
+      "coords": [
+        2
+      ],
+      "note": "the kagome tiling alone: edges and vertices, no beat"
+    },
+    "tiling-truncated-trihex": {
+      "coords": [
+        2
+      ],
+      "note": "the truncated-trihex tiling alone: edges and vertices, no beat"
+    },
+    "tiling-snub-trihex": {
+      "coords": [
+        2
+      ],
+      "note": "the snub-trihex tiling alone: edges and vertices, no beat"
+    },
+    "tiling-truncated-square": {
+      "coords": [
+        2
+      ],
+      "note": "the truncated-square tiling alone: edges and vertices, no beat"
+    },
+    "tiling-truncated-hex": {
+      "coords": [
+        2
+      ],
+      "note": "the truncated-hex tiling alone: edges and vertices, no beat"
+    },
+    "tiling-rhombitrihex": {
+      "coords": [
+        2
+      ],
+      "note": "the rhombitrihex tiling alone: edges and vertices, no beat"
+    },
+    "tiling-snub-square": {
+      "coords": [
+        2
+      ],
+      "note": "the snub-square tiling alone: edges and vertices, no beat"
+    },
+    "tiling-elongated-triangular": {
+      "coords": [
+        2
+      ],
+      "note": "the elongated-triangular tiling alone: edges and vertices, no beat"
+    },
+    "tiling-kagome-filled": {
+      "coords": [
+        2
+      ],
+      "note": "kagome with the faces inked inward — the hexagons clear the inset and the triangles do not, which is what makes one tiling look unlike another"
+    },
+    "tiling-octagon-pair-filled": {
+      "coords": [
+        2,
+        2
+      ],
+      "note": "two filled truncated-square tilings at 6 degrees — the moire of the faces, not of hairlines"
+    },
+    "grid-hex-filled": {
+      "coords": [
+        2
+      ],
+      "note": "fill on a closed-form grid: the honeycomb inked inward, no catalogue table involved"
+    },
+    "tiling-kagome-twist-contours": {
+      "coords": [
+        2,
+        2
+      ],
+      "note": "two kagome tilings at 5 degrees — a catalogue tiling is a lattice, so the twist machinery applies unchanged"
+    },
+    "tiling-octagon-ring-envelope": {
+      "coords": [
+        2,
+        1
+      ],
+      "note": "the truncated-square tiling against a ring family — a tiling beats a scalar like any lattice"
+    },
     "lines-pair": {
       "coords": [
         1,
@@ -80,6 +161,13 @@
         1
       ],
       "note": "square rings at a 10° twist — piecewise index fields with corners"
+    },
+    "hexrot-spiral-envelope": {
+      "coords": [
+        1,
+        1
+      ],
+      "note": "two concentric-hexagon families, one rotating 0.02 rad per ring — past the fold radius spacing/θ = 300 the family branches, and the phase trio must report adjacent branches, not index neighbours (the sector-hash bug)"
     },
     "radial-pair-contours": {
       "coords": [
@@ -193,13 +281,6 @@
       ],
       "note": "ratio view over a grid and two scalars — the ranking must skip the grid"
     },
-    "hexrot-spiral-envelope": {
-      "coords": [
-        1,
-        1
-      ],
-      "note": "two concentric-hexagon families, one rotating 0.02 rad per ring — past the fold radius spacing/θ = 300 the family branches, and the phase trio must report adjacent branches, not index neighbours (the sector-hash bug)"
-    },
     "grid-ring-ratio": {
       "coords": [
         2,
@@ -214,92 +295,19 @@
       ],
       "note": "the eta map of a square-lattice twist pair — matched dual-ring families beat slowly everywhere, so the map reads uniformly deep in the fringe regime"
     },
-    "tiling-kagome": {
+    "rings-sum-handover": {
       "coords": [
-        2
-      ],
-      "note": "the kagome tiling alone: edges and vertices, no beat"
-    },
-    "tiling-kagome-twist-contours": {
-      "coords": [
-        2,
-        2
-      ],
-      "note": "two kagome tilings at 5 degrees — a catalogue tiling is a lattice, so the twist machinery applies unchanged"
-    },
-    "tiling-truncated-square": {
-      "coords": [
-        2
-      ],
-      "note": "the truncated-square tiling alone: edges and vertices, no beat"
-    },
-    "tiling-truncated-hex": {
-      "coords": [
-        2
-      ],
-      "note": "the truncated-hex tiling alone: edges and vertices, no beat"
-    },
-    "tiling-rhombitrihex": {
-      "coords": [
-        2
-      ],
-      "note": "the rhombitrihex tiling alone: edges and vertices, no beat"
-    },
-    "tiling-snub-square": {
-      "coords": [
-        2
-      ],
-      "note": "the snub-square tiling alone: edges and vertices, no beat"
-    },
-    "tiling-elongated-triangular": {
-      "coords": [
-        2
-      ],
-      "note": "the elongated-triangular tiling alone: edges and vertices, no beat"
-    },
-    "tiling-running-bond": {
-      "coords": [
-        2
-      ],
-      "note": "the running-bond tiling alone: edges and vertices, no beat"
-    },
-    "tiling-octagon-ring-envelope": {
-      "coords": [
-        2,
+        1,
         1
       ],
-      "note": "the truncated-square tiling against a ring family — a tiling beats a scalar like any lattice"
+      "note": "equal-pitch rings — the sum eye must fade into the ray fan seamlessly"
     },
-    "tiling-truncated-trihex": {
+    "walk-pair-envelope": {
       "coords": [
-        2
+        1,
+        1
       ],
-      "note": "the truncated-trihex tiling alone: edges and vertices, no beat"
-    },
-    "tiling-snub-trihex": {
-      "coords": [
-        2
-      ],
-      "note": "the snub-trihex tiling alone: edges and vertices, no beat"
-    },
-    "tiling-kagome-filled": {
-      "coords": [
-        2
-      ],
-      "note": "kagome with the faces inked inward — the hexagons clear the inset and the triangles do not, which is what makes one tiling look unlike another"
-    },
-    "tiling-octagon-pair-filled": {
-      "coords": [
-        2,
-        2
-      ],
-      "note": "two filled truncated-square tilings at 6 degrees — the moire of the faces, not of hairlines"
-    },
-    "grid-hex-filled": {
-      "coords": [
-        2
-      ],
-      "note": "fill on a closed-form grid: the honeycomb inked inward, no catalogue table involved"
+      "note": "two walking circle families — schedule boundaries must not stipple"
     }
   }
 }

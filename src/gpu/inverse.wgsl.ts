@@ -911,3 +911,125 @@ fn radialLineDistance(p: vec2<f32>, count: f32, start: f32) -> f32 {
   return phaseDistWgsl(radialLinePhase(p, count, start, 0.0, vec2<f32>(0.0, 0.0)), 0.0);
 }
 `, [radialLinePhase, phaseDistWgsl]);
+
+/**
+ * Index-gradient DIRECTIONS, for the character scan.
+ *
+ * The scan needs each ranked layer's continuous-index gradient. Estimating it
+ * with screen derivatives of the fractional index works, but a derivative of a
+ * wrapped, solved quantity is quad-granular and noisy exactly where the view
+ * gets interesting; the noise reaches the winning character, and the envelope's
+ * per-pixel schedule flips with it. For every family with a closed-form phase
+ * the direction is closed-form too, and the magnitude is 1 over the member gap
+ * the phase sample already measured — so between them the estimate is exact
+ * and the screen derivative is needed only for the walking families, whose
+ * direction is the argmin's facet normal that only the scan knows.
+ *
+ * Each helper mirrors the gradient its phase twin above already computes for
+ * the eikonal divide (the residual is measured along grad psi, so this unit
+ * vector is the direction the signed residual grows in), and includes the
+ * field's tilt the same way. Keep them beside their twins: a formula changed
+ * in one place and not the other reintroduces the drift these exist to remove.
+ */
+export const lineIndexDir = wgslFn(`
+fn lineIndexDir(angle: f32, warpGrad: vec2<f32>) -> vec2<f32> {
+  let g = vec2<f32>(cos(angle), sin(angle)) - warpGrad;
+  let gl = length(g);
+  if (gl < 1e-6) {
+    return vec2<f32>(1.0, 0.0);
+  }
+  return g / gl;
+}
+`);
+
+/** Concentric rings only: the support function's facet normal, tilted by the
+ * field. shapeRadiusWgsl's normals sit at multiples of 2 pi / N with the first
+ * on +x, for every side count it special-cases, so the quantized angle IS the
+ * active facet. */
+export const ringIndexDir = wgslFn(`
+fn ringIndexDir(p: vec2<f32>, shapeType: f32, sides: f32, warpGrad: vec2<f32>) -> vec2<f32> {
+  let r = length(p);
+  if (r < 1e-6) {
+    return vec2<f32>(1.0, 0.0);
+  }
+  var normal = p / r;
+  let shape = i32(shapeType + 0.5);
+  if (shape >= 2) {
+    var n = max(sides, 3.0);
+    if (shape == 2) {
+      n = 4.0;
+    }
+    if (shape == 3) {
+      n = 3.0;
+    }
+    let seg = 6.28318530718 / n;
+    let a = round(atan2(p.y, p.x) / seg) * seg;
+    normal = vec2<f32>(cos(a), sin(a));
+  }
+  let g = normal - warpGrad;
+  let gl = length(g);
+  if (gl < 1e-6) {
+    return normal;
+  }
+  return g / gl;
+}
+`);
+
+/** Twin of the gradients inside curvePhase, member for member. */
+export const curveIndexDir = wgslFn(`
+fn curveIndexDir(p: vec2<f32>, kind: f32, spacing: f32, phase: f32, bend: f32, frequency: f32, warpGrad: vec2<f32>) -> vec2<f32> {
+  var s = abs(spacing);
+  if (s < 1e-4) {
+    s = 1e-4;
+  }
+  let k = i32(kind + 0.5);
+  var g = vec2<f32>(1.0, 0.0);
+  if (k <= 0) {
+    let lambda = 32.0 / max(frequency, 0.05);
+    let w = 6.28318530718 / lambda;
+    g = vec2<f32>(1.0, -bend * w * cos(w * p.y + phase));
+  } else if (k == 1) {
+    let a = bend * 0.01;
+    g = vec2<f32>(-2.0 * a * p.x, 1.0);
+  } else if (k == 2) {
+    let u = p.x * p.x - p.y * p.y;
+    g = sign(u) * vec2<f32>(p.x, -p.y) / max(sqrt(abs(u)), 1e-4);
+  } else {
+    let r = length(p);
+    if (r < 1e-6) {
+      return vec2<f32>(1.0, 0.0);
+    }
+    g = p / r;
+    if (abs(bend) >= 1e-4) {
+      let starts = max(round(abs(bend) / s), 1.0);
+      let b = starts * s / 6.28318530718;
+      g = g - b * vec2<f32>(-p.y, p.x) / (r * r);
+    }
+  }
+  g = g - warpGrad;
+  let gl = length(g);
+  if (gl < 1e-6) {
+    return vec2<f32>(1.0, 0.0);
+  }
+  return g / gl;
+}
+`);
+
+/** Twin of the tangent inside radialLinePhase. */
+export const radialIndexDir = wgslFn(`
+fn radialIndexDir(p: vec2<f32>, count: f32, turnGrad: vec2<f32>) -> vec2<f32> {
+  let n = max(round(count), 1.0);
+  let r = length(p);
+  if (r < 1e-6) {
+    return vec2<f32>(1.0, 0.0);
+  }
+  let seg = 3.14159265359 / n;
+  let tangent = vec2<f32>(-p.y, p.x) / r;
+  let g = tangent - turnGrad * (seg * r);
+  let gl = length(g);
+  if (gl < 1e-6) {
+    return tangent;
+  }
+  return g / gl;
+}
+`);

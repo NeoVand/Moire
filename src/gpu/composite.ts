@@ -33,10 +33,14 @@ import {
 } from '../types/moire';
 export { ENVELOPE_TAPS } from '../types/moire';
 import {
+  curveIndexDir,
   curvePhase,
+  lineIndexDir,
   linePhase,
   phaseDistWgsl,
+  radialIndexDir,
   radialLinePhase,
+  ringIndexDir,
   ringPhase,
 } from './inverse.wgsl';
 import { gridDistance, latticeCellWgsl } from './lattice.wgsl';
@@ -435,6 +439,14 @@ function solveLayers(slots, fields, view, world, pixel) {
     const shift = float(0).toVar();
     const phase = vec4(0).toVar();
     const phaseFrom = vec4(0).toVar();
+    // The layer's continuous-index gradient in SCREEN space, closed form, and
+    // whether the family has one. Direction comes from the family's own phase
+    // gradient (inverse.wgsl's *IndexDir twins), magnitude from the member gap
+    // the phase sample measured — so the estimate needs no screen derivative,
+    // which is what keeps the character scan's winner from flipping with quad
+    // noise. Walking families have no closed form and stay on dFdx.
+    const sgrad = vec2(0).toVar();
+    const hasGrad = float(0).toVar();
     // Code 13 joins the 5..7 grids: a tiling is a lattice, indexed by a pair
     // of integers, so every lattice path downstream takes it unchanged.
     const isLattice = slot.type
@@ -560,10 +572,62 @@ function solveLayers(slots, fields, view, world, pixel) {
       If(isLattice.not(), () => {
         phaseOf(slot.type, phase);
         If(slot.morph.lessThan(0.999), () => phaseOf(slot.typeFrom, phaseFrom));
+
+        // The index direction, in layer coordinates. The measurement's xi
+        // reads the TARGET family's phase during a morph, so the direction
+        // follows the target type unconditionally.
+        const dir = vec2(1, 0).toVar();
+        If(slot.type.lessThanEqual(0.1), () => {
+          dir.assign(lineIndexDir(float(0), warpGrad));
+          hasGrad.assign(1);
+        }).Else(() => {
+          If(slot.type.lessThan(4.5), () => {
+            dir.assign(ringIndexDir(local, slot.type, slot.sides, warpGrad));
+            // Concentric only: a walking family's direction is the argmin's
+            // facet normal, which only the scan knows.
+            hasGrad.assign(
+              step(length(slot.offset), float(1e-4)).mul(
+                step(slot.rotationOffset.abs(), float(1e-6))
+              )
+            );
+          }).Else(() => {
+            If(slot.type.lessThan(8.5), () => {
+              dir.assign(radialIndexDir(local, slot.lineCount, shiftGrad));
+              hasGrad.assign(1);
+            }).Else(() => {
+              dir.assign(
+                curveIndexDir(
+                  local,
+                  slot.type.sub(9),
+                  slot.spacing,
+                  slot.phase,
+                  slot.bend,
+                  slot.frequency,
+                  warpGrad
+                )
+              );
+              hasGrad.assign(1);
+            });
+          });
+        });
+
+        // Layer frame to world (the layer's rotation), world to screen (zoom;
+        // TSL's dFdy runs along WebGL's bottom-up window y, so world y and
+        // derivative y agree and no flip is needed — the lattice coordinates'
+        // dFdx-based gradients are the same convention, and the two meet in
+        // the candidate matching), and index units per world unit from the
+        // gap the sample measured — the same gap the fractional xi divides
+        // by, so the two agree by construction.
+        const gw = vec2(
+          c.mul(dir.x).sub(s.mul(dir.y)),
+          s.mul(dir.x).add(c.mul(dir.y))
+        );
+        const gap = max(phase.y.sub(phase.x).abs(), float(1e-6));
+        sgrad.assign(gw.mul(pixel).div(gap));
       });
     });
 
-    return { slot, local, halfT, aa, isLattice, cell, shift, phase, phaseFrom };
+    return { slot, local, halfT, aa, isLattice, cell, shift, phase, phaseFrom, sgrad, hasGrad };
   });
 }
 
@@ -582,24 +646,45 @@ function scanCharacters(view, solved, latGrads) {
   const xiA = float(0).toVar();
   const xiB = float(0).toVar();
   const xiC = float(0).toVar();
-  solved.forEach(({ phase }, index) => {
+  const sgA = vec2(0).toVar();
+  const sgB = vec2(0).toVar();
+  const sgC = vec2(0).toVar();
+  const okA = float(0).toVar();
+  const okB = float(0).toVar();
+  const okC = float(0).toVar();
+  solved.forEach(({ phase, sgrad, hasGrad }, index) => {
     // Continuous index, modulo its integer part: signed residual over the
     // local member gap, oriented at the neighbour with the smaller residual so
     // the index counts the same way whichever family produced the trio.
     const toward = min(phase.y, phase.z);
     const xi = phase.x.div(max(phase.x.sub(toward), float(1e-6)));
-    If(view.ratioA.equal(int(index)), () => xiA.assign(xi));
-    If(view.ratioB.equal(int(index)), () => xiB.assign(xi));
-    If(view.ratioC.equal(int(index)), () => xiC.assign(xi));
+    If(view.ratioA.equal(int(index)), () => {
+      xiA.assign(xi);
+      sgA.assign(sgrad);
+      okA.assign(hasGrad);
+    });
+    If(view.ratioB.equal(int(index)), () => {
+      xiB.assign(xi);
+      sgB.assign(sgrad);
+      okB.assign(hasGrad);
+    });
+    If(view.ratioC.equal(int(index)), () => {
+      xiC.assign(xi);
+      sgC.assign(sgrad);
+      okC.assign(hasGrad);
+    });
   });
-  // Screen-space index gradients. xi wraps by one whole unit where the nearest
+  // Screen-space index gradients: closed form wherever the family has one
+  // (solveLayers computed it beside the phase), screen derivatives only for
+  // the walking families. xi wraps by one whole unit where the nearest
   // member changes; rounding the per-pixel delta away unwraps every unit
   // boundary, sound while the carrier spans a couple of pixels. What survives
-  // the unwrap, the clamp turns into bright lines rather than garbage.
+  // the unwrap, the clamp turns into bright lines rather than garbage — and
+  // into per-quad winner flips, which is why the analytic path exists.
   const unwrap = (v) => v.sub(round(v));
-  const gradA = vec2(unwrap(dFdx(xiA)), unwrap(dFdy(xiA)));
-  const gradB = vec2(unwrap(dFdx(xiB)), unwrap(dFdy(xiB)));
-  const gradC = vec2(unwrap(dFdx(xiC)), unwrap(dFdy(xiC)));
+  const gradA = mix(vec2(unwrap(dFdx(xiA)), unwrap(dFdy(xiA))), sgA, okA);
+  const gradB = mix(vec2(unwrap(dFdx(xiB)), unwrap(dFdy(xiB))), sgB, okB);
+  const gradC = mix(vec2(unwrap(dFdx(xiC)), unwrap(dFdy(xiC))), sgC, okC);
   // Primitive characters with |k| <= 2, scanned over every pair among the
   // three ranked layers. On K layers the superposition lives on T^K and the
   // characters are k in Z^K; the diagonal sweep w = (1,...,1) preserves the
@@ -640,6 +725,14 @@ function scanCharacters(view, solved, latGrads) {
   ];
   const etaBest = float(1e6).toVar();
   const pickBest = float(1e6).toVar();
+  // The best ZERO-SUM candidate, tracked beside the global winner. Every
+  // zero-sum character rides the plain diagonal, so among them the schedule
+  // never changes and no seam can form; only a non-zero-sum winner deviates
+  // the rates. The margin between the two is what softens that deviation's
+  // boundary (devW below): a hard per-pixel switch of sweep schedule is a
+  // hard edge in the averaged image, standing exactly where the sum or a
+  // second-order beat stops winning.
+  const zeroBest = float(1e6).toVar();
   const rateA = float(1).toVar();
   const rateB = float(1).toVar();
   const rateC = float(1).toVar();
@@ -667,6 +760,9 @@ function scanCharacters(view, solved, latGrads) {
       // zero-sum characters cost nothing whichever way they fall.
       const order2 = Math.max(Math.abs(ka), Math.abs(kb)) > 1;
       const ep = order2 ? e.mul(1.5) : e;
+      if (ka + kb === 0) {
+        If(ep.lessThan(zeroBest), () => zeroBest.assign(ep));
+      }
       const rA = who === 2 ? 1 : wP;
       const rB = who === 0 ? wQ : who === 2 ? wP : 1;
       const rC = who === 0 ? 1 : wQ;
@@ -701,6 +797,7 @@ function scanCharacters(view, solved, latGrads) {
       .div(max(carrier.mul(0.5), float(1e-6)))
       .add(cGate);
     If(e.lessThan(etaBest), () => etaBest.assign(e));
+    If(e.mul(1.5).lessThan(zeroBest), () => zeroBest.assign(e.mul(1.5)));
     If(e.mul(1.5).lessThan(pickBest), () => {
       pickBest.assign(e.mul(1.5));
       rateA.assign(1);
@@ -711,6 +808,31 @@ function scanCharacters(view, solved, latGrads) {
     });
   });
   const eta = etaBest.clamp(0, 1);
+
+  // How decisively a schedule-deviating character won. Zero at the flip
+  // boundary (where the best zero-sum candidate ties it), one once the winner
+  // is clear; the sweep blends its deviated average against the diagonal
+  // average by this weight, so the schedule handover is a fade rather than a
+  // seam. A zero-sum winner has zeroBest == pickBest and rides the diagonal
+  // untouched. The transition width follows the regime threshold, so the
+  // fade lives inside the band where both beats are comparably visible.
+  //
+  // The second factor retires the deviation as the winner itself stops
+  // making fringes. A sum or second-order beat can keep winning while its
+  // own eta climbs well past the threshold — its "fringes" are then a bare
+  // carrier or two wide, and holding the schedule for them paints an annulus
+  // of hash that ends in a hard rim where the pick finally flips (two
+  // displaced ring families drew that rim around their midpoint). There the
+  // honest average is the diagonal's wash, so hand over to it smoothly. The
+  // band starts well above the regime threshold: at eta = thr a fringe still
+  // spans several carriers and is legible structure the view must keep (the
+  // wave pair's beading); by twice that it is hash.
+  const thr = max(view.ratioThreshold, float(0.02));
+  const devW = smoothstep(
+    float(0),
+    max(view.ratioThreshold.mul(0.5), float(0.02)),
+    zeroBest.sub(pickBest)
+  ).mul(float(1).sub(smoothstep(thr.mul(1.7), thr.mul(3.4), pickBest)));
 
   // Lattice coordinates join the measurement. eta is defined over the
   // characters of the JOINT index torus, and a lattice's visible families
@@ -761,7 +883,7 @@ function scanCharacters(view, solved, latGrads) {
   // its contour annotates.
   const etaAll = min(etaBest, latMin).clamp(0, 1);
 
-  return { xiA, gradA, eta, etaAll, rateA, rateB, rateC, beatVal, beatRate };
+  return { xiA, gradA, eta, etaAll, rateA, rateB, rateC, beatVal, beatRate, devW };
 }
 
 // A lattice joins the sweep by translation — but along what, and stepped
@@ -1132,8 +1254,13 @@ function tilingInk(slot, p) {
  * is the ordinary render, bit for bit.
  */
 function sweepStack(camera, view, solved, latCoh, scan) {
-  const { rateA, rateB, rateC } = scan;
-  const sum = vec3(0).toVar();
+  const { rateA, rateB, rateC, devW } = scan;
+  // Two averages ride the loop together: the winning schedule's, and the
+  // plain diagonal's. They differ only in the ranked scalar layers' slide
+  // rates, so the second costs a few instructions per tap, and the blend by
+  // devW below is what turns the winner's boundary from a seam into a fade.
+  const sumDev = vec3(0).toVar();
+  const sumDiag = vec3(0).toVar();
   Loop(view.taps, ({ i }) => {
     // Centred on zero so that a single tap is the pattern itself, and so that
     // the trio of members brackets every phase the sweep visits.
@@ -1145,7 +1272,8 @@ function sweepStack(camera, view, solved, latCoh, scan) {
     // have. Which generator it scrambles is the per-pixel choice above.
     const v = float(i).mul(GOLDEN).fract().sub(0.5).mul(view.sweep);
 
-    const color = camera.background.toVar();
+    const colorDev = camera.background.toVar();
+    const colorDiag = camera.background.toVar();
     solved.forEach(({ slot, local, halfT, aa, isLattice, cell, shift, phase, phaseFrom }, index) => {
       If(slot.active.greaterThan(0.5), () => {
         // The ranked layers advance at the integer rates that hold the
@@ -1158,10 +1286,17 @@ function sweepStack(camera, view, solved, latCoh, scan) {
         If(view.ratioA.equal(int(index)), () => rate.assign(rateA));
         If(view.ratioB.equal(int(index)), () => rate.assign(rateB));
         If(view.ratioC.equal(int(index)), () => rate.assign(rateC));
+        // Uniform per slot, so the diagonal twin below costs nothing on the
+        // layers whose rate can never deviate.
+        const ranked = view.ratioA
+          .equal(int(index))
+          .or(view.ratioB.equal(int(index)))
+          .or(view.ratioC.equal(int(index)));
         const strokeAlpha = (d) =>
           float(1).sub(smoothstep(halfT.sub(aa), halfT.add(aa), d)).mul(slot.opacity);
 
         const alpha = float(0).toVar();
+        const alphaDiag = float(0).toVar();
         If(isLattice, () => {
           // A lattice has no scalar phase to slide, so it resamples: each
           // generator is a translation, and stepping along one is exactly one step
@@ -1213,6 +1348,8 @@ function sweepStack(camera, view, solved, latCoh, scan) {
             );
           });
           alpha.assign(ink.mul(slot.opacity));
+          // Rates never touch a lattice's schedule, so both chains share it.
+          alphaDiag.assign(alpha);
         }).Else(() => {
           // One local period per unit of `u`, so the sweep covers exactly one
           // carrier cycle whatever the family's pitch happens to be here. A
@@ -1221,26 +1358,42 @@ function sweepStack(camera, view, solved, latCoh, scan) {
           // trio covers -- exact for the phase families, whose residual is
           // periodic in the gap, and first-order elsewhere, like the slide
           // itself. At |rate| = 1 the wrap never engages.
-          const slide = (ph) => {
+          const slide = (ph, rt) => {
             const gap = max(ph.y.sub(ph.x).abs(), float(1e-6));
-            const off = u.mul(rate).mul(gap);
+            const off = u.mul(rt).mul(gap);
             const wrapped = off.sub(round(off.div(gap)).mul(gap));
             return phaseDistWgsl(ph, wrapped);
           };
           If(slot.morph.greaterThan(0.999), () => {
-            alpha.assign(strokeAlpha(slide(phase)));
+            alpha.assign(strokeAlpha(slide(phase, rate)));
           }).Else(() => {
             alpha.assign(
-              strokeAlpha(mix(slide(phaseFrom), slide(phase), slot.morph))
+              strokeAlpha(mix(slide(phaseFrom, rate), slide(phase, rate), slot.morph))
             );
           });
+          // The diagonal twin, for the schedule handover. Identical unless
+          // this layer is ranked, so only the ranked slots pay the second
+          // slide.
+          If(ranked, () => {
+            If(slot.morph.greaterThan(0.999), () => {
+              alphaDiag.assign(strokeAlpha(slide(phase, float(1))));
+            }).Else(() => {
+              alphaDiag.assign(
+                strokeAlpha(mix(slide(phaseFrom, float(1)), slide(phase, float(1)), slot.morph))
+              );
+            });
+          }).Else(() => {
+            alphaDiag.assign(alpha);
+          });
         });
-        color.assign(mix(color, slot.color, alpha.clamp(0, 1)));
+        colorDev.assign(mix(colorDev, slot.color, alpha.clamp(0, 1)));
+        colorDiag.assign(mix(colorDiag, slot.color, alphaDiag.clamp(0, 1)));
       });
     });
-    sum.addAssign(color);
+    sumDev.addAssign(colorDev);
+    sumDiag.addAssign(colorDiag);
   });
-  return sum.div(float(view.taps));
+  return mix(sumDiag, sumDev, devW).div(float(view.taps));
 }
 
 /**
