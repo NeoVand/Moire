@@ -1,0 +1,326 @@
+{
+ "probes": [
+  {
+   "name": "pinwheel A=1 R=40",
+   "field": "theta / tau",
+   "amount": 1,
+   "center": [
+    0,
+    0
+   ],
+   "radius": 40,
+   "expect": 1,
+   "measured": 1,
+   "pass": true
+  },
+  {
+   "name": "pinwheel A=1 R=90",
+   "field": "theta / tau",
+   "amount": 1,
+   "center": [
+    0,
+    0
+   ],
+   "radius": 90,
+   "expect": 1,
+   "measured": 1,
+   "pass": true
+  },
+  {
+   "name": "pinwheel A=1 R=200",
+   "field": "theta / tau",
+   "amount": 1,
+   "center": [
+    0,
+    0
+   ],
+   "radius": 200,
+   "expect": 1,
+   "measured": 1,
+   "pass": true
+  },
+  {
+   "name": "pinwheel A=2 R=40",
+   "field": "theta / tau",
+   "amount": 2,
+   "center": [
+    0,
+    0
+   ],
+   "radius": 40,
+   "expect": 2,
+   "measured": 2,
+   "pass": true
+  },
+  {
+   "name": "pinwheel A=2 R=90",
+   "field": "theta / tau",
+   "amount": 2,
+   "center": [
+    0,
+    0
+   ],
+   "radius": 90,
+   "expect": 2,
+   "measured": 2,
+   "pass": true
+  },
+  {
+   "name": "pinwheel A=2 R=200",
+   "field": "theta / tau",
+   "amount": 2,
+   "center": [
+    0,
+    0
+   ],
+   "radius": 200,
+   "expect": 2,
+   "measured": 2,
+   "pass": true
+  },
+  {
+   "name": "pinwheel A=3 R=40",
+   "field": "theta / tau",
+   "amount": 3,
+   "center": [
+    0,
+    0
+   ],
+   "radius": 40,
+   "expect": 3,
+   "measured": 3,
+   "pass": true
+  },
+  {
+   "name": "pinwheel A=3 R=90",
+   "field": "theta / tau",
+   "amount": 3,
+   "center": [
+    0,
+    0
+   ],
+   "radius": 90,
+   "expect": 3,
+   "measured": 3,
+   "pass": true
+  },
+  {
+   "name": "pinwheel A=3 R=200",
+   "field": "theta / tau",
+   "amount": 3,
+   "center": [
+    0,
+    0
+   ],
+   "radius": 200,
+   "expect": 3,
+   "measured": 3,
+   "pass": true
+  },
+  {
+   "name": "pinwheel A=5 R=40",
+   "field": "theta / tau",
+   "amount": 5,
+   "center": [
+    0,
+    0
+   ],
+   "radius": 40,
+   "expect": 5,
+   "measured": 5,
+   "pass": true
+  },
+  {
+   "name": "pinwheel A=5 R=90",
+   "field": "theta / tau",
+   "amount": 5,
+   "center": [
+    0,
+    0
+   ],
+   "radius": 90,
+   "expect": 5,
+   "measured": 5,
+   "pass": true
+  },
+  {
+   "name": "pinwheel A=5 R=200",
+   "field": "theta / tau",
+   "amount": 5,
+   "center": [
+    0,
+    0
+   ],
+   "radius": 200,
+   "expect": 5,
+   "measured": 5,
+   "pass": true
+  },
+  {
+   "name": "pinwheel A=10 R=40",
+   "field": "theta / tau",
+   "amount": 10,
+   "center": [
+    0,
+    0
+   ],
+   "radius": 40,
+   "expect": 10,
+   "measured": 10,
+   "pass": true
+  },
+  {
+   "name": "pinwheel A=10 R=90",
+   "field": "theta / tau",
+   "amount": 10,
+   "center": [
+    0,
+    0
+   ],
+   "radius": 90,
+   "expect": 10,
+   "measured": 10,
+   "pass": true
+  },
+  {
+   "name": "pinwheel A=10 R=200",
+   "field": "theta / tau",
+   "amount": 10,
+   "center": [
+    0,
+    0
+   ],
+   "radius": 200,
+   "expect": 10,
+   "measured": 10,
+   "pass": true
+  },
+  {
+   "name": "displaced, enclosing",
+   "field": "atan2(y, x - 0.3) / tau",
+   "amount": 4,
+   "center": [
+    60,
+    0
+   ],
+   "radius": 30,
+   "expect": 4,
+   "measured": 4,
+   "pass": true
+  },
+  {
+   "name": "displaced, missing",
+   "field": "atan2(y, x - 0.3) / tau",
+   "amount": 4,
+   "center": [
+    0,
+    0
+   ],
+   "radius": 30,
+   "expect": 0,
+   "measured": 0,
+   "pass": true
+  },
+  {
+   "name": "displaced, wide loop",
+   "field": "atan2(y, x - 0.3) / tau",
+   "amount": 4,
+   "center": [
+    0,
+    0
+   ],
+   "radius": 150,
+   "expect": 4,
+   "measured": 4,
+   "pass": true
+  },
+  {
+   "name": "dipole, + pole",
+   "field": "(atan2(y, x - 0.3) - atan2(y, x + 0.3)) / tau",
+   "amount": 3,
+   "center": [
+    60,
+    0
+   ],
+   "radius": 30,
+   "expect": 3,
+   "measured": 3,
+   "pass": true
+  },
+  {
+   "name": "dipole, - pole",
+   "field": "(atan2(y, x - 0.3) - atan2(y, x + 0.3)) / tau",
+   "amount": 3,
+   "center": [
+    -60,
+    0
+   ],
+   "radius": 30,
+   "expect": -3,
+   "measured": -3,
+   "pass": true
+  },
+  {
+   "name": "dipole, both",
+   "field": "(atan2(y, x - 0.3) - atan2(y, x + 0.3)) / tau",
+   "amount": 3,
+   "center": [
+    0,
+    0
+   ],
+   "radius": 150,
+   "expect": 0,
+   "measured": 0,
+   "pass": true
+  },
+  {
+   "name": "mixed exact + defect",
+   "field": "theta / tau + 0.4 * cos(r * 3)",
+   "amount": 5,
+   "center": [
+    0,
+    0
+   ],
+   "radius": 90,
+   "expect": 5,
+   "measured": 5,
+   "pass": true
+  },
+  {
+   "name": "non-integer amount (observation)",
+   "field": "theta / tau",
+   "amount": 2.5,
+   "center": [
+    0,
+    0
+   ],
+   "radius": 90,
+   "expect": null,
+   "measured": 2,
+   "pass": true
+  }
+ ],
+ "core": [
+  {
+   "amount": 2,
+   "spacing": 12,
+   "predicted": 15.279,
+   "measured": 15.279,
+   "relError": 0
+  },
+  {
+   "amount": 5,
+   "spacing": 12,
+   "predicted": 38.197,
+   "measured": 38.197,
+   "relError": 0
+  },
+  {
+   "amount": 10,
+   "spacing": 12,
+   "predicted": 76.394,
+   "measured": 76.394,
+   "relError": 0
+  }
+ ]
+}
