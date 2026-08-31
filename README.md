@@ -84,6 +84,27 @@ Hex grid edges are hexagon sides, not three-line families. Grids have no offset.
 
 The studio is dark. The canvas defaults to white. Pattern colors are the only accent.
 
+## Projects, motion, and capture
+
+The folder icon opens the library. Projects live in the browser's IndexedDB and
+save themselves as you work; a scene is the same JSON the export panel writes, so
+a project and a file are the same thing said twice.
+
+Every slider has a play button beside its reset. It opens a panel that says what
+the knob does over time — an interval, a period, loop or bounce or once, an
+easing, and where in the cycle it starts — drawn as the curve it will actually
+follow. Animations are pure functions of one clock, never accumulated, which is
+why scrubbing lands exactly where you put it and why two knobs sharing a timing
+never drift apart.
+
+The camera icon captures. Stills at 1/2/4× and any aspect; frame sequences
+straight into a folder you pick; MP4 or WebM up to 4K and 120 fps, encoded in the
+page. A recording is not a screen capture: it asks for frame *n* at exactly
+`t₀ + n/fps`, renders it, and waits for the pixels, so the file plays at the rate
+it claims however fast the machine drew it, and the same range recorded twice is
+the same file twice. The range it offers is the least common multiple of every
+animation's cycle — the shortest clip that loops without a join.
+
 ## Develop
 
 ```bash
