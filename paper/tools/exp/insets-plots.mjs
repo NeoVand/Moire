@@ -11,12 +11,13 @@
 //
 //   node paper/tools/exp/insets-plots.mjs
 
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, readFileSync } from 'node:fs';
 import { loadSolver } from '../lib/instrument.mjs';
 import { view, compose } from '../lib/render.mjs';
 import { writePng } from '../lib/png.mjs';
 
 const FIGS = new URL('../../figures/', import.meta.url);
+const DATA = new URL('../../data/', import.meta.url);
 mkdirSync(FIGS, { recursive: true });
 
 const solver = await loadSolver('final');
@@ -50,24 +51,30 @@ function thumb(name, layer) {
   console.log(`wrote figures/${name}.png`);
 }
 
-const s = 14;
+// The two hexagon insets are the families whose residuals the convex figure
+// plots, so they read the drifts from that experiment's own output rather than
+// restating them. They used to carry their own edge-directed drifts, which
+// illustrated the right two regimes but not the two curves beside them. Run
+// math.mjs first.
+const convex = JSON.parse(readFileSync(new URL('convex.json', DATA), 'utf8'));
+const s = convex.cases.shrinking.spacing;
 
-// Hexagons, edge-directed drift. The edge support factor is cos(pi/6)=0.866,
-// so the marginal drift m = s has |delta| = s / 0.866.
-const edge = { x: 0, y: 1 };
-const below = 0.72 * s; // m < s: one crossing
-const marginal = s / Math.cos(Math.PI / 6); // m = s: flat forever
+// Both families walk along their own drift, so the frame has to follow it: a
+// fixed pan framed the old edge-directed drift and would put a diagonal one in
+// the corner. This looks the same distance up each walk.
+const WALK = 260;
+function alongDrift(offset) {
+  const len = Math.hypot(offset.x, offset.y) || 1;
+  return { x: (offset.x / len) * WALK, y: (offset.y / len) * WALK };
+}
 
-thumb('inset-convex-cross', walking({
-  shape: 4, sides: 6, spacing: s, thickness: 1.7,
-  offset: { x: edge.x * below, y: edge.y * below },
-  pan: { x: 0, y: 260 }, zoom: 0.55,
-}));
-thumb('inset-convex-flat', walking({
-  shape: 4, sides: 6, spacing: s, thickness: 1.7,
-  offset: { x: edge.x * marginal, y: edge.y * marginal },
-  pan: { x: 0, y: 260 }, zoom: 0.55,
-}));
+for (const [name, key] of [['inset-convex-cross', 'shrinking'], ['inset-convex-flat', 'marginal']]) {
+  const { offset } = convex.cases[key];
+  thumb(name, walking({
+    shape: convex.shape, sides: convex.sides, spacing: s, thickness: 1.7,
+    offset, pan: alongDrift(offset), zoom: 0.55,
+  }));
+}
 
 // Circles: benign drift (open pattern, small interval) against near-marginal
 // (the interval explodes and the field it certifies is already solid).

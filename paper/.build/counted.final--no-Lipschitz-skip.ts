@@ -565,7 +565,6 @@ function ringScan(
   let alt3Signed = 1e6;
   for (let i = 0; i < RING_BUDGET; i++) {
     if (n > hi) break;
-    if (globalThis.__visited) globalThis.__visited.push(n);
     const signed =
       shapeRadius({ x: radius * c - offX, y: -radius * sn - offY }, shape, sides) - ringR;
     const gap = Math.abs(signed);
@@ -594,7 +593,7 @@ function ringScan(
     // No index within (gap − bar)/slope of here can beat bar, so the next index
     // worth looking at is the first lattice point past that run.
     const bar = Math.min(wantTrio ? alt3 : best, guard);
-    const safe = Math.floor((gap - bar) / slope) + 1;
+    const safe = 1;
     const jump = Math.max(1, Math.ceil(safe / stride)) * stride;
     n += jump;
     offX += jump * offset.x;

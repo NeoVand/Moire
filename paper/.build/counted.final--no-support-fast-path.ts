@@ -56,12 +56,6 @@ function shapeRadius__raw(
   if (shape <= 1) return length2(q);
   if (shape === 2) return Math.max(Math.abs(q.x), Math.abs(q.y));
   const n = shape === 3 ? 3 : Math.max(3, sides);
-  if (Math.abs(n - 3) < 1e-3) return Math.max(q.x, ROOT3_2 * Math.abs(q.y) - 0.5 * q.x);
-  if (Math.abs(n - 4) < 1e-3) return Math.max(Math.abs(q.x), Math.abs(q.y));
-  if (Math.abs(n - 6) < 1e-3) {
-    const ax = Math.abs(q.x);
-    return Math.max(ax, 0.5 * ax + ROOT3_2 * Math.abs(q.y));
-  }
   const ang = Math.atan2(q.y, q.x);
   const seg = TAU / n;
   return length2(q) * Math.cos(wrapToHalf(ang, seg));
@@ -565,7 +559,6 @@ function ringScan(
   let alt3Signed = 1e6;
   for (let i = 0; i < RING_BUDGET; i++) {
     if (n > hi) break;
-    if (globalThis.__visited) globalThis.__visited.push(n);
     const signed =
       shapeRadius({ x: radius * c - offX, y: -radius * sn - offY }, shape, sides) - ringR;
     const gap = Math.abs(signed);

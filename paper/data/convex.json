@@ -1,43 +1,57 @@
 {
   "p": {
-    "x": 520,
-    "y": 260
+    "x": 375,
+    "y": 190
   },
   "shape": 4,
   "sides": 6,
+  "nMax": 64,
   "cases": {
     "shrinking": {
       "offset": {
-        "x": 4,
-        "y": 2
+        "x": 10,
+        "y": 4
       },
-      "drift": 4,
+      "drift": 10,
       "spacing": 14,
       "facetSolves": [
-        28.89,
-        27.36,
-        -2.54,
-        -52,
-        -47.25,
-        2.44
+        15.63,
+        15.67,
+        -1.84,
+        -93.75,
+        -63.59,
+        1.48
       ],
-      "asymptoticSlope": -10
+      "segments": 4,
+      "breakpoints": [
+        15,
+        38,
+        42
+      ],
+      "zeroCrossing": 15.67,
+      "asymptoticSlope": -4
     },
     "marginal": {
       "offset": {
-        "x": 14,
-        "y": 0
+        "x": 10.2487,
+        "y": 10.2487
       },
       "drift": 14,
       "spacing": 14,
       "facetSolves": [
-        18.57,
-        23.1,
-        -4.98,
+        15.46,
+        12.57,
+        -1.29,
+        -99.97,
         null,
-        -69.31,
-        1.66
+        2.24
       ],
+      "segments": 3,
+      "breakpoints": [
+        26,
+        37
+      ],
+      "zeroCrossing": 15.46,
       "asymptoticSlope": 0
     }
   }

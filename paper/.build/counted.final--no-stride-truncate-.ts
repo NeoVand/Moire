@@ -500,8 +500,7 @@ export function ringIndexWindow(
 
 /** Power of two that brings `span` inside the budget. 1 when the window fits. */
 function ringStride(span: number): number {
-  if (span <= RING_BUDGET) return 1;
-  return 2 ** Math.ceil(Math.log2(span / RING_BUDGET));
+  return 1;
 }
 
 /**
@@ -565,7 +564,6 @@ function ringScan(
   let alt3Signed = 1e6;
   for (let i = 0; i < RING_BUDGET; i++) {
     if (n > hi) break;
-    if (globalThis.__visited) globalThis.__visited.push(n);
     const signed =
       shapeRadius({ x: radius * c - offX, y: -radius * sn - offY }, shape, sides) - ringR;
     const gap = Math.abs(signed);

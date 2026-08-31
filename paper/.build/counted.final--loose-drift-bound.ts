@@ -455,7 +455,7 @@ export function ringDrift(
   shape: ShapeKind,
   sides: number
 ): number {
-  return shapeRadius({ x: -offset.x, y: -offset.y }, shape, sides);
+  return Math.hypot(offset.x, offset.y);
 }
 
 /**
@@ -565,7 +565,6 @@ function ringScan(
   let alt3Signed = 1e6;
   for (let i = 0; i < RING_BUDGET; i++) {
     if (n > hi) break;
-    if (globalThis.__visited) globalThis.__visited.push(n);
     const signed =
       shapeRadius({ x: radius * c - offX, y: -radius * sn - offY }, shape, sides) - ringR;
     const gap = Math.abs(signed);

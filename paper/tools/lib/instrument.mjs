@@ -94,8 +94,11 @@ export const ABLATIONS = {
   'no stride (truncate)': [['  if (span <= RING_BUDGET) return 1;\n  return 2 ** Math.ceil(Math.log2(span / RING_BUDGET));', '  return 1;']],
   // Visit every index in the window instead of skipping proven-empty runs.
   'no Lipschitz skip': [['const safe = Math.floor((gap - bar) / slope) + 1;', 'const safe = 1;']],
-  // Keep measuring after the pixel is already fully inside the stroke.
-  'no accept exit': [['if (acceptBelow > 0 && best <= acceptBelow) return best;', '']],
+  // Keep measuring after the pixel is already fully inside the stroke. The early
+  // exit became a `break` rather than a `return` when the scan started tracking
+  // runners-up, so that the post-loop clamp still runs; the ablation is the same
+  // one either way, but the anchor had to follow.
+  'no accept exit': [['if (acceptBelow > 0 && best <= acceptBelow) break;', '']],
   // Ignore the stroke's reject threshold and always resolve to a full period.
   'no reject guard': [['const guard = Math.max(rejectAbove, s * 0.75);', 'const guard = s * 0.75;']],
   // Bound the drift by |delta| instead of the support function at -delta.
@@ -107,13 +110,11 @@ export const ABLATIONS = {
 /** Record which indices the scan actually evaluates, for the walkthrough figure. */
 export const VISIT_PATCH = [
   [
-    `    const gap = Math.abs(
-      shapeRadius({ x: radius * c - offX, y: -radius * sn - offY }, shape, sides) - ringR
-    );`,
+    `    const signed =
+      shapeRadius({ x: radius * c - offX, y: -radius * sn - offY }, shape, sides) - ringR;`,
     `    if (globalThis.__visited) globalThis.__visited.push(n);
-    const gap = Math.abs(
-      shapeRadius({ x: radius * c - offX, y: -radius * sn - offY }, shape, sides) - ringR
-    );`,
+    const signed =
+      shapeRadius({ x: radius * c - offX, y: -radius * sn - offY }, shape, sides) - ringR;`,
   ],
 ];
 

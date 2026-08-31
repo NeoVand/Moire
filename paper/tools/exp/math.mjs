@@ -196,24 +196,64 @@ const CASE = {
 // ----------------------------------------------- convex residual, no rotation
 
 {
-  const p = { x: 520, y: 260 };
+  // The point and the drift must not be collinear.
+  //
+  // The claim this figure illustrates is that h is piecewise linear with one
+  // segment per facet. It only *shows* that if the pulled-back point q = p - n d
+  // sweeps through more than one facet's angular sector as n grows, and q moves
+  // along the ray through p in the direction of -d. The earlier setting had
+  // p = (520,260) and d = (4,2), which are parallel: q never left its own ray, and
+  // since a hexagon is centrally symmetric the same facet stayed active for every
+  // n. The figure drew a single straight line under a caption promising six. These
+  // two are chosen so the sweep crosses sector boundaries, and the assertion below
+  // refuses to write a case that does not.
+  const p = { x: 375, y: 190 };
   const spacing = 14;
   const shape = 4;
   const sides = 6;
+  const NMAX = 64;
   // Marginal: shapeRadius(-offset) equals the spacing, so the leading facet's
-  // slope cancels and h flattens instead of crossing again.
+  // slope cancels and h flattens instead of crossing again. Any direction can be
+  // scaled onto that locus; this one is scaled off the diagonal so the flat
+  // segment is reached after two ordinary facets rather than immediately.
+  const marginalDir = { x: 1, y: 1 };
+  const marginalScale = spacing / ringDrift({ x: -marginalDir.x, y: -marginalDir.y }, shape, sides);
   const cases = {
-    shrinking: { x: 4, y: 2 },
-    marginal: { x: spacing / ringDrift({ x: 1, y: 0 }, shape, sides), y: 0 },
+    shrinking: { x: 10, y: 4 },
+    marginal: { x: marginalDir.x * marginalScale, y: marginalDir.y * marginalScale },
   };
   const meta = {};
   for (const [name, offset] of Object.entries(cases)) {
     const drift = ringDrift(offset, shape, sides);
+    const h = (n) => residual(p, n, offset, 0, spacing, 0, shape, sides);
     const rows = ['n,h'];
-    for (let n = 0; n <= 260; n++) {
-      rows.push(`${n},${residual(p, n, offset, 0, spacing, 0, shape, sides).toFixed(4)}`);
-    }
+    for (let n = 0; n <= NMAX; n++) rows.push(`${n},${h(n).toFixed(4)}`);
     writeFileSync(join(DATA, `convex-${name}.csv`), `${rows.join('\n')}\n`);
+
+    // The breakpoints, so the figure can mark where one facet hands over to the
+    // next rather than leaving the reader to infer it from a change of slope.
+    const slope = [];
+    for (let n = 0; n < NMAX; n++) slope.push(Number((h(n + 1) - h(n)).toFixed(6)));
+    const runs = [];
+    let start = 0;
+    for (let n = 1; n <= NMAX; n++) {
+      if (n === NMAX || slope[n] !== slope[start]) {
+        runs.push({ slope: slope[start], from: start, to: n });
+        start = n;
+      }
+    }
+    // Runs of one or two indices are the transition itself, not a facet.
+    const facets = runs.filter((r) => r.to - r.from >= 3);
+    if (facets.length < 3) {
+      throw new Error(
+        `convex-${name}: h has only ${facets.length} linear segment(s) over n in [0,${NMAX}]. ` +
+          `The figure claims one per facet, so this setting would not show what its caption says. ` +
+          `Check that p and the drift are not parallel.`
+      );
+    }
+    const breaks = ['n,h'];
+    for (const r of facets.slice(1)) breaks.push(`${r.from},${h(r.from).toFixed(4)}`);
+    writeFileSync(join(DATA, `convex-${name}-breaks.csv`), `${breaks.join('\n')}\n`);
     // Facet solves: the crossing of every facet's own linear piece.
     const solves = [];
     for (let k = 0; k < sides; k++) {
@@ -224,16 +264,33 @@ const CASE = {
       const den = spacing + b;
       solves.push(Math.abs(den) > 1e-6 ? Math.round(((a - 0) / den) * 100) / 100 : null);
     }
+    let zero = null;
+    for (let n = 0; n < NMAX; n++) {
+      if (h(n) >= 0 && h(n + 1) < 0) {
+        zero = n + h(n) / (h(n) - h(n + 1));
+        break;
+      }
+    }
     meta[name] = {
-      offset,
+      offset: { x: Math.round(offset.x * 1e4) / 1e4, y: Math.round(offset.y * 1e4) / 1e4 },
       drift: Math.round(drift * 1000) / 1000,
       spacing,
       facetSolves: solves,
+      segments: facets.length,
+      breakpoints: facets.slice(1).map((r) => r.from),
+      zeroCrossing: zero === null ? null : Math.round(zero * 100) / 100,
       asymptoticSlope: Math.round((drift - spacing) * 1000) / 1000,
     };
   }
-  writeFileSync(join(DATA, 'convex.json'), `${JSON.stringify({ p, shape, sides, cases: meta }, null, 2)}\n`);
-  console.log('convex: wrote translated-hexagon residuals with facet solves');
+  writeFileSync(
+    join(DATA, 'convex.json'),
+    `${JSON.stringify({ p, shape, sides, nMax: NMAX, cases: meta }, null, 2)}\n`
+  );
+  console.log(
+    `convex: ${meta.shrinking.segments} facet segments below the marginal drift ` +
+      `(m=${meta.shrinking.drift}, zero at n=${meta.shrinking.zeroCrossing}), ` +
+      `${meta.marginal.segments} at it (m=${meta.marginal.drift})`
+  );
 }
 
 // ------------------------------------- where the budget binds, against saturation

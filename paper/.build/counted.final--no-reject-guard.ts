@@ -565,7 +565,6 @@ function ringScan(
   let alt3Signed = 1e6;
   for (let i = 0; i < RING_BUDGET; i++) {
     if (n > hi) break;
-    if (globalThis.__visited) globalThis.__visited.push(n);
     const signed =
       shapeRadius({ x: radius * c - offX, y: -radius * sn - offY }, shape, sides) - ringR;
     const gap = Math.abs(signed);
@@ -816,7 +815,7 @@ export function ringDistanceCpu(
 ): number {
   const s = Math.max(spacing, 1e-4);
   // Anything past `guard` renders as no ink, so the window only has to be exact below it.
-  const guard = Math.max(rejectAbove, s * 0.75);
+  const guard = s * 0.75;
   return Math.abs(
     ringSignedCpu(p, offset, theta, s, phase, shape, sides, acceptBelow, guard)[0]
   );

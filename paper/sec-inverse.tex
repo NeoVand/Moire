@@ -308,42 +308,56 @@ consequence, which is severe and free to avoid.
 \begin{figure}[t]
   \centering
   \begin{tikzpicture}
-    \begin{axis}[paperaxis, height=4.6cm,
+    \begin{axis}[paperaxis, height=5.3cm,
       xlabel={ring index $n$}, ylabel={$h_p(n)$},
-      xmin=0, xmax=260, ymin=-640, ymax=620,
-      legend style={at={(0.5,-0.42)}, anchor=north, draw=none, fill=none,
-                    /tikz/every even column/.append style={column sep=0.5cm}},
+      xmin=0, xmax=64, ymin=-700, ymax=440,
+      ytick={-600,-400,-200,0,200,400},
+      legend style={at={(0.5,-0.40)}, anchor=north, draw=none, fill=none,
+                    /tikz/every even column/.append style={column sep=0.45cm}},
       legend columns=2,
     ]
-      \addplot[draw=none, fill=accent!22, forget plot] coordinates
-        {(0,-10) (260,-10) (260,10) (0,10)} \closedcycle;
+      % Zero is a line, not a band: at this scale a band wide enough to see would
+      % be wider than the crossing it marks.
+      \addplot[accent, thin, forget plot] coordinates {(0,0) (64,0)};
       \addplot[cool, very thick] table [x=n, y=h, col sep=comma] {data/convex-shrinking.csv};
       \addlegendentry{$m < s$: one crossing}
-      \addplot[warm, very thick] table [x=n, y=h, col sep=comma] {data/convex-marginal.csv};
+      % Dashed, not for emphasis: the two residuals very nearly coincide until the
+      % second facet, and a solid line drawn second would simply hide the first.
+      \addplot[warm, very thick, densely dashed] table [x=n, y=h, col sep=comma] {data/convex-marginal.csv};
       \addlegendentry{$m = s$: flat forever}
+      % Where one facet hands over to the next, from the same data the curves use.
+      \addplot[cool, only marks, mark=*, mark size=1.5pt, mark options={fill=white, thick},
+               forget plot] table [x=n, y=h, col sep=comma] {data/convex-shrinking-breaks.csv};
+      \addplot[warm, only marks, mark=*, mark size=1.5pt, mark options={fill=white, thick},
+               forget plot] table [x=n, y=h, col sep=comma] {data/convex-marginal-breaks.csv};
       \node[anchor=north east, inner sep=1.5pt, fill=white, draw=cool, semithick]
-        at (rel axis cs: 0.70, 0.95) {\includegraphics[width=1.35cm]{figures/inset-convex-cross.png}};
+        at (rel axis cs: 0.615, 0.97) {\includegraphics[width=1.62cm]{figures/inset-convex-cross.png}};
       \node[anchor=north east, inner sep=1.5pt, fill=white, draw=warm, semithick]
-        at (rel axis cs: 0.97, 0.95) {\includegraphics[width=1.35cm]{figures/inset-convex-flat.png}};
+        at (rel axis cs: 0.985, 0.97) {\includegraphics[width=1.62cm]{figures/inset-convex-flat.png}};
     \end{axis}
   \end{tikzpicture}
   \Description{A plot of the residual against ring index for two settings, with a
-  pink horizontal band marking zero. The blue curve starts near five hundred, falls
-  in a few straight segments, crosses the band once near index fifty and continues
-  down off the bottom of the frame. The orange curve falls alongside it, then levels
-  off onto a horizontal line well below the band and stays there for the remaining
-  two hundred indices.}
+  thin horizontal line at zero. Both curves start near four hundred and fall. The
+  blue curve is visibly made of four straight pieces of decreasing steepness, with
+  small hollow circles where one piece meets the next; it crosses zero once, part
+  way along its second piece, and keeps descending. The orange curve falls through
+  three pieces and then levels onto a horizontal line, which it holds for the rest
+  of the plot. Two small framed thumbnails at the top right show the two walking
+  hexagon families the curves belong to.}
   \caption{With $\theta=0$ the residual of a translated polygon is convex and
-  piecewise linear in $n$, one segment per facet (hexagon, $s=14$). When the drift
-  is below the spacing (blue) it falls monotonically and crosses zero once, on
-  some facet's own segment, so the answer is a linear solve. At the marginal drift
-  $m=s$ (orange) the leading facet's slope cancels and the residual is
-  \emph{constant} past the crossover: all large indices are exactly equidistant, so
-  no enumeration of finite length can settle them. The insets are the family
-  itself in each regime, framed in its curve's color: below the marginal drift
-  the walking hexagons stay a drawing; at it the far side piles into a plateau.
-  One evaluation of the constant
-  settles all of them at once.}
+  piecewise linear in $n$, one segment per facet (hexagon, $s=14$); the hollow
+  circles mark the handovers. When the drift is below the spacing (blue, $m=10$)
+  it falls monotonically and crosses zero once, on some facet's own segment, so
+  the answer is a linear solve. At the marginal drift $m=s$ (orange) the leading
+  facet's slope cancels and the residual is \emph{constant} past the crossover:
+  all large indices are exactly equidistant, so no enumeration of finite length
+  can settle them. One evaluation of the constant settles all of them at once.
+  The insets are these same two families, framed in each curve's color: below the
+  marginal drift the walking hexagons stay a drawing; at it the far side piles
+  into a plateau. Both curves are shown on the query point of
+  Table~\ref{tab:cost}'s hexagon setting; the point and the drift are deliberately
+  not parallel, since a $p$ collinear with $\delta$ keeps one facet active for
+  every $n$ and would draw a single straight line here.}
   \label{fig:convex}
 \end{figure}
 

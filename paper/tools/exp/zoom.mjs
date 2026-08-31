@@ -189,11 +189,33 @@ function ringLayer(L, floor) {
 }
 
 const K = 3;
-// The two centres sit on the frame's diagonal, equidistant from its corners,
-// so every zoom level frames the pair symmetrically.
+
+/**
+ * Where to store a layer's position so its family lands on a given world point.
+ *
+ * A layer's pose rotates before it translates -- `ringLayer` above, and
+ * composite.ts, both compute q = R(-rot) p - position -- so the centre of the
+ * family is at R(rot) * position, not at position. Setting `position` to a point
+ * on the diagonal therefore does *not* put the centre on the diagonal unless the
+ * rotation happens to be zero, which is the bug this replaces: the two centres
+ * were at (-9.2, 105.7) and (-82.2, -67.0), on a line 113 degrees off the
+ * diagonal the caption claimed, with their midpoint 50 units from the frame's.
+ * Inverting the rotation here is the whole fix.
+ */
+function positionFor(centre, rotationDeg) {
+  const r = (-rotationDeg * Math.PI) / 180;
+  const c = Math.cos(r);
+  const s = Math.sin(r);
+  return { x: c * centre.x - s * centre.y, y: s * centre.x + c * centre.y };
+}
+
+// The two centres, on the frame's diagonal and symmetric about its middle, so
+// every zoom frames the pair the same way and the fringe rosette between them
+// stays centred as the view widens.
+const POLE = 23 * K;
 const OPENING = [
   {
-    position: { x: 25 * K, y: 25 * K },
+    centre: { x: POLE, y: POLE },
     rotation: 50,
     spacing: 6 * K,
     offset: { x: 0, y: -0.5 * K },
@@ -201,14 +223,29 @@ const OPENING = [
     color: INK,
   },
   {
-    position: { x: -25 * K, y: -25 * K },
+    centre: { x: -POLE, y: -POLE },
     rotation: -5.8,
     spacing: 6 * K,
     offset: { x: 0, y: 0.5 * K },
     thickness: 3.5,
     color: INK,
   },
-];
+].map((L) => ({ ...L, position: positionFor(L.centre, L.rotation) }));
+
+// The claim the caption makes, checked rather than asserted.
+for (const L of OPENING) {
+  const r = (L.rotation * Math.PI) / 180;
+  const back = {
+    x: Math.cos(r) * L.position.x - Math.sin(r) * L.position.y,
+    y: Math.sin(r) * L.position.x + Math.cos(r) * L.position.y,
+  };
+  if (Math.abs(back.x - L.centre.x) > 1e-9 || Math.abs(back.y - L.centre.y) > 1e-9) {
+    throw new Error(`layer pose does not land on its centre: wanted ${JSON.stringify(L.centre)}, got ${JSON.stringify(back)}`);
+  }
+  if (Math.abs(back.x - back.y) > 1e-9) {
+    throw new Error(`centre ${JSON.stringify(back)} is not on the frame's diagonal`);
+  }
+}
 
 function panel(zoom, { floor = 1.15 } = {}) {
   const V = view({ width: PANEL, height: PANEL, zoom, superSample: 1 });
