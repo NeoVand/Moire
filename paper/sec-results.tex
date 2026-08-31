@@ -225,6 +225,139 @@ scenes cheap; the divergence reading, and why narrowing the interval rather than
 exiting sooner is the productive lever on a GPU, are in the supplemental
 material (\S S3).
 
+\subsection{Against explicit geometry}
+\label{sec:vector}
+
+Every comparison so far has been against another way of evaluating our own
+fields. The comparison a reader is entitled to ask for is against not using
+fields at all: emit the members as paths and stroke them. We measure that on the
+same \vecScenes{} pairs as Table~\ref{tab:fringe} and
+Figure~\ref{fig:lawatlas}, so the three can be read together, and entirely inside
+the tool's own controls---zoom clamped to $[\vecZoomLo, \vecZoomHi]$, spacing to
+the slider's range---because both effects below grow without bound and it would
+be easy, and worthless, to demonstrate them somewhere the tool cannot go.
+
+\paragraph{The count does not stay still.}
+Members are the level sets $\idx = ns + \varphi$, so how many meet the frame is
+the number of integers whose level lies in $\idx$'s range over it---exact, with
+nothing enumerated. Their total arc length follows from the coarea formula as
+$s^{-1}\!\int\lVert\nabla\idx\rVert$, which is independent of any flattening
+tolerance and so belongs to no particular back end. Both grow linearly as the
+view widens: at the zoom floor these scenes put up to $\vecMembersFloor$ distinct
+curves and $\vecInkFloor$ device pixels of stroke into a single frame, and
+nothing bounds either, because the pattern is defined on all of $\R^2$. The field
+composite prices the same frames at two index evaluations and two gradients per
+pixel, at every zoom, which is the resolution independence of \S\ref{sec:field}
+stated as a cost.
+
+\paragraph{The compositing is wrong where the moir\'e is.}
+The deeper problem is not speed. A path renderer antialiases each path against
+the frame buffer and combines with \textsc{over}, so $N$ members give
+$1-\prod_i(1-\alpha_i)$. Within one family the strokes are disjoint---a point
+lies within half a stroke width of at most one member, since the width is below
+the spacing---so the true coverage of their union is $\sum_i \alpha_i$, and
+\textsc{over} is not that. Between two families the discrepancy is sharper and it
+is structural: \textsc{over} takes the overlap of two coverages to be
+$\alpha_1\alpha_2$, the value it would have if the two were uncorrelated
+sub-pixel areas~\cite{PorterDuff1984}. A moir\'e is exactly the failure of that
+independence. Whether the two families' strokes coincide or interleave is what
+varies across the frame, and it is the whole of the signal, so a rule that
+assumes a constant overlap returns a constant where the fringes were.
+
+To isolate that rule from any renderer's antialiasing quality we give the vector
+side \emph{exact} per-path coverage---every $\alpha_i$ measured at $\vecSamples$
+samples per pixel---and compare against the true union measured on the same
+samples. What is left is the compositing alone. Across $\vecSettings$ settings
+where a pattern is still legible, the mean ink barely moves: \textsc{over} loses
+at most $\vecWorstInk\%$ of it. The fringe contrast is another matter. Below one
+member to a pixel it survives, costing at most $\vecQuietContrast\%$---this is
+the regime where a vector back end is the right tool and we do not claim
+otherwise. Past two members to a pixel it does not: over the $\vecCrowdedSettings$
+such settings the median loss is $\vecCrowdedMedian\%$ of the fringe contrast,
+rising to $\vecWorstContrast\%$ ($\vecWorstContrastRaw\%$ without the
+carrier-suppressing blur). Figure~\ref{fig:vector} is one of them, at the scene's
+own spacing and the tool's own zoom floor, with nothing unusual asked of it:
+$\vecFigInk\%$ of the ink lost, and $\vecFigContrast\%$ of the pattern.
+
+\begin{figure*}[t]
+  \centering
+  \begin{subfigure}[b]{0.545\textwidth}
+    \includegraphics[width=\linewidth]{figures/vector-wash.png}
+    \panelrow{0.32}{0.011}{%
+      (a) union coverage,
+      (b) per-path \textsc{over},
+      {(c) difference, $\vecFigAmp\times$}}
+    \vspace{2pt}
+  \end{subfigure}\hfill
+  \begin{subfigure}[b]{0.43\textwidth}
+    \begin{tikzpicture}
+      \begin{axis}[paperaxis, width=\linewidth, height=4.9cm,
+        xlabel={members sharing a pixel, $1/(s\,\text{zoom})$},
+        ylabel={fringe contrast lost (\%)},
+        xmode=log, xmin=0.5, xmax=12, ymin=-4, ymax=104,
+        legend style={at={(0.5,-0.42)}, anchor=north, draw=none, fill=none,
+                      /tikz/every even column/.append style={column sep=0.26cm}},
+        legend columns=3, mark size=1.9pt,
+      ]
+        % The one-member-per-pixel band. This has to be a filled path, so `only
+        % marks` cannot live on the axis -- it would apply here too and the region
+        % would vanish. Each scatter carries it instead.
+        \addplot[draw=none, fill=soft!20, forget plot] coordinates
+          {(0.5,-4) (1,-4) (1,104) (0.5,104)} \closedcycle;
+        \addplot[cool, only marks, mark=*] table [x=parallel-rotate_mpp, y=parallel-rotate_lost, col sep=comma]
+          {data/vector-conflation.csv};
+        \addlegendentry{two combs}
+        \addplot[accent, only marks, mark=square*] table [x=circle-parallel_mpp, y=circle-parallel_lost, col sep=comma]
+          {data/vector-conflation.csv};
+        \addlegendentry{circles, lines}
+        \addplot[warm, only marks, mark=triangle*, mark size=2.4pt] table [x=hexagon-hexagon_mpp, y=hexagon-hexagon_lost, col sep=comma]
+          {data/vector-conflation.csv};
+        \addlegendentry{hexagons}
+        \addplot[ink, only marks, mark=diamond*, mark size=2.4pt] table [x=circle-circle_mpp, y=circle-circle_lost, col sep=comma]
+          {data/vector-conflation.csv};
+        \addlegendentry{two centres}
+        \addplot[soft, only marks, mark=pentagon*] table [x=hyperbola-parallel_mpp, y=hyperbola-parallel_lost, col sep=comma]
+          {data/vector-conflation.csv};
+        \addlegendentry{hyperbolae}
+      \end{axis}
+    \end{tikzpicture}
+  \end{subfigure}
+  \Description{Left: three square panels of a circular moire rosette. The first
+  shows strong radiating light and dark rays; the second, drawn by compositing each
+  path separately, is almost flat grey with the rays gone; the third is a pink and
+  blue difference map showing where ink went missing. Right: a scatter plot of
+  fringe contrast lost against members sharing a pixel, on a log axis, for five
+  scenes. Below one member per pixel, in a shaded band, all points sit near zero;
+  past two members per pixel most points rise above eighty percent.}
+  \caption{\figlead{What per-path compositing does to a moir\'e.}
+  \emph{Left:} two circle families at their own spacing, at the tool's zoom floor,
+  where $\vecFigMembers$ members share a pixel. \textbf{(a)} the true coverage of
+  the union of the strokes; \textbf{(b)} the same strokes given \emph{exact}
+  per-path coverage and combined with \textsc{over}, as a path renderer does;
+  \textbf{(c)} the difference, $\vecFigAmp\times$, crimson where \textsc{over}
+  draws too little. (a) and (b) share one linear stretch, computed from (a) alone,
+  so the pair shows a difference of rule and not of display. The mean ink differs
+  by $\vecFigInk\%$; the fringe contrast differs by $\vecFigContrast\%$. The
+  pattern is not dimmed, it is gone.
+  \emph{Right:} that loss against how many members share a pixel, over
+  $\vecSettings$ settings reached with the tool's own zoom and spacing controls.
+  In the shaded band a pixel sees at most one member and \textsc{over} is
+  accurate---this is the regime a vector back end is built for. The rise past it
+  is not an antialiasing artifact, since both sides are given exact per-path
+  coverage; it is \textsc{over} pricing the overlap of two families as
+  $\alpha_1\alpha_2$ when the correlation between them \emph{is} the moir\'e.}
+  \label{fig:vector}
+\end{figure*}
+
+\paragraph{What has no analogue at all.}
+Cost and coverage are differences of degree. The envelope of \S\ref{sec:envelope},
+the criterion of \S\ref{sec:visibility} and the contour authoring of
+\S\ref{sec:beyond} are differences of kind: each is a statement about
+$D = \idx_1 - \idx_2$, and explicit geometry has no $\idx$ to difference. Recovering
+the fringe field from paths means rasterizing them and low-passing the
+image---the raster round trip this representation exists to avoid, and the one
+whose absence the rest of this section has been measuring.
+
 \subsection{Where the guarantee ends}
 \label{sec:limits}
 

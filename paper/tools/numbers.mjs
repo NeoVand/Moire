@@ -652,6 +652,48 @@ const zoom = load('zoom.json');
   );
 }
 
+section('data/vector.json : against explicit geometry');
+const vector = load('vector.json');
+{
+  const s = vector.summary;
+  // The quadrature behind the stroke lengths converged; if a later edit breaks
+  // that, the lengths are not measurements and the prose must not quote them.
+  if (vector.convergence.relativeDrift > 0.05) {
+    throw new Error(
+      `vector.json: the arc-length quadrature drifted ${pc(vector.convergence.relativeDrift)}% ` +
+        `over the last refinement. Re-run tools/exp/vector.mjs.`
+    );
+  }
+  macro('vecZoomLo', vector.zoomRange[0]);
+  macro('vecZoomHi', vector.zoomRange[1]);
+  macro('vecScenes', 'five');
+  macro('vecSettings', s.legibleSettings);
+  macro('vecMembersFloor', th(s.membersAtZoomFloor));
+  macro('vecInkFloor', th(s.inkPxAtZoomFloor));
+  macro('vecSamples', vector.samplesPerPixel);
+  // Below one member to a pixel a path renderer can still see what it draws.
+  macro('vecQuietContrast', pc(s.belowOnePerPixel.maxContrastLost));
+  macro('vecQuietInk', pc(Math.abs(s.belowOnePerPixel.maxInkLost)));
+  // At and above two, it cannot.
+  macro('vecCrowdedSettings', s.twoAndUp.settings);
+  macro('vecCrowdedMedian', pc(s.twoAndUp.medianContrastLost));
+  macro('vecWorstContrast', pc(s.maxContrastLost));
+  macro('vecWorstContrastRaw', pc(s.maxContrastLostUnblurred));
+  macro('vecWorstInk', pc(s.maxInkLost));
+  macro('vecWorstPixel', r(s.maxPixelError, 2));
+  // The figure's own setting: the scene at its own spacing, at the zoom floor.
+  const f = vector.figure;
+  macro('vecFigMembers', r(f.membersPerPixel, 1));
+  macro('vecFigInk', pc(f.inkLost));
+  macro('vecFigContrast', pc(f.contrastLost));
+  macro('vecFigAmp', f.amplification);
+  console.log(
+    `vector: at zoom ${vector.zoomRange[0]} up to ${th(s.membersAtZoomFloor)} members; ` +
+      `\`over\` keeps the ink to ${pc(s.maxInkLost)}% but loses a median ` +
+      `${pc(s.twoAndUp.medianContrastLost)}% of the fringe contrast past two members a pixel`
+  );
+}
+
 section('data/contour.json : moire as a contouring primitive');
 const contour = load('contour.json');
 {

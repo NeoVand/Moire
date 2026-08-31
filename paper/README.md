@@ -54,6 +54,7 @@ node tools/exp/gradient.mjs    # the eikonal divide, per family
 node tools/exp/cost.mjs        # evaluations per pixel + fidelity, per scene
 node tools/exp/artifacts.mjs   # the artifact figures, drop maps, insets
 node tools/exp/zoom.mjs        # the stroke floor: bias and noise across zoom
+node tools/exp/vector.mjs      # cost and compositing against explicit geometry (~2 min)
 node tools/exp/contour.mjs     # fringe-to-contour displacement, five fields
 node tools/exp/fidelity.mjs    # 2401-setting sweep against brute force  (~1 min)
 node tools/exp/saturation.mjs  # 55k-setting interval-width sweep        (~1 min)

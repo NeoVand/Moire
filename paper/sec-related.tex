@@ -181,6 +181,29 @@ bodies, where here the certificate ranges over an indexed family of them; our
 contribution is noticing which four of its properties this problem is asking
 for.
 
+\paragraph{Explicit geometry.}
+The nearest thing to an off-the-shelf answer is to emit the members as paths and
+hand them to a vector renderer. That tradition is mature---resolution-independent
+curves on programmable hardware~\cite{LoopBlinn2005}, random-access rendering of
+general vector graphics~\cite{NehabHoppe2008}, GPU-accelerated path
+rendering~\cite{KilgardBolz2012}, analytic rasterization under a polynomial
+filter~\cite{MansonSchaefer2013}---and for a single family at a legible zoom it
+is the better tool, which we say plainly because our own first implementation was
+of exactly that kind. Two things end it, and \S\ref{sec:vector} measures both.
+The count of members meeting the frame grows without bound as the view widens,
+while a field costs the same per pixel at every zoom. And the compositing is
+wrong in the regime that matters: a path renderer antialiases each path
+separately and combines the results with \textsc{over}, which is derived from the
+assumption that the two coverages are \emph{uncorrelated} sub-pixel
+areas~\cite{PorterDuff1984}. A moir\'e is that assumption failing---it is
+precisely the spatial modulation of how the two families' strokes fall relative to
+one another---so \textsc{over} replaces the varying overlap with a constant one
+and the fringe field it carries is flattened, while the mean ink is barely
+touched. Analytic coverage of a whole scene at once~\cite{Catmull1978} does not
+have this defect, but it is not what per-path pipelines do. The distance
+composite of \S\ref{sec:field} is a union coverage, not a per-path one, which is
+why it does not arise here.
+
 \paragraph{Prefiltering a pattern.}
 Where a procedural pattern is too fine to sample, the correct answer is to
 integrate it rather than to point-sample harder, a line that runs from the
