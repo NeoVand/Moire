@@ -93,37 +93,6 @@ export function patternTypeCode(type: PatternType): number {
  * and the same numbers the CPU mirror walks.
  */
 const TILE_TABLE = tilingTable();
-/** One descriptor per bin: segment start and count, vertex start and count. */
-const TILE_BINS = uniformArray(
-  Array.from({ length: TILE_TABLE.binDescs.length / 4 }, (_, i) =>
-    new THREE.Vector4(
-      TILE_TABLE.binDescs[i * 4],
-      TILE_TABLE.binDescs[i * 4 + 1],
-      TILE_TABLE.binDescs[i * 4 + 2],
-      TILE_TABLE.binDescs[i * 4 + 3]
-    )
-  ),
-  'vec4'
-);
-/** The segments themselves, grouped by bin — read straight, no indirection. */
-const TILE_SEGS = uniformArray(
-  Array.from({ length: TILE_TABLE.binSegs.length / 4 }, (_, i) =>
-    new THREE.Vector4(
-      TILE_TABLE.binSegs[i * 4],
-      TILE_TABLE.binSegs[i * 4 + 1],
-      TILE_TABLE.binSegs[i * 4 + 2],
-      TILE_TABLE.binSegs[i * 4 + 3]
-    )
-  ),
-  'vec4'
-);
-const TILE_VERTS = uniformArray(
-  Array.from({ length: TILE_TABLE.binVerts.length / 2 }, (_, i) =>
-    new THREE.Vector2(TILE_TABLE.binVerts[i * 2], TILE_TABLE.binVerts[i * 2 + 1])
-  ),
-  'vec2'
-);
-
 export function createLayerSlot() {
   return {
     active: uniform(0),
@@ -159,7 +128,9 @@ export function createLayerSlot() {
   };
 }
 
-export type LayerSlot = ReturnType<typeof createLayerSlot>;
+export type LayerSlot = ReturnType<typeof createLayerSlot> & {
+  tiling: ReturnType<typeof createTilingNodes>;
+};
 
 /**
  * Compiled programs, keyed by source.
@@ -1029,70 +1000,118 @@ function matchLattices(view, solved, scan, latGrads) {
 }
 
 /**
- * A catalogue tiling's edge and vertex distance, by walking its own segments.
+ * One set of tiling nodes per renderer.
  *
- * The three original grids each got a hand-written distance function; a
- * catalogue cannot, so a tiling's ink is data — the segments of its cell and
- * of every neighbour within reach, in the shared uniform table. The point
- * folds into the cell once and the walk is flat, with no neighbourhood search,
- * because the table already carries the copies that could win.
- *
- * The fold is the fractional part in the generator basis, which is the same
- * pair of coordinates the character scan reads off this layer — so the ink and
- * the indices agree about what a cell is, by construction.
- *
- * The stretch lives in world space: the fold and the closest-point solve run in
- * unstretched layer coordinates and only the final difference is scaled, so an
- * anisotropic tiling stretches its ink rather than its parameterisation. That
- * is the convention the hexagon and triangle grids already use.
+ * These were module-level singletons, on the reasoning that the table is static
+ * and may as well be uploaded once. But a `uniformArray` is not only data: it
+ * owns a buffer on whichever device first compiled it, and this tool mounts more
+ * than one renderer -- the offscreen capture rig does, and React's development
+ * double-mount does. The second device then found the first one's buffers, and
+ * every frame failed validation with "associated with [Device], and cannot be
+ * used with [Device]". The table itself is still computed once and shared, being
+ * ordinary numbers; only the GPU-side arrays, and the function that closes over
+ * them, are per renderer.
  */
-const tilingInkFn = Fn(([p, cellVec, spacing, scaleVec, binBase, bins, wantEdge, wantVert]) => {
-  const sgn = (v) => step(0, v).mul(2).sub(1).mul(v.abs().max(1e-4));
-  const sx = sgn(scaleVec.x);
-  const sy = sgn(scaleVec.y);
-  const q = vec2(p.x.div(sx), p.y.div(sy));
-  const a = cellVec.xy;
-  const b = cellVec.zw;
-  const det = a.x.mul(b.y).sub(a.y.mul(b.x));
-  const safe = step(0, det).mul(2).sub(1).mul(det.abs().max(1e-6));
-  const u = q.x.mul(b.y).sub(q.y.mul(b.x)).div(safe).fract();
-  const v = a.x.mul(q.y).sub(a.y.mul(q.x)).div(safe).fract();
-  const f = a.mul(u).add(b.mul(v)).toVar();
+function createTilingNodes() {
+  /** One descriptor per bin: segment start and count, vertex start and count. */
+  const TILE_BINS = uniformArray(
+    Array.from({ length: TILE_TABLE.binDescs.length / 4 }, (_, i) =>
+      new THREE.Vector4(
+        TILE_TABLE.binDescs[i * 4],
+        TILE_TABLE.binDescs[i * 4 + 1],
+        TILE_TABLE.binDescs[i * 4 + 2],
+        TILE_TABLE.binDescs[i * 4 + 3]
+      )
+    ),
+    'vec4'
+  );
+  /** The segments themselves, grouped by bin — read straight, no indirection. */
+  const TILE_SEGS = uniformArray(
+    Array.from({ length: TILE_TABLE.binSegs.length / 4 }, (_, i) =>
+      new THREE.Vector4(
+        TILE_TABLE.binSegs[i * 4],
+        TILE_TABLE.binSegs[i * 4 + 1],
+        TILE_TABLE.binSegs[i * 4 + 2],
+        TILE_TABLE.binSegs[i * 4 + 3]
+      )
+    ),
+    'vec4'
+  );
+  const TILE_VERTS = uniformArray(
+    Array.from({ length: TILE_TABLE.binVerts.length / 2 }, (_, i) =>
+      new THREE.Vector2(TILE_TABLE.binVerts[i * 2], TILE_TABLE.binVerts[i * 2 + 1])
+    ),
+    'vec2'
+  );
 
-  // The bin this point lands in. Its list holds every segment that could be
-  // nearest to any point in the bin, so the walk is exact — it simply skips
-  // the copies that never could have won. Twenty-four taps over a two-tiling
-  // stack made walking the whole list cost more than everything else in the
-  // frame put together.
-  const nb = float(bins);
-  const bi = u.mul(nb).floor().clamp(0, nb.sub(1));
-  const bj = v.mul(nb).floor().clamp(0, nb.sub(1));
-  const desc = TILE_BINS.element(binBase.add(int(bj.mul(nb).add(bi))));
+  /**
+   * A catalogue tiling's edge and vertex distance, by walking its own segments.
+   *
+   * The three original grids each got a hand-written distance function; a
+   * catalogue cannot, so a tiling's ink is data — the segments of its cell and
+   * of every neighbour within reach, in the shared uniform table. The point
+   * folds into the cell once and the walk is flat, with no neighbourhood search,
+   * because the table already carries the copies that could win.
+   *
+   * The fold is the fractional part in the generator basis, which is the same
+   * pair of coordinates the character scan reads off this layer — so the ink and
+   * the indices agree about what a cell is, by construction.
+   *
+   * The stretch lives in world space: the fold and the closest-point solve run in
+   * unstretched layer coordinates and only the final difference is scaled, so an
+   * anisotropic tiling stretches its ink rather than its parameterisation. That
+   * is the convention the hexagon and triangle grids already use.
+   */
+  const tilingInkFn = Fn(([p, cellVec, spacing, scaleVec, binBase, bins, wantEdge, wantVert]) => {
+    const sgn = (v) => step(0, v).mul(2).sub(1).mul(v.abs().max(1e-4));
+    const sx = sgn(scaleVec.x);
+    const sy = sgn(scaleVec.y);
+    const q = vec2(p.x.div(sx), p.y.div(sy));
+    const a = cellVec.xy;
+    const b = cellVec.zw;
+    const det = a.x.mul(b.y).sub(a.y.mul(b.x));
+    const safe = step(0, det).mul(2).sub(1).mul(det.abs().max(1e-6));
+    const u = q.x.mul(b.y).sub(q.y.mul(b.x)).div(safe).fract();
+    const v = a.x.mul(q.y).sub(a.y.mul(q.x)).div(safe).fract();
+    const f = a.mul(u).add(b.mul(v)).toVar();
 
-  // Each walk is skipped when nothing asks for it — a uniform branch, so a
-  // stack that draws edges without vertex dots pays for one loop, not two.
-  const edge = float(1e8).toVar();
-  Loop(wantEdge.greaterThan(0.5).select(int(desc.y), int(0)), ({ i }) => {
-    const seg = TILE_SEGS.element(int(desc.x).add(i));
-    const p1 = seg.xy.mul(spacing);
-    const e = seg.zw.sub(seg.xy).mul(spacing);
-    const t = f.sub(p1).dot(e).div(max(e.dot(e), float(1e-9))).clamp(0, 1);
-    const d = f.sub(p1.add(e.mul(t)));
-    edge.assign(min(edge, length(vec2(d.x.mul(sx), d.y.mul(sy)))));
+    // The bin this point lands in. Its list holds every segment that could be
+    // nearest to any point in the bin, so the walk is exact — it simply skips
+    // the copies that never could have won. Twenty-four taps over a two-tiling
+    // stack made walking the whole list cost more than everything else in the
+    // frame put together.
+    const nb = float(bins);
+    const bi = u.mul(nb).floor().clamp(0, nb.sub(1));
+    const bj = v.mul(nb).floor().clamp(0, nb.sub(1));
+    const desc = TILE_BINS.element(binBase.add(int(bj.mul(nb).add(bi))));
+
+    // Each walk is skipped when nothing asks for it — a uniform branch, so a
+    // stack that draws edges without vertex dots pays for one loop, not two.
+    const edge = float(1e8).toVar();
+    Loop(wantEdge.greaterThan(0.5).select(int(desc.y), int(0)), ({ i }) => {
+      const seg = TILE_SEGS.element(int(desc.x).add(i));
+      const p1 = seg.xy.mul(spacing);
+      const e = seg.zw.sub(seg.xy).mul(spacing);
+      const t = f.sub(p1).dot(e).div(max(e.dot(e), float(1e-9))).clamp(0, 1);
+      const d = f.sub(p1.add(e.mul(t)));
+      edge.assign(min(edge, length(vec2(d.x.mul(sx), d.y.mul(sy)))));
+    });
+
+    const vert = float(1e8).toVar();
+    Loop(wantVert.greaterThan(0.5).select(int(desc.w), int(0)), ({ i }) => {
+      const vtx = TILE_VERTS.element(int(desc.z).add(i));
+      const d = f.sub(vtx.mul(spacing));
+      vert.assign(min(vert, length(vec2(d.x.mul(sx), d.y.mul(sy)))));
+    });
+
+    return vec2(edge, vert);
   });
 
-  const vert = float(1e8).toVar();
-  Loop(wantVert.greaterThan(0.5).select(int(desc.w), int(0)), ({ i }) => {
-    const vtx = TILE_VERTS.element(int(desc.z).add(i));
-    const d = f.sub(vtx.mul(spacing));
-    vert.assign(min(vert, length(vec2(d.x.mul(sx), d.y.mul(sy)))));
-  });
-
-  return vec2(edge, vert);
-});
+  return { ink: tilingInkFn };
+}
 
 function tilingInk(slot, p) {
-  const hit = tilingInkFn(
+  const hit = slot.tiling.ink(
     p,
     slot.tileCell,
     slot.spacing,
@@ -1308,5 +1327,8 @@ function grade(camera, view, mean, eta, channels) {
 }
 
 export function createSlots(count = MAX_LAYERS): LayerSlot[] {
-  return Array.from({ length: count }, () => createLayerSlot());
+  // One set for the whole stack and none shared with any other renderer: the
+  // slots are already per-renderer, so they are where these belong.
+  const tiling = createTilingNodes();
+  return Array.from({ length: count }, () => ({ ...createLayerSlot(), tiling }));
 }
