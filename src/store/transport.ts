@@ -34,6 +34,14 @@ export interface TransportStore {
   /** Animator ids silenced by hand, and the one soloed, if any. Session only. */
   muted: string[];
   solo: string | null;
+  /**
+   * A slider is under the pointer. Motion yields for the duration, so an animated
+   * knob can be grabbed and felt; on release the animation takes it back, because
+   * an animated knob's value belongs to its animation and the way to change it is
+   * to change the interval. Without this a hand and the clock fight over the same
+   * number sixty times a second and the hand always loses.
+   */
+  interacting: boolean;
 
   play: () => void;
   pause: () => void;
@@ -42,6 +50,7 @@ export interface TransportStore {
   setRecording: (recording: boolean) => void;
   toggleMute: (id: string) => void;
   toggleSolo: (id: string) => void;
+  setInteracting: (interacting: boolean) => void;
 }
 
 export const useTransportStore = create<TransportStore>((set) => ({
@@ -50,12 +59,14 @@ export const useTransportStore = create<TransportStore>((set) => ({
   recording: false,
   muted: [],
   solo: null,
+  interacting: false,
 
   play: () => set({ state: 'playing' }),
   pause: () => set((s) => (s.state === 'playing' ? { state: 'paused' } : s)),
   stop: () => set({ state: 'stopped', t: 0 }),
   seek: (t) => set({ t: Math.max(0, t) }),
   setRecording: (recording) => set({ recording }),
+  setInteracting: (interacting) => set({ interacting }),
 
   toggleMute: (id) =>
     set((s) => ({
@@ -118,6 +129,10 @@ function tick(now: number) {
   const transport = useTransportStore.getState();
   const { motion } = useProjectStore.getState();
   if (motion.animators.length === 0) return;
+  // A hand on a knob wins for as long as it is there. Recording never yields:
+  // nothing should be touching the controls then, and a stray event must not
+  // put a gap in a take.
+  if (transport.interacting && !transport.recording) return;
 
   if (transport.state === 'playing') {
     const t = transport.t + dt;

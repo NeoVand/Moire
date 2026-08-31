@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { RefreshCwIcon } from '@hugeicons/core-free-icons';
+import { PlayIcon, RefreshCwIcon } from '@hugeicons/core-free-icons';
 import { Icon } from './Icon';
 import { InfoTip } from './Tip';
 import { useParamRegistration, type ParamPath } from '../../store/params';
+import { useProjectStore } from '../../store/project';
+import { useTransportStore } from '../../store/transport';
+import { MotionPopover } from '../MotionPopover';
 
 interface SliderProps {
   label: string;
@@ -62,6 +65,13 @@ export function Slider({
   // only give them somewhere to go stale.
   useParamRegistration(path ? { path, label, min, max, step, unit, quantize, display } : null);
   const trackRef = useRef<HTMLDivElement>(null);
+  const motionRef = useRef<HTMLButtonElement>(null);
+  const [motionOpen, setMotionOpen] = useState(false);
+  // Whether this knob already has motion, so the button can say so at a glance
+  // rather than only inside the panel behind it.
+  const animated = useProjectStore((s) =>
+    path ? s.motion.animators.some((a) => a.path === path && a.enabled) : false
+  );
   const valueRef = useRef(value);
   const lastXRef = useRef(0);
   const fineOriginRef = useRef<{ x: number; value: number } | null>(null);
@@ -101,7 +111,10 @@ export function Slider({
       return;
     }
     const onMove = (e: MouseEvent) => applyFromClientX(e.clientX, e.shiftKey);
-    const onUp = () => setIsDragging(false);
+    const onUp = () => {
+      setIsDragging(false);
+      useTransportStore.getState().setInteracting(false);
+    };
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Shift') return;
       fineOriginRef.current = { x: lastXRef.current, value: valueRef.current };
@@ -115,6 +128,9 @@ export function Slider({
       window.removeEventListener('mouseup', onUp);
       window.removeEventListener('keydown', onKey);
       window.removeEventListener('keyup', onKey);
+      // A panel that closes mid-drag would otherwise leave motion yielding to a
+      // hand that is no longer there, and nothing would ever move again.
+      useTransportStore.getState().setInteracting(false);
     };
   }, [isDragging, applyFromClientX]);
 
@@ -136,7 +152,7 @@ export function Slider({
       formatValue(value, step) !== formatValue(defaultValue, step));
 
   return (
-    <div className="grid gap-0.5">
+    <div className="group/slider grid gap-0.5">
       <div className="flex h-3.5 items-center justify-between gap-2">
         <span className="flex min-w-0 items-center gap-1 text-[11px] text-[var(--text-secondary)]">
           <span className="min-w-0 truncate">{label}</span>
@@ -150,6 +166,22 @@ export function Slider({
               className="grid size-3.5 shrink-0 place-items-center text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             >
               <Icon icon={RefreshCwIcon} size={10} />
+            </button>
+          )}
+          {path && (
+            <button
+              ref={motionRef}
+              type="button"
+              title={animated ? `${label} is animated` : `Animate ${label}`}
+              aria-label={animated ? `${label} is animated` : `Animate ${label}`}
+              onClick={() => setMotionOpen((v) => !v)}
+              className={`grid size-3.5 shrink-0 place-items-center ${
+                animated
+                  ? 'text-[var(--text-primary)]'
+                  : 'text-[var(--text-muted)] opacity-0 group-hover/slider:opacity-100 focus-visible:opacity-100'
+              } hover:text-[var(--text-primary)]`}
+            >
+              <Icon icon={PlayIcon} size={10} />
             </button>
           )}
         </span>
@@ -185,6 +217,9 @@ export function Slider({
         onMouseDown={(e) => {
           e.preventDefault();
           setIsDragging(true);
+          // Motion yields while the knob is held, so an animated one can be
+          // grabbed and looked at rather than fighting the clock for its value.
+          useTransportStore.getState().setInteracting(true);
           applyFromClientX(e.clientX, e.shiftKey);
         }}
       >
@@ -198,6 +233,18 @@ export function Slider({
           style={{ left: `${pct}%` }}
         />
       </div>
+      {path && (
+        <MotionPopover
+          open={motionOpen}
+          onClose={() => setMotionOpen(false)}
+          triggerRef={motionRef}
+          path={path}
+          label={label}
+          min={min}
+          max={max}
+          value={value}
+        />
+      )}
     </div>
   );
 }
