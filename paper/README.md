@@ -105,8 +105,22 @@ const json = await gpu.report(root);   // a JSON string
 await fetch('http://localhost:5199/data/gpu.json', { method: 'POST', body: json });
 ```
 
-`report()` returns a string; post it as-is. `run.mjs` also drives `ablation()` the
-same way, into `data/ablation.json`.
+`report()` returns a string; post it as-is. Table 6 has its own driver, because its
+four scenes were once defined only in a console session and two of them were not
+recoverable from the repository:
+
+```js
+const abl = await import(`/@fs/${root}/paper/tools/gpu/ablation.mjs`);
+const json = await abl.ablation(root);   // runs the matrix five times over
+await fetch('http://localhost:5199/data/ablation.json', { method: 'POST', body: json });
+```
+
+Run it on a quiet machine -- no dev server beyond the one serving the page, no
+other GPU work. It reports `worstRelativeSpread`, and `numbers.mjs` refuses the
+table if that exceeds 0.15, because at that point the repeat-to-repeat variation
+is as large as the effects the table is about. The current `data/ablation.json`
+predates the change that made the scan's accept exit a `break`, so its baselines
+are stale and `numbers.mjs` says so on every run until it is regenerated.
 
 Two traps worth knowing. `probe.mjs` throws on a timestamp delta of zero rather
 than reporting a fast number, because a pass that fails validation and a pass that

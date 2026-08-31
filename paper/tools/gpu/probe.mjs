@@ -35,10 +35,13 @@ export const ABLATIONS = {
       '',
     ],
   ],
+  // The early exit became a `break` rather than a `return` when the scan started
+  // tracking runners-up, so that the post-loop clamp still runs. Same ablation,
+  // moved anchor -- and the CPU twin's copy of this patch had drifted the same way.
   'no accept exit': [
     [
       `    if (acceptBelow > 0.0 && best <= acceptBelow) {
-      return best;
+      break;
     }
 `,
       '',

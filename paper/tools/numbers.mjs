@@ -578,8 +578,31 @@ const abl = load('ablation.json');
     const scene = abl[sceneKey];
     if (!scene) throw new Error(`ablation.json has no scene "${sceneKey}"`);
     if (!scene[mech]) throw new Error(`ablation.json has no "${mech}" for "${sceneKey}"`);
+    // A patch that no longer matches the source records an error rather than a
+    // time. Publishing around it would quietly drop a row from the table.
+    if (scene[mech].error) {
+      throw new Error(
+        `ablation.json: "${mech}" on "${sceneKey}" did not run: ${scene[mech].error}. ` +
+          `Re-run paper/tools/gpu/ablation.mjs after repairing the patch.`
+      );
+    }
     return scene[mech].passMs / scene.full.passMs;
   };
+
+  // Two things this table cannot be trusted without, both learned the hard way.
+  if (abl.worstRelativeSpread === undefined) {
+    console.warn(
+      '  WARNING: ablation.json predates tools/gpu/ablation.mjs and carries no spread. ' +
+        'It was measured against a solver whose accept exit has since changed from a ' +
+        'return to a break, so its baselines are stale. Re-run it on a quiet machine.'
+    );
+  } else if (abl.worstRelativeSpread > 0.15) {
+    throw new Error(
+      `ablation.json: ratios varied by up to ${pc(abl.worstRelativeSpread)}% across repeats, ` +
+        `which is the size of the effects the table reports. Re-run on a quiet machine ` +
+        `(no dev server, no browser) before quoting it.`
+    );
+  }
   // Two decimals reads well below 10; a 90x entry does not need them.
   const fmt = (v) => (v >= 10 ? r(v, 1) : r(v, 2));
 
