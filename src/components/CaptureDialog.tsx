@@ -29,6 +29,7 @@ import {
 } from '../gpu/video';
 import { useLibraryStore } from '../store/library';
 import { useProjectStore } from '../store/project';
+import { MotionList } from './MotionList';
 import { motionSpan } from '../types/motion';
 import { useTransportStore } from '../store/transport';
 import { FloatingPanel } from './ui/FloatingPanel';
@@ -159,7 +160,6 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     const s = motionSpan(useProjectStore.getState().motion);
     if (!s.empty) setT1(Math.round(s.end * 100) / 100);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Finding out costs a real encode, so it happens when the settings settle
@@ -360,12 +360,23 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
             type="button"
             className="rounded-md px-2 py-1 text-[10px] text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-30"
             title="Use the clock's current position as the in point"
-            onClick={() => setT0(Math.round(clock * 10) / 10)}
+            onClick={() => setT0(Math.round(clock * 100) / 100)}
             disabled={recording}
           >
             set in
           </button>
+          <button
+            type="button"
+            className="rounded-md px-2 py-1 text-[10px] text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-30"
+            title="Use the clock's current position as the out point"
+            onClick={() => setT1(Math.round(clock * 100) / 100)}
+            disabled={recording}
+          >
+            set out
+          </button>
         </div>
+
+        <MotionList />
 
         <div className="grid gap-1.5">
           <div className="flex items-center gap-2">
