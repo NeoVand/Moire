@@ -3,6 +3,7 @@ import { compileField, FIELD_PRESETS, type CompiledField } from '../fields/expr'
 import { evalField } from '../fields/evalExpr';
 import { tokenizeForDisplay, type ExprTokenKind } from '../fields/highlight';
 import { FIELD_NONE, type FieldSpec } from '../types/moire';
+import { layerPath } from '../store/params';
 import { FloatingPanel } from './ui/FloatingPanel';
 import { Slider } from './ui/Slider';
 
@@ -274,11 +275,14 @@ const REFERENCE: { name: string; note: string }[] = [
 ];
 
 export function FieldEditor({
+  layerId,
   layerName,
   field,
   onChange,
   onClose,
 }: {
+  /** Which layer's field this is, so its two knobs can be addressed and animated. */
+  layerId: string;
   layerName: string;
   field: FieldSpec;
   onChange: (patch: Partial<FieldSpec>) => void;
@@ -400,6 +404,7 @@ export function FieldEditor({
             step={0.1}
             defaultValue={FIELD_NONE.amount}
             info="Fringes per unit of the field — the contour interval is one over this. Negative counts the other way."
+            path={layerId ? layerPath(layerId, 'field.amount') : undefined}
             onChange={(amount) => onChange({ amount })}
           />
           <Slider
@@ -410,6 +415,7 @@ export function FieldEditor({
             step={1}
             defaultValue={FIELD_NONE.scale}
             info="The field's spatial size, in world units: how far it spreads across the canvas."
+            path={layerId ? layerPath(layerId, 'field.scale') : undefined}
             onChange={(scale) => onChange({ scale })}
           />
 

@@ -28,6 +28,7 @@ import {
   type PatternType,
 } from '../types/moire';
 import { useLibraryStore } from '../store/library';
+import { layerPath, viewPath } from '../store/params';
 import { VIEW_DEFAULTS, useProjectStore, useSelectedLayer } from '../store/project';
 import { ExportDialog } from './ExportDialog';
 import { ProjectsDialog } from './ProjectsDialog';
@@ -200,6 +201,7 @@ function ResearchControl() {
               step={0.1}
               defaultValue={VIEW_DEFAULTS.envelopeContrast}
               info="The fringe field is a small excursion about the stack's mean coverage; this expands it until it reads. 1 shows the raw average."
+              path={viewPath('envelopeContrast')}
               onChange={(envelopeContrast) => setView({ envelopeContrast })}
             />
             <Slider
@@ -210,6 +212,7 @@ function ResearchControl() {
               step={0.05}
               defaultValue={VIEW_DEFAULTS.envelopeSweep}
               info="How many of its own periods each family is averaged over. 1 removes the carrier exactly; below it the pattern fades back in; beyond it higher-order beats smooth away too."
+              path={viewPath('envelopeSweep')}
               onChange={(envelopeSweep) => setView({ envelopeSweep })}
             />
             <Slider
@@ -220,6 +223,7 @@ function ResearchControl() {
               step={0.01}
               defaultValue={VIEW_DEFAULTS.envelopeLift}
               info="Flat brightness shift after the contrast expansion, for centring the fringes on the page."
+              path={viewPath('envelopeLift')}
               onChange={(envelopeLift) => setView({ envelopeLift })}
             />
             <Slider
@@ -231,6 +235,8 @@ function ResearchControl() {
               unit=" taps"
               defaultValue={VIEW_DEFAULTS.envelopeTaps}
               info="Averaging samples per pixel. Two dozen is exact in practice; fewer is faster and grainier."
+              path={viewPath('envelopeTaps')}
+              quantize="int"
               onChange={(envelopeTaps) => setView({ envelopeTaps })}
             />
             <Slider
@@ -241,6 +247,7 @@ function ResearchControl() {
               step={0.05}
               defaultValue={VIEW_DEFAULTS.envelopeMask}
               info="Fades the view to its mean where the two carriers are too far apart to fringe at all. Off shows the honest average everywhere."
+              path={viewPath('envelopeMask')}
               onChange={(envelopeMask) => setView({ envelopeMask })}
             />
           </div>
@@ -263,7 +270,8 @@ function ResearchControl() {
                   unit=" px"
                   defaultValue={VIEW_DEFAULTS.contourWidth}
                   info="Stroke width of the level curves, constant at any zoom."
-                  onChange={(contourWidth) => setView({ contourWidth })}
+                  path={viewPath('contourWidth')}
+              onChange={(contourWidth) => setView({ contourWidth })}
                 />
                 <Slider
                   label="Bands"
@@ -273,7 +281,8 @@ function ResearchControl() {
                   step={0.05}
                   defaultValue={VIEW_DEFAULTS.contourBands}
                   info="A soft fill around each curve, as wide as the fringe itself — it swells where the character runs flat and pinches where it steepens."
-                  onChange={(contourBands) => setView({ contourBands })}
+                  path={viewPath('contourBands')}
+              onChange={(contourBands) => setView({ contourBands })}
                 />
               </>
             )}
@@ -293,7 +302,8 @@ function ResearchControl() {
                   step={0.01}
                   defaultValue={VIEW_DEFAULTS.ratioBlend}
                   info="How much the map covers the drawing. 1 replaces the picture; less lets you see where on it fringes will live."
-                  onChange={(ratioBlend) => setView({ ratioBlend })}
+                  path={viewPath('ratioBlend')}
+              onChange={(ratioBlend) => setView({ ratioBlend })}
                 />
                 <Slider
                   label="Threshold"
@@ -303,7 +313,8 @@ function ResearchControl() {
                   step={0.01}
                   defaultValue={VIEW_DEFAULTS.ratioThreshold}
                   info="Where the map draws its boundary. ¼ is the theory's line — move it only to read the gradations either side."
-                  onChange={(ratioThreshold) => setView({ ratioThreshold })}
+                  path={viewPath('ratioThreshold')}
+              onChange={(ratioThreshold) => setView({ ratioThreshold })}
                 />
               </>
             )}
@@ -666,6 +677,7 @@ function LayerFields() {
         step={0.01}
         defaultValue={LAYER_DEFAULTS.thickness}
         info="Stroke width of every member, in world units — it zooms with the pattern."
+        path={layerPath(layer.id, 'thickness')}
         onChange={(thickness) => updateLayer(layer.id, { thickness })}
       />
       {isRadialLines(layer.type) ? (
@@ -677,6 +689,8 @@ function LayerFields() {
           step={1}
           defaultValue={LAYER_DEFAULTS.lineCount}
           info="How many lines pass through the centre — the fan's angular pitch is 180° over this."
+          path={layerPath(layer.id, 'lineCount')}
+          quantize="int"
           onChange={(lineCount) => updateLayer(layer.id, { lineCount })}
         />
       ) : (
@@ -688,6 +702,7 @@ function LayerFields() {
           step={0.1}
           defaultValue={spacingDefault}
           info="Gap between neighbouring members. Fringes form where two layers' spacings and directions nearly agree."
+          path={layerPath(layer.id, 'spacing')}
           onChange={(spacing) => updateLayer(layer.id, { spacing })}
         />
       )}
@@ -701,6 +716,7 @@ function LayerFields() {
             step={0.1}
             defaultValue={LAYER_DEFAULTS.bendWave}
             info="How far the wave swings from its centreline."
+            path={layerPath(layer.id, 'bend')}
             onChange={(bend) => updateLayer(layer.id, { bend })}
           />
           <Slider
@@ -711,6 +727,7 @@ function LayerFields() {
             step={0.01}
             defaultValue={LAYER_DEFAULTS.frequency}
             info="How fast the wave oscillates along its length."
+            path={layerPath(layer.id, 'frequency')}
             onChange={(frequency) => updateLayer(layer.id, { frequency })}
           />
           <Slider
@@ -722,6 +739,8 @@ function LayerFields() {
             unit="°"
             defaultValue={LAYER_DEFAULTS.phase}
             info="Slides the wave along its own oscillation."
+            path={layerPath(layer.id, 'phase')}
+            display={180 / Math.PI}
             onChange={(deg) => updateLayer(layer.id, { phase: (deg * Math.PI) / 180 })}
           />
         </>
@@ -735,6 +754,7 @@ function LayerFields() {
           step={0.01}
           defaultValue={LAYER_DEFAULTS.bendParabola}
           info="How sharply the parabolas bend; negative flips them."
+          path={layerPath(layer.id, 'bend')}
           onChange={(bend) => updateLayer(layer.id, { bend })}
         />
       )}
@@ -747,6 +767,7 @@ function LayerFields() {
           step={0.1}
           defaultValue={LAYER_DEFAULTS.bendSpiral}
           info="Radius the spiral gains per turn."
+          path={layerPath(layer.id, 'bend')}
           onChange={(bend) => updateLayer(layer.id, { bend })}
         />
       )}
@@ -759,6 +780,7 @@ function LayerFields() {
           step={0.1}
           defaultValue={LAYER_DEFAULTS.positionX}
           info="Moves the layer's centre horizontally, in world units."
+          path={layerPath(layer.id, 'position.x')}
           onChange={(x) => updateLayer(layer.id, { position: { x } })}
         />
         <Slider
@@ -769,6 +791,7 @@ function LayerFields() {
           step={0.1}
           defaultValue={LAYER_DEFAULTS.positionY}
           info="Moves the layer's centre vertically, in world units."
+          path={layerPath(layer.id, 'position.y')}
           onChange={(y) => updateLayer(layer.id, { position: { y } })}
         />
       </div>
@@ -781,6 +804,7 @@ function LayerFields() {
         unit="°"
         defaultValue={LAYER_DEFAULTS.rotation}
         info="Turns the whole layer about its centre. Small angles between similar layers make the boldest fringes."
+        path={layerPath(layer.id, 'rotation')}
         onChange={(rotation) => updateLayer(layer.id, { rotation })}
       />
       {isGrid(layer.type) ? (
@@ -794,6 +818,7 @@ function LayerFields() {
               step={0.01}
               defaultValue={LAYER_DEFAULTS.scaleX}
               info="Stretches the lattice along its own x. Strokes keep their true width."
+              path={layerPath(layer.id, 'scale.x')}
               onChange={(x) => updateLayer(layer.id, { scale: { x } })}
             />
             <Slider
@@ -804,6 +829,7 @@ function LayerFields() {
               step={0.01}
               defaultValue={LAYER_DEFAULTS.scaleY}
               info="Stretches the lattice along its own y. Strokes keep their true width."
+              path={layerPath(layer.id, 'scale.y')}
               onChange={(y) => updateLayer(layer.id, { scale: { y } })}
             />
           </div>
@@ -815,6 +841,7 @@ function LayerFields() {
             step={0.1}
             defaultValue={LAYER_DEFAULTS.vertexSize}
             info="Radius of the dot at every lattice point. Zero hides the dots."
+            path={layerPath(layer.id, 'vertexSize')}
             onChange={(vertexSize) => updateLayer(layer.id, { vertexSize })}
           />
           <Slider
@@ -825,6 +852,7 @@ function LayerFields() {
             step={0.01}
             defaultValue={LAYER_DEFAULTS.tileFill}
             info="Inks the faces inward from their edges. A face fills only once its incircle clears the inset, so the slider sweeps from the largest faces alone through to solid — which is what makes one tiling look unlike another."
+            path={layerPath(layer.id, 'tileFill')}
             onChange={(tileFill) => updateLayer(layer.id, { tileFill })}
           />
           <div className="flex items-center justify-between gap-3">
@@ -857,6 +885,7 @@ function LayerFields() {
           step={1}
           defaultValue={LAYER_DEFAULTS.phase}
           info="Advances the fan through its own line gap — a rotation, since this family's index is an angle."
+          path={layerPath(layer.id, 'phase')}
           onChange={(phase) => updateLayer(layer.id, { phase })}
         />
       ) : layer.type === 'curve-wave' ? null : (
@@ -872,6 +901,7 @@ function LayerFields() {
               ? 'Where counting starts: grows every ring outward from the centre.'
               : 'Slides the family sideways, up to one spacing.'
           }
+          path={layerPath(layer.id, 'phase')}
           onChange={(phase) => updateLayer(layer.id, { phase })}
         />
       )}
@@ -884,6 +914,7 @@ function LayerFields() {
           step={0.01}
           defaultValue={LAYER_DEFAULTS.offsetX}
           info="Walking drift for lines: line n slides n of these, so the spacing chirps across the family and it beats with itself."
+          path={layerPath(layer.id, 'offset.x')}
           onChange={(x) => updateLayer(layer.id, { offset: { x } })}
         />
       ) : (
@@ -897,6 +928,7 @@ function LayerFields() {
               step={0.01}
               defaultValue={LAYER_DEFAULTS.offsetX}
               info="Walking drift: ring n is displaced n of these, so the family marches and interferes with itself."
+              path={layerPath(layer.id, 'offset.x')}
               onChange={(x) => updateLayer(layer.id, { offset: { x } })}
             />
             <Slider
@@ -907,6 +939,7 @@ function LayerFields() {
               step={0.01}
               defaultValue={LAYER_DEFAULTS.offsetY}
               info="The vertical half of the walking drift."
+              path={layerPath(layer.id, 'offset.y')}
               onChange={(y) => updateLayer(layer.id, { offset: { y } })}
             />
           </div>
@@ -919,6 +952,7 @@ function LayerFields() {
             unit=" rad"
             defaultValue={LAYER_DEFAULTS.rotationOffset}
             info="Walking twist: ring n turns n of these. A few hundredths of a radian makes a pinwheel — but it needs something to act on: with circles and zero Offset each member is unchanged by its own turn, so give the family a drift or a shape first."
+            path={layerPath(layer.id, 'rotationOffset')}
             onChange={(rotationOffset) => updateLayer(layer.id, { rotationOffset })}
           />
         </>
@@ -932,6 +966,8 @@ function LayerFields() {
           step={1}
           defaultValue={LAYER_DEFAULTS.sides}
           info="How many sides each ring polygon has."
+          path={layerPath(layer.id, 'sides')}
+          quantize="int"
           onChange={(sides) => updateLayer(layer.id, { sides })}
         />
       )}
@@ -1084,6 +1120,7 @@ export function Studio() {
       </div>
       {fieldLayer && (
         <FieldEditor
+          layerId={fieldLayer.id}
           layerName={fieldLayer.name}
           field={fieldLayer.field}
           onChange={(patch) =>

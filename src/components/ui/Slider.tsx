@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { RefreshCwIcon } from '@hugeicons/core-free-icons';
 import { Icon } from './Icon';
 import { InfoTip } from './Tip';
+import { useParamRegistration, type ParamPath } from '../../store/params';
 
 interface SliderProps {
   label: string;
@@ -13,6 +14,17 @@ interface SliderProps {
   defaultValue?: number;
   /** One sentence on what the knob does, behind a little circled i. */
   info?: string;
+  /**
+   * Where this knob lives in the document, e.g. `view.envelopeContrast` or
+   * `layer.abc.spacing`. Publishing it is what lets motion name the same knob
+   * across a reload. A slider that addresses nothing storable -- a preview
+   * control, a colour component -- passes none and simply cannot be animated.
+   */
+  path?: ParamPath;
+  /** Whole numbers only: taps, sides, counts. See ParamDescriptor. */
+  quantize?: 'int';
+  /** Stored value times this is what is shown; only the wave's phase needs it. */
+  display?: number;
   onChange: (value: number) => void;
 }
 
@@ -40,8 +52,15 @@ export function Slider({
   unit = '',
   defaultValue,
   info,
+  path,
+  quantize,
+  display,
   onChange,
 }: SliderProps) {
+  // What the knob is, for anything that needs to talk about it rather than to
+  // it. Ranges live in the markup; copying them into a table elsewhere would
+  // only give them somewhere to go stale.
+  useParamRegistration(path ? { path, label, min, max, step, unit, quantize, display } : null);
   const trackRef = useRef<HTMLDivElement>(null);
   const valueRef = useRef(value);
   const lastXRef = useRef(0);

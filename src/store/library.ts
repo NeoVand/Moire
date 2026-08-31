@@ -12,6 +12,7 @@ import {
   writeSession,
   type ProjectRecord,
 } from './db';
+import * as params from './params';
 import { sceneOf, useProjectStore } from './project';
 import { parseScene, serializeScene } from './scene';
 
@@ -237,6 +238,7 @@ if (import.meta.env.DEV) {
   (window as unknown as Record<string, unknown>).__moire = {
     project: useProjectStore,
     library: useLibraryStore,
+    params,
   };
 }
 
