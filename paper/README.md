@@ -44,6 +44,34 @@ does not keep `build/paper.log` by default; pass `--print` to see TeX warnings.
 `paper.tex` is a shell; the prose is in `sec-*.tex` and `app-*.tex`, and every
 quoted number is a macro in `numbers.tex`, so the text cannot drift from the data.
 
+### The public build
+
+```bash
+node tools/arxiv.mjs
+```
+
+Writes `build/arxiv.pdf` and `build/arxiv-supplemental.pdf`: the same manuscript
+with the byline showing, the referees' line numbers gone, and the ACM copyright
+block off (`nonacm`). This is the version for arXiv and for the *Supplemental
+File(s) not for review* slot; `SUBMISSION.md` §4.2 has TOG's preprint policy.
+
+Do not hand-edit `\documentclass` to make one. The script generates
+`arxiv.tex` and `arxiv-supplemental.tex` from the submission sources — both
+gitignored, both regenerated on every run — so the public PDF cannot fall behind
+the submission PDF, which is a failure with no symptom. Every substitution
+asserts rather than silently doing nothing, the same rule the ablation patches
+follow. It drops a placeholder `\orcid` and says so: `0000-0000-0000-0000` is
+invisible under `anonymous` and a well-formed iD belonging to nobody without it.
+
+### The web version
+
+```bash
+node tools/html/build-html.mjs
+```
+
+Writes `public/paper/index.html`, the paper as one page, served by the app and
+linked from its About panel. Never hand-edit it; fix the converter or the LaTeX.
+
 ## Reproduce
 
 ```bash
