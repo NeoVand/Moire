@@ -4,7 +4,7 @@ Canvas-first WebGPU moiré tool. Vite + React + TypeScript + Three.js TSL. Do no
 
 ## Product contract
 
-- Full-bleed canvas. One studio chrome on the left (Moiré ring mark, view, layers, fields, PNG export). `I` collapses it to a Moire pill. `E` exports a PNG.
+- Full-bleed canvas. One studio chrome on the left (Moiré ring mark, view, layers, fields, projects, capture). `I` collapses it to a Moire pill. `E` exports a PNG.
 - World Y is up. Flip Y only in `src/gpu/camera.ts` (pointer / zoom-to-cursor).
 - Drag moves the selected layer (screen-space; invert layer rotation onto position). Option-drag rotates around the world origin (degrees in UI). Space or middle-drag pans. Wheel zooms to cursor. Shift on sliders is fine control.
 - `rotation` is degrees. `rotationOffset` is radians, always present on the layer.
@@ -85,6 +85,18 @@ A field is a displacement of a layer's *index*: `shift` many members, wherever y
 `node paper/tools/html/build-html.mjs` converts the paper's LaTeX wholesale into `public/paper/index.html` — a single light-theme page (warm paper ground, Newsreader + Inconsolata, KaTeX via CDN with `output: 'html'`) served by the app; the About modal's "The paper" link opens it. Never hand-edit `public/paper/` — fix the converter or the LaTeX and rebuild. The converter flattens `\input` recursively, escapes `<`/`>` before injecting HTML (a raw `$m<s$` once swallowed half a proof as a `<s>` tag), numbers floats in document order, renders equation numbers outside a scrollable `.eq-scroll` box, and compiles each tikzpicture standalone through tectonic + pdftoppm, cached by content hash in `paper/.build/tikz-html/` (gitignored) with `data/*.csv` paths made absolute, carrying along any argument-free `\newcommand` the float defined above its picture (`localDefs`) — a figure that sets its own `\stripw` otherwise fails as an undefined control sequence in a file nobody wrote. Copied figures dedupe against `paper/figures` blobs, so committing `public/paper/` is cheap. After editing the paper, rebuild and commit the regenerated page.
 
 `node paper/tools/arxiv.mjs` builds the public, named pair: it rewrites `paper.tex` and `supplemental.tex` into `paper/arxiv.tex` and `paper/arxiv-supplemental.tex` (gitignored) with `anonymous, review` dropped, `nonacm` added, the submission ID gone, a placeholder ORCID removed, and the supplemental's `\externaldocument` pointed at the named build — then compiles both. Generated rather than kept as a second copy, because a stale public PDF looks exactly like a current one. Every substitution asserts, so a `paper.tex` that has moved underneath the script stops it.
+
+## Checks
+
+**`npx tsc --noEmit` checks nothing here.** The root `tsconfig.json` is a solution file — `files: []` and two references — so that command typechecks an empty program and exits 0 no matter what is broken. `npx vite build` is no better: esbuild strips types without reading them. Use what CI uses:
+
+```
+npm run build      # tsc -b && vite build -- the actual typecheck
+npx eslint src
+npm run zoo        # before AND after any change under src/gpu/
+```
+
+CI is `.github/workflows/` → Deploy Pages, and it runs `npm run build`. A green `tsc --noEmit` next to a red pipeline means this trap, not a flake.
 
 ## Git
 

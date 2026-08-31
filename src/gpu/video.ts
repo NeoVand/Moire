@@ -161,8 +161,11 @@ export function encodable(format: VideoFormat, width: number, height: number, fp
     hit = (async () => {
       try {
         // The cheap question first, since it is memoized and instant, and its
-        // "no" is trustworthy even though its "yes" is not.
-        if (!(await canEncodeVideo(info.codec, { width, height, framerate: fps, quality: QUALITY }))) {
+        // "no" is trustworthy even though its "yes" is not. It cannot be asked
+        // about the frame rate at all -- it takes a codec and a frame size and
+        // nothing else -- which is the other half of why the probe below has to
+        // exist: 4K passes here and then fails at 120 and passes at 60.
+        if (!(await canEncodeVideo(info.codec, { width, height, quality: QUALITY }))) {
           return false;
         }
       } catch {
