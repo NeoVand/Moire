@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { PlayIcon, RefreshCwIcon } from '@hugeicons/core-free-icons';
+import { KeyframeIcon, RefreshCwIcon } from '@hugeicons/core-free-icons';
 import { Icon } from './Icon';
 import { InfoTip } from './Tip';
 import { useParamRegistration, type ParamPath } from '../../store/params';
@@ -174,13 +174,13 @@ export function Slider({
               title={animated ? `${label} is animated` : `Animate ${label}`}
               aria-label={animated ? `${label} is animated` : `Animate ${label}`}
               onClick={() => toggleMotion(path)}
-              className={`grid size-3.5 shrink-0 place-items-center ${
+              className={`grid size-4 shrink-0 place-items-center ${
                 animated || editing
                   ? 'text-[var(--text-primary)]'
                   : 'text-[var(--text-muted)] opacity-0 group-hover/slider:opacity-100 focus-visible:opacity-100'
               } hover:text-[var(--text-primary)]`}
             >
-              <Icon icon={PlayIcon} size={10} />
+              <Icon icon={KeyframeIcon} size={11} />
             </button>
           )}
         </span>

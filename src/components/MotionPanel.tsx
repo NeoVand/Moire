@@ -1,5 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import {
+  ArrowHorizontalIcon,
+  ArrowReloadHorizontalIcon,
+  ArrowRightToLineIcon,
+  EaseInOutIcon,
+  PauseIcon,
+  PlayIcon,
+  PreviousIcon,
+  SlashIcon,
+  StopIcon,
+} from '@hugeicons/core-free-icons';
+import {
   createAnimator,
   sampleAnimator,
   scheduleOf,
@@ -13,6 +24,7 @@ import { paramDescriptor, readParam } from '../store/params';
 import { useProjectStore } from '../store/project';
 import { useTransportStore } from '../store/transport';
 import { FloatingPanel } from './ui/FloatingPanel';
+import { Icon, type HugeIcon } from './ui/Icon';
 import { NumberField } from './ui/NumberField';
 
 /**
@@ -21,72 +33,60 @@ import { NumberField } from './ui/NumberField';
  * The curve is the centre of it rather than decoration: mode, easing and period
  * are three abstractions whose combined effect is one shape, and the shape is
  * the thing being chosen. Drawn from the same `sampleAnimator` the transport
- * uses, so it cannot describe an animation the tool would not produce.
+ * uses, so it cannot show an animation the tool would not produce.
  *
  * A movable window rather than a popover pinned to the slider. The knob is often
  * under where the panel wants to be, and being able to put it somewhere and have
  * it stay there across knobs is worth more than the anchoring.
+ *
+ * Every choice is named on its face. An icon-only segmented control makes the
+ * reader hover five things to find out what they are, and a faster tooltip would
+ * only make that quicker rather than unnecessary.
  */
 
-/**
- * The five selectors are drawn rather than borrowed, and the reason is legibility
- * rather than taste: at thirteen pixels a stock "repeat" glyph is a rounded
- * rectangle and a stock "transfer" glyph is two arrows, and neither says what
- * the value will do. These say exactly what it will do, because they are the
- * shape it will make -- the same trick the curve above uses, at button size.
- */
-const MODES: { id: MotionMode; label: string; hint: string; d: string }[] = [
-  { id: 'bounce', label: 'Bounce', hint: 'There and back, forever.', d: 'M1 12 L5 4 L9 12 L13 4' },
+const MODES: { id: MotionMode; label: string; hint: string; icon: HugeIcon }[] = [
+  { id: 'bounce', label: 'Bounce', hint: 'There and back, forever.', icon: ArrowHorizontalIcon },
   {
     id: 'loop',
     label: 'Loop',
     hint: 'To the end, jump back, again.',
-    d: 'M1 12 L6 4 L6 12 L11 4 L11 12 L14 7',
+    icon: ArrowReloadHorizontalIcon,
   },
-  { id: 'once', label: 'Once', hint: 'Cross once and stay there.', d: 'M1 12 L8 4 L14 4' },
+  { id: 'once', label: 'Once', hint: 'Cross once and stay.', icon: ArrowRightToLineIcon },
 ];
 
-const EASES: { id: MotionEase; label: string; hint: string; d: string }[] = [
-  { id: 'inOut', label: 'Eased', hint: 'Slow at both ends.', d: 'M2 12 C6 12, 9 4, 13 4' },
-  { id: 'linear', label: 'Linear', hint: 'Constant rate throughout.', d: 'M2 12 L13 4' },
+const EASES: { id: MotionEase; label: string; hint: string; icon: HugeIcon }[] = [
+  { id: 'inOut', label: 'Eased', hint: 'Slow at both ends.', icon: EaseInOutIcon },
+  { id: 'linear', label: 'Linear', hint: 'Constant rate throughout.', icon: SlashIcon },
 ];
-
-/** One little curve, at button size. */
-function Glyph({ d }: { d: string }) {
-  return (
-    <svg width="15" height="16" viewBox="0 0 15 16" aria-hidden>
-      <path d={d} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
 
 const seg = (active: boolean) =>
-  `grid h-[22px] place-items-center rounded-[5px] transition-colors ${
+  `flex h-[26px] items-center justify-center gap-1 rounded-[5px] text-[10px] transition-colors ${
     active
       ? 'bg-[var(--bg-secondary)] text-[var(--text-primary)] shadow-[0_0_0_1px_color-mix(in_srgb,var(--text-primary)_22%,transparent)]'
       : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
   }`;
 
-/** A segmented control: one sunken group, one raised choice inside it. */
 const group = 'grid gap-0.5 rounded-md bg-[var(--bg-primary)] p-0.5';
+const rowLabel = 'text-[9px] uppercase tracking-[0.09em] text-[var(--text-muted)]';
 
-const W = 196;
-const H = 54;
+const W = 248;
+const H = 62;
 
 /** The animation as a shape, over two crossings, with a dot for where it is now. */
 function Curve({ a, timings }: { a: Animator; timings: Timing[] }) {
   const dot = useRef<SVGCircleElement>(null);
   const s = scheduleOf(a, timings);
-  const window = s.delay + s.period * (s.mode === 'once' ? 1.6 : s.mode === 'bounce' ? 2 : 2);
+  const window = s.delay + s.period * (s.mode === 'once' ? 1.6 : 2);
   const lo = Math.min(a.from, a.to);
   const hi = Math.max(a.from, a.to);
   const span = Math.max(1e-6, hi - lo);
 
-  const x = (t: number) => 2 + (t / window) * (W - 4);
-  const y = (v: number) => H - 8 - ((v - lo) / span) * (H - 16);
+  const x = (t: number) => 3 + (t / window) * (W - 6);
+  const y = (v: number) => H - 9 - ((v - lo) / span) * (H - 18);
 
   let d = '';
-  const N = 96;
+  const N = 120;
   for (let i = 0; i <= N; i++) {
     const t = (i / N) * window;
     d += `${i ? 'L' : 'M'}${x(t).toFixed(2)} ${y(sampleAnimator(a, timings, t)).toFixed(2)}`;
@@ -117,11 +117,87 @@ function Curve({ a, timings }: { a: Animator; timings: Timing[] }) {
       className="rounded-lg bg-[var(--bg-primary)]"
       aria-hidden
     >
-      <line x1="2" y1={y(a.from)} x2={W - 2} y2={y(a.from)} className="stroke-[var(--track)]" strokeWidth="1" strokeDasharray="2 3" />
-      <line x1="2" y1={y(a.to)} x2={W - 2} y2={y(a.to)} className="stroke-[var(--track)]" strokeWidth="1" strokeDasharray="2 3" />
-      <path d={d} fill="none" className="stroke-[var(--text-primary)]" strokeWidth="1.5" strokeLinejoin="round" />
+      <line
+        x1="3"
+        y1={y(a.from)}
+        x2={W - 3}
+        y2={y(a.from)}
+        className="stroke-[var(--track)]"
+        strokeWidth="1"
+        strokeDasharray="2 3"
+      />
+      <line
+        x1="3"
+        y1={y(a.to)}
+        x2={W - 3}
+        y2={y(a.to)}
+        className="stroke-[var(--track)]"
+        strokeWidth="1"
+        strokeDasharray="2 3"
+      />
+      <path
+        d={d}
+        fill="none"
+        className="stroke-[var(--text-primary)]"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
       <circle ref={dot} r="2.5" className="fill-[var(--text-primary)]" />
     </svg>
+  );
+}
+
+/**
+ * The transport, here as well as in the capture panel. Setting an animation up
+ * and running it are the same activity, and sending someone to another window to
+ * press play would make composing a shot a two-window job.
+ */
+function Transport() {
+  const state = useTransportStore((s) => s.state);
+  const t = useTransportStore((s) => s.t);
+  const play = useTransportStore((s) => s.play);
+  const pause = useTransportStore((s) => s.pause);
+  const stop = useTransportStore((s) => s.stop);
+  const seek = useTransportStore((s) => s.seek);
+  const playing = state === 'playing';
+
+  const btn =
+    'grid size-7 place-items-center rounded-md text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]';
+
+  return (
+    <div className="flex items-center gap-0.5">
+      <button
+        type="button"
+        className={btn}
+        title="Back to the start"
+        aria-label="Back to the start"
+        onClick={() => seek(0)}
+      >
+        <Icon icon={PreviousIcon} size={13} />
+      </button>
+      <button
+        type="button"
+        className={`${btn} ${playing ? 'text-[var(--text-primary)]' : ''}`}
+        title={playing ? 'Pause' : 'Play'}
+        aria-label={playing ? 'Pause' : 'Play'}
+        onClick={() => (playing ? pause() : play())}
+      >
+        <Icon icon={playing ? PauseIcon : PlayIcon} size={13} />
+      </button>
+      <button
+        type="button"
+        className={btn}
+        title="Stop and rewind"
+        aria-label="Stop and rewind"
+        onClick={stop}
+      >
+        <Icon icon={StopIcon} size={13} />
+      </button>
+      <span className="flex-1" />
+      <span className="font-mono text-[10px] tabular-nums text-[var(--text-muted)]">
+        {state === 'stopped' ? 'idle' : `${t.toFixed(1)}s`}
+      </span>
+    </div>
   );
 }
 
@@ -154,6 +230,7 @@ export function MotionPanel() {
   if (!a) return null;
   const live = !!existing;
   const s = scheduleOf(a, motion.timings);
+  const step = Math.max(desc.step, (desc.max - desc.min) / 200);
 
   const edit = (patch: Partial<Animator>) => {
     const next = { ...a, ...patch };
@@ -164,78 +241,81 @@ export function MotionPanel() {
   return (
     <FloatingPanel
       id="motion"
-      width={228}
-      defaultPosition={{ x: 248, y: 120 }}
+      width={276}
+      defaultPosition={{ x: 268, y: 120 }}
       onClose={close}
       title={desc.label}
       mark={<span className="font-mono text-[9px] text-[var(--text-muted)]">motion</span>}
     >
-      <div className="grid gap-2.5">
+      <div className="grid gap-3">
         <Curve a={a} timings={motion.timings} />
+        <Transport />
 
-        <div className="flex items-center gap-2">
-          <span className="text-[10.5px] text-[var(--text-secondary)]">From</span>
-          <NumberField
-            value={a.from}
-            step={Math.max(desc.step, (desc.max - desc.min) / 200)}
-            min={desc.min}
-            max={desc.max}
-            suffix={desc.unit || undefined}
-            onChange={(from) => edit({ from })}
-          />
-          <span className="flex-1" />
-          <span className="text-[10.5px] text-[var(--text-secondary)]">To</span>
-          <NumberField
-            value={a.to}
-            step={Math.max(desc.step, (desc.max - desc.min) / 200)}
-            min={desc.min}
-            max={desc.max}
-            suffix={desc.unit || undefined}
-            onChange={(to) => edit({ to })}
-          />
+        <div className="grid gap-1.5 border-t border-[var(--border)] pt-2.5">
+          <span className={rowLabel}>Interval</span>
+          <div className="flex items-center gap-2">
+            <span className="text-[10.5px] text-[var(--text-secondary)]">From</span>
+            <NumberField
+              value={a.from}
+              step={step}
+              min={desc.min}
+              max={desc.max}
+              suffix={desc.unit || undefined}
+              onChange={(from) => edit({ from })}
+            />
+            <span className="flex-1" />
+            <span className="text-[10.5px] text-[var(--text-secondary)]">To</span>
+            <NumberField
+              value={a.to}
+              step={step}
+              min={desc.min}
+              max={desc.max}
+              suffix={desc.unit || undefined}
+              onChange={(to) => edit({ to })}
+            />
+          </div>
         </div>
 
-        <div className="flex gap-1.5 border-t border-[var(--border)] pt-2.5">
-          <div className={`${group} flex-[3] grid-cols-3`}>
+        <div className="grid gap-1.5 border-t border-[var(--border)] pt-2.5">
+          <span className={rowLabel}>Repeat</span>
+          <div className={`${group} grid-cols-3`}>
             {MODES.map((m) => (
               <button
                 key={m.id}
                 type="button"
-                title={`${m.label} — ${m.hint}`}
-                aria-label={m.label}
+                title={m.hint}
                 className={seg(s.mode === m.id)}
                 onClick={() => edit({ mode: m.id, timing: null })}
               >
-                <Glyph d={m.d} />
-              </button>
-            ))}
-          </div>
-          <div className={`${group} flex-[2] grid-cols-2`}>
-            {EASES.map((e) => (
-              <button
-                key={e.id}
-                type="button"
-                title={`${e.label} — ${e.hint}`}
-                aria-label={e.label}
-                className={seg(s.ease === e.id)}
-                onClick={() => edit({ ease: e.id, timing: null })}
-              >
-                <Glyph d={e.d} />
+                <Icon icon={m.icon} size={12} />
+                {m.label}
               </button>
             ))}
           </div>
         </div>
 
         <div className="grid gap-1.5">
+          <span className={rowLabel}>Easing</span>
+          <div className={`${group} grid-cols-2`}>
+            {EASES.map((e) => (
+              <button
+                key={e.id}
+                type="button"
+                title={e.hint}
+                className={seg(s.ease === e.id)}
+                onClick={() => edit({ ease: e.id, timing: null })}
+              >
+                <Icon icon={e.icon} size={12} />
+                {e.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid gap-1.5 border-t border-[var(--border)] pt-2.5">
+          <span className={rowLabel}>Timing</span>
           <label className="flex items-center justify-between gap-2">
-            <span className="text-[10.5px] text-[var(--text-secondary)]">
-              Seconds across
-              {s.mode !== 'once' && (
-                <span className="ml-1 text-[9px] text-[var(--text-muted)]">
-                  {Math.round(s.period * (s.mode === 'bounce' ? 2 : 1) * 10) / 10}s a cycle
-                </span>
-              )}
-            </span>
+            <span className="text-[10.5px] text-[var(--text-secondary)]">Seconds across</span>
             <NumberField
               value={s.period}
               step={0.5}
@@ -254,6 +334,12 @@ export function MotionPanel() {
               onChange={(delay) => edit({ delay, timing: null })}
             />
           </label>
+          {s.mode !== 'once' && (
+            <p className="text-[9px] leading-[1.4] text-[var(--text-muted)]">
+              {Math.round(s.period * (s.mode === 'bounce' ? 2 : 1) * 10) / 10}s for a full cycle,
+              which is the length a clip has to fit.
+            </p>
+          )}
         </div>
 
         <label className="flex items-start gap-2 border-t border-[var(--border)] pt-2.5">
