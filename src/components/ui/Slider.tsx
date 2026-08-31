@@ -3,9 +3,9 @@ import { PlayIcon, RefreshCwIcon } from '@hugeicons/core-free-icons';
 import { Icon } from './Icon';
 import { InfoTip } from './Tip';
 import { useParamRegistration, type ParamPath } from '../../store/params';
+import { useEditorStore } from '../../store/editor';
 import { useProjectStore } from '../../store/project';
 import { useTransportStore } from '../../store/transport';
-import { MotionPopover } from '../MotionPopover';
 
 interface SliderProps {
   label: string;
@@ -65,13 +65,13 @@ export function Slider({
   // only give them somewhere to go stale.
   useParamRegistration(path ? { path, label, min, max, step, unit, quantize, display } : null);
   const trackRef = useRef<HTMLDivElement>(null);
-  const motionRef = useRef<HTMLButtonElement>(null);
-  const [motionOpen, setMotionOpen] = useState(false);
   // Whether this knob already has motion, so the button can say so at a glance
   // rather than only inside the panel behind it.
   const animated = useProjectStore((s) =>
     path ? s.motion.animators.some((a) => a.path === path && a.enabled) : false
   );
+  const editing = useEditorStore((s) => path !== undefined && s.motionPath === path);
+  const toggleMotion = useEditorStore((s) => s.toggleMotion);
   const valueRef = useRef(value);
   const lastXRef = useRef(0);
   const fineOriginRef = useRef<{ x: number; value: number } | null>(null);
@@ -170,13 +170,12 @@ export function Slider({
           )}
           {path && (
             <button
-              ref={motionRef}
               type="button"
               title={animated ? `${label} is animated` : `Animate ${label}`}
               aria-label={animated ? `${label} is animated` : `Animate ${label}`}
-              onClick={() => setMotionOpen((v) => !v)}
+              onClick={() => toggleMotion(path)}
               className={`grid size-3.5 shrink-0 place-items-center ${
-                animated
+                animated || editing
                   ? 'text-[var(--text-primary)]'
                   : 'text-[var(--text-muted)] opacity-0 group-hover/slider:opacity-100 focus-visible:opacity-100'
               } hover:text-[var(--text-primary)]`}
@@ -233,18 +232,6 @@ export function Slider({
           style={{ left: `${pct}%` }}
         />
       </div>
-      {path && (
-        <MotionPopover
-          open={motionOpen}
-          onClose={() => setMotionOpen(false)}
-          triggerRef={motionRef}
-          path={path}
-          label={label}
-          min={min}
-          max={max}
-          value={value}
-        />
-      )}
     </div>
   );
 }
