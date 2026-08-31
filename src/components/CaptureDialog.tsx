@@ -146,10 +146,19 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
   };
 
   const record = async () => {
-    const dir = await pickDirectory();
+    setStatus(null);
+    let dir;
+    try {
+      dir = await pickDirectory();
+    } catch (err) {
+      setStatus({
+        text: err instanceof Error ? err.message : 'That folder cannot be written to.',
+        error: true,
+      });
+      return;
+    }
     if (!dir) return;
     abort.current = new AbortController();
-    setStatus(null);
     setProgress({ frame: 0, frames, elapsed: 0 });
     try {
       const out = await recordFrames(

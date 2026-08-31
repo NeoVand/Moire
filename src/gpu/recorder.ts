@@ -104,26 +104,61 @@ export function recordSize(opts: { scale?: number; aspect?: number }) {
 
 // ---------------------------------------------------------------- sinks
 
+type PermissionState = 'granted' | 'denied' | 'prompt';
+
 interface DirectoryHandle {
+  name?: string;
   getFileHandle(name: string, opts?: { create?: boolean }): Promise<{
     createWritable(): Promise<{ write(data: Blob): Promise<void>; close(): Promise<void> }>;
   }>;
+  queryPermission?(opts: { mode: 'read' | 'readwrite' }): Promise<PermissionState>;
+  requestPermission?(opts: { mode: 'read' | 'readwrite' }): Promise<PermissionState>;
+}
+
+/** Raised when the folder was chosen but may not be written to. */
+export class DirectoryDenied extends Error {
+  constructor() {
+    super('That folder was opened for reading only. Choose it again and allow saving.');
+    this.name = 'DirectoryDenied';
+  }
 }
 
 export function directoryPickerAvailable(): boolean {
   return typeof (window as unknown as { showDirectoryPicker?: unknown }).showDirectoryPicker === 'function';
 }
 
+/**
+ * A folder, opened for writing.
+ *
+ * The mode matters and is easy to miss: a picker called with no options hands
+ * back a handle that can only be *read*, and the failure surfaces much later as
+ * "the request is not allowed by the user agent" from the first getFileHandle --
+ * a message that sounds like the browser refusing the feature rather than the
+ * page never having asked for the right thing. So the mode is stated, and then
+ * checked, because a handle can be granted read and refused write.
+ */
 export async function pickDirectory(): Promise<DirectoryHandle | null> {
-  const pick = (window as unknown as { showDirectoryPicker?: () => Promise<DirectoryHandle> })
-    .showDirectoryPicker;
+  const pick = (
+    window as unknown as {
+      showDirectoryPicker?: (o?: { mode?: 'read' | 'readwrite' }) => Promise<DirectoryHandle>;
+    }
+  ).showDirectoryPicker;
   if (!pick) return null;
+
+  let dir: DirectoryHandle;
   try {
-    return await pick();
+    dir = await pick({ mode: 'readwrite' });
   } catch {
     // The picker was dismissed, which is not an error worth reporting.
     return null;
   }
+
+  const mode = { mode: 'readwrite' } as const;
+  const held = (await dir.queryPermission?.(mode)) ?? 'granted';
+  if (held === 'granted') return dir;
+  const asked = (await dir.requestPermission?.(mode)) ?? 'denied';
+  if (asked !== 'granted') throw new DirectoryDenied();
+  return dir;
 }
 
 /**
