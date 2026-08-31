@@ -6,6 +6,7 @@ import {
   EaseInIcon,
   EaseInOutIcon,
   EaseOutIcon,
+  Delete02Icon,
   PauseIcon,
   PlayIcon,
   PreviousIcon,
@@ -197,8 +198,7 @@ function Transport() {
       >
         <Icon icon={StopIcon} size={13} />
       </button>
-      <span className="flex-1" />
-      <span className="font-mono text-[10px] tabular-nums text-[var(--text-muted)]">
+      <span className="ml-1 font-mono text-[10px] tabular-nums text-[var(--text-muted)]">
         {state === 'stopped' ? 'idle' : `${t.toFixed(1)}s`}
       </span>
     </div>
@@ -253,7 +253,6 @@ export function MotionPanel() {
     >
       <div className="grid gap-3">
         <Curve a={a} timings={motion.timings} />
-        <Transport />
 
         <div className="grid gap-1.5 border-t border-[var(--border)] pt-2.5">
           <span className={rowLabel}>Interval</span>
@@ -361,20 +360,36 @@ export function MotionPanel() {
           </span>
         </label>
 
-        <button
-          type="button"
-          className="rounded-lg border border-[var(--border)] px-2 py-1.5 text-[10.5px] text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
-          onClick={() => {
-            if (live) {
-              removeAnimator(a.id);
-              close();
-            } else {
-              putAnimator(a);
-            }
-          }}
-        >
-          {live ? 'Remove motion' : 'Animate this'}
-        </button>
+        {/* Running it and being rid of it are the two things wanted once it is
+            set up, so they share the last row. Deleting is an icon rather than a
+            sentence because it is the one control here that cannot be undone by
+            doing it again. */}
+        <div className="flex items-center gap-2 border-t border-[var(--border)] pt-2.5">
+          <Transport />
+          <span className="flex-1" />
+          {live ? (
+            <button
+              type="button"
+              title="Remove this motion"
+              aria-label="Remove this motion"
+              onClick={() => {
+                removeAnimator(a.id);
+                close();
+              }}
+              className="grid size-7 place-items-center rounded-md text-[#c0392b] hover:bg-[color-mix(in_srgb,#c0392b_16%,transparent)]"
+            >
+              <Icon icon={Delete02Icon} size={13} />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => putAnimator(a)}
+              className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-[10.5px] text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
+            >
+              Animate this
+            </button>
+          )}
+        </div>
       </div>
     </FloatingPanel>
   );

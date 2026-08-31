@@ -15,6 +15,7 @@ import {
 import * as db from './db';
 import * as motion from '../types/motion';
 import * as params from './params';
+import * as recorder from '../gpu/recorder';
 import * as transport from './transport';
 import { useTransportStore } from './transport';
 import { sceneOf, useProjectStore } from './project';
@@ -292,6 +293,7 @@ if (import.meta.env.DEV) {
     db,
     params,
     motion,
+    recorder,
     transport,
   };
 }

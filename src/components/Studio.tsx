@@ -3,12 +3,11 @@ import {
   Add01Icon,
   ArrowLeft01Icon,
   AudioWave02Icon,
-  BookOpen02Icon,
+  Camera01Icon,
   Folder01Icon,
   Copy01Icon,
   Delete02Icon,
   DragDropVerticalIcon,
-  ImageDownloadIcon,
   MicroscopeIcon,
   ViewIcon,
   ViewOffSlashIcon,
@@ -28,9 +27,10 @@ import {
   type PatternType,
 } from '../types/moire';
 import { useLibraryStore } from '../store/library';
+import { useTransportStore } from '../store/transport';
 import { layerPath, viewPath } from '../store/params';
 import { VIEW_DEFAULTS, useProjectStore, useSelectedLayer } from '../store/project';
-import { ExportDialog } from './ExportDialog';
+import { CaptureDialog } from './CaptureDialog';
 import { ProjectsDialog } from './ProjectsDialog';
 import { FieldEditor } from './FieldEditor';
 import { FAMILY_ICONS, PATTERN_ICONS } from './patternIcons';
@@ -993,19 +993,20 @@ function ProjectsControl() {
   );
 }
 
-function ExportControl() {
+function CaptureControl() {
   const [open, setOpen] = useState(false);
+  const recording = useTransportStore((s) => s.recording);
   return (
     <>
       <IconButton
-        icon={ImageDownloadIcon}
-        label="Export & share"
-        active={open}
+        icon={Camera01Icon}
+        label={recording ? 'Capture — recording' : 'Capture'}
+        active={open || recording}
         onClick={() => setOpen((prev) => !prev)}
         size={14}
         dense
       />
-      {open && <ExportDialog onClose={() => setOpen(false)} />}
+      {open && <CaptureDialog onClose={() => setOpen(false)} />}
     </>
   );
 }
@@ -1040,15 +1041,8 @@ function Chrome({ onToggle }: { onToggle: () => void }) {
       <ColorField value={backgroundColor} onChange={setBackgroundColor} />
       <EnvelopeControl />
       <ResearchControl />
-      <IconButton
-        icon={BookOpen02Icon}
-        label="Read the paper"
-        onClick={() => window.open(`${import.meta.env.BASE_URL}paper/index.html`, '_blank', 'noopener')}
-        size={14}
-        dense
-      />
       <ProjectsControl />
-      <ExportControl />
+      <CaptureControl />
       <IconButton icon={ArrowLeft01Icon} label="Hide studio" onClick={onToggle} size={14} dense />
     </div>
   );

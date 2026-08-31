@@ -1,5 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { GithubIcon, Globe02Icon, KeyboardIcon, Linkedin02Icon } from '@hugeicons/core-free-icons';
+import {
+  BookOpen02Icon,
+  GithubIcon,
+  Globe02Icon,
+  KeyboardIcon,
+  Linkedin02Icon,
+} from '@hugeicons/core-free-icons';
 import { isTypingTarget } from '../lib/keyboard';
 import { Icon } from './ui/Icon';
 import { MoireMark } from './ui/MoireMark';
@@ -123,6 +129,20 @@ export function AboutOverlay() {
         </div>
 
         <div className="mt-3 flex justify-center gap-1">
+          {/* The paper used to have a toolbar icon of its own. It reads once and
+              belongs with the other things about the work rather than beside the
+              controls that make it. */}
+          <a
+            href={`${import.meta.env.BASE_URL}paper/index.html`}
+            target="_blank"
+            rel="noreferrer"
+            title="Read the paper"
+            aria-label="Read the paper"
+            className="flex items-center gap-1.5 rounded-md px-2 py-1 text-[12px] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
+          >
+            <Icon icon={BookOpen02Icon} size={15} />
+            <span>The paper</span>
+          </a>
           <a
             href={REPO}
             target="_blank"
