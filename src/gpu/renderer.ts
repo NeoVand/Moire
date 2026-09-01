@@ -1,6 +1,6 @@
 import * as THREE from 'three/webgpu';
 import { MeshBasicNodeMaterial } from 'three/webgpu';
-import { MAX_LAYERS, isGrid, type PatternLayer, type PatternType } from '../types/moire';
+import { MAX_LAYERS, isGrid, type PatternLayer } from '../types/moire';
 import {
   buildColorNode,
   compileFieldCached,
@@ -24,41 +24,22 @@ export interface RendererSync {
 }
 
 /**
- * Where a layer's ink truly lies, as line families: how many, at what pitch
- * (as a fraction of `spacing`), and how much of each family's line is inked.
- * The square grid is two full-duty families at the spacing itself. The
- * triangle lattice's edges are three full lines at pitch (√3/2)s. The
- * honeycomb is the trap: its walls also repeat at (√3/2)s, but each wall row
- * is only a third inked — 3 edges of length s per cell of area √3·1.5·s².
- */
-const LATTICE_ROW_PITCH = Math.sqrt(3) / 2;
-
-function familyInk(type: PatternType): { count: number; pitch: number; duty: number } {
-  if (type === 'grid-square') return { count: 2, pitch: 1, duty: 1 };
-  if (type === 'grid-hex') return { count: 3, pitch: LATTICE_ROW_PITCH, duty: 1 / 3 };
-  if (type === 'grid-triangle') return { count: 3, pitch: LATTICE_ROW_PITCH, duty: 1 };
-  return { count: 1, pitch: 1, duty: 1 };
-}
-
-/**
- * Coverage a layer would average over one of its own periods: a stroke of
- * half-width `h` on a pitch `p` inks `2h·duty/p` of the paper, once per family
- * the layer draws. It is the pivot the envelope's contrast expands about — a
- * display constant, not a measurement, so the eikonal factor is left out and
- * the kind's nominal row pitch stands in for the local member gap.
- *
- * Getting the ink model roughly right matters in both directions: counting a
- * grid's families keeps the pivot from sitting far brighter than the picture
- * (which at any real contrast drives the frame to black), and honouring the
- * honeycomb's third-duty walls keeps it from sitting far darker (which blew
- * the envelope of a hex twist out to blank paper).
+ * A sole layer's nominal mean coverage — the constant pivot the envelope
+ * grades a single-layer stack about (its per-pixel pivot equals its own mean
+ * identically, leaving contrast dead; see soloPivot in composite.ts). A
+ * stroke of half-width h on pitch p inks 2h·duty/p per family; a lattice
+ * inks several families at its kind's row pitch and duty (a honeycomb's
+ * walls are three families at (√3/2)s, each a third inked).
  */
 function nominalCoverage(layer: PatternLayer, pixel: number): number {
-  const { count, pitch, duty } = familyInk(layer.type);
+  const grid = isGrid(layer.type);
+  const hex = layer.type === 'grid-hex';
+  const count = grid ? (layer.type === 'grid-square' ? 2 : 3) : 1;
+  const pitch = grid && layer.type !== 'grid-square' ? Math.sqrt(3) / 2 : 1;
+  const duty = hex ? 1 / 3 : 1;
   const halfT = Math.max(layer.thickness * 0.5, pixel * 1.15);
   const perFamily = Math.min(1, (2 * halfT * duty) / Math.max(layer.spacing * pitch, 1e-3));
-  const open = (1 - perFamily) ** count;
-  return (1 - open) * layer.opacity;
+  return (1 - (1 - perFamily) ** count) * layer.opacity;
 }
 
 /**
@@ -171,19 +152,6 @@ const FIELD_SETTLE_MS = 220;
  */
 function slotsNeeded(layers: PatternLayer[]): number {
   return Math.min(Math.max(layers.length, 1), MAX_LAYERS);
-}
-
-const scratch = new THREE.Color();
-
-function envelopePivot(state: RendererSync): THREE.Color {
-  const pivot = new THREE.Color(state.backgroundColor);
-  const pixel = 1 / Math.max(state.camera.zoom, 0.08);
-  for (const layer of state.layers) {
-    if (!layer.visible) continue;
-    scratch.set(layer.color);
-    pivot.lerp(scratch, nominalCoverage(layer, pixel));
-  }
-  return pivot;
 }
 
 async function encodeCanvasPng(source: HTMLCanvasElement): Promise<Blob> {
@@ -505,7 +473,6 @@ export class MoireRenderer {
     this.viewUniforms.contours.value = contoursOn && (pair || maskPair || latPair) ? 1 : 0;
     this.viewUniforms.contourW.value = Math.max(0.4, state.view.contourWidth);
     this.viewUniforms.contourBand.value = state.view.contourBands;
-    this.viewUniforms.pivot.value.copy(envelope ? envelopePivot(state) : scratch.set(0xffffff));
     this.viewUniforms.ratio.value = ratioOn ? 1 : 0;
     this.viewUniforms.ratioA.value = pair ? pair[0] : maskPair ? maskPair[0] : -1;
     // The A == B fallback exists for the envelope's sweep orientation; under
@@ -527,6 +494,16 @@ export class MoireRenderer {
     const measuring = wantsScan || ratioOn;
     this.viewUniforms.scanLatA.value = measuring ? rank.lattices[0] ?? -1 : -1;
     this.viewUniforms.scanLatB.value = measuring ? rank.lattices[1] ?? -1 : -1;
+
+    // A sole visible layer grades about its nominal coverage; see soloPivot.
+    const visible = state.layers.filter((l) => l.visible);
+    this.viewUniforms.soloPivot.value = envelope && visible.length === 1 ? 1 : 0;
+    if (visible.length === 1) {
+      const pixel = 1 / Math.max(state.camera.zoom, 0.08);
+      this.viewUniforms.pivotConst.value
+        .set(state.backgroundColor)
+        .lerp(new THREE.Color(visible[0].color), nominalCoverage(visible[0], pixel));
+    }
 
     // Frame-wide deviation licences, one per ranked pair: which higher-order
     // character (if any) the pair's NOMINAL pitch ratio certifies as a global

@@ -122,12 +122,20 @@ live in the other gauge.
 
 The view exposes a contrast, because a fringe field is a small excursion about
 the stack's mean coverage and the interesting part is the excursion. Expanding
-about $0$ would ride the mean up and down as the fringes move, so the expansion
-is about the coverage the stack would average over its own periods: $2h/s$ per
-family, composited. Counting a lattice's families is not optional. A hex lattice
-draws three, and calling its coverage that of one puts the pivot far brighter
-than the picture it is expanding about, which at any real contrast drives the
-whole frame black; that is how we found the bug.
+about $0$ would ride the mean up and down as the fringes move. Our first pivot
+was a \emph{model}: the coverage the stack would average over its own periods,
+$2h/s$ per family, composited — and the model had to be right in both
+directions (a hex lattice draws three wall families at a third duty each;
+miscounting either way drives the frame black or blows it to blank paper).
+The shipped pivot needs no model: the taps already produce each layer's own
+mean ink, and compositing those means per pixel gives the stack's
+independent-phase mean exactly, for every family, morph, field and tiling at
+once (main text, \S\ref{sec:envelope}). What the expansion amplifies is then
+precisely the correlation the fringe theorem is about, and the model's
+failure modes — a pencil's radially falling duty, a field stretching one
+family's gap — go with the model. The one survivor of the old scheme is the
+single-layer stack, whose mean equals its pivot identically: it grades about
+its nominal constant instead, so its own duty drift stays legible.
 
 \subsection{Reading the ablation's negative rows}
 

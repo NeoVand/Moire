@@ -125,24 +125,15 @@ export function teaserScenes(solver) {
       contrast: 4.2,
     },
     {
-      // The teaser's one stack with more than two layers: three ring families
-      // sharing a center, spacings chosen so the RECIPROCALS are nearly
-      // arithmetic — 1/5, 1/5.45, 1/5.773 — which parks the three-layer
-      // zero-sum character (1,-2,1) at a ~160-world period while the pairwise
-      // beats sit at 37/61/97. The picture is a bullseye whose beat rings
-      // swell and fade on a wavelength no PAIR of layers possesses: the
-      // K-layer criterion in one panel, and mirror-symmetric about the seam.
-      name: 'rings-trio',
-      // 320 world across = exactly two ternary periods, so the frame edge
-      // falls on a period boundary and no bright swell is cut mid-band.
-      zoom: 1.5,
-      taps: 48,
-      layers: [
-        L({ kind: 'concentric', shape: 'circle', spacing: 5 }),
-        L({ kind: 'concentric', shape: 'circle', spacing: 5.45 }),
-        L({ kind: 'concentric', shape: 'circle', spacing: 5.773 }),
-      ],
-      contrast: 3.4,
+      // The teaser's one stack with more than two layers: three dense radial
+      // fans (200 rays, Start 150) whose centers make an equilateral triangle
+      // of side 100, mirror-symmetric about the seam, the on-axis fan
+      // carrying the stack's single rotation. Rendered through the app's own
+      // GPU pipeline by fantrio-panel.mjs — a fan's envelope needs the
+      // per-pixel pivot and the all-pairs sweep, which the CPU mirror's
+      // one-pair sum flip cannot reproduce (it breaks the mirror symmetry).
+      name: 'fan-trio',
+      prerendered: 'teaser-fantrio.png',
     },
     {
       // The author's own scene file (moire-scene-2026-08-29T18-34-49), zoomed
@@ -179,7 +170,7 @@ export function splitPanelLR(compose, envelope, scene, V, taps) {
   const right = envelope(V, scene.layers, {
     contrast: scene.contrast ?? 4,
     taps,
-    autoPivot: scene.autoPivot ?? false,
+    lift: scene.lift ?? 0,
   });
   const rgb = new Uint8Array(left.length);
   const seam = Math.round(V.width * 0.5);

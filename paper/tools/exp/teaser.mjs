@@ -10,7 +10,8 @@
 //
 //   node paper/tools/exp/teaser.mjs
 
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, readFileSync } from 'node:fs';
+import { PNG } from '../../../node_modules/pngjs/lib/png.js';
 import { compose, envelope, tile, view } from '../lib/render.mjs';
 import { loadSolver } from '../lib/instrument.mjs';
 import { writePng } from '../lib/png.mjs';
@@ -30,6 +31,24 @@ const SCENES = teaserScenes(solver);
 const panels = [];
 for (const scene of SCENES) {
   const started = Date.now();
+  // A prerendered panel comes from the app's own GPU pipeline (see
+  // fantrio-panel.mjs), already split; only the seam is drawn here so every
+  // panel's rule matches.
+  if (scene.prerendered) {
+    const img = PNG.sync.read(readFileSync(new URL(scene.prerendered, FIGS)));
+    if (img.width !== SIZE || img.height !== SIZE)
+      throw new Error(`${scene.prerendered}: expected ${SIZE}px square, got ${img.width}x${img.height}`);
+    const rgb = new Uint8Array(SIZE * SIZE * 3);
+    for (let i = 0; i < SIZE * SIZE; i++) {
+      rgb[i * 3] = img.data[i * 4];
+      rgb[i * 3 + 1] = img.data[i * 4 + 1];
+      rgb[i * 3 + 2] = img.data[i * 4 + 2];
+    }
+    drawSeam(rgb, { width: SIZE, height: SIZE }, UNIT);
+    panels.push({ rgb, width: SIZE, height: SIZE });
+    console.log(`${scene.name}  (prerendered)`);
+    continue;
+  }
   const V = view({
     width: SIZE,
     height: SIZE,

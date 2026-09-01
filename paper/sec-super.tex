@@ -631,8 +631,26 @@ for the level-set families, a rotation for the radial pencil, a translation for
 a lattice. A lattice's index is a \emph{pair}, so which combination of its two
 generators rides the sweep, and which way, is the character choice of
 \S\ref{sec:visibility} once more, and it must be made per point, or fringes
-plainly present in the render vanish from the view. Those details, and the
-contrast pivot the view expands about, are in the supplemental material (\S S3).
+plainly present in the render vanish from the view (supplemental \S S3).
+
+The view then expands the average about a pivot for legibility, and the
+right pivot is a decomposition. Since the taps already produce each layer's
+own mean ink, compositing those per-layer means gives, at every pixel, the
+mean the stack would have \emph{if its phases were independent} — the DC of
+the envelope, with every beat correlation left out. Expanding about that
+local DC amplifies exactly the correlation term, which is the quantity the
+theorem is about; where no beat stands, mean and pivot agree identically
+and the view rests at the true local gray at any gain. The pivot must be
+per-pixel because the DC drifts wherever a family's duty does — a pencil's
+falls with radius, and against any single constant the drift itself
+saturates the expansion (three dense fans graded that way render as a black
+frame around a blown core). Inside the average the stroke also keeps its
+true width rather than the renderer's hairline floor: the floor keeps a
+line visible on a screen, but inside the mean it inflates duty as the zoom
+falls and drains the modulation the view exists to show. A sole layer is
+the one exception — its mean \emph{is} its pivot, so a single-family stack
+grades about its frame constant instead, which is what makes a walking
+family's bunching legible (teaser, panel~6).
 
 One caveat remains, and it is structural rather than a matter of implementation.
 The average is over the diagonal, so where Theorem~\ref{thm:fringe}'s hypothesis

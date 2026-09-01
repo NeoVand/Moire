@@ -325,7 +325,7 @@ footer a:hover { color: var(--accent); text-decoration: none; }
     <p class="subtitle">Interference as a scalar field, and a tool for drawing with it</p>
     <p class="byline"><b>Neo Mohsenvand</b> · 2026</p>
   </header>
-  <div class="hero wide"><figure class="paper-figure" id="fig-1"><img src="figures/teaser-row1.png" width="3900" height="960" alt=""><div class="panelrow"><span>(1) two ring families</span><span>(2) a terrain field</span><span>(3) counter-spirals</span><span>(4) a hexagonal twist</span></div><img src="figures/teaser-row2.png" width="3900" height="960" alt=""><div class="panelrow"><span>(5) a four-vortex flow</span><span>(6) one walking family</span><span>(7) three cocentric ring families</span><span>(8) two walking families</span></div><figcaption><span class="fignum">Fig. 1.</span> <strong>Eight superpositions rendered directly from fields, with no
+  <div class="hero wide"><figure class="paper-figure" id="fig-1"><img src="figures/teaser-row1.png" width="3900" height="960" alt=""><div class="panelrow"><span>(1) two ring families</span><span>(2) a terrain field</span><span>(3) counter-spirals</span><span>(4) a hexagonal twist</span></div><img src="figures/teaser-row2.png" width="3900" height="960" alt=""><div class="panelrow"><span>(5) a four-vortex flow</span><span>(6) one walking family</span><span>(7) three radial fans</span><span>(8) two walking families</span></div><figcaption><span class="fignum">Fig. 1.</span> <strong>Eight superpositions rendered directly from fields, with no
   intermediate raster.</strong>  Each panel is cut at the dashed rule: to its left the
   pattern as drawn, to its right the same parameters under the envelope view of
   <a href="#sec-4-4">§4.4</a>: the stack averaged over one period of its own phase,
@@ -353,13 +353,14 @@ footer a:hover { color: var(--accent); text-decoration: none; }
   (member $n$ turned by <span class="nowrap">$n\theta$,</span> pushed by <span class="nowrap">$n\delta$)</span> with no global index
   field and no partner layer: it interferes with itself, and finding the
   nearest member is the search problem of <a href="#sec-7">§7</a>.
-  <strong>(7)</strong> <em>Three</em> ring families sharing a center, spacings tuned
-  so their reciprocals are nearly arithmetic: each pair beats at its own
-  ring system (<span class="nowrap">$37$,</span> $61$ and $97$ world units), and the three-layer
-  zero-sum character $(1,-2,1)$ — a beat <em>between</em> the beats — sweeps
-  the slow envelope that swells and fades the rings at a period ($\sim$<span class="nowrap">$160$)</span>
-  no pair of layers possesses. The one panel whose fringe field only the
-  joint index torus of <a href="#sec-4-4">§4.4</a> can name.
+  <strong>(7)</strong> <em>Three</em> radial fans of $200$ rays, centers on an
+  equilateral triangle, one fan turned half a ray gap: each pair beats in a
+  speckle lattice of coincidence spots, the fans' start discs punch the
+  white three-lobed core, and inside any two discs the third fan's rays
+  survive alone as striped lobes. A fan's member gap grows with radius —
+  its index field has no global pitch — so this panel is also the one whose
+  envelope needs the per-pixel pivot of <a href="#sec-4-4">§4.4</a>: graded about
+  a constant, the drifting mean crushes the frame to black.
   <strong>(8)</strong> Two walking circle families drifting against each other, the
   tool's default preset.
   Settings in the supplemental material (§ S4).</figcaption></figure></div>
@@ -1420,8 +1421,25 @@ for the level-set families, a rotation for the radial pencil, a translation for
 a lattice. A lattice's index is a <em>pair</em>, so which combination of its two
 generators rides the sweep, and which way, is the character choice of
 <a href="#sec-4-2">§4.2</a> once more, and it must be made per point, or fringes
-plainly present in the render vanish from the view. Those details, and the
-contrast pivot the view expands about, are in the supplemental material (§ S3).</p>
+plainly present in the render vanish from the view (supplemental § S3).</p>
+<p>The view then expands the average about a pivot for legibility, and the
+right pivot is a decomposition. Since the taps already produce each layer's
+own mean ink, compositing those per-layer means gives, at every pixel, the
+mean the stack would have <em>if its phases were independent</em> — the DC of
+the envelope, with every beat correlation left out. Expanding about that
+local DC amplifies exactly the correlation term, which is the quantity the
+theorem is about; where no beat stands, mean and pivot agree identically
+and the view rests at the true local gray at any gain. The pivot must be
+per-pixel because the DC drifts wherever a family's duty does — a pencil's
+falls with radius, and against any single constant the drift itself
+saturates the expansion (three dense fans graded that way render as a black
+frame around a blown core). Inside the average the stroke also keeps its
+true width rather than the renderer's hairline floor: the floor keeps a
+line visible on a screen, but inside the mean it inflates duty as the zoom
+falls and drains the modulation the view exists to show. A sole layer is
+the one exception — its mean <em>is</em> its pivot, so a single-family stack
+grades about its frame constant instead, which is what makes a walking
+family's bunching legible (teaser, panel 6).</p>
 <p>One caveat remains, and it is structural rather than a matter of implementation.
 The average is over the diagonal, so where Theorem <a href="#thm-2">2</a>'s hypothesis
 fails, where $\het$ is large, the view still shows $\Phi(D)$ faithfully, but

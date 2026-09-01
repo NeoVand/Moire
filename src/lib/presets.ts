@@ -245,7 +245,12 @@ export const PRESETS: ScenePreset[] = [
   {
     id: 'fan-trio',
     name: 'Fan Trio',
-    note: 'Three fans whose empty centers overlap in a reuleaux, weaving nets of pockets between them.',
+    note: 'Three fans on an equilateral triangle, empty centers overlapping in a reuleaux, weaving nets of pockets between them.',
+    // Centers make an equilateral triangle of side 100, mirror-symmetric
+    // about the vertical axis, the on-axis fan carrying the stack's single
+    // rotation — snapped to 49.95° so the mirror maps its ray set to itself
+    // (the fan repeats every 0.9°). Layer rotation acts about the world
+    // origin, so the rotated fan's position is R(rot) · its visual center.
     scene: scene(
       [
         {
@@ -254,7 +259,8 @@ export const PRESETS: ScenePreset[] = [
           lineCount: 200,
           phase: 150,
           thickness: 2,
-          position: { x: 57.7, y: 0 },
+          rotation: 49.95,
+          position: { x: 44.195173, y: 37.149924 },
         },
         {
           id: 'b',
@@ -262,9 +268,7 @@ export const PRESETS: ScenePreset[] = [
           lineCount: 200,
           phase: 150,
           thickness: 2,
-          rotation: 50,
-          position: { x: 20, y: 50 },
-          offset: { x: 0, y: -0.5 },
+          position: { x: -50, y: -28.8675 },
         },
         {
           id: 'c',
@@ -272,11 +276,10 @@ export const PRESETS: ScenePreset[] = [
           lineCount: 200,
           phase: 150,
           thickness: 2,
-          position: { x: -28.9, y: -50 },
+          position: { x: 50, y: -28.8675 },
         },
       ],
-      0.62,
-      { x: 16, y: 0 }
+      0.62
     ),
   },
   {

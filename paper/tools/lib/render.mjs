@@ -20,19 +20,6 @@ function smoothstep(a, b, x) {
   return t * t * (3 - 2 * t);
 }
 
-/** Mean ink a built layer would leave over one of its own periods. */
-function latticeCoverage(L, pixel) {
-  const halfT = Math.max(L.thickness * 0.5, pixel * L.floor);
-  const s = Math.max(L.spacing, 1e-3);
-  if (L.fam?.kind !== 'lattice') return Math.min(1, (2 * halfT) / s);
-  const lat = L.fam.lattice;
-  const pitch = lat === 'square' ? 1 : Math.sqrt(3) / 2;
-  const count = lat === 'square' ? 2 : 3;
-  const duty = lat === 'hex' || lat === 'hexagon' ? 1 / 3 : 1;
-  const per = Math.min(1, (2 * halfT * duty) / (s * pitch));
-  return 1 - (1 - per) ** count;
-}
-
 export function view(cfg = {}) {
   return {
     width: cfg.width ?? 640,
@@ -171,7 +158,7 @@ function build(layers, taps = 0) {
  * `u` advances every layer's phase by that fraction of its own period, which is
  * the one parameter the envelope averages over; at `u = 0` this is the render.
  */
-function inkAt(built, p, pixel, aa, bg, out, tap = -1, flip = null) {
+function inkAt(built, p, pixel, aa, bg, out, tap = -1, flip = null, alphas = null) {
   out[0] = bg[0];
   out[1] = bg[1];
   out[2] = bg[2];
@@ -196,6 +183,9 @@ function inkAt(built, p, pixel, aa, bg, out, tap = -1, flip = null) {
           ? L.fam.distance(p)
           : L.fam.distanceNoGrad(p);
     const alpha = (1 - smoothstep(halfT - aa, halfT + aa, d)) * L.opacity;
+    // Each layer's own alpha, before the early exit: the envelope composits
+    // per-layer tap means into its per-pixel pivot.
+    if (alphas) alphas[li] += alpha;
     if (alpha <= 0) continue;
     out[0] += (L.color[0] - out[0]) * alpha;
     out[1] += (L.color[1] - out[1]) * alpha;
@@ -234,8 +224,22 @@ export function compose(v, layers) {
 
 /**
  * The tool's envelope view, mirroring src/gpu/composite.ts: the same composite
- * averaged over one period of the phase every layer shares, then expanded about
- * the stack's nominal coverage by `contrast`.
+ * averaged over one period of the phase every layer shares, then expanded by
+ * `contrast` about the per-pixel INDEPENDENT-PHASE mean — each layer's own
+ * tap mean, composited in paint order. That pivot is the DC of the envelope
+ * with every beat correlation left out, so the expansion amplifies exactly
+ * the correlation term; where no beat stands, mean == pivot and the view
+ * sits at the true local gray at any contrast. It has to be per pixel: a
+ * radial pencil's duty falls with radius, and grading that drifting DC
+ * about one nominal constant slammed three dense fans to a black frame
+ * around a blown core (the old `autoPivot` measured a global mean instead,
+ * which is only right when the drift is negligible).
+ *
+ * Inside the average the stroke keeps its TRUE width (no hairline floor):
+ * the floor keeps a render's line visible on a screen, but inside the mean
+ * it inflates duty as the zoom falls and drains the beat modulation out of
+ * the average. Sub-pixel strokes keep correct mean coverage through the aa
+ * ramp, which is all the integral needs.
  *
  * It is not a blur. Nothing is sampled off-centre and no raster is filtered --
  * the average is over the phase parameter of Theorem 1, whose hypothesis is
@@ -244,11 +248,13 @@ export function compose(v, layers) {
  * not change with zoom.
  */
 export function envelope(v, layers, opts = {}) {
-  const { contrast = 3, taps = ENVELOPE_TAPS, autoPivot = false } = opts;
+  // `lift` is the tool's exposure slider, a flat shift after the expansion,
+  // in [0, 1] of full white.
+  const { contrast = 3, taps = ENVELOPE_TAPS, lift = 0 } = opts;
   const bg = hexToRgb(v.background);
   const pixel = 1 / Math.max(v.zoom, 0.08);
   const aa = pixel * 0.7;
-  const built = build(layers, taps);
+  const built = build(layers.map((L) => ({ ...L, floor: L.floor ?? 0 })), taps);
   const hit = [0, 0, 0];
 
   // The tool's orientation-aware sweep, mirrored here: a family's index sign is
@@ -270,36 +276,27 @@ export function envelope(v, layers, opts = {}) {
     return gs < gd;
   };
 
-  // Coverage a family averages over one of its own periods. A scalar stroke of
-  // half-width h on pitch s inks 2h/s. A lattice inks several families at
-  // its own row pitch and duty (a honeycomb's walls are three families at
-  // (√3/2)s, each only a third inked), matching familyInk in renderer.ts.
-  const pivot = [...bg];
-  for (const L of built) {
-    const cov = latticeCoverage(L, pixel) * L.opacity;
-    for (let k = 0; k < 3; k++) pivot[k] += (L.color[k] - pivot[k]) * cov;
-  }
-  // The model pivot prices a family by its nominal pitch, which a radial
-  // pencil does not have (its member gap grows with radius): three dense fans
-  // read as a few percent coverage and the expansion slams the frame black.
-  // `autoPivot` measures the frame's own mean ink on a coarse grid instead —
-  // the same "expand about the true mean" the contrast is meant to be.
-  if (autoPivot) {
+  // A sole layer's per-pixel pivot equals its own mean identically (nothing
+  // to correlate with), which would leave `contrast` dead and its drift
+  // structure flat — but a single family's duty drift IS its picture (a
+  // walking family's bunching). With one layer the grading falls back to a
+  // constant: the frame's own mean ink, measured on a coarse grid.
+  let soloPivot = null;
+  if (built.length === 1) {
     const acc = [0, 0, 0];
     let n = 0;
     for (let y = 2; y < v.height; y += 5) {
       for (let x = 2; x < v.width; x += 5) {
         inkAt(built, worldOf(v, x, y, 1), pixel, aa, bg, hit, -1, null);
-        acc[0] += hit[0];
-        acc[1] += hit[1];
-        acc[2] += hit[2];
+        for (let k = 0; k < 3; k++) acc[k] += hit[k];
         n += 1;
       }
     }
-    for (let k = 0; k < 3; k++) pivot[k] = acc[k] / Math.max(1, n);
+    soloPivot = acc.map((s) => s / Math.max(1, n));
   }
 
   const rgb = new Uint8Array(v.width * v.height * 3);
+  const layerSum = new Float64Array(built.length);
   for (let y = 0; y < v.height; y++) {
     for (let x = 0; x < v.width; x++) {
       const p = worldOf(v, x, y, 1);
@@ -307,17 +304,27 @@ export function envelope(v, layers, opts = {}) {
       let r = 0;
       let g = 0;
       let b = 0;
+      layerSum.fill(0);
       for (let tap = 0; tap < taps; tap++) {
-        inkAt(built, p, pixel, aa, bg, hit, tap, flip);
+        inkAt(built, p, pixel, aa, bg, hit, tap, flip, layerSum);
         r += hit[0];
         g += hit[1];
         b += hit[2];
       }
+      // The pivot: each layer's own mean alpha over the taps, composited in
+      // paint order — the mean the stack would have if its phases were
+      // independent.
+      const pivot = soloPivot ? [...soloPivot] : [bg[0], bg[1], bg[2]];
+      if (!soloPivot)
+        for (let li = 0; li < built.length; li++) {
+          const m = layerSum[li] / taps;
+          for (let k = 0; k < 3; k++) pivot[k] += (built[li].color[k] - pivot[k]) * m;
+        }
       const i = (y * v.width + x) * 3;
       for (let k = 0; k < 3; k++) {
         const mean = [r, g, b][k] / taps;
         rgb[i + k] = Math.round(
-          Math.min(255, Math.max(0, pivot[k] + (mean - pivot[k]) * contrast))
+          Math.min(255, Math.max(0, pivot[k] + (mean - pivot[k]) * contrast + lift * 255))
         );
       }
     }

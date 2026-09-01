@@ -233,7 +233,6 @@ export function createViewUniforms() {
     // it makes the view assert fringes only where fringes exist. 0 shows the
     // raw Phi(D); 1 masks the out-of-regime region entirely.
     envMask: uniform(0),
-    pivot: uniform(new THREE.Color(0xffffff)),
     // The ratio view: slot indices of the two layers to compare, ranked on the
     // CPU so the shader never orders layers, or -1 for none. `ratio` swaps the
     // composite for the heat map and widens the solver guard the way `sweep`
@@ -266,6 +265,16 @@ export function createViewUniforms() {
     // which drive the sweep's twist matching and the overlay's channels.
     scanLatA: uniform(-1, 'int'),
     scanLatB: uniform(-1, 'int'),
+    // The SOLO pivot: with two or more layers the envelope grades about the
+    // per-pixel independent-phase mean, so contrast amplifies exactly the
+    // beat correlations — but a sole layer has mean == pivot identically
+    // (nothing to correlate with), which would leave the contrast dial dead
+    // and its drift structure flat. A single family's duty drift IS its
+    // picture (a walking family's bunching, the fold rung's level sets), so
+    // with exactly one visible layer the grading falls back to a constant
+    // pivot: the layer's nominal coverage, computed in writeSlots.
+    pivotConst: uniform(new THREE.Color(0xffffff)),
+    soloPivot: uniform(0),
     // Per-frame deviation LICENSES, one per ranked pair: (on, |a|, |b|).
     // A higher-order schedule deviation is granted only to the character the
     // pair's NOMINAL pitch ratio certifies as a global rational lock (the 1D
@@ -389,8 +398,8 @@ export function buildColorNode(
     const coords = latticeCoords(solved);
     const scan = scanCharacters(view, solved, coords, scanOn);
     const lattice = matchLattices(view, solved, scan, coords, scanOn);
-    const mean = sweepStack(camera, view, solved, lattice.coh, scan, scanOn);
-    return grade(camera, view, mean, scan.etaAll, scan.etaEnv, [
+    const swept = sweepStack(camera, view, solved, lattice.coh, scan, scanOn);
+    return grade(camera, view, swept.mean, swept.pivot, scan.etaAll, scan.etaEnv, [
       { val: scan.beatVal, rate: scan.beatRate, eta: scan.eta, on: float(1) },
       ...lattice.chars,
     ]);
@@ -1498,6 +1507,26 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
   // devW below is what turns the winner's boundary from a seam into a fade.
   const sumDev = vec3(0).toVar();
   const sumDiag = vec3(0).toVar();
+  // Each layer's own mean ink rides along too: compositing those means in
+  // paint order gives the INDEPENDENT-PHASE mean — the DC of the envelope,
+  // with every beat correlation left out — which is the pivot the grading
+  // expands about. It has to be per pixel: a fan's duty falls with radius, a
+  // parabola's with |x|, a field-warped family's wherever the field
+  // stretches its gap, and grading that drifting DC against one global
+  // constant crushed three dense fans to a black frame around a blown core.
+  // Accumulated from the taps themselves, it is exact for every family,
+  // morph, field, and tiling, with no nominal ink model at all — and where
+  // no beat stands, mean == pivot identically, so the view sits at the true
+  // local gray at any contrast.
+  const sumLayer = solved.map(() => float(0).toVar());
+  // Inside the enveloped average the stroke keeps its TRUE width: the
+  // hairline floor (1.15 px) exists so a render's line survives the screen,
+  // but inside the mean it inflates every stroke as the zoom falls, duty
+  // saturates, and the beat modulation drains out of the average — the
+  // envelope "blurred away" on zoom-out. The envelope's display features are
+  // fringes, not carriers; sub-pixel strokes keep correct mean coverage
+  // through the aa ramp, which is all the integral needs.
+  const isEnv = step(float(1.5), float(view.taps));
   Loop(view.taps, ({ i }) => {
     // Centred on zero so that a single tap is the pattern itself, and so that
     // the trio of members brackets every phase the sweep visits.
@@ -1532,8 +1561,9 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
           .or(view.ratioB.equal(int(index)))
           .or(view.ratioC.equal(int(index)))
           .and(scanOn);
+        const hInk = mix(halfT, max(slot.thickness.mul(0.5), float(1e-3)), isEnv);
         const strokeAlpha = (d) =>
-          float(1).sub(smoothstep(halfT.sub(aa), halfT.add(aa), d)).mul(slot.opacity);
+          float(1).sub(smoothstep(hInk.sub(aa), hInk.add(aa), d)).mul(slot.opacity);
 
         const alpha = float(0).toVar();
         const alphaDiag = float(0).toVar();
@@ -1569,7 +1599,7 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
             });
           });
           If(slot.drawEdges.greaterThan(0.5), () => {
-            ink.assign(float(1).sub(smoothstep(halfT.sub(aa), halfT.add(aa), edgeD)));
+            ink.assign(float(1).sub(smoothstep(hInk.sub(aa), hInk.add(aa), edgeD)));
           });
           If(slot.vertexSize.greaterThan(0.001), () => {
             const vR = slot.vertexSize;
@@ -1628,12 +1658,22 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
         });
         colorDev.assign(mix(colorDev, slot.color, alpha.clamp(0, 1)));
         colorDiag.assign(mix(colorDiag, slot.color, alphaDiag.clamp(0, 1)));
+        sumLayer[index].addAssign(alphaDiag.clamp(0, 1));
       });
     });
     sumDev.addAssign(colorDev);
     sumDiag.addAssign(colorDiag);
   });
-  return mix(sumDiag, sumDev, devW).div(float(view.taps));
+  const pivot = vec3(camera.background).toVar();
+  solved.forEach(({ slot }, index) => {
+    If(slot.active.greaterThan(0.5), () => {
+      pivot.assign(mix(pivot, vec3(slot.color), sumLayer[index].div(float(view.taps))));
+    });
+  });
+  // A sole layer grades about its nominal coverage instead: its per-pixel
+  // pivot equals its mean identically, and about THAT the contrast is dead.
+  pivot.assign(mix(pivot, vec3(view.pivotConst), view.soloPivot));
+  return { mean: mix(sumDiag, sumDev, devW).div(float(view.taps)), pivot };
 }
 
 /**
@@ -1641,7 +1681,7 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
  * mask, the heat map, and the contour overlay — which draws every ranked
  * character channel the scan and the lattice matching handed over.
  */
-function grade(camera, view, mean, eta, etaMask, channels) {
+function grade(camera, view, mean, pivot, eta, etaMask, channels) {
   // Ink for the fringe regime, paper for failure, with a soft step at the
   // marked threshold so the boundary reads without a legend. 1/4 is the
   // theory's line; the uniform lets an author read the map's gradations.
@@ -1655,10 +1695,11 @@ function grade(camera, view, mean, eta, etaMask, channels) {
       .add(smoothstep(thr, float(1), eta).mul(0.35))
   );
 
-  // Contrast expands about the stack's nominal mean coverage, so the pivot does
-  // not drift as the fringes move. At contrast 1 this returns the average
+  // Contrast expands about the per-pixel independent-phase mean (localPivot),
+  // so what it amplifies is exactly the beat correlation, wherever the
+  // stack's own duty drifts. At contrast 1 this returns the average
   // untouched, and with one tap and no sweep that is the render itself.
-  const out = mix(view.pivot, mean, view.contrast).add(view.lift).clamp(0, 1).toVar();
+  const out = mix(pivot, mean, view.contrast).add(view.lift).clamp(0, 1).toVar();
   // The regime mask, for the envelope: outside the fringe regime Phi(D) is a
   // carrier-fine stripe field that reads as a failed average, so fade it to
   // the pivot there. The eta of the two ranked layers is already in hand; with
@@ -1679,7 +1720,7 @@ function grade(camera, view, mean, eta, etaMask, channels) {
       // keeping the pocket unfaded put a disc of bare carrier hash in an
       // otherwise faded frame.
       const fade = smoothstep(thr.sub(0.03), thr.add(0.05), etaMask).mul(view.envMask);
-      out.assign(mix(out, view.pivot.add(view.lift).clamp(0, 1), fade));
+      out.assign(mix(out, pivot.add(view.lift).clamp(0, 1), fade));
     }
   );
   // At blend 1 the map replaces the picture; below it the map reads over the
