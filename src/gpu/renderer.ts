@@ -512,7 +512,10 @@ export class MoireRenderer {
         (isGrid(l.type) ||
           (i < this.slots.length && latticeCode(this.slots[i].typeFrom.value as number)))
     );
-    this.viewUniforms.exactSweep.value = envelope && !anyLattice ? 1 : 0;
+    // A morphing layer carries two trios; the exact chain carries one, so a
+    // type ease (280 ms) rides the tap loop and the exact path resumes on
+    // the next sync after it settles.
+    this.viewUniforms.exactSweep.value = envelope && !anyLattice && !hasLayerMorphs() ? 1 : 0;
     if (visible.length === 1) {
       const pixel = 1 / Math.max(state.camera.zoom, 0.08);
       this.viewUniforms.pivotConst.value

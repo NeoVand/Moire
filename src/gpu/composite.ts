@@ -1701,17 +1701,17 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
     const chain = exactChain(solved.length);
     const argsDev: unknown[] = [view.sweep, vec3(camera.background)];
     const argsDiag: unknown[] = [view.sweep, vec3(camera.background)];
-    const prs = solved.map(({ slot, aa, phase, phaseFrom }, index) => {
+    const prs = solved.map(({ slot, aa, phase }, index) => {
       const hInk = max(slot.thickness.mul(0.5), float(1e-3));
-      const pr = vec4(hInk, aa, slot.opacity, slot.morph);
+      const pr = vec4(hInk, aa, slot.opacity, float(0));
       const rate = float(1).toVar();
       If(scanOn, () => {
         If(view.ratioA.equal(int(index)), () => rate.assign(rateA));
         If(view.ratioB.equal(int(index)), () => rate.assign(rateB));
         If(view.ratioC.equal(int(index)), () => rate.assign(rateC));
       });
-      argsDev.push(phase, phaseFrom, pr, vec3(slot.color), slot.active, rate);
-      argsDiag.push(phase, phaseFrom, pr, vec3(slot.color), slot.active, float(1));
+      argsDev.push(phase, pr, vec3(slot.color), slot.active, rate);
+      argsDiag.push(phase, pr, vec3(slot.color), slot.active, float(1));
       return pr;
     });
     const diag = chain(...argsDiag);
@@ -1723,11 +1723,9 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
       dev.assign(chain(...argsDev));
     });
     meanOut.assign(mix(diag, dev, devW.mul(step(0.003, devW))));
-    solved.forEach(({ slot, phase, phaseFrom }, index) => {
+    solved.forEach(({ slot, phase }, index) => {
       If(slot.active.greaterThan(0.5), () => {
-        pivotOut.assign(
-          mix(pivotOut, vec3(slot.color), exactLayerMean(view.sweep, phase, phaseFrom, prs[index]))
-        );
+        pivotOut.assign(mix(pivotOut, vec3(slot.color), exactLayerMean(phase, prs[index])));
       });
     });
   }).Else(() => {
@@ -1763,52 +1761,57 @@ fn exactTrioDist(ph: vec4<f32>, rate: f32, u: f32) -> f32 {
 }
 `);
 
-/** One layer's swept coverage: morph-mixed trio distance through the stroke
- * profile. pr = (hInk, aa, opacity, morph). */
+/** One layer's swept coverage: trio distance through the stroke profile.
+ * pr = (hInk, aa, opacity, unused). Morphing stacks ride the tap loop, so
+ * no second trio exists here. */
 const exactAlphaWgsl = wgslFn(`
-fn exactAlphaWgsl(ph: vec4<f32>, phF: vec4<f32>, pr: vec4<f32>, rate: f32, u: f32) -> f32 {
-  var d = exactTrioDist(ph, rate, u);
-  if (pr.w < 0.999) {
-    d = mix(exactTrioDist(phF, rate, u), d, pr.w);
-  }
+fn exactAlphaWgsl(ph: vec4<f32>, pr: vec4<f32>, rate: f32, u: f32) -> f32 {
+  let d = exactTrioDist(ph, rate, u);
   return clamp((1.0 - smoothstep(pr.x - pr.y, pr.x + pr.y, d)) * pr.z, 0.0, 1.0);
 }
 `, [exactTrioDist]);
 
-/** Event capacity of the exact sweep's segment list. Typical stacks emit a
- * few dozen corners; a deep licensed schedule on a trio a couple hundred.
- * Overflow degrades gracefully — the tail corners go unsegmented and Gauss-4
- * spans them, which is still far better than a tap grid. */
-const EXACT_CAP = 224;
+/** Corner slots per layer. A symmetric trio (every closed-form family)
+ * carries at most ten distinct corners per period; a walking family's
+ * asymmetric trio at most twenty. */
+const EXACT_CORNERS = 20;
+/** Hard bound on merge steps per chain, against pathological settings. */
+const EXACT_MAX_SEGS = 512;
 
 /** The corner emitter, shared by the chain and the per-layer mean: appends
  * every u in (lo, hi) where one phase's profile can change its polynomial
  * piece. A morphing layer calls it for both of its trios. */
-const exactEmit = wgslFn(`
-fn exactEmit(ph: vec4<f32>, pr: vec4<f32>, rate: f32, act: f32, lo: f32, hi: f32,
-             evs: ptr<function, array<f32, ${EXACT_CAP}>>, n: ptr<function, i32>) -> f32 {
-  if (act < 0.5 || abs(rate) < 1e-9) {
-    return 0.0;
-  }
+/**
+ * One layer's corner RESIDUES: its profile alpha(u) is periodic with period
+ * P = 1/|rate| in u, and within one period the polynomial pieces change at a
+ * handful of corners the trio names in closed form. This fills a sorted
+ * array of those corners as offsets from `lo` folded into [0, P), so the
+ * chain can stream the layer's events in order with a cursor — no global
+ * event list, no global sort, no capacity to overflow. Returns P.
+ */
+const exactResidues = wgslFn(`
+fn exactResidues(ph: vec4<f32>, pr: vec4<f32>, rate: f32, lo: f32,
+                 res: ptr<function, array<f32, ${EXACT_CORNERS}>>, cnt: ptr<function, i32>) -> f32 {
   let gap = max(abs(ph.y - ph.x), 1e-6);
   let rg = rate * gap;
+  let P = 1.0 / max(abs(rate), 1e-6);
   let hlo = pr.x - pr.y;
   let hhi = pr.x + pr.y;
-  var corners: array<f32, 23>;
+  var corners: array<f32, ${EXACT_CORNERS}>;
   var cn = 0;
-  // The nearest member's window, always.
+  // The nearest member's window, and the wrap seam, always.
   corners[cn] = ph.x; cn++;
   corners[cn] = ph.x - hhi; cn++; corners[cn] = ph.x + hhi; cn++;
+  corners[cn] = gap * 0.5; cn++;
   if (hlo > 0.0) {
     corners[cn] = ph.x - hlo; cn++; corners[cn] = ph.x + hlo; cn++;
   }
   if (ph.w > 0.0) {
     corners[cn] = ph.x - ph.w; cn++; corners[cn] = ph.x + ph.w; cn++;
   }
-  // A SYMMETRIC trio (every closed-form family) repeats the same window each
-  // period, so the neighbours' corners coincide with the nearest member's
-  // modulo the gap and emitting them would triple every event. Only a
-  // walking family's asymmetric trio carries distinct neighbours.
+  // A SYMMETRIC trio (every closed-form family) repeats one window per
+  // period — the neighbours' corners coincide with the nearest member's
+  // modulo the gap. Only a walking family's asymmetric trio adds them.
   let upGap = ph.y - ph.x;
   let dnGap = ph.x - ph.z;
   if (abs(upGap - dnGap) > 1e-4 * gap) {
@@ -1816,92 +1819,52 @@ fn exactEmit(ph: vec4<f32>, pr: vec4<f32>, rate: f32, act: f32, lo: f32, hi: f32
     corners[cn] = ph.y - hhi; cn++; corners[cn] = ph.y + hhi; cn++;
     corners[cn] = ph.z; cn++;
     corners[cn] = ph.z - hhi; cn++; corners[cn] = ph.z + hhi; cn++;
-    if (hlo > 0.0) {
+    if (hlo > 0.0 && cn <= ${EXACT_CORNERS} - 4) {
       corners[cn] = ph.y - hlo; cn++; corners[cn] = ph.y + hlo; cn++;
       corners[cn] = ph.z - hlo; cn++; corners[cn] = ph.z + hlo; cn++;
     }
   }
   // The argmin midpoints matter only when the stroke can reach them.
-  if (hhi > 0.499 * upGap) {
+  if (hhi > 0.499 * upGap && cn < ${EXACT_CORNERS}) {
     corners[cn] = (ph.x + ph.y) * 0.5; cn++;
   }
-  if (hhi > 0.499 * dnGap) {
+  if (hhi > 0.499 * dnGap && cn < ${EXACT_CORNERS}) {
     corners[cn] = (ph.x + ph.z) * 0.5; cn++;
   }
-  let tmin = min(lo * rg, hi * rg);
-  let tmax = max(lo * rg, hi * rg);
+  // Fold each corner into its residue in [0, P) past lo, insertion-sorted.
+  *cnt = 0;
   for (var j = 0; j < cn; j++) {
-    let w = corners[j];
-    let kLo = i32(ceil((tmin - w) / gap - 1e-6));
-    let kHi = i32(floor((tmax - w) / gap + 1e-6));
-    for (var k = kLo; k <= kHi; k++) {
-      let uu = (w + f32(k) * gap) / rg;
-      if (uu > lo + 1e-7 && uu < hi - 1e-7 && *n < ${EXACT_CAP} - 1) {
-        (*evs)[*n] = uu;
-        *n = *n + 1;
-      }
+    let raw = (corners[j] / rg) - lo;
+    var r = fract(raw / P) * P;
+    var i = *cnt;
+    while (i > 0 && (*res)[i - 1] > r) {
+      (*res)[i] = (*res)[i - 1];
+      i--;
     }
+    (*res)[i] = r;
+    *cnt = *cnt + 1;
   }
-  // The wrap seam of the slide, where the trio window jumps a period.
-  let sLo = i32(ceil(tmin / gap - 0.5 - 1e-6));
-  let sHi = i32(floor(tmax / gap - 0.5 + 1e-6));
-  for (var k = sLo; k <= sHi; k++) {
-    let uu = ((f32(k) + 0.5) * gap) / rg;
-    if (uu > lo + 1e-7 && uu < hi - 1e-7 && *n < ${EXACT_CAP} - 1) {
-      (*evs)[*n] = uu;
-      *n = *n + 1;
-    }
-  }
-  return 0.0;
+  return P;
 }
 `);
 
-const GAUSS4 = [
-  [0.06943184420297371, 0.17392742256872692],
-  [0.33000947820757187, 0.3260725774312731],
-  [0.6699905217924281, 0.3260725774312731],
-  [0.9305681557970262, 0.17392742256872692],
+/** Gauss-Legendre 3 on [0, 1]: exact through degree 5, and within a tenth
+ * of a display gray level on products of cubics over corner-bounded
+ * segments (validated against 65536-tap ground truth; Gauss-2 is not). */
+const GAUSS3 = [
+  [0.1127016653792583, 0.2777777777777778],
+  [0.5, 0.4444444444444444],
+  [0.8872983346207417, 0.2777777777777778],
 ];
-
-/** The sort-and-integrate tail shared by the generated chains: insertion
- * sort (the lists are a few dozen entries), then Gauss-4 per segment over
- * the body `SEGMENT_BODY`, which reads `uu` and accumulates into `seg`. */
-function sortAndMarchWgsl(body: string, accType: string) {
-  return `
-  if (n < ${EXACT_CAP}) { evs[n] = hi; n++; } else { evs[${EXACT_CAP} - 1] = hi; }
-  for (var i = 1; i < n; i++) {
-    let v = evs[i];
-    var j = i - 1;
-    while (j >= 0 && evs[j] > v) {
-      evs[j + 1] = evs[j];
-      j--;
-    }
-    evs[j + 1] = v;
-  }
-  var total = ${accType}(0.0);
-  for (var s = 0; s + 1 < n; s++) {
-    let a = evs[s];
-    let len = evs[s + 1] - a;
-    if (len < 1e-9) { continue; }
-    var seg = ${accType}(0.0);
-    ${GAUSS4.map(
-      ([x, w]) => `{
-      let uu = a + ${x} * len;
-      ${body.replaceAll('GAUSS_W', String(w))}
-    }`
-    ).join('\n    ')}
-    total += seg * len;
-  }
-  return total / max(sweep, 1e-6);`;
-}
 
 const exactChainCache = new Map<number, ReturnType<typeof wgslFn>>();
 
 /**
- * The generated exact chain for a K-slot stack: emits every layer's corners,
- * sorts, and integrates the paint-order composite segment by segment. One
- * function serves both schedules — the caller passes the rates, so the
- * diagonal is the all-ones call.
+ * The generated exact chain for a K-slot stack. Each layer's events stream
+ * in sorted order from its residue array and period, and a K-way cursor
+ * merge marches the segments in order: no global event list, no sort, no
+ * capacity — a rate-q schedule simply cycles its residues q times. One
+ * function serves both schedules; the diagonal is the all-ones call.
  */
 function exactChain(K: number) {
   const cached = exactChainCache.get(K);
@@ -1909,61 +1872,102 @@ function exactChain(K: number) {
   const params = Array.from(
     { length: K },
     (_, i) =>
-      `ph${i}: vec4<f32>, phF${i}: vec4<f32>, pr${i}: vec4<f32>, col${i}: vec3<f32>, act${i}: f32, rate${i}: f32`
+      `ph${i}: vec4<f32>, pr${i}: vec4<f32>, col${i}: vec3<f32>, act${i}: f32, rate${i}: f32`
   ).join(', ');
-  const emits = Array.from(
+  const setup = Array.from(
     { length: K },
-    (_, i) => `emitDummy = exactEmit(ph${i}, pr${i}, rate${i}, act${i}, lo, hi, &evs, &n);
-  if (pr${i}.w < 0.999) {
-    emitDummy = exactEmit(phF${i}, pr${i}, rate${i}, act${i}, lo, hi, &evs, &n);
+    (_, i) => `var res${i}: array<f32, ${EXACT_CORNERS}>;
+  var cnt${i} = 0;
+  var P${i} = 1.0;
+  var base${i} = 0.0;
+  var idx${i} = 0;
+  var next${i} = hi + 1.0;
+  if (act${i} > 0.5) {
+    P${i} = exactResidues(ph${i}, pr${i}, rate${i}, lo, &res${i}, &cnt${i});
+    next${i} = lo + res${i}[0];
   }`
   ).join('\n  ');
+  const pickNext = Array.from(
+    { length: K },
+    (_, i) => `if (next${i} < next) { next = next${i}; winner = ${i}; }`
+  ).join('\n    ');
+  const advance = Array.from(
+    { length: K },
+    (_, i) => `if (winner == ${i}) {
+      idx${i}++;
+      if (idx${i} >= cnt${i}) { idx${i} = 0; base${i} += P${i}; }
+      next${i} = lo + base${i} + res${i}[idx${i}];
+    }`
+  ).join('\n    ');
   const composite = Array.from(
     { length: K },
     (_, i) =>
-      `if (act${i} > 0.5) { c = mix(c, col${i}, exactAlphaWgsl(ph${i}, phF${i}, pr${i}, rate${i}, uu)); }`
+      `if (act${i} > 0.5) { c = mix(c, col${i}, exactAlphaWgsl(ph${i}, pr${i}, rate${i}, uu)); }`
+  ).join('\n        ');
+  const gauss = GAUSS3.map(
+    ([x, w]) => `{
+        let uu = u + ${x} * len;
+        var c = bg;
+        ${composite}
+        seg += ${w} * c;
+      }`
   ).join('\n      ');
-  const body = `var c = bg;
-      ${composite}
-      seg += GAUSS_W * c;`;
   const fn = wgslFn(
     `
 fn exactChain${K}(sweep: f32, bg: vec3<f32>, ${params}) -> vec3<f32> {
   let lo = -sweep * 0.5;
   let hi = sweep * 0.5;
-  var evs: array<f32, ${EXACT_CAP}>;
-  var n = 0;
-  var emitDummy = 0.0;
-  evs[0] = lo; n = 1;
-  ${emits}
-  ${sortAndMarchWgsl(body, 'vec3<f32>')}
+  ${setup}
+  var u = lo;
+  var total = vec3<f32>(0.0);
+  for (var it = 0; it < ${EXACT_MAX_SEGS}; it++) {
+    var next = hi;
+    var winner = -1;
+    ${pickNext}
+    let len = min(next, hi) - u;
+    if (len > 1e-9) {
+      var seg = vec3<f32>(0.0);
+      ${gauss}
+      total += seg * len;
+    }
+    u = min(next, hi);
+    if (winner < 0 || u >= hi) { break; }
+    ${advance}
+  }
+  return total / max(sweep, 1e-6);
 }
 `,
-    [exactEmit, exactAlphaWgsl]
+    [exactResidues, exactAlphaWgsl]
   );
   exactChainCache.set(K, fn);
   return fn;
 }
 
-/** One layer's exact mean coverage over the sweep: the pivot's ingredient,
- * integrated on the layer's own corners at the diagonal rate. */
+/** One layer's exact mean coverage over its own full period: the pivot's
+ * ingredient — a single-stream march of the layer's residues at rate one. */
 const exactLayerMean = wgslFn(
   `
-fn exactLayerMean(sweep: f32, ph0: vec4<f32>, phF0: vec4<f32>, pr0: vec4<f32>) -> f32 {
-  let lo = -sweep * 0.5;
-  let hi = sweep * 0.5;
-  var evs: array<f32, ${EXACT_CAP}>;
-  var n = 0;
-  var emitDummy = 0.0;
-  evs[0] = lo; n = 1;
-  emitDummy = exactEmit(ph0, pr0, 1.0, 1.0, lo, hi, &evs, &n);
-  if (pr0.w < 0.999) {
-    emitDummy = exactEmit(phF0, pr0, 1.0, 1.0, lo, hi, &evs, &n);
+fn exactLayerMean(ph0: vec4<f32>, pr0: vec4<f32>) -> f32 {
+  var res: array<f32, ${EXACT_CORNERS}>;
+  var cnt = 0;
+  let P = exactResidues(ph0, pr0, 1.0, -0.5, &res, &cnt);
+  var total = 0.0;
+  var u = -0.5;
+  for (var j = 0; j <= cnt; j++) {
+    var next = 0.5;
+    if (j < cnt) { next = -0.5 + res[j]; }
+    let len = next - u;
+    if (len > 1e-9) {
+      var seg = 0.0;
+      ${GAUSS3.map(([x, w]) => `seg += ${w} * exactAlphaWgsl(ph0, pr0, 1.0, u + ${x} * len);`).join('\n      ')}
+      total += seg * len;
+    }
+    u = next;
   }
-  ${sortAndMarchWgsl('seg += GAUSS_W * exactAlphaWgsl(ph0, phF0, pr0, 1.0, uu);', 'f32')}
+  return total;
 }
 `,
-  [exactEmit, exactAlphaWgsl]
+  [exactResidues, exactAlphaWgsl]
 );
 
 /**
