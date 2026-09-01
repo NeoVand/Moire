@@ -54,12 +54,12 @@ const scene = {
   ],
   selectedLayerId: 't',
   // 640/zoom world across the 1280-px capture; the central 960-px square then
-  // spans ~716 world, the framing of the author's session.
-  camera: { zoom: 0.6705, pan: { x: 0, y: 0 } },
+  // spans 480/zoom ~ 565 world, the framing of the other teaser panels.
+  camera: { zoom: 0.85, pan: { x: 0, y: 0 } },
   backgroundColor: '#ffffff',
   view: {
-    envelope: true, envelopeContrast: 2.4, envelopeTaps: 64, envelopeSweep: 1.0,
-    envelopeLift: 0.24, envelopeMask: 0, envelopeContours: false,
+    envelope: true, envelopeContrast: 1.8, envelopeTaps: 52, envelopeSweep: 1.0,
+    envelopeLift: -0.12, envelopeMask: 0, envelopeContours: false,
     contourWidth: 1.6, contourBands: 0.4, ratio: false, ratioBlend: 1, ratioThreshold: 0.25,
   },
   motion: { timings: [], animators: [], playOnLoad: false },

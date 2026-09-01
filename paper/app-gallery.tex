@@ -39,15 +39,15 @@ them.
   5 flow      & lines, $s{=}5$ & the same $+$ \textsc{swirl}, $a{=}3.5$, ext.\ $130$ & $3.6$ \\
   6 walking   & hexagons, $s{=}4$, $\varphi{=}2$, &---& $4.2$ \\
               & $\delta{=}(0.9,0.25)$, $\theta{=}0.025$ & & \\
-  7 fan trio  & \multicolumn{2}{l}{three fans, $200$ rays, start $150$, centers equilateral (side $100$); $64$ taps} & $2.4$ \\
+  7 fan trio  & \multicolumn{2}{l}{three fans, $200$ rays, start $150$, centers equilateral (side $100$); $52$ taps} & $1.8$ \\
   8 vortex    & circles, $s{=}8.3$, $t{=}3.5$, & the same, $\delta{=}(0,0.5)$, pose $-5.8^\circ$, & $3$ \\
     \ pair    & $\delta{=}(0,{-}0.5)$, pose $50^\circ$ & at $(9.61,-54.4)$ & \\
   \bottomrule
 \end{tabular}
 \end{center}
 
-\noindent Panels 2, 4 and 8 frame $565$, $565$ and $600$ world units across,
-panel 5 frames $480$, and panel 7 frames $716$. Panel 4 raises the tap count
+\noindent Panels 2, 4, 7 and 8 frame $565$, $565$, $565$ and $600$ world units
+across, and panel 5 frames $480$. Panel 4 raises the tap count
 because hairline lattice ink is a hit-or-miss integrand under the tap rule, so
 its residue falls like $1/\text{taps}$. Panel 7 is mirror-symmetric about
 the rule: one fan sits on the axis carrying the stack's single rotation,
@@ -55,7 +55,7 @@ snapped to $49.95^\circ$ so its ray set maps to itself under the mirror
 (the fan repeats every $0.9^\circ$, and $2\times49.95$ is an exact
 multiple); it is rendered through the tool's GPU pipeline rather than the
 CPU mirror, whose one-pair sum flip cannot keep a trio symmetric, and its
-envelope adds an exposure lift of $0.24$. Panel 8 is the instrument's
+envelope drops the exposure by $0.12$. Panel 8 is the instrument's
 opening scene, kept as its author
 exported it from \Moire{}; the scene file, camera included, is in the
 repository.
