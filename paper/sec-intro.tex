@@ -78,7 +78,8 @@ member $p$ sits on, fractionally, so that $\gamma_n=\idx^{-1}(n)$; the
 \emph{distance field} $d(p)=\min_n \mathrm{dist}(p,\gamma_n)$ says how far the
 nearest one is. Both are functions of a continuous position, evaluated per
 pixel, with no grid anywhere. The distance field is what a renderer thresholds
-into ink; the index field is what the theory works with, and our central
+into ink. The index field is a \emph{counting map}, advancing by one at each
+member crossed, it is what the theory works with, and our central
 observation is that the interference lives entirely in it: \emph{the fringes of
 a superposition are the unit level sets of the difference of the two index
 fields}. Section~\ref{sec:fringe} makes this precise: the locally averaged
@@ -102,9 +103,17 @@ visible-beat hierarchy of two pitches is the continued fraction of their
 ratio, and in two dimensions the winner is found exactly, at any order, by
 per-pixel lattice reduction (\S\ref{sec:selection}).
 
-For most families the index field is a closed form; Section~\ref{sec:catalog}
-lists the thirteen we ship, of which nine are one line of algebra each. The
-families that make the richest interference are not among them. What op
+The deeper organizing fact, and the paper's spine, is that a counting map can
+exist in exactly three ways (\S\ref{sec:taxonomy}). For most families it is a
+global formula; \S\ref{sec:catalog} lists the thirteen we ship, of which nine
+are one line of algebra each. It can instead exist only up to an integer
+gained around a loop: encode a \emph{circle-valued} field, the polar angle
+being the prototype, and the count acquires a quantized winding, the fringes
+\emph{end}, and the signed number of endings inside any loop is the enclosed
+winding times the gain, exactly. That object is the fork grating of singular
+optics, and Section~\ref{sec:defects} shows the fringe law failing at its core
+radius and drawing a circle around its own failure. Or the count can exist
+only as a search. What op
 artists actually reach for are families whose members are not concentric:
 each ring displaced a little further than the last, or turned a little further,
 so the family shears, spirals, and finally unwinds into a pencil of
@@ -146,9 +155,10 @@ shattered one, at identical cost.
 \subsection{Contributions}
 
 \begin{itemize}
-  \item A field formulation of moir\'e in which a layer is an index field plus a
-  distance field, superposition is field compositing, and the pattern has no
-  raster at any stage (Section~\ref{sec:field}).
+  \item A field formulation of moir\'e in which a layer is a counting map plus
+  a distance field, superposition is field compositing, and the pattern has no
+  raster at any stage; with a three-rung taxonomy, exact, winding, fold, that
+  organizes the catalog and the paper (Section~\ref{sec:field}).
 
   \item The fringe law: locally averaged ink is a saturating tent in the index
   difference, so fringes are its unit level sets. The law is exact under stated
@@ -177,15 +187,18 @@ shattered one, at identical cost.
   over space; done properly it costs one solve and a few instructions per tap
   rather than one solve per tap (Section~\ref{sec:envelope}).
 
+  \item The winding rung made constructive: a circle-valued field mints
+  topological defects, fringes that end, with the signed count of endings
+  equal to the enclosed winding times the gain, exactly, and with the fringe
+  law's own criterion drawing the core where it fails
+  (Section~\ref{sec:defects}).
+
   \item Moir\'e fields as a contouring primitive: because fringes are level sets
   of an index difference, encoding a scalar field in that difference renders its
   contours without ever computing a contour. The fringes localize to a mean of
   $\contourWorstErr$\,px of the true level sets on the hardest field we tested,
   and the only sampling limit is an inequality between contour spacing and
-  carrier pitch. A \emph{circle-valued} field goes further and mints
-  topological defects: fringes that end, with the signed count of endings
-  equal to the enclosed winding times the gain, exactly
-  (Section~\ref{sec:beyond}).
+  carrier pitch (Section~\ref{sec:beyond}).
 
   \item An expression language for those fields, with the gradient the eikonal
   divide needs obtained by forward-mode differentiation rather than by hand, and
