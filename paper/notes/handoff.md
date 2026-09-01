@@ -186,7 +186,13 @@ provably non-semialgebraic beyond — Kepler's class, but multivalued).
    envelope, and the quilt figure needs its "after" half.
 5. The "visibility spectrum" of a real number (best approximation priced by
    |pq|): apparently unnamed in number theory; even a definition + staircase
-   figure has standalone value.
+   figure has standalone value. [RESOLVED 2026-09-01: it is Perron's
+   k_n‖k_n x‖ = 1/(x_{n+1} + k_{n−1}/k_n) up to a factor → 1 — a classical
+   object, so the novelty claim is withdrawn; the new content is the
+   threshold (a convergent is a station iff its complete quotient plus the
+   denominator ratio exceeds ~4; a_{n+1} ≥ 5 guarantees, ≤ 2 forbids) and the
+   deserts (golden at Hurwitz's 1/√5, silver at 1/2√2). stations.mjs gates
+   it; paper 2 §2.3 states it.]
 6. Nonlinear observers: which class of pointwise nonlinearities composed
    with local averaging extracts exactly E[I | subtorus]? (This is the
    author's "a brain interacts with the third pattern" intuition made

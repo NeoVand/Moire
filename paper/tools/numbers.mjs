@@ -1018,6 +1018,22 @@ section('data/observer.json : the observer theorem');
   console.log(`observer: ${o.gates.length} gates pass; multiplier exact to ${Math.max(...flat.map((m) => m.err)).toExponential(1)}`);
 }
 
+section('data/stations.json : which convergents are stations');
+{
+  const st = load('stations.json');
+  const failed = st.gates.filter((g) => !g.ok);
+  if (failed.length) {
+    throw new Error(`stations.json has ${failed.length} failing gates; the prose claims none`);
+  }
+  macro('stationsRatios', st.ratios);
+  macro('stationsConvergents', th(st.convergents));
+  macro('stationsIdentityErr', sci(st.worstIdentity));
+  macro('stationsPerronErr', sci(st.worstPerron));
+  macro('stationsGoldenMerit', r(st.golden[st.golden.length - 1].eta, 3));
+  macro('stationsSilverMerit', r(st.silver, 3));
+  console.log(`stations: ${st.convergents} convergents, identity to ${st.worstIdentity.toExponential(1)}`);
+}
+
 section('data/exactsweep.json : the exact sweep, certified');
 {
   const x = load('exactsweep.json');
@@ -1053,6 +1069,7 @@ section('data/exactsweep.json : the exact sweep, certified');
   const fold = load('foldlaw.json');
   const def = load('defects.json');
   const conv = load('convergents.json');
+  const st2 = load('stations.json');
   const depth = (pair, duty) => d.nulls.find((n) => n.pair === pair && Math.abs(n.duty - duty) < 1e-9).depth;
   const foldErrs = fold.t1
     .map((c) => Math.abs(c.measured.rho - c.rhoStar) / c.rhoStar)
@@ -1077,6 +1094,8 @@ section('data/exactsweep.json : the exact sweep, certified');
     ['Branch counts grow linearly in radius', fold.t4.map((c) => c.crossings).join(', '), 'as predicted', 'foldlaw.mjs'],
     ['Defects: fringe endings count the enclosed charge', `${def.probes.filter((p) => p.expect !== null).length} probes exact, charges to ${Math.max(...def.probes.map((p) => Math.abs(p.expect ?? 0)))}`, 'exact', 'defects.mjs'],
     ['Defects: the core radius $2As/\\pi$', `within ${Math.max(...def.core.map((c) => c.relError)) < 1e-4 ? '$10^{-4}$' : r(Math.max(...def.core.map((c) => c.relError)), 4)}`, 'gated', 'defects.mjs'],
+    ['Stations: the convergent merit closed form, and the threshold on the complete quotient', `identity ${sci(st2.worstIdentity)}; ${th(st2.convergents)} convergents classified`, 'exact; every one', 'stations.mjs'],
+    ['Deserts: the golden and silver ratios have no station at any order', `${r(st2.golden[st2.golden.length - 1].eta, 3)} (Hurwitz $1/\\sqrt5$), ${r(st2.silver, 3)}`, '$>1/4$ every order', 'stations.mjs'],
     ['Selection: record beats are convergents', `${conv.summary.oneD.recordsMatchConvergents} of ${conv.summary.oneD.recordsMatchConvergents}`, 'no mismatch', 'convergents.mjs'],
     ['Selection: the reduction window names the brute-force winner', `${pc(conv.summary.twoD.shaderScanMatchesBruteForce / conv.summary.twoD.trials, 1)}\\% of ${th(conv.summary.twoD.trials)}`, `misses ${conv.summary.twoD.fringeMissedByShaderScan}`, 'convergents.mjs'],
   ];

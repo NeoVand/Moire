@@ -196,7 +196,9 @@ examples, not as a gallery.
   column compressed to one; (c) an abstract and title pass; (d) the
   visibility spectrum's arithmetic if anyone has an afternoon (§2 states it
   as a definition and leaves it open); (e) a line-by-line read for numbers
-  quoted outside macros — there should be none.
+  quoted outside macros — there should be none. (d) is DONE: stations.mjs
+  proves the convergent merit's closed form exactly; the visibility spectrum is
+  Perron's k_n‖k_n x‖ and the paper says so instead of calling it unnamed.
 - P4½ (2026-09-01, after the draft): the square-law observer shipped in the
   app (Research panel toggle, exact chain, E[c²] pivot, certified, zoo cases
   dutynull-linear/square-envelope); §3's hard-ink corollary now points at it

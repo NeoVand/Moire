@@ -162,7 +162,7 @@ coefficient, and no fringe --- and measured a null of it; the slowness gate of
 Hard ink makes the null observer-proof and soft ink does not, which is
 Corollary~\ref{cor:hardink}.
 
-\subsection{The visibility spectrum of a real number}
+\subsection{Which convergents are stations}
 \label{sec:visibility}
 
 \begin{definition}[Visibility spectrum]
@@ -170,16 +170,49 @@ Corollary~\ref{cor:hardink}.
 For $x>0$, the visibility spectrum is the staircase
 $\nu_x(N)=\min\{\,|p-qx|\cdot pq:\ p,q\ge1,\ pq\le N\,\}$: best approximation
 with denominators priced by the product $pq$ rather than by $q$. Its record
-holders are the visible stations of a $1{:}x$ pair.
+holders are the visible stations of a pair at pitch ratio $x$.
 \end{definition}
 
-The classical theory of best approximation prices a rational $p/q$ by its
-denominator, and its constants --- Hurwitz's $1/\sqrt5$, the Lagrange
-spectrum --- describe how well every real can be approximated at that price.
-A stroke prices $p/q$ by $pq$, because both harmonics have to be paid for, and
-the staircase of records under that price is what the eye sees as a pitch
-ratio is tuned: a station appears where a record is set and holds until the
-next. The records are still convergents (Proposition~\ref{prop:selection}),
-but the heights and the spacing of the staircase are not the classical
-constants, and we know of no name for the object in the number-theoretic
-literature. We state it as a definition and leave its arithmetic open.
+\begin{proposition}[Stations are the convergents with large complete quotients]
+\label{prop:stations}
+Let $x=[a_0;a_1,a_2,\dots]$ have convergents $h_n/k_n$ and complete quotients
+$x_{n+1}=[a_{n+1};a_{n+2},\dots]$. The weighted merit of the character
+$(h_n,-k_n)$ on a coarse\,:\,fine pair at ratio $x$ is exactly
+\[
+  \het_n \;=\; \frac{2\,h_nk_n}{(h_n+k_nx)\,(x_{n+1}k_n+k_{n-1})},
+  \qquad\text{and}\qquad
+  \frac{\het_n}{k_n\,|k_nx-h_n|}\;\to\;1 .
+\]
+The convergent is a visible station, $\het_n<\tfrac14$, if and only if
+$x_{n+1}+k_{n-1}/k_n>8/(1+k_nx/h_n)$, a bound within a few percent of $4$; a
+next partial quotient $a_{n+1}\ge5$ guarantees a station and $a_{n+1}\le2$
+forbids one. For the golden ratio $\het_n\to1/\sqrt5$, for $\sqrt2$
+$\het_n\to1/2\sqrt2$: neither pair has a station at any order.
+\end{proposition}
+
+\begin{proof}
+$|h_n-k_nx|=1/(x_{n+1}k_n+k_{n-1})$ is the standard identity for convergents;
+substitute it into the merit $2\,|h/x-k|\,hk/(h/x+k)=2hk\,|h-kx|/(h+kx)$. The
+limit is Perron's $k_n|k_nx-h_n|=1/(x_{n+1}+k_{n-1}/k_n)$ together with
+$2h_n/(h_n+k_nx)\to1$. The threshold rearranges $\het_n<\tfrac14$; the two
+bounds follow from $a_{n+1}<x_{n+1}<a_{n+1}+1$ and $0\le k_{n-1}/k_n<1$. For
+the golden ratio $x_{n+1}=\varphi$ and $k_{n-1}/k_n\to1/\varphi$, so
+$\het_n\to1/(\varphi+1/\varphi)=1/\sqrt5$; for $\sqrt2$, $x_{n+1}=1+\sqrt2$ and
+$k_{n-1}/k_n\to\sqrt2-1$.
+\end{proof}
+
+So the visibility spectrum priced by $pq$ is, up to a factor that tends to
+one, the classical sequence $k_n\lVert k_nx\rVert$ of the theory of continued
+fractions: the object has a name, and its records are the convergents whose
+complete quotient is large. What the theory adds is the threshold, which
+reads a pair's stations off its partial quotients: $22/7$ and $355/113$ for
+$\pi$, $19/7$ for $e$, the $2{:}1$ lock of a $41{:}20$ pair at merit $1/20$;
+and a ratio whose partial quotients stay small has no station at any order.
+The golden ratio sits at Hurwitz's $1/\sqrt5$ (measured
+\stationsGoldenMerit), the silver ratio at \stationsSilverMerit; both are
+deserts, which is why the printed carriers of this paper sit at the golden
+slope. Measured on \stationsConvergents\ convergents of \stationsRatios\
+random ratios: the closed form matches the scan's merit to
+$\stationsIdentityErr$, the Perron limit holds to $\stationsPerronErr$ past
+the sixth convergent, the threshold classifies every convergent, and the two
+partial-quotient bounds hold without exception.
