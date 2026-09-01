@@ -1,6 +1,13 @@
 \section{Law I: selection, the arithmetic of the visible beat}
 \label{sec:selection}
 
+Every integer character is present in a drawing. The question is which one
+the eye picks out, and the answer has two ingredients that the classical
+theory keeps apart. One is geometry: how slowly the character's pullback
+varies against the carriers that form it. The other is amplitude: how much ink
+the character carries, which for a stroke profile decays with the harmonic.
+The visible beat minimises their product.
+
 \begin{definition}[Weighted merit]
 \label{def:merit}
 For a pair with index gradients $g_1,g_2$ and a character $(a,b)$ with $ab\ne0$,
@@ -12,6 +19,15 @@ the harmonics that carry it. The visible character is the minimiser;
 $\het<\tfrac14$ is the fringe regime.
 \end{definition}
 
+The heterodyne ratio is the classical criterion of the fringe regime, and it
+is scale-free: a beat is visible when its period is long against the carriers
+that form it, at any zoom. The weight is what makes the minimum well posed.
+Without it every real pitch ratio has arbitrarily good rational
+approximations, and the slowest character at any point is some $(a,b)$ of
+enormous order carried by harmonics no stroke has; with it, comparable
+slowness resolves toward the lower order, and the minimum over $\Z^2$ is
+finite and stable.
+
 \begin{proposition}[Selection is reduction]
 \label{prop:selection}
 The minimiser of $\het_{a,b}$ over $\Z^2\setminus\{ab=0\}$ lies in the window
@@ -19,9 +35,31 @@ $\{i\,s+j\,t : |i|\le3,\ j\in\{1,2\}\}$ of a Lagrange--Gauss reduced basis
 $(s,t)$ of the gradient lattice $\{a g_1+b g_2\}$. For parallel carriers of
 pitch ratio $x$ the record-setting characters are the continued-fraction
 convergents of $x$ (\selRecordsMatch\ records over \selRatios\ ratios, all
-convergents); an order cap $|a|,|b|\le2$ misses \selCapMissPct\% of the
-visible fringes of random pairs, the window misses \selShipMiss.
+convergents); on \selTrials\ random pairs an order cap $|a|,|b|\le2$ misses
+\selCapMiss\ of the visible fringes a brute-force search over all orders
+finds, and the window misses \selShipMiss.
 \end{proposition}
+
+\begin{proof}[Proof sketch]
+The set $\{a g_1+b g_2\}$ is a lattice in $\R^2$, and Lagrange--Gauss reduction
+finds its shortest vector in a handful of steps. The weighted minimiser need
+not be a shortest vector --- a longer lattice vector can carry smaller integer
+coordinates and pay a smaller weight --- but it lies within a bounded window
+of the reduced basis, because outside the window either the length or the
+weight exceeds the short vector's merit. In one dimension the lattice is
+$\{a/s_1-b/s_2\}$, and a character that beats every lower-order one is a best
+approximation of $s_1/s_2$ priced by $ab$ rather than by $b$ alone; the records
+are the convergents, as measured.
+\end{proof}
+
+Selection is per pixel. On a pair whose local pitch ratio varies, the rational
+stations become places: along the axis between two radial fans the ratio
+sweeps the reals, each rational the weight admits owns a commensurate pocket,
+and the fringe skeleton in Figure~\ref{fig:stations} is the convergent ladder
+as geography. Badly approximable directions are deserts, and the golden ratio
+is the worst approximable of all, which is why the printed carriers of this
+paper sit at the golden slope: it is the angle at which a hairline family
+beats least against the page's raster.
 
 \begin{figure}[t]
   \centering
@@ -29,11 +67,21 @@ visible fringes of random pairs, the window misses \selShipMiss.
   \caption{\figlead{Stations as places.} Two radial fans off-centre: along
   the axis between them the local pitch ratio sweeps the rationals, and each
   rational the amplitude weight admits owns a commensurate pocket, whose
-  winning character's level sets are drawn in accent — the convergent ladder
+  winning character's level sets are drawn in accent --- the convergent ladder
   as geography. Provisional: the companion's stations strip
   (\texttt{selectionfigs.mjs}); the weighted staircase joins it at P4.}
   \label{fig:stations}
 \end{figure}
+
+\subsection{Duty nulls}
+\label{sec:dutynull}
+
+Because the ink potential of an overlay is a product of one-coordinate
+profiles, its coefficient at a character is a product of harmonics,
+$\hat I(a,b)=\hat g_1(a)\,\hat g_2(b)$, and a station is carried by exactly the
+harmonics its integers name. That makes a prediction the classical theory
+does not: the visibility of a fringe system depends on the strokes' duty, and
+vanishes at rational duties.
 
 \begin{theorem}[Duty nulls]
 \label{thm:dutynull}
@@ -49,12 +97,22 @@ the nulls the amplitudes track $|\sin(q\pi d)/q\pi|$ within \dutyNullLawPct\%,
 the anti-alias ramp's softening.
 \end{theorem}
 
+\begin{proof}
+For pitches $s_{\mathrm c}\approx(p/q)\,s_{\mathrm f}$ the slow character is
+the one with $q/s_{\mathrm c}\approx p/s_{\mathrm f}$, that is $(q,-p)$, and by
+the product structure its coefficient is
+$\hat g_{\mathrm c}(q)\,\hat g_{\mathrm f}(-p)$. A centred pulse of duty $d$ has
+$\hat g(n)=\sin(n\pi d)/n\pi$, which vanishes if and only if $nd\in\Z$.
+Symmetric anti-alias ramps convolve the pulse with an even kernel, which
+multiplies each harmonic by a real factor and moves no zero.
+\end{proof}
+
 \begin{figure}[t]
   \centering
-  \begin{minipage}[c]{0.4\linewidth}
+  \begin{minipage}[c]{0.38\linewidth}
     \centering
     \begin{tikzpicture}
-      \begin{axis}[width=\linewidth, height=4.9cm, xlabel={coarse duty $d$},
+      \begin{axis}[width=0.92\linewidth, height=4.9cm, xlabel={coarse duty $d$},
         ylabel={$|\hat I(q,-1)|$}, xmin=0.18, xmax=0.82, ymin=0, ymax=0.045,
         scaled y ticks=false, ytick={0,0.01,0.02,0.03,0.04},
         tick align=outside, tick pos=left, axis line style={gray!60},
@@ -86,11 +144,35 @@ the anti-alias ramp's softening.
   \label{fig:dutynull}
 \end{figure}
 
-\begin{definition}[Visibility spectrum of a real number]
+Figure~\ref{fig:dutynull} is the theorem measured. The corollary is fringe
+spectroscopy in reverse: find the duty at which a station dies and the
+stroke's duty has been measured to the precision of the null. It is also a
+warning about what ``the fringe'' is. A first version of this experiment
+projected onto $(1,-2)$ in the wrong order of the same pair --- a coefficient
+with a period of five world units, real, product-of-harmonics like every
+coefficient, and no fringe --- and measured a null of it; the slowness gate of
+\S\ref{sec:observer}'s experiment now stands where that mistake was made.
+Hard ink makes the null observer-proof and soft ink does not, which is
+Corollary~\ref{cor:hardink}.
+
+\subsection{The visibility spectrum of a real number}
+\label{sec:visibility}
+
+\begin{definition}[Visibility spectrum]
 \label{def:visibility}
 For $x>0$, the visibility spectrum is the staircase
 $\nu_x(N)=\min\{\,|p-qx|\cdot pq:\ p,q\ge1,\ pq\le N\,\}$: best approximation
 with denominators priced by the product $pq$ rather than by $q$. Its record
-holders are the visible stations of a $1{:}x$ pair. We know of no name for this
-object in the number-theoretic literature.
+holders are the visible stations of a $1{:}x$ pair.
 \end{definition}
+
+The classical theory of best approximation prices a rational $p/q$ by its
+denominator, and its constants --- Hurwitz's $1/\sqrt5$, the Lagrange
+spectrum --- describe how well every real can be approximated at that price.
+A stroke prices $p/q$ by $pq$, because both harmonics have to be paid for, and
+the staircase of records under that price is what the eye sees as a pitch
+ratio is tuned: a station appears where a record is set and holds until the
+next. The records are still convergents (Proposition~\ref{prop:selection}),
+but the heights and the spacing of the staircase are not the classical
+constants, and we know of no name for the object in the number-theoretic
+literature. We state it as a definition and leave its arithmetic open.

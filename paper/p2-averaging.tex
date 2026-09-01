@@ -1,6 +1,21 @@
 \section{Law II: averaging, the envelope as a conditional expectation}
 \label{sec:averaging}
 
+A moir\'e is a slow character, but a drawing is not a character. It is
+$I\circ\Phi$, every character at once, the carriers loudest, and what an
+observer sees when it cannot resolve the carriers is an average. This section
+is about what an average of a drawing is. The answer is exact, and it is the
+same answer whether the average is taken by the tool's sweep, by a long
+exposure, by a defocused lens, or by a retina: a conditional expectation of the
+ink potential on a subtorus that the counting map alone determines. The
+observer contributes only the potential it averages.
+
+\subsection{The sweep is a sharp projection}
+\label{sec:sweep}
+
+The tool's envelope view advances every layer's phase along a schedule and
+averages. On the torus that is translation along a line.
+
 \begin{theorem}[The envelope is a conditional expectation, and a sharp one]
 \label{thm:envelope}
 For a schedule $w\in\Z^K$ let $\mathcal E_w I(x)=\int_0^1 I(x+uw)\,du$. Then
@@ -13,40 +28,106 @@ one period of an integer schedule projects exactly onto the characters
 annihilated by $w$, with no leakage.
 \end{theorem}
 
+\begin{proof}
+Expand $I=\sum_k\hat I(k)\,e^{2\pi i\,k\cdot x}$. Translation by $uw$
+multiplies the $k$-th term by $e^{2\pi i u\,(k\cdot w)}$, and
+$\int_0^1 e^{2\pi i u m}\,du$ is $1$ for $m=0$ and $0$ for every other integer
+$m$. Because $w$ is integral, $k\cdot w$ is an integer. The right-hand side is
+the orthogonal projection onto the span of the characters in $L_w$, which is
+the conditional expectation onto the functions invariant under the closed
+subgroup $\overline{\{uw\}}$.
+\end{proof}
+
+That $w$ is a vector of integers is not a convenience. It is the reason there
+is no leakage: a schedule with a non-integer coordinate multiplies each
+character by a sinc rather than an indicator, and the envelope carries a little
+of everything. The rank of the projection is the schedule's to choose.
+
 \begin{corollary}[Four cases]
 \label{cor:cases}
-\emph{(i) Fringe law.} Two layers on the diagonal $w=(1,1)$: $\E[I\mid\idx_1-\idx_2]$
-is a function of $D=\idx_1-\idx_2$ alone, the saturating tent.
-\emph{(ii) Pivot.} $w$ incommensurate in every coordinate: $\E[I]$, the
-independent-phase mean, the DC about which contrast is expanded.
-\emph{(iii) Zero sums.} The diagonal $w=(1,\dots,1)$ preserves the whole
-zero-sum lattice at once: every pairwise difference and every zero-sum ternary.
-\emph{(iv) Exposure.} A stack animated at rates $r$ and averaged over one period
-is $\mathcal E_r I$: a long exposure is an envelope.
+\emph{(i) Fringe law.} Two layers on the diagonal $w=(1,1)$: $L_w=\{(a,-a)\}$,
+so $\mathcal E_wI$ is a function of $D=\idx_1-\idx_2$ alone,
+$\mathcal E_wI(x)=\Phi(x_1-x_2)$ with $\Phi(\Delta)=\int_0^1 I(v,v-\Delta)\,dv$.
+For two strokes this is the saturating tent: flat while one stroke lies inside
+the other, rising with unit slope, saturating once they clear.
+\emph{(ii) Pivot.} A schedule with rationally independent coordinates has
+$L_w=\{0\}$: the average is $\hat I(0)$, the mean ink with the phases
+independent, and expanding contrast about it amplifies exactly
+$\mathcal E_wI-\hat I(0)$, the correlations $L_w$ carries.
+\emph{(iii) Zero sums.} The diagonal $w=(1,\dots,1)$ has $L_w=\{k:\sum_i k_i=0\}$,
+so it preserves every pairwise difference and every zero-sum ternary at once;
+only a character with $\sum_i k_i\ne0$ --- a sum beat, a station $(q,-p)$ with
+$q\ne p$ --- asks for a schedule of its own, $(|b|,-a\,\mathrm{sgn}\,b)$ on its
+pair.
+\emph{(iv) Exposure.} A stack animated at rates $r\in\Z^K$ and integrated over
+one period is $\mathcal E_r I$ along the drawing: a long exposure is an
+envelope, and the shutter chooses $L_r$.
 \end{corollary}
+
+Case (iii) is why the tool's envelope holds the diagonal unless a certified
+character asks otherwise: the diagonal is the one schedule that keeps every
+zero-sum character of every pair and triple in the stack, and a deviation from
+it, which serves one character, costs the rest. Case (iv) is the subject of
+\S\ref{sec:exposure}.
+
+\subsection{Exactness}
+\label{sec:exactness}
+
+Sampling the sweep at $m$ taps computes a Riemann sum whose error is set by
+the least-resolved period: a rate-$q$ coordinate slides its layer through $q$
+periods, and under about eight taps per period what survives the average is
+mostly undersampled carrier. The remedy is not more taps. Along the sweep
+every layer's coverage is a stroke profile --- a window with anti-alias ramps,
+$1-\operatorname{smoothstep}(h-a,h+a,d)$ in the tool --- composed with the
+distance $d(u)$ to the nearest of the three members the phase trio names, and
+$d$ is piecewise linear in $u$. So each coverage is piecewise cubic in $u$, and
+the places where its piece changes are known in closed form: the nearest
+member's window edges $d=h\pm a$, the floor a radial family keeps, the
+midpoints between neighbours where the nearest member changes, and the seam
+where the slide wraps. A product of such profiles is piecewise polynomial with
+known breakpoints, and integrating each piece with a Gauss rule of sufficient
+degree is exact.
 
 \begin{theorem}[Exactness]
 \label{thm:exact}
 For an all-scalar stack every swept profile $\alpha_i(u)$ is piecewise cubic in
-$u$ with corners known in closed form from the phase trio (the nearest member's
-window and ramps, the floor clips, the argmin midpoints where a stroke reaches
-them, the wrap seam), so $\mathcal E_w I(\Phi(p))$ is piecewise polynomial with
-known breakpoints and is integrated in closed form. Certified on \exactScenes\
-scenes across twelve regimes against a \exactTruthTaps-tap double-precision
-truth: the shipped Gauss-3 chain is within $\exactWorstErr$ (one part in
-\exactWorstGrayFrac\ of a gray level), a Gauss-4 pass within
+$u$ with corners known in closed form from the phase trio, so
+$\mathcal E_w I(\Phi(p))$ is piecewise polynomial with known breakpoints and is
+integrated in closed form. Certified on \exactScenes\ scenes across twelve
+regimes --- pairs and trios on the diagonal and on deviated schedules up to the
+rate-12 station, walking families' asymmetric trios, radial floors, sub-pixel
+strokes, strokes that nearly touch --- against a \exactTruthTaps-tap
+double-precision truth: the shipped Gauss-3 chain is within $\exactWorstErr$
+(one part in \exactWorstGrayFrac\ of a gray level), a Gauss-4 pass within
 $\exactGaussFourErr$, and the shipped shader within $\exactGpuErr$ of its
-double-precision twin; \envTaps\ taps err by \exactTapsWorst\ of the tonal
-range at the rate-12 station, and the chain beats them $\exactOverTaps\times$
-at worst.
+double-precision twin. Beside it, \envTaps\ taps err by \exactTapsWorst\ of the
+tonal range at the rate-12 station, and the chain beats them
+$\exactOverTaps\times$ at worst.
 \end{theorem}
+
+The Gauss-4 figure is the proof that the corner list is complete: a missing
+corner would leave a cubic straddling two pieces, which no rule integrates
+exactly, and the error would not fall from the Gauss-3 figure to
+$\exactGaussFourErr$. The shader figure is the twin discipline: the same trios
+through the renderer's own code, compiled into a compute pass, against a
+JavaScript implementation of the same segmentation in double precision. What
+sampling had cost is the last number. The ``annoying envelope artifacts'' that
+motivated this were never artifacts of the envelope; they were tap noise, and
+they are gone at every zoom, thinness and rate, faster than the sampling they
+replaced, because a handful of corners is cheaper than fifty taps.
+
+\subsection{Temporal selection}
+\label{sec:exposure}
+
+Case (iv) of Corollary~\ref{cor:cases} is a physical prediction, and it was
+not sought: it fell out of the theorem and survived measurement the same day.
 
 \begin{theorem}[Temporal selection]
 \label{thm:exposure}
 Averaging a stack animated at rates $r\in\Z^K$ over one period keeps exactly
 the characters with $k\cdot r=0$. On the $16.4{:}8$ pair's station $(2,-1)$:
-rates $(1,2)$ keep it to \exposureFaithfulPct\% of the still, while $(1,1)$ and
-$(2,1)$ wash it $\exposureSelectivity\times$.
+rates $(1,2)$ keep it to \exposureFaithfulPct\% of the still's amplitude, while
+$(1,1)$ and $(2,1)$ wash it $\exposureSelectivity\times$.
 \end{theorem}
 
 \begin{figure}[t]
@@ -56,16 +137,37 @@ $(2,1)$ wash it $\exposureSelectivity\times$.
   as a still, then its long exposures over one period at rates $(1,1)$,
   $(1,2)$ and $(2,1)$, each expanded sixfold about its own mean. The still's
   station is a four-percent modulation the page cannot show. Rates $(1,1)$
-  keep the zero-sum characters — here the carrier-scale coefficient $(1,-1)$,
-  a fine texture, not a fringe — and wash the station; rates $(1,2)$ keep
+  keep the zero-sum characters --- here the carrier-scale coefficient $(1,-1)$,
+  a fine texture, not a fringe --- and wash the station; rates $(1,2)$ keep
   exactly the station $(2,-1)$, the broad bands; rates $(2,1)$ wash both and
   keep the faster $(1,-2)$. Scripts \texttt{exposure.mjs},
   \texttt{exposure-figs.mjs}.}
   \label{fig:exposure}
 \end{figure}
 
+Figure~\ref{fig:exposure} is the theorem drawn. A camera pointed at two
+gratings sliding past each other records, over its shutter time, an envelope
+along the rate vector, and which fringe system it records is a matter of
+arithmetic: $k\cdot r=0$. The still cannot show the station at all --- it is a
+four-percent modulation under carriers at full contrast --- and the exposure at
+rates $(1,2)$ extracts it whole, because that is the schedule the station's
+character annihilates. The envelope view is not post-processing. It is what a
+slow observer of an animated stack already computes.
+
 \subsection{The observer theorem}
 \label{sec:observer}
+
+Theorem~\ref{thm:envelope} says what the sweep computes. The question this
+paper set out to answer is why the same object should appear to any observer
+that cannot resolve the carriers --- a lens, a film, a retina --- and whether
+the third pattern is theirs or the drawing's. It is the drawing's, in two
+halves: a statement about invariance, and a statement about windows.
+
+\subsubsection{Invariants of rephasing}
+
+Rephasing layer $i$ by $c_i$ translates the ink potential, $I\mapsto I(\cdot+c)$,
+$c\in\tor^K$. A slow observer cannot tell rephasings along the fast directions
+apart. What can it see?
 
 \begin{proposition}[The envelope is the universal invariant of rephasing]
 \label{prop:invariant}
@@ -75,6 +177,25 @@ translation by $H$ satisfies $F=F\circ\E_H$, and every $G\circ\E_H$ is
 invariant: the $H$-invariant linear observables are exactly the linear
 observables of the envelope.
 \end{proposition}
+
+\begin{proof}
+$F(I)=\int_H F(I(\cdot+h))\,dh=F\big(\int_H I(\cdot+h)\,dh\big)=F(\E_HI)$,
+exchanging a bounded linear map with a Bochner integral over a compact group.
+Conversely $\E_H$ is $H$-invariant and idempotent.
+\end{proof}
+
+The proposition is the sweep's Theorem~\ref{thm:envelope} read as a
+universal property: $\E_H$ is the quotient of the ink by the fast rephasing in
+the category of linear observers, and nothing an invariant linear observer
+measures escapes it. The word \emph{linear} cannot be dropped. $F(I)=\int I^2$
+is invariant under the whole torus and is not a function of $\E[I]$; the
+invariants of rephasing among nonlinear functionals of the potential form the
+potential's orbit space, far larger than any envelope. But the nonlinear
+observers that matter physically are not functionals of the potential at all.
+They are functionals of the drawing --- a pointwise front end and a spatial
+window --- and for those the right statement is the second half.
+
+\subsubsection{A window is a multiplier on the torus}
 
 \begin{theorem}[A window is a multiplier on the torus]
 \label{thm:multiplier}
@@ -92,6 +213,39 @@ frequency. Verified: exact to $\obsMultiplierErr$ without curvature; with it,
 the second-derivative term leaves $\obsRemainderResidual$ of the remainder.
 \end{theorem}
 
+\begin{proof}
+Expand $I$ in characters and write $\Phi(q)=\Phi(p)+J_p(q-p)+E(q)$ with
+$|E(q)|\le\tfrac12\lVert D^2\Phi\rVert|q-p|^2$. The window integral of
+$e^{2\pi i\,k\cdot J_p(q-p)}$ is $\widehat W(\rho J_p^{\top}k)$, and the factor
+$e^{2\pi i\,k\cdot E}$ differs from $1$ by at most $2\pi|k||E|$, which
+integrates against $W_\rho$ to $\pi|k|\lVert D^2\Phi\rVert m_2\rho^2$. For the
+first-order term, expand $e^{2\pi i k\cdot E}\approx1+2\pi i\,k\cdot E$ with
+$E$ quadratic in $q-p$; the integral of a quadratic against
+$e^{2\pi i\nu x}W_\rho$ is $-\widehat W_\rho''(\nu)/4\pi^2$.
+\end{proof}
+
+The reading is the point. A pooling observer applies to the ink potential
+\emph{on the torus} the multiplier $m_p(k)=\widehat W(\rho\,\nabla(k\cdot\Phi)(p))$:
+the window's transfer function at each character's own local frequency. When
+the local frequencies split around $1/\rho$ --- the fringe regime, $\het\ll1$
+--- the multiplier is the indicator of the slow characters up to the window's
+leakage, and the observer reports $\E[I\mid\text{slow}](\Phi(p))$: the soft
+version of the sweep's sharp projection. The two agree exactly on
+$k\cdot J_p=0$ and differ only by what the window leaks. The classical
+explanation of moir\'e as what survives a low-pass filter is this statement's
+$\rho$-soft special case, made per pixel, with the leakage explicit.
+
+\subsubsection{Universality}
+
+\begin{lemma}[Potential transport]
+\label{lem:transport}
+For any pointwise $N:\R\to\R$, $N\circ(I\circ\Phi)=(N\circ I)\circ\Phi$.
+\end{lemma}
+
+A front-end nonlinearity changes the potential and never the counting map.
+Which characters are slow, and where, is a property of $\Phi$; Law~I is
+observer-independent, and Law~II applies with $I$ replaced by $N\circ I$.
+
 \begin{theorem}[Universality of the third pattern]
 \label{thm:universality}
 Every observer that pools before it decides, $O=A_\rho\circ N$ with $N$
@@ -101,16 +255,46 @@ regime, $O(D)(p)=\E[\,N\circ I\mid L_p\,](\Phi(p))$. The subtorus is
 $\Phi$'s alone. An observer chooses only the potential it averages.
 \end{theorem}
 
+\begin{proof}
+Lemma~\ref{lem:transport} and Theorem~\ref{thm:multiplier} applied to
+$N\circ I$, whose coefficients satisfy the summability hypothesis whenever
+$N$ is smooth and $I$'s do; anything applied after the window acts on a
+function of the result.
+\end{proof}
+
+Order matters, and the theorem says how. An observer that pools first and
+responds after, $g\circ A_\rho$, sees $g(\E[I\mid L])$: the linear envelope,
+regraded, with no new character. An observer that responds first,
+$A_\rho\circ N$, sees the envelope of $N\circ I$: the same admissible
+characters, different amplitudes, and possibly characters $I$ never carried.
+Both are conditional expectations on the same subtorus. That is the precise
+sense in which the third pattern is canonical: every observer that pools
+before it decides reports an envelope, and only the potential is theirs.
+
+\subsubsection{Reach}
+
+Each corollary below is a prediction the theory was not built to make, and
+each is gated in \texttt{observer.mjs}.
+
 \begin{corollary}[Who sees a beat]
 \label{cor:whosees}
-A printed overlay multiplies transmittances, $I=\prod g_i(x_i)$, so every cross
+A printed overlay multiplies transmittances, $I=\prod_i g_i(x_i)$, so every cross
 character is present at linear order: a linear observer sees the beat at
 $\hat g_1(1)\hat g_2(1)$ (measured \obsPrintedBeat). An additive superposition,
-$I=\sum g_i(x_i)$, has its spectrum on the coordinate axes: no linear observer
+$I=\sum_i g_i(x_i)$, has its spectrum on the coordinate axes: no linear observer
 sees a beat (measured $\obsAdditiveBeat$), a squaring front end mints one at
 exactly $\tfrac12\hat g_1(1)\hat g_2(1)$ (measured \obsSquaringBeat), and a
 saturating one at \obsSaturatingBeat.
 \end{corollary}
+
+This is Helmholtz's combination tone and the demodulator's rectifier, said in
+the language of characters. Two tones in air, two incoherent projected
+gratings, add; their beat has no character of its own, and it is heard or seen
+only because an ear or a photoreceptor is not linear before it pools. Two
+printed gratings multiply, and their moir\'e is in the ink: a defocused camera
+sees it. The distinction is not between kinds of observer but between kinds
+of superposition, and the theorem puts it where it belongs, in the support of
+$\widehat{N\circ I}$.
 
 \begin{corollary}[Hard ink is observer-proof; soft ink is not]
 \label{cor:hardink}
@@ -121,12 +305,52 @@ end (measured $\obsHardNull$). With anti-alias ramps of half-width
 squaring observer reopens it at $\obsReopenAmps$, linearly in the ramp.
 \end{corollary}
 
+The first half is why a drawing on paper has one third pattern: hard ink
+leaves an observer nothing to do but grade. The second half is sharper than it
+looks. A duty-$\tfrac12$ stroke with symmetric ramps is still exactly
+half-wave antisymmetric --- $\operatorname{smoothstep}$ included --- so its
+even harmonics vanish and the null survives every linear observer at every
+blur; a squaring observer destroys the antisymmetry on the ramps and nowhere
+else, which is why the reopened amplitude is linear in the ramp width. A
+nonlinear observer of a blurred drawing sees stations a linear one cannot.
+
 \begin{corollary}[Nyquist]
 \label{cor:nyquist}
 A finite-difference estimate of $D\Phi$ is itself an observer with a two-pixel
 window; its multiplier has its first zero at two pixels per member. Closed-form
 gradients are the $\rho\to0$ limit, an observer with no window.
 \end{corollary}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{quilt-pair.png}
+  \caption{\figlead{The handover quilt, and its cure.} Two concentric
+  families of identical pitch and centre, one carrying a steep dipole field,
+  at 1.87 pixels per member. Left: the envelope when the sum-or-difference
+  choice is made from a finite difference of the fractional index over one
+  pixel with the unit unwrap --- an observer with a two-pixel window, which
+  aliases below two pixels per member and hands the sum character pockets it
+  never earned (hatched wedges, combs, dotted rays: the sum schedule holding
+  carrier-pitch rims). Right: the same envelope with the choice made from the
+  closed-form gradient. Both halves are the CPU mirror of the shipped
+  compositing; the left is generated by the estimator, not by a resurrected
+  shader. Script \texttt{quilt-figs.mjs}.}
+  \label{fig:quilt}
+\end{figure}
+
+Figure~\ref{fig:quilt} is the corollary as a defect the tool once had. The
+character scan estimated a walking family's index gradient by differencing
+the fractional index across one pixel and rounding the unit wraps away, which
+is sound while a member spans two pixels and meaningless below; at $1.87$
+pixels per member the two layers of the exhibit unwrapped differently in
+angular sectors, their sum read as the slow character, and the sweep held
+carrier-pitch rims wherever the wrap flipped, in pockets that migrated with
+zoom because they were a property of the pixel grid. The cure was not a rule
+but a closed form for the gradient of every family, and the corollary says why
+no rule could have sufficed.
+
+\subsection{Conditioning is a chart choice}
+\label{sec:licence}
 
 \begin{remark}[Conditioning is a chart choice]
 \label{rem:licence}
@@ -137,19 +361,15 @@ $L_1\,\triangle\,L_2$, and that difference is a seam. Deviation identity is a
 decision of the stack, never of the pixel.
 \end{remark}
 
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=\linewidth]{quilt-pair.png}
-  \caption{\figlead{The handover quilt, and its cure.} Two concentric
-  families of identical pitch and centre, one carrying a steep dipole field,
-  at 1.87 pixels per member. Left: the envelope when the sum-or-difference
-  choice is made from a finite difference of the fractional index over one
-  pixel with the unit unwrap — an observer with a two-pixel window, which
-  aliases below two pixels per member and hands the sum character pockets it
-  never earned (hatched wedges, combs, dotted rays: the sum schedule holding
-  carrier-pitch rims). Right: the same envelope with the choice made from the
-  closed-form gradient. Both halves are the CPU mirror of the shipped
-  compositing; the left is generated by the estimator, not by a resurrected
-  shader. Script \texttt{quilt-figs.mjs}.}
-  \label{fig:quilt}
-\end{figure}
+The remark is the second face of a lesson the tool taught twice. On a pair
+whose local pitch ratio varies --- a dipole-warped $2.31{:}1$ line pair sweeps
+its ratio through $1.67$ to $2.95$ --- in-regime stations tile the whole
+frame, $(2,-1)$ over half of it and $(5,-2)$, $(3,-1)$, $(12,-5)$ in pockets
+elsewhere, and a view that gave each pocket its own schedule was quilted with
+circular seams between textures no render shows. The rule that ended it is the
+remark: the stack's nominal pitch ratio certifies at most one deviating
+character globally, and every local station rides the diagonal. Measurement is
+a layer, with two questions of its own: on which subtorus (which must be
+answered once, for the whole chart), and through what window (which is
+Nyquist-limited, Corollary~\ref{cor:nyquist}). The third pattern is what
+remains once both are answered honestly.
