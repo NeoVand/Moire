@@ -113,49 +113,6 @@ draws three, and calling its coverage that of one puts the pivot far brighter
 than the picture it is expanding about, which at any real contrast drives the
 whole frame black; that is how we found the bug.
 
-\subsection{The clock}
-
-Nothing in the renderer accumulates. There is no history buffer, no progressive
-refinement, no temporal filter and no cached raster: a frame is determined by
-the twelve slots' uniforms and the handful of camera and view uniforms beside
-them, and by nothing else. An animated parameter is a function $v(t)$
-evaluated afresh every frame rather than a value advanced by
-$v \leftarrow v+\dot v\,\Delta t$, and several parameters may share one
-\emph{timing} (a delay, a period, a mode and an easing) so that a dozen knobs
-move as one gesture instead of as a dozen that drift apart. Parameters that are
-functions of the clock, over a renderer that holds no state, make the frame
-itself a function of the clock.
-
-Two things follow that a renderer carrying state does not get. Scrubbing is
-exact: the frame at $t$ is computed rather than replayed, so seeking backwards
-costs what seeking forwards costs and neither depends on where the clock has
-been. And capture need not run in real time. The recorder is the clock rather
-than an observer of it: it asks for frame $n$ at exactly $t_0+n/\mathrm{fps}$,
-renders once synchronously at a stated size, waits for the pixels however long
-they take, and only then advances. So a file at $2160$p and $120$\,fps comes
-out of a renderer that never has to reach that rate, and the same range recorded
-twice is the same file twice. The clip's length is not guessed either: every
-animator states its own period, and the tool offers the least common multiple of
-them, which is the shortest range at which every cycle has closed and the clip
-therefore repeats without a join.
-
-\subsection{The local gap}
-
-For the nine phase families, sliding the residual by $u$ times the local
-member gap reproduces the re-solved distance exactly. For a walking family
-the same formula is a choice. Advancing the \emph{phase} by $u\,s$ slides
-every residual by that amount, but it does not map the family to itself
-(radii grow while every pose stays put), so a sweep at rate $s$ has no unit
-period and leaves carrier residue. Sliding by the measured local gap covers
-exactly one local carrier period, which is what the average needs; the
-price is that no re-solve reproduces it exactly where the flanking gaps are
-unequal. The radial pencil is first-order the same way: its members rotate
-rather than slide, so the re-solved distance is sinusoidal in $u$ where the
-slide is piecewise linear. Both errors are small fractions of a gap away
-from the loci of \S\ref{sec:limits}. The solver widens the guard to a full
-pitch for these views, because the narrower $G$ of Eq.~\ref{eq:guard} would
-prove away the flanking members the sample needs.
-
 \subsection{Reading the ablation's negative rows}
 
 Removing the carried rotation or the accept-early-exit makes the three scanning

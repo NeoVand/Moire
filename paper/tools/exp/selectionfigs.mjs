@@ -21,7 +21,7 @@
 //
 //   node paper/tools/exp/selectionfigs.mjs
 
-import { family, gradIndex, periodicDist, bestCharacter } from '../lib/fields.mjs';
+import { family, periodicDist, bestCharacter, GOLDEN_CARRIER } from '../lib/fields.mjs';
 import { compose, view } from '../lib/render.mjs';
 import { writePng } from '../lib/png.mjs';
 import { FIGURES } from '../lib/instrument.mjs';
@@ -32,24 +32,58 @@ const THR = 0.25;
 
 // ------------------------------------------------- the stations panel
 {
-  const cfgA = { kind: 'radial', lineCount: 64, position: { x: -90, y: 0 } };
-  const cfgB = { kind: 'radial', lineCount: 64, position: { x: 90, y: 0 } };
+  // A hole at each focus (the radial family's Start parameter) keeps the
+  // convergence of the fans from reading as two black discs.
+  // spacing 1 makes the radial index count members (psi is already in member
+  // units), so the overlay's integer level sets are the true fringes, and
+  // atan2's branch cut jumps D by an exact integer, invisible modulo 1.
+  const HOLE = 16;
+  const cfgA = {
+    kind: 'radial',
+    lineCount: 44,
+    spacing: 1,
+    phase: HOLE,
+    position: { x: -90, y: 0 },
+  };
+  const cfgB = {
+    kind: 'radial',
+    lineCount: 44,
+    spacing: 1,
+    phase: HOLE,
+    position: { x: 90, y: 0 },
+  };
   const famA = family(cfgA);
   const famB = family(cfgB);
+  // The analytic index gradient (the fans sit at rotation zero, so the local
+  // frame is the world frame): smooth everywhere, no branch cut, exactly the
+  // shader's radialIndexDir path. Central differences across the cut read as
+  // garbage merit and silently erased the left half of the ladder.
+  const gradOf = (fam, p) => {
+    const g = fam.gradVec(p);
+    return { x: g.x / fam.spacing, y: g.y / fam.spacing };
+  };
   const layers = [
-    { ...cfgA, thickness: 0.85, color: '#000000' },
-    { ...cfgB, thickness: 0.85, color: '#000000' },
+    { ...cfgA, thickness: 1.3, color: '#000000' },
+    { ...cfgB, thickness: 1.3, color: '#000000' },
   ];
   // Wide strip cropped to the axis band through both foci, so the
   // commensurate pockets sit at a readable scale beside the staircase.
-  const V = view({ width: 1440, height: 480, zoom: 2.05, superSample: 2 });
+  const V = view({ width: 1440, height: 540, zoom: 1.9, superSample: 2 });
   const base = compose(V, layers);
 
-  // The overlay: level sets of the per-pixel winning character, gated by the
-  // weighted merit (the regime line, faded near its edge) and by a minimum
-  // on-screen pitch so a crowded ladder degrades to nothing rather than to
-  // speckle. Everything is computed from the two index fields; the render
-  // never sees the curves.
+  // The overlay: level sets of the per-pixel winning character, drawn ONLY
+  // where the winner is beyond first order. The (1, ±1) sea is the moiré the
+  // base render already shows (on the axis it owns the axis itself, which a
+  // stroke would misread as an artifact); what the reduction adds is the
+  // higher-order geography, so that is what gets ink, coloured by the order
+  // of the station: the staircase panel's own palette. Gated by the weighted
+  // merit, faded at the regime edge, and cut below a minimum on-screen pitch
+  // so a crowding ladder degrades to nothing rather than to speckle.
+  // Everything is computed from the two index fields; the render never sees
+  // the curves.
+  const COOL = [27, 108, 168];
+  const WARM = [212, 118, 26];
+  const orderColor = (q) => (q <= 2 ? COOL : q <= 4 ? WARM : ACCENT);
   const out = new Uint8Array(base);
   const smoothstep = (a, b, x) => {
     const t = Math.min(1, Math.max(0, (x - a) / Math.max(b - a, 1e-9)));
@@ -62,24 +96,27 @@ const THR = 0.25;
   for (let y = 0; y < V.height; y += 1) {
     for (let x = 0; x < V.width; x += 1) {
       const p = worldOf(x, y);
-      const gA = gradIndex(famA, p);
-      const gB = gradIndex(famB, p);
+      const gA = gradOf(famA, p);
+      const gB = gradOf(famB, p);
       const w = bestCharacter(gA, gB);
       if (w.merit > THR) continue;
       const [a, b] = w.k;
+      const order = Math.max(Math.abs(a), Math.abs(b));
+      if (order < 2) continue;
       const val = a * famA.index(p) + b * famB.index(p);
       const rate = Math.hypot(a * gA.x + b * gB.x, a * gA.y + b * gB.y);
       if (!(rate > 1e-9)) continue;
       const pitchPx = V.zoom / rate;
       const admit =
-        (1 - smoothstep(THR * 0.7, THR, w.merit)) * smoothstep(1.6, 2.8, pitchPx);
+        (1 - smoothstep(THR * 0.7, THR, w.merit)) * smoothstep(2.2, 3.4, pitchPx);
       if (admit <= 0.003) continue;
       const dPix = (periodicDist(val, 1) / rate) * V.zoom;
-      const alpha = admit * (1 - smoothstep(1.4, 3.4, dPix));
+      const alpha = admit * (1 - smoothstep(1.6, 3.8, dPix));
       if (alpha <= 0.003) continue;
+      const color = orderColor(order);
       const i = (y * V.width + x) * 3;
       for (let c = 0; c < 3; c += 1) {
-        out[i + c] = Math.round(out[i + c] + (ACCENT[c] - out[i + c]) * alpha);
+        out[i + c] = Math.round(out[i + c] + (color[c] - out[i + c]) * alpha);
       }
     }
   }
@@ -89,12 +126,22 @@ const THR = 0.25;
 
 // ------------------------------------------------- the 3:1 panels
 {
+  // Both carriers ride the golden slope (the 2° twist between them intact),
+  // so the printed panels do not beat against the page's own raster.
+  const TWIST = (2 * Math.PI) / 180;
   const mk = (shift1, shift2) => [
-    { kind: 'parallel', spacing: 15, phaseShift: shift1, thickness: 3, color: '#000000' },
+    {
+      kind: 'parallel',
+      spacing: 15,
+      angle: GOLDEN_CARRIER,
+      phaseShift: shift1,
+      thickness: 3,
+      color: '#000000',
+    },
     {
       kind: 'parallel',
       spacing: 5,
-      rotation: 2,
+      angle: GOLDEN_CARRIER + TWIST,
       phaseShift: shift2,
       thickness: 2,
       color: '#000000',

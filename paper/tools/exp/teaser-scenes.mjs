@@ -89,10 +89,15 @@ export function teaserScenes(solver) {
       name: 'hex-twist',
       zoom: 1.15,
       layers: [
-        L({ kind: 'lattice', lattice: 'hex', spacing: 10, thickness: 1.5 }),
-        L({ kind: 'lattice', lattice: 'hex', spacing: 10, rotation: 5, thickness: 1.5 }),
+        L({ kind: 'lattice', lattice: 'hex', spacing: 10, thickness: 2 }),
+        L({ kind: 'lattice', lattice: 'hex', spacing: 10, rotation: 5, thickness: 2 }),
       ],
-      contrast: 4.2,
+      contrast: 5.5,
+      // A lattice pair's ink is spiky under the rank-1 tap rule (hairline
+      // strokes hit or miss), so the residue falls like 1/taps rather than
+      // washing at the scalar families' two dozen. Offline, taps are cheap;
+      // this is what resolves the superlattice of coincidence spots.
+      taps: 384,
     },
     {
       name: 'swirl-flow',

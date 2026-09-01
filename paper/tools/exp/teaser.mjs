@@ -37,7 +37,7 @@ for (const scene of SCENES) {
     pan: scene.pan ?? { x: 0, y: 0 },
     superSample: 3,
   });
-  const rgb = drawSeam(splitPanelLR(compose, envelope, scene, V, TAPS), V, UNIT);
+  const rgb = drawSeam(splitPanelLR(compose, envelope, scene, V, scene.taps ?? TAPS), V, UNIT);
   panels.push({ rgb, width: V.width, height: V.height });
   console.log(`${scene.name}  (${((Date.now() - started) / 1000).toFixed(1)}s)`);
 }

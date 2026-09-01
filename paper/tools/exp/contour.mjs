@@ -308,7 +308,9 @@ console.log(`\nwrote figures/contour-fields.png (${grid.width}x${grid.height})`)
   const env = envelope(PV, spec.layers, { radius: 14, contrast: 3.1 });
   const withCurves = overlayLevelSets(bare, PV, (p) => spec.f(p) / spec.c, {
     color: [226, 32, 92],
-    width: 1.9,
+    // 2.8 px at the panel's 760 px: against the golden-slope carrier a 1.9 px
+    // stroke read as a perforated hairline at page scale.
+    width: 2.8,
     opacity: 1,
   });
   const proof = tile(

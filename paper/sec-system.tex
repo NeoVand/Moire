@@ -181,10 +181,26 @@ the pattern is the document.
 \subsection{A frame is a function of the clock}
 \label{sec:time}
 
-Nothing in the renderer accumulates. A frame is the twelve slots' uniforms
-and the camera, evaluated afresh. An animated parameter is a function
-$v(t)$ rather than an increment $v\leftarrow v+\dot v\,\Delta t$, so
-scrubbing is exact and a recording is a sequence of clock values, not an
-observation of playback. The bookkeeping, shared timings, and why a
-$2160$p file need not play at $2160$p live in the supplemental material
-(\S S3).
+Nothing in the renderer accumulates. There is no history buffer, no progressive
+refinement, no temporal filter and no cached raster: a frame is determined by
+the twelve slots' uniforms and the handful of camera and view uniforms beside
+them, and by nothing else. The animation model is built to keep it that way. An animated parameter is
+a function $v(t)$ evaluated afresh every frame rather than a value advanced by
+$v \leftarrow v+\dot v\,\Delta t$, and several parameters may share one
+\emph{timing} (a delay, a period, a mode and an easing) so that a dozen knobs
+move as one gesture instead of as a dozen that drift apart. Parameters that are
+functions of the clock, over a renderer that holds no state, make the frame
+itself a function of the clock.
+
+Two things follow that a renderer carrying state does not get. Scrubbing is
+exact: the frame at $t$ is computed rather than replayed, so seeking backwards
+costs what seeking forwards costs and neither depends on where the clock has
+been. And capture need not run in real time. The recorder is the clock rather
+than an observer of it: it asks for frame $n$ at exactly $t_0+n/\mathrm{fps}$,
+renders once synchronously at a stated size, waits for the pixels however long
+they take, and only then advances. So a file at $2160$p and $120$\,fps comes
+out of a renderer that never has to reach that rate, and the same range recorded
+twice is the same file twice. The clip's length is not guessed either: every
+animator states its own period, and the tool offers the least common multiple of
+them, which is the shortest range at which every cycle has closed and the clip
+therefore repeats without a join.

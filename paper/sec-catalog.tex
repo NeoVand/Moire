@@ -1,0 +1,176 @@
+\section{The catalog}
+\label{sec:catalog}
+
+Section~\ref{sec:field} asked a layer for two things: a phase function $\ph$ whose
+level sets are the members, and its gradient magnitude, which converts a phase
+residual into a distance. This section is the list, and it is deliberately short:
+thirteen families, of which nine are one line of algebra each. The four that
+are not (the radial pencil and the three lattices), and the reason they
+are not, set up the rest of the paper.
+The supplemental material (\S S1) draws all thirteen, each alone and then beating
+against a perturbed copy of itself, which is the fastest way to see what the
+algebra below buys.
+
+\subsection{Nine closed forms}
+
+For a family whose members are $\{\ph=ns+\varphi\}$, the index and distance fields
+of \S\ref{sec:field} are
+\begin{equation}
+  \idx(p)=\frac{\ph(p)-\varphi}{s},
+  \qquad
+  d(p)=\frac{\mathrm{periodicDist}\!\left(\ph(p)-\varphi,\,s\right)}{\lvert\nabla\ph(p)\rvert},
+  \label{eq:closedpair}
+\end{equation}
+so a family is completely specified by the pair $(\ph,\lvert\nabla\ph\rvert)$.
+Table~\ref{tab:catalog} gives both for all nine, in ten rows: the hexagon row
+is the $N{=}6$ instance of the $N$-gon written out, beside the square and
+triangle (families of their own), because those three support forms need no
+transcendentals. Every entry is $O(1)$, branch-free
+apart from the free-side $N$-gon, and calls no transcendental function except where
+the geometry genuinely contains an angle.
+
+\begin{table*}[t]
+  \centering
+  \caption{\figlead{The nine phase families.} Each row is a complete
+  specification: substitute $\ph$ and $\lvert\nabla\ph\rvert$ into
+  \eqref{eq:closedpair} and the layer renders; the square, triangle and
+  hexagon rows are the $N=4$, $3$, $6$ instances of the $N$-gon row, written
+  out because their support forms are transcendental-free. $\omega=2\pi f/32$ so that
+  $f=1$ is one wave cycle per $32$ world units; $a=B/100$ for a bend slider $B$;
+  $b=Ms/2\pi$ with $M=\max(1,\mathrm{round}(\lvert B\rvert/s))$ the number of
+  spiral arms. The three concentric shapes are the support function of the
+  generating polygon, which is the observation \S\ref{sec:walking} builds on.}
+  \label{tab:catalog}
+  \small
+  \begin{tabular}{@{}llll@{}}
+    \toprule
+    Family & $\ph(p)$ & $\lvert\nabla\ph(p)\rvert$ & Notes \\
+    \midrule
+    Parallel lines
+      & $\langle p,u\rangle$
+      & $1$
+      & $u=(\cos\alpha,\sin\alpha)$; pitch $s$ \\
+    Concentric circles
+      & $\lVert p\rVert$
+      & $1$
+      & \\
+    Concentric squares
+      & $\max(\lvert x\rvert,\lvert y\rvert)$
+      & $1$
+      & $L^\infty$; support function of the square \\
+    Concentric triangles
+      & $\max\!\left(x,\ \tfrac{\sqrt3}{2}\lvert y\rvert-\tfrac{x}{2}\right)$
+      & $1$
+      & support function of the triangle \\
+    Concentric hexagons
+      & $\max\!\left(\lvert x\rvert,\ \tfrac{\lvert x\rvert}{2}+\tfrac{\sqrt3}{2}\lvert y\rvert\right)$
+      & $1$
+      & support function of the hexagon \\
+    Concentric $N$-gon
+      & $\lVert p\rVert\cos\!\big(\mathrm{wrap}(\theta_p,\tfrac{2\pi}{N})\big)$
+      & $1$
+      & $\theta_p=\mathrm{atan2}(y,x)$ \\
+    Wave
+      & $x-A\sin(\omega y+\ph_0)$
+      & $\sqrt{1+A^2\omega^2\cos^2(\omega y+\ph_0)}$
+      & $A$ amplitude, $f$ frequency, $\ph_0$ phase \\
+    Parabola
+      & $y-a x^2$
+      & $\sqrt{1+4a^2x^2}$
+      & opens up; $a=0$ is horizontal parallels \\
+    Hyperbola
+      & $\sqrt{\lvert x^2-y^2\rvert}$
+      & $\lVert p\rVert/\sqrt{\lvert x^2-y^2\rvert}$
+      & rectangular; $n\ge1$, so no member through $0$ \\
+    Spiral
+      & $\lVert p\rVert-b\,\theta_p$
+      & $\sqrt{1+b^2/\lVert p\rVert^2}$
+      & Archimedean; $b=0$ is concentric circles \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
+Three remarks on the table; each marks a bug we shipped.
+
+\paragraph{The gradient column is not decoration.} For the first six rows it is
+$1$ and can be dropped. For the last four it is not, and dropping it thins every
+stroke by the same factor the family is steep by. We had shipped that bug in
+three of the four; \S\ref{sec:eikonal} reports the measurement.
+
+\paragraph{Some families exclude an index.} The hyperbola's $n=0$ member would be
+the degenerate pair $x=\pm y$, and $\lvert\nabla\ph\rvert$ blows up there, so the
+family starts at $n=1$. The spiral's $\ph$ has a branch cut wherever
+$\mathrm{atan2}$ does; it closes only if the arm count $M$ is an integer, which is
+why $M$ is rounded rather than passed through. Both are the kind of detail that a
+raster pipeline hides in the resampling and a field pipeline exposes on the
+first frame.
+
+\paragraph{Three of the rows are support functions.} The square, triangle and
+hexagon entries are all $\rad(q)=\max_k\langle q,n_k\rangle$ over the outward
+facet normals, written out. So is the $N$-gon row, in its trigonometric form. This
+is not a coincidence and it is not only a way to avoid an $\mathrm{atan2}$:
+\S\ref{sec:walking} shows that the same object supplies the constants that make
+the hard case tractable.
+
+\subsection{Four families that are not phase functions}
+
+\paragraph{The radial pencil.} $N$ undirected lines through the layer origin,
+equally spaced over $\pi$. There is no $\ph$ here whose level sets are the members:
+the index winds around the origin, so any candidate phase is circle-valued with
+a winding-number obstruction at the core (a phase singularity in the sense of
+Nye and Berry~\cite{Nye1974Dislocations}) and admits no global scalar lift.
+What the family does have is a distance,
+\begin{equation}
+  d(p)=\max\!\Big(\lVert p\rVert\,\big\lvert\sin\mathrm{wrap}(\theta_p,\tfrac{\pi}{N})\big\rvert,
+  \;\; \varphi-\lVert p\rVert\Big),
+  \label{eq:radial}
+\end{equation}
+which is what the renderer needs, and an index, the angular sector
+$\lfloor \theta_p N/\pi\rfloor$, which is what the fringe law needs. (Here
+and in Table~\ref{tab:catalog}, $\mathrm{wrap}(v,w)$ maps $v$ into
+$[-w/2,w/2)$. The distance formula is exact except in the corner wedge where
+a line meets the opened disc, where it understates the distance to the
+trimmed member by a bounded factor.) The second
+term is the parameter the interface calls \emph{Start}: it opens a disc of radius
+$\varphi$ around the origin, because $N$ lines crossing at a point is a black dot,
+and opening the center is the standard fix. Because the sector index is piecewise
+constant in $\theta_p$ rather than smooth, a pencil against a pencil does not
+produce fringes in the sense of Theorem~\ref{thm:fringe}; it produces the rosettes
+that the classical literature treats separately~\cite{Amidror2009Theory}.
+
+\paragraph{Lattices.} Square, hexagonal and triangular lattices index their
+members by \emph{two} integers, not one. The nearest lattice point is found by
+rounding in the lattice basis (for the hexagonal and triangular cases, cube
+rounding on $(u,v,-u-v)$, the $A_2$ closest-point rule of Conway and
+Sloane~\cite{Conway1982Fast}, exact and branch-light), and the layer offers
+two distances from the result: to the nearest vertex, and to the nearest edge. The
+hexagonal edge distance is again a support form, $\min_k(\mathrm{apothem}-\langle
+q,n_k\rangle)$ over the six sides, so hexagon edges are hexagon sides and not
+three superposed line families; getting this wrong produces a plausible-looking
+pattern with the wrong symmetry. Both distances take an anisotropic scale
+$(s_x,s_y)$, applied by dividing by $\lVert(n_x/s_x,n_y/s_y)\rVert$ per facet so
+that stretching a lattice keeps its strokes metrically correct.
+
+The consequence for the theory is plain. Theorem~\ref{thm:fringe}
+is about the difference of two \emph{scalar} index fields. A lattice's index is in
+$\Z^2$, so the difference of two lattice indices is in $\Z^2$ as well, and the
+theorem applies to it componentwise, once per generating line family. This is
+the classical situation, where a $2$-D screen superposition has a fringe
+system per pair of generating frequency vectors and the visible moir\'e is whichever
+pair beats slowest~\cite{Amidror2009Theory, Amidror1998Fourier}. The field
+formulation does not remove that bookkeeping. It localizes it: each component is a
+scalar field we can evaluate, difference, and map.
+
+\subsection{A family with no closed-form index}
+
+Take any of the concentric rows of Table~\ref{tab:catalog} and give member $n$ its
+own rigid motion: displace it by $n\delta$, turn it by $n\theta$. The picture is
+still a family of nested shapes, the parameters are two sliders, and the result is
+the geometry of much op art. But $\ph$ is gone: each member now lives in
+its own frame, so no closed-form expression in $p$ has these curves as its level
+sets. An index field still exists implicitly wherever consecutive members bracket
+the point (\S\ref{sec:fringe}), which is why the fringe law still applies; what is
+lost is the formula, so the nearest index must be searched for.
+
+That is the subject of the next two sections, and it is where the field view stops
+being a change of notation and starts costing something.

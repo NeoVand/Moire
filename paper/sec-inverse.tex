@@ -1,3 +1,4 @@
+\section{Bounded inversion}
 \label{sec:inverse}
 
 \subsection{The guard}
@@ -437,14 +438,28 @@ scan rather than solving for facets that do not exist.
 \subsection{Implementation}
 \label{sec:impl}
 
-The solver exists twice, TypeScript and WGSL, checked against each other on
-the GPU (Section~\ref{sec:protocol}) and against brute force over shapes,
-spacings, offsets, and the marginal drift. $B=1024$ evaluations and a
-$2^{16}$ span cap terminate the $m=s$ locus when $\theta\neq0$; neither
-constant affects correctness where Theorem~\ref{thm:window} applies
-(Section~\ref{sec:results}). The shipped upper bound uses the two
-per-branch forms from the proof of that theorem, slightly tighter than
-\eqref{eq:window}. Near $m=s$ the closed form takes the flat branch of
-Proposition~\ref{prop:closed}, because the crossing index is of order
-$1/|s-m|$ and \texttt{f32} is catastrophic there. Side counts above $24$
-(unreachable from the interface) fall through to the scan.
+The solver exists twice: once in TypeScript for tests and once in WGSL for the
+renderer, generated as separate functions and composed as shader
+includes~\cite{WebGPU}. The twins are checked against each other numerically on
+the GPU (Section~\ref{sec:protocol}) and the TypeScript side is checked against
+brute force in a unit test that sweeps shapes, spacings, offsets, and radii,
+including the marginal drift. Ring evaluation is branch-light: the interval, the
+stride, and $\Lambda$ are computed once per pixel, and the loop body has a single
+data-dependent branch (the accept exit).
+
+We set $B=1024$ evaluations and additionally cap the interval span at $2^{16}$ so
+that the loop terminates on the $m=s$ locus when the closed form does not apply
+($\theta\neq0$). Neither constant affects correctness where
+Theorem~\ref{thm:window} applies; both are reported and ablated in
+Section~\ref{sec:results}. Three numerical points. The shipped upper bound uses
+the two per-branch forms derived inside the proof of
+Theorem~\ref{thm:window}, $(r-\varphi+G)/(s-m)$ and $(r+\varphi+G)/(m-s)$,
+which are slightly tighter than the single display \eqref{eq:window}. The
+closed-form dispatch admits $m \le s + 10^{-4}$, and within $10^{-4}$ of the
+marginal drift the leading facet takes the flat-constant branch of
+Proposition~\ref{prop:closed} rather than a crossing solve: the crossing there
+sits at an index of order $1/|s-m|$, where \texttt{f32} evaluation is
+catastrophic, so the whole near-marginal band reads as flat, the same answer
+the capped scan reaches, on both twins. And the side count is capped at $24$
+facets; beyond it (unreachable from the interface) the dispatch falls through
+to the scan, which remains exact.

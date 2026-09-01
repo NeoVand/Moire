@@ -82,28 +82,32 @@ content of the theorem.
     (e) hyperbolae under lines}
   \Description{Two rows of five square panels. The top row shows five moire
   superpositions: two nearly parallel line combs; concentric circles crossed by
-  horizontal lines; two hexagon families four degrees apart; two circle families with
-  displaced centers; and rectangular hyperbolae under diagonal lines. The bottom row
+  slanted lines; two hexagon families four degrees apart; two circle families with
+  displaced centers; and rectangular hyperbolae under slanted lines. The bottom row
   shows the same five frames blurred to gray fringe fields, with crimson curves drawn
   on the light fringes. The crimson curves cover the whole panel in the first, are
-  confined to a central wedge in the second, radiate as six rays in the third, appear
-  only in the outer regions in the fourth, and are entirely absent in the fifth.}
+  confined to a wedge at one side in the second, radiate as six rays in the third,
+  appear only along the top and bottom in the fourth, and in the fifth trace two
+  short arcs inside an otherwise refused frame.}
   \caption{\figlead{The law and the criterion, across the catalog.} \emph{Top:} five
   of the pairs measured in Table~\ref{tab:fringe}, rendered from their distance
   fields. \emph{Bottom:} each frame low-passed to its fringe field, with the unit
-  level sets of the per-pixel winning character over it in crimson, drawn only
-  where the weighted merit $\mu_k\le1/4$ and fading out over the last tenth of
-  that range, so a curve ending is the criterion's edge and not the pixel
-  grid's. Admitted fractions: $\atlasCombs\%$, $\atlasCircleLines\%$,
-  $\atlasHex\%$, $\atlasCircles\%$, $\atlasControl\%$.
+  level sets of the \emph{winning} character over it in crimson, drawn only where
+  the weighted merit $\mu_k\le1/4$ (\S\ref{sec:selection}) and fading out over the
+  last tenth of that range, so a curve ending
+  is the criterion's edge and not the pixel grid's. Ordered by the fraction of the frame the criterion admits: $\atlasCombs\%$,
+  $\atlasCircleLines\%$, $\atlasHex\%$, $\atlasCircles\%$, $\atlasControl\%$.
 Column~(b) is masked to a wedge, outside which the circles and the lines cross at
 a wide angle; (d) near its two centers, where the superposition is a rosette and
-not a fringe field at all; and (e) in sparse rational pockets, where a
-higher-order character of the hyperbola against the line family briefly
-clears the threshold. The bright corridor along the asymptotes belongs to
-the hyperbola family alone. Curves are also suppressed wherever consecutive level
+not a fringe field at all. Column~(e) is the instructive one: the first-order
+criterion refuses this frame outright (Table~\ref{tab:fringe}'s last row has no
+in-regime samples), the bright corridor along the asymptotes belongs to the
+hyperbola family alone, and the $\atlasControl\%$ the order-free scan still
+admits is a pair of commensurate pockets where a higher-order character locks
+onto the hyperbolae, the same stations Figure~\ref{fig:selection}b resolves.
+Curves are also suppressed wherever consecutive level
   sets fall closer together than they can be drawn apart: at the center of (c)
-  the winning character is singular and its level sets crowd without bound, so anything
+  the difference is singular and its level sets crowd without bound, so anything
   drawn there would be speckle rather than a curve. The curves come from the two
   index fields and the mask from their gradients, so the whole bottom row costs two
   gradients per pixel and reads no raster, which is why the tool can tell a user
