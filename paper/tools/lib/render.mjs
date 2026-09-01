@@ -250,7 +250,11 @@ export function compose(v, layers) {
 export function envelope(v, layers, opts = {}) {
   // `lift` is the tool's exposure slider, a flat shift after the expansion,
   // in [0, 1] of full white.
-  const { contrast = 3, taps = ENVELOPE_TAPS, lift = 0 } = opts;
+  // `decide(p, famA, famB)` overrides the sum-or-difference choice below. The
+  // mirror decides from the continuous index, which cannot alias; the figure
+  // that shows what a two-pixel estimate of the gradient does has to make the
+  // choice from the fractional index at pixel pitch, and says so.
+  const { contrast = 3, taps = ENVELOPE_TAPS, lift = 0, decide = null } = opts;
   const bg = hexToRgb(v.background);
   const pixel = 1 / Math.max(v.zoom, 0.08);
   const aa = pixel * 0.7;
@@ -269,6 +273,7 @@ export function envelope(v, layers, opts = {}) {
   const famB = pair ? built[pair[1]].fam : null;
   const flipAt = (p) => {
     if (!pair) return false;
+    if (decide) return decide(p, famA, famB);
     const a = gradIndex(famA, p);
     const b = gradIndex(famB, p);
     const gd = Math.hypot(a.x - b.x, a.y - b.y);

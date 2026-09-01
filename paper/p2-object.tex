@@ -35,7 +35,44 @@ $|k_1k_2\cdots|$ of \S\ref{sec:selection} is this decay and nothing else; no
 other Fourier statement is used.
 \end{remark}
 
-\placeholder{a stack beside its torus}{A two-layer stack and $\tor^2$: the
-carriers as the fast directions of $D\Phi$, one slow character as a line on
-the torus, the sweep's orbit as a closed geodesic. The only diagram in the
-paper that is not a render. (P3.)}
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}[x=1cm, y=1cm, font=\small, >={Stealth[length=4pt]}]
+    % The drawing: two parallel families a little apart in pitch.
+    \begin{scope}
+      \clip (0,0) rectangle (3.4,3.4);
+      \foreach \i in {0,...,17} { \draw[ink, line width=0.45pt] ({\i*0.2},0) -- ({\i*0.2},3.4); }
+      \foreach \i in {0,...,15} { \draw[ink, line width=0.45pt] ({\i*0.23+0.06},0) -- ({\i*0.23+0.06},3.4); }
+    \end{scope}
+    \draw[soft] (0,0) rectangle (3.4,3.4);
+    \node[below=2pt] at (1.7,0) {the drawing $D=I\circ\Phi$};
+    \draw[->, soft, thick] (3.9,1.7) -- (5.1,1.7) node[midway, above, ink] {$\Phi$};
+    % The torus of counts: the unit square with sides identified.
+    \begin{scope}[shift={(5.6,0)}]
+      \clip (0,0) rectangle (3.4,3.4);
+      % Level sets of the fast character (1,1), crossed by the orbit.
+      \foreach \c in {0.4,0.8,...,6.8} { \draw[soft!45, thin] (\c,0) -- (0,\c); }
+      % Level sets of the slow character (1,-1), which the orbit never leaves.
+      \foreach \c in {-2.8,-2.1,...,2.8} { \draw[accent!70, thin] (\c,0) -- (\c+3.4,3.4); }
+      % The sweep's orbit along w = (1,1): a closed geodesic.
+      \draw[cool, line width=1pt, ->] (0,0) -- (3.4,3.4);
+      % A pixel window's image: a short fast stroke, J_p applied to the window.
+      \draw[ink, line width=1.6pt] (1.1,0.35) -- (2.9,1.25);
+      \fill[ink] (2.0,0.8) circle (1.6pt);
+    \end{scope}
+    \draw[ink] (5.6,0) rectangle (9,3.4);
+    \node[below=2pt] at (7.3,0) {$\tor^2$, with $\idx_1$ across and $\idx_2$ up};
+    \node[cool, anchor=south east, fill=white, inner sep=1pt] at (8.95,2.55) {$w=(1,1)$};
+    \node[accent, anchor=west, fill=white, inner sep=1pt] at (5.65,2.95) {$k\cdot w=0$};
+    \node[ink, anchor=north west, fill=white, inner sep=1pt] at (6.2,0.75) {$\Phi(p)+J_p\,\delta$};
+  \end{tikzpicture}
+  \caption{\figlead{A stack beside its torus.} Two families a little apart
+  in pitch, and the torus of counts their fractional indices live on. A
+  pixel's neighbourhood maps to a short, fast stroke $\Phi(p)+J_p\delta$
+  (black); the sweep averages along the orbit of $w=(1,1)$ (blue), a closed
+  geodesic; the characters it preserves are those whose level sets contain
+  the orbit (red, here $(1,-1)$), and every other character's level sets
+  (grey, here $(1,1)$) are crossed and averaged away. The only diagram in
+  the paper that is not a render.}
+  \label{fig:torus}
+\end{figure}

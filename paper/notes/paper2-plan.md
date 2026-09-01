@@ -178,7 +178,14 @@ examples, not as a gallery.
   claim, measured, gate, script). Builds with tectonic; every quoted number
   is a numbers.tex macro. Build: cd paper && tectonic -X compile paper2.tex
   --outdir build.
-- P3. New figures: torus schematic, duty-null, exposure pair, quilt pair.
+- P3. DONE 2026-09-01 (first pass): torus schematic (TikZ, p2-object), duty
+  null (pgfplots from dutynull-curve/law.csv + the station-envelope triple,
+  dutynull-figs.mjs), the exposure quad (exposure-figs.mjs), the quilt pair
+  (quilt-figs.mjs: the CPU mirror with a two-pixel fractional-index estimator
+  deciding sum-or-difference, beside the closed form — render.mjs gained a
+  `decide` hook for exactly this). Selection and defect figures ride the
+  companion's assets provisionally; the weighted staircase and the
+  compressed defect column are P4 polish.
 - P4. Prose, one section per sitting, §3 first (it owns the two best
   results), §1 last (write the object description once the laws exist).
 - P5. Venue decision with the finished draft in hand — not before.

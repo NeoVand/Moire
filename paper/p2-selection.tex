@@ -23,9 +23,17 @@ convergents); an order cap $|a|,|b|\le2$ misses \selCapMissPct\% of the
 visible fringes of random pairs, the window misses \selShipMiss.
 \end{proposition}
 
-\placeholder{stations and the locking staircase}{The first draft's Fig.\,6,
-tightened: a stations strip over the weighted staircase, coarse budget on top
-(\texttt{selectionfigs.mjs}). Provisional asset: \texttt{selection-stations.png}.}
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{selection-stations.png}
+  \caption{\figlead{Stations as places.} Two radial fans off-centre: along
+  the axis between them the local pitch ratio sweeps the rationals, and each
+  rational the amplitude weight admits owns a commensurate pocket, whose
+  winning character's level sets are drawn in accent — the convergent ladder
+  as geography. Provisional: the companion's stations strip
+  (\texttt{selectionfigs.mjs}); the weighted staircase joins it at P4.}
+  \label{fig:stations}
+\end{figure}
 
 \begin{theorem}[Duty nulls]
 \label{thm:dutynull}
@@ -41,9 +49,42 @@ the nulls the amplitudes track $|\sin(q\pi d)/q\pi|$ within \dutyNullLawPct\%,
 the anti-alias ramp's softening.
 \end{theorem}
 
-\placeholder{duty null}{Station amplitude against coarse duty for the $2{:}1$
-and $3{:}1$ pairs, with the hard-ink law drawn through the points, and the
-render pair either side of the $2{:}1$ null (\texttt{dutynull.mjs}). (P3.)}
+\begin{figure}[t]
+  \centering
+  \begin{minipage}[c]{0.4\linewidth}
+    \centering
+    \begin{tikzpicture}
+      \begin{axis}[width=\linewidth, height=4.9cm, xlabel={coarse duty $d$},
+        ylabel={$|\hat I(q,-1)|$}, xmin=0.18, xmax=0.82, ymin=0, ymax=0.045,
+        scaled y ticks=false, ytick={0,0.01,0.02,0.03,0.04},
+        tick align=outside, tick pos=left, axis line style={gray!60},
+        grid=major, grid style={gray!18, very thin},
+        label style={font=\footnotesize}, tick label style={font=\scriptsize},
+        legend style={font=\scriptsize, draw=gray!40, at={(0.5,1.02)}, anchor=south, legend columns=2},
+        xtick={0.25,0.333,0.5,0.667,0.75}, xticklabels={$\frac14$,$\frac13$,$\frac12$,$\frac23$,$\frac34$}]
+        \addplot[accent, line width=0.7pt] table[x=duty, y=two, col sep=comma]{data/dutynull-law.csv};
+        \addlegendentry{$2{:}1$, $(2,-1)$}
+        \addplot[cool, line width=0.7pt] table[x=duty, y=three, col sep=comma]{data/dutynull-law.csv};
+        \addlegendentry{$3{:}1$, $(3,-1)$}
+        \addplot[accent, only marks, mark=*, mark size=1.3pt] table[x=duty, y=two, col sep=comma]{data/dutynull-curve.csv};
+        \addplot[cool, only marks, mark=square*, mark size=1.1pt] table[x=duty, y=three, col sep=comma]{data/dutynull-curve.csv};
+      \end{axis}
+    \end{tikzpicture}
+  \end{minipage}\hfill
+  \begin{minipage}[c]{0.57\linewidth}
+    \includegraphics[width=\linewidth]{dutynull-triple.png}
+  \end{minipage}
+  \caption{\figlead{Duty nulls.} Left: the station's amplitude against the
+  coarse stroke's duty, measured on the shipped compositing (marks) over the
+  hard-ink law $|\sin(q\pi d)/q\pi|\,|\hat g_{\text{fine}}(1)|$ (lines): the
+  $2{:}1$ station dies at $d=\tfrac12$, the $3{:}1$ station at $\tfrac13$
+  and $\tfrac23$, and the soft stroke's ramp is the only departure. Right:
+  the $2{:}1$ pair's station envelope, the exposure at rates $(1,2)$ of
+  Theorem~\ref{thm:exposure} expanded sixfold about its mean, at coarse duty
+  $0.35$, $0.5$ and $0.65$: present, extinguished, present. Scripts
+  \texttt{dutynull.mjs}, \texttt{dutynull-figs.mjs}.}
+  \label{fig:dutynull}
+\end{figure}
 
 \begin{definition}[Visibility spectrum of a real number]
 \label{def:visibility}
