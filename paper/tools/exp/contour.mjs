@@ -45,7 +45,11 @@ const T = 1.65;
 // geometry into a number that is supposed to be orientation-free. Figures
 // use the golden slope so the printed hairlines do not sit on the raster.
 const CARRIER = { kind: 'parallel', angle: 0, spacing: S, phase: 0, thickness: T, color: INK };
-const FIGURE_CARRIER = { ...CARRIER, angle: GOLDEN_CARRIER };
+// Figure panels render at zoom 1, where the hairline floor would draw a 1.65
+// stroke 2.3 world units wide anyway; declaring 2.3 makes the floor a no-op,
+// so the render half and the envelope's true-width average agree about duty
+// and the split figure carries one carrier, not two.
+const FIGURE_CARRIER = { ...CARRIER, angle: GOLDEN_CARRIER, thickness: 2.3 };
 
 /**
  * One preset of the Studio's field editor, encoded into a carrier's twin.
@@ -305,7 +309,7 @@ console.log(`\nwrote figures/contour-fields.png (${grid.width}x${grid.height})`)
   const spec = encoded('saddle', 'saddle', 0.1, 50, FIGURE_CARRIER);
   const PV = view({ width: 760, height: 760, zoom: 1, superSample: 3 });
   const bare = compose(PV, spec.layers);
-  const env = envelope(PV, spec.layers, { radius: 14, contrast: 3.1 });
+  const env = envelope(PV, spec.layers, { contrast: 3.1 });
   const withCurves = overlayLevelSets(bare, PV, (p) => spec.f(p) / spec.c, {
     color: [226, 32, 92],
     // 2.8 px at the panel's 760 px: against the golden-slope carrier a 1.9 px
