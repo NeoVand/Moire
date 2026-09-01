@@ -1018,5 +1018,24 @@ section('data/observer.json : the observer theorem');
   console.log(`observer: ${o.gates.length} gates pass; multiplier exact to ${Math.max(...flat.map((m) => m.err)).toExponential(1)}`);
 }
 
+section('data/exactsweep.json : the exact sweep, certified');
+{
+  const x = load('exactsweep.json');
+  const failed = x.gates.filter((g) => !g.ok);
+  if (failed.length) {
+    throw new Error(`exactsweep.json has ${failed.length} failing gates; the prose claims none`);
+  }
+  macro('exactScenes', x.scenes);
+  macro('exactTruthTaps', th(x.truthTaps));
+  macro('exactWorstErr', sci(x.worst.exact3));
+  macro('exactWorstGrayFrac', Math.round(1 / (x.worst.exact3 * 255)));
+  macro('exactGaussFourErr', sci(x.worst.exact4));
+  macro('exactGpuErr', sci(x.worst.gpuVsCpu));
+  macro('exactTapsWorst', r(x.worst.taps24, 2));
+  macro('exactTapsFiftyTwoWorst', r(x.worst.taps52, 3));
+  macro('exactOverTaps', th(x.worst.taps24 / x.worst.exact3));
+  console.log(`exactsweep: ${x.scenes} scenes, chain within ${x.worst.exact3.toExponential(1)}, gpu within ${x.worst.gpuVsCpu.toExponential(1)}`);
+}
+
 writeFileSync(new URL('numbers.tex', PAPER), out.join('\n') + '\n');
 console.log(`\nwrote numbers.tex (${out.filter((l) => l.startsWith('\\newcommand')).length} macros)`);

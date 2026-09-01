@@ -1749,7 +1749,7 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
 // sub-pixel strokes, and deep rate-12 stations, where 24 taps err by 0.19).
 
 /** Twin of the tap loop's slide + phaseDistWgsl, as one WGSL helper. */
-const exactTrioDist = wgslFn(`
+const EXACT_TRIO_DIST_WGSL = `
 fn exactTrioDist(ph: vec4<f32>, rate: f32, u: f32) -> f32 {
   let gap = max(abs(ph.y - ph.x), 1e-6);
   let off = u * rate * gap;
@@ -1757,17 +1757,19 @@ fn exactTrioDist(ph: vec4<f32>, rate: f32, u: f32) -> f32 {
   let near = min(abs(ph.x - wrapped), min(abs(ph.y - wrapped), abs(ph.z - wrapped)));
   return max(near, ph.w);
 }
-`);
+`;
+const exactTrioDist = wgslFn(EXACT_TRIO_DIST_WGSL);
 
 /** One layer's swept coverage: trio distance through the stroke profile.
  * pr = (hInk, aa, opacity, unused). Morphing stacks ride the tap loop, so
  * no second trio exists here. */
-const exactAlphaWgsl = wgslFn(`
+const EXACT_ALPHA_WGSL = `
 fn exactAlphaWgsl(ph: vec4<f32>, pr: vec4<f32>, rate: f32, u: f32) -> f32 {
   let d = exactTrioDist(ph, rate, u);
   return clamp((1.0 - smoothstep(pr.x - pr.y, pr.x + pr.y, d)) * pr.z, 0.0, 1.0);
 }
-`, [exactTrioDist]);
+`;
+const exactAlphaWgsl = wgslFn(EXACT_ALPHA_WGSL, [exactTrioDist]);
 
 /** Corner slots per layer. A symmetric trio (every closed-form family)
  * carries at most ten distinct corners per period; a walking family's
@@ -1787,7 +1789,7 @@ const EXACT_MAX_SEGS = 512;
  * chain can stream the layer's events in order with a cursor — no global
  * event list, no global sort, no capacity to overflow. Returns P.
  */
-const exactResidues = wgslFn(`
+const EXACT_RESIDUES_WGSL = `
 fn exactResidues(ph: vec4<f32>, pr: vec4<f32>, rate: f32, lo: f32,
                  res: ptr<function, array<f32, ${EXACT_CORNERS}>>, cnt: ptr<function, i32>) -> f32 {
   let gap = max(abs(ph.y - ph.x), 1e-6);
@@ -1844,7 +1846,8 @@ fn exactResidues(ph: vec4<f32>, pr: vec4<f32>, rate: f32, lo: f32,
   }
   return P;
 }
-`);
+`;
+const exactResidues = wgslFn(EXACT_RESIDUES_WGSL);
 
 /** Gauss-Legendre 3 on [0, 1]: exact through degree 5, and within a tenth
  * of a display gray level on products of cubics over corner-bounded
@@ -1864,9 +1867,10 @@ const exactChainCache = new Map<number, ReturnType<typeof wgslFn>>();
  * capacity — a rate-q schedule simply cycles its residues q times. One
  * function serves both schedules; the diagonal is the all-ones call.
  */
-function exactChain(K: number) {
-  const cached = exactChainCache.get(K);
-  if (cached) return cached;
+/** The K-slot chain's WGSL as text, built once per K: the shader's own
+ * source, and what the paper's GPU harness compiles to certify the SHIPPED
+ * integrator against a tap-sampled truth (paper/tools/exp/exactsweep.mjs). */
+function exactChainSource(K: number): string {
   const params = Array.from(
     { length: K },
     (_, i) =>
@@ -1910,8 +1914,7 @@ function exactChain(K: number) {
         seg += ${w} * c;
       }`
   ).join('\n      ');
-  const fn = wgslFn(
-    `
+  return `
 fn exactChain${K}(sweep: f32, bg: vec3<f32>, ${params}) -> vec3<f32> {
   let lo = -sweep * 0.5;
   let hi = sweep * 0.5;
@@ -1934,17 +1937,20 @@ fn exactChain${K}(sweep: f32, bg: vec3<f32>, ${params}) -> vec3<f32> {
   }
   return total / max(sweep, 1e-6);
 }
-`,
-    [exactResidues, exactAlphaWgsl]
-  );
+`;
+}
+
+function exactChain(K: number) {
+  const cached = exactChainCache.get(K);
+  if (cached) return cached;
+  const fn = wgslFn(exactChainSource(K), [exactResidues, exactAlphaWgsl]);
   exactChainCache.set(K, fn);
   return fn;
 }
 
 /** One layer's exact mean coverage over its own full period: the pivot's
  * ingredient — a single-stream march of the layer's residues at rate one. */
-const exactLayerMean = wgslFn(
-  `
+const EXACT_LAYER_MEAN_WGSL = `
 fn exactLayerMean(ph0: vec4<f32>, pr0: vec4<f32>) -> f32 {
   var res: array<f32, ${EXACT_CORNERS}>;
   var cnt = 0;
@@ -1964,9 +1970,25 @@ fn exactLayerMean(ph0: vec4<f32>, pr0: vec4<f32>) -> f32 {
   }
   return total;
 }
-`,
-  [exactResidues, exactAlphaWgsl]
-);
+`;
+const exactLayerMean = wgslFn(EXACT_LAYER_MEAN_WGSL, [exactResidues, exactAlphaWgsl]);
+
+/**
+ * The exact sweep as plain WGSL text — every helper plus the K-slot chain and
+ * the per-layer mean — so the paper's GPU harness can compile the shipped
+ * integrator into a standalone compute pass and certify it against a
+ * 65536-tap truth. Text rather than nodes, because the harness owns its own
+ * device and must run exactly what the renderer runs.
+ */
+export function exactSweepWgsl(K: number): string {
+  return [
+    EXACT_TRIO_DIST_WGSL,
+    EXACT_ALPHA_WGSL,
+    EXACT_RESIDUES_WGSL,
+    exactChainSource(K),
+    EXACT_LAYER_MEAN_WGSL,
+  ].join('\n');
+}
 
 /**
  * Grading and overlays: contrast expansion about the pivot, the regime

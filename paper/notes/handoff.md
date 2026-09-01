@@ -216,7 +216,7 @@ therefore closed, and the "measurement is a layer" moral gained a second
 face for paper 2 §3: an observer's window is Nyquist-limited.
 
 Genius-hour items 1 and 6 are now one note, paper/notes/observer.md, with a
-gated check (paper/tools/exp/observer.mjs, 14 gates): the envelope is the
+gated check (paper/tools/exp/observer.mjs, 12 gates): the envelope is the
 universal invariant of the fast rephasing among linear observables and one
 sweep period projects sharply; a spatial window is a Fourier multiplier on
 the torus with an explicit, verified curvature remainder; every observer

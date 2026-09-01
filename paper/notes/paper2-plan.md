@@ -69,8 +69,13 @@ is what prices the arithmetic.
   window. This is what makes "third pattern" formal.
 - EXACTNESS: the integral is piecewise polynomial with closed-form corners;
   the segment integrator (residue streams, Gauss-3) evaluates it — faster
-  than the sampling it replaced (89 vs 115 ms receipts; error table vs
-  65536-tap truth incl. rate-12 stations where 24 taps err by 0.19).
+  than the sampling it replaced. CERTIFIED (exactsweep.mjs, 2026-09-01):
+  480 scenes in twelve regimes against a 65536-tap double-precision truth;
+  Gauss-3 within 7.4e-5, Gauss-4 within 2.3e-8 (corner completeness), the
+  shipped WGSL within 3e-7 of the twin; 24 taps err by 0.51 at the rate-12
+  station, the chain beats them 6900-fold. Table: the per-class error table
+  from data/exactsweep.json. (The 89 vs 115 ms perf figures are from the
+  session of c9902c5's zoo probe, not yet a script — quote only if scripted.)
 - NEW, verified: TEMPORAL SELECTION. Time-averaging an animated stack at
   rates r keeps exactly k·r = 0. Measured on the 16.4:8 pair's station
   (2,−1) over exact periods (exposure.mjs, 2026-09-01): rates (1,2) keep it
@@ -157,8 +162,9 @@ examples, not as a gallery.
   walk-field-quilt pins the clean field; rings-sum-handover untouched,
   hexrot-spiral-envelope re-blessed along its fold crescents (explained in
   AGENTS.md).
-- P1. Port the session experiments into gated house-style scripts:
-  exactsweep.mjs (integrator vs truth) — OPEN; dutynull.mjs, exposure.mjs —
+- P1. DONE 2026-09-01. Port the session experiments into gated house-style
+  scripts: exactsweep.mjs (integrator vs truth, CPU twin AND the shipped WGSL
+  through a headless compute harness) — DONE; dutynull.mjs, exposure.mjs —
   DONE 2026-09-01, re-aimed at the slow station and writing
   data/dutynull.json, data/exposure.json; observer.mjs — NEW, DONE, writing
   data/observer.json. numbers.mjs learns their macros and fails on any gate.
