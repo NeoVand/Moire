@@ -1,0 +1,111 @@
+{
+  "app": "moire",
+  "version": 2,
+  "layers": [
+    {
+      "type": "concentric-circles",
+      "visible": true,
+      "color": "#000000",
+      "rotation": 0,
+      "opacity": 1,
+      "spacing": 3,
+      "thickness": 2,
+      "phase": 0,
+      "rotationOffset": 0,
+      "sides": 6,
+      "vertexSize": 2.5,
+      "drawEdges": true,
+      "tileFill": 0,
+      "lineCount": 8,
+      "bend": 80,
+      "frequency": 1,
+      "tiling": "hexagonal",
+      "id": "l-mtj330ae-zfvb",
+      "name": "l1",
+      "field": {
+        "source": "0.5 * (1 / sqrt((x - 1)^2 + y^2 + 0.0625) - 1 / sqrt((x + 1)^2 + y^2 + 0.0625))",
+        "amount": 7.47,
+        "scale": 375
+      },
+      "position": {
+        "x": -14.542081953960656,
+        "y": -4.615877552948678
+      },
+      "offset": {
+        "x": -0.07,
+        "y": -0.014
+      },
+      "scale": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "type": "concentric-circles",
+      "visible": true,
+      "color": "#000000",
+      "rotation": 0,
+      "opacity": 1,
+      "spacing": 3,
+      "thickness": 2,
+      "phase": 0,
+      "rotationOffset": 0,
+      "sides": 6,
+      "vertexSize": 2.5,
+      "drawEdges": true,
+      "tileFill": 0,
+      "lineCount": 8,
+      "bend": 80,
+      "frequency": 1,
+      "tiling": "hexagonal",
+      "id": "l-mtj4swj5-6653",
+      "name": "l1 copy",
+      "field": {
+        "source": "0.5 * (1 / sqrt((x - 1)^2 + y^2 + 0.0625) - 1 / sqrt((x + 1)^2 + y^2 + 0.0625))",
+        "amount": 7.47,
+        "scale": 375,
+        "enabled": false
+      },
+      "position": {
+        "x": -14.542081953960656,
+        "y": -4.615877552948678
+      },
+      "offset": {
+        "x": -0.07,
+        "y": -0.014
+      },
+      "scale": {
+        "x": 1,
+        "y": 1
+      }
+    }
+  ],
+  "selectedLayerId": "l-mtj4swj5-6653",
+  "camera": {
+    "zoom": 0.6234417185070124,
+    "pan": {
+      "x": -285.0020306992112,
+      "y": 378.7707330036121
+    }
+  },
+  "backgroundColor": "#ffffff",
+  "view": {
+    "envelope": true,
+    "envelopeContrast": 6,
+    "envelopeTaps": 36,
+    "envelopeSweep": 1,
+    "envelopeLift": 0.05,
+    "envelopeMask": 0,
+    "envelopeContours": false,
+    "contourWidth": 1.6,
+    "contourBands": 0.4,
+    "ratio": false,
+    "ratioBlend": 1,
+    "ratioThreshold": 0.25
+  },
+  "motion": {
+    "timings": [],
+    "animators": [],
+    "playOnLoad": false
+  }
+}
