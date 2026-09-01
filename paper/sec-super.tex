@@ -569,6 +569,25 @@ families, plus the zero-sum ternaries, and spends a rate deviation only on
 the global winner (supplemental \S S3;
 \texttt{tools/exp/ternary.mjs} reproduces the harmonic-mean prediction).
 
+One qualification took us longest to learn: \emph{which} character a
+deviation holds must be decided once per stack, never per pixel. On a pair
+whose local ratio varies --- a field modulating one family's pitch, two
+pencils whose gap grows with radius --- the rational stations of
+\S\ref{sec:selection} tile the frame, and a per-pixel winner partitions the
+view into pockets, each holding a different character and averaging away
+its neighbors': every pocket boundary is a seam between two different
+pictures, and no smoothing of the handover can reconcile textures that
+disagree about what to preserve. The tool therefore \emph{licenses}
+deviations globally: the nominal pitch ratio of each ranked pair (the two
+spacings alone, blind to fields and geometry) is run through the same
+best-approximation merit, and only the character it certifies --- the
+$(3,-1)$ of a true $3{:}1$ stack --- may deviate anywhere. First-order sum
+beats, whose handover is a single fade, keep their per-pixel freedom. A
+stack whose stations are local rides the diagonal through all of them, and
+the envelope shows what the render shows: the stations are real, the ratio
+view maps them, but a view that averages must not change its mind about
+what to keep between one pixel and the next.
+
 \paragraph{One solve, many taps.}
 The cost, done naively, is $M$ full evaluations of every layer, and for a
 walking family one evaluation is the search of \S\ref{sec:inverse}, so $\envTaps$

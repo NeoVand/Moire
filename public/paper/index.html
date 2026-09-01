@@ -1368,6 +1368,24 @@ failed on three. <span class="sc">Moiré</span> therefore scans all pairs among 
 families, plus the zero-sum ternaries, and spends a rate deviation only on
 the global winner (supplemental § S3;
 <code>tools/exp/ternary.mjs</code> reproduces the harmonic-mean prediction).</p>
+<p>One qualification took us longest to learn: <em>which</em> character a
+deviation holds must be decided once per stack, never per pixel. On a pair
+whose local ratio varies  —  a field modulating one family's pitch, two
+pencils whose gap grows with radius  —  the rational stations of
+<a href="#sec-4-3">§4.3</a> tile the frame, and a per-pixel winner partitions the
+view into pockets, each holding a different character and averaging away
+its neighbors': every pocket boundary is a seam between two different
+pictures, and no smoothing of the handover can reconcile textures that
+disagree about what to preserve. The tool therefore <em>licenses</em>
+deviations globally: the nominal pitch ratio of each ranked pair (the two
+spacings alone, blind to fields and geometry) is run through the same
+best-approximation merit, and only the character it certifies  —  the
+$(3,-1)$ of a true $3{:}1$ stack  —  may deviate anywhere. First-order sum
+beats, whose handover is a single fade, keep their per-pixel freedom. A
+stack whose stations are local rides the diagonal through all of them, and
+the envelope shows what the render shows: the stations are real, the ratio
+view maps them, but a view that averages must not change its mind about
+what to keep between one pixel and the next.</p>
 <p><span class="paralead">One solve, many taps.</span> The cost, done naively, is $M$ full evaluations of every layer, and for a
 walking family one evaluation is the search of <a href="#sec-7">§7</a>, so $24$
 of them per pixel is a stall rather than a view: implemented that way, the
