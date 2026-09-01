@@ -928,5 +928,22 @@ section('data/defects.json : fringe endings count the enclosed charge');
   console.log(`defects: ${gated.length} probes exact, core law within ${worstCore}`);
 }
 
+section('data/foldlaw.json : the fold law, gated');
+{
+  const fold = load('foldlaw.json');
+  const failed = fold.gates.filter((g) => !g.pass);
+  if (failed.length) {
+    throw new Error(`foldlaw.json has ${failed.length} failing gates; the prose claims none`);
+  }
+  // Worst relative onset error, rotation cases (gauge radius) and Mach cases
+  // (onset index) together.
+  const errs = fold.t1
+    .map((c) => Math.abs(c.measured.rho - c.rhoStar) / c.rhoStar)
+    .concat(fold.t2.map((c) => Math.abs(c.measured - c.nStar) / c.nStar));
+  macro('foldWorstOnsetPct', r(Math.max(...errs) * 100, 1));
+  macro('foldBranchCounts', fold.t4.map((c) => c.crossings).join(', '));
+  console.log(`foldlaw: worst onset ${r(Math.max(...errs) * 100, 2)}%`);
+}
+
 writeFileSync(new URL('numbers.tex', PAPER), out.join('\n') + '\n');
 console.log(`\nwrote numbers.tex (${out.filter((l) => l.startsWith('\\newcommand')).length} macros)`);

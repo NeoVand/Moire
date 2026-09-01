@@ -2,9 +2,11 @@
 \label{sec:walking}
 
 The last rung of \S\ref{sec:taxonomy} is a count with no formula at all. This
-section constructs the families that live there and the field they induce; the
-next inverts them with a certificate. The tool that makes both tractable is
-the same object the catalog's concentric rows were quietly built from.
+section constructs the families that live there, proves the closed-form law
+that decides where they fold, and locates the exact boundary past which no
+formula can invert them; the next section prices the search that remains. The
+tool that makes all of it tractable is the same object the catalog's
+concentric rows were quietly built from.
 
 \subsection{Radial metrics are support functions}
 
@@ -162,26 +164,176 @@ weight near corners and changes nothing else. We keep the metric residual
 because it is what admits the bounds below; the Limitations of
 Section~\ref{sec:discussion} note the cost.
 
+\subsection{The fold law}
+\label{sec:foldlaw}
+
+Whether a walking family folds at all --- and where --- does not need the
+search; it is decided by the same support function, in closed form, before any
+solver runs. Write $H$ for the support function of the unit body
+$K=\{\rad\le1\}$, so that member $n$ --- the body of gauge radius
+$\rho_n=ns+\varphi$, turned by $n\theta$, centered at $c_n$ --- has support
+function
+\begin{equation}
+  H_n(u) \;=\; \rho_n\,H(u-n\theta)\;+\;\langle c_n,\hat u\rangle,
+  \qquad \hat u=(\cos u,\sin u).
+  \label{eq:famsupport}
+\end{equation}
+Treat the index as continuous for a moment. The derivative
+$\partial H_n/\partial n$ is the \emph{normal speed} of the moving front at
+contact angle $u$: how fast the member's supporting line in direction $\hat u$
+advances per index.
+
+\begin{lemma}[Fold law]
+\label{lem:foldlaw}
+The boundary-of-member map $(u,n)\mapsto H_n(u)\,\hat u+H_n'(u)\,\hat u^{\perp}$
+has Jacobian determinant $-(H_n+H_n'')\,\partial_n H_n$, and $H_n+H_n''\ge0$
+for a convex member. The family therefore folds --- neighboring members
+touch, and an envelope forms --- exactly where the normal speed vanishes:
+\begin{equation}
+  s\,H(w)\;-\;\rho_n\,\theta\,H'(w)\;+\;\langle c'(n),\hat u\rangle \;=\; 0,
+  \qquad w=u-n\theta.
+  \label{eq:foldlaw}
+\end{equation}
+\end{lemma}
+
+The proof is in Appendix~\ref{app:foldlaw}; for a polygon, whose $H$ has
+corners, the statement holds piecewise and the suprema below are attained at
+the corners. What the lemma buys is that the fate of every family in this
+section can be read off \eqref{eq:foldlaw} by inspection.
+
+\begin{corollary}[Rotation folds everything but circles]
+\label{cor:rotation}
+With $\delta=0$ and $\theta\neq0$, the family folds at gauge radius
+\begin{equation}
+  \rho^\star \;=\; \frac{s}{\theta\,L},
+  \qquad L=\sup_w\,\lvert H'(w)/H(w)\rvert,
+  \label{eq:foldradius}
+\end{equation}
+and nowhere before. For the regular $k$-gon $L=\tan(\pi/k)$, and the first
+crossings appear at the vertices, at Euclidean radius
+$R^\star=s/(\theta\sin(\pi/k))$. For an ellipse gauge with semi-axes $a\ge b$,
+$L=(a^2-b^2)/2ab$ and $R^\star=\rho^\star\sqrt{(a^2+b^2)/2}$. For the circle
+$L=0$: the circle is the unique gauge whose family survives rotation at every
+radius, so the dispatch rule ``rotating a radial metric is a no-op''
+(\S\ref{sec:closed}) is a theorem about circles, not an accident of
+implementation.
+\end{corollary}
+
+\begin{corollary}[The Mach condition]
+\label{cor:mach}
+With $\theta=0$, the family folds if and only if $\rad(-\delta)>s$: the center
+outruns the growth. The drift constant $m=\rad(-\delta)$, which
+\S\ref{sec:drift} will derive as a search bound and
+Proposition~\ref{prop:closed} recovers as an asymptotic slope, is a
+\emph{Mach number}: a subsonic family ($m<s$) nests forever, a supersonic one
+folds from its first member along straight wake lines (for circles, the
+tangent pair $\langle p,\nu\rangle=\varphi$ with
+$\langle\delta,\nu\rangle=-s$), and the marginal drift $m=s$ --- the locus
+where the interval of Theorem~\ref{thm:window} degenerates and the residual
+of Figure~\ref{fig:convex} goes flat --- is the sonic boundary. With rotation
+and translation together, circles have
+$\lVert c'(n)\rVert=\lVert\delta\rVert\sqrt{1+n^2\theta^2}$, so every rotating
+walk eventually goes supersonic, at
+$n^\star=\sqrt{(s/\lVert\delta\rVert)^2-1}\,/\,\theta$.
+\end{corollary}
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{figures/fold-law.png}
+  \panelrow{0.33043}{0.00435}{%
+    (a) a supersonic walk,
+    (b) hexagons under rotation,
+    (c) an ellipse gauge under rotation}
+  \Description{Three square panels of dense black line families on white, each
+  with a thin crimson curve drawn over it. The left panel shows circles walking
+  to the right, piling up along two straight crimson rays that open like a
+  wake. The middle panel shows a pinwheel of nested rotating hexagons whose
+  strokes crowd into six dark spiral arms; a crimson circle sits where the
+  hexagons first begin to cross, and a fishnet of crossings fills the corners
+  outside it. The right panel shows the same construction for nested rotating
+  ellipses, with a smaller crimson circle marking where their crossings begin.}
+  \caption{\figlead{The fold law, drawn.} Every panel is rendered by exhaustive
+  search --- nearest member by brute force, no support calculus anywhere ---
+  and the crimson loci are computed from the parameters alone by
+  Eq.~\ref{eq:foldlaw}. \textbf{(a)}~Walking circles at supersonic drift
+  ($s{=}7$, $\lVert\delta\rVert{=}1.5s$): members osculate along the two
+  predicted wake rays, which are tangent to every ring at once.
+  \textbf{(b)}~Rotating hexagons ($s{=}6$, $\theta{=}0.06$): inside
+  $R^\star=s/(\theta\sin(\pi/6))$ the members nest as a clean pinwheel, strokes
+  crowding as the local gap closes toward the fold; the first crossings appear
+  at the vertices on the crimson circle, and the crosshatch of genuine folds
+  lives entirely outside it. \textbf{(c)}~An ellipse gauge (axes $1.4$ and
+  $1/1.4$, same $s,\theta$) folds at
+  $R^\star=\rho^\star\sqrt{(a^2+b^2)/2}$ with $\rho^\star=2abs/\theta(a^2-b^2)$.
+  Onsets measured by brute-force nesting tests land within
+  $\foldWorstOnsetPct\%$ of the predictions across every gated shape
+  (\texttt{tools\pslash exp\pslash foldlaw.mjs}).}
+  \label{fig:foldlaw}
+\end{figure*}
+
+Figure~\ref{fig:foldlaw} is the law drawn over renders that never saw it. One
+consequence worth stating plainly: the integrability ladder of
+\S\ref{sec:taxonomy} is not an empirical sorting. Whether a walking family
+stays a drawing (exact), and where it tears (fold), is itself a closed-form
+computation --- Eq.~\eqref{eq:foldlaw} --- made before any pixel is solved.
+
 \subsection{The inversion problem}
+\label{sec:inversion}
 
 Equation~\eqref{eq:field} is a minimization over an infinite discrete set, so
 every practical solver is an argument about which finitely many $n$ can be
-skipped. Three regimes are classical and one is not.
+skipped. Where the argument can be a formula turns out to have an exact
+boundary, and it is arithmetic.
 
-When $\delta=0$ and $\theta=0$, $h_p(n) = \rad(p)-ns-\varphi$ is affine in $n$,
-so $d(p) = \mathrm{dist}\bigl((\rad(p)-\varphi) \bmod s\bigr)$ exactly: one
-evaluation. When the shape is a circle and $\theta=0$, $\lVert p - n\delta\rVert =
-ns+\varphi$ is a quadratic in $n$ whose roots bracket the answer; two integer
-evaluations suffice. When $\theta=0$ and the shape is a polygon, $h_p$ is convex
-and piecewise linear; we give the exact solution in
-Section~\ref{sec:closed}. We have not found it stated elsewhere, and its
-marginal case is the part that matters in practice.
+Below the rotation rung the whole problem is convex: with $\theta=0$,
+$h_p(n)=\rad(p-n\delta)-ns-\varphi$ is a convex gauge evaluated along an
+affine path, hence convex in $n$ for \emph{every} shape. The classical cases
+are one fact seen three times. $\delta=0$ makes $h_p$ affine, so the answer is
+one \texttt{mod}; a circle gauge makes it a conditioned quadratic, so two
+integer evaluations suffice; a polygon gauge makes it piecewise linear, and
+Section~\ref{sec:closed} solves that case exactly, marginal drift included
+(we have not found it stated elsewhere). Convexity also extends the catalog
+sideways at no cost: an ellipse gauge under translation is the circle's
+quadratic with an inner product swapped in --- verified exact against brute
+force in \texttt{tools\pslash exp\pslash foldlaw.mjs} --- so an aspect ratio
+on the concentric families would inherit the solver unchanged. (The
+constants (P1)--(P2) rescale by the eccentricity; convexity and the
+quadratic do not care.)
 
-Everything else (any $\theta\neq0$) has no closed form, because $q_n$ in
-\eqref{eq:qn} contains $\Rot{-n\theta}p$, and asking for $h_p(n)=0$ asks where a
-sinusoid in $n$ meets a line in $n$. That is transcendental, with a solution count
-that depends on the parameters. The question is therefore not how to solve it, but
-how few integers we can prove it suffices to test.
+Rotation is different, and the boundary of the formulas is arithmetic:
+
+\begin{proposition}[Rational twists untwist]
+\label{prop:untwist}
+If $\theta=2\pi a/b$ in lowest terms, the walking family splits into $b$
+translated subfamilies: on the class $n\equiv j\pmod b$ the frame angle is
+the constant $j\theta$, the centers walk the fixed direction
+$\Rot{j\theta}\delta$, and $h_p$ restricted to the class is convex in $n$, so
+the inverse is $b$ closed forms (for circles, $b$ quadratics; verified exact
+against brute force at $\theta=4\pi/7$). That is the \emph{only} mechanism a
+formula can use: the set of frames $\{n\theta \bmod 2\pi\}$ is finite exactly
+when $\theta/2\pi$ is rational, and no formula absorbs the frame continuously
+instead, because for any $\theta\neq0$ the incidence relation of the
+interpolated family, $\{(p,\nu):h_p(\nu)=0\}$, is not semialgebraic: a
+semialgebraic incidence would force
+$\nu\mapsto\langle c(\nu),e_1\rangle=\nu\lVert\delta\rVert\cos(\nu\theta+\beta)$
+to be algebraic over $\R(\nu)$, and it is transcendental
+(Appendix~\ref{app:foldlaw}, stated for the circle gauge).
+\end{proposition}
+
+So the search this section sets up is not a concession to a hard integral;
+for a generic twist there is provably no equation to solve. The residual
+mixes its unknown polynomially and trigonometrically ---
+$\lVert p-c(n)\rVert^2=(ns+\varphi)^2$ carries a term in
+$n\cos(n\theta+\beta)$ --- which is the class of Kepler's equation, solved by
+guarded iteration for three centuries because there is no formula to
+write~\cite{Colwell1993Kepler}. Our case is quantifiably worse than Kepler's,
+whose inverse is at least single-valued: past the fold radius of
+Corollary~\ref{cor:rotation} the number of members of the interpolated family
+through a point grows linearly with radius (the gate counts
+$\foldBranchCounts$ members at radii $200$ through $3200$), where an
+algebraic relation of degree $D$ admits at most $D$ anywhere. The question is
+therefore not how to solve $h_p(n)=0$, but how few integers we can prove it
+suffices to test.
 
 The naive answer is $n \approx \rad(p)/s$, ``the ring whose radius matches the
 pixel's radius,'' plus a fixed number of neighbors. The next section shows how

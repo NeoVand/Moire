@@ -1,0 +1,236 @@
+{
+ "t1": [
+  {
+   "shape": "3-gon",
+   "L": 1.7320508075688767,
+   "rhoStar": 144.33756729740648,
+   "measured": {
+    "n": 29,
+    "rho": 147,
+    "radius": 293.9999999999999
+   }
+  },
+  {
+   "shape": "4-gon",
+   "L": 0.9999999999999999,
+   "rhoStar": 250.00000000000003,
+   "measured": {
+    "n": 51,
+    "rho": 257,
+    "radius": 363.45288552988546
+   }
+  },
+  {
+   "shape": "6-gon",
+   "L": 0.5773502691896257,
+   "rhoStar": 433.01270189221935,
+   "measured": {
+    "n": 88,
+    "rho": 442,
+    "radius": 510.3776379636291
+   }
+  },
+  {
+   "shape": "ellipse 1.3:0.7692307692307692",
+   "L": 0.5491420118343197,
+   "rhoStar": 455.2556435536877,
+   "measured": {
+    "n": 91,
+    "rho": 457,
+    "radius": 490.82150464455964
+   }
+  },
+  {
+   "shape": "ellipse 1.6:1",
+   "L": 0.48750000000000016,
+   "rhoStar": 512.8205128205126,
+   "measured": {
+    "n": 102,
+    "rho": 512,
+    "radius": 686.528043132802
+   }
+  }
+ ],
+ "t2": [
+  {
+   "dlen": 0.5,
+   "theta": 0.02,
+   "nStar": 497.49371855331,
+   "measured": 498
+  },
+  {
+   "dlen": 1,
+   "theta": 0.01,
+   "nStar": 489.8979485566356,
+   "measured": 490
+  },
+  {
+   "dlen": 2,
+   "theta": 0.005,
+   "nStar": 458.257569495584,
+   "measured": 458
+  }
+ ],
+ "t4": [
+  {
+   "r": 200,
+   "crossings": 3
+  },
+  {
+   "r": 400,
+   "crossings": 5
+  },
+  {
+   "r": 800,
+   "crossings": 9
+  },
+  {
+   "r": 1600,
+   "crossings": 21
+  },
+  {
+   "r": 3200,
+   "crossings": 41
+  }
+ ],
+ "gates": [
+  {
+   "name": "L(3-gon) numeric = closed form",
+   "pass": true,
+   "numeric": 1.732,
+   "closed": 1.7321
+  },
+  {
+   "name": "fold onset (3-gon)",
+   "pass": true,
+   "predictedRho": 144.3,
+   "measuredRho": 147
+  },
+  {
+   "name": "fold radius, Euclidean (3-gon)",
+   "pass": true,
+   "predictedR": 288.7,
+   "measuredR": 294
+  },
+  {
+   "name": "L(4-gon) numeric = closed form",
+   "pass": true,
+   "numeric": 1,
+   "closed": 1
+  },
+  {
+   "name": "fold onset (4-gon)",
+   "pass": true,
+   "predictedRho": 250,
+   "measuredRho": 257
+  },
+  {
+   "name": "fold radius, Euclidean (4-gon)",
+   "pass": true,
+   "predictedR": 353.6,
+   "measuredR": 363.5
+  },
+  {
+   "name": "L(6-gon) numeric = closed form",
+   "pass": true,
+   "numeric": 0.5773,
+   "closed": 0.5774
+  },
+  {
+   "name": "fold onset (6-gon)",
+   "pass": true,
+   "predictedRho": 433,
+   "measuredRho": 442
+  },
+  {
+   "name": "fold radius, Euclidean (6-gon)",
+   "pass": true,
+   "predictedR": 500,
+   "measuredR": 510.4
+  },
+  {
+   "name": "L(ellipse 1.3:0.7692307692307692) numeric = closed form",
+   "pass": true,
+   "numeric": 0.5491,
+   "closed": 0.5491
+  },
+  {
+   "name": "fold onset (ellipse 1.3:0.7692307692307692)",
+   "pass": true,
+   "predictedRho": 455.3,
+   "measuredRho": 457
+  },
+  {
+   "name": "fold radius, Euclidean (ellipse 1.3:0.7692307692307692)",
+   "pass": true,
+   "predictedR": 486.3,
+   "measuredR": 490.8
+  },
+  {
+   "name": "L(ellipse 1.6:1) numeric = closed form",
+   "pass": true,
+   "numeric": 0.4875,
+   "closed": 0.4875
+  },
+  {
+   "name": "fold onset (ellipse 1.6:1)",
+   "pass": true,
+   "predictedRho": 512.8,
+   "measuredRho": 512
+  },
+  {
+   "name": "fold radius, Euclidean (ellipse 1.6:1)",
+   "pass": true,
+   "predictedR": 684.2,
+   "measuredR": 686.5
+  },
+  {
+   "name": "circle survives any rotation",
+   "pass": true,
+   "checkedTo": 2000
+  },
+  {
+   "name": "straight walk, |delta| = 0.95 s: nested forever",
+   "pass": true,
+   "checkedTo": 4000
+  },
+  {
+   "name": "straight walk, |delta| = 1.05 s: folds at once",
+   "pass": true,
+   "firstBreak": 0
+  },
+  {
+   "name": "rotating walk d=0.5 th=0.02: onset n*",
+   "pass": true,
+   "predicted": 497,
+   "measured": 498
+  },
+  {
+   "name": "rotating walk d=1 th=0.01: onset n*",
+   "pass": true,
+   "predicted": 490,
+   "measured": 490
+  },
+  {
+   "name": "rotating walk d=2 th=0.005: onset n*",
+   "pass": true,
+   "predicted": 458,
+   "measured": 458
+  },
+  {
+   "name": "translated ellipse: quadratic == brute argmin",
+   "pass": true,
+   "worstGap": 0
+  },
+  {
+   "name": "rational twist 2pi*2/7: 7 quadratics == brute",
+   "pass": true,
+   "worstGap": 0
+  },
+  {
+   "name": "branches through a point grow with radius",
+   "pass": true,
+   "counts": "200:3 400:5 800:9 1600:21 3200:41"
+  }
+ ]
+}

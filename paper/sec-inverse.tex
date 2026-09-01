@@ -54,6 +54,10 @@ $\lVert\delta\rVert/2$ for a triangle whose flat side leads the walk (the
 vertex trailing); with the vertex leading, $m=\lVert\delta\rVert$ and nothing
 is gained.
 
+The same number has a physical face: Corollary~\ref{cor:mach} says the family
+folds exactly when $m>s$, so $m$ is the Mach number of the walk, and the
+solver constants below are the search-side shadow of the fold law.
+
 The gap is not cosmetic. Section~\ref{sec:window} shows the search interval is
 finite if and only if $m \neq s$, with width $\propto 1/|s-m|$. Substituting
 $\lVert\delta\rVert$ for $m$ therefore declares an entire band of settings
@@ -420,7 +424,9 @@ The square case ($N=4$, normals on the axes) is presumably folklore; the content
 of Proposition~\ref{prop:closed} is that it generalizes to every side count
 and, more importantly, that case (2) exists.
 Figure~\ref{fig:convex} plots both. The marginal case is the one that repays the
-effort: it is exactly the locus where Theorem~\ref{thm:window} gives up, and it is
+effort: it is exactly the locus where Theorem~\ref{thm:window} gives up, it is
+the sonic boundary of Corollary~\ref{cor:mach} --- the walk that matches its
+own growth, rings piling into a plane wake --- and it is
 not exotic. It is the family whose rings pile up along a line, which is a
 pattern users deliberately make. Any scan, of any budget, walks off the end of
 that flat segment without reaching the indices that carry the answer. Handling it
@@ -429,7 +435,8 @@ $\ablClosedMarginal\times$.
 
 We dispatch to the cheapest sufficient method: constant-time \texttt{mod} when
 $\delta=0$ and ($\theta=0$ or the shape is a circle, since rotating a radial
-metric is a no-op); the quadratic for translated circles; Proposition~\ref{prop:closed}
+metric is a no-op --- for circles alone, by
+Corollary~\ref{cor:rotation}); the quadratic for translated circles; Proposition~\ref{prop:closed}
 for translated polygons with integral side count and $m \le s$;
 Algorithm~\ref{alg:scan} otherwise. A morph that passes through fractional side
 counts is not any polygon's support function, so it correctly falls through to the

@@ -81,6 +81,44 @@ climbed in order: exact counts and their superposition
 (\S\S\ref{sec:field}--\ref{sec:super}), winding (\S\ref{sec:defects}), folds
 and their inversion (\S\S\ref{sec:walking}--\ref{sec:inverse}).
 
+\paragraph{Where the rungs come from.} The taxonomy would be a filing system
+if membership had to be discovered family by family. It does not: every
+family in this paper is built by one of two generators, and the generator
+decides the rung. The first \emph{iterates a motion}: pick a similarity $g$
+of the plane and a seed curve, and let $\gamma_n=g^n\gamma_0$. Up to
+conjugacy, a one-parameter group of orientation-preserving similarities is
+one of exactly four flows --- translations, rotations about a fixed point,
+dilations about a fixed point, and loxodromes (rotation and dilation
+together, whose orbits are logarithmic spirals) --- and if the seed crosses
+each orbit once, transversally, the index field is the flow's own clock: the
+time the flow takes to carry $p$ back to the seed. Group families never fold
+($g$ is a global diffeomorphism, so members can crowd but never develop an
+envelope; Appendix~\ref{app:foldlaw}), and the rung is read off the flow: a
+clock with no rotational part is a global scalar (the exact rung), while a
+rotational flow gains its period on every circuit of the fixed point, which
+is precisely the winding rung, with the loop gain quantized at the number of
+members a circuit crosses. Four flows, four clocks --- $\langle p,u\rangle$,
+$\arg p$, $\log\lVert p\rVert$, and $\log\lVert p\rVert$ against $\arg p$ ---
+and the classical carrier alphabet is their transverse seedings. Parallel
+lines and the radial pencil are the first two clocks drawn directly; the
+Archimedean family of our catalog is the rotation flow seeded on a spiral,
+its winding tamed by the integer arm count of \S\ref{sec:catalog}; and the
+two clocks the catalog does not ship --- geometrically spaced rings and
+logarithmic spirals --- are one table row each, waiting. The classification
+says the alphabet ends there.
+
+The second generator \emph{propagates a front}: member $n$ is a convex curve
+of gauge radius $ns+\varphi$, in a frame that may translate and turn per
+index. Every concentric row of Table~\ref{tab:catalog} is such a front at
+rest, and the walking families of \S\ref{sec:walking} are the same front in
+motion. Fronts are where folds live, and \S\ref{sec:walking} proves the
+\emph{fold law}: a front folds exactly where its normal speed in the index
+vanishes, an equation on the support function that is decided --- like
+everything else about the rungs --- in closed form, before any solver runs.
+The ladder, in other words, is not an empirical sorting of our catalog; it is
+computable from the generator, and the sections that follow are the three
+computations.
+
 \subsection{The gradient is not optional}
 \label{sec:eikonal}
 

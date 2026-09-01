@@ -121,9 +121,11 @@ near-parallel curves; Riley's \emph{Blaze}, a nest of zigzag rings each turned
 against the last, is exactly such a family~\cite{Oster1965Optical}. We call
 these \emph{walking families} (Section~\ref{sec:walking}): member $n$ is the
 shape of radius $ns+\varphi$, displaced by $n\delta$ and turned by $n\theta$.
-Two extra parameters, and the closed form is gone: each member lives in its own
-frame, no formula in $p$ has these curves as its level sets, and the nearest
-index must be searched for. The obvious search---guess the index from the
+Two extra parameters, and the closed form is gone --- provably, not for want
+of cleverness: the reach of formulas ends exactly at rational twists
+(\S\ref{sec:walking}) --- each member lives in its own frame, no formula in
+$p$ has these curves as its level sets, and the nearest index must be
+searched for. The obvious search---guess the index from the
 radius, check a fixed number of neighbors---fails coherently: the pixels
 whose true nearest member falls outside the guessed neighborhood form arcs,
 not speckle, so whole sides of whole rings disappear, and the budget is paid at
@@ -174,10 +176,20 @@ shattered one, at identical cost.
   random carrier pairs, and its winner drives the criterion, the envelope's
   sweep schedule, and the contour overlay (\S\ref{sec:selection}).
 
-  \item Walking families, and their inversion: a provably sufficient index
-  interval from the support function of the generating shape, a Lipschitz skip
-  rule, and an exact closed form for translated polygons of any side count
-  including the marginal drift (Section~\ref{sec:inverse},
+  \item The fold law: where a walking family folds is decided by its support
+  function in closed form before any solver runs --- rotation folds every
+  shape but the circle, at radius $s/(\theta\sin(\pi/k))$ for the $k$-gon;
+  translation folds exactly at supersonic drift, making the solver's drift
+  constant a Mach number --- and the reach of closed-form inversion is
+  exactly arithmetic: convex, hence solvable, for every translated gauge;
+  splitting into $b$ closed forms for a rational twist $2\pi a/b$; provably
+  transcendental beyond (Section~\ref{sec:walking}, verified against brute
+  force in every case).
+
+  \item The inversion of the transcendental remainder: a provably sufficient
+  index interval from the same support function, a Lipschitz skip rule, and
+  an exact closed form for translated polygons of any side count including
+  the marginal (sonic) drift (Section~\ref{sec:inverse},
   Appendix~\ref{app:proofs}).
 
   \item \Moire{}, an interactive tool: thirteen families, twelve concurrent

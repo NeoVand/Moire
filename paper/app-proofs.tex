@@ -180,4 +180,116 @@ of the pairs Table~\ref{tab:fringe} measures.
 proved where it is stated: the drift constant in \S\ref{sec:drift}, the two-sided
 envelope as Lemma~\ref{lem:envelope}, the sufficient interval as
 Theorem~\ref{thm:window}, the Lipschitz skip as Lemma~\ref{lem:lipschitz}, the
-translated-polygon closed form as Proposition~\ref{prop:closed}.
+translated-polygon closed form as Proposition~\ref{prop:closed}. The fold law
+and its consequences are proved below.
+
+\subsection{The fold law and the reach of closed forms}
+\label{app:foldlaw}
+
+\begin{proof}[Proof of Lemma~\ref{lem:foldlaw}]
+For a convex body with $C^2$ support function $H_n$, the boundary is
+parameterized over contact angles by
+$x(u,n)=H_n(u)\,\hat u+H_n'(u)\,\hat u^{\perp}$, with
+$\hat u=(\cos u,\sin u)$ and $\hat u^{\perp}=(-\sin u,\cos u)$; this is the
+standard support parameterization~\cite{Schneider2014Convex}. Differentiating,
+and using $\hat u'=\hat u^{\perp}$, $(\hat u^{\perp})'=-\hat u$,
+\begin{equation*}
+  \frac{\partial x}{\partial u}=(H_n+H_n'')\,\hat u^{\perp},
+  \qquad
+  \frac{\partial x}{\partial n}
+    =(\partial_nH_n)\,\hat u+(\partial_nH_n')\,\hat u^{\perp},
+\end{equation*}
+so $\det[\partial_ux,\ \partial_nx]
+=(H_n+H_n'')\,(\partial_nH_n)\,\det[\hat u^{\perp},\hat u]
+=-(H_n+H_n'')\,\partial_nH_n$. The factor $H_n+H_n''$ is the curvature radius
+of the member, nonnegative by convexity, so away from the corner set the
+member map is singular --- the family has an envelope, its fold --- exactly
+where $\partial_nH_n=0$. Differentiating \eqref{eq:famsupport} in $n$ gives
+\eqref{eq:foldlaw}. A polygon's $H$ is piecewise trigonometric with corners
+at the vertex directions; the lemma applies on each smooth arc, the one-sided
+derivatives at a corner are the two adjacent facets' endpoints (the body's
+vertices), and the suprema below are attained there.
+\end{proof}
+
+\begin{proof}[Proof of Corollary~\ref{cor:rotation}]
+With $\delta=0$, \eqref{eq:foldlaw} reads $sH(w)=\rho_n\theta H'(w)$, i.e.
+$\rho_n=s/(\theta\cdot H'(w)/H(w))$, solvable at the smallest gauge radius
+$\rho^\star=s/(\theta L)$ with $L=\sup_w|H'/H|$ (the catalog's gauges are
+symmetric, so the sup is attained with either sign). For the regular $k$-gon
+of unit inradius, $H(u)=\sec(\pi/k)\cos(\tilde u)$ on each arc, where
+$\tilde u\in[-\pi/k,\pi/k]$ is the offset from the nearest vertex direction;
+$|(\log H)'|=|\tan\tilde u|\le\tan(\pi/k)$, attained at the arc ends. There
+$H=1$, $H'=\mp\tan(\pi/k)$, and the fold point
+$x=\rho(H\hat u+H'\hat u^{\perp})$ has
+$\lVert x\rVert=\rho\sqrt{1+\tan^2(\pi/k)}=\rho\sec(\pi/k)$: the vertex, at
+Euclidean radius $R^\star=\rho^\star\sec(\pi/k)=s/(\theta\sin(\pi/k))$. For
+the ellipse gauge, $H(u)=\sqrt{a^2\cos^2u+b^2\sin^2u}$; writing
+$A=(a^2+b^2)/2$, $B=(a^2-b^2)/2$, we have $H^2=A+B\cos2u$ and
+$(\log H)'=-B\sin2u/H^2$, maximized at $\cos2u^\star=-B/A$ with value
+$B/\sqrt{A^2-B^2}=(a^2-b^2)/2ab=L$. At $u^\star$, $H^2=a^2b^2/A$ and
+$H'^2=B^2/A$, so
+$\lVert x\rVert=\rho\sqrt{H^2+H'^2}=\rho\sqrt{(a^2b^2+B^2)/A}=\rho\sqrt{A}$,
+since $a^2b^2+B^2=A^2$: the stated $R^\star=\rho^\star\sqrt{(a^2+b^2)/2}$.
+Finally $L=0$ iff $H'\equiv0$ iff $H$ is constant iff $K$ is a centered
+disc, so the circle is the unique rotation-immune gauge.
+\end{proof}
+
+\begin{proof}[Proof of Corollary~\ref{cor:mach}]
+With $\theta=0$, $\partial_nH_n(u)=sH(u)+\langle\delta,\hat u\rangle$, which
+is negative somewhere iff
+$\sup_u\langle-\delta,\hat u\rangle/H(u)>s$. That supremum is the gauge:
+$x\in tK$ iff $\langle x,\hat u\rangle\le tH(u)$ for all $u$, so
+$\sup_u\langle x,\hat u\rangle/H(u)=\rad(x)$, and the fold condition is
+$\rad(-\delta)>s$, uniform in $n$ (hence ``immediately''). At a critical
+angle $u^\star$ the envelope points
+$x(u^\star,n)=H_n(u^\star)\hat u^\star+H_n'(u^\star)\hat u^{\star\perp}$ are
+affine in $n$: straight wake lines. For circles ($H\equiv1$) the critical
+directions are the unit vectors $\nu$ with
+$\langle\delta,\nu\rangle=-s$, and
+$\langle x,\nu\rangle=H_n(u^\star)=ns+\varphi+n\langle\delta,\nu\rangle=\varphi$:
+the tangent pair. With rotation, $c(n)=\Rot{n\theta}(n\delta)$ gives
+$c'(n)=\Rot{n\theta}\delta+n\theta\,\Rot{n\theta+\pi/2}\delta$, two orthogonal
+components of lengths $\lVert\delta\rVert$ and $n\theta\lVert\delta\rVert$,
+so $\lVert c'(n)\rVert=\lVert\delta\rVert\sqrt{1+n^2\theta^2}$, and for
+circles the condition $\lVert c'(n)\rVert>s$ first holds at
+$n^\star=\sqrt{(s/\lVert\delta\rVert)^2-1}/\theta$.
+\end{proof}
+
+\begin{proof}[Proof of Proposition~\ref{prop:untwist}]
+Rational case: with $\theta=2\pi a/b$ and $n=j+bk$,
+$n\theta\equiv j\theta\pmod{2\pi}$, so on the class the pulled-back point is
+$\Rot{-j\theta}p-n\delta$: a fixed rotation of $p$ minus an affine walk. The
+residual is a convex gauge of an affine path, hence convex in $n$ on the
+class; for the circle gauge,
+$\lVert\Rot{-j\theta}p-n\delta\rVert=\lVert p-n\Rot{j\theta}\delta\rVert$,
+and squaring the incidence gives one quadratic per class. The frames
+$\{n\theta\bmod2\pi\}$ form a finite set iff $\theta/2\pi\in\Q$ (a subgroup
+of the circle is finite or dense), so no such split exists otherwise.
+
+Transcendence: suppose the interpolated incidence
+$I=\{(p,\nu):\lVert p-c(\nu)\rVert=\nu s+\varphi\}$ were semialgebraic for
+some $\theta\neq0$. Each slice $I_\nu$ is a circle of positive radius, and
+the center of a circle is first-order definable from the circle over the
+real field, so $\nu\mapsto c(\nu)$ would be a semialgebraic function; its
+first coordinate $f(\nu)=\nu\lVert\delta\rVert\cos(\nu\theta+\beta)$ would
+satisfy $P(\nu,f(\nu))\equiv0$ for some nonzero polynomial
+$P(\nu,y)=\sum_{j\le d}q_j(\nu)y^j$ with $q_d\not\equiv0$. Extend to complex
+$\nu=it$, $t\to\infty$: $|\cos(it\theta+\beta)|$ grows like
+$e^{\theta t}/2$, so the term $q_j(\nu)f(\nu)^j$ grows like
+$e^{j\theta t}$ times a polynomial in $t$. The orders are distinct, so the
+identity forces $q_d\equiv0$, a contradiction. (For a polygon or ellipse
+gauge the same argument runs through the frame angle, definable from a slice
+by its vertex or axis directions.)
+\end{proof}
+
+\paragraph{Group families never fold.} The claim of \S\ref{sec:taxonomy}:
+if $\gamma_0$ crosses each orbit of the flow $\{g^t\}$ exactly once,
+transversally, then $(u,t)\mapsto g^t(\gamma_0(u))$ is a bijection onto the
+swept region with everywhere-invertible differential (transversality is
+preserved because each $g^t$ is a diffeomorphism), so the family
+$\{g^n\gamma_0\}$ is a foliation and the index --- the $t$-component of the
+inverse --- is a submersion: no envelope can form. A rotational flow's clock
+gains its period on each circuit of the fixed point, and the gain counts the
+members a circuit crosses, which is the winding rung's quantized charge;
+flows without a rotational part have proper orbits and a single-valued
+clock.
