@@ -66,10 +66,10 @@ const THR = 0.25;
     { ...cfgA, thickness: 1.05, color: '#000000' },
     { ...cfgB, thickness: 1.05, color: '#000000' },
   ];
-  // Full-width strip cropped to the axis band through both foci: the figure
-  // stacks this over the staircase, so the strip gets the whole text width
-  // and the pockets sit at a readable scale.
-  const V = view({ width: 2100, height: 540, zoom: 2.0, superSample: 2 });
+  // Column-width strip cropped to the axis band through both foci: the
+  // figure stacks this over the staircase in one column, so the aspect is
+  // chosen to print at about the staircase's own height.
+  const V = view({ width: 1400, height: 520, zoom: 2.0, superSample: 2 });
   const base = compose(V, layers);
 
   // The overlay: level sets of the per-pixel winning character, drawn ONLY

@@ -340,23 +340,25 @@ quasi-random tap rule (supplemental \S S3) is this theorem run backwards: its
 scrambled generator advances by the golden ratio precisely so that \emph{no}
 integer character can survive the average.
 
-\begin{figure*}[t]
+\begin{figure}[t]
   \centering
-  % Stacked rows rather than side-by-side panels: the strip earns the whole
-  % text width and the staircase below it can be genuinely large, with no
-  % panel heights to reconcile.
-  \begin{subfigure}{\textwidth}
+  % One column, two stacked pieces at matching printed heights. The staircases
+  % draw COARSE BUDGET LAST: the four curves agree except where a larger
+  % budget refines a riser, so with the fine one on top its colour buried the
+  % other three and the figure read as one crimson staircase. Painter's order
+  % reversed, each budget's colour survives exactly where it contributes.
+  \begin{subfigure}{\linewidth}
     \centering
     \includegraphics[width=\linewidth]{figures/selection-stations.png}
     \caption{rational stations, per pixel}
     \label{fig:selection-stations}
   \end{subfigure}
 
-  \vspace{4pt}
-  \begin{subfigure}{\textwidth}
+  \vspace{3pt}
+  \begin{subfigure}{\linewidth}
     \centering
     \begin{tikzpicture}
-      \begin{axis}[paperaxis, height=4.9cm, width=0.58\textwidth,
+      \begin{axis}[paperaxis, height=3.6cm, width=\linewidth,
         xlabel={pitch ratio $\rho$}, ylabel={locked ratio $p/q$},
         xmin=1, xmax=3.5, ymin=0.9, ymax=3.6,
         ytick={1,1.5,2,2.5,3},
@@ -369,22 +371,23 @@ integer character can survive the average.
           {(1.6180339,0.9) (1.6180339,3.6)};
         \node[soft, font=\scriptsize, anchor=south west] at (axis cs: 1.628, 3.18)
           {$\varphi$};
-        \addplot[ink!30, const plot, line width=1.2pt]
-          table [x=rho, y expr=\thisrow{p2}/\thisrow{q2}, col sep=comma]
-          {data/convergent-fan.csv};
-        \addlegendentry{$q\le2$}
-        \addplot[cool, const plot, line width=0.95pt]
-          table [x=rho, y expr=\thisrow{p4}/\thisrow{q4}, col sep=comma]
-          {data/convergent-fan.csv};
-        \addlegendentry{$q\le4$}
-        \addplot[warm, const plot, line width=0.7pt]
-          table [x=rho, y expr=\thisrow{p8}/\thisrow{q8}, col sep=comma]
-          {data/convergent-fan.csv};
-        \addlegendentry{$q\le8$}
-        \addplot[accent, const plot, line width=0.5pt]
+        \addplot[accent, const plot, forget plot, line width=0.5pt]
           table [x=rho, y expr=\thisrow{p16}/\thisrow{q16}, col sep=comma]
           {data/convergent-fan.csv};
-        \addlegendentry{$q\le16$}
+        \addplot[warm, const plot, forget plot, line width=0.8pt]
+          table [x=rho, y expr=\thisrow{p8}/\thisrow{q8}, col sep=comma]
+          {data/convergent-fan.csv};
+        \addplot[cool, const plot, forget plot, line width=1.1pt]
+          table [x=rho, y expr=\thisrow{p4}/\thisrow{q4}, col sep=comma]
+          {data/convergent-fan.csv};
+        \addplot[ink!55, const plot, forget plot, line width=1.5pt]
+          table [x=rho, y expr=\thisrow{p2}/\thisrow{q2}, col sep=comma]
+          {data/convergent-fan.csv};
+        % Legend entries in budget order, independent of painter's order.
+        \addlegendimage{ink!55, line width=1.5pt}\addlegendentry{$q\le2$}
+        \addlegendimage{cool, line width=1.1pt}\addlegendentry{$q\le4$}
+        \addlegendimage{warm, line width=0.8pt}\addlegendentry{$q\le8$}
+        \addlegendimage{accent, line width=0.5pt}\addlegendentry{$q\le16$}
       \end{axis}
     \end{tikzpicture}
     \caption{the convergent staircase}
@@ -419,7 +422,7 @@ integer character can survive the average.
   Near the golden ratio $\varphi$ (dashed), the worst-approximable number,
   the coarse steps survive every budget: the fringe desert.}
   \label{fig:selection}
-\end{figure*}
+\end{figure}
 
 In two dimensions the gradients need not be collinear, and the object that
 replaces the continued fraction is a lattice: the candidate beat frequencies

@@ -133,7 +133,9 @@ export function teaserScenes(solver) {
       // swell and fade on a wavelength no PAIR of layers possesses: the
       // K-layer criterion in one panel, and mirror-symmetric about the seam.
       name: 'rings-trio',
-      zoom: 1.0,
+      // 320 world across = exactly two ternary periods, so the frame edge
+      // falls on a period boundary and no bright swell is cut mid-band.
+      zoom: 1.5,
       taps: 48,
       layers: [
         L({ kind: 'concentric', shape: 'circle', spacing: 5 }),
