@@ -163,6 +163,11 @@ function ResearchControl() {
   const view = useProjectStore((s) => s.view);
   const setView = useProjectStore((s) => s.setView);
   const [open, setOpen] = useState(false);
+  // With every visible layer on a scalar index the envelope is integrated in
+  // closed form — no samples exist for a Quality dial to count.
+  const exactSweep = useProjectStore((s) =>
+    s.layers.every((l) => !l.visible || !isGrid(l.type))
+  );
 
   return (
     <>
@@ -226,19 +231,32 @@ function ResearchControl() {
               path={viewPath('envelopeLift')}
               onChange={(envelopeLift) => setView({ envelopeLift })}
             />
-            <Slider
-              label="Quality"
-              value={view.envelopeTaps}
-              min={4}
-              max={64}
-              step={1}
-              unit=" taps"
-              defaultValue={VIEW_DEFAULTS.envelopeTaps}
-              info="Averaging samples per pixel. Two dozen is exact in practice; fewer is faster and grainier."
-              path={viewPath('envelopeTaps')}
-              quantize="int"
-              onChange={(envelopeTaps) => setView({ envelopeTaps })}
-            />
+            {exactSweep ? (
+              <div className="flex items-center justify-between text-[11px] leading-4">
+                <span className="flex items-center gap-1 text-white/55">
+                  Quality
+                  <InfoTip
+                    label="Quality"
+                    text="This stack's average is integrated in closed form — segmented at the strokes' own corners and integrated exactly. There are no samples to count and nothing to dial."
+                  />
+                </span>
+                <span className="text-white/85">exact</span>
+              </div>
+            ) : (
+              <Slider
+                label="Quality"
+                value={view.envelopeTaps}
+                min={4}
+                max={64}
+                step={1}
+                unit=" taps"
+                defaultValue={VIEW_DEFAULTS.envelopeTaps}
+                info="Averaging samples per pixel for lattice layers, whose cell average is sampled rather than integrated. Two dozen is exact in practice."
+                path={viewPath('envelopeTaps')}
+                quantize="int"
+                onChange={(envelopeTaps) => setView({ envelopeTaps })}
+              />
+            )}
             <Slider
               label="Mask"
               value={view.envelopeMask}

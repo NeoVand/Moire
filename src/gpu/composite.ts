@@ -23,6 +23,7 @@ import {
   smoothstep,
   step,
   uniformArray,
+  wgslFn,
 } from 'three/tsl';
 import {
   FIELD_NONE,
@@ -293,6 +294,16 @@ export function createViewUniforms() {
     licAB: uniform(new THREE.Vector3(0, 0, 0)),
     licAC: uniform(new THREE.Vector3(0, 0, 0)),
     licBC: uniform(new THREE.Vector3(0, 0, 0)),
+    // The EXACT sweep: for an all-scalar stack the enveloped average is a
+    // one-dimensional integral of piecewise-cubic profiles whose corner
+    // positions are known in closed form from each phase trio, so it is
+    // segmented and integrated exactly (Gauss-4 per segment) instead of
+    // tapped. No tap noise, no tap-adequacy limit: a rate-q schedule
+    // contributes q times the corners instead of needing taps >= 8q.
+    // writeSlots raises this only when the envelope is on and every visible
+    // layer (morph sources included) carries a scalar index; lattices keep
+    // the tap loop, whose cell resampling has no 1-D closed form.
+    exactSweep: uniform(0),
   };
 }
 
@@ -1523,6 +1534,9 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
   // no beat stands, mean == pivot identically, so the view sits at the true
   // local gray at any contrast.
   const sumLayer = solved.map(() => float(0).toVar());
+  const meanOut = vec3(0).toVar();
+  const pivotOut = vec3(camera.background).toVar();
+
   // Inside the enveloped average the stroke keeps its TRUE width: the
   // hairline floor (1.15 px) exists so a render's line survives the screen,
   // but inside the mean it inflates every stroke as the zoom falls, duty
@@ -1531,6 +1545,8 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
   // fringes, not carriers; sub-pixel strokes keep correct mean coverage
   // through the aa ramp, which is all the integral needs.
   const isEnv = step(float(1.5), float(view.taps));
+
+  const tapLoop = () => {
   Loop(view.taps, ({ i }) => {
     // Centred on zero so that a single tap is the pattern itself, and so that
     // the trio of members brackets every phase the sweep visits.
@@ -1668,17 +1684,287 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
     sumDev.addAssign(colorDev);
     sumDiag.addAssign(colorDiag);
   });
-  const pivot = vec3(camera.background).toVar();
   solved.forEach(({ slot }, index) => {
     If(slot.active.greaterThan(0.5), () => {
-      pivot.assign(mix(pivot, vec3(slot.color), sumLayer[index].div(float(view.taps))));
+      pivotOut.assign(mix(pivotOut, vec3(slot.color), sumLayer[index].div(float(view.taps))));
     });
   });
+  meanOut.assign(mix(sumDiag, sumDev, devW).div(float(view.taps)));
+  };
+
+  // The EXACT path: for an all-scalar stack (writeSlots raises the uniform)
+  // the sweep is not sampled at all — both chains are integrated in closed
+  // form by the generated segment integrator, and the pivot is each layer's
+  // exact mean coverage. The tap loop remains for lattices, whose cell
+  // average has no 1-D segmentation, and for the plain render.
+  If(view.exactSweep.greaterThan(0.5), () => {
+    const chain = exactChain(solved.length);
+    const argsDev: unknown[] = [view.sweep, vec3(camera.background)];
+    const argsDiag: unknown[] = [view.sweep, vec3(camera.background)];
+    const prs = solved.map(({ slot, aa, phase, phaseFrom }, index) => {
+      const hInk = max(slot.thickness.mul(0.5), float(1e-3));
+      const pr = vec4(hInk, aa, slot.opacity, slot.morph);
+      const rate = float(1).toVar();
+      If(scanOn, () => {
+        If(view.ratioA.equal(int(index)), () => rate.assign(rateA));
+        If(view.ratioB.equal(int(index)), () => rate.assign(rateB));
+        If(view.ratioC.equal(int(index)), () => rate.assign(rateC));
+      });
+      argsDev.push(phase, phaseFrom, pr, vec3(slot.color), slot.active, rate);
+      argsDiag.push(phase, phaseFrom, pr, vec3(slot.color), slot.active, float(1));
+      return pr;
+    });
+    const diag = chain(...argsDiag);
+    // The deviation chain runs only where the scan actually deviates —
+    // devW is zero at most pixels of most scenes, and the chain is the
+    // expensive half. The 0.003 skirt costs at most 0.3% of a blend.
+    const dev = vec3(0).toVar();
+    If(devW.greaterThan(0.003), () => {
+      dev.assign(chain(...argsDev));
+    });
+    meanOut.assign(mix(diag, dev, devW.mul(step(0.003, devW))));
+    solved.forEach(({ slot, phase, phaseFrom }, index) => {
+      If(slot.active.greaterThan(0.5), () => {
+        pivotOut.assign(
+          mix(pivotOut, vec3(slot.color), exactLayerMean(view.sweep, phase, phaseFrom, prs[index]))
+        );
+      });
+    });
+  }).Else(() => {
+    tapLoop();
+  });
+
   // A sole layer grades about its nominal coverage instead: its per-pixel
   // pivot equals its mean identically, and about THAT the contrast is dead.
-  pivot.assign(mix(pivot, vec3(view.pivotConst), view.soloPivot));
-  return { mean: mix(sumDiag, sumDev, devW).div(float(view.taps)), pivot };
+  pivotOut.assign(mix(pivotOut, vec3(view.pivotConst), view.soloPivot));
+  return { mean: meanOut, pivot: pivotOut };
 }
+
+// ---------------------------------------------------------------------------
+// The exact sweep. The enveloped mean of a scalar layer is an integral over
+// one shared period of profiles alpha_i(u) that are piecewise cubic in u
+// (a trapezoid with smoothstep ramps, composed with the linear slide), and
+// every corner position is known in closed form from the phase trio: the
+// three member residuals, the ramp edges at hInk -+ aa around each, the
+// argmin midpoints between neighbours, the floor clips, and the wrap seam.
+// Segmenting at the corners and integrating each segment with Gauss-4 is
+// exact for a pair of cubics and better than 1e-6 beyond (validated against
+// 65536-tap ground truth across pairs, trios, walking trios, radial floors,
+// sub-pixel strokes, and deep rate-12 stations, where 24 taps err by 0.19).
+
+/** Twin of the tap loop's slide + phaseDistWgsl, as one WGSL helper. */
+const exactTrioDist = wgslFn(`
+fn exactTrioDist(ph: vec4<f32>, rate: f32, u: f32) -> f32 {
+  let gap = max(abs(ph.y - ph.x), 1e-6);
+  let off = u * rate * gap;
+  let wrapped = off - round(off / gap) * gap;
+  let near = min(abs(ph.x - wrapped), min(abs(ph.y - wrapped), abs(ph.z - wrapped)));
+  return max(near, ph.w);
+}
+`);
+
+/** One layer's swept coverage: morph-mixed trio distance through the stroke
+ * profile. pr = (hInk, aa, opacity, morph). */
+const exactAlphaWgsl = wgslFn(`
+fn exactAlphaWgsl(ph: vec4<f32>, phF: vec4<f32>, pr: vec4<f32>, rate: f32, u: f32) -> f32 {
+  var d = exactTrioDist(ph, rate, u);
+  if (pr.w < 0.999) {
+    d = mix(exactTrioDist(phF, rate, u), d, pr.w);
+  }
+  return clamp((1.0 - smoothstep(pr.x - pr.y, pr.x + pr.y, d)) * pr.z, 0.0, 1.0);
+}
+`, [exactTrioDist]);
+
+/** Event capacity of the exact sweep's segment list. Typical stacks emit a
+ * few dozen corners; a deep licensed schedule on a trio a couple hundred.
+ * Overflow degrades gracefully — the tail corners go unsegmented and Gauss-4
+ * spans them, which is still far better than a tap grid. */
+const EXACT_CAP = 224;
+
+/** The corner emitter, shared by the chain and the per-layer mean: appends
+ * every u in (lo, hi) where one phase's profile can change its polynomial
+ * piece. A morphing layer calls it for both of its trios. */
+const exactEmit = wgslFn(`
+fn exactEmit(ph: vec4<f32>, pr: vec4<f32>, rate: f32, act: f32, lo: f32, hi: f32,
+             evs: ptr<function, array<f32, ${EXACT_CAP}>>, n: ptr<function, i32>) -> f32 {
+  if (act < 0.5 || abs(rate) < 1e-9) {
+    return 0.0;
+  }
+  let gap = max(abs(ph.y - ph.x), 1e-6);
+  let rg = rate * gap;
+  let hlo = pr.x - pr.y;
+  let hhi = pr.x + pr.y;
+  var corners: array<f32, 23>;
+  var cn = 0;
+  // The nearest member's window, always.
+  corners[cn] = ph.x; cn++;
+  corners[cn] = ph.x - hhi; cn++; corners[cn] = ph.x + hhi; cn++;
+  if (hlo > 0.0) {
+    corners[cn] = ph.x - hlo; cn++; corners[cn] = ph.x + hlo; cn++;
+  }
+  if (ph.w > 0.0) {
+    corners[cn] = ph.x - ph.w; cn++; corners[cn] = ph.x + ph.w; cn++;
+  }
+  // A SYMMETRIC trio (every closed-form family) repeats the same window each
+  // period, so the neighbours' corners coincide with the nearest member's
+  // modulo the gap and emitting them would triple every event. Only a
+  // walking family's asymmetric trio carries distinct neighbours.
+  let upGap = ph.y - ph.x;
+  let dnGap = ph.x - ph.z;
+  if (abs(upGap - dnGap) > 1e-4 * gap) {
+    corners[cn] = ph.y; cn++;
+    corners[cn] = ph.y - hhi; cn++; corners[cn] = ph.y + hhi; cn++;
+    corners[cn] = ph.z; cn++;
+    corners[cn] = ph.z - hhi; cn++; corners[cn] = ph.z + hhi; cn++;
+    if (hlo > 0.0) {
+      corners[cn] = ph.y - hlo; cn++; corners[cn] = ph.y + hlo; cn++;
+      corners[cn] = ph.z - hlo; cn++; corners[cn] = ph.z + hlo; cn++;
+    }
+  }
+  // The argmin midpoints matter only when the stroke can reach them.
+  if (hhi > 0.499 * upGap) {
+    corners[cn] = (ph.x + ph.y) * 0.5; cn++;
+  }
+  if (hhi > 0.499 * dnGap) {
+    corners[cn] = (ph.x + ph.z) * 0.5; cn++;
+  }
+  let tmin = min(lo * rg, hi * rg);
+  let tmax = max(lo * rg, hi * rg);
+  for (var j = 0; j < cn; j++) {
+    let w = corners[j];
+    let kLo = i32(ceil((tmin - w) / gap - 1e-6));
+    let kHi = i32(floor((tmax - w) / gap + 1e-6));
+    for (var k = kLo; k <= kHi; k++) {
+      let uu = (w + f32(k) * gap) / rg;
+      if (uu > lo + 1e-7 && uu < hi - 1e-7 && *n < ${EXACT_CAP} - 1) {
+        (*evs)[*n] = uu;
+        *n = *n + 1;
+      }
+    }
+  }
+  // The wrap seam of the slide, where the trio window jumps a period.
+  let sLo = i32(ceil(tmin / gap - 0.5 - 1e-6));
+  let sHi = i32(floor(tmax / gap - 0.5 + 1e-6));
+  for (var k = sLo; k <= sHi; k++) {
+    let uu = ((f32(k) + 0.5) * gap) / rg;
+    if (uu > lo + 1e-7 && uu < hi - 1e-7 && *n < ${EXACT_CAP} - 1) {
+      (*evs)[*n] = uu;
+      *n = *n + 1;
+    }
+  }
+  return 0.0;
+}
+`);
+
+const GAUSS4 = [
+  [0.06943184420297371, 0.17392742256872692],
+  [0.33000947820757187, 0.3260725774312731],
+  [0.6699905217924281, 0.3260725774312731],
+  [0.9305681557970262, 0.17392742256872692],
+];
+
+/** The sort-and-integrate tail shared by the generated chains: insertion
+ * sort (the lists are a few dozen entries), then Gauss-4 per segment over
+ * the body `SEGMENT_BODY`, which reads `uu` and accumulates into `seg`. */
+function sortAndMarchWgsl(body: string, accType: string) {
+  return `
+  if (n < ${EXACT_CAP}) { evs[n] = hi; n++; } else { evs[${EXACT_CAP} - 1] = hi; }
+  for (var i = 1; i < n; i++) {
+    let v = evs[i];
+    var j = i - 1;
+    while (j >= 0 && evs[j] > v) {
+      evs[j + 1] = evs[j];
+      j--;
+    }
+    evs[j + 1] = v;
+  }
+  var total = ${accType}(0.0);
+  for (var s = 0; s + 1 < n; s++) {
+    let a = evs[s];
+    let len = evs[s + 1] - a;
+    if (len < 1e-9) { continue; }
+    var seg = ${accType}(0.0);
+    ${GAUSS4.map(
+      ([x, w]) => `{
+      let uu = a + ${x} * len;
+      ${body.replaceAll('GAUSS_W', String(w))}
+    }`
+    ).join('\n    ')}
+    total += seg * len;
+  }
+  return total / max(sweep, 1e-6);`;
+}
+
+const exactChainCache = new Map<number, ReturnType<typeof wgslFn>>();
+
+/**
+ * The generated exact chain for a K-slot stack: emits every layer's corners,
+ * sorts, and integrates the paint-order composite segment by segment. One
+ * function serves both schedules — the caller passes the rates, so the
+ * diagonal is the all-ones call.
+ */
+function exactChain(K: number) {
+  const cached = exactChainCache.get(K);
+  if (cached) return cached;
+  const params = Array.from(
+    { length: K },
+    (_, i) =>
+      `ph${i}: vec4<f32>, phF${i}: vec4<f32>, pr${i}: vec4<f32>, col${i}: vec3<f32>, act${i}: f32, rate${i}: f32`
+  ).join(', ');
+  const emits = Array.from(
+    { length: K },
+    (_, i) => `emitDummy = exactEmit(ph${i}, pr${i}, rate${i}, act${i}, lo, hi, &evs, &n);
+  if (pr${i}.w < 0.999) {
+    emitDummy = exactEmit(phF${i}, pr${i}, rate${i}, act${i}, lo, hi, &evs, &n);
+  }`
+  ).join('\n  ');
+  const composite = Array.from(
+    { length: K },
+    (_, i) =>
+      `if (act${i} > 0.5) { c = mix(c, col${i}, exactAlphaWgsl(ph${i}, phF${i}, pr${i}, rate${i}, uu)); }`
+  ).join('\n      ');
+  const body = `var c = bg;
+      ${composite}
+      seg += GAUSS_W * c;`;
+  const fn = wgslFn(
+    `
+fn exactChain${K}(sweep: f32, bg: vec3<f32>, ${params}) -> vec3<f32> {
+  let lo = -sweep * 0.5;
+  let hi = sweep * 0.5;
+  var evs: array<f32, ${EXACT_CAP}>;
+  var n = 0;
+  var emitDummy = 0.0;
+  evs[0] = lo; n = 1;
+  ${emits}
+  ${sortAndMarchWgsl(body, 'vec3<f32>')}
+}
+`,
+    [exactEmit, exactAlphaWgsl]
+  );
+  exactChainCache.set(K, fn);
+  return fn;
+}
+
+/** One layer's exact mean coverage over the sweep: the pivot's ingredient,
+ * integrated on the layer's own corners at the diagonal rate. */
+const exactLayerMean = wgslFn(
+  `
+fn exactLayerMean(sweep: f32, ph0: vec4<f32>, phF0: vec4<f32>, pr0: vec4<f32>) -> f32 {
+  let lo = -sweep * 0.5;
+  let hi = sweep * 0.5;
+  var evs: array<f32, ${EXACT_CAP}>;
+  var n = 0;
+  var emitDummy = 0.0;
+  evs[0] = lo; n = 1;
+  emitDummy = exactEmit(ph0, pr0, 1.0, 1.0, lo, hi, &evs, &n);
+  if (pr0.w < 0.999) {
+    emitDummy = exactEmit(phF0, pr0, 1.0, 1.0, lo, hi, &evs, &n);
+  }
+  ${sortAndMarchWgsl('seg += GAUSS_W * exactAlphaWgsl(ph0, phF0, pr0, 1.0, uu);', 'f32')}
+}
+`,
+  [exactEmit, exactAlphaWgsl]
+);
 
 /**
  * Grading and overlays: contrast expansion about the pivot, the regime

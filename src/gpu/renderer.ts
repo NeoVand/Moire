@@ -498,6 +498,21 @@ export class MoireRenderer {
     // A sole visible layer grades about its nominal coverage; see soloPivot.
     const visible = state.layers.filter((l) => l.visible);
     this.viewUniforms.soloPivot.value = envelope && visible.length === 1 ? 1 : 0;
+
+    // The exact sweep: engaged whenever the envelope is on and every visible
+    // layer carries a scalar index — a lattice (or a layer still morphing
+    // out of one, read off the slot uniforms so a mid-flight class morph
+    // cannot lie) keeps the tap loop, whose cell resample has no 1-D
+    // segmentation. The Quality dial is a no-op while this is up: the
+    // integral has no sample count.
+    const latticeCode = (v: number) => (v >= 4.5 && v <= 7.5) || v > 13.5;
+    const anyLattice = state.layers.some(
+      (l, i) =>
+        l.visible &&
+        (isGrid(l.type) ||
+          (i < this.slots.length && latticeCode(this.slots[i].typeFrom.value as number)))
+    );
+    this.viewUniforms.exactSweep.value = envelope && !anyLattice ? 1 : 0;
     if (visible.length === 1) {
       const pixel = 1 / Math.max(state.camera.zoom, 0.08);
       this.viewUniforms.pivotConst.value
