@@ -173,10 +173,21 @@ carries all four.
   to write, with the S4 restructure.*
 - **S4** Restructure LaTeX (new §2–§4 spine, compress §6–§7 into place,
   move listed material to supplemental). Full zoo + build + HTML.
+  *DONE — sec-object / sec-super / sec-defects; walking+inverse are one
+  folds section; clock and envelope-gap bookkeeping in supp-details.
+  Golden carrier on printed line figures. Hex-twist teaser. Law atlas on
+  the weighted scan. Paper still 32pp with refs+appendix (body through
+  conclusion ~29); further cuts would drop claims or figures.*
 - **S5** E4 + results integration; regenerate numbers.
+  *Numbers regenerate clean. E4 (local Nyquist vs the traditions raster)
+  not run this pass.*
 - **S6** Abstract/intro/conclusion/related-work pass (add Lagrange,
   Khinchin, three-distance, phason/quasicrystal, singular-optics
   citations).
+  *DONE — counting-map abstract/intro/conclusion; related work gains
+  Diophantine / singular-optics / twisted-bilayer paragraph. Phason
+  cite deferred (graphene pair already carries the incommensurate
+  instance).*
 
 ## 8. Risks
 

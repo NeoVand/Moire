@@ -1,125 +1,7 @@
-\section{Moir\'e as a field}
-\label{sec:field}
+\section{Superposition}
+\label{sec:super}
 
-\subsection{A layer is two scalar fields}
-
-\begin{definition}[Family]
-A \emph{family} is a countable collection of curves $\{\gamma_n\}_{n\in\Z}$ in
-$\R^2$, together with an index convention that names them.
-\end{definition}
-
-We never represent $\{\gamma_n\}$ as geometry. A layer is represented by two
-functions of a continuous position $p\in\R^2$:
-\begin{align}
-  \idx(p) &\in \R && \text{the \emph{index field}: } \gamma_n=\idx^{-1}(n),\\
-  d(p) &= \min_{n} \mathrm{dist}(p,\gamma_n) && \text{the \emph{distance field}.}
-\end{align}
-The index field is fractional: $\idx(p)=7.3$ means $p$ lies three tenths of the
-way from member $7$ to member $8$. The distance field is Euclidean and unsigned.
-
-Most families in practice are the level sets of a single scalar \emph{phase}
-function. It is convenient to keep the phase in world units, so that member $n$ is
-the level set $\{\ph = ns + \varphi\}$ with $s$ the spacing and $\varphi$ an
-offset. Then
-\begin{equation}
-  \idx(p) = \frac{\ph(p)-\varphi}{s},
-  \qquad
-  d(p) \;\simeq\; \frac{\mathrm{pd}\!\left(\ph(p)-\varphi,\; s\right)}{\lVert\nabla\ph(p)\rVert},
-  \label{eq:eikonal}
-\end{equation}
-where $\mathrm{pd}(v,s)=\min_{k\in\Z}|v-ks|$ is the distance from $v$ to the
-lattice $s\Z$. The division is Taubin's first-order distance
-approximation for implicit curves~\cite{Taubin1994Distance}, applied to a phase
-residual. Both fields are one line of shader code.
-
-\subsection{The gradient is not optional}
-\label{sec:eikonal}
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=\linewidth]{figures/gradient-compare.png}
-  \panelrow{0.32609}{0.01087}{wave, hyperbola, spiral}
-  \Description{A two-by-three grid of black-on-white panels: a wave family, a
-  hyperbola family and a spiral family, drawn twice. In the top row the strokes fade
-  to nothing towards the edges where the curves crowd together; in the bottom row
-  those same regions are solid black.}
-  \caption{\figlead{A phase residual is not a distance.} Top: for the wave,
-  hyperbola and spiral families, what our shader drew was the phase residual,
-  undivided.
-  Strokes thin by exactly the factor the family is steep by, so the pattern fades
-  where it should saturate and the hyperbola's asymptotes disappear. Bottom: the
-  same settings with Eq.~\ref{eq:eikonal}. Our shader applied the division for the
-  parabola family but not for these three, and the failure is worst where the
-  family is densest.}
-  \label{fig:gradient}
-\end{figure}
-
-The division by $\lVert\nabla\ph\rVert$ in Eq.~\ref{eq:eikonal} converts a phase
-residual into a length. It is easy to omit, and we omitted it. Our shader applied
-it for the parabola family and not for the wave, hyperbola or spiral, with two
-consequences.
-
-The first is cosmetic but severe. Where $\lVert\nabla\ph\rVert>1$, the reported
-distance is $\lVert\nabla\ph\rVert$ times too large, so the stroke is thinner by
-the same factor. Sweeping each
-family over its own slider range on a $1400\times880$ frame
-(supplemental material, \S S2) we measure factors up to
-$\gradWorstWave$ for the wave and $\gradWorstHyp$ for the hyperbola, with more than
-half the frame off by over $10\%$ in both cases. Visually the family pales out
-where it steepens and crowds, the opposite of what the geometry does
-(Figure~\ref{fig:gradient}).
-
-The second is a correctness bug. Our stroke half-width is
-$\mathrm{halfT}=\max(t/2,\,1.15\,\mathrm{px})$, and the floor exists so that a
-hairline stays a hairline instead of breaking into speckle when zoomed out
-(Section~\ref{sec:zoom}). That floor is a statement about \emph{screen} distance.
-Compared against an undivided phase residual it is a statement about phase, and it
-guarantees nothing wherever $\lVert\nabla\ph\rVert\neq1$. The steep
-families, the ones that most need the floor, are precisely the ones that were
-not getting it.
-
-We adopt Eq.~\ref{eq:eikonal} everywhere. One cost: a wave at high amplitude
-and frequency now saturates to solid ink, because at those settings its members
-genuinely are closer together than a stroke width. That is the correct answer, and
-the previous behavior was hiding it.
-
-Eq.~\ref{eq:eikonal} is an eikonal approximation and it is exact only where the
-family is locally a foliation with steady gradient. The one family in our
-catalog that violates this is the hyperbola, whose gradient blows up on the
-asymptote pair (the degenerate $n=0$ level set, where the foliation folds);
-Section~\ref{sec:catalog} excludes that member from the family for this
-reason.
-
-\subsection{Compositing}
-
-Layers composite as ink over paper. With stroke half-width $h_i$ and antialias
-band $a$, layer $i$ contributes coverage
-\begin{equation}
-  \alpha_i(p) = \Big(1-\mathrm{smoothstep}(h_i-a,\;h_i+a,\;d_i(p))\Big)\,o_i,
-  \label{eq:alpha}
-\end{equation}
-and the frame is the running \texttt{mix} of background with each layer's color
-at that alpha. For two black layers on white this is the union
-$\alpha_1+\alpha_2-\alpha_1\alpha_2$. There is no separate composite pass, no
-intermediate texture, and no place in the pipeline where a layer exists as pixels.
-
-Three properties follow immediately and are the practical reason to do it this way.
-
-\emph{No resolution.} $\idx$ and $d$ are defined at every real position, so
-changing zoom changes only where they are sampled. A moir\'e authored at one scale
-is the same moir\'e at another (Section~\ref{sec:zoom}).
-
-\emph{Bounded transitions by construction.} The stroke floor
-$h\ge1.15\,\mathrm{px}$ means the ink field's transition band is never narrower
-than a pixel, so the energy above the display Nyquist rate is small (not zero:
-\S\ref{sec:zoom} measures the residue) without any filtering step. This
-approximates what the suppression literature achieves with prefiltering and the
-synthesis literature cannot achieve at all: the designed difference component is
-kept, and the undesigned beats against a resampling grid are never created
-because there is no resampling grid.
-
-\emph{Editability.} Every parameter enters $\idx$ and $d$ analytically. Moving a
-slider does not invalidate a cached raster, because there is none.
+The joint counting map of a stack is $\cnt=(\idx_1,\dots,\idx_K)$. A visible beat is an integer character $k\in\Z^K$ of that torus: the scalar field $k\cdot\cnt$, slow against the carriers. This section is the arithmetic of those characters. The fringe law says the locally averaged ink is a function of $k\cdot\cnt$ alone. The heterodyne ratio $\het$ measures how slow. Weighted merit ranks the candidates. Selection is best approximation, answered by continued fractions in one dimension and by per-pixel lattice reduction in two. The envelope is the conditional expectation of $F$ over the subtorus orthogonal to the kept character.
 
 \subsection{The fringe law}
 \label{sec:fringe}
@@ -335,7 +217,8 @@ characters range over integer combinations of generators (supplemental \S S3).
   levels crowd into texture, no broad fringe forms, and the one flat
   stretch, the inter-focal segment, carries the sum's one visible fringe.
   The criterion of \S\ref{sec:visibility} is this comparison made pointwise:
-  the visible moir\'e is the character whose hill lies flattest.}
+  the visible moir\'e is the character whose hill lies flattest, weighted by
+  the contrast its order costs (\S\ref{sec:selection}).}
   \label{fig:hills}
 \end{figure*}
 
@@ -417,14 +300,8 @@ the global winner (supplemental \S S3;
 \texttt{tools/exp/ternary.mjs} reproduces the harmonic-mean prediction).
 
 \paragraph{One solve, many taps.}
-The cost, done naively, is $M$ full evaluations of every layer, and for a
-walking family one evaluation is the search of \S\ref{sec:inverse}, so $\envTaps$
-of them per pixel is a stall rather than a view: implemented that way, the
-envelope ran at five frames a second on the tool's own opening preset.
-
-It need not, and the reason is that advancing an index by less than one does not
-change \emph{which} members are nearby. So the solver is asked once per pixel for
-a \emph{phase sample}
+Advancing an index by less than one does not change which members are
+nearby, so the solver is asked once per pixel for a \emph{phase sample}
 \begin{equation}
   \Pi(p) \;=\; \big(\,z,\; z^{\uparrow},\; z^{\downarrow},\; \ell\,\big),
   \label{eq:phasesample}
@@ -436,46 +313,19 @@ with a floor $\ell$ that does not take part in the slide. A tap at $u$ then read
   \label{eq:slide}
 \end{equation}
 where $\mathrm{gap}=\lvert z^{\uparrow}-z\rvert$ is the \emph{local} member gap.
-For the nine phase families of \S\ref{sec:catalog}, whose residual is periodic
-in the gap, \eqref{eq:slide} reproduces the re-solved distance exactly, in nine
-instructions. For the two family classes without a phase function it is a
-first-order model, and for the walking family the gap in \eqref{eq:slide} is a
-choice between two inequivalent meanings of ``advance the index.'' Advancing
-the \emph{phase} by $u\,s$ slides every residual by exactly that amount, but it
-does not map a walking family to itself (radii grow while every pose stays
-put), so a sweep at rate $s$ has no unit period to average over and
-under-covers the local carrier, leaving visible residue in the view. Sliding by
-the measured \emph{local gap} covers exactly one local carrier period, which is
-what the average \eqref{eq:meanink} needs; the price is that no re-solve
-reproduces it exactly where the flanking gaps are unequal. We choose the gap
-deliberately: exact for the integral's purpose, first-order per tap. The radial
-pencil is first-order the same way, since its members rotate rather than slide, and so
-its re-solved distance is sinusoidal in $u$ where \eqref{eq:slide} is piecewise
-linear. Both errors are small fractions of a gap away from the loci of
-\S\ref{sec:limits}, and we accept them rather than re-solve per tap. Two implementation facts belong in the open. The solver
-runs these views with the guard widened to a full pitch (Eq.~\ref{eq:guard}'s
-$\tfrac34 s$ would prove away the flanking members the sample needs), so the
-certified interval is instantiated at that wider $G$. And the search still runs
-once per pixel while the sweep is arithmetic: median frame times in the envelope
-view went from hundreds of milliseconds to within the 60\,Hz budget.
+For the nine phase families this is exact. For a walking family or a radial
+pencil it is a first-order model, and the choice of gap (local, not
+nominal) is what gives the integral a unit period; the bookkeeping, the
+widened guard, and each family's currency live in the supplemental
+material (\S S3). The search runs once; the sweep is arithmetic. Median
+envelope times fell from hundreds of milliseconds to within the $60$\,Hz
+budget.
 
-Two things fall out of writing the sample this way. The gap is local, so a
-tap covers exactly one period of \emph{this} family at \emph{this} point, whatever
-the pitch does across the frame, which is what the radial pencil needs, since
-its member gap $2r\sin(\pi/2N)$ grows with radius. And $\ell$ is where the
-non-sliding parts of a family live: the guard returned by a saturated solve, the
-hole at the center of a pencil, the missing inner neighbor of the innermost
-hyperbola. Those are the places where there is nothing to slide onto,
-and separating them from the residual is what keeps the average from inventing
-ink there.
-
-Each family realizes the advancing index in its own parameter: a phase shift
-for the level-set families, a rotation for the radial pencil, a translation for
-a lattice. A lattice's index is a \emph{pair}, so which combination of its two
-generators rides the sweep, and which way, is the character choice of
-\S\ref{sec:visibility} once more, and it must be made per point, or fringes
-plainly present in the render vanish from the view. Those details, and the
-contrast pivot the view expands about, are in the supplemental material (\S S3).
+The gap is local, so a tap covers exactly one period of this family at this
+point, whatever the pitch does across the frame. $\ell$ is where the
+non-sliding parts live: a saturated guard, a pencil's hole, a hyperbola's
+missing inner neighbor. Separating them from the residual is what keeps the
+average from inventing ink there.
 
 One caveat remains, and it is structural rather than a matter of implementation.
 The average is over the diagonal, so where Theorem~\ref{thm:fringe}'s hypothesis
@@ -605,56 +455,59 @@ integer character can survive the average.
 
 \begin{figure*}[t]
   \centering
-  \begin{subfigure}{0.415\textwidth}
+  \begin{subfigure}{0.36\textwidth}
     \begin{tikzpicture}
-      \begin{axis}[paperaxis, height=5.45cm, width=\linewidth,
-        xlabel={pitch ratio $\rho$}, ylabel={locked ratio $p/q$},
+      \begin{axis}[paperaxis, height=3.7cm, width=\linewidth,
+        xlabel={pitch ratio $\rho$}, ylabel={locked $p/q$},
         xmin=1, xmax=3.5, ymin=0.9, ymax=3.6,
-        ytick={1,1.5,2,2.5,3,3.5},
-        yticklabels={$1$,$\tfrac32$,$2$,$\tfrac52$,$3$,$\tfrac72$},
-        legend columns=4,
-        legend style={at={(0.5,1.03)}, anchor=south, draw=none, fill=none},
+        ytick={1,2,2.5,3},
+        yticklabels={$1$,$2$,$\tfrac52$,$3$},
+        legend columns=3,
+        legend style={at={(0.5,1.04)}, anchor=south, draw=none, fill=none,
+                      font=\scriptsize, /tikz/every even column/.append style={column sep=4pt}},
       ]
         \addplot[soft!45, thin, forget plot, domain=1:3.5] {x};
         \addplot[soft, densely dashed, thin, forget plot] coordinates
           {(1.6180339,0.9) (1.6180339,3.6)};
-        \node[soft, font=\scriptsize, anchor=south west] at (axis cs: 1.628, 3.18)
+        \node[soft, font=\scriptsize, anchor=south] at (axis cs: 1.618, 3.42)
           {$\varphi$};
-        \addplot[ink!30, const plot, line width=1.1pt]
+        \addplot[ink!35, const plot, line width=1.15pt]
           table [x=rho, y expr=\thisrow{p2}/\thisrow{q2}, col sep=comma]
           {data/convergent-fan.csv};
         \addlegendentry{$q\le2$}
-        \addplot[cool, const plot, line width=0.85pt]
+        \addplot[cool, const plot, line width=0.9pt]
           table [x=rho, y expr=\thisrow{p4}/\thisrow{q4}, col sep=comma]
           {data/convergent-fan.csv};
         \addlegendentry{$q\le4$}
-        \addplot[warm, const plot, line width=0.6pt]
-          table [x=rho, y expr=\thisrow{p8}/\thisrow{q8}, col sep=comma]
-          {data/convergent-fan.csv};
-        \addlegendentry{$q\le8$}
-        \addplot[accent, const plot, line width=0.45pt]
+        \addplot[accent, const plot, line width=0.55pt]
           table [x=rho, y expr=\thisrow{p16}/\thisrow{q16}, col sep=comma]
           {data/convergent-fan.csv};
         \addlegendentry{$q\le16$}
+        \node[font=\scriptsize, anchor=west, inner sep=1pt] at (axis cs: 2.08, 2.18)
+          {$2{:}1$};
+        \node[font=\scriptsize, accent!80!ink, anchor=west, inner sep=1pt]
+          at (axis cs: 2.58, 2.68) {$5{:}2$};
+        \node[font=\scriptsize, accent!80!ink, anchor=west, inner sep=1pt]
+          at (axis cs: 3.08, 3.18) {$3{:}1$};
       \end{axis}
     \end{tikzpicture}
     \caption{the convergent staircase}
     \label{fig:selection-fan}
   \end{subfigure}\hfill
-  \begin{subfigure}{0.565\textwidth}
-    \includegraphics[width=\linewidth]{figures/selection-stations.png}
+  \begin{subfigure}{0.62\textwidth}
+    \includegraphics[height=3.7cm]{figures/selection-stations.png}
     \caption{rational stations, per pixel}
     \label{fig:selection-stations}
   \end{subfigure}
   \Description{Left: a staircase plot of the locked rational against the pitch
-  ratio, hugging the diagonal, for four order budgets. The budget-two staircase
+  ratio, hugging the diagonal, for three order budgets. The budget-two staircase
   has a few wide steps at whole and half-integer ratios; each larger budget
   splits the risers into finer steps that cling closer to the diagonal, and
   around a dashed vertical line marked with the golden ratio the wide steps
-  survive every budget. Right: two fans of straight lines through two centers,
-  overlaid with small crimson arcs and tick clusters strung along the
-  horizontal axis through both centers, sparse far out and crowding toward
-  each fan.}
+  survive every budget. Right: a wide strip of two dense fans of straight
+  lines through two centers, cropped to the axis between them, overlaid with
+  crimson arcs and tick clusters along that axis, sparse far out and crowding
+  toward each fan.}
   \caption{\figlead{Which beat wins is best approximation.}
   \textbf{(a)}~The winning character $(p,-q)$ of two parallel families, drawn
   as the rational $p/q$ it locks to, against the pitch ratio $\rho$, as the
@@ -663,12 +516,13 @@ integer character can survive the average.
   the risers of the last. Near the golden ratio $\varphi$ (dashed), the
   worst-approximable number, the coarse steps survive every budget: the
   fringe desert. \textbf{(b)}~The same arithmetic as geography.
-  Two radial pencils: the local pitch ratio of their index gradients sweeps
-  through the rationals along the axis, and the level sets of the per-pixel
-  \emph{winning} character (crimson, drawn only where $\mu_k\le1/4$, computed
-  by the reduction of this section) resolve into discrete commensurate
-  pockets, one per admitted rational, dense toward the pencils exactly as the
-  rationals are dense. The render never saw the curves.}
+  Two radial pencils, cropped to the axis band: the local pitch ratio of
+  their index gradients sweeps through the rationals along the axis, and the
+  level sets of the per-pixel \emph{winning} character (crimson, drawn only
+  where $\mu_k\le1/4$, computed by the reduction of this section) resolve
+  into discrete commensurate pockets, one per admitted rational, dense toward
+  the pencils exactly as the rationals are dense. The render never saw the
+  curves.}
   \label{fig:selection}
 \end{figure*}
 

@@ -91,18 +91,19 @@ content of the theorem.
   \caption{\figlead{The law and the criterion, across the catalog.} \emph{Top:} five
   of the pairs measured in Table~\ref{tab:fringe}, rendered from their distance
   fields. \emph{Bottom:} each frame low-passed to its fringe field, with the unit
-  level sets of $D=\idx_1-\idx_2$ over it in crimson, drawn only where
-  $\het\le1/4$ and fading out over the last tenth of that range, so a curve ending
-  is the criterion's edge and not the pixel grid's. Ordered by the fraction of the frame the criterion admits: $\atlasCombs\%$,
-  $\atlasCircleLines\%$, $\atlasHex\%$, $\atlasCircles\%$, $\atlasControl\%$.
+  level sets of the per-pixel winning character over it in crimson, drawn only
+  where the weighted merit $\mu_k\le1/4$ and fading out over the last tenth of
+  that range, so a curve ending is the criterion's edge and not the pixel
+  grid's. Admitted fractions: $\atlasCombs\%$, $\atlasCircleLines\%$,
+  $\atlasHex\%$, $\atlasCircles\%$, $\atlasControl\%$.
 Column~(b) is masked to a wedge, outside which the circles and the lines cross at
 a wide angle; (d) near its two centers, where the superposition is a rosette and
-not a fringe field at all; and (e) everywhere: the criterion refuses the whole
-frame, and the one structure the gray panel keeps, the bright corridor along the
-asymptotes, belongs to the hyperbola family alone rather than to any beat
-between the pair. Curves are also suppressed wherever consecutive level
+not a fringe field at all; and (e) in sparse rational pockets, where a
+higher-order character of the hyperbola against the line family briefly
+clears the threshold. The bright corridor along the asymptotes belongs to
+the hyperbola family alone. Curves are also suppressed wherever consecutive level
   sets fall closer together than they can be drawn apart: at the center of (c)
-  the difference is singular and its level sets crowd without bound, so anything
+  the winning character is singular and its level sets crowd without bound, so anything
   drawn there would be speckle rather than a curve. The curves come from the two
   index fields and the mask from their gradients, so the whole bottom row costs two
   gradients per pixel and reads no raster, which is why the tool can tell a user

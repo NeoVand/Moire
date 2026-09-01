@@ -26,7 +26,7 @@
 //   node paper/tools/exp/contour.mjs
 
 import { writeFileSync, mkdirSync } from 'node:fs';
-import { fieldProgram, sampleField } from '../lib/fields.mjs';
+import { fieldProgram, sampleField, GOLDEN_CARRIER } from '../lib/fields.mjs';
 import { view, compose, envelope, fieldImage, tile, overlayLevelSets, splitDiagonal } from '../lib/render.mjs';
 import { writePng } from '../lib/png.mjs';
 
@@ -40,13 +40,18 @@ const S = 5.8;
 const INK = '#12161c';
 const T = 1.65;
 
+// Measurement stays on a vertical carrier: the control's true contours are
+// the verticals of f = x, and rotating the carrier would mix estimator
+// geometry into a number that is supposed to be orientation-free. Figures
+// use the golden slope so the printed hairlines do not sit on the raster.
 const CARRIER = { kind: 'parallel', angle: 0, spacing: S, phase: 0, thickness: T, color: INK };
+const FIGURE_CARRIER = { ...CARRIER, angle: GOLDEN_CARRIER };
 
 /**
  * One preset of the Studio's field editor, encoded into a carrier's twin.
  * `amount` is the Amount slider (fringes per unit of f) and `scale` the Extent.
  */
-function encoded(name, label, amount, scale) {
+function encoded(name, label, amount, scale, carrier = CARRIER) {
   const program = fieldProgram(name);
   return {
     name,
@@ -60,7 +65,7 @@ function encoded(name, label, amount, scale) {
       const w = sampleField(program, p, scale);
       return { x: w.gx, y: w.gy };
     },
-    layers: [CARRIER, { ...CARRIER, field: name, fieldAmount: amount, fieldScale: scale }],
+    layers: [carrier, { ...carrier, field: name, fieldAmount: amount, fieldScale: scale }],
   };
 }
 
@@ -265,16 +270,14 @@ console.log(
 const results = [];
 const panels = [];
 for (const spec of FIELDS) {
-  const { rgb, stats } = measure(spec);
+  const { stats } = measure(spec);
   report(stats);
   results.push(stats);
 
-  // Each panel is cut corner to corner: the superposition above the seam, the same
-  // two layers under the envelope view below it. The render alone shows a texture
-  // and leaves the reader to take the fringes on trust; the envelope beside it is
-  // the fringe field itself, and putting them in one square says they are two
-  // readings of one state rather than two pictures.
-  const env = envelope(V, spec.layers, { contrast: 3.2 });
+  // Figures use the golden carrier; the measurement above stayed vertical.
+  const drawn = encoded(spec.name, spec.label, spec.amount, spec.scale, FIGURE_CARRIER);
+  const rgb = compose(V, drawn.layers);
+  const env = envelope(V, drawn.layers, { contrast: 3.2 });
   panels.push({ rgb: splitDiagonal(rgb, env, V), width: V.width, height: V.height });
   panels.push(fieldImage(V, (p) => spec.f(p), { name: 'viridis' }));
 }
@@ -299,7 +302,7 @@ console.log(`\nwrote figures/contour-fields.png (${grid.width}x${grid.height})`)
 // (c) the render again with the true level sets of f laid over it. The curves are
 // computed from f alone and drawn on an image that never saw them.
 {
-  const spec = encoded('saddle', 'saddle', 0.1, 50);
+  const spec = encoded('saddle', 'saddle', 0.1, 50, FIGURE_CARRIER);
   const PV = view({ width: 760, height: 760, zoom: 1, superSample: 3 });
   const bare = compose(PV, spec.layers);
   const env = envelope(PV, spec.layers, { radius: 14, contrast: 3.1 });

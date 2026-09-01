@@ -72,52 +72,51 @@ missing representation.
 \end{figure}
 
 A layer, stripped of its raster, is a countable family of curves
-$\{\gamma_n\}$: the $n$th line, the $n$th ring, the $n$th turn of a spiral. We
-represent it by two scalar fields. The \emph{index field} $\idx(p)$ says which
-member $p$ sits on, fractionally, so that $\gamma_n=\idx^{-1}(n)$; the
-\emph{distance field} $d(p)=\min_n \mathrm{dist}(p,\gamma_n)$ says how far the
-nearest one is. Both are functions of a continuous position, evaluated per
-pixel, with no grid anywhere. The distance field is what a renderer thresholds
-into ink; the index field is what the theory works with, and our central
-observation is that the interference lives entirely in it: \emph{the fringes of
-a superposition are the unit level sets of the difference of the two index
-fields}. Section~\ref{sec:fringe} makes this precise: the locally averaged
-ink is a function of $D=\idx_1-\idx_2$ alone, a saturating tent rather than a
-sinusoid, exact under stated local hypotheses and first-order accurate beyond
-them. The same section verifies the law against $\fringeSamples$ measurements
-over $\fringeScenes$ pairs of families, to a mean coverage error of
-$\fringeMeanErr$.
+$\{\gamma_n\}$: the $n$th line, the $n$th ring, the $n$th turn of a spiral.
+We represent a pattern as a pair $(\cnt,F)$. The \emph{counting map}
+$\cnt\colon M\to\T^K$ names the members, fractionally, one coordinate per
+family; the \emph{ink} $F$ paints the torus, and the image is $F\circ\cnt$.
+The distance field is the leading term of $F$. The index field of a
+scalar family is one coordinate of $\cnt$. Superposition is the joint
+map. Our central observation is that the interference lives entirely in
+$\cnt$: \emph{the visible beat is an integer character $k\cdot\cnt$, and
+the fringes are its unit level sets}. Section~\ref{sec:fringe} makes this
+precise: the locally averaged ink is a function of $D=\idx_1-\idx_2$
+alone, a saturating tent rather than a sinusoid, exact under stated local
+hypotheses and first-order accurate beyond them. The same section verifies
+the law against $\fringeSamples$ measurements over $\fringeScenes$ pairs of
+families, to a mean coverage error of $\fringeMeanErr$.
 The locus and the profile shape have classical
 ancestors~\cite{Oster1964, Patorski1976Profile, Amidror1994TConv}; what the
-field form adds is a per-pixel statement about the actual compositing operator,
-with a computable validity criterion: the heterodyne ratio $\het$, a
+counting-map form adds is a per-pixel statement about the actual compositing
+operator, with a computable validity criterion: the heterodyne ratio $\het$, a
 \emph{field} that can be drawn, telling an author where in the frame a fringe
-will form before they commit to parameters. One subtlety runs through
-everything: a family's index convention is arbitrary, so $D$ is one
-representative of a lattice of integer combinations $k_1\idx_1+k_2\idx_2$, and
-the visible moir\'e is whichever combination beats slowest against the
-contrast its order costs (\S\ref{sec:visibility}). Which combination that is
-turns out to be a best-approximation question with a classical answer: the
-visible-beat hierarchy of two pitches is the continued fraction of their
-ratio, and in two dimensions the winner is found exactly, at any order, by
-per-pixel lattice reduction (\S\ref{sec:selection}).
+will form before they commit to parameters. A family's index convention is
+arbitrary, so $D$ is one representative of a lattice of integer combinations
+$k_1\idx_1+k_2\idx_2$, and the visible moir\'e is whichever combination beats
+slowest against the contrast its order costs (\S\ref{sec:visibility}).
+Which combination that is turns out to be a best-approximation question
+with a classical answer: the visible-beat hierarchy of two pitches is the
+continued fraction of their ratio, and in two dimensions the winner is found
+exactly, at any order, by per-pixel lattice reduction (\S\ref{sec:selection}).
 
-For most families the index field is a closed form; Section~\ref{sec:catalog}
-lists the thirteen we ship, of which nine are one line of algebra each. The
-families that make the richest interference are not among them. What op
-artists actually reach for are families whose members are not concentric:
-each ring displaced a little further than the last, or turned a little further,
-so the family shears, spirals, and finally unwinds into a pencil of
-near-parallel curves; Riley's \emph{Blaze}, a nest of zigzag rings each turned
-against the last, is exactly such a family~\cite{Oster1965Optical}. We call
-these \emph{walking families} (Section~\ref{sec:walking}): member $n$ is the
-shape of radius $ns+\varphi$, displaced by $n\delta$ and turned by $n\theta$.
-Two extra parameters, and the closed form is gone: each member lives in its own
-frame, no formula in $p$ has these curves as its level sets, and the nearest
-index must be searched for. The obvious search---guess the index from the
-radius, check a fixed number of neighbors---fails coherently: the pixels
-whose true nearest member falls outside the guessed neighborhood form arcs,
-not speckle, so whole sides of whole rings disappear, and the budget is paid at
+The catalog sits on an integrability ladder (Section~\ref{sec:object}).
+Nine of the thirteen families we ship are exact: parallel lines precomposed
+with a field, one line of algebra each. The radial pencil is a defect of
+that line family. The families that make the richest interference are the
+fold rung. What op artists actually reach for are families whose members
+are not concentric: each ring displaced a little further than the last, or
+turned a little further, so the family shears, spirals, and finally
+unwinds into a pencil of near-parallel curves; Riley's \emph{Blaze}, a nest
+of zigzag rings each turned against the last, is exactly such a
+family~\cite{Oster1965Optical}. We call these \emph{walking families}
+(Section~\ref{sec:walking}): member $n$ is the shape of radius
+$ns+\varphi$, displaced by $n\delta$ and turned by $n\theta$. Two extra
+parameters, and the closed form is gone. Search is the price of
+non-integrability. The obvious search, guess the index from the radius and
+check a fixed number of neighbors, fails coherently: the pixels whose true
+nearest member falls outside the guessed neighborhood form arcs, not
+speckle, so whole sides of whole rings disappear, and the budget is paid at
 every pixel whether or not it was needed. For a long time we believed these
 broken segments were a rasterization bug; they are an inversion bug.
 
@@ -146,9 +145,10 @@ shattered one, at identical cost.
 \subsection{Contributions}
 
 \begin{itemize}
-  \item A field formulation of moir\'e in which a layer is an index field plus a
-  distance field, superposition is field compositing, and the pattern has no
-  raster at any stage (Section~\ref{sec:field}).
+  \item A counting-map formulation of moir\'e: a pattern is
+  $(\cnt,F)$, superposition is a joint torus, and the catalog is an
+  integrability ladder of rank times exact / defect / fold
+  (Section~\ref{sec:object}). The pattern has no raster at any stage.
 
   \item The fringe law: locally averaged ink is a saturating tent in the index
   difference, so fringes are its unit level sets. The law is exact under stated
@@ -164,11 +164,11 @@ shattered one, at identical cost.
   random carrier pairs, and its winner drives the criterion, the envelope's
   sweep schedule, and the contour overlay (\S\ref{sec:selection}).
 
-  \item Walking families, and their inversion: a provably sufficient index
-  interval from the support function of the generating shape, a Lipschitz skip
-  rule, and an exact closed form for translated polygons of any side count
-  including the marginal drift (Section~\ref{sec:inverse},
-  Appendix~\ref{app:proofs}).
+  \item Folds and their inversion: walking families, whose index has no
+  closed form, and a provably sufficient index interval from the support
+  function of the generating shape, a Lipschitz skip rule, and an exact
+  closed form for translated polygons of any side count including the
+  marginal drift (Section~\ref{sec:inverse}, Appendix~\ref{app:proofs}).
 
   \item \Moire{}, an interactive tool: thirteen families, twelve concurrent
   layers compiled once, zoom-stable strokes, GPU type morphing, and no
@@ -177,15 +177,14 @@ shattered one, at identical cost.
   over space; done properly it costs one solve and a few instructions per tap
   rather than one solve per tap (Section~\ref{sec:envelope}).
 
-  \item Moir\'e fields as a contouring primitive: because fringes are level sets
-  of an index difference, encoding a scalar field in that difference renders its
-  contours without ever computing a contour. The fringes localize to a mean of
-  $\contourWorstErr$\,px of the true level sets on the hardest field we tested,
-  and the only sampling limit is an inequality between contour spacing and
-  carrier pitch. A \emph{circle-valued} field goes further and mints
-  topological defects: fringes that end, with the signed count of endings
-  equal to the enclosed winding times the gain, exactly
-  (Section~\ref{sec:beyond}).
+  \item Moir\'e as a contouring primitive, the corollary of the affine space
+  of exact patterns (\S\ref{sec:object}): encoding a scalar field in an
+  index difference renders its contours without ever computing a contour.
+  The fringes localize to a mean of $\contourWorstErr$\,px of the true
+  level sets on the hardest field we tested
+  (Section~\ref{sec:beyond}). A circle-valued field mints topological
+  defects: fringes that end, with the signed count of endings equal to the
+  enclosed winding times the gain, exactly (Section~\ref{sec:defects}).
 
   \item An expression language for those fields, with the gradient the eikonal
   divide needs obtained by forward-mode differentiation rather than by hand, and

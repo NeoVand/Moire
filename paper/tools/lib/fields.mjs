@@ -27,6 +27,13 @@ const TAU = Math.PI * 2;
 const ROOT3_2 = Math.sqrt(3) / 2;
 const WAVE_CYCLE = 32;
 const PARABOLA_BEND = 0.01;
+// A vertical hairline (angle 0) or a 45° one has rational slope against the
+// pixel lattice and sits on a plateau of the selection staircase: the display
+// itself is a partner layer. The worst-approximable slope is the golden
+// ratio, so a carrier whose lines run at atan(1/φ) off vertical is the
+// fringe desert against the raster. Parallel figures share this angle.
+const PHI = (1 + Math.sqrt(5)) / 2;
+export const GOLDEN_CARRIER = -Math.atan(1 / PHI);
 
 const programs = new Map();
 
@@ -144,6 +151,17 @@ function hexRound(u, v) {
   return { u: rx, v: rz };
 }
 
+/** The two translations a lattice is invariant under, matching latticeCpu. */
+function latticeCell(code, spacing, sx, sy) {
+  const s = Math.max(spacing, 1e-4);
+  if (code <= 0) return { ax: s * sx, ay: 0, bx: 0, by: s * sy };
+  if (code === 1) {
+    const h = s * Math.sqrt(3);
+    return { ax: h * sx, ay: 0, bx: h * 0.5 * sx, by: 1.5 * s * sy };
+  }
+  return { ax: s * sx, ay: 0, bx: 0.5 * s * sx, by: s * HEX_Y * sy };
+}
+
 /** One line family, measured in world units under an anisotropic scale. */
 function scaledLine(p, angle, pitch, sx, sy) {
   const nx = -Math.sin(angle);
@@ -234,6 +252,9 @@ export function family(cfg = {}) {
     field = 'none',
     fieldAmount = 0,
     fieldScale = 200,
+    // Envelope taps of a lattice slide the cell: (u, v) in generator
+    // coordinates, so a twist pair that shares (u, v) rides lockstep.
+    cellShift = { u: 0, v: 0 },
     // A constant shift of the phase residual, in world units. The envelope view's
     // one parameter: `phaseShift = u * spacing` advances the family by u periods.
     // Families that index members by two integers have no residual and ignore it.
@@ -389,10 +410,15 @@ export function family(cfg = {}) {
       const code = LATTICE_CODE[lattice] ?? 0;
       const sx = Math.abs(scale.x) < 1e-4 ? 1e-4 : scale.x;
       const sy = Math.abs(scale.y) < 1e-4 ? 1e-4 : scale.y;
+      const cell = latticeCell(code, spacing, sx, sy);
       psiLocal = () => 0;
       gradVecLocal = () => ({ x: 1, y: 0 });
       distLocal = (q) => {
-        const hits = latticeHits(q, code, spacing, sx, sy);
+        const qq = {
+          x: q.x - cellShift.u * cell.ax - cellShift.v * cell.bx,
+          y: q.y - cellShift.u * cell.ay - cellShift.v * cell.by,
+        };
+        const hits = latticeHits(qq, code, spacing, sx, sy);
         let d = Infinity;
         if (drawEdges) d = Math.min(d, hits.edge);
         if (vertexSize > 1e-3) d = Math.min(d, hits.vertex);
@@ -436,6 +462,7 @@ export function family(cfg = {}) {
 
   return {
     kind,
+    lattice,
     spacing,
     phase: usePhase,
     label: cfg.label ?? kind,
@@ -467,10 +494,78 @@ export function gradIndex(fam, p, h = 0.25) {
 }
 
 /**
- * Heterodyne ratio r = |grad D| / |grad phi_mean|: how far apart the two carriers
- * are, relative to how fast they run. Small r is the fringe regime. Returns
- * Infinity where the mean gradient vanishes, since the two carriers oppose each
- * other exactly there and no fringe of the family scale survives.
+ * The shader's per-pixel scan, mirrored: Lagrange–Gauss reduction of the
+ * index-gradient lattice, then the shipped six plus the short vector and
+ * its two-row window, under the amplitude weight |a b|. Same merit the
+ * envelope and the law atlas admit on.
+ */
+const SHIPPED_CHARS = [
+  [1, -1],
+  [1, 1],
+  [2, -1],
+  [2, 1],
+  [1, -2],
+  [1, 2],
+];
+
+const n2 = (v) => v.x * v.x + v.y * v.y;
+
+function gaussReduce(g1, g2) {
+  let u = { v: { ...g1 }, k: [1, 0] };
+  let w = { v: { ...g2 }, k: [0, 1] };
+  if (n2(u.v) < n2(w.v)) [u, w] = [w, u];
+  for (let i = 0; i < 8; i += 1) {
+    const mu = Math.max(
+      -64,
+      Math.min(64, Math.round((u.v.x * w.v.x + u.v.y * w.v.y) / Math.max(n2(w.v), 1e-24)))
+    );
+    const r = {
+      v: { x: u.v.x - mu * w.v.x, y: u.v.y - mu * w.v.y },
+      k: [u.k[0] - mu * w.k[0], u.k[1] - mu * w.k[1]],
+    };
+    if (n2(r.v) < n2(w.v)) {
+      u = w;
+      w = r;
+    }
+  }
+  return [w, u];
+}
+
+/** Weighted merit of character (a, b) on gradients gA, gB. */
+export function characterMerit(a, b, gA, gB) {
+  const beat = Math.hypot(a * gA.x + b * gB.x, a * gA.y + b * gB.y);
+  const carrier = Math.hypot(a * gA.x - b * gB.x, a * gA.y - b * gB.y);
+  return (beat / Math.max(carrier * 0.5, 1e-12)) * Math.abs(a * b);
+}
+
+/** Winning integer character at a point, exactly as the shader picks it. */
+export function bestCharacter(gA, gB) {
+  const cands = SHIPPED_CHARS.map(([a, b]) => [a, b]);
+  const [s, t] = gaussReduce(gA, gB);
+  cands.push([s.k[0], s.k[1]]);
+  for (let j = 1; j <= 2; j += 1) {
+    for (let i = -3; i <= 3; i += 1) {
+      cands.push([i * s.k[0] + j * t.k[0], i * s.k[1] + j * t.k[1]]);
+    }
+  }
+  let best = Infinity;
+  let win = [1, -1];
+  for (const [a, b] of cands) {
+    if (a === 0 || b === 0) continue;
+    const e = characterMerit(a, b, gA, gB);
+    if (e < best) {
+      best = e;
+      win = a > 0 ? [a, b] : [-a, -b];
+    }
+  }
+  return { k: win, merit: best };
+}
+
+/**
+ * Heterodyne ratio r = |grad D| / |grad phi_mean|: how far apart the two
+ * carriers are, relative to how fast they run. The first-order special
+ * case of bestCharacter's (1, −1) merit. Returns Infinity where the mean
+ * gradient vanishes.
  */
 export function heterodyneRatio(famA, famB, p) {
   const ga = gradIndex(famA, p);

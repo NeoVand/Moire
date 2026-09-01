@@ -16,6 +16,7 @@
 //   node paper/tools/exp/defectfigs.mjs
 
 import { compose, envelope, view } from '../lib/render.mjs';
+import { GOLDEN_CARRIER } from '../lib/fields.mjs';
 import { writePng } from '../lib/png.mjs';
 import { FIGURES } from '../lib/instrument.mjs';
 import { join } from 'node:path';
@@ -25,13 +26,20 @@ const V = view({ width: 640, height: 640, zoom: 1.35, superSample: 2 });
 const forked = () => ({
   kind: 'parallel',
   spacing: 10,
+  angle: GOLDEN_CARRIER,
   field: 'theta / tau',
   fieldAmount: 5,
   fieldScale: 200,
   thickness: 2,
   color: '#000000',
 });
-const plain = () => ({ kind: 'parallel', spacing: 10, thickness: 2, color: '#000000' });
+const plain = () => ({
+  kind: 'parallel',
+  spacing: 10,
+  angle: GOLDEN_CARRIER,
+  thickness: 2,
+  color: '#000000',
+});
 
 writePng(join(FIGURES, 'defect-fork.png'), compose(V, [forked()]), V.width, V.height);
 console.log('wrote defect-fork.png');

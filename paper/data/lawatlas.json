@@ -14,7 +14,7 @@
     {
       "scene": "circle-parallel",
       "label": "circles under lines",
-      "admitted": 0.39013888888888887
+      "admitted": 0.231875
     },
     {
       "scene": "hexagon-hexagon",
@@ -24,12 +24,12 @@
     {
       "scene": "circle-circle",
       "label": "circles, two centres",
-      "admitted": 0.21618055555555554
+      "admitted": 0.220625
     },
     {
       "scene": "hyperbola-parallel",
       "label": "hyperbolae under lines",
-      "admitted": 0
+      "admitted": 0.110625
     }
   ]
 }

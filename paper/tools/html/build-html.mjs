@@ -61,6 +61,8 @@ const MATH_MACROS = {
   '\\idx': '\\phi',
   '\\ph': '\\psi',
   '\\het': '\\eta',
+  '\\cnt': '\\Xi',
+  '\\T': '\\mathbb{T}',
 };
 
 const textMacros = new Map();
@@ -144,6 +146,7 @@ const TIKZ_PREAMBLE = `\\documentclass[tikz]{standalone}
 \\definecolor{cool}{HTML}{1B6CA8}\\definecolor{warm}{HTML}{D4761A}
 \\definecolor{soft}{HTML}{8A94A0}\\definecolor{paperbg}{HTML}{F7F7F5}
 \\newcommand{\\rad}{\\rho}\\newcommand{\\idx}{\\phi}\\newcommand{\\ph}{\\psi}\\newcommand{\\het}{\\eta}
+\\newcommand{\\cnt}{\\Xi}\\newcommand{\\T}{\\mathbb{T}}
 \\newcommand{\\R}{\\mathbb{R}}\\newcommand{\\Z}{\\mathbb{Z}}\\newcommand{\\Rot}[1]{\\mathbf{R}_{#1}}
 \\pgfplotsset{
   paperaxis/.style={

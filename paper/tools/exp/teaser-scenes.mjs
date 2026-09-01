@@ -5,6 +5,8 @@
 // fans beside band systems, weaves beside smooth envelopes, across rows and
 // down columns, closing on the studio's opening scene.
 
+import { GOLDEN_CARRIER } from '../lib/fields.mjs';
+
 export const INK = '#0e1013';
 const T = 1.6;
 const SHAPE_CODE = { circle: 1, square: 2, triangle: 3, polygon: 4 };
@@ -70,8 +72,8 @@ export function teaserScenes(solver) {
       name: 'terrain',
       zoom: 0.85,
       layers: [
-        L({ kind: 'parallel', spacing: 5, angle: 0, thickness: 3, field: 'terrain', fieldAmount: 6, fieldScale: 300 }),
-        L({ kind: 'parallel', spacing: 5, angle: 0, thickness: 3 }),
+        L({ kind: 'parallel', spacing: 5, angle: GOLDEN_CARRIER, thickness: 3, field: 'terrain', fieldAmount: 6, fieldScale: 300 }),
+        L({ kind: 'parallel', spacing: 5, angle: GOLDEN_CARRIER, thickness: 3 }),
       ],
       contrast: 3.8,
     },
@@ -84,19 +86,20 @@ export function teaserScenes(solver) {
       contrast: 3.8,
     },
     {
-      name: 'saddle',
+      name: 'hex-twist',
+      zoom: 1.15,
       layers: [
-        L({ kind: 'parallel', spacing: 5, angle: 0 }),
-        L({ kind: 'parallel', spacing: 5, angle: 0, field: 'saddle', fieldAmount: 3, fieldScale: 165 }),
+        L({ kind: 'lattice', lattice: 'hex', spacing: 10, thickness: 1.5 }),
+        L({ kind: 'lattice', lattice: 'hex', spacing: 10, rotation: 5, thickness: 1.5 }),
       ],
-      contrast: 3.8,
+      contrast: 4.2,
     },
     {
       name: 'swirl-flow',
       zoom: 1.0,
       layers: [
-        L({ kind: 'parallel', spacing: 5, angle: 0 }),
-        L({ kind: 'parallel', spacing: 5, angle: 0, field: 'swirl', fieldAmount: 3.5, fieldScale: 130 }),
+        L({ kind: 'parallel', spacing: 5, angle: GOLDEN_CARRIER }),
+        L({ kind: 'parallel', spacing: 5, angle: GOLDEN_CARRIER, field: 'swirl', fieldAmount: 3.5, fieldScale: 130 }),
       ],
       contrast: 3.6,
     },

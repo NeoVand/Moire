@@ -21,7 +21,7 @@
 //
 //   node paper/tools/exp/selectionfigs.mjs
 
-import { family, gradIndex, periodicDist } from '../lib/fields.mjs';
+import { family, gradIndex, periodicDist, bestCharacter } from '../lib/fields.mjs';
 import { compose, view } from '../lib/render.mjs';
 import { writePng } from '../lib/png.mjs';
 import { FIGURES } from '../lib/instrument.mjs';
@@ -30,85 +30,19 @@ import { join } from 'node:path';
 const ACCENT = [200, 30, 90];
 const THR = 0.25;
 
-// ---------------------------------------------------------------- the scan
-// The shader's candidate set, mirrored (see composite.ts scanCharacters and
-// tools/exp/convergents.mjs shaderBest): Gauss reduction with the integer
-// coordinates carried along, then the shipped six plus the short vector and
-// its two-row window, under the amplitude weight.
-
-const SHIPPED = [
-  [1, -1],
-  [1, 1],
-  [2, -1],
-  [2, 1],
-  [1, -2],
-  [1, 2],
-];
-
-const n2 = (v) => v.x * v.x + v.y * v.y;
-
-function gaussReduce(g1, g2) {
-  let u = { v: g1, k: [1, 0] };
-  let w = { v: g2, k: [0, 1] };
-  if (n2(u.v) < n2(w.v)) [u, w] = [w, u];
-  for (let i = 0; i < 8; i += 1) {
-    const mu = Math.max(
-      -64,
-      Math.min(64, Math.round((u.v.x * w.v.x + u.v.y * w.v.y) / Math.max(n2(w.v), 1e-24)))
-    );
-    const r = {
-      v: { x: u.v.x - mu * w.v.x, y: u.v.y - mu * w.v.y },
-      k: [u.k[0] - mu * w.k[0], u.k[1] - mu * w.k[1]],
-    };
-    if (n2(r.v) < n2(w.v)) {
-      u = w;
-      w = r;
-    }
-  }
-  return [w, u];
-}
-
-/** Weighted merit of character (a, b) on gradients gA, gB. */
-function merit(a, b, gA, gB) {
-  const beat = Math.hypot(a * gA.x + b * gB.x, a * gA.y + b * gB.y);
-  const carrier = Math.hypot(a * gA.x - b * gB.x, a * gA.y - b * gB.y);
-  return (beat / Math.max(carrier * 0.5, 1e-12)) * Math.abs(a * b);
-}
-
-/** The winning character at a point, exactly as the shader picks it. */
-function winner(gA, gB) {
-  const cands = SHIPPED.map(([a, b]) => [a, b]);
-  const [s, t] = gaussReduce(gA, gB);
-  cands.push([s.k[0], s.k[1]]);
-  for (let j = 1; j <= 2; j += 1) {
-    for (let i = -3; i <= 3; i += 1) {
-      cands.push([i * s.k[0] + j * t.k[0], i * s.k[1] + j * t.k[1]]);
-    }
-  }
-  let best = Infinity;
-  let win = [1, -1];
-  for (const [a, b] of cands) {
-    if (a === 0 || b === 0) continue;
-    const e = merit(a, b, gA, gB);
-    if (e < best) {
-      best = e;
-      win = [a, b];
-    }
-  }
-  return { k: win, merit: best };
-}
-
 // ------------------------------------------------- the stations panel
 {
-  const cfgA = { kind: 'radial', lineCount: 40, position: { x: -80, y: 0 } };
-  const cfgB = { kind: 'radial', lineCount: 40, position: { x: 80, y: 0 } };
+  const cfgA = { kind: 'radial', lineCount: 64, position: { x: -90, y: 0 } };
+  const cfgB = { kind: 'radial', lineCount: 64, position: { x: 90, y: 0 } };
   const famA = family(cfgA);
   const famB = family(cfgB);
   const layers = [
-    { ...cfgA, thickness: 1.6, color: '#000000' },
-    { ...cfgB, thickness: 1.6, color: '#000000' },
+    { ...cfgA, thickness: 0.85, color: '#000000' },
+    { ...cfgB, thickness: 0.85, color: '#000000' },
   ];
-  const V = view({ width: 960, height: 720, zoom: 1.5, superSample: 2 });
+  // Wide strip cropped to the axis band through both foci, so the
+  // commensurate pockets sit at a readable scale beside the staircase.
+  const V = view({ width: 1440, height: 480, zoom: 2.05, superSample: 2 });
   const base = compose(V, layers);
 
   // The overlay: level sets of the per-pixel winning character, gated by the
@@ -130,7 +64,7 @@ function winner(gA, gB) {
       const p = worldOf(x, y);
       const gA = gradIndex(famA, p);
       const gB = gradIndex(famB, p);
-      const w = winner(gA, gB);
+      const w = bestCharacter(gA, gB);
       if (w.merit > THR) continue;
       const [a, b] = w.k;
       const val = a * famA.index(p) + b * famB.index(p);
@@ -138,10 +72,10 @@ function winner(gA, gB) {
       if (!(rate > 1e-9)) continue;
       const pitchPx = V.zoom / rate;
       const admit =
-        (1 - smoothstep(THR * 0.7, THR, w.merit)) * smoothstep(2.4, 3.5, pitchPx);
+        (1 - smoothstep(THR * 0.7, THR, w.merit)) * smoothstep(1.6, 2.8, pitchPx);
       if (admit <= 0.003) continue;
       const dPix = (periodicDist(val, 1) / rate) * V.zoom;
-      const alpha = admit * (1 - smoothstep(0.6, 1.6, dPix));
+      const alpha = admit * (1 - smoothstep(1.4, 3.4, dPix));
       if (alpha <= 0.003) continue;
       const i = (y * V.width + x) * 3;
       for (let c = 0; c < 3; c += 1) {

@@ -20,6 +20,19 @@ function smoothstep(a, b, x) {
   return t * t * (3 - 2 * t);
 }
 
+/** Mean ink a built layer would leave over one of its own periods. */
+function latticeCoverage(L, pixel) {
+  const halfT = Math.max(L.thickness * 0.5, pixel * L.floor);
+  const s = Math.max(L.spacing, 1e-3);
+  if (L.fam?.kind !== 'lattice') return Math.min(1, (2 * halfT) / s);
+  const lat = L.fam.lattice;
+  const pitch = lat === 'square' ? 1 : Math.sqrt(3) / 2;
+  const count = lat === 'square' ? 2 : 3;
+  const duty = lat === 'hex' || lat === 'hexagon' ? 1 / 3 : 1;
+  const per = Math.min(1, (2 * halfT * duty) / (s * pitch));
+  return 1 - (1 - per) ** count;
+}
+
 export function view(cfg = {}) {
   return {
     width: cfg.width ?? 640,
@@ -117,6 +130,20 @@ function build(layers, taps = 0) {
                         (L.rotation ?? 0) + (k / taps) * (180 / Math.max(1, Math.round(L.lineCount ?? 8))),
                     })
                   )
+                : L.kind === 'lattice'
+                  ? // A lattice has no scalar residual. Each tap resamples the
+                    // cell: generator 1 rides u, generator 2 the golden scramble,
+                    // so a twist pair that shares (u, v) keeps both slow
+                    // characters and washes the carriers.
+                    Array.from({ length: taps }, (_, k) =>
+                      family({
+                        ...L,
+                        cellShift: {
+                          u: k / taps - 0.5,
+                          v: ((k * 0.6180339887498949) % 1) - 0.5,
+                        },
+                      })
+                    )
                 : Array.from({ length: taps }, (_, k) =>
                     family({ ...L, phaseShift: (L.phaseShift ?? 0) + (k / taps) * spacing })
                   ),
@@ -243,12 +270,13 @@ export function envelope(v, layers, opts = {}) {
     return gs < gd;
   };
 
-  // Coverage a family averages over one of its own periods: a stroke of
-  // half-width h on pitch s inks 2h/s. The pivot the contrast expands about.
+  // Coverage a family averages over one of its own periods. A scalar stroke of
+  // half-width h on pitch s inks 2h/s. A lattice inks several families at
+  // its own row pitch and duty (a honeycomb's walls are three families at
+  // (√3/2)s, each only a third inked), matching familyInk in renderer.ts.
   const pivot = [...bg];
   for (const L of built) {
-    const halfT = Math.max(L.thickness * 0.5, pixel * L.floor);
-    const cov = Math.min(1, (2 * halfT) / Math.max(L.spacing, 1e-3)) * L.opacity;
+    const cov = latticeCoverage(L, pixel) * L.opacity;
     for (let k = 0; k < 3; k++) pivot[k] += (L.color[k] - pivot[k]) * cov;
   }
 

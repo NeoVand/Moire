@@ -1,6 +1,6 @@
 // The fringe law across the catalog, and the criterion that says where it applies.
-// Five family pairs from Table 1, ordered by how much of the frame the heterodyne
-// ratio admits, and for each one:
+// Five family pairs from Table 1, ordered by how much of the frame the
+// weighted scan admits, and for each one:
 //
 //   top     the superposition as rendered, two distance fields composited
 //   bottom  the same frame low-passed to the fringe field, with the predicted unit
@@ -14,7 +14,7 @@
 //   node paper/tools/exp/lawatlas.mjs
 
 import { mkdirSync, writeFileSync } from 'node:fs';
-import { family, heterodyneRatio } from '../lib/fields.mjs';
+import { family, gradIndex, bestCharacter, GOLDEN_CARRIER } from '../lib/fields.mjs';
 import { view, compose, tile, overlayLevelSets, lowPassLuma } from '../lib/render.mjs';
 import { writePng } from '../lib/png.mjs';
 
@@ -46,15 +46,15 @@ const SCENES = [
   {
     label: 'two combs, 6 degrees',
     slug: 'parallel-rotate',
-    a: { kind: 'parallel', spacing: 6, angle: 0 },
-    b: { kind: 'parallel', spacing: 6, angle: (6 * Math.PI) / 180 },
+    a: { kind: 'parallel', spacing: 6, angle: GOLDEN_CARRIER },
+    b: { kind: 'parallel', spacing: 6, angle: GOLDEN_CARRIER + (6 * Math.PI) / 180 },
     thickness: 1.6,
   },
   {
     label: 'circles under lines',
     slug: 'circle-parallel',
     a: { kind: 'concentric', shape: 'circle', spacing: 8, position: { x: 0, y: -260 } },
-    b: { kind: 'parallel', spacing: 8, angle: Math.PI / 2 },
+    b: { kind: 'parallel', spacing: 8, angle: GOLDEN_CARRIER + Math.PI / 2 },
     thickness: 1.8,
   },
   {
@@ -75,7 +75,7 @@ const SCENES = [
     label: 'hyperbolae under lines',
     slug: 'hyperbola-parallel',
     a: { kind: 'hyperbola', spacing: 9, phase: 4 },
-    b: { kind: 'parallel', spacing: 9, angle: Math.PI / 4 },
+    b: { kind: 'parallel', spacing: 9, angle: GOLDEN_CARRIER + Math.PI / 4 },
     thickness: 1.8,
   },
 ];
@@ -86,9 +86,15 @@ const admitted = [];
 for (const scene of SCENES) {
   const famA = family(scene.a);
   const famB = family(scene.b);
-  const D = (p) => famA.index(p) - famB.index(p);
-  // Same definition the table uses, from the shared field library.
-  const ratio = (p) => heterodyneRatio(famA, famB, p);
+  // Winning character and its merit, the shader's own scan. Overlay and
+  // admission both read it, so a (3,−1) pocket draws its own levels and
+  // a first-order desert stays empty.
+  const pick = (p) => bestCharacter(gradIndex(famA, p), gradIndex(famB, p));
+  const D = (p) => {
+    const { k } = pick(p);
+    return k[0] * famA.index(p) + k[1] * famB.index(p);
+  };
+  const ratio = (p) => pick(p).merit;
 
   const both = compose(V, [
     { ...scene.a, thickness: scene.thickness, color: INK },

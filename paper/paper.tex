@@ -119,6 +119,8 @@
 \newcommand{\rad}{\rho}
 \newcommand{\idx}{\phi}
 \newcommand{\ph}{\psi}
+\newcommand{\cnt}{\Xi}
+\newcommand{\T}{\mathbb{T}}
 \newcommand{\het}{\eta}
 \newcommand{\Moire}{\textsc{Moir\'e}}
 \newcommand{\ours}{\textsc{Window}}
@@ -159,29 +161,29 @@
 Superpose two dense families of curves and a third pattern appears that belongs
 to neither. Graphics treats moir\'e as an aliasing artifact to filter away, or
 as a printed pair of gratings solved offline and slid by hand; neither supports
-interactive authoring of the pattern itself. We represent a layer instead
-as two scalar fields, an index field naming the nearest member of a curve
-family, fractionally, and a distance field to it, so that superposition
-composites fields rather than pixels and no raster exists at any stage. In this
-model the fringes of a superposition are the unit level sets of the index-field
-difference, with a saturating tent profile that is exact under stated local
-hypotheses, without periodicity, and a per-pixel validity criterion. Which of
-the competing beats is visible turns out to be a best-approximation question:
-the beat hierarchy of two pitches is the continued fraction of their ratio,
-and per-pixel lattice reduction finds the winner at any order, where the
-order-two cap it replaces missed a fifth of visible fringes. The hard case is a family whose members each carry
-their own rigid motion: its index field has no closed form, and the nearest
-member must be searched for. The support function of the generating shape
-supplies a provably sufficient search interval, a Lipschitz skip rule, and an
-exact closed form for translated polygons: $\gpuSpeedLo$--$\gpuSpeedHi\times$
-faster than the fixed enumeration it replaces across rotated settings, in exact
-agreement with brute force wherever the interval fits its budget. We present
-\Moire{}, a browser tool built on the model, and show that choosing two layers
-so that their index difference is an authored field turns the moir\'e into a
-live contour plot of that field, whose fringes localize to the true level sets
-within a mean of $\contourWorstErr$\,px on the hardest field tested; a
-circle-valued field goes further, ending fringes at authored defects whose
-signed endings count its winding exactly.
+interactive authoring of the pattern itself. We represent a pattern as a
+counting map $\cnt\colon M\to\T^K$ together with an ink function on the
+torus, so that superposition is a map of a joint torus and no raster exists
+at any stage. In this model the visible beat is an integer character of
+$\cnt$: locally averaged ink is a saturating tent in $k\cdot\cnt$, exact
+under stated local hypotheses, without periodicity, with a per-pixel
+validity criterion. Which character wins is best approximation. The beat
+hierarchy of two pitches is the continued fraction of their ratio, and
+per-pixel lattice reduction finds the winner at any order, where the
+order-two cap it replaces missed a fifth of visible fringes. Families sit
+on an integrability ladder. Exact rank-$1$ patterns are parallel lines
+precomposed with a field. Circle-valued fields mint defects whose signed
+fringe endings count enclosed charge. Walking families are the fold rung:
+no global form, so the nearest member must be searched for. The support
+function of the generating shape supplies a provably sufficient search
+interval, a Lipschitz skip rule, and an exact closed form for translated
+polygons: $\gpuSpeedLo$--$\gpuSpeedHi\times$ faster than the fixed
+enumeration it replaces across rotated settings, in exact agreement with
+brute force wherever the interval fits its budget. We present \Moire{}, a
+browser tool built on the model, and show that a difference of exact
+patterns \emph{is} a field, so the moir\'e of a carrier against its
+modulated twin is a live contour plot, localizing to a mean of
+$\contourWorstErr$\,px on the hardest field tested.
 \end{abstract}
 
 \begin{CCSXML}
@@ -205,7 +207,7 @@ patterns, interactive authoring, GPU rendering}
     (1) two ring families,
     (2) a terrain field,
     (3) counter-spirals,
-    (4) a saddle field}
+    (4) a hex-lattice twist}
   \vspace{2.5pt}%
   \includegraphics[width=\linewidth]{figures/teaser-row2.png}
   \panelrow{0.24615}{0.00513}{%
@@ -217,9 +219,9 @@ patterns, interactive authoring, GPU rendering}
   dashed vertical rule. In every panel the left half is a dense black hairline
   drawing and the right half is a smooth grayscale field showing the same broad
   bands with the fine lines gone. Top row: two overlapping ring families making
-  hyperbolic and elliptical channels; wobbling vertical lines making a contour
-  map of rolling hills; two crossing spirals making a fan of rays; vertical
-  lines making a saddle of smooth bands. Bottom row: lines carrying four
+  hyperbolic and elliptical channels; wobbling lines making a contour
+  map of rolling hills; two crossing spirals making a fan of rays; two
+  hexagonal lattices at a small twist, the bilayer rosette. Bottom row: lines carrying four
   swirling vortices; a pinwheel of nested hexagons; nested triangles making
   broad diagonal stripes; and two families of drifting circles whose paired
   rosettes fan out into swirling arms.}
@@ -240,8 +242,9 @@ patterns, interactive authoring, GPU rendering}
   field: the fringes are that field's contours (\S\ref{sec:beyond}), here a
   band-limited terrain. \textbf{(3)}~Two spirals of opposite chirality: the
   radial parts of the two indices cancel, their difference depends on the polar
-  angle alone, and the fringes are a fan of rays. \textbf{(4)}~The construction
-  of (2) carrying a saddle. \textbf{(5)}~The same again, carrying the stream
+  angle alone, and the fringes are a fan of rays.   \textbf{(4)}~Two hexagonal lattices at a five-degree twist: the
+  twisted-bilayer rosette, both slow characters surviving the average.
+  \textbf{(5)}~The construction of (2) again, carrying the stream
   function of four point vortices: the fringes are the flow's streamlines, and
   no trajectory was integrated. \textbf{(6)}~A \emph{single} walking family
   (member $n$ turned by $n\theta$, pushed by $n\delta$) with no global index
@@ -258,8 +261,9 @@ patterns, interactive authoring, GPU rendering}
 
 \input{sec-intro}
 \input{sec-related}
-\input{sec-field}
-\input{sec-catalog}
+\input{sec-object}
+\input{sec-super}
+\input{sec-defects}
 \input{sec-walking}
 \input{sec-inverse}
 \input{sec-system}
