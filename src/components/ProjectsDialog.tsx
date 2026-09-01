@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import {
+  Album02Icon,
   Copy01Icon,
   Delete02Icon,
   FileDownloadIcon,
@@ -13,6 +14,7 @@ import { serializeScene } from '../store/scene';
 import { FloatingPanel } from './ui/FloatingPanel';
 import { Icon } from './ui/Icon';
 import { InfoTip } from './ui/Tip';
+import { PresetGallery } from './PresetGallery';
 
 /**
  * Projects — the documents end of the tool, and the one place that says out loud
@@ -74,6 +76,7 @@ export function ProjectsDialog({ onClose }: { onClose: () => void }) {
   const [status, setStatus] = useState<{ text: string; error: boolean } | null>(null);
   const [quota, setQuota] = useState<{ usage: number; quota: number } | null>(null);
   const [confirming, setConfirming] = useState<string | null>(null);
+  const [showPresets, setShowPresets] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -251,6 +254,20 @@ export function ProjectsDialog({ onClose }: { onClose: () => void }) {
             </div>
           ))}
         </div>
+
+        {/* Starting points: complete constructions from the preset shelf. */}
+        <div className="flex items-center gap-1 border-t border-[var(--border)] pt-2 text-[11px] text-[var(--text-secondary)]">
+          Presets
+          <InfoTip
+            text="Complete constructions to start from. Opening one replaces the canvas with an untitled copy — your library is untouched, and the copy is yours to remix, save, or export."
+            label="Presets"
+          />
+        </div>
+        <button type="button" className={button} onClick={() => setShowPresets(true)}>
+          <Icon icon={Album02Icon} size={13} />
+          Open a preset…
+        </button>
+        {showPresets && <PresetGallery onClose={() => setShowPresets(false)} />}
 
         {/* In and out as a file, which is the only copy that outlives the browser. */}
         <div className="flex items-center gap-1 border-t border-[var(--border)] pt-2 text-[11px] text-[var(--text-secondary)]">
