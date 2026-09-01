@@ -1,0 +1,167 @@
+{
+ "octave": {
+  "duties": [
+   0.3,
+   0.4,
+   0.5,
+   0.6,
+   0.7
+  ],
+  "hard": {
+   "linear": [
+    1.8705196172090158e-7,
+    2.1824688886567344e-7,
+    2.494286121212109e-7,
+    2.805976005906238e-7,
+    3.1175888955907973e-7
+   ],
+   "square-law": [
+    0.07801653822951256,
+    0.04820319658474169,
+    0.000004721227883393063,
+    0.048159249147103955,
+    0.0779012987533577
+   ],
+   "cubic": [
+    0.23384074233666702,
+    0.14496688962346016,
+    0.000794815258672895,
+    0.14358055132935432,
+    0.23302658061431022
+   ],
+   "square, pool, square": [
+    0.11682882165870079,
+    0.08638823337745498,
+    0.000010087196297295953,
+    0.12069547111059047,
+    0.2181953651002499
+   ]
+  },
+  "soft": {
+   "square-law": [
+    0.06784930229085205,
+    0.04193303682646571,
+    3.1652414416292004e-7,
+    0.04193362073256464,
+    0.06784988616298607
+   ],
+   "cubic": [
+    0.2026300586176881,
+    0.14315313535543936,
+    0.028996534649345537,
+    0.09623589516235849,
+    0.18470974764790196
+   ],
+   "square, pool, square": [
+    0.09143146223776286,
+    0.06924704852892939,
+    6.219063710672862e-7,
+    0.09756121335230564,
+    0.17847006942159746
+   ]
+  },
+  "depths": {
+   "hard": {
+    "linear": 0.8749873842044048,
+    "square-law": 10200.577124545141,
+    "cubic": 180.6464455263367,
+    "square, pool, square": 8564.14714568535
+   },
+   "soft": {
+    "square-law": 132479.74159242053,
+    "cubic": 3.3188757320878883,
+    "square, pool, square": 111346.42086089404
+   }
+  }
+ },
+ "beatsOfBeats": {
+  "square": 0.00003971290325178399,
+  "cubic": 9.49277615480966e-8,
+  "cascade": 0.06727901019899057,
+  "firstOrder": 0.49996775531032855
+ },
+ "printed": {
+  "ternary": 0.010088008712679494,
+  "firstOrder": 0.019988207368309984
+ },
+ "desert": {
+  "station": 0.2515342647487324,
+  "goldenLines": [
+   {
+    "h": 5,
+    "k": 3,
+    "f": 29.179606750063044,
+    "amp": 0.03333341433200008
+   },
+   {
+    "h": 8,
+    "k": 5,
+    "f": 18.03398874989489,
+    "amp": 0.012499918771075274
+   },
+   {
+    "h": 13,
+    "k": 8,
+    "f": 11.14561800016827,
+    "amp": 0.004807643978253706
+   }
+  ]
+ },
+ "gates": [
+  {
+   "name": "hard pulses: the 50% null holds through a square-law ear",
+   "ok": true,
+   "detail": "1.0e+4x below its neighbours"
+  },
+  {
+   "name": "hard pulses: the null holds through a cubic ear",
+   "ok": true,
+   "detail": "1.8e+2x"
+  },
+  {
+   "name": "hard pulses: the null holds through a two-stage ear",
+   "ok": true,
+   "detail": "8.6e+3x"
+  },
+  {
+   "name": "a linear ear hears no beat at any duty (an aired sum has no cross character)",
+   "ok": true,
+   "detail": "max 3.12e-7 vs square-law 7.80e-2"
+  },
+  {
+   "name": "soft pulses: a square-law ear keeps the null (its cross term is bilinear)",
+   "ok": true,
+   "detail": "1.3e+5x"
+  },
+  {
+   "name": "soft pulses: a cubic ear reopens it to within a tenth of its neighbours",
+   "ok": true,
+   "detail": "3.3x deep under the cubic ear against 1.3e+5x under the square-law"
+  },
+  {
+   "name": "three aired sines: a square-law ear has no ternary line",
+   "ok": true,
+   "detail": "7.94e-5 of a first-order beat"
+  },
+  {
+   "name": "three aired sines: a cubic ear has none either",
+   "ok": true,
+   "detail": "1.90e-7"
+  },
+  {
+   "name": "three aired sines: square, pool, square hears the 3 Hz beat of beats",
+   "ok": true,
+   "detail": "1.35e-1"
+  },
+  {
+   "name": "three printed trains: a linear observer hears the ternary at once",
+   "ok": true,
+   "detail": "5.05e-1 of a first-order beat"
+  },
+  {
+   "name": "the 2.05 pair's station line is fivefold the golden pair's strongest slow line",
+   "ok": true,
+   "detail": "7.5x"
+  }
+ ]
+}

@@ -249,6 +249,19 @@ spectrum (5), band-pass observers (new, observer.md §7), and an observer
 control in the Research panel (new, observer.md §7) — the last is the thing
 to ship next if the author wants something to feel.
 
+THE AUTHOR'S VERDICT, late 2026-09-01: paper2.tex as drafted reads as a
+follow-up to the moiré paper — dense, moiré-biased, no build-up — and will
+most likely be scrapped for a third paper written from the theory up. Read
+paper/notes/beating.md FIRST: it is the framework at the right level of
+abstraction (families → counts → torus → the quotient → the observer →
+emergence iterated), an honest ledger of what is classical and what is ours,
+and the cross-domain predictions; paper/tools/exp/ear.mjs is the first
+experiment outside moiré (an ear model on aired pulse trains: the octave
+duty null through square-law, cubic and two-stage ears; a linear ear hears
+nothing; a cubic ear reopens a softened null a square-law keeps; beats of
+beats need a two-stage observer; the golden desert in sound). Everything
+below this line is the day's record and still true of the repository.
+
 Later the same day the observer control shipped (Research panel →
 Square-law): the drawing squared before the average in both the tap loop and
 the exact chain, the pivot E[c²] composed exactly from per-layer (E[α],

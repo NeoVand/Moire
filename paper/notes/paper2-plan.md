@@ -1,5 +1,15 @@
 # Paper 2 — "Moiré is counting" (working title) — outline and action plan
 
+> 2026-09-01, the author's verdict on the first full draft: it reads as a
+> follow-up to the moiré paper, not as its own paper — dense from the first
+> line, no build-up, the object introduced before the reader has a reason
+> to want it, the laws shaped by the moiré work rather than by the
+> phenomenon. It will most likely be scrapped for a third paper built from
+> the theory up. The theorems, experiments, figures and macros here are the
+> quarry for that paper; the framework it should be built on is
+> paper/notes/beating.md. The plan below is kept as the record of what was
+> built and checked.
+
 The de-frankensteinized paper. Theory first, no application sprawl, no systems
 chapters. Everything the TOG draft built — solvers, zoo, figures, experiments,
 the instrument itself — is quarry, not obligation. The TOG draft survives as
