@@ -93,6 +93,59 @@ function rankStack(layers: PatternLayer[]): StackRanking {
   return { scalars, lattices };
 }
 
+/** The scalar families whose nominal pitch IS their spacing — a radial
+ * pencil's member gap grows with radius, so it can certify nothing. */
+const PITCHED = new Set<string>([
+  'straight-lines',
+  'concentric-circles',
+  'concentric-squares',
+  'concentric-triangles',
+  'concentric-polygons',
+  'curve-wave',
+  'curve-parabola',
+  'curve-hyperbola',
+  'curve-spiral',
+]);
+
+/**
+ * The frame-wide deviation licence of a ranked pair: the higher-order
+ * character (|a|, |b|) that the pair's nominal pitch ratio locks globally,
+ * or nothing. This is the 1D convergent story of §selection run on the two
+ * spacings alone: a 3:1 pair certifies (3,-1) everywhere; a 2.31:1 pair
+ * certifies nothing, however many local stations a field's modulation
+ * scatters over the frame. Fields, positions, and rotations are deliberately
+ * ignored — anything only a PIXEL can see must not choose a schedule,
+ * because per-pocket schedules quilt the envelope with seams.
+ */
+function pairLicense(
+  P: PatternLayer | undefined,
+  Q: PatternLayer | undefined,
+  thr: number
+): [number, number, number] {
+  if (!P || !Q || !PITCHED.has(P.type) || !PITCHED.has(Q.type)) return [0, 0, 0];
+  const gP = 1 / Math.max(Math.abs(P.spacing), 1e-6);
+  const gQ = 1 / Math.max(Math.abs(Q.spacing), 1e-6);
+  let best = Infinity;
+  let ba = 0;
+  let bb = 0;
+  for (let a = 1; a <= 12; a += 1) {
+    for (let b = 1; b <= 12; b += 1) {
+      // Skip first order (always permitted, no licence needed) and the
+      // zero-sum multiples (they ride the diagonal untouched).
+      if (a * b <= 1 || a === b) continue;
+      const beat = Math.abs(a * gP - b * gQ);
+      const carrier = 0.5 * (a * gP + b * gQ);
+      const merit = (beat / Math.max(carrier, 1e-9)) * a * b;
+      if (merit < best) {
+        best = merit;
+        ba = a;
+        bb = b;
+      }
+    }
+  }
+  return best < thr ? [1, ba, bb] : [0, 0, 0];
+}
+
 /**
  * How long an expression has to stand still before it becomes a shader.
  *
@@ -474,6 +527,21 @@ export class MoireRenderer {
     const measuring = wantsScan || ratioOn;
     this.viewUniforms.scanLatA.value = measuring ? rank.lattices[0] ?? -1 : -1;
     this.viewUniforms.scanLatB.value = measuring ? rank.lattices[1] ?? -1 : -1;
+
+    // Frame-wide deviation licences, one per ranked pair: which higher-order
+    // character (if any) the pair's NOMINAL pitch ratio certifies as a global
+    // rational lock. The per-pixel scan still measures every local station,
+    // but only the licensed character may deviate the sweep's schedule —
+    // deviation identity is a decision of the stack, never of the pixel.
+    const iA = this.viewUniforms.ratioA.value as number;
+    const iB = this.viewUniforms.ratioB.value as number;
+    const iC = this.viewUniforms.ratioC.value as number;
+    const thr = Math.max(state.view.ratioThreshold, 0.02);
+    const lay = (i: number) => (i >= 0 ? state.layers[i] : undefined);
+    const bDistinct = iB === iA ? undefined : lay(iB);
+    this.viewUniforms.licAB.value.set(...pairLicense(lay(iA), bDistinct, thr));
+    this.viewUniforms.licAC.value.set(...pairLicense(lay(iA), lay(iC), thr));
+    this.viewUniforms.licBC.value.set(...pairLicense(bDistinct, lay(iC), thr));
 
     for (let i = 0; i < this.slots.length; i++) {
       writeLayerSlot(this.slots[i], state.layers[i]);

@@ -266,6 +266,20 @@ export function createViewUniforms() {
     // which drive the sweep's twist matching and the overlay's channels.
     scanLatA: uniform(-1, 'int'),
     scanLatB: uniform(-1, 'int'),
+    // Per-frame deviation LICENSES, one per ranked pair: (on, |a|, |b|).
+    // A higher-order schedule deviation is granted only to the character the
+    // pair's NOMINAL pitch ratio certifies as a global rational lock (the 1D
+    // convergent merit of the two spacings, computed in writeSlots). The
+    // per-pixel scan still finds every local station — the ratio view maps
+    // them — but holding a different schedule in every pocket quilts the
+    // envelope with seams between textures (a dipole-warped 2.3:1 line pair
+    // tiled the frame with (2,-1)/(5,-2)/(3,-1) pockets and drew circular
+    // rims around each), so deviation identity is a decision of the STACK,
+    // never of the pixel. First-order sum/difference beats bypass the
+    // license: their handover is the originally tuned per-pixel fade.
+    licAB: uniform(new THREE.Vector3(0, 0, 0)),
+    licAC: uniform(new THREE.Vector3(0, 0, 0)),
+    licBC: uniform(new THREE.Vector3(0, 0, 0)),
   };
 }
 
@@ -785,9 +799,9 @@ function scanCharacters(view, solved, latGrads, scanOn) {
   // fringe washes out in quad-sized patches. Walking pairs keep the
   // compile-time floor, which never reaches past order two.
   const PAIRS = [
-    { gP: gradA, gQ: gradB, xP: xiA, xQ: xiB, gate: bGate, who: 0, ok: okA.mul(okB) },
-    { gP: gradA, gQ: gradC, xP: xiA, xQ: xiC, gate: acGate, who: 1, ok: okA.mul(okC) },
-    { gP: gradB, gQ: gradC, xP: xiB, xQ: xiC, gate: bcGate, who: 2, ok: okB.mul(okC) },
+    { gP: gradA, gQ: gradB, xP: xiA, xQ: xiB, gate: bGate, who: 0, ok: okA.mul(okB), lic: view.licAB },
+    { gP: gradA, gQ: gradC, xP: xiA, xQ: xiC, gate: acGate, who: 1, ok: okA.mul(okC), lic: view.licAC },
+    { gP: gradB, gQ: gradC, xP: xiB, xQ: xiC, gate: bcGate, who: 2, ok: okB.mul(okC), lic: view.licBC },
   ];
   const etaBest = float(1e6).toVar();
   const pickBest = float(1e6).toVar();
@@ -796,6 +810,18 @@ function scanCharacters(view, solved, latGrads, scanOn) {
   // (devW below), because holding a high-order character costs more of the
   // picture than holding a sum beat does.
   const pickW = float(1).toVar();
+  // The winner's fastest slide rate, max(|a|, |b|): what its schedule asks
+  // of the tap budget. A rate-q slide samples each period taps/q times, and
+  // below ~8 samples the "held" fringe is mostly undersampled carrier hash.
+  const pickRate = float(1).toVar();
+  // Whether the winner may deviate at all: 1 for first-order characters
+  // (their per-pixel handover is the originally tuned fade) and for the one
+  // character the pair's frame-wide license names; 0 for every other
+  // higher-order winner, which then rides the diagonal like its
+  // surroundings. Deviation identity is a decision of the stack, not of the
+  // pixel — the license is what keeps a ratio-varying stack from quilting
+  // into per-pocket schedules with seams between them.
+  const pickLic = float(1).toVar();
   // The best ZERO-SUM candidate, tracked beside the global winner. Every
   // zero-sum character rides the plain diagonal, so among them the schedule
   // never changes and no seam can form; only a non-zero-sum winner deviates
@@ -821,7 +847,7 @@ function scanCharacters(view, solved, latGrads, scanOn) {
   const etaEnvOut = float(1).toVar();
   const devW = float(0).toVar();
   If(scanOn, () => {
-  PAIRS.forEach(({ gP, gQ, xP, xQ, gate, who, ok }) => {
+  PAIRS.forEach(({ gP, gQ, xP, xQ, gate, who, ok, lic }) => {
     // One candidate (a, b): its merit joins the heat map (wMap), and the
     // zero-sum ledger and the pick (wPick). Everything is sign-invariant —
     // (a, b) and (-a, -b) are the same character, and the merit, the
@@ -847,6 +873,17 @@ function scanCharacters(view, solved, latGrads, scanOn) {
       If(ePick.lessThan(pickBest), () => {
         pickBest.assign(ePick);
         pickW.assign(wPick);
+        pickRate.assign(max(a.abs(), b.abs()));
+        // First-order characters carry their own licence; a higher-order one
+        // must be the very character the frame-wide licence names (same
+        // orders, opposite signs — a pitch lock, not a sum).
+        const w1 = step(wPick, float(1.05));
+        const opp = float(1).sub(a.mul(b).sign()).mul(0.5);
+        const match = step(a.abs().sub(lic.y).abs(), float(0.5))
+          .mul(step(b.abs().sub(lic.z).abs(), float(0.5)))
+          .mul(lic.x)
+          .mul(opp);
+        pickLic.assign(max(w1, match));
         rateA.assign(who === 2 ? float(1) : wP);
         rateB.assign(who === 0 ? wQ : who === 2 ? wP : float(1));
         rateC.assign(who === 0 ? float(1) : wQ);
@@ -954,6 +991,8 @@ function scanCharacters(view, solved, latGrads, scanOn) {
       pickBest.assign(ePick);
       // Zero-sum: rides the diagonal, so the deviation margin never applies.
       pickW.assign(1);
+      pickRate.assign(1);
+      pickLic.assign(1);
       rateA.assign(1);
       rateB.assign(1);
       rateC.assign(1);
@@ -963,45 +1002,49 @@ function scanCharacters(view, solved, latGrads, scanOn) {
   });
   etaOut.assign(etaBest.clamp(0, 1));
 
-  // How decisively a schedule-deviating character won. Zero at the flip
-  // boundary (where the best zero-sum candidate ties it), one once the winner
-  // is clear; the sweep blends its deviated average against the diagonal
-  // average by this weight, so the schedule handover is a fade rather than a
-  // seam. A zero-sum winner has zeroBest == pickBest and rides the diagonal
-  // untouched. The transition width follows the regime threshold, so the
-  // fade lives inside the band where both beats are comparably visible.
+  // Whether a schedule-deviating winner actually gets its deviation. THE
+  // DIAGONAL IS THE ENVELOPE; a deviation is an exception, licensed only
+  // when averaging diagonally would blank a fringe the render shows
+  // decisively (the 3:1 / 5:2 family). Three independent gates multiply,
+  // each in [0, 1] so the handover is always a fade, never a seam:
   //
-  // The second factor retires the deviation as the winner itself stops
-  // making fringes. A sum or higher-order beat can keep winning while its
-  // own merit climbs well past the threshold — its "fringes" are then a bare
-  // carrier or two wide, and holding the schedule for them paints an annulus
-  // of hash that ends in a hard rim where the pick finally flips (two
-  // displaced ring families drew that rim around their midpoint). There the
-  // honest average is the diagonal's wash, so hand over to it smoothly. The
-  // band starts well above the regime threshold: at eta = thr a fringe still
-  // spans several carriers and is legible structure the view must keep (the
-  // wave pair's beading); by twice that it is hash.
-  // The margin a deviating winner must clear scales with its own amplitude
-  // weight: (1 + w) / 2, so a sum beat (w = 1) keeps the tuned band exactly,
-  // while a deep reduction winner must beat every zero-sum character
-  // DECISIVELY before it may hijack the schedule. Holding a high-order
-  // character washes every zero-sum texture in its pocket, and on a stack
-  // whose ratio varies across the frame (three radial fans) the stations are
-  // everywhere: each marginal winner became a hard-edged thumb of foreign
-  // texture in the envelope while the render ran smoothly across it. A
-  // global 3:1 or 5:2 pair still deviates — with no slow zero-sum character
-  // anywhere, the margin is enormous — but an in-regime station embedded in
-  // near-regime (1,-1) texture now rides the diagonal like its surroundings
-  // (zoo fan-trio-envelope; the ratio view keeps the station ladder either
-  // way, since the heat map reads etaBest, not the schedule).
+  // P — decisiveness against the diagonal's own content: the winner must
+  // clear the best zero-sum candidate by a margin that scales with its
+  // amplitude weight, (1 + w) / 2. Zero at the flip boundary, so a station
+  // embedded in visible zero-sum texture rides the diagonal like its
+  // surroundings (the three-fan thumbs; zoo fan-trio-envelope).
+  //
+  // R — the winner must be a CERTIFIED fringe, its weighted merit inside
+  // the regime threshold the whole theory runs on. The earlier band keyed
+  // on hash scale (1.7-3.4 thr) and was tuned for first-order sum beats,
+  // whose handover rims it fixed (rings-sum-handover, the wave pair's
+  // beading) — it keeps that band at w = 1. But a higher-order winner with
+  // merit at 0.4-0.6 is a fringe the criterion itself calls invisible, and
+  // holding its schedule hoists a faint beat to prominence while washing
+  // the stripes and swirls the render actually features. Above order one
+  // the fade starts AT the threshold — exactly where the map stops calling
+  // the winner a fringe — and is done by 1.7x. Tighter still (a band
+  // starting at thr/2) half-washed the legitimate 5:2 hold, whose 1 degree
+  // of rotation prices even a perfect pitch lock at ~0.7 thr.
+  //
+  // T — the tap budget must resolve the schedule: a rate-q slide samples
+  // each family period taps/q times, and under ~8 the held fringe is
+  // mostly undersampled carrier — the striped fill of those discs. Deep
+  // stations ((12,-5) and friends, hair-thin loci) die here at any default
+  // tap count, and raising the Quality dial is what legitimately revives
+  // them. 3:1 at 24 taps (8 per period) and 5:2 at 48 (9.6) both pass.
   const thr = max(view.ratioThreshold, float(0.02));
-  devW.assign(
-    smoothstep(
-      float(0),
-      max(view.ratioThreshold.mul(0.5), float(0.02)).mul(pickW.add(1).mul(0.5)),
-      zeroBest.sub(pickBest)
-    ).mul(float(1).sub(smoothstep(thr.mul(1.7), thr.mul(3.4), pickBest)))
+  const devP = smoothstep(
+    float(0),
+    max(view.ratioThreshold.mul(0.5), float(0.02)).mul(pickW.add(1).mul(0.5)),
+    zeroBest.sub(pickBest)
   );
+  const hiOrder = pickW.sub(1).clamp(0, 1);
+  const devR = float(1).sub(
+    smoothstep(thr.mul(mix(float(1.7), float(1.0), hiOrder)), thr.mul(mix(float(3.4), float(1.7), hiOrder)), pickBest)
+  );
+  const devT = float(view.taps).div(max(pickRate, float(1))).sub(4).div(4).clamp(0, 1);
+  devW.assign(devP.mul(devR).mul(devT).mul(pickLic));
 
   // Lattice coordinates join the measurement. eta is defined over the
   // characters of the JOINT index torus, and a lattice's visible families
