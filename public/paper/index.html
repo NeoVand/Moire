@@ -325,7 +325,7 @@ footer a:hover { color: var(--accent); text-decoration: none; }
     <p class="subtitle">Interference as a scalar field, and a tool for drawing with it</p>
     <p class="byline"><b>Neo Mohsenvand</b> · 2026</p>
   </header>
-  <div class="hero wide"><figure class="paper-figure" id="fig-1"><img src="figures/teaser-row1.png" width="3900" height="960" alt=""><div class="panelrow"><span>(1) two ring families</span><span>(2) a terrain field</span><span>(3) counter-spirals</span><span>(4) a hexagonal twist</span></div><img src="figures/teaser-row2.png" width="3900" height="960" alt=""><div class="panelrow"><span>(5) a four-vortex flow</span><span>(6) one walking family</span><span>(7) two triangle families</span><span>(8) two walking families</span></div><figcaption><span class="fignum">Fig. 1.</span> <strong>Eight superpositions rendered directly from fields, with no
+  <div class="hero wide"><figure class="paper-figure" id="fig-1"><img src="figures/teaser-row1.png" width="3900" height="960" alt=""><div class="panelrow"><span>(1) two ring families</span><span>(2) a terrain field</span><span>(3) counter-spirals</span><span>(4) a hexagonal twist</span></div><img src="figures/teaser-row2.png" width="3900" height="960" alt=""><div class="panelrow"><span>(5) a four-vortex flow</span><span>(6) one walking family</span><span>(7) three radial pencils</span><span>(8) two walking families</span></div><figcaption><span class="fignum">Fig. 1.</span> <strong>Eight superpositions rendered directly from fields, with no
   intermediate raster.</strong>  Each panel is cut at the dashed rule: to its left the
   pattern as drawn, to its right the same parameters under the envelope view of
   <a href="#sec-4-4">§4.4</a>: the stack averaged over one period of its own phase,
@@ -349,11 +349,14 @@ footer a:hover { color: var(--accent); text-decoration: none; }
   integers, so its envelope is the rank-two case of <a href="#sec-4-4">§4.4</a>.
   <strong>(5)</strong> The construction of (2), carrying the stream
   function of four point vortices: the fringes are the flow's streamlines, and
-  no trajectory was integrated. <strong>(6)</strong> A <em>single</em> walking family
+  no trajectory was integrated.   <strong>(6)</strong> A <em>single</em> walking family
   (member $n$ turned by <span class="nowrap">$n\theta$,</span> pushed by <span class="nowrap">$n\delta$)</span> with no global index
   field and no partner layer: it interferes with itself, and finding the
   nearest member is the search problem of <a href="#sec-7">§7</a>.
-  <strong>(7)</strong> Two concentric triangle families, detuned and turned.
+  <strong>(7)</strong> <em>Three</em> dense radial pencils: every pair lays its own
+  fringe system along the axis between its centers, and the criterion,
+  the schedule, and the average are all decisions on the joint index torus
+  of <a href="#sec-4-4">§4.4</a> — the one panel with more than two layers.
   <strong>(8)</strong> Two walking circle families drifting against each other, the
   tool's default preset.
   Settings in the supplemental material (§ S4).</figcaption></figure></div>
@@ -1233,23 +1236,23 @@ is a convergent, with no exceptions
 quasi-random tap rule (supplemental § S3) is this theorem run backwards: its
 scrambled generator advances by the golden ratio precisely so that <em>no</em>
 integer character can survive the average.</p>
-<figure class="paper-figure wide" id="fig-6"><div class="subrow"><figure class="sub" style="flex-grow:0.37"><img src="figures/tikz-264ab2eec3d9.png" width="798" height="440" alt=""><figcaption>(a) the convergent staircase</figcaption></figure><figure class="sub" style="flex-grow:0.61"><img src="figures/selection-stations.png" width="1440" height="540" alt=""><figcaption>(b) rational stations, per pixel</figcaption></figure></div><figcaption><span class="fignum">Fig. 6.</span> <strong>Which beat wins is best approximation.</strong> 
-  <strong>(a)</strong> The winning character $(p,-q)$ of two parallel families, drawn
-  as the rational $p/q$ it locks to, against the pitch ratio <span class="nowrap">$\rho$,</span> as the
-  order budget grows from $2$ to <span class="nowrap">$16$:</span> a mode-locking staircase whose plateaus
-  are the convergents of $\rho$'s continued fraction, each budget splitting
-  the risers of the last. Near the golden ratio $\varphi$ (dashed), the
-  worst-approximable number, the coarse steps survive every budget: the
-  fringe desert. <strong>(b)</strong> The same arithmetic as geography.
+<figure class="paper-figure wide" id="fig-6"><div class="subrow"><figure class="sub" style="flex-grow:1"><img src="figures/selection-stations.png" width="2100" height="540" alt=""><figcaption>(a) rational stations, per pixel</figcaption></figure><figure class="sub" style="flex-grow:1"><img src="figures/tikz-6391ab32ba2d.png" width="822" height="596" alt=""><figcaption>(b) the convergent staircase</figcaption></figure></div><figcaption><span class="fignum">Fig. 6.</span> <strong>Which beat wins is best approximation.</strong> 
+  <strong>(a)</strong> Arithmetic as geography.
   Two radial pencils: the local pitch ratio of their index gradients sweeps
   through the rationals along the axis, and each rational the amplitude
   weight admits owns a commensurate pocket, marked by the level sets of the
   per-pixel <em>winning</em> character wherever that winner is beyond first
   order and <span class="nowrap">$\mu_k\le1/4$:</span> blue at order two, orange at three and four,
-  crimson deeper, the staircase's own hierarchy laid on the ground. The
-  first-order sea between the pockets is the moiré the render itself
-  shows, so it gets no overlay. Computed by the reduction of this section;
-  the render never saw the curves.</figcaption></figure>
+  crimson deeper. The first-order sea between the pockets is the moiré the
+  render itself shows, so it gets no overlay. Computed by the reduction of
+  this section; the render never saw the curves.
+  <strong>(b)</strong> The same hierarchy as a function: the winning character
+  $(p,-q)$ of two parallel families, drawn as the rational $p/q$ it locks
+  to, against the pitch ratio <span class="nowrap">$\rho$,</span> as the order budget grows from $2$ to
+  <span class="nowrap">$16$:</span> a mode-locking staircase whose plateaus are the convergents of
+  $\rho$'s continued fraction, each budget splitting the risers of the last.
+  Near the golden ratio $\varphi$ (dashed), the worst-approximable number,
+  the coarse steps survive every budget: the fringe desert.</figcaption></figure>
 <p>In two dimensions the gradients need not be collinear, and the object that
 replaces the continued fraction is a lattice: the candidate beat frequencies
 $\{k_1\nabla\idx_1+k_2\nabla\idx_2 : k\in\Z^2\}$ are the integer combinations
@@ -1284,7 +1287,7 @@ criterion read blank while the fringe stood in the render, and the envelope,
 whose sweep schedule is chosen by this scan
 (<a href="#sec-4-4">§4.4</a>), washed it out. On pairs whose local ratio varies
 across the frame, the stations of the convergent ladder become <em>places</em>
-(Figure <a href="#fig-6">6</a>b).</p>
+(Figure <a href="#fig-6">6</a>a).</p>
 <figure class="paper-figure" id="fig-7"><div class="subrow"><figure class="sub" style="flex-grow:0.32"><img src="figures/pitch3-render.png" width="640" height="640" alt=""><figcaption>(a) render</figcaption></figure><figure class="sub" style="flex-grow:0.32"><img src="figures/pitch3-diag.png" width="640" height="640" alt=""><figcaption>(b) diagonal sweep</figcaption></figure><figure class="sub" style="flex-grow:0.32"><img src="figures/pitch3-sched.png" width="640" height="640" alt=""><figcaption>(c) $w=(1,3)$</figcaption></figure></div><figcaption><span class="fignum">Fig. 7.</span> <strong>The $3{:}1$ fringe no order cap can hold.</strong>  Two line
   families at pitches $15$ and <span class="nowrap">$5$,</span> twisted <span class="nowrap">$2^\circ$.</span> <strong>(a)</strong> The render
   carries a broad $(3,-1)$ fringe. <strong>(b)</strong> The mean ink over the diagonal
@@ -1470,7 +1473,7 @@ on top. We verified each clause by counting integer crossings on probe loops
 (<code>tools/ exp/ defects.mjs</code>): $22$ probes spanning
 gains $1$ to <span class="nowrap">$10$,</span> displaced defects, opposite-charge pairs, and a
 defect plus an exact field, every count exact.</p>
-<figure class="paper-figure wide" id="fig-8"><div class="subrow"><figure class="sub" style="flex-grow:0.325"><img src="figures/defect-fork.png" width="640" height="640" alt=""><figcaption>(a) one family, <span class="nowrap">$f=\theta/\tau$,</span> $a=5$</figcaption></figure><figure class="sub" style="flex-grow:0.325"><img src="figures/defect-pair.png" width="640" height="640" alt=""><figcaption>(b) over its unmodulated twin</figcaption></figure><figure class="sub" style="flex-grow:0.325"><img src="figures/defect-envelope.png" width="640" height="640" alt=""><figcaption>(c) envelope: five fringes end</figcaption></figure></div><figcaption><span class="fignum">Fig. 8.</span> <strong>A circle-valued field mints a defect.</strong>  <strong>(a)</strong> A line
+<figure class="paper-figure" id="fig-8"><div class="subrow"><figure class="sub" style="flex-grow:0.32"><img src="figures/defect-fork.png" width="640" height="640" alt=""><figcaption>(a) <span class="nowrap">$f=\theta/\tau$,</span> $a=5$</figcaption></figure><figure class="sub" style="flex-grow:0.32"><img src="figures/defect-pair.png" width="640" height="640" alt=""><figcaption>(b) over its twin</figcaption></figure><figure class="sub" style="flex-grow:0.32"><img src="figures/defect-envelope.png" width="640" height="640" alt=""><figcaption>(c) five fringes end</figcaption></figure></div><figcaption><span class="fignum">Fig. 8.</span> <strong>A circle-valued field mints a defect.</strong>  <strong>(a)</strong> A line
   family carrying $f=\theta/\tau$ at gain $5$ is the classical fork grating:
   five extra members emanate from the origin, where the family's counting
   fails to close. <strong>(b)</strong> Against an unmodulated twin the moiré carries

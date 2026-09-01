@@ -342,12 +342,21 @@ integer character can survive the average.
 
 \begin{figure*}[t]
   \centering
-  % The two panels are sized so their printed heights agree: the strip is
-  % 1440 x 540, so at 0.61\textwidth it stands 0.229\textwidth tall, and the
-  % axis height below is chosen to match it, labels included.
-  \begin{subfigure}[b]{0.37\textwidth}
+  % Stacked rows rather than side-by-side panels: the strip earns the whole
+  % text width and the staircase below it can be genuinely large, with no
+  % panel heights to reconcile.
+  \begin{subfigure}{\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{figures/selection-stations.png}
+    \caption{rational stations, per pixel}
+    \label{fig:selection-stations}
+  \end{subfigure}
+
+  \vspace{4pt}
+  \begin{subfigure}{\textwidth}
+    \centering
     \begin{tikzpicture}
-      \begin{axis}[paperaxis, height=3.62cm, width=\linewidth,
+      \begin{axis}[paperaxis, height=4.9cm, width=0.58\textwidth,
         xlabel={pitch ratio $\rho$}, ylabel={locked ratio $p/q$},
         xmin=1, xmax=3.5, ymin=0.9, ymax=3.6,
         ytick={1,1.5,2,2.5,3},
@@ -360,19 +369,19 @@ integer character can survive the average.
           {(1.6180339,0.9) (1.6180339,3.6)};
         \node[soft, font=\scriptsize, anchor=south west] at (axis cs: 1.628, 3.18)
           {$\varphi$};
-        \addplot[ink!30, const plot, line width=1.1pt]
+        \addplot[ink!30, const plot, line width=1.2pt]
           table [x=rho, y expr=\thisrow{p2}/\thisrow{q2}, col sep=comma]
           {data/convergent-fan.csv};
         \addlegendentry{$q\le2$}
-        \addplot[cool, const plot, line width=0.85pt]
+        \addplot[cool, const plot, line width=0.95pt]
           table [x=rho, y expr=\thisrow{p4}/\thisrow{q4}, col sep=comma]
           {data/convergent-fan.csv};
         \addlegendentry{$q\le4$}
-        \addplot[warm, const plot, line width=0.6pt]
+        \addplot[warm, const plot, line width=0.7pt]
           table [x=rho, y expr=\thisrow{p8}/\thisrow{q8}, col sep=comma]
           {data/convergent-fan.csv};
         \addlegendentry{$q\le8$}
-        \addplot[accent, const plot, line width=0.45pt]
+        \addplot[accent, const plot, line width=0.5pt]
           table [x=rho, y expr=\thisrow{p16}/\thisrow{q16}, col sep=comma]
           {data/convergent-fan.csv};
         \addlegendentry{$q\le16$}
@@ -380,39 +389,35 @@ integer character can survive the average.
     \end{tikzpicture}
     \caption{the convergent staircase}
     \label{fig:selection-fan}
-  \end{subfigure}\hfill
-  \begin{subfigure}[b]{0.61\textwidth}
-    \includegraphics[width=\linewidth]{figures/selection-stations.png}
-    \caption{rational stations, per pixel}
-    \label{fig:selection-stations}
   \end{subfigure}
-  \Description{Left: a staircase plot of the locked rational against the pitch
-  ratio, hugging the diagonal, for four order budgets. The budget-two staircase
-  has a few wide steps at whole and half-integer ratios; each larger budget
-  splits the risers into finer steps that cling closer to the diagonal, and
-  around a dashed vertical line marked with the golden ratio the wide steps
-  survive every budget. Right: two airy fans of straight lines radiating from
-  two ringed holes, and along the horizontal axis through both, small colored
-  marks: wide blue arcs far out on either flank, orange crosses closer in,
-  and clusters of crimson ticks crowding toward each hole, with a few marks
-  between the holes as well.}
+  \Description{Top: a wide strip of two dense fans of straight lines radiating
+  from two small holes, weaving a fine net, and along the horizontal axis
+  through both holes, small colored marks: wide blue arcs far out on either
+  flank, orange crosses closer in, and clusters of crimson ticks crowding
+  toward each hole, with a few marks between the holes as well. Bottom: a
+  staircase plot of the locked rational against the pitch ratio, hugging the
+  diagonal, for four order budgets. The budget-two staircase has a few wide
+  steps at whole and half-integer ratios; each larger budget splits the risers
+  into finer steps that cling closer to the diagonal, and around a dashed
+  vertical line marked with the golden ratio the wide steps survive every
+  budget.}
   \caption{\figlead{Which beat wins is best approximation.}
-  \textbf{(a)}~The winning character $(p,-q)$ of two parallel families, drawn
-  as the rational $p/q$ it locks to, against the pitch ratio $\rho$, as the
-  order budget grows from $2$ to $16$: a mode-locking staircase whose plateaus
-  are the convergents of $\rho$'s continued fraction, each budget splitting
-  the risers of the last. Near the golden ratio $\varphi$ (dashed), the
-  worst-approximable number, the coarse steps survive every budget: the
-  fringe desert. \textbf{(b)}~The same arithmetic as geography.
+  \textbf{(a)}~Arithmetic as geography.
   Two radial pencils: the local pitch ratio of their index gradients sweeps
   through the rationals along the axis, and each rational the amplitude
   weight admits owns a commensurate pocket, marked by the level sets of the
   per-pixel \emph{winning} character wherever that winner is beyond first
   order and $\mu_k\le1/4$: blue at order two, orange at three and four,
-  crimson deeper, the staircase's own hierarchy laid on the ground. The
-  first-order sea between the pockets is the moir\'e the render itself
-  shows, so it gets no overlay. Computed by the reduction of this section;
-  the render never saw the curves.}
+  crimson deeper. The first-order sea between the pockets is the moir\'e the
+  render itself shows, so it gets no overlay. Computed by the reduction of
+  this section; the render never saw the curves.
+  \textbf{(b)}~The same hierarchy as a function: the winning character
+  $(p,-q)$ of two parallel families, drawn as the rational $p/q$ it locks
+  to, against the pitch ratio $\rho$, as the order budget grows from $2$ to
+  $16$: a mode-locking staircase whose plateaus are the convergents of
+  $\rho$'s continued fraction, each budget splitting the risers of the last.
+  Near the golden ratio $\varphi$ (dashed), the worst-approximable number,
+  the coarse steps survive every budget: the fringe desert.}
   \label{fig:selection}
 \end{figure*}
 
@@ -451,7 +456,7 @@ criterion read blank while the fringe stood in the render, and the envelope,
 whose sweep schedule is chosen by this scan
 (\S\ref{sec:envelope}), washed it out. On pairs whose local ratio varies
 across the frame, the stations of the convergent ladder become \emph{places}
-(Figure~\ref{fig:selection}b).
+(Figure~\ref{fig:selection}a).
 
 \begin{figure}[t]
   \centering

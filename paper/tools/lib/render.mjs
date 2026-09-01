@@ -244,7 +244,7 @@ export function compose(v, layers) {
  * not change with zoom.
  */
 export function envelope(v, layers, opts = {}) {
-  const { contrast = 3, taps = ENVELOPE_TAPS } = opts;
+  const { contrast = 3, taps = ENVELOPE_TAPS, autoPivot = false } = opts;
   const bg = hexToRgb(v.background);
   const pixel = 1 / Math.max(v.zoom, 0.08);
   const aa = pixel * 0.7;
@@ -278,6 +278,25 @@ export function envelope(v, layers, opts = {}) {
   for (const L of built) {
     const cov = latticeCoverage(L, pixel) * L.opacity;
     for (let k = 0; k < 3; k++) pivot[k] += (L.color[k] - pivot[k]) * cov;
+  }
+  // The model pivot prices a family by its nominal pitch, which a radial
+  // pencil does not have (its member gap grows with radius): three dense fans
+  // read as a few percent coverage and the expansion slams the frame black.
+  // `autoPivot` measures the frame's own mean ink on a coarse grid instead —
+  // the same "expand about the true mean" the contrast is meant to be.
+  if (autoPivot) {
+    const acc = [0, 0, 0];
+    let n = 0;
+    for (let y = 2; y < v.height; y += 5) {
+      for (let x = 2; x < v.width; x += 5) {
+        inkAt(built, worldOf(v, x, y, 1), pixel, aa, bg, hit, -1, null);
+        acc[0] += hit[0];
+        acc[1] += hit[1];
+        acc[2] += hit[2];
+        n += 1;
+      }
+    }
+    for (let k = 0; k < 3; k++) pivot[k] = acc[k] / Math.max(1, n);
   }
 
   const rgb = new Uint8Array(v.width * v.height * 3);

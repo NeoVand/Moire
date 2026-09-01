@@ -37,20 +37,20 @@ const THR = 0.25;
   // spacing 1 makes the radial index count members (psi is already in member
   // units), so the overlay's integer level sets are the true fringes, and
   // atan2's branch cut jumps D by an exact integer, invisible modulo 1.
-  const HOLE = 16;
+  const HOLE = 12;
   const cfgA = {
     kind: 'radial',
-    lineCount: 44,
+    lineCount: 64,
     spacing: 1,
     phase: HOLE,
-    position: { x: -90, y: 0 },
+    position: { x: -80, y: 0 },
   };
   const cfgB = {
     kind: 'radial',
-    lineCount: 44,
+    lineCount: 64,
     spacing: 1,
     phase: HOLE,
-    position: { x: 90, y: 0 },
+    position: { x: 80, y: 0 },
   };
   const famA = family(cfgA);
   const famB = family(cfgB);
@@ -63,12 +63,13 @@ const THR = 0.25;
     return { x: g.x / fam.spacing, y: g.y / fam.spacing };
   };
   const layers = [
-    { ...cfgA, thickness: 1.3, color: '#000000' },
-    { ...cfgB, thickness: 1.3, color: '#000000' },
+    { ...cfgA, thickness: 1.05, color: '#000000' },
+    { ...cfgB, thickness: 1.05, color: '#000000' },
   ];
-  // Wide strip cropped to the axis band through both foci, so the
-  // commensurate pockets sit at a readable scale beside the staircase.
-  const V = view({ width: 1440, height: 540, zoom: 1.9, superSample: 2 });
+  // Full-width strip cropped to the axis band through both foci: the figure
+  // stacks this over the staircase, so the strip gets the whole text width
+  // and the pockets sit at a readable scale.
+  const V = view({ width: 2100, height: 540, zoom: 2.0, superSample: 2 });
   const base = compose(V, layers);
 
   // The overlay: level sets of the per-pixel winning character, drawn ONLY

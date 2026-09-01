@@ -87,10 +87,12 @@ export function teaserScenes(solver) {
     },
     {
       name: 'hex-twist',
-      zoom: 1.15,
+      // Wide enough for a 6x6 field of superlattice spots, and the walls
+      // slightly thick, so the twist reads at thumbnail scale.
+      zoom: 0.85,
       layers: [
-        L({ kind: 'lattice', lattice: 'hex', spacing: 10, thickness: 2 }),
-        L({ kind: 'lattice', lattice: 'hex', spacing: 10, rotation: 5, thickness: 2 }),
+        L({ kind: 'lattice', lattice: 'hex', spacing: 10, thickness: 2.4 }),
+        L({ kind: 'lattice', lattice: 'hex', spacing: 10, rotation: 5, thickness: 2.4 }),
       ],
       contrast: 5.5,
       // A lattice pair's ink is spiky under the rank-1 tap rule (hairline
@@ -123,12 +125,31 @@ export function teaserScenes(solver) {
       contrast: 4.2,
     },
     {
-      name: 'triangle-star',
+      // A user's construction, retuned: THREE dense radial pencils whose
+      // Start holes overlap in a reuleaux. Every pair of fans lays a ladder
+      // of rational stations along the axis between their foci, so this is
+      // the teaser's one stack with more than two layers — the K-layer story
+      // in one panel. The measured pivot (autoPivot) is what makes the
+      // envelope half legible: a pencil has no nominal pitch for the model
+      // pivot to price, and the modelled one slams this frame to black.
+      name: 'fan-trio',
+      zoom: 1.1,
+      pan: { x: 16, y: 0 },
+      autoPivot: true,
+      taps: 48,
       layers: [
-        L({ kind: 'concentric', shape: 'triangle', spacing: 5 }),
-        L({ kind: 'concentric', shape: 'triangle', spacing: 5.4, rotation: 6 }),
+        L({ kind: 'radial', lineCount: 100, phase: 70, thickness: 1.5, position: { x: 57.7, y: 0 } }),
+        L({
+          kind: 'radial',
+          lineCount: 100,
+          phase: 70,
+          thickness: 1.5,
+          rotation: 50,
+          position: { x: 20, y: 50 },
+        }),
+        L({ kind: 'radial', lineCount: 100, phase: 70, thickness: 1.5, position: { x: -28.9, y: -50 } }),
       ],
-      contrast: 4.4,
+      contrast: 3,
     },
     {
       // The author's own scene file (moire-scene-2026-08-29T18-34-49), zoomed
@@ -162,7 +183,11 @@ export function teaserScenes(solver) {
 /** Left half pattern, right half envelope, cut hard at the seam. */
 export function splitPanelLR(compose, envelope, scene, V, taps) {
   const left = compose(V, scene.layers);
-  const right = envelope(V, scene.layers, { contrast: scene.contrast ?? 4, taps });
+  const right = envelope(V, scene.layers, {
+    contrast: scene.contrast ?? 4,
+    taps,
+    autoPivot: scene.autoPivot ?? false,
+  });
   const rgb = new Uint8Array(left.length);
   const seam = Math.round(V.width * 0.5);
   for (let y = 0; y < V.height; y++) {

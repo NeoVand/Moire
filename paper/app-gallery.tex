@@ -15,9 +15,13 @@ supersampling; the default framing is $369$ world units across (some panels pull
 back, see the table), stroke thickness $1.6$ world units unless stated, one ink
 throughout, \texttt{\#0e1013}. At the printed panel width of about $1.7$\,in
 that is over $550$\,dpi and a hairline well under half a point: fine enough to
-survive the press, and what lets a panel carry sixty members across. Each panel
+survive the press, and what lets a panel carry sixty members across. Printed
+parallel carriers ride the golden slope, $-\arctan(1/\varphi)$ off vertical,
+the angle worst approximated by rational pixel runs, so a hairline family
+cannot beat against the page raster. Each panel
 is cut at the dashed rule: composite to the left, the envelope view to the
-right at the per-panel contrast $c$ below, $24$ taps.
+right at the per-panel contrast $c$ below, $24$ taps unless the table raises
+them.
 
 % The fringes each panel produces are named twice over -- by the panel's own
 % name in the first column and at length in the teaser's caption -- and the
@@ -31,19 +35,25 @@ right at the per-panel contrast $c$ below, $24$ taps.
   1 rings     & circles, $s{=}5.5$ at $x{=}{-}72$ & circles, $s{=}5.5$ at $x{=}72$ & $4.5$ \\
   2 terrain   & lines, $s{=}5$, $t{=}3$ & the same $+$ \textsc{terrain}, $a{=}6$, ext.\ $300$ & $3.8$ \\
   3 spirals   & spiral, $s{=}5$, $B{=}90$ & spiral, $s{=}5$, $B{=}{-}60$ & $3.8$ \\
-  4 saddle    & lines, $s{=}5$ & the same $+$ \textsc{saddle}, $a{=}3$, ext.\ $165$ & $3.8$ \\
+  4 hex twist & hex lattice, $s{=}10$, $t{=}2.4$ & the same, turned $5^\circ$; $384$ taps & $5.5$ \\
   5 flow      & lines, $s{=}5$ & the same $+$ \textsc{swirl}, $a{=}3.5$, ext.\ $130$ & $3.6$ \\
   6 walking   & hexagons, $s{=}4$, $\varphi{=}2$, &---& $4.2$ \\
               & $\delta{=}(0.9,0.25)$, $\theta{=}0.025$ & & \\
-  7 triangles & triangles, $s{=}5$ & triangles, $s{=}5.4$, turned $6^\circ$ & $4.4$ \\
+  7 fan trio  & \multicolumn{2}{l}{three pencils, $N{=}100$, \emph{Start} $70$, $t{=}1.5$, at $(57.7,0)$,} & $3$ \\
+              & \multicolumn{2}{l}{$(20,50)$ turned $50^\circ$, and $({-}28.9,{-}50)$; $48$ taps} & \\
   8 vortex    & circles, $s{=}8.3$, $t{=}3.5$, & the same, $\delta{=}(0,0.5)$, pose $-5.8^\circ$, & $3$ \\
     \ pair    & $\delta{=}(0,{-}0.5)$, pose $50^\circ$ & at $(9.61,-54.4)$ & \\
   \bottomrule
 \end{tabular}
 \end{center}
 
-\noindent Panels 2 and 8 frame $565$ and $600$ world units across, panel 5
-frames $480$. Panel 8 is the instrument's opening scene, kept as its author
+\noindent Panels 2, 4 and 8 frame $565$, $565$ and $600$ world units across,
+panel 5 frames $480$ and panel 7 frames $436$. Panel 4 raises the tap count
+because hairline lattice ink is a hit-or-miss integrand under the tap rule, so
+its residue falls like $1/\text{taps}$; panel 7's contrast pivot is measured
+from the frame's own mean ink, because a radial pencil has no nominal pitch
+for the usual pivot model to price. Panel 8 is the instrument's opening
+scene, kept as its author
 exported it from \Moire{}; the scene file, camera included, is in the
 repository.
 
