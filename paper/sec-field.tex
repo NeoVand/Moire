@@ -104,33 +104,25 @@ and their inversion (\S\S\ref{sec:walking}--\ref{sec:inverse}).
 \end{figure}
 
 The division by $\lVert\nabla\ph\rVert$ in Eq.~\ref{eq:eikonal} converts a phase
-residual into a length. It is easy to omit, and we omitted it. Our shader applied
-it for the parabola family and not for the wave, hyperbola or spiral, with two
-consequences.
-
-The first is cosmetic but severe. Where $\lVert\nabla\ph\rVert>1$, the reported
-distance is $\lVert\nabla\ph\rVert$ times too large, so the stroke is thinner by
-the same factor. Sweeping each
-family over its own slider range on a $1400\times880$ frame
-(supplemental material, \S S2) we measure factors up to
-$\gradWorstWave$ for the wave and $\gradWorstHyp$ for the hyperbola, with more than
-half the frame off by over $10\%$ in both cases. Visually the family pales out
-where it steepens and crowds, the opposite of what the geometry does
-(Figure~\ref{fig:gradient}).
-
-The second is a correctness bug. Our stroke half-width is
-$\mathrm{halfT}=\max(t/2,\,1.15\,\mathrm{px})$, and the floor exists so that a
-hairline stays a hairline instead of breaking into speckle when zoomed out
-(Section~\ref{sec:zoom}). That floor is a statement about \emph{screen} distance.
-Compared against an undivided phase residual it is a statement about phase, and it
-guarantees nothing wherever $\lVert\nabla\ph\rVert\neq1$. The steep
-families, the ones that most need the floor, are precisely the ones that were
-not getting it.
-
+residual into a length. It is easy to omit, and we omitted it: our shader
+applied it for the parabola family and not for the wave, hyperbola or spiral.
+Where $\lVert\nabla\ph\rVert>1$ the reported distance is
+$\lVert\nabla\ph\rVert$ times too large, so the stroke is thinner by the same
+factor: sweeping each family over its own slider range
+(supplemental material, \S S2) we measure factors up to $\gradWorstWave$ for
+the wave and $\gradWorstHyp$ for the hyperbola, with more than half the frame
+off by over $10\%$ in both cases; visually the family pales out exactly where
+it steepens and crowds (Figure~\ref{fig:gradient}). The omission is also a
+correctness bug: the stroke floor
+$\mathrm{halfT}=\max(t/2,\,1.15\,\mathrm{px})$, which keeps a hairline from
+breaking into speckle when zoomed out (Section~\ref{sec:zoom}), is a statement
+about \emph{screen} distance, and compared against an undivided residual it
+guarantees nothing wherever $\lVert\nabla\ph\rVert\neq1$: the steep families,
+the ones that most need the floor, were precisely the ones not getting it.
 We adopt Eq.~\ref{eq:eikonal} everywhere. One cost: a wave at high amplitude
 and frequency now saturates to solid ink, because at those settings its members
-genuinely are closer together than a stroke width. That is the correct answer, and
-the previous behavior was hiding it.
+genuinely are closer together than a stroke width. That is the correct answer,
+and the previous behavior was hiding it.
 
 Eq.~\ref{eq:eikonal} is an eikonal approximation and it is exact only where the
 family is locally a foliation with steady gradient. The one family in our

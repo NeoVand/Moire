@@ -567,52 +567,37 @@ walking family one evaluation is the search of \S\ref{sec:inverse}, so $\envTaps
 of them per pixel is a stall rather than a view: implemented that way, the
 envelope ran at five frames a second on the tool's own opening preset.
 
-It need not, and the reason is that advancing an index by less than one does not
-change \emph{which} members are nearby. So the solver is asked once per pixel for
-a \emph{phase sample}
+It need not, because advancing an index by less than one does not change
+\emph{which} members are nearby. The solver is asked once per pixel for a
+\emph{phase sample}
 \begin{equation}
   \Pi(p) \;=\; \big(\,z,\; z^{\uparrow},\; z^{\downarrow},\; \ell\,\big),
   \label{eq:phasesample}
 \end{equation}
-the signed distances to the nearest member and to the two flanking it, together
-with a floor $\ell$ that does not take part in the slide. A tap at $u$ then reads
+the signed distances to the nearest member and to the two flanking it, plus a
+floor $\ell$ for everything that does not slide (a saturated solve's guard,
+the hole at a pencil's center, the hyperbola's missing innermost neighbor;
+separating these from the residual is what keeps the average from inventing
+ink where there is nothing to slide onto). A tap at $u$ then reads
 \begin{equation}
   d(p;u) \;=\; \max\Big(\min_{k\in\{z,z^{\uparrow},z^{\downarrow}\}} \lvert k - u\,\mathrm{gap} \rvert,\; \ell\Big),
   \label{eq:slide}
 \end{equation}
-where $\mathrm{gap}=\lvert z^{\uparrow}-z\rvert$ is the \emph{local} member gap.
-For the nine phase families of \S\ref{sec:catalog}, whose residual is periodic
-in the gap, \eqref{eq:slide} reproduces the re-solved distance exactly, in nine
-instructions. For the two family classes without a phase function it is a
-first-order model, and for the walking family the gap in \eqref{eq:slide} is a
-choice between two inequivalent meanings of ``advance the index.'' Advancing
-the \emph{phase} by $u\,s$ slides every residual by exactly that amount, but it
-does not map a walking family to itself (radii grow while every pose stays
-put), so a sweep at rate $s$ has no unit period to average over and
-under-covers the local carrier, leaving visible residue in the view. Sliding by
-the measured \emph{local gap} covers exactly one local carrier period, which is
-what the average \eqref{eq:meanink} needs; the price is that no re-solve
-reproduces it exactly where the flanking gaps are unequal. We choose the gap
-deliberately: exact for the integral's purpose, first-order per tap. The radial
-pencil is first-order the same way, since its members rotate rather than slide, and so
-its re-solved distance is sinusoidal in $u$ where \eqref{eq:slide} is piecewise
-linear. Both errors are small fractions of a gap away from the loci of
-\S\ref{sec:limits}, and we accept them rather than re-solve per tap. Two implementation facts belong in the open. The solver
-runs these views with the guard widened to a full pitch (Eq.~\ref{eq:guard}'s
-$\tfrac34 s$ would prove away the flanking members the sample needs), so the
-certified interval is instantiated at that wider $G$. And the search still runs
-once per pixel while the sweep is arithmetic: median frame times in the envelope
-view went from hundreds of milliseconds to within the 60\,Hz budget.
-
-Two things fall out of writing the sample this way. The gap is local, so a
-tap covers exactly one period of \emph{this} family at \emph{this} point, whatever
-the pitch does across the frame, which is what the radial pencil needs, since
-its member gap $2r\sin(\pi/2N)$ grows with radius. And $\ell$ is where the
-non-sliding parts of a family live: the guard returned by a saturated solve, the
-hole at the center of a pencil, the missing inner neighbor of the innermost
-hyperbola. Those are the places where there is nothing to slide onto,
-and separating them from the residual is what keeps the average from inventing
-ink there.
+with $\mathrm{gap}=\lvert z^{\uparrow}-z\rvert$ the \emph{local} member gap,
+so a tap covers one period of \emph{this} family at \emph{this} point
+whatever the pitch does across the frame, which is what the pencil needs,
+its gap growing with radius. For the nine phase families \eqref{eq:slide}
+reproduces the re-solved distance exactly, in nine instructions. For the
+pencil and the walking families it is first-order per tap yet exact for the
+integral's purpose, because the measured local gap is precisely one carrier
+period; the alternative, advancing the \emph{phase} at the nominal rate, has
+no unit period on a walking family at all (radii grow while every pose stays
+put) and leaves visible residue in the view. Two implementation facts belong
+in the open. The solver runs these views with the guard widened to a full
+pitch, since Eq.~\ref{eq:guard}'s $\tfrac34 s$ would prove away the flanking
+members the sample needs. And the search still runs once per pixel while the
+sweep is arithmetic: median envelope frame times went from hundreds of
+milliseconds to within the 60\,Hz budget.
 
 Each family realizes the advancing index in its own parameter: a phase shift
 for the level-set families, a rotation for the radial pencil, a translation for

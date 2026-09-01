@@ -173,10 +173,24 @@ carries all four.
   to write, with the S4 restructure.*
 - **S4** Restructure LaTeX (new §2–§4 spine, compress §6–§7 into place,
   move listed material to supplemental). Full zoo + build + HTML.
-- **S5** E4 + results integration; regenerate numbers.
+  *DONE — executed as the integrability ladder rather than the full (Ξ, F)
+  formalism: §3 "A pattern is a counting map" (object + taxonomy
+  `sec:taxonomy` + catalog absorbed; `sec-catalog.tex` deleted), §4
+  Superposition (law → η → merit → selection → envelope → verification,
+  reordered so the envelope consumes the selection), §5 defects promoted
+  to its own section, §6 retitled "Folds: walking families" with a ladder
+  bridge. All old subsection labels survive, so the supplemental's xr
+  links did not move. The torus/character formalism stays §4-local; the
+  abstract and intro now open on the counting map and the three rungs.
+  Landed at 33pp (was 32): the ladder bought approachability, not pages;
+  the deep compression (proofs to supplemental, vector-comparison
+  mechanics out) was judged watering-down and declined.*
+- **S5** E4 + results integration; regenerate numbers. *Deferred.*
 - **S6** Abstract/intro/conclusion/related-work pass (add Lagrange,
   Khinchin, three-distance, phason/quasicrystal, singular-optics
-  citations).
+  citations). *Abstract, intro, contributions, discussion, conclusion
+  done with S4; Khinchin/Hurwitz/Nguyen–Stehlé/Nye–Berry/Bazhenov/Soskin
+  cited in §4–§5. Three-distance and phason remain unplaced.*
 
 ## 8. Risks
 
