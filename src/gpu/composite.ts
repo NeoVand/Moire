@@ -357,11 +357,25 @@ export function buildColorNode(
     const world = vec2(centered.x, centered.y.negate()).div(camera.zoom).add(camera.pan);
     const pixel = float(1).div(max(camera.zoom, float(0.08)));
 
-    const solved = solveLayers(slots, fields, view, world, pixel);
+    // The character scan exists for three consumers: the envelope's sweep
+    // schedule (taps > 1), the ratio view, and the contour overlay. A plain
+    // render reads none of it — one tap at zero sweep never consults a rate,
+    // and every eta consumer in `grade` sits behind one of these toggles —
+    // yet the reduction, the candidate merits, and the lattice matching had
+    // been running per pixel unconditionally, and together they tripled the
+    // plain render (22 → 66 ms per 2.7 Mpx frame on Apple Metal). The gate
+    // is a view uniform, so the branch is uniform control flow; everything
+    // that needs a screen derivative stays outside it.
+    const scanOn = view.taps
+      .greaterThan(1.5)
+      .or(view.ratio.greaterThan(0.5))
+      .or(view.contours.greaterThan(0.5));
+
+    const solved = solveLayers(slots, fields, view, world, pixel, scanOn);
     const coords = latticeCoords(solved);
-    const scan = scanCharacters(view, solved, coords);
-    const lattice = matchLattices(view, solved, scan, coords);
-    const mean = sweepStack(camera, view, solved, lattice.coh, scan);
+    const scan = scanCharacters(view, solved, coords, scanOn);
+    const lattice = matchLattices(view, solved, scan, coords, scanOn);
+    const mean = sweepStack(camera, view, solved, lattice.coh, scan, scanOn);
     return grade(camera, view, mean, scan.etaAll, [
       { val: scan.beatVal, rate: scan.beatRate, eta: scan.eta, on: float(1) },
       ...lattice.chars,
@@ -430,7 +444,7 @@ function latticeCoords(solved) {
 // here, so a tap costs arithmetic rather than a search — and a hidden layer
 // costs nothing, because the whole solve sits under the same branch that
 // decides whether the layer draws at all.
-function solveLayers(slots, fields, view, world, pixel) {
+function solveLayers(slots, fields, view, world, pixel, scanOn) {
   return slots.map((slot, index) => {
     const local = vec2(0).toVar();
     const halfT = float(0).toVar();
@@ -575,55 +589,60 @@ function solveLayers(slots, fields, view, world, pixel) {
 
         // The index direction, in layer coordinates. The measurement's xi
         // reads the TARGET family's phase during a morph, so the direction
-        // follows the target type unconditionally.
-        const dir = vec2(1, 0).toVar();
-        If(slot.type.lessThanEqual(0.1), () => {
-          dir.assign(lineIndexDir(float(0), warpGrad));
-          hasGrad.assign(1);
-        }).Else(() => {
-          If(slot.type.lessThan(4.5), () => {
-            dir.assign(ringIndexDir(local, slot.type, slot.sides, warpGrad));
-            // Concentric only: a walking family's direction is the argmin's
-            // facet normal, which only the scan knows.
-            hasGrad.assign(
-              step(length(slot.offset), float(1e-4)).mul(
-                step(slot.rotationOffset.abs(), float(1e-6))
-              )
-            );
+        // follows the target type unconditionally. Only the character scan
+        // reads it, and the ring/curve directions cost transcendentals per
+        // pixel per layer, so the whole block sits behind the scan gate
+        // (uniform, and nothing here takes a screen derivative).
+        If(scanOn, () => {
+          const dir = vec2(1, 0).toVar();
+          If(slot.type.lessThanEqual(0.1), () => {
+            dir.assign(lineIndexDir(float(0), warpGrad));
+            hasGrad.assign(1);
           }).Else(() => {
-            If(slot.type.lessThan(8.5), () => {
-              dir.assign(radialIndexDir(local, slot.lineCount, shiftGrad));
-              hasGrad.assign(1);
-            }).Else(() => {
-              dir.assign(
-                curveIndexDir(
-                  local,
-                  slot.type.sub(9),
-                  slot.spacing,
-                  slot.phase,
-                  slot.bend,
-                  slot.frequency,
-                  warpGrad
+            If(slot.type.lessThan(4.5), () => {
+              dir.assign(ringIndexDir(local, slot.type, slot.sides, warpGrad));
+              // Concentric only: a walking family's direction is the argmin's
+              // facet normal, which only the scan knows.
+              hasGrad.assign(
+                step(length(slot.offset), float(1e-4)).mul(
+                  step(slot.rotationOffset.abs(), float(1e-6))
                 )
               );
-              hasGrad.assign(1);
+            }).Else(() => {
+              If(slot.type.lessThan(8.5), () => {
+                dir.assign(radialIndexDir(local, slot.lineCount, shiftGrad));
+                hasGrad.assign(1);
+              }).Else(() => {
+                dir.assign(
+                  curveIndexDir(
+                    local,
+                    slot.type.sub(9),
+                    slot.spacing,
+                    slot.phase,
+                    slot.bend,
+                    slot.frequency,
+                    warpGrad
+                  )
+                );
+                hasGrad.assign(1);
+              });
             });
           });
-        });
 
-        // Layer frame to world (the layer's rotation), world to screen (zoom;
-        // TSL's dFdy runs along WebGL's bottom-up window y, so world y and
-        // derivative y agree and no flip is needed — the lattice coordinates'
-        // dFdx-based gradients are the same convention, and the two meet in
-        // the candidate matching), and index units per world unit from the
-        // gap the sample measured — the same gap the fractional xi divides
-        // by, so the two agree by construction.
-        const gw = vec2(
-          c.mul(dir.x).sub(s.mul(dir.y)),
-          s.mul(dir.x).add(c.mul(dir.y))
-        );
-        const gap = max(phase.y.sub(phase.x).abs(), float(1e-6));
-        sgrad.assign(gw.mul(pixel).div(gap));
+          // Layer frame to world (the layer's rotation), world to screen (zoom;
+          // TSL's dFdy runs along WebGL's bottom-up window y, so world y and
+          // derivative y agree and no flip is needed — the lattice coordinates'
+          // dFdx-based gradients are the same convention, and the two meet in
+          // the candidate matching), and index units per world unit from the
+          // gap the sample measured — the same gap the fractional xi divides
+          // by, so the two agree by construction.
+          const gw = vec2(
+            c.mul(dir.x).sub(s.mul(dir.y)),
+            s.mul(dir.x).add(c.mul(dir.y))
+          );
+          const gap = max(phase.y.sub(phase.x).abs(), float(1e-6));
+          sgrad.assign(gw.mul(pixel).div(gap));
+        });
       });
     });
 
@@ -645,7 +664,7 @@ function solveLayers(slots, fields, view, world, pixel) {
 // candidates. (1,-1) and (1,1) are the classical difference and sum moires
 // at weight 1, exactly as before; higher orders pay their weight. The
 // merit << 1 is the fringe regime; past 1/4 no fringe forms.
-function scanCharacters(view, solved, latGrads) {
+function scanCharacters(view, solved, latGrads, scanOn) {
   const xiA = float(0).toVar();
   const xiB = float(0).toVar();
   const xiC = float(0).toVar();
@@ -766,6 +785,14 @@ function scanCharacters(view, solved, latGrads) {
   // centres, and the rate turns a phase residual into screen pixels.
   const beatVal = float(0).toVar();
   const beatRate = float(0).toVar();
+  // Everything the scan hands back, as variables with plain-render defaults:
+  // no fringe claimed (eta 1), unit rates, no deviation. The gate is the
+  // uniform scan toggle from buildColorNode; the gradients above stay outside
+  // it because dFdx must live in unconditional control flow.
+  const etaOut = float(1).toVar();
+  const etaAllOut = float(1).toVar();
+  const devW = float(0).toVar();
+  If(scanOn, () => {
   PAIRS.forEach(({ gP, gQ, xP, xQ, gate, who, ok }) => {
     // One candidate (a, b): its merit joins the heat map (wMap), and the
     // zero-sum ledger and the pick (wPick). Everything is sign-invariant —
@@ -903,7 +930,7 @@ function scanCharacters(view, solved, latGrads) {
       beatRate.assign(length(beat));
     });
   });
-  const eta = etaBest.clamp(0, 1);
+  etaOut.assign(etaBest.clamp(0, 1));
 
   // How decisively a schedule-deviating character won. Zero at the flip
   // boundary (where the best zero-sum candidate ties it), one once the winner
@@ -924,11 +951,13 @@ function scanCharacters(view, solved, latGrads) {
   // spans several carriers and is legible structure the view must keep (the
   // wave pair's beading); by twice that it is hash.
   const thr = max(view.ratioThreshold, float(0.02));
-  const devW = smoothstep(
-    float(0),
-    max(view.ratioThreshold.mul(0.5), float(0.02)),
-    zeroBest.sub(pickBest)
-  ).mul(float(1).sub(smoothstep(thr.mul(1.7), thr.mul(3.4), pickBest)));
+  devW.assign(
+    smoothstep(
+      float(0),
+      max(view.ratioThreshold.mul(0.5), float(0.02)),
+      zeroBest.sub(pickBest)
+    ).mul(float(1).sub(smoothstep(thr.mul(1.7), thr.mul(3.4), pickBest)))
+  );
 
   // Lattice coordinates join the measurement. eta is defined over the
   // characters of the JOINT index torus, and a lattice's visible families
@@ -977,9 +1006,21 @@ function scanCharacters(view, solved, latGrads) {
   // The joint minimum feeds the heat map and the regime mask; the scalar
   // minimum keeps gating the scalar beat channel, whose own regime is what
   // its contour annotates.
-  const etaAll = min(etaBest, latMin).clamp(0, 1);
+  etaAllOut.assign(min(etaBest, latMin).clamp(0, 1));
+  });
 
-  return { xiA, gradA, eta, etaAll, rateA, rateB, rateC, beatVal, beatRate, devW };
+  return {
+    xiA,
+    gradA,
+    eta: etaOut,
+    etaAll: etaAllOut,
+    rateA,
+    rateB,
+    rateC,
+    beatVal,
+    beatRate,
+    devW,
+  };
 }
 
 // A lattice joins the sweep by translation — but along what, and stepped
@@ -1021,7 +1062,7 @@ function scanCharacters(view, solved, latGrads) {
 //   (1,2)   (su - 2g, g)
 //   (2,0)   (su/2, g)        (0,2)   (g, su/2)
 //   (2,2)   (su/2 - g, g)
-function matchLattices(view, solved, scan, latGrads) {
+function matchLattices(view, solved, scan, latGrads, scanOn) {
   const { gradA, xiA } = scan;
   // The reference lattice's generator gradients and continuous indices, for
   // twist mode and its contour overlay.
@@ -1086,6 +1127,11 @@ function matchLattices(view, solved, scan, latGrads) {
     const cv1 = float(0).toVar();
     const cu2 = float(0).toVar();
     const cv2 = float(1).toVar();
+    // The per-pixel schedule choice only matters when a sweep will consult
+    // it (taps > 1) or a contour channel will draw it; a plain render's
+    // single tap sits at u = v = 0, where every schedule is the identity.
+    // Behind the same uniform gate as the character scan.
+    If(scanOn, () => {
     If(view.latA.greaterThanEqual(int(0)), () => {
       If(view.latA.equal(int(index)).not(), () => {
         // Which generator, and which sign, matches the reference's first?
@@ -1185,6 +1231,7 @@ function matchLattices(view, solved, scan, latGrads) {
           });
         });
       });
+    });
     });
     return { cu1, cv1, cu2, cv2 };
   });
@@ -1349,7 +1396,7 @@ function tilingInk(slot, p) {
  * taps averaged into the mean the envelope grades. One tap at zero sweep
  * is the ordinary render, bit for bit.
  */
-function sweepStack(camera, view, solved, latCoh, scan) {
+function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
   const { rateA, rateB, rateC, devW } = scan;
   // Two averages ride the loop together: the winning schedule's, and the
   // plain diagonal's. They differ only in the ranked scalar layers' slide
@@ -1383,11 +1430,14 @@ function sweepStack(camera, view, solved, latCoh, scan) {
         If(view.ratioB.equal(int(index)), () => rate.assign(rateB));
         If(view.ratioC.equal(int(index)), () => rate.assign(rateC));
         // Uniform per slot, so the diagonal twin below costs nothing on the
-        // layers whose rate can never deviate.
+        // layers whose rate can never deviate — and nothing at all in a
+        // plain render, where devW sits at its zero default and the blend
+        // below returns the diagonal chain regardless.
         const ranked = view.ratioA
           .equal(int(index))
           .or(view.ratioB.equal(int(index)))
-          .or(view.ratioC.equal(int(index)));
+          .or(view.ratioC.equal(int(index)))
+          .and(scanOn);
         const strokeAlpha = (d) =>
           float(1).sub(smoothstep(halfT.sub(aa), halfT.add(aa), d)).mul(slot.opacity);
 
