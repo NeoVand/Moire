@@ -1,12 +1,18 @@
 \section{The object}
 \label{sec:object}
 
-% P4: write this section last, once the laws exist. Related work lives here in
-% one column: the indicial method as the (1,-1) germ (Amidror's own verdict,
-% "ignores intensity profiles", names what the amplitude weight restores);
-% Fourier theory global and periodic; de Bruijn's index function as a counting
-% map asked different questions; the hull torus of incommensurate physics, the
-% same torus asked spectral questions.
+Beating has been studied on sinusoids for two centuries, and on sinusoids
+there is nothing to study. The product identity
+$\cos\omega_1t+\cos\omega_2t=2\cos\tfrac{\omega_1+\omega_2}2t\,\cos\tfrac{\omega_1-\omega_2}2t$
+collapses the whole phenomenon into two factors so tidy that no question is
+left: the envelope is a cosine, the carrier is a cosine, and the observer's
+only job is to fail to resolve one of them. A drawing is not a sinusoid. Two
+families of strokes carry a full ladder of harmonics each, and what emerges
+when they are superposed is a rich object --- a saturating tent rather than a
+cosine, a lattice of stations, exact nulls, quantized defects, a locking
+staircase --- that the identity hid. This paper is a theory of that object.
+It rests on one formal move, which is to stop describing a pattern by its
+frequencies and describe it by what it counts.
 
 \begin{definition}[Counting map, ink potential, drawing]
 \label{def:drawing}
@@ -19,6 +25,13 @@ together with an ink potential $I:\tor^K\to[0,1]$, the paint-order composite
 of the per-coordinate stroke profiles. The drawing is $D=I\circ\Phi$.
 \end{definition}
 
+A layer's index counts its members: the $n$-th line, the $n$-th ring, the
+$n$-th ray, with the count interpolated between them. Everything geometric
+about a stack is in $\Phi$ --- pitches, centres, walks, twists, fields ---
+and everything about ink is in $I$, a fixed function on a torus that knows
+nothing of the plane. The factorisation is the whole tool: a renderer
+evaluates $\Phi$ (by a closed form or a certified search) and looks $I$ up.
+
 \begin{definition}[Characters, local frequency, slowness]
 \label{def:character}
 A character is $k\in\Z^K=H^1(\tor^K;\Z)$, acting as $\chi_k(x)=e^{2\pi i\,k\cdot x}$.
@@ -28,12 +41,45 @@ against the carriers $|J_p^{\top}e_i|$. A moir\'e is the pullback of a slow
 character.
 \end{definition}
 
+The integers $k$ are the moir\'e orders of the classical theory, and the
+definition says where they live: not in a Fourier plane, which requires a
+periodic drawing to exist, but in the integer cohomology of the target torus,
+which every stack has, periodic or not, and pointwise. The difference
+character $(1,-1)$ is the classical moir\'e of two gratings; $(2,-1)$ is the
+station of a $2{:}1$ pair; $(1,1,-2)$ is a beat between beats of three ring
+families. Which of them is visible at a point is the subject of Law~I.
+
 \begin{remark}[Fourier is bookkeeping]
 For a product potential $I=\prod_i g_i(x_i)$, $\hat I(k)=\prod_i\hat g_i(k_i)$,
 and a stroke's harmonics decay like $|\hat g(n)|\sim 1/n$. The amplitude weight
 $|k_1k_2\cdots|$ of \S\ref{sec:selection} is this decay and nothing else; no
 other Fourier statement is used.
 \end{remark}
+
+Three finite questions can be asked of $\Phi$, and the paper's three laws are
+their answers. Which characters are slow, and how are they priced --- an
+arithmetic question, answered by lattice reduction and continued fractions
+(\S\ref{sec:selection}). Which characters survive an average --- an analytic
+question, answered by a conditional expectation on a subtorus, exact for the
+tool's sweep and universal for every observer that pools before it decides
+(\S\ref{sec:averaging}). And whether the count exists as a function at all ---
+a topological question, answered by the branch structure of an implicit
+function, with a fold law that is computed and a defect charge that is
+quantized (\S\ref{sec:integrability}). Every claim with a number is measured
+by a script and gathered in \S\ref{sec:predictions}.
+
+\paragraph{Where this sits.}
+The indicial method of the moir\'e literature draws the $(1,-1)$ fringes of
+two families as the level sets of an index difference, and its author's own
+verdict --- that the method ignores intensity profiles --- names exactly what
+the amplitude weight restores. Fourier moir\'e theory is global and needs a
+periodic drawing; the torus is local and needs none. De Bruijn's index
+function for pentagrids and multigrids is a counting map by another name,
+dualised into tilings and never asked about visibility. The hull torus of
+incommensurate physics is the same torus, asked spectral questions. This paper
+sits at their junction, and the visibility theory --- selection, averaging,
+integrability, and the observer theorem --- is what it adds.
+% P5: \cite the four when the venue's style is fixed.
 
 \begin{figure}[t]
   \centering

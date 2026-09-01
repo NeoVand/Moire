@@ -186,8 +186,18 @@ examples, not as a gallery.
   `decide` hook for exactly this). Selection and defect figures ride the
   companion's assets provisionally; the weighted staircase and the
   compressed defect column are P4 polish.
-- P4. Prose, one section per sitting, §3 first (it owns the two best
-  results), §1 last (write the object description once the laws exist).
+- P4. FIRST FULL DRAFT 2026-09-01: every section has prose and proofs (§3
+  first, then §2, §4, §1, §6). Still owed, in order: (a) citations — the
+  related-work paragraph names Amidror's indicial method, Fourier moiré
+  theory, de Bruijn's multigrids and the hull torus without \cite; refs.bib
+  has Amidror only, so de Bruijn (Indag. Math. 1981), Helmholtz (Sensations
+  of Tone) and a hull-torus reference must be added with VERIFIED
+  bibliographic data before any \cite lands; (b) the weighted staircase
+  beside the stations strip (selectionfigs.mjs, tightened) and the defect
+  column compressed to one; (c) an abstract and title pass; (d) the
+  visibility spectrum's arithmetic if anyone has an afternoon (§2 states it
+  as a definition and leaves it open); (e) a line-by-line read for numbers
+  quoted outside macros — there should be none.
 - P5. Venue decision with the finished draft in hand — not before.
 
 ## Naming candidates (park, decide at P4)
