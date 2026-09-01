@@ -34,11 +34,17 @@ is what prices the arithmetic.
   Lagrange–Gauss reduction under the |k₁k₂| weight. (Import: §selection,
   convergents experiment, staircase + stations figure — Fig 6 assets.)
 - Stations = convergents; deserts = badly approximable; the golden carrier.
-- NEW, verified: DUTY NULLS. A (p,−q) station is carried by profile
-  harmonics; an arc of duty d has zero q-th coefficient iff qd ∈ ℤ. Measured:
-  50× collapse of (1,−2) at duty 1/2 while (1,−1) peaks simultaneously.
-  Figure: character amplitudes vs duty (one panel), plus the render pair.
-  Corollary: fringe spectroscopy (measure duty by finding the null).
+- NEW, verified: DUTY NULLS. A p:q pair's visible station is (q,−p), carried
+  by the coarse family's q-th harmonic; a stroke of duty d has zero q-th
+  coefficient iff qd ∈ ℤ. Measured on the station itself over exact periods
+  (dutynull.mjs, 2026-09-01): the 2:1 null at coarse duty 1/2 is 6305× deep,
+  the 3:1 nulls at 1/3 and 2/3 are 3458× and 2549×, amplitudes track
+  |sin(qπd)/(qπ)| within the ramp's softening. (The first cut measured a
+  carrier-scale coefficient — real null, wrong fringe; observer.md §5.4.)
+  Figure: station amplitude vs coarse duty for 2:1 and 3:1, plus the render
+  pair either side of the null. Corollary: fringe spectroscopy (measure duty
+  by finding the null). Hard ink makes the null observer-proof; a nonlinear
+  observer reopens it in proportion to the blur (observer.md §5.2–5.3).
 - The "visibility spectrum" of a real number: best approximation with
   denominators priced by |pq| — state as a definition + staircase; flag the
   number-theoretic object as (to our knowledge) unnamed.
@@ -47,13 +53,28 @@ is what prices the arithmetic.
 - Theorem: averaging along schedule w computes E[I | characters ⊥ w].
   Corollaries, each one line: the fringe law (rank 1), the pivot (rank 0),
   zero-sum preservation of the diagonal, temporal exposure equivalence.
+- THE CROWN (paper/notes/observer.md, gated by observer.mjs): (i) the
+  envelope is the universal invariant of the fast rephasing among linear
+  observables (Prop. 1), and one period of an integer schedule projects
+  SHARPLY — no leakage; (ii) a spatial window is a Fourier multiplier on the
+  torus, m_p(k) = Ŵ(ρ ∇(k·Φ)(p)), with an explicit curvature remainder that
+  is the multiplier's second derivative (Thm. 2, verified to 1e-7); (iii)
+  every observer that pools before it decides reports E[N∘I | L_p] — the
+  subtorus is Φ's, the observer owns only its front-end potential (Thm. 4).
+  Reach: additive superpositions carry no cross character (no linear
+  observer sees a beat, 1e-17), a squaring front end mints it at exactly
+  â b̂/2, printed overlays carry it at linear order; hard ink is
+  observer-proof; soft ink reopens a duty null under a nonlinear observer
+  linearly in the ramp; Nyquist is the theorem applied to the scan's own
+  window. This is what makes "third pattern" formal.
 - EXACTNESS: the integral is piecewise polynomial with closed-form corners;
   the segment integrator (residue streams, Gauss-3) evaluates it — faster
   than the sampling it replaced (89 vs 115 ms receipts; error table vs
   65536-tap truth incl. rate-12 stations where 24 taps err by 0.19).
 - NEW, verified: TEMPORAL SELECTION. Time-averaging an animated stack at
-  rates r keeps exactly k·r = 0: measured 400:1 selectivity swap between
-  (1,−1) and (1,−2) by changing rates from (1,1) to (2,1). Figure: the two
+  rates r keeps exactly k·r = 0. Measured on the 16.4:8 pair's station
+  (2,−1) over exact periods (exposure.mjs, 2026-09-01): rates (1,2) keep it
+  to 0.09% of the still, (1,1) and (2,1) wash it 14668×. Figure: the three
   exposures of one scene. (A long exposure is an envelope; the shutter is a
   character filter.)
 - ILL-POSEDNESS, two faces. (i) Conditioning is a chart choice and must be
@@ -137,8 +158,10 @@ examples, not as a gallery.
   hexrot-spiral-envelope re-blessed along its fold crescents (explained in
   AGENTS.md).
 - P1. Port the session experiments into gated house-style scripts:
-  exactsweep.mjs (integrator vs truth), dutynull.mjs, exposure.mjs.
-  numbers.mjs learns their macros.
+  exactsweep.mjs (integrator vs truth) — OPEN; dutynull.mjs, exposure.mjs —
+  DONE 2026-09-01, re-aimed at the slow station and writing
+  data/dutynull.json, data/exposure.json; observer.mjs — NEW, DONE, writing
+  data/observer.json. numbers.mjs learns their macros and fails on any gate.
 - P2. Skeleton paper2.tex with the five sections, theorem statements only
   (no prose), figures placeholdered, imports mapped. Build must pass.
 - P3. New figures: torus schematic, duty-null, exposure pair, quilt pair.

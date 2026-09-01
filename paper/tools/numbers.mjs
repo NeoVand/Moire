@@ -952,5 +952,71 @@ section('data/foldlaw.json : the fold law, gated');
   console.log(`foldlaw: worst onset ${r(Math.max(...errs) * 100, 2)}%`);
 }
 
+// ------------------------------------------------- paper 2: the gated predictions
+// Each script writes a `gates` record; a failing gate stops the build here,
+// so the prose can only ever quote a number its experiment stands behind.
+/** One significant figure in scientific notation, for LaTeX math. */
+const sci = (v) => {
+  if (v === 0) return '0';
+  const e = Math.floor(Math.log10(Math.abs(v)));
+  const m = Math.round(v / 10 ** e);
+  return m === 1 ? `10^{${e}}` : `${m}\\times 10^{${e}}`;
+};
+
+section('data/dutynull.json : station nulls at rational coarse duty');
+{
+  const d = load('dutynull.json');
+  if (!d.gates.nullDepth || !d.gates.alive) {
+    throw new Error('dutynull.json has a failing gate; the prose claims none');
+  }
+  const depth = (pair, duty) => d.nulls.find((n) => n.pair === pair && Math.abs(n.duty - duty) < 1e-9).depth;
+  macro('dutyNullPeriod', Math.round(d.two.period));
+  macro('dutyNullDepthTwo', th(depth('2:1', 0.5)));
+  macro('dutyNullDepthThreeLow', th(depth('3:1', 1 / 3)));
+  macro('dutyNullDepthThreeHigh', th(depth('3:1', 2 / 3)));
+  // How far the soft-stroke amplitude sits from the hard-ink law away from
+  // the nulls, as a percentage.
+  const off = d.two.rows
+    .concat(d.three.rows)
+    .filter((r) => r.predicted > 0.01)
+    .map((r) => Math.abs(r.station - r.predicted) / r.predicted);
+  macro('dutyNullLawPct', pc(Math.max(...off), 1));
+  console.log(`dutynull: 2:1 null ${depth('2:1', 0.5).toFixed(0)}x, 3:1 nulls ${depth('3:1', 1 / 3).toFixed(0)}x / ${depth('3:1', 2 / 3).toFixed(0)}x`);
+}
+
+section('data/exposure.json : temporal selection');
+{
+  const e = load('exposure.json');
+  if (!e.gates.selectivity || !e.gates.faithful) {
+    throw new Error('exposure.json has a failing gate; the prose claims none');
+  }
+  macro('exposureSelectivity', th(e.selectivity));
+  macro('exposureFaithfulPct', r(e.faithful * 100, 2));
+  macro('exposureStationPeriod', Math.round(e.period));
+  console.log(`exposure: selectivity ${e.selectivity.toFixed(0)}x, faithful to ${(e.faithful * 100).toFixed(2)}%`);
+}
+
+section('data/observer.json : the observer theorem');
+{
+  const o = load('observer.json');
+  const failed = o.gates.filter((g) => !g.ok);
+  if (failed.length) {
+    throw new Error(`observer.json has ${failed.length} failing gates; the prose claims none`);
+  }
+  const flat = o.multiplier.filter((m) => m.c === 0);
+  const curved = o.multiplier.filter((m) => m.c > 0 && m.err > 1e-6);
+  macro('obsMultiplierErr', sci(Math.max(...flat.map((m) => m.err))));
+  macro('obsRemainderResidual', sci(Math.max(...curved.map((m) => m.errCorrected / m.err))));
+  macro('obsAdditiveBeat', sci(o.visibility.beat['additive, linear observer']));
+  macro('obsPrintedBeat', r(o.visibility.beat['multiplicative, linear observer'], 3));
+  macro('obsSquaringBeat', r(o.visibility.beat['additive, squaring observer'], 3));
+  macro('obsSaturatingBeat', r(o.visibility.beat['additive, saturating observer'], 3));
+  const soft = o.dutyNull.filter((d) => d.aa > 0);
+  macro('obsReopenRamps', soft.map((d) => r(d.aa, 2)).join(', '));
+  macro('obsReopenAmps', soft.map((d) => sci(d.squared)).join(', '));
+  macro('obsHardNull', sci(Math.max(o.dutyNull[0].linear, o.dutyNull[0].squared)));
+  console.log(`observer: ${o.gates.length} gates pass; multiplier exact to ${Math.max(...flat.map((m) => m.err)).toExponential(1)}`);
+}
+
 writeFileSync(new URL('numbers.tex', PAPER), out.join('\n') + '\n');
 console.log(`\nwrote numbers.tex (${out.filter((l) => l.startsWith('\\newcommand')).length} macros)`);

@@ -1,0 +1,235 @@
+{
+ "slowness": {
+  "pair": [
+   16.4,
+   8
+  ],
+  "station": [
+   2,
+   -1
+  ],
+  "slow": 0.003048780487804867,
+  "fast12": 0.18902439024390244,
+  "fast11": 0.06402439024390244
+ },
+ "multiplier": [
+  {
+   "c": 0,
+   "p": 0,
+   "rho": 20,
+   "direct": 0.44626222327211457,
+   "predicted": 0.44626230875131323,
+   "err": 8.547919866375153e-8,
+   "errCorrected": 8.547919866375153e-8,
+   "bound": 0
+  },
+  {
+   "c": 0,
+   "p": 0,
+   "rho": 40,
+   "direct": 0.4410182779927023,
+   "predicted": 0.4410183501766668,
+   "err": 7.218396447239428e-8,
+   "errCorrected": 7.218396447239428e-8,
+   "bound": 0
+  },
+  {
+   "c": 0,
+   "p": 37,
+   "rho": 20,
+   "direct": 0.4417116778519226,
+   "predicted": 0.44171174285626774,
+   "err": 6.500434512890507e-8,
+   "errCorrected": 6.500434512890507e-8,
+   "bound": 0
+  },
+  {
+   "c": 0,
+   "p": 37,
+   "rho": 40,
+   "direct": 0.4330200982917342,
+   "predicted": 0.4330201643486844,
+   "err": 6.605695018757629e-8,
+   "errCorrected": 6.605695018757629e-8,
+   "bound": 0
+  },
+  {
+   "c": 0,
+   "p": -120,
+   "rho": 20,
+   "direct": 0.35639562295097515,
+   "predicted": 0.3563956776689118,
+   "err": 5.4717936626147434e-8,
+   "errCorrected": 5.4717936626147434e-8,
+   "bound": 0
+  },
+  {
+   "c": 0,
+   "p": -120,
+   "rho": 40,
+   "direct": 0.3640862573834283,
+   "predicted": 0.3640863141028611,
+   "err": 5.671943276164271e-8,
+   "errCorrected": 5.671943276164271e-8,
+   "bound": 0
+  },
+  {
+   "c": 5e-8,
+   "p": 0,
+   "rho": 20,
+   "direct": 0.44626221796404103,
+   "predicted": 0.44626230875131323,
+   "err": 9.078727220002136e-8,
+   "errCorrected": 9.078727220002136e-8,
+   "bound": 0.0008460390826102999
+  },
+  {
+   "c": 5e-8,
+   "p": 0,
+   "rho": 40,
+   "direct": 0.44101823425463926,
+   "predicted": 0.4410183501766668,
+   "err": 1.1592202753263336e-7,
+   "errCorrected": 1.1592202753263336e-7,
+   "bound": 0.0033841563304411997
+  },
+  {
+   "c": 5e-8,
+   "p": 37,
+   "rho": 20,
+   "direct": 0.4417489385721372,
+   "predicted": 0.4417423400739108,
+   "err": 0.000006598498226428884,
+   "errCorrected": 1.1053913201442e-7,
+   "bound": 0.0008460390826102999
+  },
+  {
+   "c": 5e-8,
+   "p": 37,
+   "rho": 40,
+   "direct": 0.43311614106959634,
+   "predicted": 0.4330901826532408,
+   "err": 0.000025958416355553737,
+   "errCorrected": 1.3883126204206064e-7,
+   "bound": 0.0033841563304411997
+  },
+  {
+   "c": 5e-8,
+   "p": -120,
+   "rho": 20,
+   "direct": 0.3558439606837277,
+   "predicted": 0.3558557679004788,
+   "err": 0.000011807216751091865,
+   "errCorrected": 1.8085775183029895e-7,
+   "bound": 0.0008460390826102999
+  },
+  {
+   "c": 5e-8,
+   "p": -120,
+   "rho": 40,
+   "direct": 0.3638242785905112,
+   "predicted": 0.36382787581742476,
+   "err": 0.0000035972269135653434,
+   "errCorrected": 1.223658082638579e-7,
+   "bound": 0.0033841563304411997
+  }
+ ],
+ "multiplierFringeSwing": 0.004550545420191954,
+ "visibility": {
+  "beat": {
+   "multiplicative, linear observer": 0.08050448446034694,
+   "additive, linear observer": 8.021227351655193e-17,
+   "additive, squaring observer": 0.04025224223017346,
+   "additive, saturating observer": 0.07968975748142748
+  },
+  "product": 0.08050448108893878
+ },
+ "visibilityStrip": {
+  "stripMul": 0.08050446799967341,
+  "stripSq": 0.04025223400013771
+ },
+ "dutyNull": [
+  {
+   "aa": 0,
+   "linear": 1.6565019990685254e-17,
+   "squared": 1.6565019990685254e-17
+  },
+  {
+   "aa": 0.35,
+   "linear": 8.096974870990237e-18,
+   "squared": 0.0032813111708981406
+  },
+  {
+   "aa": 0.7,
+   "linear": 1.1508948171626693e-17,
+   "squared": 0.006504133606495198
+  },
+  {
+   "aa": 1.4,
+   "linear": 6.90526860343712e-17,
+   "squared": 0.011837319862750214
+  }
+ ],
+ "gates": [
+  {
+   "name": "the 16.4:8 pair beats in (2,-1)",
+   "ok": true,
+   "detail": "|(2,-1)| = 1/328.0 per world unit, (1,-2) at 1/5.3, (1,-1) at 1/15.6"
+  },
+  {
+   "name": "window average = torus multiplier (no curvature)",
+   "ok": true,
+   "detail": "worst |direct - predicted| 8.5e-8 over 6 pooled samples"
+  },
+  {
+   "name": "curvature remainder inside its bound",
+   "ok": true,
+   "detail": "p=0 rho=20: 9.1e-8 <= 8.5e-4; p=0 rho=40: 1.2e-7 <= 3.4e-3; p=37 rho=20: 6.6e-6 <= 8.5e-4; p=37 rho=40: 2.6e-5 <= 3.4e-3; p=-120 rho=20: 1.2e-5 <= 8.5e-4; p=-120 rho=40: 3.6e-6 <= 3.4e-3"
+  },
+  {
+   "name": "the remainder is the multiplier's second derivative",
+   "ok": true,
+   "detail": "p=37 rho=20: 6.6e-6 -> 1.1e-7; p=37 rho=40: 2.6e-5 -> 1.4e-7; p=-120 rho=20: 1.2e-5 -> 1.8e-7; p=-120 rho=40: 3.6e-6 -> 1.2e-7"
+  },
+  {
+   "name": "printed overlay: linear observer sees the beat at â(1) b̂(1)",
+   "ok": true,
+   "detail": "8.0504e-2 vs 8.0504e-2"
+  },
+  {
+   "name": "additive light: no linear observer sees a beat",
+   "ok": true,
+   "detail": "|(1,-1)| = 8.0e-17"
+  },
+  {
+   "name": "additive light: a squaring observer mints the beat at â(1) b̂(1) / 2",
+   "ok": true,
+   "detail": "4.0252e-2 vs 4.0252e-2"
+  },
+  {
+   "name": "additive light: a saturating observer mints a beat",
+   "ok": true,
+   "detail": "|(1,-1)| = 7.969e-2"
+  },
+  {
+   "name": "strip projection agrees with the torus coefficient",
+   "ok": true,
+   "detail": "strip 8.0504e-2 / 4.0252e-2 vs 8.0504e-2 / 4.0252e-2"
+  },
+  {
+   "name": "hard ink: the null holds for every observer",
+   "ok": true,
+   "detail": "linear 1.7e-17, squaring 1.7e-17"
+  },
+  {
+   "name": "soft ink: a linear observer keeps the null at every ramp",
+   "ok": true,
+   "detail": "1.7e-17, 8.1e-18, 1.2e-17, 6.9e-17"
+  },
+  {
+   "name": "soft ink: a squaring observer reopens the null, growing with the ramp",
+   "ok": true,
+   "detail": "aa 0.35: 3.28e-3, aa 0.7: 6.50e-3, aa 1.4: 1.18e-2"
+  }
+ ]
+}

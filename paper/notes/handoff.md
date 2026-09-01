@@ -213,5 +213,18 @@ member's facet normal in the layer frame, built from the member index the
 split ring solve reports), the dFdx path is gone from the scan, and the
 exhibit is a zoo golden (`walk-field-quilt`). Genius-hour item 4 is
 therefore closed, and the "measurement is a layer" moral gained a second
-face for paper 2 §3: an observer's window is Nyquist-limited. Next: P1's
-exactsweep.mjs, then the universal-invariant theorem.
+face for paper 2 §3: an observer's window is Nyquist-limited.
+
+Genius-hour items 1 and 6 are now one note, paper/notes/observer.md, with a
+gated check (paper/tools/exp/observer.mjs, 14 gates): the envelope is the
+universal invariant of the fast rephasing among linear observables and one
+sweep period projects sharply; a spatial window is a Fourier multiplier on
+the torus with an explicit, verified curvature remainder; every observer
+that pools before it decides reports E[N∘I | L_p] and owns only its
+front-end potential. Its reach: additive superpositions have no linear
+moiré, hard ink is observer-proof, soft ink reopens duty nulls under a
+nonlinear front end. Writing the gates exposed that the two same-day
+predictions had been measured on a carrier-scale coefficient, not the
+visible station; re-aimed, the duty null is 6305× deep and the exposure
+selectivity 14668×. Next: numbers.mjs macros (done if this addendum is in
+the same commit), P1's exactsweep.mjs, then P2's skeleton.
