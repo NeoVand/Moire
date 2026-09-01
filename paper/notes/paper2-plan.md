@@ -56,12 +56,20 @@ is what prices the arithmetic.
   (1,−1) and (1,−2) by changing rates from (1,1) to (2,1). Figure: the two
   exposures of one scene. (A long exposure is an envelope; the shutter is a
   character filter.)
-- ILL-POSEDNESS: conditioning is a chart choice and must be global — the
-  licensing lesson, now with the first-order exhibit (handover-quilt.json:
-  identical-pitch concentric pair + dipole field; per-pixel winner pockets
-  paint carrier-pitch rims that migrate with zoom). Figure: the quilted
-  view beside the disciplined one. This section owns the "measurement is a
-  layer" moral.
+- ILL-POSEDNESS, two faces. (i) Conditioning is a chart choice and must be
+  global — the licensing lesson (a dipole-warped 2.31:1 pair tiles the
+  frame with stations; a per-pixel winner quilts the view). (ii) The
+  measurement itself is Nyquist-limited: the handover quilt
+  (handover-quilt.json) turned out to be a per-pixel ESTIMATE of the
+  counting map's gradient — a screen derivative, i.e. an observer with a
+  two-pixel window — hallucinating a slow sum character below two pixels
+  per member; the closed form has no such limit and the pockets are gone.
+  Figure: the aliased estimate's view beside the closed form's. The
+  "before" half must be GENERATED (a finite-difference gradient at pixel
+  pitch fed to the same scan — on the CPU mirror, or a research-only path
+  — never by resurrecting the old shader). This section owns the
+  "measurement is a layer" moral: which subtorus (global), and with what
+  window (Nyquist).
 
 ### 4. Law III — Integrability (topology of the count) (≈3.5 pp)
 - Trichotomy: lift / monodromy / discriminant — exact, winding, fold — as
@@ -111,13 +119,23 @@ examples, not as a gallery.
 - NEW figures needed: torus schematic (§1); duty-null panel (§2, script
   exists in session log — port to exp/dutynull.mjs); exposure pair (§3,
   port to exp/exposure.mjs); quilt exhibit (§3, scene saved at
-  paper/notes/handover-quilt.json — needs the first-order fix landed so the
-  "disciplined" half exists).
+  paper/notes/handover-quilt.json; the zoo golden walk-field-quilt IS the
+  disciplined half, the aliased half needs a generated finite-difference
+  scan — P3).
 
 ## Action plan (ordered; each phase ends in a commit)
-- P0. Engineering debt that the paper depends on: extend license discipline
-  to the first-order handover (opposed-gradients criterion, preserve
-  rings-sum-handover golden; kill the quilt pockets). Zoo before/after.
+- P0. DONE 2026-09-01. The quilt was not a licensing gap. The exhibit's
+  rings walk by a fiftieth of a spacing per member, which put the pair on
+  the walking families' screen-derivative gradient, and at 1.87 px per
+  member that derivative aliases: the layers unwrap differently and the SUM
+  reads as slow, a first-order winner that needs no licence. Fixed at the
+  root — closed-form index direction for walking families (the nearest
+  member's facet normal in the layer frame; the ring solve split into
+  ringHit/ringTrio so the member's index reaches it), the dFdx path retired
+  from the scan, CPU twin + finite-difference test, zoo case
+  walk-field-quilt pins the clean field; rings-sum-handover untouched,
+  hexrot-spiral-envelope re-blessed along its fold crescents (explained in
+  AGENTS.md).
 - P1. Port the session experiments into gated house-style scripts:
   exactsweep.mjs (integrator vs truth), dutynull.mjs, exposure.mjs.
   numbers.mjs learns their macros.

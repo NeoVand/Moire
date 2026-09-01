@@ -41,8 +41,9 @@ import {
   phaseDistWgsl,
   radialIndexDir,
   radialLinePhase,
+  ringHit,
   ringIndexDir,
-  ringPhase,
+  ringTrio,
 } from './inverse.wgsl';
 import { gridDistance, latticeCellWgsl } from './lattice.wgsl';
 import { tilingTable, tilingIndex, BIN_REACH } from './tilings';
@@ -491,14 +492,17 @@ function solveLayers(slots, fields, view, world, pixel, scanOn) {
     const shift = float(0).toVar();
     const phase = vec4(0).toVar();
     const phaseFrom = vec4(0).toVar();
-    // The layer's continuous-index gradient in SCREEN space, closed form, and
-    // whether the family has one. Direction comes from the family's own phase
+    // The layer's continuous-index gradient in SCREEN space, closed form for
+    // every scalar family. Direction comes from the family's own phase
     // gradient (inverse.wgsl's *IndexDir twins), magnitude from the member gap
-    // the phase sample measured — so the estimate needs no screen derivative,
-    // which is what keeps the character scan's winner from flipping with quad
-    // noise. Walking families have no closed form and stay on dFdx.
+    // the phase sample measured — so the estimate takes no screen derivative.
+    // It cannot: a derivative of the fractional index is Nyquist-limited, and
+    // once a member spans under two pixels it aliases, which is how the
+    // walking families it once served grew the handover quilt.
     const sgrad = vec2(0).toVar();
-    const hasGrad = float(0).toVar();
+    // The nearest member the ring solve found, which its direction is built
+    // from: a walking member's facet normal lives in that member's own frame.
+    const ringN = float(-1).toVar();
     // Code 14 joins the 5..7 grids: a tiling is a lattice, indexed by a pair
     // of integers, so every lattice path downstream takes it unchanged.
     const isLattice = slot.type
@@ -574,28 +578,43 @@ function solveLayers(slots, fields, view, world, pixel, scanOn) {
       });
 
       // A morph has two families in flight at once, so it needs both phases.
-      const phaseOf = (typeNode, out) => {
+      const phaseOf = (typeNode, out, nOut) => {
         If(typeNode.lessThanEqual(0.1), () => {
           out.assign(
             linePhase(local, float(0), slot.spacing, slot.phase, slot.offset.x, warp, warpGrad)
           );
         }).Else(() => {
           If(typeNode.lessThan(4.5), () => {
+            // Two halves, so the member's index survives the vec4 phase.
+            const hit = ringHit(
+              local,
+              slot.offset,
+              slot.rotationOffset,
+              slot.spacing,
+              slot.phase,
+              typeNode,
+              slot.sides,
+              accept,
+              reject,
+              warp,
+              warpGrad
+            ).toVar();
             out.assign(
-              ringPhase(
+              ringTrio(
                 local,
+                hit,
                 slot.offset,
                 slot.rotationOffset,
                 slot.spacing,
                 slot.phase,
                 typeNode,
                 slot.sides,
-                accept,
                 reject,
                 warp,
                 warpGrad
               )
             );
+            nOut.assign(hit.y);
           }).Else(() => {
             If(typeNode.lessThan(8.5), () => {
               out.assign(
@@ -622,8 +641,12 @@ function solveLayers(slots, fields, view, world, pixel, scanOn) {
       // A lattice never reads the phase, and the solvers are the expensive part,
       // so it does not pay for one.
       If(isLattice.not(), () => {
-        phaseOf(slot.type, phase);
-        If(slot.morph.lessThan(0.999), () => phaseOf(slot.typeFrom, phaseFrom));
+        phaseOf(slot.type, phase, ringN);
+        // The direction follows the target family, so the source's member is
+        // not kept.
+        If(slot.morph.lessThan(0.999), () =>
+          phaseOf(slot.typeFrom, phaseFrom, float(0).toVar())
+        );
 
         // The index direction, in layer coordinates. The measurement's xi
         // reads the TARGET family's phase during a morph, so the direction
@@ -635,21 +658,25 @@ function solveLayers(slots, fields, view, world, pixel, scanOn) {
           const dir = vec2(1, 0).toVar();
           If(slot.type.lessThanEqual(0.1), () => {
             dir.assign(lineIndexDir(float(0), warpGrad));
-            hasGrad.assign(1);
           }).Else(() => {
             If(slot.type.lessThan(4.5), () => {
-              dir.assign(ringIndexDir(local, slot.type, slot.sides, warpGrad));
-              // Concentric only: a walking family's direction is the argmin's
-              // facet normal, which only the scan knows.
-              hasGrad.assign(
-                step(length(slot.offset), float(1e-4)).mul(
-                  step(slot.rotationOffset.abs(), float(1e-6))
+              // The nearest member's facet normal, in the layer frame: closed
+              // form for a walking family too, since the solve says which
+              // member it found and where that member's frame sits.
+              dir.assign(
+                ringIndexDir(
+                  local,
+                  ringN,
+                  slot.offset,
+                  slot.rotationOffset,
+                  slot.type,
+                  slot.sides,
+                  warpGrad
                 )
               );
             }).Else(() => {
               If(slot.type.lessThan(8.5), () => {
                 dir.assign(radialIndexDir(local, slot.lineCount, shiftGrad));
-                hasGrad.assign(1);
               }).Else(() => {
                 dir.assign(
                   curveIndexDir(
@@ -662,7 +689,6 @@ function solveLayers(slots, fields, view, world, pixel, scanOn) {
                     warpGrad
                   )
                 );
-                hasGrad.assign(1);
               });
             });
           });
@@ -684,7 +710,7 @@ function solveLayers(slots, fields, view, world, pixel, scanOn) {
       });
     });
 
-    return { slot, local, halfT, aa, isLattice, cell, shift, phase, phaseFrom, sgrad, hasGrad };
+    return { slot, local, halfT, aa, isLattice, cell, shift, phase, phaseFrom, sgrad };
   });
 }
 
@@ -706,12 +732,16 @@ function scanCharacters(view, solved, latGrads, scanOn) {
   const xiA = float(0).toVar();
   const xiB = float(0).toVar();
   const xiC = float(0).toVar();
-  const sgA = vec2(0).toVar();
-  const sgB = vec2(0).toVar();
-  const sgC = vec2(0).toVar();
-  const okA = float(0).toVar();
-  const okB = float(0).toVar();
-  const okC = float(0).toVar();
+  // Screen-space index gradients, closed form for every scalar family
+  // (solveLayers computed each beside its phase). Nothing here takes a
+  // screen derivative: a derivative of the fractional index wraps by a whole
+  // unit where the nearest member changes, and unwrapping that is sound only
+  // while a member spans two pixels or more — below, it aliases, two layers
+  // unwrap differently, and their SUM reads as the slow character. That was
+  // the walking families' path once, and the handover quilt was its picture.
+  const gradA = vec2(0).toVar();
+  const gradB = vec2(0).toVar();
+  const gradC = vec2(0).toVar();
   // Whether the layer can put ink anywhere at this pixel. The phase sample's
   // floor is the part of the family that does not slide — a radial pencil's
   // Start hole, a saturated solve's guard, the hyperbola's missing innermost
@@ -724,7 +754,7 @@ function scanCharacters(view, solved, latGrads, scanOn) {
   const inkA = float(1).toVar();
   const inkB = float(1).toVar();
   const inkC = float(1).toVar();
-  solved.forEach(({ phase, sgrad, hasGrad, halfT }, index) => {
+  solved.forEach(({ phase, sgrad, halfT }, index) => {
     // Continuous index, modulo its integer part: signed residual over the
     // local member gap, oriented at the neighbour with the smaller residual so
     // the index counts the same way whichever family produced the trio.
@@ -733,34 +763,20 @@ function scanCharacters(view, solved, latGrads, scanOn) {
     const inked = step(phase.w, halfT);
     If(view.ratioA.equal(int(index)), () => {
       xiA.assign(xi);
-      sgA.assign(sgrad);
-      okA.assign(hasGrad);
+      gradA.assign(sgrad);
       inkA.assign(inked);
     });
     If(view.ratioB.equal(int(index)), () => {
       xiB.assign(xi);
-      sgB.assign(sgrad);
-      okB.assign(hasGrad);
+      gradB.assign(sgrad);
       inkB.assign(inked);
     });
     If(view.ratioC.equal(int(index)), () => {
       xiC.assign(xi);
-      sgC.assign(sgrad);
-      okC.assign(hasGrad);
+      gradC.assign(sgrad);
       inkC.assign(inked);
     });
   });
-  // Screen-space index gradients: closed form wherever the family has one
-  // (solveLayers computed it beside the phase), screen derivatives only for
-  // the walking families. xi wraps by one whole unit where the nearest
-  // member changes; rounding the per-pixel delta away unwraps every unit
-  // boundary, sound while the carrier spans a couple of pixels. What survives
-  // the unwrap, the clamp turns into bright lines rather than garbage — and
-  // into per-quad winner flips, which is why the analytic path exists.
-  const unwrap = (v) => v.sub(round(v));
-  const gradA = mix(vec2(unwrap(dFdx(xiA)), unwrap(dFdy(xiA))), sgA, okA);
-  const gradB = mix(vec2(unwrap(dFdx(xiB)), unwrap(dFdy(xiB))), sgB, okB);
-  const gradC = mix(vec2(unwrap(dFdx(xiC)), unwrap(dFdy(xiC))), sgC, okC);
   // Candidate characters, scanned over every pair among the three ranked
   // layers. On K layers the superposition lives on T^K and the characters
   // are k in Z^K; the diagonal sweep w = (1,...,1) preserves the whole
@@ -815,17 +831,15 @@ function scanCharacters(view, solved, latGrads, scanOn) {
   const acGate = float(1).sub(validC.mul(inkA).mul(inkC)).mul(1e5);
   const bcGate = float(1).sub(validC.mul(inkB).mul(inkC)).mul(1e5);
   const ternGate = float(1).sub(validC.mul(inkA).mul(inkB).mul(inkC)).mul(1e5);
-  // `ok` is the pair's licence to reduce: 1 only when BOTH gradients are
-  // analytic. A walking family's gradient is a per-quad dFdx sample, and the
-  // reduction takes gradients seriously enough to be poisoned by that noise:
-  // two noisy vectors accidentally near-parallel read as a slow high-order
-  // character, the schedule deviates to hold it, and the true first-order
-  // fringe washes out in quad-sized patches. Walking pairs keep the
-  // compile-time floor, which never reaches past order two.
+  // Every pair reduces. The reduction takes gradients seriously enough to be
+  // poisoned by per-quad noise — two noisy vectors accidentally near-parallel
+  // read as a slow high-order character — which is why it was once licensed
+  // to analytic pairs only, and why every scalar family's gradient is now
+  // closed form, walking families included.
   const PAIRS = [
-    { gP: gradA, gQ: gradB, xP: xiA, xQ: xiB, gate: bGate, who: 0, ok: okA.mul(okB), lic: view.licAB },
-    { gP: gradA, gQ: gradC, xP: xiA, xQ: xiC, gate: acGate, who: 1, ok: okA.mul(okC), lic: view.licAC },
-    { gP: gradB, gQ: gradC, xP: xiB, xQ: xiC, gate: bcGate, who: 2, ok: okB.mul(okC), lic: view.licBC },
+    { gP: gradA, gQ: gradB, xP: xiA, xQ: xiB, gate: bGate, who: 0, lic: view.licAB },
+    { gP: gradA, gQ: gradC, xP: xiA, xQ: xiC, gate: acGate, who: 1, lic: view.licAC },
+    { gP: gradB, gQ: gradC, xP: xiB, xQ: xiC, gate: bcGate, who: 2, lic: view.licBC },
   ];
   const etaBest = float(1e6).toVar();
   const pickBest = float(1e6).toVar();
@@ -871,7 +885,7 @@ function scanCharacters(view, solved, latGrads, scanOn) {
   const etaEnvOut = float(1).toVar();
   const devW = float(0).toVar();
   If(scanOn, () => {
-  PAIRS.forEach(({ gP, gQ, xP, xQ, gate, who, ok, lic }) => {
+  PAIRS.forEach(({ gP, gQ, xP, xQ, gate, who, lic }) => {
     // One candidate (a, b): its merit joins the heat map (wMap), and the
     // zero-sum ledger and the pick (wPick). Everything is sign-invariant —
     // (a, b) and (-a, -b) are the same character, and the merit, the
@@ -916,24 +930,11 @@ function scanCharacters(view, solved, latGrads, scanOn) {
       });
     };
 
-    // The compile-time floor. On an analytic pair its order-two entries pay
-    // the same |a b| weight the window candidates do (one merit currency,
-    // so the argmin is coherent); on a walking pair — dFdx gradients — the
-    // weight blends back to the old tuned behaviour, raw eta on the heat
-    // map and a 1.5 pick penalty, which those gradients were tuned against
-    // (the weight bump alone stippled walk-pair-envelope's handover rims).
-    // First-order entries weigh 1 under both regimes.
+    // The compile-time floor, paying the same |a b| weight the window
+    // candidates do: one merit currency, so the argmin is coherent.
     SHIPPED.forEach(([ka, kb]) => {
-      const w = Math.abs(ka * kb);
-      const pen = Math.max(Math.abs(ka), Math.abs(kb)) > 1 ? 1.5 : 1;
-      consider(
-        float(ka),
-        float(kb),
-        gP.mul(ka).add(gQ.mul(kb)),
-        mix(float(1), float(w), ok),
-        mix(float(pen), float(w), ok),
-        float(0)
-      );
+      const w = float(Math.abs(ka * kb));
+      consider(float(ka), float(kb), gP.mul(ka).add(gQ.mul(kb)), w, w, float(0));
     });
 
     // Lagrange-Gauss reduction of the pair's gradient lattice, the integer
@@ -977,7 +978,7 @@ function scanCharacters(view, solved, latGrads, scanOn) {
     const windowCand = (i, j) => {
       const a = wK.x.mul(i).add(uK.x.mul(j));
       const b = wK.y.mul(i).add(uK.y.mul(j));
-      const nz = step(float(0.5), a.abs()).mul(step(float(0.5), b.abs())).mul(ok);
+      const nz = step(float(0.5), a.abs()).mul(step(float(0.5), b.abs()));
       const wgt = a.abs().mul(b.abs());
       consider(a, b, wV.mul(i).add(uV.mul(j)), wgt, wgt, float(1).sub(nz).mul(1e5));
     };
@@ -990,11 +991,8 @@ function scanCharacters(view, solved, latGrads, scanOn) {
   // where 2/s3 = 1/s1 + 1/s2 and the three directions conspire. They join
   // the scan for the heat map's sake; as zero-sum characters they already
   // ride the diagonal, so a ternary winner asks for no rate deviation at
-  // all. On an analytic trio their amplitude weight is |ka kb kc| = 2, the
-  // same currency the pairwise candidates pay; on a walking trio the blend
-  // falls back to the old raw map entry and 1.5 pick penalty, like the
-  // pairwise floor.
-  const okT = okA.mul(okB).mul(okC);
+  // all. Their amplitude weight is |ka kb kc| = 2, the same currency the
+  // pairwise candidates pay.
   const TERNARY = [
     [1, 1, -2],
     [1, -2, 1],
@@ -1007,8 +1005,8 @@ function scanCharacters(view, solved, latGrads, scanOn) {
       max(length(gradB).mul(Math.abs(kb)), length(gradC).mul(Math.abs(kc)))
     );
     const eRaw = length(beat).div(max(carrier.mul(0.5), float(1e-6)));
-    const eMap = eRaw.mul(mix(float(1), float(2), okT)).add(ternGate).toVar();
-    const ePick = eRaw.mul(mix(float(1.5), float(2), okT)).add(ternGate).toVar();
+    const eMap = eRaw.mul(2).add(ternGate).toVar();
+    const ePick = eRaw.mul(2).add(ternGate).toVar();
     If(eMap.lessThan(etaBest), () => etaBest.assign(eMap));
     If(ePick.lessThan(zeroBest), () => zeroBest.assign(ePick));
     If(ePick.lessThan(pickBest), () => {

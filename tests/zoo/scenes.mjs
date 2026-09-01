@@ -374,6 +374,46 @@ export const cases = [
       view(ENVELOPE)
     ),
   },
+  // The handover quilt (paper/notes/handover-quilt.json, the user's exhibit):
+  // a pair with identical pitch and identical centres, one carrying a steep
+  // dipole field, both walking by a fiftieth of a spacing per member. At 1.87
+  // px per member the walking pair's index gradient — then a screen
+  // derivative — aliased, the two layers unwrapped differently, and the SUM
+  // character read as slow in zoom-migrating pockets where the sweep held
+  // carrier-pitch rims. Every scalar family's gradient is closed form now;
+  // this pins the clean fringe field at the exhibit's own framing.
+  {
+    name: 'walk-field-quilt',
+    coords: [1, 1],
+    note: 'identical walking ring pair, one dipole-warped, below 2 px per member — no sum pockets',
+    scene: {
+      ...scene(
+        [
+          layer('a', {
+            type: 'concentric-circles',
+            spacing: 3,
+            thickness: 2,
+            position: { x: -14.54, y: -4.62 },
+            offset: { x: -0.07, y: -0.014 },
+            field: {
+              source: '0.5 * (1 / sqrt((x - 1)^2 + y^2 + 0.0625) - 1 / sqrt((x + 1)^2 + y^2 + 0.0625))',
+              amount: 7.47,
+              scale: 375,
+            },
+          }),
+          layer('b', {
+            type: 'concentric-circles',
+            spacing: 3,
+            thickness: 2,
+            position: { x: -14.54, y: -4.62 },
+            offset: { x: -0.07, y: -0.014 },
+          }),
+        ],
+        view({ envelope: true, envelopeContrast: 6, envelopeTaps: 36, envelopeLift: 0.05 })
+      ),
+      camera: { zoom: 0.6234, pan: { x: -285, y: 378.77 } },
+    },
+  },
   // Three dense radial fans: the local pitch ratio between each pair sweeps
   // the rationals, so in-regime higher-order stations dot the whole frame.
   // Each such winner used to engage a full schedule deviation on the mere

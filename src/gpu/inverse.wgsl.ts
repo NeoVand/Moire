@@ -531,9 +531,44 @@ fn ringDistance(p: vec2<f32>, offset: vec2<f32>, theta: f32, spacing: f32, phase
 `, [ringSignedWgsl]);
 
 /**
- * The concentric families as a phase: `vec4(r, rUp, rDown, floor)`, the signed
- * residual of the nearest member plus the two either side of it. Twin of
- * `ringPhaseCpu`.
+ * The eikonal correction a field applies to a ring family's residual. Away
+ * from the origin `∇shapeRadius` is the outward facet normal, of unit
+ * length, so the modulated phase gradient is `q̂ − ∇warp` and both the
+ * residual and the member gap divide by its length. One helper for the two
+ * halves of the solve, so they cannot disagree about it.
+ */
+const ringWarpScale = wgslFn(`
+fn ringWarpScale(p: vec2<f32>, warpGrad: vec2<f32>) -> f32 {
+  let radius = length(p);
+  if (radius < 1e-6) {
+    return 1.0;
+  }
+  return 1.0 / max(length(p / radius - warpGrad), 1e-4);
+}
+`);
+
+/**
+ * The concentric solve, first half: the nearest member and the scan's two
+ * runners-up, `vec4(r, n, alt2, alt3)` in ring-radius units. The solve is
+ * split from the trio below so that the member's INDEX reaches the caller —
+ * a vec4 phase has no lane for it, and the closed-form index direction of a
+ * walking family (`ringIndexDir`) is built from exactly that member.
+ * `ringHit` then `ringTrio` is the twin of `ringPhaseCpu`.
+ */
+export const ringHit = wgslFn(`
+fn ringHit(p: vec2<f32>, offset: vec2<f32>, theta: f32, spacing: f32, phase: f32, shapeType: f32, sides: f32, acceptBelow: f32, rejectAbove: f32, warp: f32, warpGrad: vec2<f32>) -> vec4<f32> {
+  let s = max(spacing, 1e-4);
+  let scale = ringWarpScale(p, warpGrad);
+  // The solvers work in ring-radius units, so the guard has to be there too.
+  let guard = max(rejectAbove, s * 0.75) / scale;
+  return ringSignedWgsl(p, offset, theta, s, phase + warp, shapeType, sides, acceptBelow / scale, guard);
+}
+`, [ringSignedWgsl, ringWarpScale]);
+
+/**
+ * The concentric solve, second half: the families as a phase, `vec4(r, rUp,
+ * rDown, floor)`, the signed residual of the nearest member plus the two
+ * either side of it, from the hit `ringHit` found.
  *
  * The neighbours are measured rather than assumed to be `r ± s`, because a
  * walking family has no single pitch: `∇shapeRadius` is a facet normal rather
@@ -541,22 +576,12 @@ fn ringDistance(p: vec2<f32>, offset: vec2<f32>, theta: f32, spacing: f32, phase
  * with radius. Assuming the spacing there averages the carrier over the wrong
  * period and mis-states every fringe.
  */
-export const ringPhase = wgslFn(`
-fn ringPhase(p: vec2<f32>, offset: vec2<f32>, theta: f32, spacing: f32, phase: f32, shapeType: f32, sides: f32, acceptBelow: f32, rejectAbove: f32, warp: f32, warpGrad: vec2<f32>) -> vec4<f32> {
+export const ringTrio = wgslFn(`
+fn ringTrio(p: vec2<f32>, hit: vec4<f32>, offset: vec2<f32>, theta: f32, spacing: f32, phase: f32, shapeType: f32, sides: f32, rejectAbove: f32, warp: f32, warpGrad: vec2<f32>) -> vec4<f32> {
   let s = max(spacing, 1e-4);
   let phi = phase + warp;
-  let radius = length(p);
-  var radial = vec2<f32>(0.0, 0.0);
-  if (radius >= 1e-6) {
-    radial = p / radius;
-  }
-  var scale = 1.0;
-  if (radius >= 1e-6) {
-    scale = 1.0 / max(length(radial - warpGrad), 1e-4);
-  }
-
+  let scale = ringWarpScale(p, warpGrad);
   let guard = max(rejectAbove, s * 0.75) / scale;
-  let hit = ringSignedWgsl(p, offset, theta, s, phi, shapeType, sides, acceptBelow / scale, guard);
   let r = hit.x;
   let n = hit.y;
 
@@ -628,7 +653,7 @@ fn ringPhase(p: vec2<f32>, offset: vec2<f32>, theta: f32, spacing: f32, phase: f
     0.0
   );
 }
-`, [ringSignedWgsl, evalRing, neighbourWgsl]);
+`, [evalRing, neighbourWgsl, ringWarpScale]);
 
 /**
  * A scalar field and its gradient, in layer coordinates, normalised so that the
@@ -957,38 +982,57 @@ fn lineIndexDir(angle: f32, warpGrad: vec2<f32>) -> vec2<f32> {
 }
 `);
 
-/** Concentric rings only: the support function's facet normal, tilted by the
- * field. shapeRadiusWgsl's normals sit at multiples of 2 pi / N with the first
- * on +x, for every side count it special-cases, so the quantized angle IS the
- * active facet. */
+/**
+ * The concentric families' index direction: the outward facet normal of the
+ * nearest member `n` (the one `ringHit` found), carried from that member's
+ * own frame back into the layer's and tilted by the field. Member n sits at
+ * centre R(nθ)·nδ, turned by nθ, so its residual h = shapeRadius(qₙ) − radiusₙ
+ * has gradient R(nθ)·∇shapeRadius(qₙ) in the layer frame — exactly, for a
+ * walking or rotating family as much as for a centred one. That is what
+ * retired the screen-derivative gradient: a derivative of the fractional
+ * index aliases once a member spans under two pixels, and two layers
+ * unwrapping differently there made the SUM character look slow in
+ * zoom-migrating pockets (the handover quilt). shapeRadiusWgsl's normals sit
+ * at multiples of 2π/N with the first on +x, for every side count it
+ * special-cases, so the quantized angle IS the active facet. A negative n (a
+ * saturated solve) falls back to the centred direction; no ink lands on that
+ * pixel and the scan's ink gate never reads it. Twin of `ringIndexDirCpu`.
+ */
 export const ringIndexDir = wgslFn(`
-fn ringIndexDir(p: vec2<f32>, shapeType: f32, sides: f32, warpGrad: vec2<f32>) -> vec2<f32> {
-  let r = length(p);
+fn ringIndexDir(p: vec2<f32>, n: f32, offset: vec2<f32>, theta: f32, shapeType: f32, sides: f32, warpGrad: vec2<f32>) -> vec2<f32> {
+  var turn = 0.0;
+  var q = p;
+  if (n >= 0.0) {
+    turn = n * theta;
+    q = rotate2d(p - rotate2d(offset * n, turn), -turn);
+  }
+  let r = length(q);
   if (r < 1e-6) {
     return vec2<f32>(1.0, 0.0);
   }
-  var normal = p / r;
+  var normal = q / r;
   let shape = i32(shapeType + 0.5);
   if (shape >= 2) {
-    var n = max(sides, 3.0);
+    var facets = max(sides, 3.0);
     if (shape == 2) {
-      n = 4.0;
+      facets = 4.0;
     }
     if (shape == 3) {
-      n = 3.0;
+      facets = 3.0;
     }
-    let seg = 6.28318530718 / n;
-    let a = round(atan2(p.y, p.x) / seg) * seg;
+    let seg = 6.28318530718 / facets;
+    let a = round(atan2(q.y, q.x) / seg) * seg;
     normal = vec2<f32>(cos(a), sin(a));
   }
-  let g = normal - warpGrad;
+  let world = rotate2d(normal, turn);
+  let g = world - warpGrad;
   let gl = length(g);
   if (gl < 1e-6) {
-    return normal;
+    return world;
   }
   return g / gl;
 }
-`);
+`, [rotate2d]);
 
 /** Twin of the gradients inside curvePhase, member for member. */
 export const curveIndexDir = wgslFn(`

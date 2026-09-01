@@ -18,6 +18,7 @@ import {
   RING_SPAN_CAP,
   ringDistanceCpu,
   ringDrift,
+  ringIndexDirCpu,
   ringIndexWindow,
   shapeKappa,
   shapeRadius,
@@ -1194,5 +1195,87 @@ for (const [kind, label] of [
 }
 assert.ok(cellWorst < 1e-4, `the lattice cell is not a period: ${cellDetail}`);
 console.log(`  lattice cell: a period of every grid to ${cellWorst.toExponential(1)} world units`);
+
+// The closed-form index direction of a concentric family — the nearest
+// member's facet normal carried back into the layer frame — must be the
+// gradient of the residual ringPhaseCpu reports, for walking, rotating, and
+// polygon families alike, SIGN included: the relative sign of two layers'
+// gradients is what tells a sum beat from a difference beat, and it was a
+// screen derivative of the index, aliasing below two pixels per member, that
+// painted the handover quilt.
+{
+  const families = [
+    { label: 'centred circles', shape: 1 as const, sides: 6, offset: { x: 0, y: 0 }, theta: 0 },
+    { label: 'walking circles', shape: 1 as const, sides: 6, offset: { x: 2.4, y: 0.6 }, theta: 0.015 },
+    { label: 'crept circles', shape: 1 as const, sides: 6, offset: { x: -0.07, y: -0.014 }, theta: 0 },
+    { label: 'translated squares', shape: 2 as const, sides: 4, offset: { x: -2.2, y: -0.5 }, theta: 0 },
+    { label: 'rotating hexagons', shape: 4 as const, sides: 6, offset: { x: 0, y: 0 }, theta: 0.02 },
+    { label: 'walking triangles', shape: 3 as const, sides: 3, offset: { x: 1.1, y: -0.7 }, theta: 0.01 },
+    { label: 'walking heptagons', shape: 4 as const, sides: 7, offset: { x: 0.8, y: 0.3 }, theta: -0.012 },
+  ];
+  const spacing = 12;
+  let seed = 7;
+  const rand = () => {
+    seed = (seed * 1103515245 + 12345) % 2147483648;
+    return seed / 2147483648;
+  };
+  let checked = 0;
+  let worst = 0;
+  let detail = '';
+  for (const f of families) {
+    for (let k = 0; k < 1200; k += 1) {
+      const ang = rand() * 2 * Math.PI;
+      const rad = 30 + rand() * 400;
+      const p = { x: rad * Math.cos(ang), y: rad * Math.sin(ang) };
+      // A linear field: its gradient is the constant warpGrad everywhere.
+      const warpGrad = k % 2 ? { x: 0.08, y: -0.05 } : { x: 0, y: 0 };
+      const warpAt = (q: { x: number; y: number }) => warpGrad.x * q.x + warpGrad.y * q.y;
+      // ringPhaseCpu reports the residual over the eikonal scale; divide it
+      // back out so the finite difference sees h itself.
+      const scaleAt = (q: { x: number; y: number }) => {
+        const l = Math.hypot(q.x, q.y);
+        if (l < 1e-6) return 1;
+        return 1 / Math.max(Math.hypot(q.x / l - warpGrad.x, q.y / l - warpGrad.y), 1e-4);
+      };
+      const at = (q: { x: number; y: number }) =>
+        ringPhaseCpu(q, f.offset, f.theta, spacing, 0, f.shape, f.sides, 0, spacing, warpAt(q), warpGrad);
+      const s0 = at(p);
+      if (s0.n === undefined || s0.n < 0) continue;
+      if (Math.abs(s0.r) > 0.3 * phaseGap(s0)) continue;
+      const eps = 1e-3;
+      const probes = [
+        { x: p.x + eps, y: p.y },
+        { x: p.x - eps, y: p.y },
+        { x: p.x, y: p.y + eps },
+        { x: p.x, y: p.y - eps },
+      ];
+      const samples = probes.map(at);
+      // One member, one facet: a probe that crossed to another member or
+      // straddles a support corner is not a derivative of anything smooth.
+      if (samples.some((s) => s.n !== s0.n)) continue;
+      const dir = ringIndexDirCpu(p, s0.n, f.offset, f.theta, f.shape, f.sides, warpGrad);
+      const dirs = probes.map((q) => ringIndexDirCpu(q, s0.n as number, f.offset, f.theta, f.shape, f.sides, warpGrad));
+      if (dirs.some((d) => Math.hypot(d.x - dir.x, d.y - dir.y) > 1e-9)) continue;
+      const h = samples.map((s, i) => s.r / scaleAt(probes[i]));
+      const fd = { x: (h[0] - h[1]) / (2 * eps), y: (h[2] - h[3]) / (2 * eps) };
+      const fl = Math.hypot(fd.x, fd.y);
+      if (fl < 1e-6) continue;
+      const err = Math.hypot(fd.x / fl - dir.x, fd.y / fl - dir.y);
+      checked += 1;
+      if (err > worst) {
+        worst = err;
+        detail =
+          `${f.label} at (${p.x.toFixed(1)}, ${p.y.toFixed(1)}) n=${s0.n}: ` +
+          `finite difference (${(fd.x / fl).toFixed(4)}, ${(fd.y / fl).toFixed(4)}) ` +
+          `vs closed form (${dir.x.toFixed(4)}, ${dir.y.toFixed(4)})`;
+      }
+    }
+  }
+  assert.ok(checked > 2000, `expected a wide sweep of the ring index direction, ran ${checked}`);
+  assert.ok(worst < 2e-3, `ring index direction is not the residual's gradient: ${detail}`);
+  console.log(
+    `  ring index direction: the residual's gradient on ${checked} samples to ${worst.toExponential(1)}`
+  );
+}
 
 console.log('inverseCpu checks passed');

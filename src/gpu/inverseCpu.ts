@@ -638,6 +638,9 @@ export interface PhaseSample {
   rUp: number;
   rDown: number;
   floor: number;
+  /** Concentric families only: the index of the member `r` belongs to, or −1
+   * when the solve saturated. `ringIndexDirCpu` is built from it. */
+  n?: number;
 }
 
 /**
@@ -730,7 +733,7 @@ export function ringPhaseCpu(
   // to slide: the guard is the answer at every phase.
   if (n < 0 && Math.abs(r - guard) < 1e-6) {
     const g = guard * scale;
-    return { r: g, rUp: g, rDown: g, floor: g };
+    return { r: g, rUp: g, rDown: g, floor: g, n: -1 };
   }
 
   // Rings are ordered by residual, not by index: increasing n lowers h, and past
@@ -764,7 +767,51 @@ export function ringPhaseCpu(
     rUp: neighbour(upSlot, r, s, 1) * scale,
     rDown: neighbour(downSlot, r, s, -1) * scale,
     floor: 0,
+    n,
   };
+}
+
+/**
+ * The index direction of a concentric family at `p`: the outward facet normal
+ * of the nearest member `n` (the one `ringPhaseCpu` reports), carried from
+ * that member's own frame back into the layer's and tilted by the field.
+ * Member n sits at centre R(nθ)·nδ turned by nθ, so its residual
+ * h = shapeRadius(qₙ) − radiusₙ has gradient R(nθ)·∇shapeRadius(qₙ) — the
+ * closed form for a walking family, which a screen derivative of the index
+ * could only approximate, and not at all below two pixels per member. Twin of
+ * `ringIndexDir` in inverse.wgsl.ts; the test pins it to a finite difference
+ * of the residual, sign included.
+ */
+export function ringIndexDirCpu(
+  p: { x: number; y: number },
+  n: number,
+  offset: { x: number; y: number },
+  theta: number,
+  shape: ShapeKind,
+  sides: number,
+  warpGrad: { x: number; y: number } = { x: 0, y: 0 }
+): { x: number; y: number } {
+  let turn = 0;
+  let q = p;
+  if (n >= 0) {
+    turn = n * theta;
+    const center = rotate2d({ x: offset.x * n, y: offset.y * n }, turn);
+    q = rotate2d({ x: p.x - center.x, y: p.y - center.y }, -turn);
+  }
+  const r = length2(q);
+  if (r < 1e-6) return { x: 1, y: 0 };
+  let normal = { x: q.x / r, y: q.y / r };
+  if (shape >= 2) {
+    const facets = shape === 2 ? 4 : shape === 3 ? 3 : Math.max(sides, 3);
+    const seg = TAU / facets;
+    const a = Math.round(Math.atan2(q.y, q.x) / seg) * seg;
+    normal = { x: Math.cos(a), y: Math.sin(a) };
+  }
+  const world = rotate2d(normal, turn);
+  const g = { x: world.x - warpGrad.x, y: world.y - warpGrad.y };
+  const gl = length2(g);
+  if (gl < 1e-6) return world;
+  return { x: g.x / gl, y: g.y / gl };
 }
 
 function ringSignedCpu(

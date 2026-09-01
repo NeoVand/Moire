@@ -197,3 +197,21 @@ questions that you didn't even intend to answer."* The duty nulls and the
 exposure selection were exactly that — neither was sought, both fell out,
 both survived measurement within the hour. Keep that loop tight and this
 project will keep paying.
+
+## Addendum — 2026-09-01, the successor's first day
+
+P0 is landed and its diagnosis was revised. The handover quilt was not a
+licensing gap: the exhibit's rings carry `offset (−0.07, −0.014)`, a
+fiftieth of a spacing per member, so the pair sat on the walking families'
+screen-derivative gradient path, and at 1.87 px per member a derivative of
+the fractional index aliases — the two layers unwrapped differently and the
+SUM character read as slow (a first-order winner, licence-exempt), so the
+sweep held carrier-pitch rims in zoom-migrating sectors. The same scene at
+three times the pixel density was clean before any fix. The fix is at the
+root: every scalar family's index gradient is closed form now (a walking
+member's facet normal in the layer frame, built from the member index the
+split ring solve reports), the dFdx path is gone from the scan, and the
+exhibit is a zoo golden (`walk-field-quilt`). Genius-hour item 4 is
+therefore closed, and the "measurement is a layer" moral gained a second
+face for paper 2 §3: an observer's window is Nyquist-limited. Next: P1's
+exactsweep.mjs, then the universal-invariant theorem.
