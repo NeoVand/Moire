@@ -1,0 +1,132 @@
+\section{Law II: averaging, the envelope as a conditional expectation}
+\label{sec:averaging}
+
+\begin{theorem}[The envelope is a conditional expectation, and a sharp one]
+\label{thm:envelope}
+For a schedule $w\in\Z^K$ let $\mathcal E_w I(x)=\int_0^1 I(x+uw)\,du$. Then
+\[
+  \widehat{\mathcal E_w I}(k)\;=\;\hat I(k)\cdot\mathbf 1[k\cdot w=0],
+  \qquad\text{i.e.}\qquad
+  \mathcal E_w I \;=\; \E\big[\,I\,\big|\,L_w\,\big],\quad L_w=\{k:k\cdot w=0\}:
+\]
+one period of an integer schedule projects exactly onto the characters
+annihilated by $w$, with no leakage.
+\end{theorem}
+
+\begin{corollary}[Four cases]
+\label{cor:cases}
+\emph{(i) Fringe law.} Two layers on the diagonal $w=(1,1)$: $\E[I\mid\idx_1-\idx_2]$
+is a function of $D=\idx_1-\idx_2$ alone, the saturating tent.
+\emph{(ii) Pivot.} $w$ incommensurate in every coordinate: $\E[I]$, the
+independent-phase mean, the DC about which contrast is expanded.
+\emph{(iii) Zero sums.} The diagonal $w=(1,\dots,1)$ preserves the whole
+zero-sum lattice at once: every pairwise difference and every zero-sum ternary.
+\emph{(iv) Exposure.} A stack animated at rates $r$ and averaged over one period
+is $\mathcal E_r I$: a long exposure is an envelope.
+\end{corollary}
+
+\begin{theorem}[Exactness]
+\label{thm:exact}
+For an all-scalar stack every swept profile $\alpha_i(u)$ is piecewise cubic in
+$u$ with corners known in closed form from the phase trio (the nearest member's
+window and ramps, the floor clips, the argmin midpoints where a stroke reaches
+them, the wrap seam), so $\mathcal E_w I(\Phi(p))$ is piecewise polynomial with
+known breakpoints and is integrated in closed form. Certified on \exactScenes\
+scenes across twelve regimes against a \exactTruthTaps-tap double-precision
+truth: the shipped Gauss-3 chain is within $\exactWorstErr$ (one part in
+\exactWorstGrayFrac\ of a gray level), a Gauss-4 pass within
+$\exactGaussFourErr$, and the shipped shader within $\exactGpuErr$ of its
+double-precision twin; \envTaps\ taps err by \exactTapsWorst\ of the tonal
+range at the rate-12 station, and the chain beats them $\exactOverTaps\times$
+at worst.
+\end{theorem}
+
+\begin{theorem}[Temporal selection]
+\label{thm:exposure}
+Averaging a stack animated at rates $r\in\Z^K$ over one period keeps exactly
+the characters with $k\cdot r=0$. On the $16.4{:}8$ pair's station $(2,-1)$:
+rates $(1,2)$ keep it to \exposureFaithfulPct\% of the still, while $(1,1)$ and
+$(2,1)$ wash it $\exposureSelectivity\times$.
+\end{theorem}
+
+\placeholder{three exposures of one scene}{The still, and its long exposures
+at rates $(1,1)$, $(1,2)$, $(2,1)$: the station present, absent, present,
+absent (\texttt{exposure.mjs}). (P3.)}
+
+\subsection{The observer theorem}
+\label{sec:observer}
+
+\begin{proposition}[The envelope is the universal invariant of rephasing]
+\label{prop:invariant}
+For a closed subgroup $H\le\tor^K$ let $\E_H I=\int_H I(\cdot+h)\,dh$. Every
+continuous linear functional $F$ on ink potentials that is invariant under
+translation by $H$ satisfies $F=F\circ\E_H$, and every $G\circ\E_H$ is
+invariant: the $H$-invariant linear observables are exactly the linear
+observables of the envelope.
+\end{proposition}
+
+\begin{theorem}[A window is a multiplier on the torus]
+\label{thm:multiplier}
+Let $W\ge0$ be an even window with $\int W=1$ and second moment $m_2$, and
+$W_\rho$ its dilate to scale $\rho$. For $\Phi\in C^2$ and
+$\sum_k|k||\hat I(k)|<\infty$,
+\[
+  (D*W_\rho)(p)\;=\;\sum_{k\in\Z^K}\hat I(k)\,\widehat W\!\big(\rho\,J_p^{\top}k\big)\,
+  e^{2\pi i\,k\cdot\Phi(p)}\;+\;R_\rho(p),
+  \qquad
+  |R_\rho(p)|\;\le\;\pi\,\lVert D^2\Phi\rVert\,m_2\,\rho^2\sum_k|k||\hat I(k)|,
+\]
+and to first order $R_\rho$ is the multiplier's own second derivative in
+frequency. Verified: exact to $\obsMultiplierErr$ without curvature; with it,
+the second-derivative term leaves $\obsRemainderResidual$ of the remainder.
+\end{theorem}
+
+\begin{theorem}[Universality of the third pattern]
+\label{thm:universality}
+Every observer that pools before it decides, $O=A_\rho\circ N$ with $N$
+pointwise and $A_\rho$ a window, reports at $p$ the potential $N\circ I$
+filtered by the multiplier of Theorem~\ref{thm:multiplier}; in the fringe
+regime, $O(D)(p)=\E[\,N\circ I\mid L_p\,](\Phi(p))$. The subtorus is
+$\Phi$'s alone. An observer chooses only the potential it averages.
+\end{theorem}
+
+\begin{corollary}[Who sees a beat]
+\label{cor:whosees}
+A printed overlay multiplies transmittances, $I=\prod g_i(x_i)$, so every cross
+character is present at linear order: a linear observer sees the beat at
+$\hat g_1(1)\hat g_2(1)$ (measured \obsPrintedBeat). An additive superposition,
+$I=\sum g_i(x_i)$, has its spectrum on the coordinate axes: no linear observer
+sees a beat (measured $\obsAdditiveBeat$), a squaring front end mints one at
+exactly $\tfrac12\hat g_1(1)\hat g_2(1)$ (measured \obsSquaringBeat), and a
+saturating one at \obsSaturatingBeat.
+\end{corollary}
+
+\begin{corollary}[Hard ink is observer-proof; soft ink is not]
+\label{cor:hardink}
+If $I$ takes two values, $N\circ I$ is affine in $I$ and every observer sees
+the same envelope up to grading: the $2{:}1$ duty null holds under every front
+end (measured $\obsHardNull$). With anti-alias ramps of half-width
+\obsReopenRamps\ world units the null holds for every linear observer and a
+squaring observer reopens it at $\obsReopenAmps$, linearly in the ramp.
+\end{corollary}
+
+\begin{corollary}[Nyquist]
+\label{cor:nyquist}
+A finite-difference estimate of $D\Phi$ is itself an observer with a two-pixel
+window; its multiplier has its first zero at two pixels per member. Closed-form
+gradients are the $\rho\to0$ limit, an observer with no window.
+\end{corollary}
+
+\begin{remark}[Conditioning is a chart choice]
+\label{rem:licence}
+A view that conditions on a subtorus $L_p$ varying with $p$ is $\E[I\mid L_p]$
+pointwise but is the envelope of no schedule; where the domains of two
+stations meet, the two conditional expectations differ by the characters in
+$L_1\,\triangle\,L_2$, and that difference is a seam. Deviation identity is a
+decision of the stack, never of the pixel.
+\end{remark}
+
+\placeholder{the handover quilt, and its cure}{The identical-pitch walking
+pair with a dipole field (\texttt{handover-quilt.json}): the aliased
+finite-difference estimate's view beside the closed form's, at 1.87 pixels per
+member. The aliased half is generated, never rendered by the old shader. (P3.)}

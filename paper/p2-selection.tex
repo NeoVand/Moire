@@ -1,0 +1,55 @@
+\section{Law I: selection, the arithmetic of the visible beat}
+\label{sec:selection}
+
+\begin{definition}[Weighted merit]
+\label{def:merit}
+For a pair with index gradients $g_1,g_2$ and a character $(a,b)$ with $ab\ne0$,
+\[
+  \het_{a,b}\;=\;\frac{|a g_1+b g_2|}{\tfrac12\,|a g_1-b g_2|}\;\cdot\;|ab|,
+\]
+the heterodyne ratio of the beat against the carriers that form it, priced by
+the harmonics that carry it. The visible character is the minimiser;
+$\het<\tfrac14$ is the fringe regime.
+\end{definition}
+
+\begin{proposition}[Selection is reduction]
+\label{prop:selection}
+The minimiser of $\het_{a,b}$ over $\Z^2\setminus\{ab=0\}$ lies in the window
+$\{i\,s+j\,t : |i|\le3,\ j\in\{1,2\}\}$ of a Lagrange--Gauss reduced basis
+$(s,t)$ of the gradient lattice $\{a g_1+b g_2\}$. For parallel carriers of
+pitch ratio $x$ the record-setting characters are the continued-fraction
+convergents of $x$ (\selRecordsMatch\ records over \selRatios\ ratios, all
+convergents); an order cap $|a|,|b|\le2$ misses \selCapMissPct\% of the
+visible fringes of random pairs, the window misses \selShipMiss.
+\end{proposition}
+
+\placeholder{stations and the locking staircase}{The first draft's Fig.\,6,
+tightened: a stations strip over the weighted staircase, coarse budget on top
+(\texttt{selectionfigs.mjs}). Provisional asset: \texttt{selection-stations.png}.}
+
+\begin{theorem}[Duty nulls]
+\label{thm:dutynull}
+The visible station of a $p{:}q$ pair (coarse\,:\,fine) is the character
+$(q,-p)$, carried by the coarse family's $q$-th profile harmonic and the fine
+family's $p$-th. A stroke of duty $d$ has vanishing $q$-th harmonic exactly when
+$qd\in\Z$, so the station is extinguished at rational coarse duties and
+nowhere else. Measured on the station over strips holding a whole number of
+every period: the $2{:}1$ null at $d=\tfrac12$ is $\dutyNullDepthTwo\times$ below
+its neighbours, the $3{:}1$ nulls at $\tfrac13$ and $\tfrac23$ are
+$\dutyNullDepthThreeLow\times$ and $\dutyNullDepthThreeHigh\times$, and away from
+the nulls the amplitudes track $|\sin(q\pi d)/q\pi|$ within \dutyNullLawPct\%,
+the anti-alias ramp's softening.
+\end{theorem}
+
+\placeholder{duty null}{Station amplitude against coarse duty for the $2{:}1$
+and $3{:}1$ pairs, with the hard-ink law drawn through the points, and the
+render pair either side of the $2{:}1$ null (\texttt{dutynull.mjs}). (P3.)}
+
+\begin{definition}[Visibility spectrum of a real number]
+\label{def:visibility}
+For $x>0$, the visibility spectrum is the staircase
+$\nu_x(N)=\min\{\,|p-qx|\cdot pq:\ p,q\ge1,\ pq\le N\,\}$: best approximation
+with denominators priced by the product $pq$ rather than by $q$. Its record
+holders are the visible stations of a $1{:}x$ pair. We know of no name for this
+object in the number-theoretic literature.
+\end{definition}

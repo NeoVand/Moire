@@ -1,0 +1,41 @@
+\section{The object}
+\label{sec:object}
+
+% P4: write this section last, once the laws exist. Related work lives here in
+% one column: the indicial method as the (1,-1) germ (Amidror's own verdict,
+% "ignores intensity profiles", names what the amplitude weight restores);
+% Fourier theory global and periodic; de Bruijn's index function as a counting
+% map asked different questions; the hull torus of incommensurate physics, the
+% same torus asked spectral questions.
+
+\begin{definition}[Counting map, ink potential, drawing]
+\label{def:drawing}
+A stack of $K$ scalar-index layers is a map
+\[
+  \Phi:\R^2\to\tor^K,\qquad \Phi(p)=\big(\idx_1(p),\dots,\idx_K(p)\big)\bmod 1,
+\]
+whose $i$-th coordinate is the fractional member index of layer $i$ at $p$,
+together with an ink potential $I:\tor^K\to[0,1]$, the paint-order composite
+of the per-coordinate stroke profiles. The drawing is $D=I\circ\Phi$.
+\end{definition}
+
+\begin{definition}[Characters, local frequency, slowness]
+\label{def:character}
+A character is $k\in\Z^K=H^1(\tor^K;\Z)$, acting as $\chi_k(x)=e^{2\pi i\,k\cdot x}$.
+Its pullback $k\cdot\Phi$ has local frequency $J_p^{\top}k=\nabla(k\cdot\Phi)(p)$
+with $J_p=D\Phi(p)$, and $k$ is \emph{slow} at $p$ when $|J_p^{\top}k|$ is small
+against the carriers $|J_p^{\top}e_i|$. A moir\'e is the pullback of a slow
+character.
+\end{definition}
+
+\begin{remark}[Fourier is bookkeeping]
+For a product potential $I=\prod_i g_i(x_i)$, $\hat I(k)=\prod_i\hat g_i(k_i)$,
+and a stroke's harmonics decay like $|\hat g(n)|\sim 1/n$. The amplitude weight
+$|k_1k_2\cdots|$ of \S\ref{sec:selection} is this decay and nothing else; no
+other Fourier statement is used.
+\end{remark}
+
+\placeholder{a stack beside its torus}{A two-layer stack and $\tor^2$: the
+carriers as the fast directions of $D\Phi$, one slow character as a line on
+the torus, the sweep's orbit as a closed geodesic. The only diagram in the
+paper that is not a render. (P3.)}

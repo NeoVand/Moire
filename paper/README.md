@@ -34,7 +34,10 @@ was v1.83 from 2022, far below what ACM accepts. Keep them, and re-vendor from
 [CTAN](https://ctan.org/pkg/acmart) when a newer version lands. `pdfinfo` on the
 built PDF reports which one was actually used.
 
-Writes `build/paper.pdf` and `build/supplemental.pdf`. The supplemental
+Writes `build/paper.pdf` and `build/supplemental.pdf`. The theory paper
+(`paper2.tex`, sections `p2-*.tex`, its `tab-predictions.tex` generated
+by `tools/numbers.mjs`) builds the same way:
+`tectonic -X compile paper2.tex --outdir build`. The supplemental
 (catalog plate, gradient atlas, envelope and ablation details, gallery
 settings, reproduction guide) resolves references into the main paper through
 `build/paper.aux`, so build the paper first, with intermediates kept. First run

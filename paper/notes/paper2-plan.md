@@ -168,8 +168,16 @@ examples, not as a gallery.
   DONE 2026-09-01, re-aimed at the slow station and writing
   data/dutynull.json, data/exposure.json; observer.mjs — NEW, DONE, writing
   data/observer.json. numbers.mjs learns their macros and fails on any gate.
-- P2. Skeleton paper2.tex with the five sections, theorem statements only
-  (no prose), figures placeholdered, imports mapped. Build must pass.
+- P2. DONE 2026-09-01. paper/paper2.tex (article class, provisional) with
+  p2-object / p2-selection / p2-averaging / p2-integrability /
+  p2-predictions / p2-coda: every theorem stated (the observer theorem and
+  its corollaries, exactness certified, duty nulls, temporal selection, the
+  trichotomy, carrier classification, fold law + corollaries, reach of closed
+  forms, defects), every figure placeholdered with its owning script, and §5
+  as a GENERATED table (tab-predictions.tex from numbers.mjs, twenty rows:
+  claim, measured, gate, script). Builds with tectonic; every quoted number
+  is a numbers.tex macro. Build: cd paper && tectonic -X compile paper2.tex
+  --outdir build.
 - P3. New figures: torus schematic, duty-null, exposure pair, quilt pair.
 - P4. Prose, one section per sitting, §3 first (it owns the two best
   results), §1 last (write the object description once the laws exist).
