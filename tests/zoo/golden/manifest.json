@@ -8,7 +8,7 @@
     "width": 640,
     "height": 480
   },
-  "updatedAt": "2026-08-31T22:39:54.199Z",
+  "updatedAt": "2026-09-01T05:11:18.270Z",
   "cases": {
     "tiling-kagome": {
       "coords": [
@@ -189,6 +189,14 @@
         1
       ],
       "note": "equal-pitch rings — the sum eye must fade into the ray fan seamlessly"
+    },
+    "fan-trio-envelope": {
+      "coords": [
+        1,
+        1,
+        1
+      ],
+      "note": "three dense fans — marginal station winners must not deviate the sweep"
     },
     "walk-pair-envelope": {
       "coords": [

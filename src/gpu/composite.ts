@@ -376,7 +376,7 @@ export function buildColorNode(
     const scan = scanCharacters(view, solved, coords, scanOn);
     const lattice = matchLattices(view, solved, scan, coords, scanOn);
     const mean = sweepStack(camera, view, solved, lattice.coh, scan, scanOn);
-    return grade(camera, view, mean, scan.etaAll, [
+    return grade(camera, view, mean, scan.etaAll, scan.etaEnv, [
       { val: scan.beatVal, rate: scan.beatRate, eta: scan.eta, on: float(1) },
       ...lattice.chars,
     ]);
@@ -674,26 +674,42 @@ function scanCharacters(view, solved, latGrads, scanOn) {
   const okA = float(0).toVar();
   const okB = float(0).toVar();
   const okC = float(0).toVar();
-  solved.forEach(({ phase, sgrad, hasGrad }, index) => {
+  // Whether the layer can put ink anywhere at this pixel. The phase sample's
+  // floor is the part of the family that does not slide — a radial pencil's
+  // Start hole, a saturated solve's guard, the hyperbola's missing innermost
+  // member — and where the floor alone exceeds the stroke, no tap of any
+  // schedule inks the layer. Its index field is still perfectly defined there
+  // (a pencil's rays exist as geometry inside the hole), which is exactly the
+  // trap: the scan would rank beats against members that carry no ink, claim
+  // fringe regime in blank paper, and the envelope's mask would paint
+  // "structure" in the empty disc of a Start hole.
+  const inkA = float(1).toVar();
+  const inkB = float(1).toVar();
+  const inkC = float(1).toVar();
+  solved.forEach(({ phase, sgrad, hasGrad, halfT }, index) => {
     // Continuous index, modulo its integer part: signed residual over the
     // local member gap, oriented at the neighbour with the smaller residual so
     // the index counts the same way whichever family produced the trio.
     const toward = min(phase.y, phase.z);
     const xi = phase.x.div(max(phase.x.sub(toward), float(1e-6)));
+    const inked = step(phase.w, halfT);
     If(view.ratioA.equal(int(index)), () => {
       xiA.assign(xi);
       sgA.assign(sgrad);
       okA.assign(hasGrad);
+      inkA.assign(inked);
     });
     If(view.ratioB.equal(int(index)), () => {
       xiB.assign(xi);
       sgB.assign(sgrad);
       okB.assign(hasGrad);
+      inkB.assign(inked);
     });
     If(view.ratioC.equal(int(index)), () => {
       xiC.assign(xi);
       sgC.assign(sgrad);
       okC.assign(hasGrad);
+      inkC.assign(inked);
     });
   });
   // Screen-space index gradients: closed form wherever the family has one
@@ -752,9 +768,15 @@ function scanCharacters(view, solved, latGrads, scanOn) {
   // (B empty): a pair against an absent slot has a zero beat and would win
   // the scan with a false eta of 0.
   const validB = step(float(-0.5), float(view.ratioB));
-  const bGate = float(1).sub(validB).mul(1e5);
   const validC = step(float(-0.5), float(view.ratioC));
-  const cGate = float(1).sub(validC).mul(1e5);
+  // A pair's candidates exist where the slot is ranked AND both layers can
+  // ink this pixel; either failing pushes the whole pair out of every
+  // minimum (three fans with Start holes: inside fan i's hole only the other
+  // pair's beats are real, and in the shared central hole no beat is).
+  const bGate = float(1).sub(validB.mul(inkA).mul(inkB)).mul(1e5);
+  const acGate = float(1).sub(validC.mul(inkA).mul(inkC)).mul(1e5);
+  const bcGate = float(1).sub(validC.mul(inkB).mul(inkC)).mul(1e5);
+  const ternGate = float(1).sub(validC.mul(inkA).mul(inkB).mul(inkC)).mul(1e5);
   // `ok` is the pair's licence to reduce: 1 only when BOTH gradients are
   // analytic. A walking family's gradient is a per-quad dFdx sample, and the
   // reduction takes gradients seriously enough to be poisoned by that noise:
@@ -764,11 +786,16 @@ function scanCharacters(view, solved, latGrads, scanOn) {
   // compile-time floor, which never reaches past order two.
   const PAIRS = [
     { gP: gradA, gQ: gradB, xP: xiA, xQ: xiB, gate: bGate, who: 0, ok: okA.mul(okB) },
-    { gP: gradA, gQ: gradC, xP: xiA, xQ: xiC, gate: cGate, who: 1, ok: okA.mul(okC) },
-    { gP: gradB, gQ: gradC, xP: xiB, xQ: xiC, gate: cGate, who: 2, ok: okB.mul(okC) },
+    { gP: gradA, gQ: gradC, xP: xiA, xQ: xiC, gate: acGate, who: 1, ok: okA.mul(okC) },
+    { gP: gradB, gQ: gradC, xP: xiB, xQ: xiC, gate: bcGate, who: 2, ok: okB.mul(okC) },
   ];
   const etaBest = float(1e6).toVar();
   const pickBest = float(1e6).toVar();
+  // The winner's own amplitude weight, kept beside it: the margin a winner
+  // must clear before its schedule deviation engages scales with this
+  // (devW below), because holding a high-order character costs more of the
+  // picture than holding a sum beat does.
+  const pickW = float(1).toVar();
   // The best ZERO-SUM candidate, tracked beside the global winner. Every
   // zero-sum character rides the plain diagonal, so among them the schedule
   // never changes and no seam can form; only a non-zero-sum winner deviates
@@ -791,6 +818,7 @@ function scanCharacters(view, solved, latGrads, scanOn) {
   // it because dFdx must live in unconditional control flow.
   const etaOut = float(1).toVar();
   const etaAllOut = float(1).toVar();
+  const etaEnvOut = float(1).toVar();
   const devW = float(0).toVar();
   If(scanOn, () => {
   PAIRS.forEach(({ gP, gQ, xP, xQ, gate, who, ok }) => {
@@ -818,6 +846,7 @@ function scanCharacters(view, solved, latGrads, scanOn) {
       const wQ = a.negate().mul(b.sign());
       If(ePick.lessThan(pickBest), () => {
         pickBest.assign(ePick);
+        pickW.assign(wPick);
         rateA.assign(who === 2 ? float(1) : wP);
         rateB.assign(who === 0 ? wQ : who === 2 ? wP : float(1));
         rateC.assign(who === 0 ? float(1) : wQ);
@@ -917,12 +946,14 @@ function scanCharacters(view, solved, latGrads, scanOn) {
       max(length(gradB).mul(Math.abs(kb)), length(gradC).mul(Math.abs(kc)))
     );
     const eRaw = length(beat).div(max(carrier.mul(0.5), float(1e-6)));
-    const eMap = eRaw.mul(mix(float(1), float(2), okT)).add(cGate).toVar();
-    const ePick = eRaw.mul(mix(float(1.5), float(2), okT)).add(cGate).toVar();
+    const eMap = eRaw.mul(mix(float(1), float(2), okT)).add(ternGate).toVar();
+    const ePick = eRaw.mul(mix(float(1.5), float(2), okT)).add(ternGate).toVar();
     If(eMap.lessThan(etaBest), () => etaBest.assign(eMap));
     If(ePick.lessThan(zeroBest), () => zeroBest.assign(ePick));
     If(ePick.lessThan(pickBest), () => {
       pickBest.assign(ePick);
+      // Zero-sum: rides the diagonal, so the deviation margin never applies.
+      pickW.assign(1);
       rateA.assign(1);
       rateB.assign(1);
       rateC.assign(1);
@@ -950,11 +981,24 @@ function scanCharacters(view, solved, latGrads, scanOn) {
   // band starts well above the regime threshold: at eta = thr a fringe still
   // spans several carriers and is legible structure the view must keep (the
   // wave pair's beading); by twice that it is hash.
+  // The margin a deviating winner must clear scales with its own amplitude
+  // weight: (1 + w) / 2, so a sum beat (w = 1) keeps the tuned band exactly,
+  // while a deep reduction winner must beat every zero-sum character
+  // DECISIVELY before it may hijack the schedule. Holding a high-order
+  // character washes every zero-sum texture in its pocket, and on a stack
+  // whose ratio varies across the frame (three radial fans) the stations are
+  // everywhere: each marginal winner became a hard-edged thumb of foreign
+  // texture in the envelope while the render ran smoothly across it. A
+  // global 3:1 or 5:2 pair still deviates — with no slow zero-sum character
+  // anywhere, the margin is enormous — but an in-regime station embedded in
+  // near-regime (1,-1) texture now rides the diagonal like its surroundings
+  // (zoo fan-trio-envelope; the ratio view keeps the station ladder either
+  // way, since the heat map reads etaBest, not the schedule).
   const thr = max(view.ratioThreshold, float(0.02));
   devW.assign(
     smoothstep(
       float(0),
-      max(view.ratioThreshold.mul(0.5), float(0.02)),
+      max(view.ratioThreshold.mul(0.5), float(0.02)).mul(pickW.add(1).mul(0.5)),
       zeroBest.sub(pickBest)
     ).mul(float(1).sub(smoothstep(thr.mul(1.7), thr.mul(3.4), pickBest)))
   );
@@ -984,7 +1028,9 @@ function scanCharacters(view, solved, latGrads, scanOn) {
   };
   const latP = latEntry(view.scanLatA);
   const latQ = latEntry(view.scanLatB);
-  const sGate = float(1).sub(step(float(-0.5), float(view.ratioA))).mul(1e5);
+  // The ranked scalar's ink gate joins its validity: a fan's empty Start disc
+  // must not measure beats against a lattice either.
+  const sGate = float(1).sub(step(float(-0.5), float(view.ratioA)).mul(inkA)).mul(1e5);
   const etaOf = (beat, carrier) =>
     length(beat).div(max(length(carrier).mul(0.5), float(1e-6)));
   let latMin = float(1e6);
@@ -1003,10 +1049,14 @@ function scanCharacters(view, solved, latGrads, scanOn) {
     latMin = min(latMin, qScalar.add(penQ).add(latQ.missing).add(sGate));
     latMin = min(latMin, pq.add(max(penP, penQ)).add(latQ.missing));
   });
-  // The joint minimum feeds the heat map and the regime mask; the scalar
-  // minimum keeps gating the scalar beat channel, whose own regime is what
-  // its contour annotates.
+  // The joint minimum feeds the heat map; the scalar minimum keeps gating
+  // the scalar beat channel, whose own regime is what its contour annotates.
   etaAllOut.assign(min(etaBest, latMin).clamp(0, 1));
+  // The envelope's mask instead reads the merit of what the sweep PRESERVES:
+  // the winner's where the deviation engaged, the best zero-sum character's
+  // where the margin rule declined it — so a declined station fades like its
+  // surroundings instead of standing as an unfaded disc of carrier hash.
+  etaEnvOut.assign(min(mix(zeroBest, pickBest, devW), latMin).clamp(0, 1));
   });
 
   return {
@@ -1014,6 +1064,7 @@ function scanCharacters(view, solved, latGrads, scanOn) {
     gradA,
     eta: etaOut,
     etaAll: etaAllOut,
+    etaEnv: etaEnvOut,
     rateA,
     rateB,
     rateC,
@@ -1547,7 +1598,7 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
  * mask, the heat map, and the contour overlay — which draws every ranked
  * character channel the scan and the lattice matching handed over.
  */
-function grade(camera, view, mean, eta, channels) {
+function grade(camera, view, mean, eta, etaMask, channels) {
   // Ink for the fringe regime, paper for failure, with a soft step at the
   // marked threshold so the boundary reads without a legend. 1/4 is the
   // theory's line; the uniform lets an author read the map's gradations.
@@ -1577,8 +1628,14 @@ function grade(camera, view, mean, eta, channels) {
       .and(view.ratioB.greaterThanEqual(int(0))),
     () => {
       // The band tracks the same threshold uniform the heat map marks, so
-      // moving the Threshold slider moves both boundaries together.
-      const fade = smoothstep(thr.sub(0.03), thr.add(0.05), eta).mul(view.envMask);
+      // moving the Threshold slider moves both boundaries together. The mask
+      // reads its own eta: the merit of what the sweep actually PRESERVES,
+      // not of the best character measured. A station whose deviation the
+      // margin rule declined is genuinely in regime — the heat map should
+      // say so — but the enveloped picture there is the diagonal wash, and
+      // keeping the pocket unfaded put a disc of bare carrier hash in an
+      // otherwise faded frame.
+      const fade = smoothstep(thr.sub(0.03), thr.add(0.05), etaMask).mul(view.envMask);
       out.assign(mix(out, view.pivot.add(view.lift).clamp(0, 1), fade));
     }
   );

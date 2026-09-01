@@ -374,6 +374,48 @@ export const cases = [
       view(ENVELOPE)
     ),
   },
+  // Three dense radial fans: the local pitch ratio between each pair sweeps
+  // the rationals, so in-regime higher-order stations dot the whole frame.
+  // Each such winner used to engage a full schedule deviation on the mere
+  // thr/2 margin, painting hard-edged thumbs of foreign texture over the
+  // envelope while the render ran smoothly across them (the user's
+  // three-fan artifact). The deviation margin now scales with the winner's
+  // amplitude weight, so these pockets ride the diagonal; only decisive
+  // winners (a global 3:1 pair) still deviate.
+  {
+    name: 'fan-trio-envelope',
+    coords: [1, 1, 1],
+    note: 'three dense fans — marginal station winners must not deviate the sweep',
+    scene: scene(
+      [
+        layer('a', {
+          type: 'radial-lines',
+          lineCount: 200,
+          thickness: 2,
+          phase: 150,
+          position: { x: 57.7, y: 0 },
+        }),
+        layer('b', {
+          type: 'radial-lines',
+          lineCount: 200,
+          thickness: 2,
+          phase: 150,
+          rotation: 50,
+          position: { x: 20, y: 50 },
+          offset: { x: 0, y: -0.5 },
+        }),
+        layer('c', {
+          type: 'radial-lines',
+          lineCount: 200,
+          thickness: 2,
+          phase: 150,
+          position: { x: -28.9, y: -50 },
+        }),
+      ],
+      view({ envelope: true, envelopeContrast: 1.5, envelopeTaps: 58, envelopeSweep: 1.3 }),
+      0.8
+    ),
+  },
   // Two walking families under the envelope: both layers' index fields exist
   // only as search output, so the scan's gradients ride dFdx and the winner
   // used to flip per quad along the fold-sector boundaries — hard stippled
