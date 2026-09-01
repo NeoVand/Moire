@@ -8,7 +8,7 @@
     "width": 640,
     "height": 480
   },
-  "updatedAt": "2026-09-01T21:49:13.340Z",
+  "updatedAt": "2026-09-01T23:15:49.503Z",
   "cases": {
     "tiling-kagome": {
       "coords": [
@@ -393,6 +393,20 @@
         1
       ],
       "note": "identical walking ring pair, one dipole-warped, below 2 px per member — no sum pockets"
+    },
+    "dutynull-linear-envelope": {
+      "coords": [
+        1,
+        1
+      ],
+      "note": "2:1 line pair at coarse duty 1/2 — the station is null and the linear envelope flat"
+    },
+    "dutynull-square-envelope": {
+      "coords": [
+        1,
+        1
+      ],
+      "note": "the same pair under a square-law observer — the null reopens on the ramps"
     }
   }
 }

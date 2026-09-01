@@ -57,6 +57,15 @@ export interface ViewState {
    */
   envelopeMask: number;
   /**
+   * A square-law front end before the average: the observer theorem's
+   * nonlinear observer. Off, the envelope is the linear conditional
+   * expectation of the ink; on, of its square -- the same characters with
+   * different amplitudes, and a duty null that reopens in proportion to the
+   * stroke's anti-alias ramp, which is what a nonlinear observer of a blurred
+   * drawing sees that a linear one cannot.
+   */
+  envelopeSquare: boolean;
+  /**
    * Draw the winning character's integer level sets over the envelope: the
    * fringe centres as one-pixel curves, the skeleton the character-hills
    * figure lifts into 3D. Fades out of the fringe regime with the ratio
@@ -91,6 +100,7 @@ export const VIEW_DEFAULTS: ViewState = {
   envelopeSweep: 1,
   envelopeLift: 0,
   envelopeMask: 0,
+  envelopeSquare: false,
   envelopeContours: false,
   contourWidth: 1.6,
   contourBands: 0.4,

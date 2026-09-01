@@ -242,3 +242,10 @@ iterated conditioning (2), the 2-D exact cell integral (3), the visibility
 spectrum (5), band-pass observers (new, observer.md §7), and an observer
 control in the Research panel (new, observer.md §7) — the last is the thing
 to ship next if the author wants something to feel.
+
+Later the same day the observer control shipped (Research panel →
+Square-law): the drawing squared before the average in both the tap loop and
+the exact chain, the pivot E[c²] composed exactly from per-layer (E[α],
+E[α²]), certified by exactsweep.mjs, pinned by two zoo cases. Try it on a
+16.4:8 line pair with the coarse stroke at 8.2: envelope on is flat, the
+toggle brings the station back, and zooming out makes it stronger.

@@ -26,7 +26,13 @@ Without it every real pitch ratio has arbitrarily good rational
 approximations, and the slowest character at any point is some $(a,b)$ of
 enormous order carried by harmonics no stroke has; with it, comparable
 slowness resolves toward the lower order, and the minimum over $\Z^2$ is
-finite and stable.
+finite and stable. One guard remains: the ratio is floored at $10^{-3}$. A
+beat slower than a thousand carriers is a constant across any frame, and a
+constant is preserved by every schedule, so it must not out-pick a visible
+fringe at no cost --- an exactly rational pitch ratio would otherwise hand
+a character of arbitrary order a merit of exactly zero ($16.4{:}8$ is
+$41{:}20$, and $(20,-41)$ has no beat at all), and the tool's own zoo caught
+it doing so.
 
 \begin{proposition}[Selection is reduction]
 \label{prop:selection}

@@ -313,6 +313,13 @@ even harmonics vanish and the null survives every linear observer at every
 blur; a squaring observer destroys the antisymmetry on the ramps and nowhere
 else, which is why the reopened amplitude is linear in the ramp width. A
 nonlinear observer of a blurred drawing sees stations a linear one cannot.
+The tool carries the square-law observer as a toggle beside its envelope:
+the drawing is squared at every node of the exact sweep before the average,
+the pivot becomes $\E[c^2]$ over independent phases, and the chain is
+certified beside the linear one ($\exactSquareErr$ against the squared
+truth, the shader within $\exactSquareGpuErr$ of its twin); a $2{:}1$ pair
+at coarse duty $\tfrac12$ is flat under the linear observer at every zoom
+and banded under the square-law once the zoom widens the ramp.
 
 \begin{corollary}[Nyquist]
 \label{cor:nyquist}

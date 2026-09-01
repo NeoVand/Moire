@@ -54,6 +54,7 @@ function view(over = {}) {
     envelopeSweep: 1,
     envelopeLift: 0,
     envelopeMask: 0,
+    envelopeSquare: false,
     envelopeContours: false,
     contourWidth: 1.6,
     contourBands: 0.4,
@@ -413,6 +414,40 @@ export const cases = [
       ),
       camera: { zoom: 0.6234, pan: { x: -285, y: 378.77 } },
     },
+  },
+  // The observer theorem in the tool. A 2:1 line pair at coarse duty 1/2 has
+  // no (2,-1) station: the coarse stroke's second harmonic is zero, and the
+  // trapezoid's symmetric ramps keep it zero, so the envelope along the
+  // licensed (1,2) schedule is flat under a linear observer at every zoom.
+  // A square-law front end before the average breaks the profile's half-wave
+  // antisymmetry on its anti-alias ramps and nowhere else, so the station
+  // reopens in proportion to the ramp: at zoom 0.25 the 0.7-px ramp is 2.8
+  // world units of a 16.4 pitch, and the bands stand.
+  {
+    name: 'dutynull-linear-envelope',
+    coords: [1, 1],
+    note: '2:1 line pair at coarse duty 1/2 — the station is null and the linear envelope flat',
+    scene: scene(
+      [
+        layer('a', { type: 'straight-lines', spacing: 16.4, thickness: 8.2 }),
+        layer('b', { type: 'straight-lines', spacing: 8, thickness: 2.4 }),
+      ],
+      view({ envelope: true, envelopeContrast: 6 }),
+      0.25
+    ),
+  },
+  {
+    name: 'dutynull-square-envelope',
+    coords: [1, 1],
+    note: 'the same pair under a square-law observer — the null reopens on the ramps',
+    scene: scene(
+      [
+        layer('a', { type: 'straight-lines', spacing: 16.4, thickness: 8.2 }),
+        layer('b', { type: 'straight-lines', spacing: 8, thickness: 2.4 }),
+      ],
+      view({ envelope: true, envelopeContrast: 6, envelopeSquare: true }),
+      0.25
+    ),
   },
   // Three dense radial fans: the local pitch ratio between each pair sweeps
   // the rationals, so in-regime higher-order stations dot the whole frame.

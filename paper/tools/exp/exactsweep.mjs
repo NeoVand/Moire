@@ -15,7 +15,11 @@
 // station, walking families' asymmetric trios, radial floors, sub-pixel
 // strokes, and strokes that nearly touch. The tap loop the exact path
 // replaced is run beside it at 24 and 52 taps, which is where the "annoying
-// envelope artifacts" came from. Writes paper/data/exactsweep.json.
+// envelope artifacts" came from. The square-law observer (the Research
+// panel's toggle: the drawing squared at every node before the average, the
+// pivot from each layer's mean squared coverage) is certified the same three
+// ways, since squaring doubles the integrand's degree and Gauss-3 is exact
+// only to five. Writes paper/data/exactsweep.json.
 // Run: node paper/tools/exp/exactsweep.mjs   (needs the GPU; ~1 min)
 
 import fs from 'node:fs';
@@ -48,10 +52,10 @@ const trioDist = (ph, rate, u) => {
 };
 const alphaAt = (L, u) =>
   Math.min(1, Math.max(0, (1 - smoothstep(L.pr[0] - L.pr[1], L.pr[0] + L.pr[1], trioDist(L.ph, L.rate, u))) * L.pr[2]));
-const composite = (layers, u) => {
+const composite = (layers, u, obs = 0) => {
   let c = 1;
   for (const L of layers) if (L.act > 0.5) c *= 1 - alphaAt(L, u);
-  return c;
+  return obs ? c * c : c;
 };
 
 // ------------------------------------------------------------ the twin
@@ -90,7 +94,7 @@ const GAUSS4 = [
   [0.9305681557970263, 0.1739274225687269],
 ];
 // exactChain: the K-way cursor merge over each layer's residue stream.
-function chain(sweep, layers, gauss) {
+function chain(sweep, layers, gauss, obs = 0) {
   const lo = -sweep / 2;
   const hi = sweep / 2;
   const st = layers.map((L) => {
@@ -112,7 +116,7 @@ function chain(sweep, layers, gauss) {
     const len = Math.min(next, hi) - u;
     if (len > 1e-9) {
       let seg = 0;
-      for (const [x, w] of gauss) seg += w * composite(layers, u + x * len);
+      for (const [x, w] of gauss) seg += w * composite(layers, u + x * len, obs);
       total += seg * len;
     }
     u = Math.min(next, hi);
@@ -127,35 +131,48 @@ function chain(sweep, layers, gauss) {
   }
   return total / Math.max(sweep, 1e-6);
 }
-// exactLayerMean: one layer over its full period at rate one.
+// exactLayerMean: one layer over its full period at rate one — its mean
+// coverage and its mean squared coverage, the two pivot ingredients.
 function layerMean(L, gauss) {
   const { res } = residues(L.ph, L.pr, 1, -0.5);
   const one = { ...L, rate: 1, act: 1 };
   let total = 0;
+  let totalSq = 0;
   let u = -0.5;
   for (let j = 0; j <= res.length; j += 1) {
     const next = j < res.length ? -0.5 + res[j] : 0.5;
     const len = next - u;
     if (len > 1e-9) {
       let seg = 0;
-      for (const [x, w] of gauss) seg += w * alphaAt(one, u + x * len);
+      let segSq = 0;
+      for (const [x, w] of gauss) {
+        const a = alphaAt(one, u + x * len);
+        seg += w * a;
+        segSq += w * a * a;
+      }
       total += seg * len;
+      totalSq += segSq * len;
     }
     u = next;
   }
-  return total;
+  return { m: total, m2: totalSq };
 }
 // The tap loop: midpoint taps over the sweep, as sweepStack samples them.
-const tapped = (sweep, layers, taps) => {
+const tapped = (sweep, layers, taps, obs = 0) => {
   let sum = 0;
-  for (let i = 0; i < taps; i += 1) sum += composite(layers, ((i + 0.5) / taps - 0.5) * sweep);
+  for (let i = 0; i < taps; i += 1) sum += composite(layers, ((i + 0.5) / taps - 0.5) * sweep, obs);
   return sum / taps;
 };
 const tappedLayer = (L, taps) => {
   const one = { ...L, rate: 1, act: 1 };
   let sum = 0;
-  for (let i = 0; i < taps; i += 1) sum += alphaAt(one, (i + 0.5) / taps - 0.5);
-  return sum / taps;
+  let sumSq = 0;
+  for (let i = 0; i < taps; i += 1) {
+    const a = alphaAt(one, (i + 0.5) / taps - 0.5);
+    sum += a;
+    sumSq += a * a;
+  }
+  return { m: sum / taps, m2: sumSq / taps };
 };
 
 // ------------------------------------------------------------ the scenes
@@ -212,8 +229,12 @@ for (const s of scenes) {
   s.exact4 = chain(s.sweep, s.layers, GAUSS4);
   s.taps24 = tapped(s.sweep, s.layers, 24);
   s.taps52 = tapped(s.sweep, s.layers, 52);
-  s.meansTruth = s.layers.map((L) => (L.act > 0.5 ? tappedLayer(L, TRUTH_TAPS) : 0));
-  s.means3 = s.layers.map((L) => (L.act > 0.5 ? layerMean(L, GAUSS3) : 0));
+  s.truthSq = tapped(s.sweep, s.layers, TRUTH_TAPS, 1);
+  s.exact3Sq = chain(s.sweep, s.layers, GAUSS3, 1);
+  s.exact4Sq = chain(s.sweep, s.layers, GAUSS4, 1);
+  const zero = { m: 0, m2: 0 };
+  s.meansTruth = s.layers.map((L) => (L.act > 0.5 ? tappedLayer(L, TRUTH_TAPS) : zero));
+  s.means3 = s.layers.map((L) => (L.act > 0.5 ? layerMean(L, GAUSS3) : zero));
 }
 
 // ------------------------------------------------------------ GPU pass
@@ -254,8 +275,15 @@ try {
   await server.close();
 }
 scenes.forEach((s, i) => {
-  s.gpu = gpu.result[i * 4];
-  s.meansGpu = [gpu.result[i * 4 + 1], gpu.result[i * 4 + 2], gpu.result[i * 4 + 3]];
+  const a = gpu.result.slice(i * 8, i * 8 + 4);
+  const b = gpu.result.slice(i * 8 + 4, i * 8 + 8);
+  s.gpu = a[0];
+  s.gpuSq = a[1];
+  s.meansGpu = [
+    { m: b[0], m2: a[2] },
+    { m: b[1], m2: a[3] },
+    { m: b[2], m2: b[3] },
+  ];
 });
 
 // ------------------------------------------------------------ the receipts
@@ -273,7 +301,10 @@ const table = CLASSES.map((cls) => {
     n: rows.length,
     exact3: { p50: quant(e((s) => abs(s.exact3 - s.truth)), 0.5), max: maxOf(e((s) => abs(s.exact3 - s.truth))) },
     exact4: { max: maxOf(e((s) => abs(s.exact4 - s.truth))) },
+    square3: { max: maxOf(e((s) => abs(s.exact3Sq - s.truthSq))) },
+    square4: { max: maxOf(e((s) => abs(s.exact4Sq - s.truthSq))) },
     gpu: { max: maxOf(e((s) => abs(s.gpu - s.exact3))), maxVsTruth: maxOf(e((s) => abs(s.gpu - s.truth))) },
+    gpuSquare: { max: maxOf(e((s) => abs(s.gpuSq - s.exact3Sq))) },
     taps24: { p50: quant(e((s) => abs(s.taps24 - s.truth)), 0.5), max: maxOf(e((s) => abs(s.taps24 - s.truth))) },
     taps52: { p50: quant(e((s) => abs(s.taps52 - s.truth)), 0.5), max: maxOf(e((s) => abs(s.taps52 - s.truth))) },
   };
@@ -281,7 +312,8 @@ const table = CLASSES.map((cls) => {
 for (const t of table) {
   console.log(
     `  ${t.cls.padEnd(18)} exact3 ${t.exact3.max.toExponential(1)}  exact4 ${t.exact4.max.toExponential(1)}  ` +
-      `gpu ${t.gpu.max.toExponential(1)}  24 taps ${t.taps24.max.toExponential(1)}  52 taps ${t.taps52.max.toExponential(1)}`
+      `gpu ${t.gpu.max.toExponential(1)}  square3 ${t.square3.max.toExponential(1)}  gpu² ${t.gpuSquare.max.toExponential(1)}  ` +
+      `24 taps ${t.taps24.max.toExponential(1)}  52 taps ${t.taps52.max.toExponential(1)}`
   );
 }
 const all = (f) => maxOf(scenes.map(f));
@@ -293,8 +325,13 @@ const worst = {
   taps24: all((s) => abs(s.taps24 - s.truth)),
   taps52: all((s) => abs(s.taps52 - s.truth)),
   taps24Station12: maxOf(scenes.filter((s) => s.cls === 'station 12:5').map((s) => abs(s.taps24 - s.truth))),
-  means3: all((s) => maxOf(s.layers.map((L, k) => (L.act > 0.5 ? abs(s.means3[k] - s.meansTruth[k]) : 0)))),
-  meansGpu: all((s) => maxOf(s.layers.map((L, k) => (L.act > 0.5 ? abs(s.meansGpu[k] - s.means3[k]) : 0)))),
+  square3: all((s) => abs(s.exact3Sq - s.truthSq)),
+  square4: all((s) => abs(s.exact4Sq - s.truthSq)),
+  gpuSquare: all((s) => abs(s.gpuSq - s.exact3Sq)),
+  means3: all((s) => maxOf(s.layers.map((L, k) => (L.act > 0.5 ? abs(s.means3[k].m - s.meansTruth[k].m) : 0)))),
+  meansSq3: all((s) => maxOf(s.layers.map((L, k) => (L.act > 0.5 ? abs(s.means3[k].m2 - s.meansTruth[k].m2) : 0)))),
+  meansGpu: all((s) => maxOf(s.layers.map((L, k) => (L.act > 0.5 ? abs(s.meansGpu[k].m - s.means3[k].m) : 0)))),
+  meansSqGpu: all((s) => maxOf(s.layers.map((L, k) => (L.act > 0.5 ? abs(s.meansGpu[k].m2 - s.means3[k].m2) : 0)))),
 };
 const gates = [
   { name: 'Gauss-3 chain within half a gray level of the 65536-tap truth', ok: worst.exact3 < 2e-3, value: worst.exact3 },
@@ -302,6 +339,11 @@ const gates = [
   { name: 'shipped WGSL matches the double-precision twin (f32)', ok: worst.gpuVsCpu < 1e-4, value: worst.gpuVsCpu },
   { name: 'per-layer exact mean within half a gray level', ok: worst.means3 < 2e-3, value: worst.means3 },
   { name: 'shipped per-layer mean matches its twin (f32)', ok: worst.meansGpu < 1e-4, value: worst.meansGpu },
+  { name: 'square-law: Gauss-3 chain within half a gray level of the squared truth', ok: worst.square3 < 2e-3, value: worst.square3 },
+  { name: 'square-law: Gauss-4 chain within 1e-4', ok: worst.square4 < 1e-4, value: worst.square4 },
+  { name: 'square-law: shipped WGSL matches its twin (f32)', ok: worst.gpuSquare < 1e-4, value: worst.gpuSquare },
+  { name: 'per-layer mean squared coverage within half a gray level', ok: worst.meansSq3 < 2e-3, value: worst.meansSq3 },
+  { name: 'shipped per-layer mean square matches its twin (f32)', ok: worst.meansSqGpu < 1e-4, value: worst.meansSqGpu },
   { name: '24 taps err past a tenth of the tonal range at the rate-12 station', ok: worst.taps24Station12 > 0.1, value: worst.taps24Station12 },
   { name: 'the exact chain beats 24 taps by a hundredfold at worst', ok: worst.exact3 * 100 < worst.taps24, value: worst.taps24 / worst.exact3 },
 ];

@@ -1034,6 +1034,10 @@ section('data/exactsweep.json : the exact sweep, certified');
   macro('exactTapsWorst', r(x.worst.taps24, 2));
   macro('exactTapsFiftyTwoWorst', r(x.worst.taps52, 3));
   macro('exactOverTaps', th(x.worst.taps24 / x.worst.exact3));
+  // The square-law observer's chain: squaring doubles the integrand's degree
+  // past what Gauss-3 integrates exactly, so it carries its own receipt.
+  macro('exactSquareErr', sci(x.worst.square3));
+  macro('exactSquareGpuErr', sci(x.worst.gpuSquare));
   console.log(`exactsweep: ${x.scenes} scenes, chain within ${x.worst.exact3.toExponential(1)}, gpu within ${x.worst.gpuVsCpu.toExponential(1)}`);
 }
 
@@ -1060,6 +1064,7 @@ section('data/exactsweep.json : the exact sweep, certified');
     ['Exact sweep: Gauss-3 chain against a 65\\,536-tap truth', `$${sci(x.worst.exact3)}$ over ${x.scenes} scenes`, '$<2\\times10^{-3}$', 'exactsweep.mjs'],
     ['Exact sweep: every corner named (Gauss-4)', `$${sci(x.worst.exact4)}$`, '$<10^{-5}$', 'exactsweep.mjs'],
     ['Exact sweep: the shipped shader against its double-precision twin', `$${sci(x.worst.gpuVsCpu)}$`, '$<10^{-4}$', 'exactsweep.mjs'],
+    ['Exact sweep: the square-law observer\'s chain against the squared truth, and its shader against the twin', `$${sci(x.worst.square3)}$; $${sci(x.worst.gpuSquare)}$`, '$<2\\times10^{-3}$; $<10^{-4}$', 'exactsweep.mjs'],
     ['Observer: a window is the torus multiplier', `$${sci(Math.max(...o.multiplier.filter((m) => m.c === 0).map((m) => m.err)))}$`, '$<5\\times10^{-5}$', 'observer.mjs'],
     ['Observer: the curvature remainder is the multiplier\'s second derivative', `residual $${sci(Math.max(...o.multiplier.filter((m) => m.c > 0 && m.err > 1e-6).map((m) => m.errCorrected / m.err)))}$ of the remainder`, '$<0.1$', 'observer.mjs'],
     ['Observer: additive light has no linear beat', `$${sci(o.visibility.beat['additive, linear observer'])}$`, '$<10^{-10}$', 'observer.mjs'],

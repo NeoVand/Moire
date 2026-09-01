@@ -158,7 +158,7 @@ function build(layers, taps = 0) {
  * `u` advances every layer's phase by that fraction of its own period, which is
  * the one parameter the envelope averages over; at `u = 0` this is the render.
  */
-function inkAt(built, p, pixel, aa, bg, out, tap = -1, flip = null, alphas = null) {
+function inkAt(built, p, pixel, aa, bg, out, tap = -1, flip = null, alphas = null, alphasSq = null) {
   out[0] = bg[0];
   out[1] = bg[1];
   out[2] = bg[2];
@@ -186,6 +186,7 @@ function inkAt(built, p, pixel, aa, bg, out, tap = -1, flip = null, alphas = nul
     // Each layer's own alpha, before the early exit: the envelope composits
     // per-layer tap means into its per-pixel pivot.
     if (alphas) alphas[li] += alpha;
+    if (alphasSq) alphasSq[li] += alpha * alpha;
     if (alpha <= 0) continue;
     out[0] += (L.color[0] - out[0]) * alpha;
     out[1] += (L.color[1] - out[1]) * alpha;
@@ -254,7 +255,11 @@ export function envelope(v, layers, opts = {}) {
   // mirror decides from the continuous index, which cannot alias; the figure
   // that shows what a two-pixel estimate of the gradient does has to make the
   // choice from the fractional index at pixel pitch, and says so.
-  const { contrast = 3, taps = ENVELOPE_TAPS, lift = 0, decide = null } = opts;
+  // `square` is the Research panel's square-law observer: the drawing is
+  // squared at every tap before the average and the pivot becomes E[c²] over
+  // independent phases, composed from each layer's (E[α], E[α²]) exactly as
+  // sweepStack's pivotStep does.
+  const { contrast = 3, taps = ENVELOPE_TAPS, lift = 0, decide = null, square = false } = opts;
   const bg = hexToRgb(v.background);
   const pixel = 1 / Math.max(v.zoom, 0.08);
   const aa = pixel * 0.7;
@@ -302,6 +307,7 @@ export function envelope(v, layers, opts = {}) {
 
   const rgb = new Uint8Array(v.width * v.height * 3);
   const layerSum = new Float64Array(built.length);
+  const layerSumSq = new Float64Array(built.length);
   for (let y = 0; y < v.height; y++) {
     for (let x = 0; x < v.width; x++) {
       const p = worldOf(v, x, y, 1);
@@ -310,21 +316,32 @@ export function envelope(v, layers, opts = {}) {
       let g = 0;
       let b = 0;
       layerSum.fill(0);
+      layerSumSq.fill(0);
       for (let tap = 0; tap < taps; tap++) {
-        inkAt(built, p, pixel, aa, bg, hit, tap, flip, layerSum);
-        r += hit[0];
-        g += hit[1];
-        b += hit[2];
+        inkAt(built, p, pixel, aa, bg, hit, tap, flip, layerSum, layerSumSq);
+        // The observer's front end, in units of full white.
+        r += square ? (hit[0] * hit[0]) / 255 : hit[0];
+        g += square ? (hit[1] * hit[1]) / 255 : hit[1];
+        b += square ? (hit[2] * hit[2]) / 255 : hit[2];
       }
       // The pivot: each layer's own mean alpha over the taps, composited in
       // paint order — the mean the stack would have if its phases were
-      // independent.
+      // independent. Under the square-law observer, E[c²] by the same
+      // independence: E[c'²] = E[c²](1 − 2m + m₂) + 2E[c]·col·(m − m₂) + col²m₂.
       const pivot = soloPivot ? [...soloPivot] : [bg[0], bg[1], bg[2]];
+      const pivotSq = pivot.map((c) => (c * c) / 255);
       if (!soloPivot)
         for (let li = 0; li < built.length; li++) {
           const m = layerSum[li] / taps;
-          for (let k = 0; k < 3; k++) pivot[k] += (built[li].color[k] - pivot[k]) * m;
+          const m2 = layerSumSq[li] / taps;
+          for (let k = 0; k < 3; k++) {
+            const col = built[li].color[k];
+            pivotSq[k] =
+              pivotSq[k] * (1 - 2 * m + m2) + (2 * pivot[k] * col * (m - m2)) / 255 + (col * col * m2) / 255;
+            pivot[k] += (col - pivot[k]) * m;
+          }
         }
+      if (square) for (let k = 0; k < 3; k++) pivot[k] = pivotSq[k];
       const i = (y * v.width + x) * 3;
       for (let k = 0; k < 3; k++) {
         const mean = [r, g, b][k] / taps;

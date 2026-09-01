@@ -469,6 +469,7 @@ export class MoireRenderer {
     this.viewUniforms.sweep.value = envelope ? Math.max(0, state.view.envelopeSweep) : 0;
     this.viewUniforms.contrast.value = envelope ? state.view.envelopeContrast : 1;
     this.viewUniforms.lift.value = envelope ? state.view.envelopeLift : 0;
+    this.viewUniforms.observer.value = envelope && state.view.envelopeSquare ? 1 : 0;
     this.viewUniforms.envMask.value = envelope && maskPair ? state.view.envelopeMask : 0;
     this.viewUniforms.contours.value = contoursOn && (pair || maskPair || latPair) ? 1 : 0;
     this.viewUniforms.contourW.value = Math.max(0.4, state.view.contourWidth);

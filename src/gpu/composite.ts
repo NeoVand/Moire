@@ -305,6 +305,13 @@ export function createViewUniforms() {
     // layer (morph sources included) carries a scalar index; lattices keep
     // the tap loop, whose cell resampling has no 1-D closed form.
     exactSweep: uniform(0),
+    // The observer's front end. 0 averages the drawing itself (a linear
+    // observer); 1 averages its square (a square-law detector) -- the
+    // observer theorem's N∘I with N the square: the same characters, other
+    // amplitudes, and a duty null that reopens on the anti-alias ramps. The
+    // pivot follows it: E[c²] over independent phases, composed exactly from
+    // each layer's (E[α], E[α²]) by `pivotStep` in sweepStack.
+    observer: uniform(0),
   };
 }
 
@@ -898,7 +905,18 @@ function scanCharacters(view, solved, latGrads, scanOn) {
     // between them.
     const consider = (a, b, beat, wMap, wPick, skip) => {
       const carrier = gP.mul(a).sub(gQ.mul(b));
-      const eRaw = length(beat).div(max(length(carrier).mul(0.5), float(1e-6)));
+      // The heterodyne ratio is FLOORED at a thousandth: a beat slower than a
+      // thousand carriers is a constant across any frame, and a constant is
+      // preserved by every schedule, so it must not out-pick a visible fringe
+      // by paying nothing. Without the floor an exactly rational pitch ratio
+      // — 16.4 : 8 is 41 : 20 — hands the reduction a character (20,-41)
+      // whose beat is exactly zero, zero times its weight of 820 is zero, it
+      // wins the pick, no gate will hold it, and the sweep rides the
+      // diagonal past the station (1,-2) that the pair plainly shows. With
+      // the floor an exact character of orders p, q pays 2e-3 pq: a 3:1 lock
+      // still wins at 0.006, the 41:20 phantom loses at 1.6.
+      const carrierLen = max(length(carrier).mul(0.5), float(1e-6));
+      const eRaw = max(length(beat), carrierLen.mul(2e-3)).div(carrierLen);
       const eMap = eRaw.mul(wMap).add(gate).add(skip).toVar();
       const ePick = eRaw.mul(wPick).add(gate).add(skip).toVar();
       If(eMap.lessThan(etaBest), () => etaBest.assign(eMap));
@@ -1532,8 +1550,27 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
   // no beat stands, mean == pivot identically, so the view sits at the true
   // local gray at any contrast.
   const sumLayer = solved.map(() => float(0).toVar());
+  // Each layer's mean SQUARED alpha rides beside its mean: the square-law
+  // observer's pivot is E[c²] over independent phases, which the per-layer
+  // pairs (E[α], E[α²]) compose exactly (pivotStep below).
+  const sumLayerSq = solved.map(() => float(0).toVar());
   const meanOut = vec3(0).toVar();
   const pivotOut = vec3(camera.background).toVar();
+  const pivotSq = vec3(camera.background).mul(vec3(camera.background)).toVar();
+  // One layer joins the independent-phase pivot. E[c] composites as the
+  // shipped mix; E[c²] needs the previous E[c] as well: with c' = c(1 − α) +
+  // col·α and α independent of c, E[c'²] = E[c²]·E[(1−α)²] + 2·E[c]·col·E[α(1−α)]
+  // + col²·E[α²], where E[(1−α)²] = 1 − 2m + m₂ and E[α(1−α)] = m − m₂.
+  // Exact for every family, since independence is the whole assumption.
+  const pivotStep = (col, m, m2) => {
+    pivotSq.assign(
+      pivotSq
+        .mul(float(1).sub(m.mul(2)).add(m2))
+        .add(pivotOut.mul(col).mul(m.sub(m2)).mul(2))
+        .add(col.mul(col).mul(m2))
+    );
+    pivotOut.assign(mix(pivotOut, col, m));
+  };
 
   // Inside the enveloped average the stroke keeps its TRUE width: the
   // hairline floor (1.15 px) exists so a render's line survives the screen,
@@ -1676,15 +1713,23 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
         });
         colorDev.assign(mix(colorDev, slot.color, alpha.clamp(0, 1)));
         colorDiag.assign(mix(colorDiag, slot.color, alphaDiag.clamp(0, 1)));
-        sumLayer[index].addAssign(alphaDiag.clamp(0, 1));
+        const aD = alphaDiag.clamp(0, 1);
+        sumLayer[index].addAssign(aD);
+        sumLayerSq[index].addAssign(aD.mul(aD));
       });
     });
-    sumDev.addAssign(colorDev);
-    sumDiag.addAssign(colorDiag);
+    // The observer's front end meets the drawing at this tap, before the
+    // average: a square-law detector sees E[c²], which is not E[c]².
+    sumDev.addAssign(mix(colorDev, colorDev.mul(colorDev), view.observer));
+    sumDiag.addAssign(mix(colorDiag, colorDiag.mul(colorDiag), view.observer));
   });
   solved.forEach(({ slot }, index) => {
     If(slot.active.greaterThan(0.5), () => {
-      pivotOut.assign(mix(pivotOut, vec3(slot.color), sumLayer[index].div(float(view.taps))));
+      pivotStep(
+        vec3(slot.color),
+        sumLayer[index].div(float(view.taps)),
+        sumLayerSq[index].div(float(view.taps))
+      );
     });
   });
   meanOut.assign(mix(sumDiag, sumDev, devW).div(float(view.taps)));
@@ -1697,8 +1742,8 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
   // average has no 1-D segmentation, and for the plain render.
   If(view.exactSweep.greaterThan(0.5), () => {
     const chain = exactChain(solved.length);
-    const argsDev: unknown[] = [view.sweep, vec3(camera.background)];
-    const argsDiag: unknown[] = [view.sweep, vec3(camera.background)];
+    const argsDev: unknown[] = [view.sweep, vec3(camera.background), view.observer];
+    const argsDiag: unknown[] = [view.sweep, vec3(camera.background), view.observer];
     const prs = solved.map(({ slot, aa, phase }, index) => {
       const hInk = max(slot.thickness.mul(0.5), float(1e-3));
       const pr = vec4(hInk, aa, slot.opacity, float(0));
@@ -1723,15 +1768,21 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
     meanOut.assign(mix(diag, dev, devW.mul(step(0.003, devW))));
     solved.forEach(({ slot, phase }, index) => {
       If(slot.active.greaterThan(0.5), () => {
-        pivotOut.assign(mix(pivotOut, vec3(slot.color), exactLayerMean(phase, prs[index])));
+        const mm = exactLayerMean(phase, prs[index]).toVar();
+        pivotStep(vec3(slot.color), mm.x, mm.y);
       });
     });
   }).Else(() => {
     tapLoop();
   });
 
+  // The square-law observer grades about E[c²]; the linear one about E[c].
+  pivotOut.assign(mix(pivotOut, pivotSq, view.observer));
   // A sole layer grades about its nominal coverage instead: its per-pixel
   // pivot equals its mean identically, and about THAT the contrast is dead.
+  // (Hard ink is two-valued, so E[c²] = E[c] there and the constant serves
+  // both observers; a soft sole stroke under the square-law is off by the
+  // ramp's share, which is the effect the toggle exists to show.)
   pivotOut.assign(mix(pivotOut, vec3(view.pivotConst), view.soloPivot));
   return { mean: meanOut, pivot: pivotOut };
 }
@@ -1911,11 +1962,11 @@ function exactChainSource(K: number): string {
         let uu = u + ${x} * len;
         var c = bg;
         ${composite}
-        seg += ${w} * c;
+        seg += ${w} * mix(c, c * c, obs);
       }`
   ).join('\n      ');
   return `
-fn exactChain${K}(sweep: f32, bg: vec3<f32>, ${params}) -> vec3<f32> {
+fn exactChain${K}(sweep: f32, bg: vec3<f32>, obs: f32, ${params}) -> vec3<f32> {
   let lo = -sweep * 0.5;
   let hi = sweep * 0.5;
   ${setup}
@@ -1948,22 +1999,23 @@ function exactChain(K: number) {
   return fn;
 }
 
-/** One layer's exact mean coverage over its own full period: the pivot's
- * ingredient — a single-stream march of the layer's residues at rate one. */
+/** One layer's exact mean coverage over its own full period, and the mean
+ * of its square: the pivot's ingredients for the linear and the square-law
+ * observer — a single-stream march of the layer's residues at rate one. */
 const EXACT_LAYER_MEAN_WGSL = `
-fn exactLayerMean(ph0: vec4<f32>, pr0: vec4<f32>) -> f32 {
+fn exactLayerMean(ph0: vec4<f32>, pr0: vec4<f32>) -> vec2<f32> {
   var res: array<f32, ${EXACT_CORNERS}>;
   var cnt = 0;
   let P = exactResidues(ph0, pr0, 1.0, -0.5, &res, &cnt);
-  var total = 0.0;
+  var total = vec2<f32>(0.0);
   var u = -0.5;
   for (var j = 0; j <= cnt; j++) {
     var next = 0.5;
     if (j < cnt) { next = -0.5 + res[j]; }
     let len = next - u;
     if (len > 1e-9) {
-      var seg = 0.0;
-      ${GAUSS3.map(([x, w]) => `seg += ${w} * exactAlphaWgsl(ph0, pr0, 1.0, u + ${x} * len);`).join('\n      ')}
+      var seg = vec2<f32>(0.0);
+      ${GAUSS3.map(([x, w]) => `{ let a = exactAlphaWgsl(ph0, pr0, 1.0, u + ${x} * len); seg += ${w} * vec2<f32>(a, a * a); }`).join('\n      ')}
       total += seg * len;
     }
     u = next;

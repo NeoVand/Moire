@@ -197,6 +197,14 @@ examples, not as a gallery.
   visibility spectrum's arithmetic if anyone has an afternoon (§2 states it
   as a definition and leaves it open); (e) a line-by-line read for numbers
   quoted outside macros — there should be none.
+- P4½ (2026-09-01, after the draft): the square-law observer shipped in the
+  app (Research panel toggle, exact chain, E[c²] pivot, certified, zoo cases
+  dutynull-linear/square-envelope); §3's hard-ink corollary now points at it
+  and the predictions table has its row. Writing the zoo cases with round
+  numbers (16.4:8 = 41:20) exposed a scan defect: an exactly rational ratio
+  gave a high-order character a merit of exactly zero and the sweep rode the
+  diagonal past the station. The heterodyne ratio is floored at 2e-3 now
+  (shader and CPU twin; §2 says why).
 - P5. Venue decision with the finished draft in hand — not before.
 
 ## Naming candidates (park, decide at P4)

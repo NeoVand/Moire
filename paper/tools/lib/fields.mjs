@@ -553,7 +553,11 @@ function gaussReduce(g1, g2) {
 export function characterMerit(a, b, gA, gB) {
   const beat = Math.hypot(a * gA.x + b * gB.x, a * gA.y + b * gB.y);
   const carrier = Math.hypot(a * gA.x - b * gB.x, a * gA.y - b * gB.y);
-  return (beat / Math.max(carrier * 0.5, 1e-12)) * Math.abs(a * b);
+  // Floored like the shader's: a beat slower than a thousand carriers is a
+  // constant, and an exactly rational ratio must not hand a high-order
+  // character a merit of zero.
+  const half = Math.max(carrier * 0.5, 1e-12);
+  return (Math.max(beat, half * 2e-3) / half) * Math.abs(a * b);
 }
 
 /** Winning integer character at a point, exactly as the shader picks it. */

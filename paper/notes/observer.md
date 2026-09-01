@@ -174,7 +174,11 @@ observer with no window.
   composed with ours: Ŵ becomes a band-pass and selects a BAND of local
   frequencies, i.e. an observer tuned to one station of the ladder. That is
   a retina. Theorem 2 holds verbatim with Ŵ(0) ≠ 1.
-- An observer control in the Research panel. Square-law or threshold before
-  the average is a change to the exact sweep's integrand (degree doubles;
-  Gauss-3 is exact to degree 5, Gauss-4 to 7), so the closed form survives
-  a polynomial front end.
+- SHIPPED 2026-09-01: the square-law observer is a toggle in the Research
+  panel (`envelopeSquare`), applied before the average in both the tap loop
+  and the exact chain, with the pivot as E[c²] composed from per-layer
+  (E[α], E[α²]); exactsweep.mjs certifies the squared chain (7.9e-4 worst,
+  Gauss-3 kept), and the zoo pins the 2:1 null flat under linear and banded
+  under square-law at zoom 0.25. A threshold front end would break the
+  closed form (unknown crossing points) and would need the tap loop; not
+  built.

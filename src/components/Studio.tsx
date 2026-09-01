@@ -268,6 +268,12 @@ function ResearchControl() {
               path={viewPath('envelopeMask')}
               onChange={(envelopeMask) => setView({ envelopeMask })}
             />
+            <ToggleRow
+              label="Square-law"
+              info="Squares the drawing before averaging it, the way a detector or a retina responds before it pools. Same fringes, different weights — and a stroke at half duty, whose fringe a linear average extinguishes exactly, comes back in proportion to its anti-alias ramp. Zoom out to widen the ramp."
+              on={view.envelopeSquare}
+              onToggle={() => setView({ envelopeSquare: !view.envelopeSquare })}
+            />
           </div>
           )}
           <div className="mt-3 grid gap-3 border-t border-[var(--border)] pt-2.5">
