@@ -190,6 +190,28 @@
    "checkedTo": 2000
   },
   {
+   "name": "crossings born on caustic (6-gon)",
+   "pass": true,
+   "worldUnits": 0.038
+  },
+  {
+   "name": "deep crossings hug caustic (6-gon)",
+   "pass": true,
+   "gaps": 1.14,
+   "caustic": true
+  },
+  {
+   "name": "crossings born on caustic (ellipse 1.4:0.7142857142857143)",
+   "pass": true,
+   "worldUnits": 0.069
+  },
+  {
+   "name": "deep crossings hug caustic (ellipse 1.4:0.7142857142857143)",
+   "pass": true,
+   "gaps": 0.09,
+   "caustic": true
+  },
+  {
    "name": "straight walk, |delta| = 0.95 s: nested forever",
    "pass": true,
    "checkedTo": 4000

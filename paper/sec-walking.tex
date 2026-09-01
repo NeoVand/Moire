@@ -197,9 +197,13 @@ touch, and an envelope forms --- exactly where the normal speed vanishes:
 \end{lemma}
 
 The proof is in Appendix~\ref{app:foldlaw}; for a polygon, whose $H$ has
-corners, the statement holds piecewise and the suprema below are attained at
-the corners. What the lemma buys is that the fate of every family in this
-section can be read off \eqref{eq:foldlaw} by inspection.
+corners, the statement holds piecewise, the suprema below are attained at
+the corners, and the corners contribute an envelope component of their own
+(the vertex trajectories, which Figure~\ref{fig:foldlaw} draws). In the
+terms of \S\ref{sec:taxonomy}, \eqref{eq:foldlaw} \emph{is} the discriminant
+of the incidence projection, computed: $\partial_\nu$ of a front's defining
+equation is its normal speed. What the lemma buys is that the fate of every
+family in this section can be read off it by inspection.
 
 \begin{corollary}[Rotation folds everything but circles]
 \label{cor:rotation}
@@ -245,28 +249,34 @@ $n^\star=\sqrt{(s/\lVert\delta\rVert)^2-1}\,/\,\theta$.
     (b) hexagons under rotation,
     (c) an ellipse gauge under rotation}
   \Description{Three square panels of dense black line families on white, each
-  with a thin crimson curve drawn over it. The left panel shows circles walking
-  to the right, piling up along two straight crimson rays that open like a
-  wake. The middle panel shows a pinwheel of nested rotating hexagons whose
-  strokes crowd into six dark spiral arms; a crimson circle sits where the
-  hexagons first begin to cross, and a fishnet of crossings fills the corners
-  outside it. The right panel shows the same construction for nested rotating
-  ellipses, with a smaller crimson circle marking where their crossings begin.}
+  with crimson curves drawn over it. The left panel shows circles walking to
+  the right, piling up along two straight crimson rays that open like a wake.
+  The middle panel shows a pinwheel of nested rotating hexagons whose strokes
+  crowd into six dark spiral arms, each with a crimson curve riding along it;
+  a faint dashed crimson circle passes through the points where the arms are
+  born. The right panel shows the same construction for nested rotating
+  ellipses, whose two dark swirls each carry a crimson curve, with a smaller
+  dashed circle at their birth.}
   \caption{\figlead{The fold law, drawn.} Every panel is rendered by exhaustive
   search --- nearest member by brute force, no support calculus anywhere ---
-  and the crimson loci are computed from the parameters alone by
+  and the crimson curves are computed from the parameters alone by
   Eq.~\ref{eq:foldlaw}. \textbf{(a)}~Walking circles at supersonic drift
   ($s{=}7$, $\lVert\delta\rVert{=}1.5s$): members osculate along the two
   predicted wake rays, which are tangent to every ring at once.
-  \textbf{(b)}~Rotating hexagons ($s{=}6$, $\theta{=}0.06$): inside
-  $R^\star=s/(\theta\sin(\pi/6))$ the members nest as a clean pinwheel, strokes
-  crowding as the local gap closes toward the fold; the first crossings appear
-  at the vertices on the crimson circle, and the crosshatch of genuine folds
-  lives entirely outside it. \textbf{(c)}~An ellipse gauge (axes $1.4$ and
-  $1/1.4$, same $s,\theta$) folds at
-  $R^\star=\rho^\star\sqrt{(a^2+b^2)/2}$ with $\rho^\star=2abs/\theta(a^2-b^2)$.
-  Onsets measured by brute-force nesting tests land within
-  $\foldWorstOnsetPct\%$ of the predictions across every gated shape
+  \textbf{(b)}~Rotating hexagons ($s{=}6$, $\theta{=}0.06$): the six dark
+  arms \emph{are} the family's caustic --- strokes crowd as the local gap
+  closes, then cross --- and the crimson curves are that caustic solved from
+  \eqref{eq:foldlaw}, one smooth branch and one vertex trajectory per corner,
+  riding the arms they predict. The dashed circle is the onset radius
+  $R^\star=s/(\theta\sin(\pi/6))$: below it the calculus forbids any fold,
+  and the pinwheel is a clean nest. \textbf{(c)}~An ellipse gauge (axes $1.4$
+  and $1/1.4$, same $s,\theta$): two caustic branches, born on the dashed
+  circle $R^\star=\rho^\star\sqrt{(a^2+b^2)/2}$ with
+  $\rho^\star=2abs/\theta(a^2-b^2)$. The gates measure all of it: crossings
+  of consecutive members are born on the predicted caustic to within
+  $\foldBirthWorst$ world units at onset radii near $200$, deep folds hug it
+  within $\foldDeepGaps$ member gaps, and every onset radius lands within
+  $\foldWorstOnsetPct\%$ of its formula
   (\texttt{tools\pslash exp\pslash foldlaw.mjs}).}
   \label{fig:foldlaw}
 \end{figure*}

@@ -858,6 +858,29 @@ point. The index survives as the argmin of a per-member distance
 (<a href="#sec-6">§6</a>), the fringe law of <a href="#sec-4">§4</a> applies to it
 unchanged, and the price of this rung is the certified inversion of
 <a href="#sec-7">§7</a>.</p>
+<p>There is one form behind all three. Present any family, however generated,
+by its <em>incidence</em>: the set $\{(p,\nu):p\in\gamma_\nu\}$ with the index
+treated as continuous. Wherever the defining equation has
+<span class="nowrap">$\partial_\nu\neq0$,</span> the implicit function theorem inverts it, and the count
+is a branch of the multivalued <span class="nowrap">$\nu(p)$;</span> the three rungs are precisely the
+three things a branch structure can do. It can glue into one global function
+(exact). It can fail to glue only around loops, by a locally constant
+integer: the monodromy of the covering that the incidence's projection to
+the plane makes away from its critical values (winding, the charge quantized
+because monodromy is). Or the projection can have critical values at all:
+the <em>discriminant</em>, <span class="nowrap">$\partial_\nu=0$,</span> where branches meet and the count
+folds. Nothing in this trisection is special to moiré; it is the classical
+theory of envelopes and coverings. What our two generators buy is
+<em>computability</em>: a group orbit trivializes its projection (no
+discriminant ever, monodromy read off the flow), and a front's discriminant
+is a support-function equation solved in closed form by the fold law of
+<a href="#sec-6">§6</a>. It also says exactly what a field
+(<a href="#sec-10-2">§10.2</a>) can and cannot do to a layer: displacing the count by
+$A f(p)$ keeps the members the level sets of a global, possibly
+circle-valued, phase, so a field can add <em>monodromy</em>  — 
+<a href="#sec-5">§5</a> mints defects in precisely those quantized units  —  but
+it can never create a discriminant. Folds belong to the geometry; no
+modulation a user types can fold an exact family.</p>
 <p>Orthogonal to the ladder is <em>rank</em>: how many integers name a member. A
 line family needs one; a lattice needs two, so its beats range over integer
 combinations of two generators per layer. Rank changes bookkeeping,
@@ -1695,9 +1718,13 @@ for a convex member. The family therefore folds  —  neighboring members
 touch, and an envelope forms  —  exactly where the normal speed vanishes:</p><div class="equation" id="eq-27"><div class="eq-scroll">\[s\,H(w)\;-\;\rho_n\,\theta\,H'(w)\;+\;\langle c'(n),\hat u\rangle \;=\; 0,
   \qquad w=u-n\theta.\]</div><span class="eq-no">(27)</span></div></div>
 <p>The proof is in Appendix <a href="#sec-A-2">A.2</a>; for a polygon, whose $H$ has
-corners, the statement holds piecewise and the suprema below are attained at
-the corners. What the lemma buys is that the fate of every family in this
-section can be read off (<a href="#eq-27">27</a>) by inspection.</p>
+corners, the statement holds piecewise, the suprema below are attained at
+the corners, and the corners contribute an envelope component of their own
+(the vertex trajectories, which Figure <a href="#fig-10">10</a> draws). In the
+terms of <a href="#sec-3-2">§3.2</a>, (<a href="#eq-27">27</a>) <em>is</em> the discriminant
+of the incidence projection, computed: $\partial_\nu$ of a front's defining
+equation is its normal speed. What the lemma buys is that the fate of every
+family in this section can be read off it by inspection.</p>
 <div class="theorem thm-plain" id="thm-4"><p><span class="thm-head">Corollary 4 (Rotation folds everything but circles).</span> With $\delta=0$ and <span class="nowrap">$\theta\neq0$,</span> the family folds at gauge radius</p><div class="equation" id="eq-28"><div class="eq-scroll">\[\rho^\star \;=\; \frac{s}{\theta\,L},
   \qquad L=\sup_w\,\lvert H'(w)/H(w)\rvert,\]</div><span class="eq-no">(28)</span></div><p>and nowhere before. For the regular $k$-gon <span class="nowrap">$L=\tan(\pi/k)$,</span> and the first
 crossings appear at the vertices, at Euclidean radius
@@ -1723,19 +1750,24 @@ walk eventually goes supersonic, at
 <span class="nowrap">$n^\star=\sqrt{(s/\lVert\delta\rVert)^2-1}\,/\,\theta$.</span></p></div>
 <figure class="paper-figure wide" id="fig-10"><img src="figures/fold-law.png" width="2300" height="760" alt=""><div class="panelrow"><span>(a) a supersonic walk</span><span>(b) hexagons under rotation</span><span>(c) an ellipse gauge under rotation</span></div><figcaption><span class="fignum">Fig. 10.</span> <strong>The fold law, drawn.</strong>  Every panel is rendered by exhaustive
   search  —  nearest member by brute force, no support calculus anywhere  — 
-  and the crimson loci are computed from the parameters alone by
+  and the crimson curves are computed from the parameters alone by
   Eq. <a href="#eq-27">27</a>. <strong>(a)</strong> Walking circles at supersonic drift
   (<span class="nowrap">$s{=}7$,</span> <span class="nowrap">$\lVert\delta\rVert{=}1.5s$):</span> members osculate along the two
   predicted wake rays, which are tangent to every ring at once.
-  <strong>(b)</strong> Rotating hexagons (<span class="nowrap">$s{=}6$,</span> <span class="nowrap">$\theta{=}0.06$):</span> inside
-  $R^\star=s/(\theta\sin(\pi/6))$ the members nest as a clean pinwheel, strokes
-  crowding as the local gap closes toward the fold; the first crossings appear
-  at the vertices on the crimson circle, and the crosshatch of genuine folds
-  lives entirely outside it. <strong>(c)</strong> An ellipse gauge (axes $1.4$ and
-  <span class="nowrap">$1/1.4$,</span> same <span class="nowrap">$s,\theta$)</span> folds at
-  $R^\star=\rho^\star\sqrt{(a^2+b^2)/2}$ with <span class="nowrap">$\rho^\star=2abs/\theta(a^2-b^2)$.</span>
-  Onsets measured by brute-force nesting tests land within
-  $2.8\%$ of the predictions across every gated shape
+  <strong>(b)</strong> Rotating hexagons (<span class="nowrap">$s{=}6$,</span> <span class="nowrap">$\theta{=}0.06$):</span> the six dark
+  arms <em>are</em> the family's caustic  —  strokes crowd as the local gap
+  closes, then cross  —  and the crimson curves are that caustic solved from
+  (<a href="#eq-27">27</a>), one smooth branch and one vertex trajectory per corner,
+  riding the arms they predict. The dashed circle is the onset radius
+  <span class="nowrap">$R^\star=s/(\theta\sin(\pi/6))$:</span> below it the calculus forbids any fold,
+  and the pinwheel is a clean nest. <strong>(c)</strong> An ellipse gauge (axes $1.4$
+  and <span class="nowrap">$1/1.4$,</span> same <span class="nowrap">$s,\theta$):</span> two caustic branches, born on the dashed
+  circle $R^\star=\rho^\star\sqrt{(a^2+b^2)/2}$ with
+  <span class="nowrap">$\rho^\star=2abs/\theta(a^2-b^2)$.</span> The gates measure all of it: crossings
+  of consecutive members are born on the predicted caustic to within
+  $0.07$ world units at onset radii near <span class="nowrap">$200$,</span> deep folds hug it
+  within $1.1$ member gaps, and every onset radius lands within
+  $2.8\%$ of its formula
   (<code>tools/ exp/ foldlaw.mjs</code>).</figcaption></figure>
 <p>Figure <a href="#fig-10">10</a> is the law drawn over renders that never saw it. One
 consequence worth stating plainly: the integrability ladder of

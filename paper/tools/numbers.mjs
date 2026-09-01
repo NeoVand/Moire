@@ -942,6 +942,10 @@ section('data/foldlaw.json : the fold law, gated');
     .concat(fold.t2.map((c) => Math.abs(c.measured - c.nStar) / c.nStar));
   macro('foldWorstOnsetPct', r(Math.max(...errs) * 100, 1));
   macro('foldBranchCounts', fold.t4.map((c) => c.crossings).join(', '));
+  const birth = fold.gates.filter((g) => g.name.startsWith('crossings born'));
+  const deep = fold.gates.filter((g) => g.name.startsWith('deep crossings'));
+  macro('foldBirthWorst', r(Math.max(...birth.map((g) => g.worldUnits)), 2));
+  macro('foldDeepGaps', r(Math.max(...deep.map((g) => g.gaps)), 1));
   console.log(`foldlaw: worst onset ${r(Math.max(...errs) * 100, 2)}%`);
 }
 

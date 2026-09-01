@@ -48,6 +48,47 @@ function overlay(rgb, v, distFn, widthPx) {
   }
 }
 
+/** Stamp a polyline (array of world points, assumed densely sampled) into the
+ * rgb buffer with round caps, `widthPx` wide; `dash` (world units on/off), if
+ * given, breaks it into dashes by accumulated arclength. */
+function stampPolyline(rgb, v, pts, widthPx, dash = 0) {
+  const rad = (widthPx / 2) * 1.0;
+  let arc = 0;
+  let prev = null;
+  for (const p of pts) {
+    if (prev) arc += Math.hypot(p.x - prev.x, p.y - prev.y);
+    prev = p;
+    if (dash > 0 && (arc / dash) % 2 > 1) continue;
+    const px = (p.x - v.pan.x) * v.zoom + v.width * 0.5;
+    const py = -(p.y - v.pan.y) * v.zoom + v.height * 0.5;
+    const r = Math.ceil(rad + 1);
+    for (let dy = -r; dy <= r; dy += 1) {
+      const yy = Math.round(py) + dy;
+      if (yy < 0 || yy >= v.height) continue;
+      for (let dx = -r; dx <= r; dx += 1) {
+        const xx = Math.round(px) + dx;
+        if (xx < 0 || xx >= v.width) continue;
+        const d = Math.hypot(xx - px, yy - py);
+        const a = Math.max(0, Math.min(1, rad + 0.7 - d));
+        if (a <= 0) continue;
+        const i = (yy * v.width + xx) * 3;
+        rgb[i] += (ACCENT[0] - rgb[i]) * a;
+        rgb[i + 1] += (ACCENT[1] - rgb[i + 1]) * a;
+        rgb[i + 2] += (ACCENT[2] - rgb[i + 2]) * a;
+      }
+    }
+  }
+}
+
+/** Densely sampled circle polyline. */
+const circlePts = (R, step = 0.35) =>
+  Array.from({ length: Math.ceil((TAU * R) / step) + 1 }, (_, i) => {
+    const t = (TAU * i) / Math.ceil((TAU * R) / step);
+    return { x: R * Math.cos(t), y: R * Math.sin(t) };
+  });
+
+const TAU = Math.PI * 2;
+
 const panels = [];
 
 // --- (a) Mach wake -----------------------------------------------------------
@@ -107,8 +148,40 @@ const panels = [];
     return best;
   };
   const rgb = compose(v, [{ dist, thickness: 1.0, color: INK, spacing: s }]);
-  const Rstar = s / (theta * Math.sin(Math.PI / 6));
-  overlay(rgb, v, (p) => Math.abs(Math.hypot(p.x, p.y) - Rstar), 2.6);
+  // The caustic: per vertex arc, the smooth branch rho(w) = s H / (theta H'),
+  // plus the vertex trajectory itself (a support corner absorbs a slope range,
+  // so past onset the vertex path is envelope too). Crossings of consecutive
+  // members are born on these curves (gated in foldlaw.mjs).
+  const rhoMax = 470;
+  const rhoStar = s / (theta * Math.tan(Math.PI / 6));
+  const sec = 2 / Math.sqrt(3);
+  for (let j = 0; j < 6; j += 1) {
+    const beta = (Math.PI / 3) * j + Math.PI / 6;
+    const branch = [];
+    for (let i = 0; i <= 8000; i += 1) {
+      const w = -Math.PI / 6 + ((Math.PI / 6 - 1e-3) * i) / 8000;
+      const H = sec * Math.cos(w);
+      const dH = -sec * Math.sin(w);
+      if (dH <= 1e-9) continue;
+      const rho = (s * H) / (theta * dH);
+      if (rho < phi || rho > rhoMax) continue;
+      const u = beta + w + ((rho - phi) / s) * theta;
+      branch.push({
+        x: rho * (H * Math.cos(u) - dH * Math.sin(u)),
+        y: rho * (H * Math.sin(u) + dH * Math.cos(u)),
+      });
+    }
+    stampPolyline(rgb, v, branch, 2.4);
+    const vertex = [];
+    for (let i = 0; i <= 3000; i += 1) {
+      const rho = rhoStar + ((rhoMax - rhoStar) * i) / 3000;
+      const ang = beta + ((rho - phi) / s) * theta;
+      vertex.push({ x: rho * sec * Math.cos(ang), y: rho * sec * Math.sin(ang) });
+    }
+    stampPolyline(rgb, v, vertex, 2.4);
+  }
+  // Onset: below this circle the calculus forbids any fold. Dashed, as a cue.
+  stampPolyline(rgb, v, circlePts(s / (theta * Math.sin(Math.PI / 6))), 1.4, 6);
   panels.push({ rgb, width: v.width, height: v.height });
 }
 
@@ -131,9 +204,30 @@ const panels = [];
     return best;
   };
   const rgb = compose(v, [{ dist, thickness: 1.0, color: INK, spacing: s }]);
+  // The two caustic branches: rho(u) = s H / (theta H') on the halves where
+  // H' > 0, mapped through the frame turn.
+  const He = (u) => Math.sqrt(a * a * Math.cos(u) ** 2 + b * b * Math.sin(u) ** 2);
+  const dHe = (u) => ((b * b - a * a) * Math.sin(u) * Math.cos(u)) / He(u);
+  const rhoMax = 470;
+  for (const [lo, hi] of [[-Math.PI / 2 + 1e-3, -1e-3], [Math.PI / 2 + 1e-3, Math.PI - 1e-3]]) {
+    const branch = [];
+    for (let i = 0; i <= 20000; i += 1) {
+      const u = lo + ((hi - lo) * i) / 20000;
+      const H = He(u);
+      const dH = dHe(u);
+      if (dH <= 1e-9) continue;
+      const rho = (s * H) / (theta * dH);
+      if (rho < phi || rho > rhoMax) continue;
+      const uw = u + ((rho - phi) / s) * theta;
+      branch.push({
+        x: rho * (H * Math.cos(uw) - dH * Math.sin(uw)),
+        y: rho * (H * Math.sin(uw) + dH * Math.cos(uw)),
+      });
+    }
+    stampPolyline(rgb, v, branch, 2.4);
+  }
   const rhoStar = (2 * a * b * s) / (theta * (a * a - b * b));
-  const Rstar = rhoStar * Math.sqrt((a * a + b * b) / 2);
-  overlay(rgb, v, (p) => Math.abs(Math.hypot(p.x, p.y) - Rstar), 2.6);
+  stampPolyline(rgb, v, circlePts(rhoStar * Math.sqrt((a * a + b * b) / 2)), 1.4, 6);
   panels.push({ rgb, width: v.width, height: v.height });
 }
 

@@ -204,6 +204,141 @@ const t1 = [];
 }
 
 // ---------------------------------------------------------------------------
+// T1b: the caustic curve itself. For a rotating family the fold locus is
+// parametric: at arc offset w with H'(w)/H(w) > 0, the fold sits on member
+// rho(w) = s H(w) / (theta H'(w)), at world point
+// x = rho [ H(w) u-hat + H'(w) u-hat-perp ] with contact angle u = w0 + w + n theta.
+// Gate: the worst nesting-excess point of member n (brute membership, as above)
+// lies on that curve, for several n past onset, at the figure's own parameters.
+
+console.log('T1b: measured fold points lie on the parametric caustic');
+{
+  const s = 6;
+  const phi = 3;
+  const theta = 0.06;
+
+  // Sampled caustic polyline for a shape given per-arc H, H' closed forms.
+  const causticPoints = (arcs, rhoMax) => {
+    const pts = [];
+    for (const { center, wLo, wHi, H, dH } of arcs) {
+      for (let i = 0; i <= 4000; i += 1) {
+        const w = wLo + ((wHi - wLo) * i) / 4000;
+        const h = H(w);
+        const dh = dH(w);
+        if (dh <= 1e-9) continue;
+        const rho = (s * h) / (theta * dh);
+        if (rho < phi || rho > rhoMax) continue;
+        const n = (rho - phi) / s;
+        const u = center + w + n * theta;
+        pts.push({
+          x: rho * (h * Math.cos(u) - dh * Math.sin(u)),
+          y: rho * (h * Math.sin(u) + dh * Math.cos(u)),
+        });
+      }
+    }
+    return pts;
+  };
+
+  const hexArcs = [];
+  for (let j = 0; j < 6; j += 1) {
+    // Vertex directions of the unit-inradius hexagon with facet normals at
+    // multiples of 60 degrees; on each arc H = sec(30) cos(w), and the
+    // H' > 0 half is w in (-pi/6, 0).
+    hexArcs.push({
+      center: (Math.PI / 3) * j + Math.PI / 6,
+      wLo: -Math.PI / 6 + 1e-4,
+      wHi: -1e-3,
+      H: (w) => (2 / Math.sqrt(3)) * Math.cos(w),
+      dH: (w) => -(2 / Math.sqrt(3)) * Math.sin(w),
+    });
+  }
+
+  // A polygon's caustic has a second component the smooth arcs miss: the
+  // support function's corner absorbs a whole range of slopes, so past the
+  // onset radius the VERTEX TRAJECTORY itself is envelope. One spiral per
+  // vertex: the vertex of member (rho - phi)/s sits at radius rho sec(pi/k)
+  // on the turned vertex direction.
+  const vertexTrajectories = (k, rhoStar, rhoMax) => {
+    const pts = [];
+    const rv = 1 / Math.cos(Math.PI / k);
+    for (let j = 0; j < k; j += 1) {
+      const beta = (TAU * (j + 0.5)) / k;
+      for (let i = 0; i <= 3000; i += 1) {
+        const rho = rhoStar + ((rhoMax - rhoStar) * i) / 3000;
+        const ang = beta + ((rho - phi) / s) * theta;
+        pts.push({ x: rho * rv * Math.cos(ang), y: rho * rv * Math.sin(ang) });
+      }
+    }
+    return pts;
+  };
+  const a = 1.4;
+  const b = 1 / 1.4;
+  const He = (u) => Math.sqrt(a * a * Math.cos(u) ** 2 + b * b * Math.sin(u) ** 2);
+  const ellArcs = [
+    { center: 0, wLo: -Math.PI / 2 + 1e-3, wHi: -1e-3, H: He, dH: (u) => ((b * b - a * a) * Math.sin(u) * Math.cos(u)) / He(u) },
+    { center: 0, wLo: Math.PI / 2 + 1e-3, wHi: Math.PI - 1e-3, H: He, dH: (u) => ((b * b - a * a) * Math.sin(u) * Math.cos(u)) / He(u) },
+  ];
+
+  for (const [shape, arcs] of [
+    [regularPolygon(6), hexArcs],
+    [ellipse(a, b), ellArcs],
+  ]) {
+    const caustic = causticPoints(arcs, 700);
+    if (shape.name === '6-gon') {
+      caustic.push(...vertexTrajectories(6, s / (theta * Math.tan(Math.PI / 6)), 700));
+    }
+    const onset = firstBreak(shape, { s, phi, theta, nMax: 200, samples: 8192 });
+    // Where consecutive members CROSS (sign changes of the membership excess
+    // along member n's boundary) is where drawn strokes meet. A crossing pair
+    // is BORN on the continuous caustic and its lens then opens: by Rolle the
+    // crossing sits within the dip depth of the true envelope, so near onset
+    // it must lie on the curve exactly, and deeper folds may drift by a
+    // member gap. Both are gated.
+    const M = 16384;
+    const bd = shape.boundary(M);
+    const crossingsAt = (n) => {
+      const rho = n * s + phi;
+      const rhoNext = (n + 1) * s + phi;
+      const ex = bd.map((q) => {
+        const x = rot(n * theta, { x: rho * q.x, y: rho * q.y });
+        const pulled = rot(-(n + 1) * theta, x);
+        return { x, e: shape.gauge(pulled) - rhoNext };
+      });
+      const pts = [];
+      for (let i = 0; i < ex.length; i += 1) {
+        const a1 = ex[i];
+        const a2 = ex[(i + 1) % ex.length];
+        if (a1.e > 0 === a2.e > 0) continue;
+        const t = a1.e / (a1.e - a2.e);
+        pts.push({ x: a1.x.x + (a2.x.x - a1.x.x) * t, y: a1.x.y + (a2.x.y - a1.x.y) * t });
+      }
+      return pts;
+    };
+    const distToCaustic = (pt) => {
+      let d = Infinity;
+      for (const c of caustic) d = Math.min(d, Math.hypot(pt.x - c.x, pt.y - c.y));
+      return d;
+    };
+    const birth = crossingsAt(onset.n).map(distToCaustic);
+    let worstDeep = 0;
+    let crossings = birth.length;
+    for (const dn of [8, 20]) {
+      const pts = crossingsAt(onset.n + dn);
+      crossings += pts.length;
+      for (const pt of pts) worstDeep = Math.max(worstDeep, distToCaustic(pt));
+    }
+    const worstBirth = Math.max(...birth);
+    gate(`crossings born on caustic (${shape.name})`, crossings > 0 && worstBirth < 0.02 * onset.rho, {
+      worldUnits: Number(worstBirth.toFixed(3)),
+    });
+    gate(`deep crossings hug caustic (${shape.name})`, worstDeep < 1.5 * s, {
+      gaps: Number((worstDeep / s).toFixed(2)),
+    });
+    report[report.length - 1].caustic = true;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // T2: the Mach condition for walking circles.
 
 console.log('T2: translation folds circles iff the center outruns the growth');
