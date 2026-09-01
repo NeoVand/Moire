@@ -344,6 +344,17 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     beginLayerMorph(id, layer.type, type);
     set((s) => ({
       layers: s.layers.map((item) => (item.id === id ? applyLayerType(item, type) : item)),
+      // Motion authored against one family is garbage against another — a
+      // spacing crossing tuned for circles means nothing on a radial fan —
+      // and silently keeping it is how the opening preset's animators ended
+      // up riding a user's own layers into their exports (loading such a
+      // file then "randomly" animated a document its author believed still).
+      // Same reasoning as removeLayer: the motion goes with what it was
+      // written for.
+      motion: {
+        ...s.motion,
+        animators: s.motion.animators.filter((a) => !a.path.startsWith(`layer.${id}.`)),
+      },
     }));
   },
 

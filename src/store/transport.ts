@@ -1,5 +1,11 @@
 import { create } from 'zustand';
-import { sampleMotion, type Animator } from '../types/motion';
+import {
+  isSpent,
+  sampleAnimator,
+  sampleMotion,
+  scheduleOf,
+  type Animator,
+} from '../types/motion';
 import { applyParams, type ParamPath } from './params';
 import { useProjectStore } from './project';
 
@@ -120,10 +126,41 @@ let lastFrame = 0;
 /** Wall time for idle preview, in seconds since the loop started. */
 let preview = 0;
 
+/**
+ * The exact-end write a `once` animation owes the document. `isSpent` releases
+ * the knob strictly after the end, so the last live tick lands wherever the
+ * frame clock happened to fall — a hair short of the destination — and that
+ * near-miss would otherwise stay in the document forever, be autosaved, and
+ * ride into exports (a rotation of 49.9999 where the author animated to 50).
+ * So the tick that crosses an animator into spent writes its terminal value
+ * once, exactly. Seeking stays pure: this lives only in the live loop.
+ */
+function settleFinished(prev: number, now: number, includeHeld: boolean): void {
+  const { motion } = useProjectStore.getState();
+  const { muted, solo } = useTransportStore.getState();
+  const out = new Map<ParamPath, number>();
+  for (const a of motion.animators) {
+    if (!a.enabled) continue;
+    if (!includeHeld && a.hold) continue;
+    if (silenced(a, muted, solo)) continue;
+    if (!isSpent(a, motion.timings, now) || isSpent(a, motion.timings, prev)) continue;
+    const s = scheduleOf(a, motion.timings);
+    out.set(a.path, sampleAnimator(a, motion.timings, s.delay + Math.max(1e-3, s.period)));
+  }
+  if (out.size === 0) return;
+  applying = true;
+  try {
+    applyParams(out);
+  } finally {
+    applying = false;
+  }
+}
+
 function tick(now: number) {
   raf = requestAnimationFrame(tick);
   const dt = lastFrame ? Math.min(0.25, (now - lastFrame) / 1000) : 0;
   lastFrame = now;
+  const prevPreview = preview;
   preview += dt;
 
   const transport = useTransportStore.getState();
@@ -141,12 +178,14 @@ function tick(now: number) {
     // While recording, held animators run too: `hold` is about what noodles
     // while the tool is idle, and a take must not depend on that.
     applyMotionAt(t, { includeHeld: transport.recording });
+    settleFinished(transport.t, t, transport.recording);
     return;
   }
 
   if (transport.state === 'stopped' && !transport.recording) {
     // Idle preview. Held animators sit still, which is what `hold` is for.
     applyMotionAt(preview);
+    settleFinished(prevPreview, preview, false);
   }
 }
 
