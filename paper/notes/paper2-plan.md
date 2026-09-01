@@ -187,12 +187,11 @@ examples, not as a gallery.
   companion's assets provisionally; the weighted staircase and the
   compressed defect column are P4 polish.
 - P4. FIRST FULL DRAFT 2026-09-01: every section has prose and proofs (§3
-  first, then §2, §4, §1, §6). Still owed, in order: (a) citations — the
-  related-work paragraph names Amidror's indicial method, Fourier moiré
-  theory, de Bruijn's multigrids and the hull torus without \cite; refs.bib
-  has Amidror only, so de Bruijn (Indag. Math. 1981), Helmholtz (Sensations
-  of Tone) and a hull-torus reference must be added with VERIFIED
-  bibliographic data before any \cite lands; (b) the weighted staircase
+  first, then §2, §4, §1, §6). Still owed, in order: (a) DONE — de Bruijn
+  (Indag. Math. 84, 1981), Helmholtz (Dover 1954, Ellis) and Bellissard,
+  Herrmann & Zarrouati (Directions in Mathematical Quasicrystals, 2000)
+  verified online and cited beside Amidror; plain bibliography style until
+  the venue is chosen; (b) the weighted staircase
   beside the stations strip (selectionfigs.mjs, tightened) and the defect
   column compressed to one; (c) an abstract and title pass; (d) the
   visibility spectrum's arithmetic if anyone has an afternoon (§2 states it
