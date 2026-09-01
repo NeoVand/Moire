@@ -81,8 +81,12 @@ export function patternTypeCode(type: PatternType): number {
       return 11;
     case 'curve-spiral':
       return 12;
-    case 'tiling-periodic':
+    case 'curve-log':
       return 13;
+    // The tiling sits above the curves so the curve dispatch stays a
+    // contiguous `type - 9` block; the "is a tiling" gates test > 13.5.
+    case 'tiling-periodic':
+      return 14;
     default:
       return 1;
   }
@@ -484,12 +488,12 @@ function solveLayers(slots, fields, view, world, pixel, scanOn) {
     // noise. Walking families have no closed form and stay on dFdx.
     const sgrad = vec2(0).toVar();
     const hasGrad = float(0).toVar();
-    // Code 13 joins the 5..7 grids: a tiling is a lattice, indexed by a pair
+    // Code 14 joins the 5..7 grids: a tiling is a lattice, indexed by a pair
     // of integers, so every lattice path downstream takes it unchanged.
     const isLattice = slot.type
       .greaterThan(4.5)
       .and(slot.type.lessThan(7.5))
-      .or(slot.type.greaterThan(12.5));
+      .or(slot.type.greaterThan(13.5));
 
     If(slot.active.greaterThan(0.5), () => {
       const c = slot.rotation.cos();
@@ -547,7 +551,7 @@ function solveLayers(slots, fields, view, world, pixel, scanOn) {
       );
       // A catalogue tiling carries its own translation cell; the layer's
       // stretch applies per axis, exactly as the grids' cells do.
-      If(slot.type.greaterThan(12.5), () => {
+      If(slot.type.greaterThan(13.5), () => {
         cell.assign(
           vec4(
             slot.tileCell.x.mul(slot.scale.x),
@@ -1582,7 +1586,7 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
           const ink = float(0).toVar();
           const edgeD = float(1e8).toVar();
           const vertD = float(1e8).toVar();
-          If(slot.type.greaterThan(12.5), () => {
+          If(slot.type.greaterThan(13.5), () => {
             const hit = tilingInk(slot, shifted);
             edgeD.assign(hit.edge);
             vertD.assign(hit.vert);

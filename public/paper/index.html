@@ -502,7 +502,7 @@ ratio, and in two dimensions the winner is found exactly, at any order, by
 per-pixel lattice reduction (<a href="#sec-4-3">§4.3</a>).</p>
 <p>The deeper organizing fact, and the paper's spine, is that a counting map can
 exist in exactly three ways (<a href="#sec-3-2">§3.2</a>). For most families it is a
-global formula; <a href="#sec-3-5">§3.5</a> lists the thirteen we ship, of which nine
+global formula; <a href="#sec-3-5">§3.5</a> lists the fourteen we ship, of which ten
 are one line of algebra each. It can instead exist only up to an integer
 gained around a loop: encode a <em>circle-valued</em> field, the polar angle
 being the prototype, and the count acquires a quantized winding, the fringes
@@ -581,7 +581,7 @@ shattered one, at identical cost.</p>
   an exact closed form for translated polygons of any side count including
   the marginal (sonic) drift (Section <a href="#sec-7">7</a>,
   Appendix <a href="#sec-A1">A</a>).</p></li>
-<li><p><span class="sc">Moiré</span>, an interactive tool: thirteen families, twelve concurrent
+<li><p><span class="sc">Moiré</span>, an interactive tool: fourteen families, twelve concurrent
   layers compiled once, zoom-stable strokes, GPU type morphing, and no
   rasterization step (Section <a href="#sec-8">8</a>). Its <em>envelope</em> view draws
   the averaged ink directly, which requires averaging over index rather than
@@ -841,7 +841,7 @@ residual. Both fields are one line of shader code.</p>
 counting map exist? Our catalog contains exactly three answers, and they
 stratify the mathematics and the engineering alike.</p>
 <p><em>Exact.</em> The count is the level-set label of a global scalar phase, as
-in (<a href="#eq-3">3</a>). Nine of our thirteen families live here
+in (<a href="#eq-3">3</a>). Ten of our fourteen families live here
 (Table <a href="#tab-1">1</a>), the index gradient is a formula, and everything
 downstream is closed-form.</p>
 <p><em>Winding.</em> The count exists locally but gains an integer around a loop.
@@ -910,9 +910,11 @@ and the classical carrier alphabet is their transverse seedings. Parallel
 lines and the radial pencil are the first two clocks drawn directly; the
 Archimedean family of our catalog is the rotation flow seeded on a spiral,
 its winding tamed by the integer arm count of <a href="#sec-3-5">§3.5</a>; and the
-two clocks the catalog does not ship  —  geometrically spaced rings and
-logarithmic spirals  —  are one table row each, waiting. The classification
-says the alphabet ends there.</p>
+two clocks the catalog lacked when we first wrote this classification down
+ —  geometrically spaced rings and logarithmic spirals  —  were added as one
+table row (the log-spiral family, whose zero pitch <em>is</em> the dilation
+clock), which is the pleasant experience of a theory handing its tool a
+feature. The classification says the alphabet now ends there.</p>
 <p>The second generator <em>propagates a front</em>: member $n$ is a convex curve
 of gauge radius <span class="nowrap">$ns+\varphi$,</span> in a frame that may translate and turn per
 index. Every concentric row of Table <a href="#tab-1">1</a> is such a front at
@@ -984,10 +986,10 @@ slider does not invalidate a cached raster, because there is none.</p>
 <h3 id="sec-3-5"><span class="secnum">3.5</span> The catalog: nine closed forms</h3>
 <p>A family must supply the pair the sections above consume: a phase $\ph$ whose
 level sets are the members, and its gradient magnitude, which converts a phase
-residual into a distance. The catalog is deliberately short: thirteen
-families, of which nine are one line of algebra each, on the exact rung of
+residual into a distance. The catalog is deliberately short: fourteen
+families, of which ten are one line of algebra each, on the exact rung of
 <a href="#sec-3-2">§3.2</a>; the four that are not sit on the other rungs and set up
-the rest of the paper. The supplemental material (§ S1) draws all thirteen,
+the rest of the paper. The supplemental material (§ S1) draws all fourteen,
 each alone and then beating against a perturbed copy of itself, which is the
 fastest way to see what the algebra buys.</p>
 <p>For a family whose members are <span class="nowrap">$\{\ph=ns+\varphi\}$,</span> the index and distance
@@ -996,7 +998,7 @@ fields are</p>
   \qquad
   d(p)=\frac{\mathrm{periodicDist}\!\left(\ph(p)-\varphi,\,s\right)}{\lvert\nabla\ph(p)\rvert},\]</div><span class="eq-no">(5)</span></div>
 <p>so a family is completely specified by the pair <span class="nowrap">$(\ph,\lvert\nabla\ph\rvert)$.</span>
-Table <a href="#tab-1">1</a> gives both for all nine, in ten rows: the hexagon row
+Table <a href="#tab-1">1</a> gives both for all ten, in eleven rows: the hexagon row
 is the $N{=}6$ instance of the $N$-gon written out, beside the square and
 triangle (families of their own), because those three support forms need no
 transcendentals. Every entry is <span class="nowrap">$O(1)$,</span> branch-free
@@ -1008,10 +1010,14 @@ the geometry genuinely contains an angle.</p>
   hexagon rows are the <span class="nowrap">$N=4$,</span> <span class="nowrap">$3$,</span> $6$ instances of the $N$-gon row, written
   out because their support forms are transcendental-free. $\omega=2\pi f/32$ so that
   $f=1$ is one wave cycle per $32$ world units; $a=B/100$ for a bend slider <span class="nowrap">$B$;</span>
-  $b=Ms/2\pi$ with $M=\max(1,\mathrm{round}(\lvert B\rvert/s))$ the number of
-  spiral arms. The three concentric shapes are the support function of the
-  generating polygon, which is the observation <a href="#sec-6">§6</a> builds on.</figcaption><div class="table-scroll"><table><tr><th>Family</th><th>$\ph(p)$</th><th>$\lvert\nabla\ph(p)\rvert$</th><th>Notes</th></tr><tr><th>Parallel lines</th><th>$\langle p,u\rangle$</th><th>$1$</th><th><span class="nowrap">$u=(\cos\alpha,\sin\alpha)$;</span> pitch $s$</th></tr><tr><td>Concentric circles</td><td>$\lVert p\rVert$</td><td>$1$</td><td></td></tr><tr><td>Concentric squares</td><td>$\max(\lvert x\rvert,\lvert y\rvert)$</td><td>$1$</td><td><span class="nowrap">$L^\infty$;</span> support function of the square</td></tr><tr><td>Concentric triangles</td><td>$\max\!\left(x,\ \tfrac{\sqrt3}{2}\lvert y\rvert-\tfrac{x}{2}\right)$</td><td>$1$</td><td>support function of the triangle</td></tr><tr><td>Concentric hexagons</td><td>$\max\!\left(\lvert x\rvert,\ \tfrac{\lvert x\rvert}{2}+\tfrac{\sqrt3}{2}\lvert y\rvert\right)$</td><td>$1$</td><td>support function of the hexagon</td></tr><tr><td>Concentric $N$-gon</td><td>$\lVert p\rVert\cos\!\big(\mathrm{wrap}(\theta_p,\tfrac{2\pi}{N})\big)$</td><td>$1$</td><td>$\theta_p=\mathrm{atan2}(y,x)$</td></tr><tr><td>Wave</td><td>$x-A\sin(\omega y+\ph_0)$</td><td>$\sqrt{1+A^2\omega^2\cos^2(\omega y+\ph_0)}$</td><td>$A$ amplitude, $f$ frequency, $\ph_0$ phase</td></tr><tr><td>Parabola</td><td>$y-a x^2$</td><td>$\sqrt{1+4a^2x^2}$</td><td>opens up; $a=0$ is horizontal parallels</td></tr><tr><td>Hyperbola</td><td>$\sqrt{\lvert x^2-y^2\rvert}$</td><td>$\lVert p\rVert/\sqrt{\lvert x^2-y^2\rvert}$</td><td>rectangular; <span class="nowrap">$n\ge1$,</span> so no member through $0$</td></tr><tr><td>Spiral</td><td>$\lVert p\rVert-b\,\theta_p$</td><td>$\sqrt{1+b^2/\lVert p\rVert^2}$</td><td>Archimedean; $b=0$ is concentric circles</td></tr></table></div></figure>
-<p>Three remarks on the table; each marks a bug we shipped.</p>
+  $b=\pm Ms/2\pi$ with $M=\max(1,\mathrm{round}(\lvert B\rvert/s))$ the number
+  of spiral arms and the sign of $B$ the handedness, for both spirals. The log
+  spiral is the loxodromic clock of <a href="#sec-3-2">§3.2</a>: its members multiply
+  their radius by $e^{s/32}$ per index, so $B=0$ degrades to the dilation
+  clock, geometrically spaced rings. The three concentric shapes are the
+  support function of the
+  generating polygon, which is the observation <a href="#sec-6">§6</a> builds on.</figcaption><div class="table-scroll"><table><tr><th>Family</th><th>$\ph(p)$</th><th>$\lvert\nabla\ph(p)\rvert$</th><th>Notes</th></tr><tr><th>Parallel lines</th><th>$\langle p,u\rangle$</th><th>$1$</th><th><span class="nowrap">$u=(\cos\alpha,\sin\alpha)$;</span> pitch $s$</th></tr><tr><td>Concentric circles</td><td>$\lVert p\rVert$</td><td>$1$</td><td></td></tr><tr><td>Concentric squares</td><td>$\max(\lvert x\rvert,\lvert y\rvert)$</td><td>$1$</td><td><span class="nowrap">$L^\infty$;</span> support function of the square</td></tr><tr><td>Concentric triangles</td><td>$\max\!\left(x,\ \tfrac{\sqrt3}{2}\lvert y\rvert-\tfrac{x}{2}\right)$</td><td>$1$</td><td>support function of the triangle</td></tr><tr><td>Concentric hexagons</td><td>$\max\!\left(\lvert x\rvert,\ \tfrac{\lvert x\rvert}{2}+\tfrac{\sqrt3}{2}\lvert y\rvert\right)$</td><td>$1$</td><td>support function of the hexagon</td></tr><tr><td>Concentric $N$-gon</td><td>$\lVert p\rVert\cos\!\big(\mathrm{wrap}(\theta_p,\tfrac{2\pi}{N})\big)$</td><td>$1$</td><td>$\theta_p=\mathrm{atan2}(y,x)$</td></tr><tr><td>Wave</td><td>$x-A\sin(\omega y+\ph_0)$</td><td>$\sqrt{1+A^2\omega^2\cos^2(\omega y+\ph_0)}$</td><td>$A$ amplitude, $f$ frequency, $\ph_0$ phase</td></tr><tr><td>Parabola</td><td>$y-a x^2$</td><td>$\sqrt{1+4a^2x^2}$</td><td>opens up; $a=0$ is horizontal parallels</td></tr><tr><td>Hyperbola</td><td>$\sqrt{\lvert x^2-y^2\rvert}$</td><td>$\lVert p\rVert/\sqrt{\lvert x^2-y^2\rvert}$</td><td>rectangular; <span class="nowrap">$n\ge1$,</span> so no member through $0$</td></tr><tr><td>Spiral</td><td>$\lVert p\rVert-b\,\theta_p$</td><td>$\sqrt{1+b^2/\lVert p\rVert^2}$</td><td>Archimedean; $b=0$ is concentric circles</td></tr><tr><td>Log spiral</td><td>$32\ln\lVert p\rVert-b\,\theta_p$</td><td>$\sqrt{32^2+b^2}\,/\lVert p\rVert$</td><td>loxodromic; $B=0$ is geometric rings</td></tr></table></div></figure>
+<p>Four remarks on the table; each marks a bug we shipped.</p>
 <p><span class="paralead">The gradient column is not decoration.</span> For the first six rows it is
 $1$ and can be dropped. For the last four it is not, and dropping it thins every
 stroke by the same factor the family is steep by. We had shipped that bug in
@@ -1023,6 +1029,14 @@ $\mathrm{atan2}$ does; it closes only if the arm count $M$ is an integer, which 
 why $M$ is rounded rather than passed through. Both are the kind of detail that a
 raster pipeline hides in the resampling and a field pipeline exposes on the
 first frame.</p>
+<p><span class="paralead">The pitch's sign is the handedness.</span> A spiral at $-B$ is the mirror
+of the one at <span class="nowrap">$+B$,</span> and the distinction is not cosmetic: a counter-handed pair
+beats in $M_A+M_B$ rays where a same-handed pair beats in <span class="nowrap">$M_A-M_B$.</span> Both of
+our solver twins once collapsed the sign through an absolute value, agreeing
+with each other and disagreeing with the algebra  —  the counter-spiral fan of
+the teaser's third panel was unreachable, and no golden test could notice,
+because the twins are compared against each other. The sign now rides <span class="nowrap">$b$,</span>
+and the mirror identity $\ph(x,y;B)=\ph(x,-y;-B)$ is a unit test.</p>
 <p><span class="paralead">Three of the rows are support functions.</span> The square, triangle and
 hexagon entries are all $\rad(q)=\max_k\langle q,n_k\rangle$ over the outward
 facet normals, written out. So is the $N$-gon row, in its trigonometric form. This
@@ -2548,7 +2562,7 @@ little to ship. <a href="#sec-3-5">§3.5</a> writes every family as $\{\ph=ns+\v
 inks it through <span class="nowrap">$\mathrm{periodicDist}(\ph-\varphi,s)/|\nabla\ph|$;</span> encoding $f$
 subtracts $a s f$ inside that residual and subtracts the vector $a s \nabla f$
 from the carrier gradient it divides by. Two extra terms, one shared by all
-thirteen families (for the concentric and walking families the carrier
+fourteen families (for the concentric and walking families the carrier
 direction in that divide is the radial direction from the layer origin, a
 first-order convenience).</p>
 <p>The gradient term is not optional. Omit it and the modulated family's strokes
@@ -2762,7 +2776,7 @@ debugging the renderer in this paper.</p>
 <p>None of this is a new measurement principle; interferometry has used fringe
 counting for a century. What is new is where it now sits. These are two extra
 terms in a shader in a drawing tool, they run at frame rate, they compose with the
-thirteen families of <a href="#sec-3-5">§3.5</a> and with each other, and the
+fourteen families of <a href="#sec-3-5">§3.5</a> and with each other, and the
 picture they make is a picture — something an author can restyle, zoom, and
 put on a page — rather than the output of a measurement pipeline.</p>
 <h2 id="sec-11"><span class="secnum">11</span> Discussion</h2>
@@ -2843,7 +2857,7 @@ the exact envelopes. <em>Prefiltering.</em> We show the wide-interval regime is
 saturated but do not integrate the field there; a correct analytic mean over a
 walking family is open, and would replace the subsampling fallback with something
 principled rather than merely coherent. <em>Families without a scalar index.</em>
-Four of our thirteen (the radial pencil and the three lattices) have no
+Four of our fourteen (the radial pencil and the three lattices) have no
 phase function in the sense of <a href="#sec-3-5">§3.5</a>: the pencil's index is an angle, so its fringes
 are not level sets of a difference of scalars, and a lattice's index is a pair of
 integers, so a lattice pair produces a two-dimensional beat that the fringe law
@@ -2900,7 +2914,7 @@ $10$–$35\times$ faster than the enumeration it replaces
 across rotated settings, and in exact agreement with brute force on every
 legible setting of the fidelity sweep (<a href="#sec-9-6">§9.6</a> measures the strided
 band the sweep's cap excludes).</p>
-<p>The work is embodied in <span class="sc">Moiré</span>, a browser tool in which thirteen families,
+<p>The work is embodied in <span class="sc">Moiré</span>, a browser tool in which fourteen families,
 twelve simultaneous layers, authored fields, and every parameter in this paper
 are live under the cursor at $60$ Hz. Building it is what produced the
 mathematics: the eikonal divide, the pixel-relative stroke floor, and the drift

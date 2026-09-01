@@ -961,9 +961,13 @@ export function lineDistanceCpu(
 
 const WAVE_CYCLE = 32;
 const PARABOLA_BEND = 0.01;
+/** Log-spiral radial scale: psi = 32 ln r, so spacing s means a radius ratio
+ * of e^{s/32} per member — s = 22 doubles each ring. Matches WAVE_CYCLE's
+ * "one cycle per 32 world units" convention. */
+const LOG_RADIAL = 32;
 
 /**
- * 0 wave, 1 parabola, 2 hyperbola, 3 spiral.
+ * 0 wave, 1 parabola, 2 hyperbola, 3 spiral, 4 log spiral.
  *
  * Each of these families is the level sets of a phase function ψ, with member n
  * on `ψ = n·s + φ`. The stroke test wants a Euclidean distance, and the phase
@@ -1017,11 +1021,40 @@ export function curvePhaseCpu(
   }
   const r = length2(p);
   if (r < EPS) return eikonal(signedMod(-phase - warp, s), s, 1);
+  if (k === 4) {
+    // Log spiral: psi = K ln r - b theta, the loxodromic clock. Members at
+    // psi = n s + phi sit at radii that grow by e^{Ms/K} per turn, so bend 0
+    // degenerates to geometrically spaced rings (the dilation clock) exactly
+    // as the Archimedean spiral's bend 0 degenerates to concentric circles.
+    // The arm count M = round(|bend| / s) keeps the atan2 cut invisible (the
+    // loop jump is exactly M members), and the SIGN of the bend is the
+    // handedness. Members accumulate at the origin (ln r -> -inf): the r
+    // guard above inks the limit point, which is the true picture.
+    const rr = r * r;
+    if (Math.abs(bend) < 1e-4) {
+      return eikonal(
+        signedMod(LOG_RADIAL * Math.log(r) - phase - warp, s),
+        s,
+        norm((LOG_RADIAL * p.x) / rr, (LOG_RADIAL * p.y) / rr)
+      );
+    }
+    const starts = Math.max(1, Math.round(Math.abs(bend) / s));
+    const b = (Math.sign(bend) * (starts * s)) / TAU;
+    const th = Math.atan2(p.y, p.x);
+    return eikonal(
+      signedMod(LOG_RADIAL * Math.log(r) - b * th - phase - warp, s),
+      s,
+      norm((LOG_RADIAL * p.x + b * p.y) / rr, (LOG_RADIAL * p.y - b * p.x) / rr)
+    );
+  }
   if (Math.abs(bend) < 1e-4) {
     return eikonal(signedMod(r - phase - warp, s), s, norm(p.x / r, p.y / r));
   }
   const starts = Math.max(1, Math.round(Math.abs(bend) / s));
-  const b = (starts * s) / TAU;
+  // The pitch's sign is the handedness: an Archimedean spiral at bend -B is
+  // the mirror of the one at +B, and a counter-handed pair beats in
+  // M_A + M_B rays where a same-handed pair beats in M_A - M_B.
+  const b = (Math.sign(bend) * (starts * s)) / TAU;
   const th = Math.atan2(p.y, p.x);
   return eikonal(
     signedMod(r - b * th - phase - warp, s),

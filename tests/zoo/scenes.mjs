@@ -550,6 +550,63 @@ export const cases = [
       view(ENVELOPE)
     ),
   },
+  {
+    name: 'counter-spirals-render',
+    coords: [1, 1],
+    note:
+      'Archimedean spirals of opposite handedness — the pitch SIGN is the ' +
+      'chirality (both twins once dropped it through abs), and a counter pair ' +
+      'beats in M_A + M_B rays where a same-handed pair beats in M_A - M_B',
+    scene: scene(
+      [
+        layer('a', { type: 'curve-spiral', spacing: 5, bend: 90 }),
+        layer('b', { type: 'curve-spiral', spacing: 5, bend: -60 }),
+      ],
+      view()
+    ),
+  },
+  {
+    name: 'logspiral-pair-render',
+    coords: [1, 1],
+    note:
+      'the loxodromic clock: two log-spiral families, counter-handed — ' +
+      'self-similar arms whose member gap grows with radius, so the beat ' +
+      'rosette is scale-free',
+    scene: scene(
+      [
+        layer('a', { type: 'curve-log', spacing: 16, bend: 48 }),
+        layer('b', { type: 'curve-log', spacing: 16, bend: -48 }),
+      ],
+      view()
+    ),
+  },
+  {
+    name: 'georings-envelope',
+    coords: [1, 1],
+    note:
+      'the dilation clock: two geometrically spaced ring families (log spiral ' +
+      'at bend 0) about displaced centres, enveloped — hyperbolae-like fringes ' +
+      'in log-radius',
+    scene: scene(
+      [
+        layer('a', {
+          type: 'curve-log',
+          spacing: 6,
+          bend: 0,
+          thickness: 3,
+          position: { x: -60, y: 0 },
+        }),
+        layer('b', {
+          type: 'curve-log',
+          spacing: 6,
+          bend: 0,
+          thickness: 3,
+          position: { x: 60, y: 0 },
+        }),
+      ],
+      view(ENVELOPE)
+    ),
+  },
 
   // ---- fields on scalars ----
   {

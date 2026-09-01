@@ -701,6 +701,54 @@ const dCutA = curveDistanceCpu({ x: -80, y: 0.2 }, 3, 16, 0, 20);
 const dCutB = curveDistanceCpu({ x: -80, y: -0.2 }, 3, 16, 0, 20);
 assert.ok(Math.abs(dCutA - dCutB) < 0.6, `spiral branch cut, ${dCutA} vs ${dCutB}`);
 
+// The pitch's sign is the handedness: a negative bend is the mirror image, so
+// the phase at (x, y) with +B equals the phase at (x, -y) with -B, and the
+// two differ at a generic point (the old abs() collapsed them).
+approx(
+  curvePhaseCpu({ x: 40, y: 25 }, 3, 5, 0, 90).r,
+  curvePhaseCpu({ x: 40, y: -25 }, 3, 5, 0, -90).r,
+  1e-9
+);
+assert.ok(
+  Math.abs(
+    curvePhaseCpu({ x: 40, y: 25 }, 3, 5, 0, 90).r - curvePhaseCpu({ x: 40, y: 25 }, 3, 5, 0, -90).r
+  ) > 1e-3,
+  'spiral chirality must respond to the pitch sign'
+);
+
+// Log spiral (kind 4): psi = 32 ln r - b θ. Bend 0 is geometric rings — member
+// n sits at radius e^{(n s + φ)/32} — and the arm form puts member n at
+// r = e^{(n s + φ + b θ)/32} along angle θ. The cut closes for integer arms.
+{
+  const s = 16;
+  const rN = (n: number, extra = 0) => Math.exp((n * s + extra) / 32);
+  approx(curveDistanceCpu({ x: rN(3), y: 0 }, 4, s, 0, 0), 0, 1e-3);
+  approx(curveDistanceCpu({ x: 0, y: rN(5) }, 4, s, 0, 0), 0, 1e-3);
+  // Halfway between members 3 and 4 in log-radius the residual is half a
+  // spacing over the local gradient: just assert it is well off zero.
+  assert.ok(curveDistanceCpu({ x: rN(3.5), y: 0 }, 4, s, 0, 0) > 1, 'between geometric rings');
+  // One arm (bend = s): the member through angle θ at r = e^{(ns + bθ)/32},
+  // b = s/2π.
+  const b = s / (2 * Math.PI);
+  const th = 1.1;
+  const rArm = Math.exp((2 * s + b * th) / 32);
+  approx(
+    curveDistanceCpu({ x: rArm * Math.cos(th), y: rArm * Math.sin(th) }, 4, s, 0, s),
+    0,
+    1e-2
+  );
+  // Chirality mirrors, exactly as for the Archimedean.
+  approx(
+    curvePhaseCpu({ x: 40, y: 25 }, 4, s, 0, 48).r,
+    curvePhaseCpu({ x: 40, y: -25 }, 4, s, 0, -48).r,
+    1e-9
+  );
+  // The branch cut is invisible for integer arms.
+  const lCutA = curveDistanceCpu({ x: -80, y: 0.2 }, 4, s, 0, 48);
+  const lCutB = curveDistanceCpu({ x: -80, y: -0.2 }, 4, s, 0, 48);
+  assert.ok(Math.abs(lCutA - lCutB) < 0.6, `log-spiral branch cut, ${lCutA} vs ${lCutB}`);
+}
+
 // ---------------------------------------------------------------- field warp
 //
 // A field enters as a shift of the phase residual. Three things have to hold, and

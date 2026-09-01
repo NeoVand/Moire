@@ -62,6 +62,9 @@ section('src/types/moire.ts : what the Studio offers');
     'concentric-polygons',
     'grid-square', 'grid-hex', 'grid-triangle',
     'curve-wave', 'curve-parabola', 'curve-hyperbola', 'curve-spiral',
+    // The loxodromic clock, added when the carrier classification of §3.2
+    // named it as one of the two group families the catalog lacked.
+    'curve-log',
   ];
   // Families the Studio has gained since the paper was written. Listing them
   // explicitly is the point: a new family must be either added to the catalog

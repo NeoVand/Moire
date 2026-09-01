@@ -34,6 +34,7 @@ export const PATTERN_ICONS: Record<PatternType, { icon: HugeIcon; className?: st
   'curve-parabola': { icon: Parabola01Icon },
   'curve-hyperbola': { icon: HyperboleIcon },
   'curve-spiral': { icon: SpiralsIcon },
+  'curve-log': { icon: ShellIcon },
   'tiling-periodic': { icon: Blockchain01Icon },
 };
 

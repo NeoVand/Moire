@@ -92,6 +92,18 @@ export const PRESETS: ScenePreset[] = [
     ),
   },
   {
+    id: 'nautilus-lenses',
+    name: 'Nautilus Lenses',
+    note: 'Two logarithmic spirals, mirror-handed. Every similarity is a phase shift to this family — rotating or rescaling either layer slides the pattern through itself — so the rosette of lenses has no characteristic scale.',
+    scene: scene(
+      [
+        { id: 'a', type: 'curve-log', spacing: 16, bend: 48 },
+        { id: 'b', type: 'curve-log', spacing: 16, bend: -48 },
+      ],
+      1
+    ),
+  },
+  {
     id: 'hex-twist',
     name: 'Hexagon Twist',
     note: 'Two honeycombs at a five-degree twist: the rosette superlattice of coincidence spots.',

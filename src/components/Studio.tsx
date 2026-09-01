@@ -762,11 +762,24 @@ function LayerFields() {
         <Slider
           label="Pitch"
           value={layer.bend ?? LAYER_DEFAULTS.bendSpiral}
-          min={0}
+          min={-80}
           max={80}
           step={0.1}
           defaultValue={LAYER_DEFAULTS.bendSpiral}
-          info="Radius the spiral gains per turn."
+          info="Radius the spiral gains per turn; negative reverses the handedness. Counter-handed pairs beat in the SUM of their arm counts."
+          path={layerPath(layer.id, 'bend')}
+          onChange={(bend) => updateLayer(layer.id, { bend })}
+        />
+      )}
+      {layer.type === 'curve-log' && (
+        <Slider
+          label="Pitch"
+          value={layer.bend ?? LAYER_DEFAULTS.bendLog}
+          min={-80}
+          max={80}
+          step={0.1}
+          defaultValue={LAYER_DEFAULTS.bendLog}
+          info="Arm count times spacing; the radius multiplies by a fixed ratio each turn. 0 gives geometrically spaced rings; negative reverses the handedness."
           path={layerPath(layer.id, 'bend')}
           onChange={(bend) => updateLayer(layer.id, { bend })}
         />

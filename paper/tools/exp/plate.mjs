@@ -1,4 +1,4 @@
-// The thirteen families, each drawn alone, then each superposed with a slightly
+// The fourteen families, each drawn alone, then each superposed with a slightly
 // perturbed copy of itself so its fringe system is visible. This is the catalog
 // plate: it is the only figure in the paper that shows what a layer *is* rather
 // than what two of them do.
@@ -29,7 +29,7 @@ const V = view({ width: SIDE, height: SIDE, zoom: SIDE / WORLD, superSample: 3 }
 const THICK = 1.5;
 
 /**
- * The thirteen. `turn` is the rotation, in degrees, given to the second copy in
+ * The fourteen. `turn` is the rotation, in degrees, given to the second copy in
  * the superposition row; families whose fringes come from a pitch difference
  * instead get `detune`, a multiplier on spacing.
  *
@@ -52,11 +52,20 @@ const FAMILIES = [
   { slug: 'parabola', label: 'parabola', turn: 3, cfg: { kind: 'parabola', spacing: 12, bend: 0.3 } },
   { slug: 'hyperbola', label: 'hyperbola', turn: 4, cfg: { kind: 'hyperbola', spacing: 13, phase: 16 } },
   { slug: 'spiral', label: 'spiral', detune: 1.05, cfg: { kind: 'spiral', spacing: 11, bend: 80 } },
+  // The loxodromic clock is a group orbit, so it is immune to its own flow:
+  // a rotation is a phase shift and a detune is (almost exactly) another,
+  // which is why neither perturbs it visibly and the honest perturbation is
+  // the one thing a similarity cannot do — flip the handedness.
+  { slug: 'log', label: 'log spiral', mirror: true, cfg: { kind: 'log', spacing: 11, bend: 44 } },
 ];
 
 for (const f of FAMILIES) {
+  if (f.mirror) f.cfgSecond = { ...f.cfg, bend: -f.cfg.bend };
+}
+
+for (const f of FAMILIES) {
   const base = { ...f.cfg, thickness: THICK, color: INK };
-  const second = { ...base };
+  const second = f.cfgSecond ? { ...f.cfgSecond, thickness: THICK, color: INK } : { ...base };
   if (f.turn) second.rotation = f.turn;
   if (f.detune) second.spacing = base.spacing * f.detune;
 
@@ -73,5 +82,5 @@ for (const f of FAMILIES) {
 }
 
 console.log(
-  FAMILIES.map((f, i) => `${i + 1}. ${f.label} (${f.turn ? `turn ${f.turn}\u00b0` : `detune ${f.detune}`})`).join('\n'),
+  FAMILIES.map((f, i) => `${i + 1}. ${f.label} (${f.turn ? `turn ${f.turn}\u00b0` : f.mirror ? `mirror` : `detune ${f.detune}`})`).join('\n'),
 );

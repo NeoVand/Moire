@@ -314,12 +314,30 @@ export function family(cfg = {}) {
     }
     case 'spiral': {
       const starts = Math.max(1, Math.round(Math.abs(bend) / spacing));
-      const b = (starts * spacing) / TAU;
+      // The pitch's sign is the handedness, as in the shipped twins.
+      const b = (Math.sign(bend) * (starts * spacing)) / TAU;
       psiLocal = (q) => Math.hypot(q.x, q.y) - b * Math.atan2(q.y, q.x);
       gradVecLocal = (q) => {
         const r = Math.hypot(q.x, q.y);
         if (r < 1e-6) return { x: 1e6, y: 0 };
         return { x: q.x / r + (b * q.y) / (r * r), y: q.y / r - (b * q.x) / (r * r) };
+      };
+      break;
+    }
+    case 'log': {
+      // Log spiral, psi = 32 ln r - b θ: bend 0 is geometrically spaced rings.
+      // Twin of curvePhaseCpu kind 4.
+      const K = 32;
+      const starts = Math.max(1, Math.round(Math.abs(bend) / spacing));
+      const b = Math.abs(bend) < 1e-4 ? 0 : (Math.sign(bend) * (starts * spacing)) / TAU;
+      psiLocal = (q) => {
+        const r = Math.max(Math.hypot(q.x, q.y), 1e-9);
+        return K * Math.log(r) - b * Math.atan2(q.y, q.x);
+      };
+      gradVecLocal = (q) => {
+        const rr = q.x * q.x + q.y * q.y;
+        if (rr < 1e-12) return { x: 1e6, y: 0 };
+        return { x: (K * q.x + b * q.y) / rr, y: (K * q.y - b * q.x) / rr };
       };
       break;
     }

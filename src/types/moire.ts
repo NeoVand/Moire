@@ -17,6 +17,7 @@ export type PatternType =
   | 'curve-parabola'
   | 'curve-hyperbola'
   | 'curve-spiral'
+  | 'curve-log'
   | 'tiling-periodic';
 
 /**
@@ -149,6 +150,7 @@ export const PATTERN_META: {
   { id: 'curve-parabola', label: 'Parabola', family: 'curves' },
   { id: 'curve-hyperbola', label: 'Hyperbola', family: 'curves' },
   { id: 'curve-spiral', label: 'Spiral', family: 'curves' },
+  { id: 'curve-log', label: 'Log spiral', family: 'curves' },
 ];
 
 export const PATTERN_FAMILIES: {
@@ -175,7 +177,7 @@ export const PATTERN_FAMILIES: {
   {
     id: 'curves',
     label: 'Curves',
-    types: ['curve-wave', 'curve-parabola', 'curve-hyperbola', 'curve-spiral'],
+    types: ['curve-wave', 'curve-parabola', 'curve-hyperbola', 'curve-spiral', 'curve-log'],
   },
 ];
 
@@ -239,7 +241,8 @@ export function isCurves(type: PatternType): boolean {
     type === 'curve-wave' ||
     type === 'curve-parabola' ||
     type === 'curve-hyperbola' ||
-    type === 'curve-spiral'
+    type === 'curve-spiral' ||
+    type === 'curve-log'
   );
 }
 
@@ -247,6 +250,7 @@ export function defaultBend(type: PatternType): number {
   if (type === 'curve-wave') return 8;
   if (type === 'curve-parabola') return 1;
   if (type === 'curve-spiral') return 32;
+  if (type === 'curve-log') return 18;
   return 0;
 }
 
@@ -429,6 +433,7 @@ export const LAYER_DEFAULTS = {
   bendWave: 8,
   bendParabola: 1,
   bendSpiral: 32,
+  bendLog: 18,
   frequency: 1,
   fieldAmount: FIELD_NONE.amount,
   fieldScale: FIELD_NONE.scale,

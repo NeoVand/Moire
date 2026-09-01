@@ -856,6 +856,20 @@ fn curvePhase(p: vec2<f32>, kind: f32, spacing: f32, phase: f32, bend: f32, freq
   if (r < 1e-6) {
     return eikonalWgsl(signedModWgsl(-phase - warp, s), s, 1.0);
   }
+  if (k == 4) {
+    // Log spiral: psi = 32 ln r - b theta; bend 0 is geometrically spaced
+    // rings, the sign of the bend is the handedness. Twin of curvePhaseCpu.
+    let rr = r * r;
+    if (abs(bend) < 1e-4) {
+      let grad = 32.0 * p / rr - warpGrad;
+      return eikonalWgsl(signedModWgsl(32.0 * log(r) - phase - warp, s), s, length(grad));
+    }
+    let starts = max(round(abs(bend) / s), 1.0);
+    let b = sign(bend) * starts * s / 6.28318530718;
+    let th = atan2(p.y, p.x);
+    let grad = vec2<f32>(32.0 * p.x + b * p.y, 32.0 * p.y - b * p.x) / rr - warpGrad;
+    return eikonalWgsl(signedModWgsl(32.0 * log(r) - b * th - phase - warp, s), s, length(grad));
+  }
   let radial = p / r;
   if (abs(bend) < 1e-4) {
     return eikonalWgsl(signedModWgsl(r - phase - warp, s), s, length(radial - warpGrad));
@@ -863,7 +877,8 @@ fn curvePhase(p: vec2<f32>, kind: f32, spacing: f32, phase: f32, bend: f32, freq
   let starts = max(round(abs(bend) / s), 1.0);
   let pitch = starts * s;
   let th = atan2(p.y, p.x);
-  let b = pitch / 6.28318530718;
+  // The pitch's sign is the handedness, as on the CPU twin.
+  let b = sign(bend) * pitch / 6.28318530718;
   let grad = radial - b * vec2<f32>(-p.y, p.x) / (r * r) - warpGrad;
   return eikonalWgsl(signedModWgsl(r - b * th - phase - warp, s), s, length(grad));
 }
@@ -994,6 +1009,17 @@ fn curveIndexDir(p: vec2<f32>, kind: f32, spacing: f32, phase: f32, bend: f32, f
   } else if (k == 2) {
     let u = p.x * p.x - p.y * p.y;
     g = sign(u) * vec2<f32>(p.x, -p.y) / max(sqrt(abs(u)), 1e-4);
+  } else if (k == 4) {
+    let r = length(p);
+    if (r < 1e-6) {
+      return vec2<f32>(1.0, 0.0);
+    }
+    var b = 0.0;
+    if (abs(bend) >= 1e-4) {
+      let starts = max(round(abs(bend) / s), 1.0);
+      b = sign(bend) * starts * s / 6.28318530718;
+    }
+    g = vec2<f32>(32.0 * p.x + b * p.y, 32.0 * p.y - b * p.x) / (r * r);
   } else {
     let r = length(p);
     if (r < 1e-6) {
@@ -1002,7 +1028,7 @@ fn curveIndexDir(p: vec2<f32>, kind: f32, spacing: f32, phase: f32, bend: f32, f
     g = p / r;
     if (abs(bend) >= 1e-4) {
       let starts = max(round(abs(bend) / s), 1.0);
-      let b = starts * s / 6.28318530718;
+      let b = sign(bend) * starts * s / 6.28318530718;
       g = g - b * vec2<f32>(-p.y, p.x) / (r * r);
     }
   }

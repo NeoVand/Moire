@@ -1,7 +1,7 @@
 \section{The families, drawn}
 \label{app:catalog}
 
-Table~\ref{tab:catalog} gives the thirteen families as algebra.
+Table~\ref{tab:catalog} gives the fourteen families as algebra.
 Figure~\ref{fig:plate} gives them as pictures, each one alone and then superposed
 with a copy of itself under a small perturbation, so that the fringe system each
 one generates can be seen next to the family that generates it.
@@ -18,12 +18,24 @@ Eq.~\ref{eq:ratio} deciding what counts as a perturbation: for a family whose
 index gradient is radial, rotation about the center leaves $\nabla\idx$ unchanged
 and so leaves $\het=0$, and there is nothing to see.
 
+The log spiral takes this to its logical end, and the carrier classification
+of \S\ref{sec:taxonomy} says it must: the family is a group orbit of the
+loxodromic flow, and a group family is immune to its own flow. Rotating a log
+spiral is a phase shift; rescaling it --- the detune that fringes every other
+closed family --- is another, because scaling adds a constant to $\ln r$. A
+similarity can do nothing visible to it. The one perturbation left to a plate
+of similarities is the one thing a similarity cannot reach, the handedness,
+so its cell shows the mirror pair: a self-similar rosette of lenses,
+$2M$ around, telescoping into the center without a characteristic scale.
+
 \newlength{\platew}
-% Three rows of cells have to clear \textheight, or the float loses its centring
-% glue and runs into the bottom margin. A cell is the panel plus a hairline, 2pt
-% and one \footnotesize line; at 0.178 that is 198.7pt, so 3 rows and two 7pt
-% gaps come to 610pt of the 615 available.
-\setlength{\platew}{0.178\textwidth}
+% Three rows of cells plus a full-width caption have to clear \textheight, or
+% the float is never placed and silently vanishes (it did: at 0.178 with the
+% caption squeezed into the last cell slot, row three outgrew the page). A
+% cell is the panel plus a hairline, 2pt and one \footnotesize line; at 0.168
+% that is ~188pt, so 3 rows, two 7pt gaps, and a four-line caption come in
+% just under the 615pt available.
+\setlength{\platew}{0.168\textwidth}
 % One cell of the catalog plate: a family alone above, beating below, and a label
 % naming the perturbation that produced the beat.
 \newcommand{\platecell}[3]{%
@@ -39,16 +51,18 @@ and so leaves $\het=0$, and there is nothing to see.
 }
 \newcommand{\platedeg}[1]{\textcolor{soft}{$\cdot$\,$#1^{\circ}$}}
 \newcommand{\platedet}[1]{\textcolor{soft}{$\cdot\,\times#1$}}
+\newcommand{\platemir}{\textcolor{soft}{$\cdot$\,mirror}}
 % A row is one unbreakable hbox. Left to a paragraph, a row that is a hair too wide
 % wraps its last cell and the float grows by a whole row.
 \newcommand{\platerow}[1]{\par\noindent\hbox to \linewidth{#1}}
 
 \begin{figure*}[p]
-  \Description{Thirteen cells in a grid, each a pair of stacked black-on-white line
+  \Description{Fourteen cells in a grid, each a pair of stacked black-on-white line
   drawings. The upper drawing of a cell is one curve family: parallel lines, a
   radial pencil with a blank disc at its hub, concentric circles, squares, triangles,
   hexagons, a square lattice, a hexagonal lattice, a triangular lattice, a wave
-  train, a nest of parabolae, a nest of hyperbolae, a spiral. The lower drawing
+  train, a nest of parabolae, a nest of hyperbolae, a spiral, a logarithmic spiral.
+  The lower drawing
   superposes that family with a slightly rotated or slightly rescaled copy of itself,
   and in every case a second, coarser pattern of bands appears that is not present
   above.}
@@ -73,26 +87,28 @@ and so leaves $\het=0$, and there is nothing to see.
     \platecell{11}{parabola}{parabola \platedeg{3}}\hfil
     \platecell{12}{hyperbola}{hyperbola \platedeg{4}}\hfil
     \platecell{13}{spiral}{spiral \platedet{1.05}}\hfil
-    \begin{minipage}[t]{0.44\textwidth}
-    \vspace{0pt}
-    \caption{\figlead{Thirteen families, alone and beating.} Each cell is one
-    family: above, rendered by itself from its distance field; below, superposed
-    with a perturbed copy of itself, so the fringe system sits directly under the
-    family that generates it. The label gives the perturbation: a rotation in
-    degrees for families with an orientation, a multiplier on the pitch for the
-    closed ones, which as \S\ref{app:catalog} explains is $\het$ deciding what
-    counts as a perturbation rather than a choice of ours. Every panel is
-    $250$ world units across at the same stroke width; none is a crop or a
-    resample of another.
-    \ Three details worth a second look. The radial pencil's core is genuinely
-    dense, and \emph{Start} cuts a disc out of it rather than fading it. The
-    hexagonal grid's edges are hexagon sides, computed as a support form over six
-    normals, not three superposed line families. And the hyperbola family carries
-    no member through the origin, because its $n=0$ level set is the degenerate
-    asymptote pair.}
-    \label{fig:plate}
-    \end{minipage}}
+    \platecell{14}{log}{log spiral \platemir}\hfil
+    \hspace{\platew}}
+
+  \vskip 4pt
+  \caption{\figlead{Fourteen families, alone and beating.} Each cell is one
+  family: above, by itself from its distance field; below, superposed with a
+  perturbed copy, so the fringe system sits directly under the family that
+  generates it. The label names the perturbation --- degrees of rotation for
+  oriented families, a pitch multiplier for the closed ones, a mirror for the
+  log spiral --- which is $\het$ of Eq.~\ref{eq:ratio} deciding what counts as
+  a perturbation, not a choice of ours (\S\ref{app:catalog}). Every panel
+  spans $250$ world units at one stroke width; none is a crop or resample of
+  another.}
+  \label{fig:plate}
 \end{figure*}
+
+Three details in the plate repay a second look. The radial pencil's core is
+genuinely dense, and \emph{Start} cuts a disc out of it rather than fading it.
+The hexagonal grid's edges are hexagon sides, computed as a support form over
+six normals, not three superposed line families. And the hyperbola family
+carries no member through the origin, because its $n=0$ level set is the
+degenerate asymptote pair.
 
 Two families deserve a note on their parameterization, because the natural
 parameter and the useful parameter differ.
@@ -114,4 +130,7 @@ branch cut wherever $\mathrm{atan2}$ does, and the level sets close across it on
 if $b\,2\pi$ is an integer multiple of $s$, that is, only if $M$ is an integer.
 Pass $B$ through unrounded and every member of the family has a visible seam along
 the negative $x$ axis. Setting $B=0$ gives $M=1$ but $b=0$, which is concentric
-circles, so the slider degrades to the family it should degrade to.
+circles, so the slider degrades to the family it should degrade to. The log
+spiral inherits all of it verbatim --- the rounding, the seam argument, and the
+handedness in the sign --- with $r$ replaced by $32\ln r$, and its $B=0$
+degrades to geometrically spaced rings the same way.

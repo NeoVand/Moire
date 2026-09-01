@@ -53,7 +53,7 @@ counting map exist? Our catalog contains exactly three answers, and they
 stratify the mathematics and the engineering alike.
 
 \emph{Exact.} The count is the level-set label of a global scalar phase, as
-in \eqref{eq:eikonal}. Nine of our thirteen families live here
+in \eqref{eq:eikonal}. Ten of our fourteen families live here
 (Table~\ref{tab:catalog}), the index gradient is a formula, and everything
 downstream is closed-form.
 
@@ -127,9 +127,11 @@ and the classical carrier alphabet is their transverse seedings. Parallel
 lines and the radial pencil are the first two clocks drawn directly; the
 Archimedean family of our catalog is the rotation flow seeded on a spiral,
 its winding tamed by the integer arm count of \S\ref{sec:catalog}; and the
-two clocks the catalog does not ship --- geometrically spaced rings and
-logarithmic spirals --- are one table row each, waiting. The classification
-says the alphabet ends there.
+two clocks the catalog lacked when we first wrote this classification down
+--- geometrically spaced rings and logarithmic spirals --- were added as one
+table row (the log-spiral family, whose zero pitch \emph{is} the dilation
+clock), which is the pleasant experience of a theory handing its tool a
+feature. The classification says the alphabet now ends there.
 
 The second generator \emph{propagates a front}: member $n$ is a convex curve
 of gauge radius $ns+\varphi$, in a frame that may translate and turn per
@@ -229,10 +231,10 @@ slider does not invalidate a cached raster, because there is none.
 
 A family must supply the pair the sections above consume: a phase $\ph$ whose
 level sets are the members, and its gradient magnitude, which converts a phase
-residual into a distance. The catalog is deliberately short: thirteen
-families, of which nine are one line of algebra each, on the exact rung of
+residual into a distance. The catalog is deliberately short: fourteen
+families, of which ten are one line of algebra each, on the exact rung of
 \S\ref{sec:taxonomy}; the four that are not sit on the other rungs and set up
-the rest of the paper. The supplemental material (\S S1) draws all thirteen,
+the rest of the paper. The supplemental material (\S S1) draws all fourteen,
 each alone and then beating against a perturbed copy of itself, which is the
 fastest way to see what the algebra buys.
 
@@ -245,7 +247,7 @@ fields are
   \label{eq:closedpair}
 \end{equation}
 so a family is completely specified by the pair $(\ph,\lvert\nabla\ph\rvert)$.
-Table~\ref{tab:catalog} gives both for all nine, in ten rows: the hexagon row
+Table~\ref{tab:catalog} gives both for all ten, in eleven rows: the hexagon row
 is the $N{=}6$ instance of the $N$-gon written out, beside the square and
 triangle (families of their own), because those three support forms need no
 transcendentals. Every entry is $O(1)$, branch-free
@@ -260,8 +262,12 @@ the geometry genuinely contains an angle.
   hexagon rows are the $N=4$, $3$, $6$ instances of the $N$-gon row, written
   out because their support forms are transcendental-free. $\omega=2\pi f/32$ so that
   $f=1$ is one wave cycle per $32$ world units; $a=B/100$ for a bend slider $B$;
-  $b=Ms/2\pi$ with $M=\max(1,\mathrm{round}(\lvert B\rvert/s))$ the number of
-  spiral arms. The three concentric shapes are the support function of the
+  $b=\pm Ms/2\pi$ with $M=\max(1,\mathrm{round}(\lvert B\rvert/s))$ the number
+  of spiral arms and the sign of $B$ the handedness, for both spirals. The log
+  spiral is the loxodromic clock of \S\ref{sec:taxonomy}: its members multiply
+  their radius by $e^{s/32}$ per index, so $B=0$ degrades to the dilation
+  clock, geometrically spaced rings. The three concentric shapes are the
+  support function of the
   generating polygon, which is the observation \S\ref{sec:walking} builds on.}
   \label{tab:catalog}
   \small
@@ -309,11 +315,15 @@ the geometry genuinely contains an angle.
       & $\lVert p\rVert-b\,\theta_p$
       & $\sqrt{1+b^2/\lVert p\rVert^2}$
       & Archimedean; $b=0$ is concentric circles \\
+    Log spiral
+      & $32\ln\lVert p\rVert-b\,\theta_p$
+      & $\sqrt{32^2+b^2}\,/\lVert p\rVert$
+      & loxodromic; $B=0$ is geometric rings \\
     \bottomrule
   \end{tabular}
 \end{table*}
 
-Three remarks on the table; each marks a bug we shipped.
+Four remarks on the table; each marks a bug we shipped.
 
 \paragraph{The gradient column is not decoration.} For the first six rows it is
 $1$ and can be dropped. For the last four it is not, and dropping it thins every
@@ -327,6 +337,15 @@ $\mathrm{atan2}$ does; it closes only if the arm count $M$ is an integer, which 
 why $M$ is rounded rather than passed through. Both are the kind of detail that a
 raster pipeline hides in the resampling and a field pipeline exposes on the
 first frame.
+
+\paragraph{The pitch's sign is the handedness.} A spiral at $-B$ is the mirror
+of the one at $+B$, and the distinction is not cosmetic: a counter-handed pair
+beats in $M_A+M_B$ rays where a same-handed pair beats in $M_A-M_B$. Both of
+our solver twins once collapsed the sign through an absolute value, agreeing
+with each other and disagreeing with the algebra --- the counter-spiral fan of
+the teaser's third panel was unreachable, and no golden test could notice,
+because the twins are compared against each other. The sign now rides $b$,
+and the mirror identity $\ph(x,y;B)=\ph(x,-y;-B)$ is a unit test.
 
 \paragraph{Three of the rows are support functions.} The square, triangle and
 hexagon entries are all $\rad(q)=\max_k\langle q,n_k\rangle$ over the outward
