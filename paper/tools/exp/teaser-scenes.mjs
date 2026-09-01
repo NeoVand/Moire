@@ -125,31 +125,22 @@ export function teaserScenes(solver) {
       contrast: 4.2,
     },
     {
-      // A user's construction, retuned: THREE dense radial pencils whose
-      // Start holes overlap in a reuleaux. Every pair of fans lays a ladder
-      // of rational stations along the axis between their foci, so this is
-      // the teaser's one stack with more than two layers — the K-layer story
-      // in one panel. The measured pivot (autoPivot) is what makes the
-      // envelope half legible: a pencil has no nominal pitch for the model
-      // pivot to price, and the modelled one slams this frame to black.
-      name: 'fan-trio',
-      zoom: 1.1,
-      pan: { x: 16, y: 0 },
-      autoPivot: true,
+      // The teaser's one stack with more than two layers: three ring families
+      // sharing a center, spacings chosen so the RECIPROCALS are nearly
+      // arithmetic — 1/5, 1/5.45, 1/5.773 — which parks the three-layer
+      // zero-sum character (1,-2,1) at a ~160-world period while the pairwise
+      // beats sit at 37/61/97. The picture is a bullseye whose beat rings
+      // swell and fade on a wavelength no PAIR of layers possesses: the
+      // K-layer criterion in one panel, and mirror-symmetric about the seam.
+      name: 'rings-trio',
+      zoom: 1.0,
       taps: 48,
       layers: [
-        L({ kind: 'radial', lineCount: 100, phase: 70, thickness: 1.5, position: { x: 57.7, y: 0 } }),
-        L({
-          kind: 'radial',
-          lineCount: 100,
-          phase: 70,
-          thickness: 1.5,
-          rotation: 50,
-          position: { x: 20, y: 50 },
-        }),
-        L({ kind: 'radial', lineCount: 100, phase: 70, thickness: 1.5, position: { x: -28.9, y: -50 } }),
+        L({ kind: 'concentric', shape: 'circle', spacing: 5 }),
+        L({ kind: 'concentric', shape: 'circle', spacing: 5.45 }),
+        L({ kind: 'concentric', shape: 'circle', spacing: 5.773 }),
       ],
-      contrast: 3,
+      contrast: 3.4,
     },
     {
       // The author's own scene file (moire-scene-2026-08-29T18-34-49), zoomed
