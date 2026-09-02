@@ -1,0 +1,137 @@
+\section{Coincidence}
+\label{sec:coincidence}
+
+Three things you can do this afternoon.
+
+\paragraph{Two rulers.}
+Take a ruler with ten divisions to the inch and lay it edge to edge against
+one with nine. Somewhere along the pair a tick of the first sits exactly on a
+tick of the second. Move your eye along. The next pair of ticks is a hair
+apart, the next a hair more, and after ten ticks of the first ruler and nine
+of the second the ticks coincide again. What you see, without trying, is a
+slow pattern of near-coincidences that repeats every inch. It is on neither
+ruler. Nothing about it needs to be exact, either: bend the rulers a little,
+or space the ticks slightly unevenly, and the pattern of coincidences is
+still there, slightly uneven in its own way.
+
+\paragraph{Two click trains.}
+Now sound. Two trains of clicks at nearly equal rates, say a hundred and a
+hundred and one per second, go into a detector that fires only when two
+clicks arrive together. Clicks arrive together once per second, so the
+detector fires once per second. That is the difference of the two rates,
+and it is all the detector knows. Raise both trains to a thousand and a
+thousand and one clicks per second and the detector's output is
+\emph{exactly} the same, one click per second; it never learned the
+original rates at all. The sum of the two trains, as a signal, contains
+nothing that repeats once per second. The detector makes it.
+
+\paragraph{Two gratings.}
+Print a grating of fine lines on a transparency, print another with a
+slightly different spacing, and lay one over the other. From arm's length
+you see broad bands, much wider than the lines. Blur your eyes: the bands
+stay, and the lines go. Photograph the pair out of focus, threshold the
+photograph to pure black and white, print it badly: the bands are always in
+the same place. Only their contrast changes.
+
+\paragraph{What the three share.}
+Each family comes in numbered members: ticks, clicks, lines. The pattern
+that emerges is a pattern of \emph{coincidences} between the numbering of
+one family and the numbering of the other. It lives on a scale set by how
+slowly the two numberings drift apart, and it is read out by anything that
+\emph{pools} --- an eye, a detector, a blur --- with the pooling changing
+only how strongly the pattern shows, never where it is. None of the three
+descriptions used the word frequency, and the second example does not even
+have a stable one. What the three have is a count.
+
+\begin{definition}[The count]
+\label{def:count}
+A \emph{family} is anything that comes in numbered members along a line, a
+plane, a circle or a clock: ticks, clicks, lines, rings, teeth, steps, days.
+Its \emph{count} $\cnt(x)$ is the number of members up to the point $x$,
+interpolated between members, so that $\cnt$ is a whole number exactly on a
+member and $\cnt=n+\tfrac12$ halfway from member $n$ to member $n+1$.
+\end{definition}
+
+For a ruler of pitch $T$ the count is $\cnt(x)=x/T$: ten members to the inch
+means $\cnt$ rises by ten per inch. But the count exists for any family,
+evenly spaced or not, and that is the whole reason this paper never needs a
+frequency. A frequency says where a family is on average. A count says where
+it is here. Figure~\ref{fig:rulers} draws both rulers with their counts and
+the one number that the pattern of coincidences depends on: the difference
+of the two counts.
+
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}[x=1cm, y=1cm, font=\scriptsize, >={Stealth[length=3pt]}]
+    % Bands where the ticks nearly coincide: the third pattern.
+    \foreach \c in {0, 5.5, 11} {
+      \fill[accent!12] ({\c-0.9},-0.05) rectangle ({\c+0.9},2.45);
+    }
+    % Ruler A: pitch 0.5 (10 per "inch" of 5 units): ticks at 0.5 k.
+    \draw[ink, line width=0.6pt] (0,1.6) -- (11,1.6);
+    \foreach \k in {0,...,22} {
+      \draw[ink, line width=0.5pt] ({0.5*\k},1.6) -- ({0.5*\k},2.1);
+      \node[ink, above=0pt] at ({0.5*\k},2.1) {\k};
+    }
+    \node[ink, anchor=east] at (-0.15,1.85) {family A};
+    % Ruler B: pitch 0.55 (9 per 5 units): ticks at 0.55 k.
+    \draw[ink, line width=0.6pt] (0,0.9) -- (11,0.9);
+    \foreach \k in {0,...,20} {
+      \draw[ink, line width=0.5pt] ({0.55*\k},0.9) -- ({0.55*\k},0.4);
+      \node[ink, below=0pt] at ({0.55*\k},0.4) {\k};
+    }
+    \node[ink, anchor=east] at (-0.15,0.65) {family B};
+    % One period of the pattern.
+    \draw[accent, ->, line width=0.6pt] (0,2.75) -- (5.5,2.75) node[midway, above, accent] {one period of the third pattern};
+    \draw[accent, ->, line width=0.6pt] (5.5,2.75) -- (0,2.75);
+    % The counts, and their difference, as small plots below.
+    \begin{scope}[shift={(0,-2.9)}]
+      \draw[soft, ->] (0,0) -- (11.3,0) node[right, ink] {$x$};
+      \draw[soft, ->] (0,0) -- (0,2.4) node[above, ink] {counts};
+      \draw[cool, line width=0.8pt] (0,0) -- (11,2.2) node[right, cool] {$\cnt_A=x/0.5$};
+      \draw[cool!60, line width=0.8pt, dashed] (0,0) -- (11,2.0) node[right, cool!70, yshift=-6pt] {$\cnt_B=x/0.55$};
+      \draw[accent, line width=1pt] (0,0) -- (11,0.4) node[right, accent] {$D=\cnt_A-\cnt_B$};
+      \foreach \c/\v in {5.5/1, 11/2} {
+        \draw[accent, dotted] (\c,0) -- (\c,{0.2*\v});
+        \node[accent, below] at (\c,0) {$D=\v$};
+      }
+      \node[accent, below] at (0,0) {$D=0$};
+    \end{scope}
+  \end{tikzpicture}
+  \caption{\figlead{Two rulers and the one number that matters.} Family A
+  has ten members where family B has nine. Above: the rulers, with their
+  members numbered; the shaded bands are where a member of A falls near a
+  member of B, the pattern that is on neither ruler. Below: the two counts
+  $\cnt_A$ and $\cnt_B$ rise at slightly different rates, and their
+  difference $D=\cnt_A-\cnt_B$ rises slowly. The bands sit exactly where $D$
+  is a whole number. The pattern repeats when $D$ has grown by one, which
+  takes ten members of A and nine of B: the drawing is the definition of a
+  vernier, and everything in this paper is a generalisation of it.}
+  \label{fig:rulers}
+\end{figure}
+
+\paragraph{What this paper claims.}
+Every superposition of families is a point moving on a torus, plus a fixed
+picture painted on the torus (\S\ref{sec:torus}). Any observer that pools
+before it decides --- a blur, an exposure, an ear, a detector --- sees the
+picture averaged along the torus's fast directions, and that average is a
+function of the \emph{slow combinations of counts} alone; it has a closed
+form, and the observer's own nonlinearity changes the picture but never the
+geometry (\S\ref{sec:pooling}). Which of the possible combinations shows is
+a question of arithmetic with a classical answer and a twist
+(\S\ref{sec:selection}). The pattern that emerges has its own count, so it
+can beat again, and the hierarchy is exact (\S\ref{sec:iterated}). Counts
+can fail to exist in exactly three ways, and each way has a signature
+(\S\ref{sec:counting}). Everything with a number attached is measured
+(\S\ref{sec:ledger}), most of it in a drawing tool built for the purpose
+(\S\ref{sec:instrument}), and the predictions that reach outside drawings
+--- into sound, into strobes, into anything that counts --- are the point.
+
+\begin{tryit}{the rulers}
+Two rulers with different units work (centimetres against sixteenths of an
+inch is a good pair), or two combs, or two pieces of window screen laid
+over each other and turned slowly. Count how many members of each family fit
+in one period of the bands. In Figure~\ref{fig:rulers} that is ten and nine;
+the rule you will find is that the two counts differ by exactly one per
+period, whatever the families are.
+\end{tryit}
