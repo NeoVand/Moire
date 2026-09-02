@@ -18,7 +18,7 @@ const REF_WIDTH = 640;
 
 export interface ZooApi {
   /** The renderer backend, or null while the canvas is still mounting. */
-  info: () => { backend: string } | null;
+  info: () => { backend: string; fullCost?: number; scale?: number } | null;
   /** Replace the construction with a scene file's text, wholesale. */
   load: (sceneText: string) => void;
   /** One settled frame as a PNG data URL, framed by the scene alone. */

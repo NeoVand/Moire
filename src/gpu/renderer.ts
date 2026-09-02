@@ -174,6 +174,34 @@ async function encodeCanvasPng(source: HTMLCanvasElement): Promise<Blob> {
   }
 }
 
+/** Quiet time after the last change before a reduced frame is redrawn full size. */
+const SETTLE_MS = 150;
+/**
+ * The frame budget a reduced buffer aims under: one vsync at 60 Hz, with the
+ * measurement's own submit-to-completion latency counted against it.
+ */
+const FRAME_BUDGET_MS = 18;
+/** The buffer scales tried, largest first; each step halves the pixel count. */
+const INTERACTION_SCALES = [1, 0.71, 0.5, 0.35, 0.25];
+/** The frame interval a stream is held to: 60 frames a second, on any display. */
+const VSYNC_MS = 16.7;
+/** No stream logic this soon after a mount or rebuild: warm-up jank is not a hand. */
+const WARMUP_MS = 500;
+/** Frames after a buffer change still draining the old buffer's work. */
+const DRAIN_FRAMES = 2;
+/** And the time: a backlog of overrunning frames takes longer than two frames to clear. */
+const DRAIN_MS = 150;
+/** Stream frames whose mean interval is one verdict on the buffer. */
+const PACE_WINDOW = 8;
+
+/** The largest buffer scale that brings a full-size frame of this cost under budget. */
+function interactionScale(fullCost: number): number {
+  for (const scale of INTERACTION_SCALES) {
+    if (fullCost * scale * scale <= FRAME_BUDGET_MS) return scale;
+  }
+  return INTERACTION_SCALES[INTERACTION_SCALES.length - 1];
+}
+
 export class MoireRenderer {
   private renderer: THREE.WebGPURenderer | null = null;
   private scene: THREE.Scene | null = null;
@@ -200,6 +228,61 @@ export class MoireRenderer {
   private lastWidth = 0;
   private lastHeight = 0;
   private lastDpr = 0;
+  /**
+   * Interaction resolution. A frame that costs more than a vsync at the full
+   * buffer — the exact envelope at a retina window is 60 to 140 ms — renders
+   * at a reduced buffer while a hand is on something (a drag on the stage, a
+   * slider, a wheel burst, a playing animator) and full size once it lets go.
+   * The envelope is an average over the carrier's period, so its picture
+   * holds no carrier-scale detail and survives the downsample; the plain
+   * render is under a vsync at 15 Mpx and never triggers it.
+   *
+   * The stream starts from what this machine actually paid: `fullCost` is
+   * the queue time of the last isolated full-size frame (an idle GPU
+   * measures cold, so the start is a notch pessimistic). Inside the stream
+   * the verdict is the one thing the viewer sees: the animation-frame
+   * cadence, read by a metronome that runs for the stream's duration.
+   * Chrome throttles animation frames under GPU back-pressure and not
+   * otherwise, and a continuous metronome is independent of how often the
+   * hand moves. A window whose mean interval overran drops the buffer
+   * straight to the notch that fits (cost goes with the square of the
+   * scale) and locks it there for the stream; two clean windows step it up
+   * a notch. A change of buffer is free (the swapchain reconfigures in
+   * under a frame), but the frames right after one are still draining the
+   * old work, so they do not vote. Where a stream ended is remembered,
+   * along with the notch that overran, keyed by what sets the cost's class
+   * (the view, the layer count, the buffer size — the cold measurement is
+   * too noisy to key on), and the next stream under the same key starts
+   * there and never probes that notch again, so a second drag is right from
+   * its first frame. Nothing is a stream in the first second after a mount
+   * or a shader rebuild: the app's own startup burst and warm-up jank are
+   * not a hand, and once poisoned the memory with "full size overruns".
+   *
+   * Not used, because each follows the frame rate rather than revealing it:
+   * per-frame queue completion times (Chrome observes completions once per
+   * frame, so every frame reads as one vsync at any scale) and the wait
+   * between a frame's request and its callback (pointer events are
+   * dispatched frame-aligned).
+   */
+  private scale = 1;
+  private fullCost = 0;
+  private lastRequest = 0;
+  private settleTimer = 0;
+  private metroRaf = 0;
+  private lastTick = 0;
+  private held = false;
+  private inStream = false;
+  private locked = false;
+  private lockedScale = 0;
+  private failedScale = 0;
+  private costKey = '';
+  private memoryKey = '';
+  private readyAt = 0;
+  private framesAtScale = 0;
+  private drainUntil = 0;
+  private intervals: number[] = [];
+  private goodWindows = 0;
+  private steppedFrom = 0;
 
   canvas: HTMLCanvasElement | null = null;
 
@@ -239,6 +322,7 @@ export class MoireRenderer {
     this.hookDeviceLoss();
     this.buildScene();
     this.ready = true;
+    this.readyAt = performance.now();
     this.resize();
     if (this.scene && this.camera) {
       try {
@@ -378,9 +462,12 @@ export class MoireRenderer {
     } finally {
       this.building = null;
       this.ready = !this.disposed;
+      this.readyAt = performance.now();
     }
     if (this.disposed) return;
+    const t0 = performance.now();
     this.renderer.render(this.scene, this.camera);
+    if (this.scale === 1) void this.measure(t0);
     previous?.dispose();
     // Nothing syncs while a build is in flight, so an edit made during one is only
     // noticed here.
@@ -415,7 +502,9 @@ export class MoireRenderer {
   private writeSlots() {
     const state = this.lastState;
     if (!this.cameraUniforms || !this.viewUniforms || !state) return;
-    this.cameraUniforms.zoom.value = state.camera.zoom;
+    // Zoom is buffer pixels per world unit, so a reduced buffer scales it
+    // with itself and the framing is identical by construction.
+    this.cameraUniforms.zoom.value = state.camera.zoom * this.scale;
     this.cameraUniforms.pan.value.set(state.camera.pan.x, state.camera.pan.y);
     this.cameraUniforms.background.value.set(state.backgroundColor);
     this.renderer?.setClearColor(state.backgroundColor, 1);
@@ -437,6 +526,8 @@ export class MoireRenderer {
     const envelope = state.view.envelope && !ratioOn;
     const contoursOn = state.view.envelopeContours;
     const wantsScan = envelope || contoursOn;
+    // What sets a frame's cost class, for the interaction buffer's memory.
+    this.costKey = `${envelope ? 1 : 0}${ratioOn ? 1 : 0}${contoursOn ? 1 : 0}|${state.layers.length}|${this.lastWidth}x${this.lastHeight}@${this.lastDpr}`;
     // The regime mask and the orientation-aware sweep read the same ranked
     // pair the ratio view compares, so an enveloped stack keeps those uniforms
     // warm even with the ratio view off — falling back to the topmost scalar
@@ -557,12 +648,166 @@ export class MoireRenderer {
   }
 
   render() {
-    if (!this.ready || this.raf || !this.renderer) return;
+    if (!this.ready || !this.renderer) return;
+    const now = performance.now();
+    // A held pointer, or requests inside the settle window of each other,
+    // are a hand on something — once the pipeline is warm.
+    const warm = now - this.readyAt > WARMUP_MS;
+    const streaming = warm && (this.held || now - this.lastRequest < SETTLE_MS);
+    this.lastRequest = now;
+    if (streaming && !this.inStream) {
+      this.inStream = true;
+      if (this.costKey !== this.memoryKey) {
+        this.memoryKey = this.costKey;
+        this.lockedScale = 0;
+        this.failedScale = 0;
+      }
+      const start = this.lockedScale > 0 ? this.lockedScale : interactionScale(this.fullCost);
+      if (start < 1) this.setScale(start);
+      this.startMetronome();
+    } else if (!streaming) {
+      this.inStream = false;
+    }
+    this.armSettle();
+    if (this.raf) return;
     this.raf = requestAnimationFrame(() => {
       this.raf = 0;
       if (!this.ready || !this.renderer || !this.scene || !this.camera) return;
+      const t0 = performance.now();
       this.renderer.render(this.scene, this.camera);
+      if (!streaming && this.scale === 1) void this.measure(t0);
     });
+  }
+
+  /** The stream's metronome: one callback per animation frame while it lasts. */
+  private startMetronome() {
+    if (this.metroRaf) return;
+    this.lastTick = 0;
+    this.framesAtScale = 0;
+    this.intervals = [];
+    this.goodWindows = 0;
+    this.steppedFrom = 0;
+    const tick = (now: number) => {
+      if (!this.inStream || this.disposed) {
+        this.metroRaf = 0;
+        return;
+      }
+      this.metroRaf = requestAnimationFrame(tick);
+      if (this.lastTick) this.pace(now - this.lastTick);
+      this.lastTick = now;
+    };
+    this.metroRaf = requestAnimationFrame(tick);
+  }
+
+  /** A hand is on the stage or a slider: no full-size frame until it lets go. */
+  hold(held: boolean) {
+    this.held = held;
+    this.armSettle();
+  }
+
+  /** The stream ends SETTLE_MS after the last request, once nothing is held. */
+  private armSettle() {
+    if (this.settleTimer) {
+      clearTimeout(this.settleTimer);
+      this.settleTimer = 0;
+    }
+    if (this.inStream && !this.held) {
+      this.settleTimer = window.setTimeout(() => this.restoreScale(), SETTLE_MS);
+    }
+  }
+
+  /**
+   * One frame interval joins the window; a full window is a verdict. The
+   * verdict is the mean with the single worst interval left out: a GC pause
+   * or a panel re-render is one long frame and not the buffer's fault, while
+   * a buffer that overruns does it every frame.
+   */
+  private pace(interval: number) {
+    if (++this.framesAtScale <= DRAIN_FRAMES || performance.now() < this.drainUntil) return;
+    this.intervals.push(interval);
+    const n = this.intervals.length;
+    if (n < PACE_WINDOW / 2) return;
+    const sum = this.intervals.reduce((a, b) => a + b, 0);
+    const mean = (sum - Math.max(...this.intervals)) / (n - 1);
+    // A clear overrun is answered at half a window; anything finer waits for one.
+    const overran = mean > VSYNC_MS * 1.5;
+    if (!overran && n < PACE_WINDOW) return;
+    this.intervals = [];
+    if (mean > VSYNC_MS * 1.1) {
+      // Dropping frames: back to the notch this stream already held, else
+      // straight to the notch that fits (a throttled cadence overstates the
+      // cost, so the fit is only for a start that overran); and no larger
+      // again this stream.
+      const fit = this.scale * Math.sqrt(VSYNC_MS / mean);
+      const next =
+        this.steppedFrom ||
+        INTERACTION_SCALES.find((s) => s <= fit) ||
+        INTERACTION_SCALES[INTERACTION_SCALES.length - 1];
+      this.steppedFrom = 0;
+      this.locked = true;
+      this.goodWindows = 0;
+      // The smallest notch seen to fail: every notch above it fails too.
+      this.failedScale = this.failedScale ? Math.min(this.failedScale, this.scale) : this.scale;
+      if (next < this.scale) this.setScale(next);
+      return;
+    }
+    if (!this.locked && ++this.goodWindows >= 2) {
+      this.goodWindows = 0;
+      const i = INTERACTION_SCALES.indexOf(this.scale);
+      if (i > 0 && (!this.failedScale || INTERACTION_SCALES[i - 1] < this.failedScale)) {
+        this.steppedFrom = this.scale;
+        this.setScale(INTERACTION_SCALES[i - 1]);
+      }
+    }
+  }
+
+  /** What the last full-size frame cost and the buffer scale in use, for the dev bridge. */
+  frameCost(): { fullCost: number; scale: number; pacing: string } {
+    return {
+      fullCost: this.fullCost,
+      scale: this.scale,
+      pacing: `stream=${this.inStream ? 1 : 0} locked=${this.locked ? 1 : 0} remembered=${this.lockedScale} failed=${this.failedScale} key=${this.memoryKey} good=${this.goodWindows} n=${this.intervals.length} metro=${this.metroRaf ? 1 : 0}`,
+    };
+  }
+
+  /** The buffer at a fraction of the full size, framing unchanged. */
+  private setScale(scale: number) {
+    if (!this.renderer || scale === this.scale) return;
+    this.scale = scale;
+    this.framesAtScale = 0;
+    this.drainUntil = performance.now() + DRAIN_MS;
+    this.intervals = [];
+    this.renderer.setPixelRatio((this.lastDpr || 1) * scale);
+    this.renderer.setSize(Math.max(1, this.lastWidth), Math.max(1, this.lastHeight), false);
+    this.writeSlots();
+  }
+
+  /** The stream has stopped: back to the full buffer, and one frame of it. */
+  private restoreScale() {
+    this.settleTimer = 0;
+    if (this.held) return;
+    // Where the stream ended is where the next one under this key starts.
+    this.lockedScale = this.scale;
+    this.locked = false;
+    this.inStream = false;
+    if (this.scale === 1) return;
+    this.setScale(1);
+    this.render();
+  }
+
+  /** An isolated full-size frame's cost, from submit to the queue's completion. */
+  private async measure(t0: number) {
+    const backend = this.renderer?.backend as
+      | { device?: { queue?: { onSubmittedWorkDone?: () => Promise<undefined> } } }
+      | undefined;
+    const queue = backend?.device?.queue;
+    if (!queue?.onSubmittedWorkDone) return;
+    try {
+      await queue.onSubmittedWorkDone();
+      if (!this.disposed) this.fullCost = performance.now() - t0;
+    } catch {
+      // A lost device; the loss hook remounts.
+    }
   }
 
   /**
@@ -635,6 +880,11 @@ export class MoireRenderer {
       cancelAnimationFrame(this.raf);
       this.raf = 0;
     }
+    if (this.settleTimer) {
+      clearTimeout(this.settleTimer);
+      this.settleTimer = 0;
+    }
+    this.setScale(1);
     // One render at an explicit framebuffer size, with the zoom uniform scaled
     // to match — the pattern is resolution-free, so the pixels are simply asked
     // again, and the stroke floor keeps hairlines printable at any size.
@@ -663,7 +913,7 @@ export class MoireRenderer {
     this.lastWidth = width;
     this.lastHeight = height;
     this.lastDpr = dpr;
-    this.renderer.setPixelRatio(dpr);
+    this.renderer.setPixelRatio(dpr * this.scale);
     this.renderer.setSize(width, height, false);
     if (this.ready) this.render();
   }
@@ -674,9 +924,21 @@ export class MoireRenderer {
     if (this.raf) cancelAnimationFrame(this.raf);
     if (this.morphRaf) cancelAnimationFrame(this.morphRaf);
     if (this.fieldTimer) clearTimeout(this.fieldTimer);
+    if (this.settleTimer) clearTimeout(this.settleTimer);
+    if (this.metroRaf) cancelAnimationFrame(this.metroRaf);
+    this.metroRaf = 0;
     this.raf = 0;
     this.morphRaf = 0;
     this.fieldTimer = 0;
+    this.settleTimer = 0;
+    this.scale = 1;
+    this.fullCost = 0;
+    this.held = false;
+    this.inStream = false;
+    this.locked = false;
+    this.lockedScale = 0;
+    this.failedScale = 0;
+    this.memoryKey = '';
     this.lastState = null;
     clearLayerMorphs();
     this.observer?.disconnect();

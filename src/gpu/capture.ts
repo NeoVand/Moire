@@ -20,7 +20,7 @@ export interface CaptureExtras {
   /** Resolves when no shader rebuild is pending — a capture after it is current. */
   settle?: () => Promise<void>;
   /** Which backend three initialised; the zoo records it beside its goldens. */
-  info?: () => { backend: string };
+  info?: () => { backend: string; fullCost?: number; scale?: number };
 }
 
 let captureFn: CaptureFn | null = null;
@@ -66,7 +66,7 @@ export async function captureSettle(): Promise<void> {
 }
 
 /** Backend info, or null while no renderer is registered. */
-export function captureInfo(): { backend: string } | null {
+export function captureInfo(): { backend: string; fullCost?: number; scale?: number } | null {
   return captureFn ? (extraFns.info?.() ?? { backend: 'unknown' }) : null;
 }
 

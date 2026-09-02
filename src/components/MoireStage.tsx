@@ -10,6 +10,7 @@ import {
   worldDeltaToLayerPosition,
 } from '../gpu/camera';
 import { useProjectStore } from '../store/project';
+import { useTransportStore } from '../store/transport';
 
 type DragMode = 'move' | 'rotate' | 'pan';
 
@@ -59,7 +60,7 @@ export function MoireStage() {
           (opts) => gpu.snapshotSize(opts),
           {
             settle: () => gpu.settle(),
-            info: () => ({ backend: gpu.backendName() }),
+            info: () => ({ backend: gpu.backendName(), ...gpu.frameCost() }),
             with: (opts, read) => gpu.snapshotWith(opts, read),
           }
         );
@@ -79,10 +80,13 @@ export function MoireStage() {
       gpu.sync(state);
       gpu.render();
     });
+    // A slider under the pointer holds the reduced buffer the way a drag does.
+    const unsubHold = useTransportStore.subscribe((state) => gpu.hold(state.interacting));
 
     return () => {
       cancelled = true;
       unsub();
+      unsubHold();
       registerCapture(null);
       gpu.dispose();
       gpuRef.current = null;
@@ -151,6 +155,7 @@ export function MoireStage() {
     };
     setCursor(mode === 'pan' ? 'grabbing' : mode === 'rotate' ? 'crosshair' : 'move');
     container.setPointerCapture(e.pointerId);
+    gpuRef.current?.hold(true);
     e.preventDefault();
   };
 
@@ -218,6 +223,7 @@ export function MoireStage() {
 
   const onPointerUp = (e: React.PointerEvent) => {
     dragRef.current = null;
+    gpuRef.current?.hold(false);
     setCursor(spaceRef.current ? 'grab' : 'default');
     if (containerRef.current?.hasPointerCapture(e.pointerId)) {
       containerRef.current.releasePointerCapture(e.pointerId);
