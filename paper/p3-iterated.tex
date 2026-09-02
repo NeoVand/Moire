@@ -1,0 +1,171 @@
+\section{Emergence, iterated}
+\label{sec:iterated}
+
+The bands of Figure~\ref{fig:rulers} are a family. They have members, the
+bands; they have a count, which is the difference $D$ itself, rising by one
+per band; and they have a profile, the tent of Figure~\ref{fig:tent}. So
+they can beat. Lay a third ruler beside the first two, at a pitch such that
+its count runs close to $D$, and a pattern of coincidences forms between
+the third family and the \emph{bands}: a beat of a beat. This section says
+when that happens, who can see it, and in what precise sense the pattern
+that emerges is a new thing.
+
+\begin{proposition}[Averages compose]
+\label{prop:tower}
+For two slides $w$ and $w'$, averaging along $w$ and then along $w'$ is the
+same as averaging over both at once: it keeps exactly the recipes with
+$k\cdot w=0$ and $k\cdot w'=0$. Pooling observers stacked in a cascade keep
+smaller and smaller sets of recipes, and the set at each stage is the
+intersection of the sets before it.
+\end{proposition}
+
+\begin{proof}
+By Theorem~\ref{thm:sweep} the first average multiplies the wave of
+recipe $k$ by $1$ if $k\cdot w=0$ and $0$ otherwise, and the second does the
+same with $w'$; the product of the two indicators is the indicator of both
+conditions at once.
+\end{proof}
+
+So a hierarchy of poolings is a hierarchy of recipe sets, and what a late
+stage sees is a pattern in the counts the earlier stages left alone. For
+three families the diagonal slide $(1,1,1)$ keeps every recipe whose
+entries sum to zero: the three pairwise differences $(1,-1,0)$, $(0,1,-1)$,
+$(1,0,-1)$ and, among others, $(1,-2,1)$, the difference of two differences.
+That last recipe is the beat of beats, and whether an observer can see it
+depends on how many stages it has.
+
+\begin{theorem}[Beats of beats need two stages]
+\label{thm:cascade}
+Let three families add, with pairwise slow differences at rates
+$\delta_1$ and $\delta_2$ nearly equal. The recipe $(1,-2,1)$, at rate
+$|\delta_1-\delta_2|$, has \emph{order} $|1|+|-2|+|1|=4$. A front end that
+is a polynomial of degree $m$ mints only recipes of order at most $m$, so a
+square-law ear ($m=2$) and a cubic ear ($m=3$) hear nothing at the beat of
+beats; a cascade that squares, pools, and squares again hears it. A
+multiplicative superposition of the three carries the recipe at linear
+order, and a plain blur sees it.
+\end{theorem}
+
+\begin{proof}
+The $m$-th power of a sum $g_1+g_2+g_3$ expands into monomials
+$g_1^{m_1}g_2^{m_2}g_3^{m_3}$ with $m_1+m_2+m_3=m$, and the waves of such a
+monomial have recipes $(n_1,n_2,n_3)$ with $|n_i|$ at most the number of
+factors of $g_i$ present when each $g_i$ carries all its harmonics, so the
+order is at most $m$ in the only way that matters: the recipe $(1,-2,1)$
+needs two factors of $g_2$ and one each of the others, four factors, and a
+square or a cube has fewer. The cascade's first square mints the pairwise
+differences $(1,-1,0)$ and $(0,1,-1)$ at order two; the pooling keeps them
+and removes the rest; the second square multiplies them, and their product
+carries $(1,-2,1)$. A product of three pictures carries every recipe by
+Theorem~\ref{thm:whosees}.
+\end{proof}
+
+Measured, on three tones at $300$, $330$ and $363$ hertz --- pairwise beats
+at $30$ and $33$, beat of beats at $3$ --- as a fraction of a first-order
+beat's strength: a square-law ear hears the three-hertz line at
+$\earTernarySquare$, a cubic ear at $\earTernaryCubic$, the cascade at
+$\earTernaryCascadePct\%$, and a multiplicative trio through a plain low-pass
+at $\earTernaryPrintedPct\%$ (\texttt{ear.mjs}; Figure~\ref{fig:ternary}).
+The prediction for hearing is that second-order beats are heard only by
+systems with at least two stages of demodulation; whether the auditory
+system has them is a question the psychoacoustics of ``second-order beats''
+has data on, and \S\ref{sec:ledger} names it as the test.
+
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[width=0.7\linewidth, height=4.6cm, ybar, ymode=log,
+      ymin=1e-8, ymax=3, bar width=16pt,
+      ylabel={3 Hz line, as a fraction of a first-order beat},
+      xtick={0,1,2,3}, xticklabels={square-law, cubic, {square, pool, square}, {multiplied, linear}},
+      x tick label style={font=\scriptsize, align=center, text width=2.3cm},
+      tick align=outside, tick pos=left, axis line style={gray!60},
+      ymajorgrids, grid style={gray!18, very thin},
+      label style={font=\footnotesize}, tick label style={font=\scriptsize},
+      nodes near coords, point meta=rawy,
+      every node near coord/.append style={font=\tiny, /pgf/number format/sci, /pgf/number format/sci generic={mantissa sep=\times,exponent={10^{#1}}}}]
+      \addplot[fill=accent!70, draw=accent] table[x=index, y=fraction, col sep=comma]{data/ear-ternary.csv};
+    \end{axis}
+  \end{tikzpicture}
+  \caption{\figlead{The beat of beats, and who hears it.} Three tones added
+  in the air, listened to through a square-law ear, a cubic ear, and a
+  two-stage ear that squares, pools and squares again; and the same three
+  families multiplied, through a plain low-pass. The recipe $(1,-2,1)$ has
+  order four: one stage of any degree below four cannot mint it, two
+  stages of degree two can, and a multiplicative superposition carries it
+  from the start. Script \texttt{ear.mjs}, data \texttt{ear-ternary.csv}.}
+  \label{fig:ternary}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.62\linewidth]{teaser-fantrio.png}
+  \caption{\figlead{Three families, and what pooling sees of them.} Three
+  fans of rays from three centres, drawn on the left half and pooled on the
+  right. The diagonal slide keeps every recipe whose entries sum to zero,
+  so the pooled half is a pattern in all three pairwise differences at
+  once, and in their combinations: a rosette that no pair of the fans
+  makes alone. Rendered by \Moire\ through its own pooled view
+  (\S\ref{sec:instrument}).}
+  \label{fig:trio}
+\end{figure}
+
+\subsection{What ``emergence'' means here}
+\label{sec:emergence}
+
+The word is used loosely often enough that it is worth saying exactly what
+is claimed. The third pattern is a new family: it has members and a count,
+and the count is a combined count of the parts. It is absent from every
+linear description of the parts: an additive superposition has no cross
+recipe, so no linear functional of the parts, no spectrum, no filter,
+contains it. It appears only to observers that pool after a nonlinearity,
+or in superpositions that multiply. And yet its geometry --- where its
+members are, how fast its count runs, whether it exists at all --- is fixed
+by the parts alone, through $\Phi$, and is the same for every observer that
+can see it. That is emergence with a theorem attached, and the theorem is
+the last one of this section.
+
+\begin{proposition}[The third pattern is the universal invariant]
+\label{prop:invariant}
+Fix a set of fast directions on the torus (a closed subgroup $H$ of
+rephasings) and let $\E_H I$ be the picture averaged along them. Every
+linear measurement of pictures that is unchanged by rephasing along $H$ ---
+every $F$ with $F(I(\cdot+h))=F(I)$ for all $h$ in $H$ --- is a function of
+$\E_HI$ alone: $F(I)=F(\E_HI)$. And every measurement of $\E_HI$ is
+unchanged by such rephasing. What can be measured of a superposition
+without knowing the fast phases is exactly what can be measured of its
+third pattern.
+\end{proposition}
+
+\begin{proof}
+Average the invariance over $H$: $F(I)=\int_H F(I(\cdot+h))\,dh$, and a
+linear measurement passes through an average,
+$\int_H F(I(\cdot+h))\,dh=F\big(\int_H I(\cdot+h)\,dh\big)=F(\E_HI)$. The
+converse is that $\E_HI$ is itself unchanged by rephasing along $H$.
+\end{proof}
+
+The proposition says that ``the observable content of a superposition, to
+anyone who cannot resolve the fast phases, is its tower of averages'' is
+not a metaphor. It is the quotient of the picture by the fast rephasing,
+in the sense in which a quotient is the most general thing invariant under
+a symmetry. The word \emph{linear} cannot be dropped --- the total ink
+$\int I^2$ is invariant and is not a function of the average --- but the
+observers that matter physically are not linear functionals of the picture;
+they are front ends followed by pooling, and for those
+Theorem~\ref{thm:universality} already said that the picture is theirs and
+the geometry is not. This is weak emergence made exact, and it is a better
+claim than strong emergence made vague: a new family, with a new count,
+that no member of the parts' description contains, produced by a quotient
+that is exact rather than approximate, and exactly computable at every
+stage of the hierarchy.
+
+\begin{tryit}{a beat of beats}
+Three oscillators on a synthesizer, sine waves, at $300$, $330$ and $363$
+hertz. You will hear two fast throbs, at thirty and thirty-three per
+second, and the question is whether you also hear a slow one, three times a
+second. Theorem~\ref{thm:cascade} says a single nonlinear stage cannot
+produce it. Run the mix through a distortion effect and then a low-pass,
+one stage: no three-hertz throb should appear. Run it through distortion,
+a low-pass at about fifty hertz, and a second distortion: it should. If
+your unaided ear hears the slow throb, that is data.
+\end{tryit}

@@ -16,55 +16,54 @@ superposition at $x$ is the point
   \Phi(x)=\big(\cnt_1(x),\dots,\cnt_K(x)\big)\bmod 1,
 \]
 the fractional part of every count at once. For two families $\Phi(x)$ is a
-point of the unit square. Walking off the right edge of the square (family A
-completes a member) brings you back in at the left edge at the same height,
-and walking off the top brings you back in at the bottom: the square with
-its opposite edges glued is a \emph{torus}, written $\tor^2$, and $\Phi$ is
-a path on it.
+point $(u_1,u_2)$ of the unit square. Walking off the right edge of the
+square (family A completes a member) brings you back in at the left edge at
+the same height, and walking off the top brings you back in at the bottom:
+the square with its opposite edges glued is a \emph{torus}, written
+$\tor^2$, and as $x$ moves, $\Phi(x)$ traces a path on it.
 \end{definition}
 
 \begin{lookup}{the torus as a square with its edges glued}
-What to look up: \emph{why a square with opposite edges identified is a
-torus}, and what a function on the torus is. The one consequence this paper
-uses: a function on the torus is the same thing as a function $I(x_1,x_2)$ of
-two real variables that repeats with period one in each variable
-separately. Nothing about the torus's shape in three dimensions is ever
-used; only the gluing.
+What to look up: \emph{why a square with opposite edges identified is called
+a torus}. The one consequence this paper uses: a function on the torus is
+the same thing as a function $I(u_1,u_2)$ of two ordinary variables that
+repeats with period one in each variable separately. Nothing about the
+torus's shape in three dimensions is ever used; only the gluing.
 \end{lookup}
 
-The state is the geometry. The appearance is a separate thing, and the
-separation is the first idea worth having.
+The state says where things are. What they look like is a separate thing,
+and separating the two is the first idea worth having.
 
 \begin{definition}[The picture on the torus]
 \label{def:picture}
 What the superposition \emph{looks like} at $x$ --- how much ink, how loud,
-whether the detector fires --- depends on $x$ only through $\Phi(x)$, by a
-fixed rule $I$ that knows nothing about $x$: the \emph{picture on the torus}.
-The superposition is the composite
+whether the detector fires --- depends on $x$ only through the state
+$\Phi(x)$, by a fixed rule $I$ that knows nothing about $x$: the
+\emph{picture on the torus}. The superposition is the composite
 \[
   S \;=\; I\circ\Phi,\qquad S(x)=I\big(\Phi(x)\big).
 \]
 \end{definition}
 
 The formula says: look up where you are in every family, then look up what
-that state looks like. For two printed gratings $I(x_1,x_2)$ is ``ink if
-$x_1$ is within the stroke of a line of A, or $x_2$ within a line of B'' ---
+that state looks like. For two printed gratings $I(u_1,u_2)$ is ``ink if
+$u_1$ is within the stroke of a line of A, or $u_2$ within a line of B'' ---
 a picture on the torus made of two bands, one across and one up, and their
-crossing. For two click trains into a coincidence detector $I(x_1,x_2)$ is
-``fire if $x_1$ and $x_2$ are both within a click's width of zero'', a small
-square at the corner of the torus. Everything geometric about a superposition
---- pitches, spacings, the bend in a ruler, a drift in a clock --- lives in
-$\Phi$. Everything about appearance --- ink, click shape, brightness,
-whether inks multiply or lights add --- lives in $I$. Two superpositions with
-the same $\Phi$ differ only in their picture, and two with the same picture
-differ only in their geometry. The rest of the paper is a list of things that
-are properties of $\Phi$, things that are properties of $I$, and things that
-are properties of the way an observer averages one over the other.
+crossing. For two click trains into a coincidence detector $I(u_1,u_2)$ is
+``fire if $u_1$ and $u_2$ are both within a click's width of zero'', a small
+square at the corner of the torus. Everything about \emph{where} ---
+pitches, spacings, the bend in a ruler, a drift in a clock --- lives in
+$\Phi$. Everything about \emph{what} --- ink, click shape, brightness,
+whether inks multiply or sounds add --- lives in $I$. Two superpositions
+with the same $\Phi$ differ only in their picture, and two with the same
+picture differ only in their state map. The rest of the paper is a list of
+things that are properties of $\Phi$, things that are properties of $I$, and
+things that are properties of the way an observer averages one over the
+other.
 
 \begin{figure}[t]
   \centering
   \begin{tikzpicture}[x=1cm, y=1cm, font=\small, >={Stealth[length=4pt]}]
-    % The superposition: two parallel families a little apart in pitch.
     \begin{scope}
       \clip (0,0) rectangle (3.4,3.4);
       \foreach \i in {0,...,17} { \draw[ink, line width=0.45pt] ({\i*0.2},0) -- ({\i*0.2},3.4); }
@@ -73,37 +72,34 @@ are properties of the way an observer averages one over the other.
     \draw[soft] (0,0) rectangle (3.4,3.4);
     \node[below=2pt] at (1.7,0) {the superposition $S=I\circ\Phi$};
     \draw[->, soft, thick] (3.9,1.7) -- (5.1,1.7) node[midway, above, ink] {$\Phi$};
-    % The torus: the unit square with sides glued.
     \begin{scope}[shift={(5.6,0)}]
       \clip (0,0) rectangle (3.4,3.4);
-      % Level lines of the fast combination xi_1 + xi_2.
       \foreach \c in {0.4,0.8,...,6.8} { \draw[soft!45, thin] (\c,0) -- (0,\c); }
-      % Level lines of the slow combination xi_1 - xi_2.
       \foreach \c in {-2.8,-2.1,...,2.8} { \draw[accent!70, thin] (\c,0) -- (\c+3.4,3.4); }
-      % The bands of the picture: a line of A is a vertical band, a line of B a horizontal one.
       \fill[ink!12] (0,0) rectangle (0.5,3.4);
       \fill[ink!12] (0,0) rectangle (3.4,0.5);
-      % The path of a neighbourhood of x: a short fast stroke.
-      \draw[ink, line width=1.6pt] (1.1,0.35) -- (2.9,1.25);
-      \fill[ink] (2.0,0.8) circle (1.6pt);
+      % A neighbourhood's path: along the fast direction, whose slope is the
+      % ratio of the two families' rates, 0.2/0.23 = 0.87.
+      \draw[ink, line width=1.6pt] (1.1,0.35) -- (2.9,1.92);
+      \fill[ink] (2.0,1.13) circle (1.6pt);
     \end{scope}
     \draw[ink] (5.6,0) rectangle (9,3.4);
     \node[below=2pt] at (7.3,0) {the torus $\tor^2$: $\cnt_1$ across, $\cnt_2$ up};
-    % Legend, outside the square so the diagram stays clean.
     \draw[accent, thin] (5.6,-0.75) -- (6.1,-0.75) node[right, ink, font=\scriptsize] {level lines of $\cnt_1-\cnt_2$ (slow)};
     \draw[soft!60, thin] (5.6,-1.05) -- (6.1,-1.05) node[right, ink, font=\scriptsize] {level lines of $\cnt_1+\cnt_2$ (fast)};
-    \draw[ink, line width=1.6pt] (5.6,-1.35) -- (6.1,-1.35) node[right, ink, font=\scriptsize] {the path of a pixel's neighbourhood};
+    \draw[ink, line width=1.6pt] (5.6,-1.35) -- (6.1,-1.35) node[right, ink, font=\scriptsize] {the path of a small neighbourhood of a point};
   \end{tikzpicture}
   \caption{\figlead{A superposition beside its torus.} Left: two families of
-  lines a little apart in pitch. Right: the torus of their counts. The picture
-  $I$ is the two shaded bands, a line of A across and a line of B up; ink at
-  a point of the plane is $I$ looked up at that point's state. A small
-  neighbourhood of a point maps to a short stroke on the torus (black),
-  pointing along the direction in which both counts advance --- the
-  \emph{fast} direction. The level lines of $\cnt_1-\cnt_2$ (red) run along
-  the stroke, so that combination barely changes across a neighbourhood; the
-  level lines of $\cnt_1+\cnt_2$ (grey) are crossed many times. The first is
-  slow and the second fast, and the whole theory is about what is slow.}
+  lines a little apart in pitch. Right: the torus of their counts. The
+  picture $I$ is the two shaded bands, a line of A across and a line of B
+  up; ink at a point of the plane is $I$ looked up at that point's state.
+  A small neighbourhood of a point maps to a short segment on the torus
+  (black), pointing in the direction in which both counts advance --- the
+  \emph{fast direction}. The level lines (contour lines) of $\cnt_1-\cnt_2$
+  run nearly along the segment, so that combination barely changes across a
+  neighbourhood; the level lines of $\cnt_1+\cnt_2$ are crossed many
+  times. The first is slow and the second fast, and the whole theory is about
+  what is slow.}
   \label{fig:torus}
 \end{figure}
 
@@ -114,73 +110,93 @@ The difference $D=\cnt_A-\cnt_B$ of Figure~\ref{fig:rulers} is itself a
 count: it rises by one per period of the bands, and the bands are its
 members. So is the sum $\cnt_A+\cnt_B$, and so is any combination
 \[
-  k\cdot\Phi \;=\; k_1\cnt_1+k_2\cnt_2+\dots+k_K\cnt_K,
+  k\cdot\cnt \;=\; k_1\cnt_1+k_2\cnt_2+\dots+k_K\cnt_K,
   \qquad k=(k_1,\dots,k_K)\ \text{whole numbers},
 \]
 a whole number of one count plus a whole number of another. The formula says:
 combined counts are made of the counts by integer recipes, and the recipe is
 the vector $k$. We write $k=(1,-1)$ for the difference, $(1,1)$ for the sum,
-$(2,-1)$ for twice the first count minus the second. Every recipe is a
-candidate pattern, all of them at once. Which ones show is a matter of how
+$(2,-1)$ for twice the first count minus the second. A combined count is a
+count in its own right --- it runs upward like $D$ in Figure~\ref{fig:rulers}
+--- and its fractional part depends only on the state $\Phi(x)$, because a
+whole-number combination of whole numbers is a whole number. Every recipe is
+a candidate pattern, all of them at once. Which ones show is a matter of how
 fast each changes.
+
+Here is why recipes with entries bigger than one matter, in one sentence
+that \S\ref{sec:whosees} unpacks. A family with sharp edges, seen as a
+function of its own count, is a sum of waves that repeat once, twice, three
+times per member --- its \emph{harmonics} --- and the second harmonic of
+family A against the first of family B makes a pattern of coincidences with
+recipe $(2,-1)$, as surely as the first against the first makes $(1,-1)$.
+A pair of rulers with ten and nineteen divisions to the inch shows it:
+twice the first count minus the second rises by one per inch, and that is
+the pattern you see, faint but there. Nineteen to ten is nearly two to one,
+the ratio of an octave in music, so we call $(2,-1)$ the \emph{octave}
+recipe.
 
 \begin{definition}[Slow and fast; the heterodyne ratio]
 \label{def:eta}
-At a point $x$ each count has a local rate, the derivative $\nabla\cnt_i(x)$
-(a number on a line, a vector in the plane). The rate of a combined count is
-$\nabla(k\cdot\Phi)=\sum_i k_i\nabla\cnt_i$. For a combination of two
-families, $k=(a,b)$, its \emph{heterodyne ratio} is
+At a point $x$ each count has a local rate, its derivative $\nabla\cnt_i(x)$
+--- a number on a line, a vector in the plane, giving members per unit of
+distance. The rate of a combined count is $\nabla(k\cdot\cnt)=\sum_ik_i\nabla\cnt_i$.
+For a recipe $k=(a,b)$ on two families, its \emph{heterodyne ratio} is
 \[
   \het_{a,b}(x)\;=\;\frac{\lvert a\,\nabla\cnt_1+b\,\nabla\cnt_2\rvert}
-                        {\tfrac12\,\lvert a\,\nabla\cnt_1-b\,\nabla\cnt_2\rvert},
+                        {\tfrac12\big(\lvert a\,\nabla\cnt_1\rvert+\lvert b\,\nabla\cnt_2\rvert\big)},
 \]
-the rate of the combination against the average rate of the two members
-that form it. A combination is \emph{slow} when $\het$ is small; we call
-$\het<\tfrac14$ the \emph{beat regime}, and it is where every pattern in
-this paper lives.
+the rate of the combination divided by the average rate of the two
+harmonics that form it. Its reciprocal is the number of members per band.
+A recipe is \emph{slow} when $\het$ is small; we call $\het<\tfrac14$, more
+than four members per band, the \emph{beat regime}, and it is where every
+pattern in this paper lives.
 \end{definition}
 
-The formula says: count how many members go by per band. On the rulers of
-Figure~\ref{fig:rulers} the difference has $\het=\tfrac{1}{9.5}$, about nine
-and a half members per band, and the sum has $\het\approx2$, no members per
-band at all: the sum is fast and the difference is slow. Turn one ruler
-around so that its count runs the other way, and the sum becomes the slow
-one; nothing in the theory prefers a difference. The threshold $\tfrac14$,
-four members per band, is where a pattern of coincidences stops being one:
-below it the bands are wider than the members that make them, and above it
-there is no ``band'', only members. The ratio is a number at every point of
-the plane, so it can be drawn as a map, and the tool of
-\S\ref{sec:instrument} draws it: bright where no pattern can form, dark
-where one must.
-
-For families with many harmonics --- strokes, clicks, square waves, anything
-with edges --- higher recipes matter too. A pair of rulers with ten and
-nineteen divisions to the inch has a slow combination $(2,-1)$: twice the
-first count minus the second rises by one per inch. That is the
-\emph{octave} beat, and \S\ref{sec:selection} is about when it shows and when
-it cannot.
+The word is the radio engineer's: to \emph{heterodyne} is to mix two rates
+and keep their difference, and $\het$ says how clean the mix is. On the
+rulers of Figure~\ref{fig:rulers}, with rates $10$ and $9$ per inch, the
+difference has $\het=1/9.5$, nine and a half members per band, and the sum
+has $\het=19/9.5=2$: half a member per band, which is no band at all. The
+click trains of \S\ref{sec:coincidence} have rates $100$ and $101$ per
+second and $\het=1/100.5$ for the difference; a hundred clicks per pulse.
+Turn one ruler around so that its count runs the other way, and the sum
+becomes the slow one; nothing in the theory prefers a difference. The
+threshold $\tfrac14$ is where a pattern of coincidences stops being one:
+with more than four members per band the bands are wider than the members
+that make them, and with fewer there is no ``band'', only members. The
+ratio is a number at every point of the plane, so it can be drawn as a map,
+and the tool of \S\ref{sec:instrument} draws it: bright where no pattern can
+form, dark where one must. From here on the members themselves --- the
+ticks, the clicks, the lines, the fine texture a pooling observer loses ---
+are the \emph{carrier}, radio's word again, and a slow recipe is a
+\emph{beat}.
 
 \begin{table}[t]
   \centering\small
   \begin{tabular}{@{}lll@{}}
     \toprule
-    Symbol & Read it as & Where it lives \\
+    Symbol & Read it as & Introduced \\
     \midrule
-    $\cnt_i(x)$ & the count of family $i$ up to $x$ & the line, the plane, the clock \\
-    $\Phi(x)$ & where you are in every family, the state & the torus $\tor^K$ \\
-    $I$ & the picture on the torus: what a state looks like & the torus \\
-    $S=I\circ\Phi$ & the superposition itself & the line or plane \\
-    $k=(k_1,\dots,k_K)$ & a recipe for a combined count & whole numbers \\
-    $k\cdot\Phi$ & the combined count with recipe $k$ & the line or plane \\
-    $D$ & the difference of two counts, recipe $(1,-1)$ & the line or plane \\
-    $\het$ & the heterodyne ratio: members per band, inverted & a number at each $x$ \\
-    $N$ & an observer's front end: what it does before pooling & a function of one number \\
-    $W$ & an observer's window: how it pools & a blur, a shutter, a filter \\
-    $\E[\,\cdot\mid\cdot\,]$ & an average, holding something fixed & the torus \\
+    $\cnt_i(x)$ & the count of family $i$ up to $x$ & Definition~\ref{def:count} \\
+    $\Phi(x)$ & the state: where you are in every family, on the torus $\tor^K$ & Definition~\ref{def:torus} \\
+    $u=(u_1,u_2)$ & a point of the torus; $x$ is always a point of the line or plane & Definition~\ref{def:torus} \\
+    $I$ & the picture on the torus: what a state looks like & Definition~\ref{def:picture} \\
+    $S=I\circ\Phi$ & the superposition itself & Definition~\ref{def:picture} \\
+    $k=(k_1,\dots,k_K)$ & a recipe: whole numbers & \S\ref{sec:slow} \\
+    $k\cdot\cnt$ & the combined count with recipe $k$ & \S\ref{sec:slow} \\
+    $D$ & the difference of two counts, recipe $(1,-1)$ & Figure~\ref{fig:rulers} \\
+    $\het$ & the heterodyne ratio: one over the members per band & Definition~\ref{def:eta} \\
+    $\hat I(k)$ & the strength of recipe $k$'s wave in the picture & \S\ref{sec:sweep} \\
+    $w$, $\mathcal E_w$ & a slide (a recipe of whole numbers) and the average along it & Theorem~\ref{thm:sweep} \\
+    $\E[\,I\mid\text{slow}\,]$ & the picture averaged over everything the slow recipes do not fix & \S\ref{sec:sweep} \\
+    $T_I(D)$ & the tent: the average as a function of $D$ & Corollary~\ref{cor:cases} \\
+    $W$, $\rho$, $\widehat W$ & an observer's window, its width, and its response to a wave & \S\ref{sec:window} \\
+    $N$ & an observer's front end: what it does to each value before pooling & \S\ref{sec:observer} \\
+    $O$ & an observer: a front end, then a window, then anything & Theorem~\ref{thm:universality} \\
     \bottomrule
   \end{tabular}
-  \caption{\figlead{Every symbol in the paper.} Introduced where first used;
-  collected here so that no page has to be searched for one.}
+  \caption{\figlead{Every symbol in the paper}, and where it is introduced.
+  The lower half is used from \S\ref{sec:pooling} on.}
   \label{tab:symbols}
 \end{table}
 

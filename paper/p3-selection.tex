@@ -1,0 +1,231 @@
+\section{Which pattern emerges}
+\label{sec:selection}
+
+Every recipe is present in a multiplicative picture, and a bent front end
+puts most of them into an additive one. Which of them do you see? Two
+ingredients decide it, and the classical theory of beats keeps them apart.
+One is slowness: how small the recipe's heterodyne ratio is. The other is
+strength: how much of the picture the recipe carries, which for anything
+with edges falls off with the harmonics. The visible pattern is the one
+that is slow \emph{per unit of strength}.
+
+\begin{definition}[The priced merit]
+\label{def:merit}
+For a recipe $(a,b)$ with $ab\ne0$ on two families with local rates
+$g_1=\nabla\cnt_1$ and $g_2=\nabla\cnt_2$, the \emph{priced merit} is
+\[
+  \het_{a,b}\;=\;\frac{\lvert a g_1+b g_2\rvert}{\tfrac12\big(\lvert a g_1\rvert+\lvert b g_2\rvert\big)}\cdot|ab| .
+\]
+The visible recipe is the one with the smallest priced merit, and
+$\het<\tfrac14$ is the beat regime.
+\end{definition}
+
+The formula says: take the heterodyne ratio of Definition~\ref{def:eta} and
+charge it the product of the harmonic orders that carry it. The price is
+Theorem~\ref{thm:whosees}'s second claim read backwards: the recipe $(a,b)$
+is carried by the $a$-th harmonic of one family and the $b$-th of the other,
+each about $1/n$ strong, so the beat it makes has about $1/|ab|$ of the
+contrast of the first-order beat. Without the price the question has no
+answer. Every real ratio of pitches has rational approximations as good as
+you like, so at any point some recipe of enormous order is slower than
+every other, carried by harmonics no stroke has; with the price, comparable
+slowness resolves toward the lower order, and the minimum is a definite
+recipe at every point.
+
+\begin{proposition}[Selection is best approximation]
+\label{prop:selection}
+For two parallel families of pitches $s_1$ and $s_2$ the recipes that beat
+every lower-order recipe, as the order is allowed to grow, are exactly the
+convergents of the continued fraction of $s_1/s_2$ (\selRecordsMatch\ of
+\selRatios\ ratios measured, without exception). In the plane, where the
+rates are vectors, the minimiser is found at every point by reducing the
+lattice $\{a g_1+b g_2\}$, and the reduction names the brute-force winner in
+$99.8\%$ of \selTrials\ random pairs (script \texttt{convergents.mjs}).
+\end{proposition}
+
+\begin{lookup}{continued fractions}
+What to look up: \emph{continued fractions and convergents}, one page of
+any number theory text. The facts used: a real $x$ has an expansion
+$x=[a_0;a_1,a_2,\dots]$ into whole numbers, its \emph{partial quotients};
+truncating gives the fractions $h_n/k_n$, the \emph{convergents}, which are
+the best rational approximations of $x$ with denominators up to $k_n$; and
+the error of a convergent is
+$|h_n-k_nx|=1/(x_{n+1}k_n+k_{n-1})$, where $x_{n+1}=[a_{n+1};a_{n+2},\dots]$
+is the \emph{complete quotient}, everything after the $n$-th term. For the
+golden ratio every partial quotient is $1$; for $\sqrt2$ every one after
+the first is $2$; for $\pi$ they are $3;7,15,1,292,\dots$
+\end{lookup}
+
+The proposition is Lagrange's theorem on best approximation with a
+different price: the classical statement prices a fraction $h/k$ by $k$,
+the priced merit charges $hk$, and the records turn out to be the same
+fractions. In the plane the theory is two-dimensional and the convergents
+become the short vectors of a lattice, found by the oldest lattice
+algorithm there is, but the reader who takes the one-dimensional case on
+trust loses nothing that follows.
+
+\subsection{Duty nulls}
+\label{sec:dutynull}
+
+Because a multiplicative picture's strength at a recipe is a product of
+harmonics, a station is carried by exactly the harmonics its integers name,
+and a family that lacks a harmonic cannot take part in a station that needs
+it. That is a prediction the classical theory does not make.
+
+\begin{theorem}[Duty nulls]
+\label{thm:dutynull}
+For two families whose pitches are in the ratio $p{:}q$ (coarse to fine),
+the visible station is the recipe $(q,-p)$, $q$ times the coarse count
+minus $p$ times the fine, carried by the coarse family's $q$-th harmonic and
+the fine family's $p$-th. A family whose members cover a fraction $d$ of
+their pitch has no $q$-th harmonic exactly when $qd$ is a whole number, so
+the station is extinguished at those duties and at no others.
+\end{theorem}
+
+\begin{proof}
+For pitches $s_{\mathrm c}\approx(p/q)\,s_{\mathrm f}$ the combined count
+$q\cnt_{\mathrm c}-p\cnt_{\mathrm f}$ has rate
+$q/s_{\mathrm c}-p/s_{\mathrm f}\approx0$: it is the slow one. By
+Theorem~\ref{thm:whosees} its strength is
+$\hat g_{\mathrm c}(q)\,\hat g_{\mathrm f}(-p)$, and by the lookup,
+$\hat g(n)=\sin(n\pi d)/n\pi$ vanishes exactly when $nd$ is a whole number.
+A symmetric softening of the edges multiplies each harmonic by a real
+factor and moves no zero.
+\end{proof}
+
+\begin{figure}[t]
+  \centering
+  \begin{minipage}[c]{0.40\linewidth}
+    \centering
+    \begin{tikzpicture}
+      \begin{axis}[width=0.78\linewidth, height=4.9cm, xlabel={coarse duty $d$},
+        ylabel={station strength}, xmin=0.18, xmax=0.82, ymin=0, ymax=0.045,
+        scaled y ticks=false, ytick={0,0.01,0.02,0.03,0.04},
+        tick align=outside, tick pos=left, axis line style={gray!60},
+        grid=major, grid style={gray!18, very thin},
+        label style={font=\footnotesize}, tick label style={font=\scriptsize},
+        legend style={font=\scriptsize, draw=gray!40, at={(0.5,1.02)}, anchor=south, legend columns=2},
+        xtick={0.25,0.333,0.5,0.667,0.75}, xticklabels={$\frac14$,$\frac13$,$\frac12$,$\frac23$,$\frac34$}]
+        \addplot[accent, line width=0.7pt] table[x=duty, y=two, col sep=comma]{data/dutynull-law.csv};
+        \addlegendentry{$2{:}1$, recipe $(2,-1)$}
+        \addplot[cool, line width=0.7pt] table[x=duty, y=three, col sep=comma]{data/dutynull-law.csv};
+        \addlegendentry{$3{:}1$, recipe $(3,-1)$}
+        \addplot[accent, only marks, mark=*, mark size=1.3pt] table[x=duty, y=two, col sep=comma]{data/dutynull-curve.csv};
+        \addplot[cool, only marks, mark=square*, mark size=1.1pt] table[x=duty, y=three, col sep=comma]{data/dutynull-curve.csv};
+      \end{axis}
+    \end{tikzpicture}
+  \end{minipage}%
+  \hfill%
+  \begin{minipage}[c]{0.54\linewidth}%
+    \includegraphics[width=\linewidth]{dutynull-triple.png}%
+  \end{minipage}
+  \caption{\figlead{Duty nulls.} Left: the strength of the station against
+  the coarse family's duty, measured on drawn strokes (marks) over the law
+  $|\sin(q\pi d)/q\pi|\,|\hat g_{\text{fine}}(1)|$ (lines): the $2{:}1$
+  station dies at $d=\tfrac12$, the $3{:}1$ station at $\tfrac13$ and
+  $\tfrac23$, and the softened edge of a drawn stroke is the only departure.
+  Right: what pooling sees of the $2{:}1$ pair at coarse duty $0.35$, $0.5$
+  and $0.65$, expanded sixfold about its mean: present, extinguished,
+  present. The nulls are $\dutyNullDepthTwo\times$,
+  $\dutyNullDepthThreeLow\times$ and $\dutyNullDepthThreeHigh\times$ deep.
+  Scripts \texttt{dutynull.mjs}, \texttt{dutynull-figs.mjs}.}
+  \label{fig:dutynull}
+\end{figure}
+
+Figure~\ref{fig:dutynull} is the theorem measured on paper;
+Figure~\ref{fig:ear} was the same theorem measured in an ear, and
+Corollary~\ref{cor:hard} is why the two agree: a hard-edged family has one
+set of harmonics, and every observer inherits it. Two readings. Forwards,
+fringe spectroscopy in reverse: find the duty at which a station dies and
+you have measured the family's duty to the precision of the null. Backwards,
+a warning about what ``the beat'' is: a $16.4{:}8$ pair also carries the
+recipe $(1,-2)$, one coarse count minus two fine, a real coefficient with a
+period of five units and no band anyone can see, and the first version of
+this experiment measured a null of \emph{that} and called it the station.
+The station is the slow recipe, not the small one.
+
+\subsection{Which convergents are stations, and which ratios never beat}
+\label{sec:stations}
+
+\begin{proposition}[Stations are the convergents with large complete quotients]
+\label{prop:stations}
+Let a pair have pitch ratio $x=[a_0;a_1,a_2,\dots]$ with convergents
+$h_n/k_n$ and complete quotients $x_{n+1}$. The priced merit of the recipe
+$(h_n,-k_n)$ is exactly
+\[
+  \het_n\;=\;\frac{2\,h_nk_n}{(h_n+k_nx)\,(x_{n+1}k_n+k_{n-1})},
+\]
+and the convergent is a station, $\het_n<\tfrac14$, exactly when
+$x_{n+1}+k_{n-1}/k_n>8/(1+k_nx/h_n)$, a bound within a few percent of $4$.
+A next partial quotient $a_{n+1}\ge5$ guarantees a station and
+$a_{n+1}\le2$ forbids one. For the golden ratio $\het_n\to1/\sqrt5$, for
+$\sqrt2$ it tends to $1/2\sqrt2$: neither pair has a station at any order.
+\end{proposition}
+
+\begin{proof}
+Put the convergent's error $|h_n-k_nx|=1/(x_{n+1}k_n+k_{n-1})$ from the
+lookup into the merit $2hk\,|h-kx|/(h+kx)$; that is the identity. The
+threshold rearranges $\het_n<\tfrac14$, and the two bounds follow from
+$a_{n+1}<x_{n+1}<a_{n+1}+1$ and $0\le k_{n-1}/k_n<1$. For the golden ratio
+every complete quotient is the golden ratio $\varphi$ itself and
+$k_{n-1}/k_n\to1/\varphi$, so $\het_n\to1/(\varphi+1/\varphi)=1/\sqrt5$; for
+$\sqrt2$ the complete quotients are $1+\sqrt2$ and $k_{n-1}/k_n\to\sqrt2-1$.
+\end{proof}
+
+The identity is, up to a factor that tends to one, a classical quantity
+(Perron's $k_n|k_nx-h_n|$), and $1/\sqrt5$ is Hurwitz's
+constant~\cite{Hurwitz1891Annaherung, Khinchin1964Continued}: the theory of
+which beats are visible turns out to be the theory of how well a number can
+be approximated, priced slightly differently. What is new is the threshold,
+which reads a pair's stations off its partial quotients, and the
+\emph{deserts}: a ratio whose partial quotients stay small never beats
+visibly at any order, however rich the families' harmonics. Measured on
+\stationsConvergents\ convergents of \stationsRatios\ random ratios, the
+identity holds to $\stationsIdentityErr$, the limit to $\stationsPerronErr$
+past the sixth convergent, and the threshold classifies every one; the
+golden ratio's merit tends to \stationsGoldenMerit\ and the silver ratio's
+to \stationsSilverMerit, both above $\tfrac14$ (\texttt{stations.mjs}).
+Table~\ref{tab:stations} reads the proposition on five pairs.
+
+\begin{table}[t]
+  \centering\small
+  \input{tab-stations}
+  \caption{\figlead{Stations, read off the continued fraction.} For each
+  pair, the first convergents of its pitch ratio; the ones the threshold
+  makes visible stations are in bold. $\pi$ beats at $3$, $22/7$ and
+  $355/113$, because its partial quotients $7$, $15$ and $292$ are large;
+  $e$ at $19/7$ and later at $193/71$; $\sqrt2$, whose quotients are all
+  $2$, at nothing; the $41{:}20$ pair at its octave. Generated from
+  \texttt{stations.json}.}
+  \label{tab:stations}
+\end{table}
+
+The desert is in sound too. Two sawtooth tones --- every harmonic present,
+falling like $1/n$ --- at the ratio $2.05$ carry a station line at ten hertz
+through a square-law ear that is $\earDesertRatio\times$ stronger than the
+strongest slow line of two sawtooths at the golden ratio
+(\texttt{ear.mjs}). The prediction for hearing: golden intervals of
+harmonic-rich tones sound rough, but they never \emph{beat}.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{selection-stations.png}
+  \caption{\figlead{Stations as places.} Two fans of rays from two centres.
+  Along the axis between them the local ratio of the two families' rates
+  sweeps through the reals, every rational the price admits owns a stretch
+  of the axis where its recipe is the slow one, and the marks show where
+  each station's bands are: the ladder of convergents laid out as
+  geography. A pair whose ratio varies has its stations at places, not at
+  settings. Script \texttt{selectionfigs.mjs}.}
+  \label{fig:stations}
+\end{figure}
+
+\begin{tryit}{a station you can switch off with a marker}
+Two rulers, or two drawn combs, at pitches close to $2{:}1$ --- ten and
+nineteen to the inch --- show octave bands. Now thicken the coarse comb's
+ticks with a marker until each covers half the gap: the bands vanish while
+both combs are plainly still there. Thicken them to two thirds and the
+bands come back. In \Moire, two layers of lines at pitches $16.4$ and $8$
+with the coarse stroke at width $8.2$ do the same thing in the pooled view,
+and the \emph{ratio} view shows the station's region going blank.
+\end{tryit}

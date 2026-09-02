@@ -1,0 +1,212 @@
+\section{Who can see a beat}
+\label{sec:whosees}
+
+Return to the click trains. Two trains of clicks in the air \emph{add}: the
+pressure at your eardrum is the sum of the two. Two gratings printed on
+transparencies and held to the light \emph{multiply}: light gets through
+where both are clear, and the transmission is the product. Two gratings
+thrown on a wall by two projectors add again. The difference sounds like
+bookkeeping and is the whole reason a beat in the air needs an ear and a
+beat on paper does not.
+
+On the torus the two cases are two pictures. If family 1 has profile $g_1$
+(one where a click or a stroke is, zero between) and family 2 has $g_2$,
+then an additive superposition has the picture $I(x_1,x_2)=g_1(x_1)+g_2(x_2)$
+and a multiplicative one has $I(x_1,x_2)=g_1(x_1)\,g_2(x_2)$. Everything
+follows from expanding each in waves.
+
+\begin{lookup}{the waves of a pulse train}
+What to look up: \emph{the Fourier coefficients of a rectangular pulse
+train} (or ``Fourier series of a square wave with duty cycle $d$''). The
+consequences used: a train that is on for a fraction $d$ of each period has
+coefficients $\hat g(n)=\sin(n\pi d)/(n\pi)$ for $n\ne0$ and $\hat g(0)=d$;
+so $\hat g(n)$ is exactly zero when $nd$ is a whole number (a $50\%$ train
+has no even harmonics at all), and otherwise $|\hat g(n)|$ falls like
+$1/n$.
+\end{lookup}
+
+\begin{theorem}[Who sees a beat]
+\label{thm:whosees}
+Write a recipe $k=(a,b)$ as \emph{cross} when both $a$ and $b$ are nonzero.
+\begin{enumerate}
+\item An additive picture $g_1(x_1)+g_2(x_2)$ has \emph{no cross recipes}:
+its waves are $(n,0)$ and $(0,n)$ only. A linear pooling observer, one that
+averages the superposition and nothing more, sees no beat in an additive
+superposition, ever.
+\item A multiplicative picture $g_1(x_1)\,g_2(x_2)$ carries every cross
+recipe with strength $\hat I(a,b)=\hat g_1(a)\,\hat g_2(b)$: a linear
+observer sees the beat, with the strength of the two harmonics that make it.
+\item A front end that bends, $N''\ne0$, mints cross recipes out of an
+additive picture. Squaring the sum gives
+$(g_1+g_2)^2=g_1^2+2g_1g_2+g_2^2$, whose middle term is a product: the
+difference recipe $(1,-1)$ appears with strength $\hat g_1(1)\hat g_2(1)/2$
+when the sum is normalised to $(g_1+g_2)/2$.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+A wave on the torus with recipe $(a,b)$ is $e^{2\pi i(ax_1+bx_2)}$. The
+expansion of $g_1(x_1)$ contains only waves $e^{2\pi i\,n x_1}$, recipes
+$(n,0)$, and likewise $g_2$; a sum of the two contains nothing else, which
+is the first claim, and by Theorem~\ref{thm:sweep} any average that removes
+the single-family recipes removes everything. The product of two expansions
+is the sum over all pairs of the products of waves, and
+$e^{2\pi i\,ax_1}e^{2\pi i\,bx_2}$ is the wave of recipe $(a,b)$ with
+coefficient $\hat g_1(a)\hat g_2(b)$, which is the second. Expanding the
+square gives the third, the cross term $2g_1g_2$ contributing
+$2\hat g_1(a)\hat g_2(b)$ at $(a,b)$, and the normalisation divides by four.
+\end{proof}
+
+Measured: the additive beat under a linear observer is $\obsAdditiveBeat$,
+zero to the precision of the arithmetic; the printed beat is
+$\obsPrintedBeat$; a squaring front end mints the additive beat at
+$\obsSquaringBeat$, exactly half the printed value; a saturating front end
+$\min(g_1+g_2,1)$, the front end of a photoreceptor or a clipping amplifier,
+mints it at $\obsSaturatingBeat$, nearly the printed value
+(script \texttt{observer.mjs}).
+
+This is the coincidence detector of \S\ref{sec:coincidence}, explained. A
+detector that fires only when both clicks are present is a front end that
+multiplies --- ``both'' is a product --- so its picture on the torus is the
+small square where both counts are near a whole number, a picture with
+every cross recipe in it, and the slowest cross recipe is the difference of
+counts $D$. The detector's output is a wave in $D$, once per unit of $D$,
+once per second, and nothing else survives its pooling. It is also
+Helmholtz's combination tone~\cite{Helmholtz1954Sensations}: two tones in
+the air have no difference tone between them until an ear, which is not
+linear before it pools, makes one. The distinction is not between kinds of
+observer. It is between kinds of superposition, and the theorem puts it in
+the only place it can be: which recipes the observer's picture contains.
+
+\subsection{Hard patterns are observer-proof, soft ones are not}
+\label{sec:hardsoft}
+
+\begin{corollary}[Hard patterns]
+\label{cor:hard}
+If the picture $I$ takes only two values, then for any front end $N$,
+\[
+  N\circ I \;=\; N(0)+\big(N(1)-N(0)\big)\,I ,
+\]
+a constant plus a multiple of $I$: every observer sees the same recipes at
+the same relative strengths, and differs from every other only by a
+constant and a gain. A hard-edged pattern --- ink or no ink, click or no
+click --- has one third pattern, and every observer sees it.
+\end{corollary}
+
+The proof is the display: a function of a variable that takes two values is
+determined by its two values, and any such function is affine. Measured: the
+octave null of \S\ref{sec:selection} under a linear and a squaring observer
+agree to $\obsHardNull$.
+
+\begin{corollary}[Soft patterns]
+\label{cor:soft}
+Blur the edges of a $50\%$ train symmetrically, by any even smoothing. Its
+even harmonics stay exactly zero, so every \emph{linear} observer keeps the
+null at every blur. A squaring observer does not: it reopens the null with
+a strength that grows linearly in the width of the blur.
+\end{corollary}
+
+\begin{proof}
+A $50\%$ train satisfies $g(x+\tfrac12)=1-g(x)$; a symmetric smoothing
+preserves this half-turn antisymmetry, and a function with it has no even
+harmonics. Squaring destroys the antisymmetry exactly on the blurred edges
+and nowhere else, so the even harmonics it mints scale with the edge width.
+\end{proof}
+
+Measured on strokes with anti-alias ramps of half-width \obsReopenRamps\
+units: the linear null holds at every ramp, and squaring reopens it at
+$\obsReopenAmps$, linear in the ramp (\texttt{observer.mjs}).
+
+\subsection{The same theorem in an ear}
+\label{sec:ear}
+
+Everything so far was measured in a drawing tool. The theorem does not know
+that. Take two pulse trains at $200$ and $405$ clicks per second --- a
+mistuned octave, whose slow recipe is $(2,-1)$, twice the lower count minus
+the upper, beating five times a second --- add them as sounds add, and
+listen through four model ears: a low-pass filter alone (a linear ear),
+a squaring front end followed by the low-pass (the textbook square-law
+detector), a cubing front end, and a two-stage ear that squares, pools,
+and squares again. Sweep the lower train's duty from $30\%$ to $70\%$ and
+read the five-hertz line at the output. Figure~\ref{fig:ear} is the result
+(script \texttt{ear.mjs}).
+
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[width=0.5\linewidth, height=5.4cm, ymode=log,
+      title={hard pulses}, xlabel={duty of the lower train},
+      ylabel={the 5 Hz line at the ear's output},
+      xmin=0.27, xmax=0.73, ymin=1e-7, ymax=1,
+      xtick={0.3,0.4,0.5,0.6,0.7},
+      tick align=outside, tick pos=left, axis line style={gray!60},
+      grid=major, grid style={gray!18, very thin},
+      label style={font=\footnotesize}, tick label style={font=\scriptsize},
+      title style={font=\footnotesize},
+      legend style={font=\scriptsize, draw=gray!40, at={(0.5,-0.32)}, anchor=north, legend columns=2}]
+      \addplot[soft, mark=x, line width=0.6pt] table[x=duty, y=hard_linear, col sep=comma]{data/ear-octave.csv};
+      \addlegendentry{linear}
+      \addplot[accent, mark=*, mark size=1.2pt, line width=0.7pt] table[x=duty, y=hard_squarelaw, col sep=comma]{data/ear-octave.csv};
+      \addlegendentry{square-law}
+      \addplot[cool, mark=square*, mark size=1.1pt, line width=0.7pt] table[x=duty, y=hard_cubic, col sep=comma]{data/ear-octave.csv};
+      \addlegendentry{cubic}
+      \addplot[warm, mark=triangle*, mark size=1.3pt, line width=0.7pt] table[x=duty, y=hard_squarepoolsquare, col sep=comma]{data/ear-octave.csv};
+      \addlegendentry{square, pool, square}
+    \end{axis}
+  \end{tikzpicture}%
+  \hfill%
+  \begin{tikzpicture}
+    \begin{axis}[width=0.5\linewidth, height=5.4cm, ymode=log,
+      title={softened pulses}, xlabel={duty of the lower train},
+      xmin=0.27, xmax=0.73, ymin=1e-7, ymax=1,
+      xtick={0.3,0.4,0.5,0.6,0.7}, yticklabels={},
+      tick align=outside, tick pos=left, axis line style={gray!60},
+      grid=major, grid style={gray!18, very thin},
+      label style={font=\footnotesize}, tick label style={font=\scriptsize},
+      title style={font=\footnotesize}]
+      \addplot[accent, mark=*, mark size=1.2pt, line width=0.7pt] table[x=duty, y=soft_squarelaw, col sep=comma]{data/ear-octave.csv};
+      \addplot[cool, mark=square*, mark size=1.1pt, line width=0.7pt] table[x=duty, y=soft_cubic, col sep=comma]{data/ear-octave.csv};
+      \addplot[warm, mark=triangle*, mark size=1.3pt, line width=0.7pt] table[x=duty, y=soft_squarepoolsquare, col sep=comma]{data/ear-octave.csv};
+    \end{axis}
+  \end{tikzpicture}
+  \caption{\figlead{The octave beat through four ears.} Two pulse trains at
+  $200$ and $405$ per second, added as sounds add, through a linear ear, a
+  square-law ear, a cubic ear and a two-stage ear, as the lower train's duty
+  is swept. Left, hard-edged pulses: the linear ear hears nothing at any
+  duty (Theorem~\ref{thm:whosees}, first claim), and every nonlinear ear
+  hears the beat except at duty one half, where it is extinguished
+  $\earHardNullSquare\times$, $\earHardNullCubic\times$ and
+  $\earHardNullCascade\times$ under the three ears --- a hard pattern is
+  observer-proof (Corollary~\ref{cor:hard}). Right, the same pulses with
+  softened edges: the square-law ear keeps the null ($\earSoftNullSquare\times$),
+  the cubic ear reopens it to within $\earSoftNullCubic\times$ of its
+  neighbours (Corollary~\ref{cor:soft}, where cubing plays the part of
+  squaring one order up). Script \texttt{ear.mjs}, data \texttt{ear.json}.}
+  \label{fig:ear}
+\end{figure}
+
+Three things in the figure were predictions before they were curves. The
+linear ear hears no beat at any duty, $\earLinearOverSquare$ of what the
+square-law ear hears, because a sum of trains has no cross recipe. Every
+nonlinear ear loses the beat at duty one half, because the beat rides the
+lower train's second harmonic and a $50\%$ train has none: the same duty
+null that \S\ref{sec:selection} measures on paper, in sound, through three
+different ears at once. And softening the pulses separates the ears: a
+square-law front end's cross term is a product of one harmonic from each
+train, so it inherits the lower train's missing second harmonic and keeps
+the null; a cubic front end's $g_1^2g_2$ term carries the \emph{square} of
+the lower train, whose second harmonic is not zero once the edges are soft,
+and the null reopens. That is a prediction about people: \emph{which
+nonlinearity an ear has is audible}, in a mistuned octave of blurred square
+waves, as the presence or absence of a five-hertz beat. We have not done the
+listening test. \S\ref{sec:ledger} says exactly what it would take.
+
+\begin{tryit}{a beat that a duty can switch off}
+Any synthesizer with a pulse-width control, or a free web synth. Two
+oscillators, pulse waves, at $200$ and $405$ hertz; set the lower one's
+width to $30\%$ and you hear a five-per-second throb; set it to $50\%$ and
+the throb goes, though both tones are still there; $70\%$ and it is back.
+Your ear is the nonlinearity. Then put a gentle low-pass filter on each
+oscillator, so the edges soften, and listen at $50\%$ again: if you hear the
+throb come back, your ear's front end is not a square-law.
+\end{tryit}

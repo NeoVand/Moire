@@ -14,13 +14,20 @@ picture on the torus, averaged along the fast directions.
 \subsection{The sharp version: one period of every family}
 \label{sec:sweep}
 
-The cleanest pooling observer is one that averages over \emph{exactly one
-member of every family}. Slide both gratings by one line each, at the same
-rate, and average the ink you saw along the way. On the torus of
-Figure~\ref{fig:torus} that slide is the straight path from $\Phi(x)$ in the
-direction $(1,1)$ back to $\Phi(x)$: one unit across, one unit up, and the
-gluing brings it home. The average of the picture along that closed path is
-what the observer sees at $x$.
+Why talk about sliding when the observer blurs? Because on the torus the two
+are the same motion. Blurring averages the superposition over a small
+neighbourhood of $x$; across that neighbourhood every count advances a
+little, all of them together, so the neighbourhood's states form a short
+segment on the torus in the fast direction, the black segment of
+Figure~\ref{fig:torus}, and averaging over the neighbourhood is averaging
+the picture along that segment. A blur is a short slide with soft ends.
+The cleanest pooling observer is therefore one that averages over
+\emph{exactly one member of every family}. Slide both gratings by one line
+each, at the same rate, and average the ink you saw along the way. On the
+torus that slide is the straight path from $\Phi(x)$ in the direction
+$(1,1)$ back to $\Phi(x)$: one unit across, one unit up, and the gluing
+brings it home. The average of the picture along that closed path is what
+the observer sees at $x$.
 
 \begin{theorem}[One period of every family is a sharp average]
 \label{thm:sweep}
@@ -30,25 +37,32 @@ through $w_i$ of its members while averaging:
   \mathcal E_w I(\Phi)\;=\;\int_0^1 I\big(\Phi+u\,w\big)\,du .
 \]
 Then $\mathcal E_w I$ depends on the state $\Phi$ only through the combined
-counts $k\cdot\Phi$ whose recipe is orthogonal to the slide,
+counts whose recipe is orthogonal to the slide,
 $k\cdot w=k_1w_1+\dots+k_Kw_K=0$. In words: sliding every family through a
-whole number of members keeps exactly the combinations that the slide does
-not change, and removes every other, completely.
+whole number of members keeps exactly the recipes that the slide does not
+change, and removes every other, completely.
 \end{theorem}
 
 The idea of the proof: write the picture as a sum of waves on the torus, one
-per recipe; the slide turns each wave by a whole number of turns, and a wave
-turned a whole number of times averages to nothing unless it was not turned
-at all.
+per recipe; the slide carries each wave round a whole number of times, and
+a wave carried round a whole number of times averages to nothing unless it
+was not carried round at all. The lookup makes both halves of that sentence
+concrete.
 
 \begin{lookup}{waves on the torus}
-What to look up: \emph{Fourier series in two variables}, or ``every
-periodic function is a sum of complex exponentials''. The two consequences
-used: (1) a function $I$ on the torus is a sum
-$I(x)=\sum_k \hat I(k)\,e^{2\pi i\,k\cdot x}$ over all whole-number recipes
-$k$, with coefficients $\hat I(k)$; (2) for a whole number $m$,
-$\int_0^1 e^{2\pi i m u}\,du$ equals $1$ if $m=0$ and $0$ otherwise. The
-second is a one-line calculus exercise and is the only integral in the
+What to look up, in this order. First, \emph{Euler's formula}: the number
+$e^{2\pi i\theta}$ is the point of the unit circle at angle $\theta$ turns,
+so as $\theta$ runs from $0$ to $1$ the point goes once round the circle,
+and its average position over a whole number of turns is the centre, $0$
+--- while for zero turns it stays at $1$. That is the one integral the
+reader has to believe: for a whole number $m$, $\int_0^1e^{2\pi imu}\,du$ is
+$1$ if $m=0$ and $0$ otherwise. Second, \emph{Fourier series}: a function
+that repeats with period one in each of its variables is a sum of such
+waves, one per whole-number recipe,
+$I(u)=\sum_k\hat I(k)\,e^{2\pi i\,k\cdot u}$, with coefficients $\hat I(k)$
+that say how much of each wave the picture contains. A recipe's wave on
+the torus, pulled back to the plane, is a wave in the combined count
+$k\cdot\cnt$. Nothing else from Fourier analysis is used anywhere in the
 paper.
 \end{lookup}
 
@@ -57,31 +71,34 @@ Expand $I(\Phi+uw)=\sum_k\hat I(k)\,e^{2\pi i\,k\cdot\Phi}\,e^{2\pi i\,u\,(k\cdo
 Because $k$ and $w$ are whole-number vectors, $m=k\cdot w$ is a whole number,
 and the integral over $u$ of $e^{2\pi i m u}$ is $1$ for $m=0$ and $0$
 otherwise. What survives is $\sum_{k\cdot w=0}\hat I(k)\,e^{2\pi i\,k\cdot\Phi}$,
-which is a function of the combinations with $k\cdot w=0$ and of nothing
-else.
+which is a function of the recipes with $k\cdot w=0$ and of nothing else.
 \end{proof}
 
 The theorem is a statement about an average, and the right name for the
 average is a \emph{conditional expectation}: $\mathcal E_wI$ is the average of
-the picture over everything the kept combinations do not fix, written
-$\E[\,I\mid k\cdot w=0\,]$. The word means nothing more than that here. What
-is remarkable is the word \emph{exactly} in the statement. The slide is by a
-whole number of members, so every wave it does not keep is turned a whole
-number of times and cancels to zero, with nothing left over. A slide by a
-fraction of a member would leave a little of everything.
+the picture over everything the kept recipes do not fix. We write it
+$\E[\,I\mid\text{slow}\,]$, ``the picture, given the slow recipes'', and the
+word means nothing more than that here; the slow recipes are the ones the
+slide keeps, $k\cdot w=0$. What is remarkable is the word \emph{exactly}
+in the statement. The slide is by a whole number of members, so every wave
+it does not keep is carried round a whole number of times and cancels to
+zero, with nothing left over. A slide by a fraction of a member would leave
+a little of everything.
 
 \begin{corollary}[Four things the theorem already says]
 \label{cor:cases}
 \begin{enumerate}
 \item \emph{The tent.} Two families slid together, $w=(1,1)$: the kept
 recipes are $(a,-a)$, so the average is a function of the difference $D$
-alone, $\mathcal E_wI=\Phi_I(D)$ with $\Phi_I(\Delta)=\int_0^1 I(v,v-\Delta)\,dv$.
-For two strokes it is the saturating tent of Figure~\ref{fig:tent}: flat
-where one stroke lies inside the other, rising at unit slope while they
-separate, flat again once they clear. Not a sine.
-\item \emph{The mean.} A slide whose rates are all mutually irrational keeps
-only $k=0$: the average is the plain mean of the picture, the ink with every
-family's phase independent of every other's.
+alone, $\mathcal E_wI=T_I(D)$, where $T_I(\Delta)=\int_0^1 I(v,v-\Delta)\,dv$
+is the picture averaged along the diagonal line that sits $\Delta$ below the
+main one. For two strokes it is the saturating tent of Figure~\ref{fig:tent}:
+flat where one stroke lies inside the other, rising at unit slope while
+they separate, flat again once they clear. Not a sine.
+\item \emph{The mean.} (A remark rather than a case, since the theorem
+wants whole numbers.) A slide whose rates have no common measure, averaged
+for a long time, keeps only $k=0$: the plain mean of the picture, the ink
+with every family's phase independent of every other's.
 \item \emph{Every zero-sum at once.} The diagonal slide $w=(1,\dots,1)$ keeps
 every recipe whose entries sum to zero: every difference of two counts and
 every three-family recipe like $(1,1,-2)$, all at the same time. A recipe
@@ -99,7 +116,7 @@ arithmetic.
   \centering
   \begin{tikzpicture}
     \begin{axis}[width=0.62\linewidth, height=4.6cm,
-      xlabel={the difference of counts $D$ (mod 1)}, ylabel={average ink},
+      xlabel={the difference of counts $D$, over one period}, ylabel={average ink},
       xmin=-0.5, xmax=0.5, ymin=0, ymax=0.7,
       xtick={-0.5,-0.3,0,0.3,0.5}, xticklabels={$-\tfrac12$,$-d$,$0$,$d$,$\tfrac12$},
       ytick={0.3,0.6}, yticklabels={$d$,$2d$},
@@ -117,15 +134,19 @@ arithmetic.
   the ink is $d$; as they separate the ink rises at unit slope; once they
   clear, at $|D|=d$, it saturates at $2d$ and stays there. The dashed curve is
   the sine that a theory of sinusoids would predict. The flat top is why a
-  beat of strokes looks crisp, and why thickening a pen past $d=\tfrac14$
-  stops changing the bands and only darkens the page.}
+  beat of strokes looks crisp. Note the sign: Figure~\ref{fig:rulers} shaded
+  the coincidences, and on paper a coincidence is where the strokes
+  overlap and the ink is \emph{least}, so the light bands of a printed pair
+  are the coincidences. The depth of the tent is $d$ until the strokes
+  cover half their pitch and shrinks after, which is why thickening a pen
+  past half the pitch only darkens the page.}
   \label{fig:tent}
 \end{figure}
 
 Case 4 is a physical prediction, and it was not sought: it fell out of the
 theorem and was measured the same afternoon. The measurement is in
 Figure~\ref{fig:exposure}. Two families of lines at pitches $16.4$ and $8$
-carry an octave beat, recipe $(2,-1)$, which is four percent of the ink and
+carry an octave beat, recipe $(2,-1)$, a few percent of the ink and
 invisible on a still under the lines themselves. Animate them at rates
 $(1,2)$ --- the slide that keeps $(2,-1)$ --- and expose for one period: the
 octave beat is kept to \exposureFaithfulPct\% of its strength on the still.
@@ -138,11 +159,13 @@ what a slow observer of a moving pair already computes.
   \includegraphics[width=\linewidth]{exposure-quad.png}
   \caption{\figlead{The shutter is a filter on recipes.} The $16.4{:}8$ pair
   as a still, then its long exposures over one period at rates $(1,1)$,
-  $(1,2)$ and $(2,1)$, each expanded sixfold about its own mean. Rates $(1,1)$
-  keep the zero-sum recipes --- here the carrier-scale $(1,-1)$, a fine
-  texture, not a band --- and wash the octave; rates $(1,2)$ keep exactly the
-  octave $(2,-1)$, the broad bands; rates $(2,1)$ wash both and keep the
-  faster $(1,-2)$. Scripts \texttt{exposure.mjs}, \texttt{exposure-figs.mjs}.}
+  $(1,2)$ and $(2,1)$; in each exposure the departures from its own average
+  ink are multiplied by six so that a few-percent pattern shows on the page.
+  Rates $(1,1)$ keep the zero-sum recipes --- here the carrier-scale
+  $(1,-1)$, a fine texture, not a band --- and wash the octave; rates $(1,2)$
+  keep exactly the octave $(2,-1)$, the broad bands; rates $(2,1)$ wash both
+  and keep the faster $(1,-2)$. Scripts \texttt{exposure.mjs},
+  \texttt{exposure-figs.mjs}.}
   \label{fig:exposure}
 \end{figure}
 
@@ -152,56 +175,59 @@ what a slow observer of a moving pair already computes.
 An eye does not slide anything by exactly one member. It blurs: it averages
 the superposition over a small neighbourhood, with some weight $W$ that is
 large at the centre and falls off at a distance $\rho$. What does a blur see?
-The same thing, softly. A small neighbourhood of $x$ maps onto the torus as a
-short stroke in the fast direction (Figure~\ref{fig:torus}), and averaging
-the superposition over the neighbourhood is averaging the picture along the
-stroke. Along the stroke each combined count advances at its own rate, and a
-blur of width $\rho$ kills a wave whose rate is fast compared with $1/\rho$
-and keeps a wave whose rate is slow: it applies to each recipe the blur's own
-response at that recipe's local rate.
+The same thing, softly. Along the neighbourhood's segment on the torus each
+combined count advances at its own rate, and a blur of width $\rho$ kills a
+wave whose rate is fast compared with $1/\rho$ and keeps a wave whose rate
+is slow: it applies to each recipe the blur's own response at that recipe's
+local rate.
 
 \begin{lookup}{what a blur does to a wave}
 What to look up: \emph{the Fourier transform of a window} (or: ``what does
-convolving with a Gaussian do to $\cos(2\pi\nu x)$''). The consequence used:
-averaging a wave of rate $\nu$ with a symmetric window $W$ of width $\rho$
-multiplies the wave by a number $\widehat W(\rho\nu)$ --- the window's
-\emph{response} --- which is $1$ at $\nu=0$ and falls to nearly $0$ once
-$\rho\nu$ is more than about one. A low-pass filter is the same statement
-in time.
+convolving with a Gaussian do to $\cos(2\pi\nu x)$''). Blurring $S$ with a
+window $W$ means replacing $S(x)$ by the weighted average of $S$ near $x$,
+written $S*W$ (a \emph{convolution}). The consequence used: averaging a
+wave of rate $\nu$ with a symmetric window $W$ of width $\rho$ multiplies
+the wave by a number $\widehat W(\rho\nu)$ --- the window's \emph{response}
+--- which is $1$ at $\nu=0$ and falls to nearly $0$ once $\rho\nu$ is more
+than about one; in the plane the rate is a vector and the response is that
+of the window to a plane wave with that rate vector. The window's
+\emph{second moment} $m_2$ is the average of $|y|^2$ under it, a measure of
+its width. A low-pass filter is the same statement in time.
 \end{lookup}
 
 \begin{theorem}[A window is a multiplier on the torus]
 \label{thm:multiplier}
-Let $W\ge0$ be a symmetric window of unit mass and second moment $m_2$, and
-$W_\rho$ its dilate to width $\rho$. If $\Phi$ is twice differentiable and
-the picture's coefficients satisfy $\sum_k|k|\,|\hat I(k)|<\infty$, then the
-blurred superposition is
+Let $W$ be a symmetric window of total weight one and second moment $m_2$,
+and $W_\rho$ the same window stretched to width $\rho$. Write $\nu_k(x)$ for
+the local rate of the combined count $k\cdot\cnt$ at $x$, and $\kappa$ for
+the largest second derivative of the counts (how curved the state map is).
+If the picture's waves are summable, $\sum_k|k|\,|\hat I(k)|<\infty$, then
 \[
-  (S*W_\rho)(x)\;=\;\sum_k \hat I(k)\;\widehat W\!\big(\rho\,\nabla(k\cdot\Phi)(x)\big)\;
-  e^{2\pi i\,k\cdot\Phi(x)}\;+\;R_\rho(x),
+  (S*W_\rho)(x)\;=\;\sum_k \hat I(k)\;\widehat W\!\big(\rho\,\nu_k(x)\big)\;
+  e^{2\pi i\,k\cdot\Phi(x)}\;+\;R(x),
   \qquad
-  |R_\rho(x)|\;\le\;\pi\,\lVert D^2\Phi\rVert\,m_2\,\rho^2\sum_k|k|\,|\hat I(k)| .
+  |R(x)|\;\le\;\pi\,\kappa\,m_2\,\rho^2\sum_k|k|\,|\hat I(k)| .
 \]
 In words: a blur sees the picture on the torus with each recipe's wave
 multiplied by the window's response \emph{at that recipe's own local rate},
-plus a remainder that is second order in the width of the blur and in the
-curvature of the geometry.
+plus a remainder that is second order in the width of the blur and
+proportional to the curvature of the state map.
 \end{theorem}
 
-The idea of the proof: near $x$ the geometry is nearly linear, so along the
-neighbourhood each wave is nearly a plain wave at its local rate, and a
-window responds to a plain wave by its response; the only error is the
-curvature of $\Phi$, which is what the remainder measures.
+The idea of the proof: near $x$ the state map is nearly straight, so across
+the neighbourhood each recipe's wave is nearly a plain wave at its local
+rate, and a window answers a plain wave with its response; the only error
+is the curvature of $\Phi$, which is what the remainder measures.
 
 \begin{proof}
-Expand $I$ in waves and write $\Phi(y)=\Phi(x)+J(y-x)+E(y)$ with $J$ the
-matrix of rates at $x$ and $|E(y)|\le\tfrac12\lVert D^2\Phi\rVert\,|y-x|^2$.
-The window integral of $e^{2\pi i\,k\cdot J(y-x)}$ is the response
-$\widehat W(\rho J^{\top}k)$, and $J^{\top}k$ is the local rate of the
-combined count $k\cdot\Phi$. The factor $e^{2\pi i\,k\cdot E(y)}$ differs
-from $1$ by at most $2\pi|k|\,|E(y)|$, which integrates against $W_\rho$ to at
-most $\pi|k|\,\lVert D^2\Phi\rVert\,m_2\rho^2$; summing over $k$ gives the
-bound on $R_\rho$.
+Expand $I$ in waves and write $\Phi(y)=\Phi(x)+J(y-x)+E(y)$, where $J$ is
+the matrix whose rows are the rates $\nabla\cnt_i(x)$ and $E$ is the
+curvature term, $|E(y)|\le\tfrac12\kappa|y-x|^2$. The window average of
+$e^{2\pi i\,k\cdot J(y-x)}$ is the response $\widehat W(\rho\,\nu_k(x))$,
+because $k\cdot J(y-x)=\nu_k(x)\cdot(y-x)$ is the combined count's rate
+times the displacement. The factor $e^{2\pi i\,k\cdot E(y)}$ differs from
+$1$ by at most $2\pi|k|\,|E(y)|$, which averages against $W_\rho$ to at most
+$\pi|k|\,\kappa\,m_2\rho^2$; summing over $k$ gives the bound on $R$.
 \end{proof}
 
 When the local rates split cleanly --- the fast ones well above $1/\rho$,
@@ -213,8 +239,9 @@ the slide's exact zero. The identity is measured to $\obsMultiplierErr$ on a
 geometry without curvature, and with curvature the remainder is accounted
 for by the multiplier's own second derivative to within
 $\obsRemainderResidual$ of itself (script \texttt{observer.mjs}). The
-classical explanation of moir\'e as ``what survives a low-pass filter'' is
-this theorem's soft case, said once per point rather than once per picture.
+textbook explanation of the bands of two printed gratings as ``what
+survives a blur'' is this theorem's soft case, said once per point rather
+than once per picture.
 
 \subsection{The observer theorem}
 \label{sec:observer}
@@ -241,12 +268,12 @@ observer chooses only its picture.
 
 \begin{theorem}[Universality of the third pattern]
 \label{thm:universality}
-Let an observer be any front end $N$ followed by any pooling window
+Let an observer $O$ be any front end $N$ followed by any pooling window
 $W_\rho$, followed by anything at all. Then at every point $x$ it reports the
 picture $N\circ I$ filtered by the multiplier of
 Theorem~\ref{thm:multiplier}, and in the beat regime
 \[
-  O(S)(x)\;=\;\E\big[\,N\circ I\;\big|\;\text{the slow recipes at }x\,\big]\big(\Phi(x)\big).
+  O(S)(x)\;=\;\E\big[\,N\circ I\;\big|\;\text{slow}\,\big]\big(\Phi(x)\big).
 \]
 The set of slow recipes is the geometry's alone. An observer chooses only
 the picture it averages and the leakage of its window.
@@ -262,23 +289,27 @@ window removed.
 \end{proof}
 
 Order matters, and the theorem says how. An observer that pools first and
-responds after, $g\circ W_\rho$, sees $g(\E[I\mid\text{slow}])$: the plain
-average, regraded, with no new recipe. An observer that responds first,
-$W_\rho\circ N$, sees the average of a \emph{different picture} $N\circ I$:
-the same slow recipes, with different strengths, and possibly recipes the
-original picture never carried. Both are averages of a picture on the same
-torus along the same fast directions. That is the precise sense in which the
-third pattern is not the observer's: every observer that pools before it
-decides reports an average along the fast directions, and only the picture
-is its own. The next section is about what an observer's picture can and
-cannot contain, and it is where the theory leaves the page and enters the
-ear.
+responds after, applying some $g$ to the blurred value, sees
+$g(\E[I\mid\text{slow}])$: the plain average with its contrast re-mapped, a
+function of the slow counts and so carrying no recipe outside the kept
+set. An observer that responds first, $W_\rho\circ N$, sees the average of
+a \emph{different picture} $N\circ I$: the same slow recipes, with different
+strengths, and possibly recipes the original picture never carried at all
+--- \S\ref{sec:whosees} shows a picture with no beat in it acquiring one
+this way. Both are averages of a picture on the same torus along the same
+fast directions. That is the precise sense in which the third pattern is
+not the observer's: every observer that pools before it decides reports an
+average along the fast directions, and only the picture is its own. The
+next section is about what an observer's picture can and cannot contain,
+and it is where the theory leaves the page and enters the ear.
 
 \begin{tryit}{a long exposure}
 Two combs, or two pieces of window screen, one held still and one moved
 steadily across it, photographed with a phone in night mode or any
 long-exposure setting. The members smear to grey; the bands survive, and
-move at the speed of the count difference. Move the second screen at twice
-the speed of the first, both moving, and a different set of bands survives:
-Corollary~\ref{cor:cases}, case 4, on a kitchen table.
+move at the rate the count difference changes: if the moving screen
+advances one member per second, the bands advance one band per second.
+Move the second screen at twice the speed of the first, both moving, and a
+different set of bands survives: Corollary~\ref{cor:cases}, case 4, on a
+kitchen table.
 \end{tryit}
