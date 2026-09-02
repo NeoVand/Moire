@@ -95,10 +95,8 @@ factor and moves no zero.
 
 \begin{figure}[t]
   \centering
-  \begin{minipage}[c]{0.40\linewidth}
-    \centering
-    \begin{tikzpicture}
-      \begin{axis}[width=0.78\linewidth, height=4.9cm, xlabel={coarse duty $d$},
+  \begin{tikzpicture}
+      \begin{axis}[width=0.62\linewidth, height=4.9cm, xlabel={coarse duty $d$},
         ylabel={station strength}, xmin=0.18, xmax=0.82, ymin=0, ymax=0.045,
         scaled y ticks=false, ytick={0,0.01,0.02,0.03,0.04},
         tick align=outside, tick pos=left, axis line style={gray!60},
@@ -113,18 +111,14 @@ factor and moves no zero.
         \addplot[accent, only marks, mark=*, mark size=1.3pt] table[x=duty, y=two, col sep=comma]{data/dutynull-curve.csv};
         \addplot[cool, only marks, mark=square*, mark size=1.1pt] table[x=duty, y=three, col sep=comma]{data/dutynull-curve.csv};
       \end{axis}
-    \end{tikzpicture}
-  \end{minipage}%
-  \hfill%
-  \begin{minipage}[c]{0.54\linewidth}%
-    \includegraphics[width=\linewidth]{dutynull-triple.png}%
-  \end{minipage}
-  \caption{\figlead{Duty nulls.} Left: the strength of the station against
+    \end{tikzpicture}\\[4pt]
+  \includegraphics[width=\linewidth]{dutynull-triple.png}
+  \caption{\figlead{Duty nulls.} Above: the strength of the station against
   the coarse family's duty, measured on drawn strokes (marks) over the law
   $|\sin(q\pi d)/q\pi|\,|\hat g_{\text{fine}}(1)|$ (lines): the $2{:}1$
   station dies at $d=\tfrac12$, the $3{:}1$ station at $\tfrac13$ and
   $\tfrac23$, and the softened edge of a drawn stroke is the only departure.
-  Right: what pooling sees of the $2{:}1$ pair at coarse duty $0.35$, $0.5$
+  Below: what pooling sees of the $2{:}1$ pair at coarse duty $0.35$, $0.5$
   and $0.65$, expanded sixfold about its mean: present, extinguished,
   present. The nulls are $\dutyNullDepthTwo\times$,
   $\dutyNullDepthThreeLow\times$ and $\dutyNullDepthThreeHigh\times$ deep.

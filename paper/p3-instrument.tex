@@ -1,0 +1,31 @@
+\section{The instrument}
+\label{sec:instrument}
+
+Every result in this paper was found in a drawing tool before it was
+proved, and measured in the tool after. \Moire\ is a web application that
+draws superpositions of families the way this paper describes them: each
+layer is a count $\cnt_i$ and a stroke profile, evaluated at every pixel
+--- by a formula for the exact and winding rungs, by a certified search for
+the fold rung --- and the picture on the torus is looked up, never
+rasterised in between, so a superposition has no resolution of its own and
+can be zoomed without inventing or destroying a beat. Fourteen families
+ship: lines, rings, rays, polygons, spirals of two kinds, waves, parabolas,
+hyperbolas, three lattices and tilings, and the walking families, with a
+field language for adding any function of position to a count.
+
+Three of its views are this paper's theorems running. The \emph{pooled}
+view is Theorem~\ref{thm:sweep}: the slide average, integrated in closed
+form --- every swept profile is piecewise cubic with corners known from the
+count, so the average is exact at every zoom, with no sampling and no
+noise, and it runs at the frame rate. The \emph{ratio} view is
+Definition~\ref{def:merit}: the priced merit at every pixel, reduced per
+pixel, drawn as a map that is dark where a beat must form. A
+\emph{square-law} toggle is Theorem~\ref{thm:universality}: the drawing
+squared before it is averaged, so that Corollary~\ref{cor:soft} can be
+watched as a null reopening when the zoom widens the strokes' ramps. Every
+view is a measurement with a gate: the tool's renders are checked against
+golden images through the real graphics device on every change, its solver
+is checked against a brute-force twin, and every number in this paper is
+written into the text by a script that fails if the experiment does. The
+tool, its source, and every script named in this paper are public
+\todo{URL}; the systems paper describes the engineering.

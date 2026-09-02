@@ -1,0 +1,129 @@
+\section{When counting fails}
+\label{sec:counting}
+
+Everything so far took the count for granted. A family is a set of members
+with a numbering, and the count at a point $x$ is the number $\nu$ such that
+$x$ lies on the interpolated member $\nu$: the solution of an equation
+$F(x,\nu)=0$, ``$x$ is on member $\nu$''. Whether that equation has a
+solution, and one solution, is not automatic, and the ways it can fail are
+the whole taxonomy of families. There are exactly three.
+
+\begin{lookup}{the implicit function theorem, and winding}
+What to look up: \emph{the implicit function theorem}. The one consequence
+used: wherever $\partial F/\partial\nu\ne0$, the equation $F(x,\nu)=0$
+defines $\nu$ as a smooth function of $x$ near that point; where
+$\partial F/\partial\nu=0$ it may not. And \emph{winding number}: walk once
+round a point and the angle you make with it gains a full turn, $2\pi$,
+which no continuous choice of angle can undo.
+\end{lookup}
+
+\begin{theorem}[Trichotomy]
+\label{thm:trichotomy}
+The count $\nu(x)$ of a family exists in exactly one of three ways.
+\emph{As a formula:} a single smooth function on the whole plane (the exact
+rung: lines, rings, rays, spirals, waves). \emph{Up to a whole number:} a
+function on the plane with a point removed, which gains a whole number each
+time a loop goes round the point (the winding rung: the polar angle is the
+prototype, and a family built on it has a \emph{defect} at the point, with
+a quantized charge). \emph{Only as a search:} where two members pass through
+the same point at the same interpolated index, $\partial F/\partial\nu=0$,
+the count branches, no relabelling repairs it, and the nearest member must
+be found by looking (the fold rung: walking families, whose members are
+each displaced and turned a little more than the last).
+\end{theorem}
+
+\begin{proof}
+Where $\partial F/\partial\nu\ne0$ the lookup gives $\nu$ locally as a smooth
+function of $x$. The local pieces glue into one function on the plane
+exactly when carrying a value round any loop brings it back to itself; if
+it comes back changed, the change is a whole number (the index of the same
+member), it depends only on which points the loop encloses, and it is the
+winding of the family about those points. Where $\partial F/\partial\nu=0$
+two members meet $x$ at the same index to first order; the local pieces join
+there instead of overlapping, and no cover of the plane makes the count a
+function again.
+\end{proof}
+
+\paragraph{Defects.}
+Add to a family's count the polar angle about a point divided by a full
+turn, times a whole number $A$. Nothing about the family's members changes
+away from the point, but the count now gains $A$ around any loop that
+encloses it, and so does the difference $D$ against an unmodified twin. The
+bands of that pair, the level lines of $D$, must therefore \emph{end}: $A$
+of them inside any loop round the point, and, since winding adds, the
+signed number of endings inside any loop is $A$ times the number of enclosed
+points. That is the fork grating of optics~\cite{NyeBerry1974Dislocations}
+built from a count rather than a wavefront, and the count says one more
+thing: near the point the added count changes at a rate $A/2\pi r$, so the
+heterodyne ratio of the beat is $\het=As/2\pi r$ for a family of pitch $s$,
+and the bands cannot exist inside the core $r^\star=2As/\pi$, where the beat
+is no slower than the carrier. Measured on \defProbes\ probes with charges
+up to \defChargeMax: the count of endings is exact, and the core radius
+holds to within $\defCoreWorst$ (script \texttt{defects.mjs};
+Figure~\ref{fig:defects}).
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.32\linewidth]{defect-fork.png}\hfill
+  \includegraphics[width=0.32\linewidth]{defect-pair.png}\hfill
+  \includegraphics[width=0.32\linewidth]{defect-envelope.png}
+  \caption{\figlead{A count that winds.} Left: a family of lines whose count
+  has gained five around the centre, the fork. Middle: the same family over
+  an unmodified twin. Right: what pooling sees of the pair, with five bands
+  ending at the defect. The number of endings inside any loop is the
+  winding it encloses, exactly. Script \texttt{defectfigs.mjs}.}
+  \label{fig:defects}
+\end{figure}
+
+\paragraph{Folds.}
+A walking family is a nest of curves --- circles, squares, hexagons --- each
+grown by a step $s$, displaced by a step $\delta$ and turned by a step
+$\theta$ more than the last. Its members are the fronts of something that
+spreads at speed $s$ from a source that moves at speed $|\delta|$ per
+member, and the family folds exactly where the front's normal speed
+vanishes. Two consequences have closed forms. A front that only moves folds
+if and only if the source is \emph{supersonic}: it moves faster than it
+spreads, $\rho(-\delta)>s$ in the gauge's own metric, and the fold is the
+shock along the wake. A front that only turns folds every shape but the
+circle, at the radius $s/(\theta\sin(\pi/k))$ for the regular $k$-gon, where
+a vertex of one member first crosses the next. Onsets measured by brute
+force on families that never saw the calculus are within
+\foldWorstOnsetPct\% of these radii (script \texttt{foldlaw.mjs};
+Figure~\ref{fig:foldlaw}). Beyond the fold the count is multivalued, the
+number of branches through a point grows with the distance from the centre,
+and no formula exists: a rational turn $2\pi a/b$ splits the family into $b$
+nests that can each be solved, and any other turn is provably beyond
+algebra. Searching for the nearest member is the price of a family whose
+count has folded, and the instrument of \S\ref{sec:instrument} pays it with
+a certificate rather than a guess.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{fold-law.png}
+  \caption{\figlead{Where a count folds.} Predicted fold curves (crimson)
+  drawn over brute-force renders of walking families, the onset radius
+  dashed. Left, a supersonic displacement: the wake. Centre and right,
+  turning hexagons and a turning ellipse: the fold where a vertex of one
+  member crosses the next. Script \texttt{foldlaw-figs.mjs}.}
+  \label{fig:foldlaw}
+\end{figure}
+
+One thing a field cannot do closes the taxonomy. A \emph{field} added to a
+count --- any function of position, the polar angle included --- shifts
+$\nu$ by a function of $x$ and leaves $\partial F/\partial\nu$ alone. So a
+field can move a family within its rung or lift it from the exact rung to
+the winding rung by a whole number, and it can never fold one. Folding is a
+property of the members' geometry; winding is a property of the count; and
+the third pattern, being a function of counts, inherits the winding and
+ends where the count does.
+
+\begin{tryit}{a count that winds, and one that folds}
+In \Moire, take a single family of lines and type the polar angle divided
+by a full turn into its field. One line now ends at the centre, and a
+second family of the same pitch laid over it shows one band ending there:
+charge one. Multiply the field by three and three bands end. Then take a
+family of hexagonal rings and give each member a small turn relative to the
+last: the nest is clean near the centre and folds where the theorem says,
+at radius $s/(\theta\sin(\pi/6))$, and the \emph{ratio} view goes blank
+inside the defect's core.
+\end{tryit}

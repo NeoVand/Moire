@@ -1,0 +1,116 @@
+\section{Predictions, measured, and an honest ledger}
+\label{sec:ledger}
+
+Table~\ref{tab:predictions} lists every claim in this paper that has a
+number behind it, the domain it belongs to, the measured value, and the
+script that owns it. The table is generated from the scripts' own data
+files by the same program that writes every number in the text, and that
+program refuses to run if any experiment's gate fails; so a claim cannot
+outlive its evidence, and the numbers in the prose cannot drift from the
+numbers in the data.
+
+\begin{table}[t]
+  \centering\small
+  \input{tab-predictions3}
+  \caption{\figlead{The gated predictions, by domain.} ``Any'' means the
+  claim is about pictures on a torus and holds for drawings, sounds and
+  anything else that counts; ``drawing'' and ``sound'' are the two domains
+  in which it was measured; ``a camera'' is the long exposure; ``instrument''
+  certifies the tool. No claim without a number; no number without a
+  script.}
+  \label{tab:predictions}
+\end{table}
+
+\subsection{What is classical}
+None of the following is ours, and the paper leans on all of it. That two
+sinusoids beat and that a nonlinearity demodulates the beat is
+Helmholtz~\cite{Helmholtz1954Sensations}, and every radio detector since.
+That the bands of two gratings are the level lines of a difference of
+counts is the indicial picture of the moir\'e
+literature~\cite{Oster1964, Amidror2009Theory}, which also has a complete
+Fourier theory of which orders exist for periodic gratings. That an
+aperiodic family has a count is de Bruijn's index function for
+multigrids~\cite{deBruijn1981Penrose}, and the torus of an aperiodic
+superposition is the hull of the physics of incommensurate
+solids~\cite{Bellissard2000Hulls}. That averaging along a subgroup is a
+conditional expectation is ergodic theory's, and that convergents are the
+best approximations and the golden ratio the worst approximable number is
+Lagrange's, Hurwitz's and Khinchin's~\cite{Hurwitz1891Annaherung,
+Khinchin1964Continued}. Defects with quantized charge are the dislocations
+of singular optics~\cite{NyeBerry1974Dislocations}.
+
+\subsection{What is ours}
+The claim of the paper is that these are one subject, and that the one
+object $S=I\circ\Phi$ makes them so: every phenomenon above is a property
+of the state map, of the picture, or of the way an observer averages one
+over the other. The specific contributions are: the sharp conditional
+expectation for whole-number slides (Theorem~\ref{thm:sweep}) and the soft
+one for windows with its explicit leakage (Theorem~\ref{thm:multiplier});
+the observer theorem (Theorem~\ref{thm:universality}) with its corollaries
+--- who can see a beat, hard patterns observer-proof, soft ones not ---
+and the universal-invariant proposition that makes ``the third pattern''
+a quotient (Proposition~\ref{prop:invariant}); selection as best
+approximation with the harmonic price, so that stations are places on a
+pair whose ratio varies, and the threshold on the complete quotient with
+its deserts (\S\ref{sec:selection}); the duty null
+(Theorem~\ref{thm:dutynull}); the cascade theorem for beats of beats
+(Theorem~\ref{thm:cascade}); the trichotomy of counts with the fold law
+and the defect count (\S\ref{sec:counting}); and an instrument in which
+every one of these is a measurement (\S\ref{sec:instrument}).
+
+\subsection{How sure}
+Of the theorems: certain; they are proved above, and the proofs are short
+enough to check. Of the drawn predictions: certain; they are measured
+through the shipped renderer against brute-force truth, and the table is
+their record. Of the predictions in sound: the arithmetic is certain and
+the physics adds assumptions --- that an ear applies a bending front end
+before it pools, that a two-stage system exists in it --- which are
+standard but not ours, and the ear of Figure~\ref{fig:ear} is a
+\emph{model} of an ear, four lines of code, not a person. What the theory
+does not yet have is a prediction that a physicist would find surprising
+and that has been tested outside the tool on something that is not a
+simulation. The next subsection is the list of what would change that, in
+order of how little it would cost.
+
+\subsection{Where the depth is, and is not}
+The mathematics is elementary: every theorem is a few lines from Fourier
+series, the implicit function theorem and the arithmetic of convergents,
+and a good student can prove each in an afternoon once the statement is in
+front of them. That is a strength for a theory meant to be understood and
+a weakness for one meant to impress. The depth is in the unification. The
+same theorem says why a mistuned octave of square waves does not beat, why
+a wheel with $50\%$ sectors cannot show the $2{:}1$ station under a strobe,
+why a blurred grating reopens a null under a squaring observer while a
+sharp one does not, and why a symmetric pair of coupled oscillators has no
+even locking tongue --- that last one a known symmetry fact of dynamics,
+unified here rather than discovered. A theory that answers questions it
+was not built to answer is the standard we are trying to meet; the duty
+null and the temporal selection were the first two such answers, neither
+sought, both measured within the hour of being derived.
+
+\subsection{What to test at home, and what it would show}
+\begin{enumerate}
+\item \emph{The octave null} (Try-it, \S\ref{sec:whosees}). Two pulse
+waves at $200$ and $405$ hertz; the five-hertz beat present at $30\%$ duty,
+absent at $50\%$, present at $70\%$. Cheap; a synthesizer or a web page. It
+would confirm Theorem~\ref{thm:dutynull} in a real ear.
+\item \emph{The order of the ear's front end.} The same, with the pulses'
+edges softened by a low-pass on each oscillator. If the null at $50\%$
+survives, the ear's effective front end is quadratic; if the beat comes
+back, it is of higher order (Corollary~\ref{cor:soft}). Cheap, and not in
+the literature in this form as far as we can find.
+\item \emph{Beats of beats} (Try-it, \S\ref{sec:iterated}). Three sines at
+$300$, $330$, $363$ hertz; a three-hertz throb needs two stages of
+demodulation. The psychoacoustics of ``second-order beats'' has data; the
+theorem says what the data must show.
+\item \emph{The desert.} Two sawtooth tones at the golden ratio against two
+at $2.05$: the second beats, the first is rough and does not.
+\item \emph{The wagon wheel.} A spoked wheel under a strobe, or a fan on a
+phone's video: the theory says the perceived rotation is the priced
+convergent of the spoke rate over the frame rate, and that its reversals
+sit at the convergents. Not yet scripted; an afternoon.
+\item \emph{The long exposure} (Try-it, \S\ref{sec:pooling}). Two window
+screens, one moving, a phone in night mode: the bands survive and the
+members do not, and moving both at rates $1{:}2$ keeps a different set of
+bands.
+\end{enumerate}
