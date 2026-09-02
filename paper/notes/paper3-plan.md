@@ -114,7 +114,7 @@ fixed before the next section is written. The author reads it last.
 
 ## 6. Order of work
 
-Status 2026-09-02: P1–P4 done (nine sections, 23 pages, builds clean, every number generated); P5 in progress — sections 1–3 revised against the first reader test (its report is summarised in the commit that applied it), tests on 4–6 and 7–9 running; P6 open.
+Status 2026-09-02, later: P1–P5 done — nine sections, 25 pages, builds clean, every number generated, three reader tests run (1–3, 4–6, 7–9) and every finding applied (the commits that applied them list the findings); a third measured domain (the strobe, wagonwheel.mjs) added. Open: P6 (venue), the URL placeholder in §9 (the author's to supply), a second round of reader tests on the revised text, and the listening tests of §8.
 
 - P1 (this note) — the design.
 - P2 — §1–§3: the build-up through the observer theorem, with the ruler
