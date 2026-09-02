@@ -1,0 +1,1041 @@
+% The prerequisites of "The third pattern", taught from the ground up.
+% One file, on purpose: build with  cd paper && tectonic -X compile tutorial.tex --outdir build
+\documentclass[10pt]{article}
+\usepackage[margin=1.1in]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{microtype}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,calc}
+\usepackage[most]{tcolorbox}
+\usepackage[colorlinks=true, linkcolor=cool, citecolor=cool, urlcolor=cool]{hyperref}
+
+\definecolor{ink}{HTML}{15181C}
+\definecolor{accent}{HTML}{C81E5A}
+\definecolor{cool}{HTML}{1B6CA8}
+\definecolor{warm}{HTML}{D4761A}
+\definecolor{soft}{HTML}{8A94A0}
+
+\theoremstyle{plain}
+\newtheorem{fact}{Fact}[section]
+\theoremstyle{definition}
+\newtheorem{definition}[fact]{Definition}
+\newtheorem{example}[fact]{Example}
+
+% Why the paper needs this part.
+\newtcolorbox{why}{enhanced, colback=cool!4, colframe=cool!55, title={Why the paper needs this},
+  fonttitle=\bfseries\small, coltitle=white, left=5pt, right=5pt, top=4pt, bottom=4pt,
+  boxrule=0.5pt, arc=1.5pt, before skip=8pt, after skip=8pt, fontupper=\small}
+% Check yourself: an exercise, with its answer in small type.
+\newtcolorbox{checkyourself}{enhanced, colback=warm!6, colframe=warm!65, title={Check yourself},
+  fonttitle=\bfseries\small, coltitle=white, left=5pt, right=5pt, top=4pt, bottom=4pt,
+  boxrule=0.5pt, arc=1.5pt, before skip=8pt, after skip=8pt, fontupper=\small}
+\newcommand{\answer}{\par\smallskip\noindent\textit{Answer.}\ }
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\tor}{\mathbb{T}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\cnt}{\xi}
+\newcommand{\het}{\eta}
+\newcommand{\Moire}{\textsc{Moir\'e}}
+\newcommand{\paper}{\emph{The third pattern}}
+
+\title{Beating from the ground up\\[0.3em]\large The prerequisites of \paper, taught}
+\author{}
+\date{Tutorial companion, \today}
+
+\begin{document}
+\maketitle
+
+\section*{How to use this}
+
+This is the tutorial session that goes with \paper. The paper introduces
+its ideas from instances and confines outside facts to eight ``Lookup''
+boxes; this document is those boxes opened up and taught in order, so that
+nothing in the paper has to be taken on trust. It assumes college calculus
+(derivatives, integrals, Taylor's theorem), linear algebra (vectors,
+matrices, dot products, determinants) and a first course in probability
+(random variables, expectation, conditioning, independence). Everything
+else --- complex waves, Fourier series, the torus, conditional expectation
+as the paper uses it, convolution and filters, continued fractions,
+lattices, the implicit function theorem, winding and covering, symmetry
+and quotients, sampling --- is taught here from those three.
+
+Read it beside the paper, not before it. Each part opens with what the
+paper needs from it and closes with short exercises whose answers are
+printed. The map:
+
+\begin{center}\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+Paper & Its lookup or need & This tutorial \\
+\midrule
+\S1--2 & the count; the torus as a glued square & Parts~\ref{p:count}, \ref{p:torus} \\
+\S3 & waves on the torus; the one integral; conditional expectation & Parts~\ref{p:waves}, \ref{p:fourier}, \ref{p:average} \\
+\S3 & local rates; a blur as a multiplier; the curvature remainder & Parts~\ref{p:rates}, \ref{p:blur} \\
+\S4 & the waves of a pulse train; front ends; hard and soft & Parts~\ref{p:fourier}, \ref{p:frontend} \\
+\S5 & continued fractions; lattice reduction; the price & Parts~\ref{p:cf}, \ref{p:lattice} \\
+\S6 & products of waves; the tower property; invariants and quotients & Parts~\ref{p:waves}, \ref{p:average}, \ref{p:symmetry} \\
+\S7 & the implicit function theorem; folds; winding & Parts~\ref{p:implicit}, \ref{p:winding} \\
+\S5, \S8 & a strobe as a family: sampling and aliasing & Part~\ref{p:sampling} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+A glossary of the paper's own words is Part~\ref{p:glossary}.
+
+\section{Counting, and why frequency is an average}
+\label{p:count}
+
+\begin{why}
+The paper's first idea is that a family of repeated members has a
+\emph{count}, and that the count is a function of position that exists
+whether or not the family is regular. Everything downstream is built on
+counts, not frequencies.
+\end{why}
+
+Take ticks on a ruler at positions $t_1<t_2<t_3<\dots$. The \emph{count}
+$\cnt(x)$ is ``how many ticks up to $x$'', with the whole-number staircase
+smoothed out: $\cnt(t_n)=n$, and between $t_n$ and $t_{n+1}$ the count rises
+linearly (or smoothly) from $n$ to $n+1$. For evenly spaced ticks at pitch
+$T$, $\cnt(x)=x/T$ exactly, and the \emph{rate} $\cnt'(x)=1/T$ is what a
+physicist calls the spatial frequency. For unevenly spaced ticks $\cnt$ is
+still a perfectly good increasing function; its rate varies from place to
+place, and ``the frequency'' is just the average rate over a stretch. That
+is the whole reason the paper never needs a frequency: a count says which
+member is here, a frequency says how many there are on average, and beating
+depends on the former.
+
+The \emph{fractional part} $\{\cnt(x)\}=\cnt(x)-\lfloor\cnt(x)\rfloor$, also
+written $\cnt(x)\bmod1$, says where you are within the current member: $0$
+on a member, $\tfrac12$ halfway to the next. Two things to notice. First,
+$\{\cnt\}$ is periodic in the count with period one, so any question about
+coincidences between families is a question about fractional parts.
+Second, a whole-number combination of counts is a count: if $\cnt_A$ and
+$\cnt_B$ are counts, $D=\cnt_A-\cnt_B$ rises by one exactly when family A
+has gained one member on family B, and its fractional part depends only on
+the fractional parts of $\cnt_A$ and $\cnt_B$, because
+$\{a\cnt_A+b\cnt_B\}=\{a\{\cnt_A\}+b\{\cnt_B\}\}$ for whole numbers $a,b$
+(a whole-number combination of whole numbers is a whole number, and drops
+out).
+
+\begin{checkyourself}
+Ten ticks to the inch against nine. Compute $D(x)=\cnt_A(x)-\cnt_B(x)$ and
+find the period of the coincidence pattern.
+\answer $\cnt_A=10x$, $\cnt_B=9x$ (inches), $D=x$: the coincidences, where
+$D$ is a whole number, are one inch apart. Ten members of A and nine of B
+per period, as the paper's Figure~1 draws.
+\end{checkyourself}
+
+\section{The circle and the torus}
+\label{p:torus}
+
+\begin{why}
+The paper's state $\Phi(x)=(\cnt_1,\dots,\cnt_K)\bmod1$ is a point on a
+torus, and the ``picture'' is a function on that torus. Slides are straight
+lines on it; a slide by whole numbers of members is a closed loop; the
+level lines of a combined count are straight lines too, and whether a line
+closes up or winds around forever is the difference between a rational and
+an irrational slope.
+\end{why}
+
+\paragraph{The circle as an interval with its ends glued.}
+Numbers modulo one live on the interval $[0,1)$ with $1$ identified with
+$0$: walk past $1$ and you are back at $0$. That is a circle, written
+$\R/\Z$ or $\tor^1$. A function on the circle is exactly a function $f(u)$
+of a real variable with $f(u+1)=f(u)$: a periodic function of period one.
+Nothing about roundness is needed; only the gluing. The point $\cnt(x)\bmod1$
+is where you are in the current member, and as $x$ moves the point goes
+round the circle once per member.
+
+\paragraph{The torus as a square with opposite edges glued.}
+Two counts give a point $(u_1,u_2)$ of the unit square with $u_1=1$ glued to
+$u_1=0$ and $u_2=1$ glued to $u_2=0$: the torus $\tor^2=\R^2/\Z^2$. A
+function on $\tor^2$ is a function $I(u_1,u_2)$ periodic with period one in
+each variable separately. $K$ counts give $\tor^K$, the unit cube in $K$
+dimensions with opposite faces glued; you never need to picture it beyond
+that.
+
+\paragraph{Lines on the torus.}
+A straight line $u(t)=u_0+tw$ in the square, with $w=(w_1,w_2)$, wraps
+whenever it hits an edge. If $w$ has whole-number entries the line returns
+to $u_0$ at $t=1$: it is a \emph{closed loop}. If $w_1/w_2$ is rational,
+$w_1/w_2=p/q$ in lowest terms, the line closes after $t$ has advanced enough
+for both coordinates to have moved by whole numbers; if $w_1/w_2$ is
+irrational, it never closes and comes arbitrarily close to every point of
+the torus (Kronecker's theorem; Part~\ref{p:symmetry} says in what sense
+it fills the torus evenly).
+
+\paragraph{Level lines of a combined count.}
+For a recipe $k=(k_1,k_2)$ of whole numbers, the combined count
+$k\cdot u=k_1u_1+k_2u_2$ is constant along the lines perpendicular to $k$.
+The line in direction $w$ leaves $k\cdot u$ unchanged exactly when
+$k\cdot w=0$: that is the paper's ``recipes orthogonal to the slide'', and
+it is nothing but the dot product. On the torus of Figure~2 in the paper,
+the slide $w=(1,1)$ runs along the level lines of $k=(1,-1)$ and crosses
+the level lines of $k=(1,1)$.
+
+\begin{checkyourself}
+Which recipes $k=(k_1,k_2)$ are unchanged along the slide $w=(1,2)$? Which
+three-family recipes are unchanged along $w=(1,1,1)$?
+\answer $k\cdot w=k_1+2k_2=0$: $k=(2,-1)$ and its multiples, the octave
+recipe. For $(1,1,1)$: every $k$ with $k_1+k_2+k_3=0$, the zero-sum recipes,
+including $(1,-1,0)$, $(0,1,-1)$ and $(1,-2,1)$.
+\end{checkyourself}
+
+\section{Complex waves, and the one integral}
+\label{p:waves}
+
+\begin{why}
+The paper's proofs expand pictures in waves $e^{2\pi i\,k\cdot u}$ and use
+one integral: over a whole number of turns a wave averages to zero unless
+it does not turn at all. Its cascade proof multiplies two real waves and
+reads off the sum and difference of their recipes.
+\end{why}
+
+\paragraph{Euler's formula.}
+For a real angle $\theta$ measured in turns, $e^{2\pi i\theta}=\cos2\pi\theta+i\sin2\pi\theta$
+is the point of the unit circle in the complex plane at that angle. As
+$\theta$ runs from $0$ to $1$ the point goes once round the circle, and
+$e^{2\pi i(\theta+1)}=e^{2\pi i\theta}$: the wave is a function on the
+circle of Part~\ref{p:torus}. Multiplying two waves adds their angles,
+$e^{2\pi i\alpha}e^{2\pi i\beta}=e^{2\pi i(\alpha+\beta)}$, which is the
+reason waves are the right currency for anything periodic.
+
+\begin{fact}[The one integral]
+\label{f:oneintegral}
+For a whole number $m$,
+\[
+  \int_0^1 e^{2\pi i m u}\,du=\begin{cases}1 & m=0,\\ 0 & m\ne0.\end{cases}
+\]
+\end{fact}
+
+\begin{proof}
+For $m=0$ the integrand is $1$. Otherwise
+$\int_0^1e^{2\pi imu}\,du=\big[e^{2\pi imu}/(2\pi im)\big]_0^1=(e^{2\pi im}-1)/(2\pi im)=0$,
+because $e^{2\pi im}=1$ for a whole number $m$. The picture: the average
+position of a point that goes round the circle $m$ times is the centre.
+\end{proof}
+
+Two consequences the paper uses constantly. On the torus, a wave with
+recipe $k$ is $e^{2\pi i\,k\cdot u}$, and along a slide $u+tw$ it becomes
+$e^{2\pi i\,k\cdot u}\,e^{2\pi i\,t\,(k\cdot w)}$: a wave in $t$ turning
+$k\cdot w$ times per unit of $t$, which is a whole number when $w$ is a
+whole-number vector; Fact~\ref{f:oneintegral} then says its average over
+one slide is itself if $k\cdot w=0$ and zero otherwise. And a real wave is
+a sum of two complex ones,
+\[
+  \cos2\pi\theta=\tfrac12\big(e^{2\pi i\theta}+e^{-2\pi i\theta}\big),
+\]
+so a real wave carries recipe $k$ and recipe $-k$ at once, and the product
+of two real waves,
+$\cos2\pi\alpha\cos2\pi\beta=\tfrac12\big(\cos2\pi(\alpha+\beta)+\cos2\pi(\alpha-\beta)\big)$,
+carries both the \emph{sum} and the \emph{difference} of their recipes.
+That product-to-sum identity is the whole classical theory of beats: two
+tones multiplied (by a nonlinearity, Part~\ref{p:frontend}) give the sum and
+the difference frequency, and the difference is the beat.
+
+\begin{checkyourself}
+The paper's cascade squares the two pairwise beats $(1,-1,0)$ and
+$(0,1,-1)$ of three tones and claims the product carries $(1,-2,1)$. Check.
+\answer The product of two real waves carries the sum $(1,0,-1)$ and the
+difference $(1,-1,0)-(0,1,-1)=(1,-2,1)$. The difference is the slow one when
+the two pairwise beats have nearly equal rates.
+\end{checkyourself}
+
+\section{Fourier series on the circle and on the torus}
+\label{p:fourier}
+
+\begin{why}
+The picture on the torus is a sum of waves, one per recipe, and the
+coefficient of each wave is its strength. A stroke's or a click's profile
+has coefficients $\sin(n\pi d)/n\pi$, zero when $nd$ is a whole number:
+the duty null. A product of profiles has coefficients that multiply; a sum
+has no cross terms.
+\end{why}
+
+\paragraph{On the circle.}
+A reasonable periodic function $g(u)$ (piecewise smooth is plenty) is a sum
+of waves,
+\[
+  g(u)=\sum_{n=-\infty}^{\infty}\hat g(n)\,e^{2\pi i n u},\qquad
+  \hat g(n)=\int_0^1 g(u)\,e^{-2\pi i n u}\,du .
+\]
+The formula for $\hat g(n)$ follows from Fact~\ref{f:oneintegral}: multiply
+the series by $e^{-2\pi inu}$ and integrate over one period; every term
+but the $n$-th averages to zero. The waves are \emph{orthogonal}, like
+perpendicular axes, and $\hat g(n)$ is the component of $g$ along the
+$n$-th. Two facts you will use without thinking: $\hat g(0)$ is the mean of
+$g$; and for real $g$, $\hat g(-n)=\overline{\hat g(n)}$, so the strengths
+come in equal pairs and one speaks of ``the $n$-th harmonic'' for both.
+The \emph{line} at frequency $n$ in a signal's spectrum is $|\hat g(n)|$.
+
+\begin{example}[The pulse train]
+\label{e:pulse}
+Let $g(u)=1$ for $|u|<d/2$ (mod $1$) and $0$ otherwise: a stroke, or a
+click, covering a fraction $d$ of each period, its \emph{duty}. Then
+$\hat g(0)=d$ and for $n\ne0$
+\[
+  \hat g(n)=\int_{-d/2}^{d/2}e^{-2\pi inu}\,du
+  =\Big[\frac{e^{-2\pi inu}}{-2\pi in}\Big]_{-d/2}^{d/2}
+  =\frac{e^{-\pi ind}-e^{\pi ind}}{-2\pi in}=\frac{\sin(n\pi d)}{n\pi}.
+\]
+So $\hat g(n)=0$ exactly when $nd$ is a whole number: a $50\%$ train has
+no even harmonics, a $\tfrac13$ train no third, sixth, \dots\ And
+$|\hat g(n)|\le1/n\pi$: the strengths fall like $1/n$, slowly, which is
+what a sharp edge costs. A smooth bump's coefficients fall much faster;
+``anything with edges has many harmonics'' is this comparison.
+\end{example}
+
+\paragraph{Symmetry kills harmonics.}
+If $g(u+\tfrac12)=1-g(u)$ --- the second half of the period is the first
+turned upside down, true of every $50\%$ train however its edges are
+softened symmetrically --- then comparing coefficients, the shift
+multiplies $\hat g(n)$ by $e^{\pi in}=(-1)^n$ and the right side has
+coefficient $\delta_{n0}-\hat g(n)$, so $(-1)^n\hat g(n)=\delta_{n0}-\hat g(n)$;
+for even $n\ne0$ that says $\hat g(n)=-\hat g(n)=0$. Softening the edges by
+an even smoothing preserves the symmetry, so it preserves the null: the
+paper's Corollary~4.3.
+
+\paragraph{On the torus.}
+A function $I(u_1,u_2)$ periodic in each variable is a double series
+\[
+  I(u)=\sum_{k\in\Z^2}\hat I(k)\,e^{2\pi i\,k\cdot u},\qquad
+  \hat I(k)=\int_{\tor^2}I(u)\,e^{-2\pi i\,k\cdot u}\,du,
+\]
+one wave per recipe $k=(k_1,k_2)$, and the same in $K$ variables with
+$k\in\Z^K$. Three structural facts:
+\begin{itemize}
+\item \emph{A product of profiles.} If $I(u_1,u_2)=g_1(u_1)g_2(u_2)$ then
+$\hat I(k_1,k_2)=\hat g_1(k_1)\hat g_2(k_2)$: multiply the two series and
+collect terms. Every recipe is present, with the product of the two
+harmonics' strengths. This is the printed pair.
+\item \emph{A sum of profiles.} If $I=g_1(u_1)+g_2(u_2)$ then $\hat I(k)$ is
+nonzero only for $k=(n,0)$ or $(0,n)$: each profile's series has waves in
+its own variable alone, and a sum adds series. No cross recipe. This is two
+sounds in the air, or two projected gratings.
+\item \emph{A polynomial of a sum.} $(g_1+g_2)^2=g_1^2+2g_1g_2+g_2^2$: the
+cross term $g_1g_2$ is a product, so the square of a sum carries the cross
+recipes $(a,b)$ at strength $2\hat g_1(a)\hat g_2(b)$. In general the $n$-th
+power of a sum of $K$ profiles is a sum of monomials $g_1^{e_1}\cdots g_K^{e_K}$
+with $e_1+\dots+e_K=n$, and the recipes a monomial can carry are limited
+by the exponents when each profile is a pure wave: $g_i^{e_i}$ then has
+recipes with $|k_i|\le e_i$. That bound is the paper's Theorem~6.2, and it
+fails for harmonic-rich profiles, which is why that theorem says ``pure
+tones''.
+\end{itemize}
+
+\paragraph{Two-valued profiles.}
+If $g$ takes only the values $0$ and $1$ then $g^2=g$, $g^3=g$, and so on.
+So any polynomial in such profiles collapses to a combination of the
+products $g_1$, $g_2$, $g_1g_2$, $1$ --- and each of those carries at recipe
+$(a,b)$ a product of the profiles' own coefficients. A harmonic that a
+profile lacks cannot be manufactured by any front end: the paper's
+Corollary~4.2(b), and the reason the duty null is heard through every ear.
+
+\begin{checkyourself}
+(a) At what duties does a stroke have no third harmonic? (b) Two $30\%$
+pulse trains added: what is the coefficient of the recipe $(1,-1)$ in the
+sum, and in the square of the sum divided by four?
+\answer (a) $3d\in\Z$: $d=\tfrac13,\tfrac23$. (b) In the sum, zero. In
+$(g_1+g_2)^2/4$, the cross term $2g_1g_2/4$ gives
+$\tfrac12\hat g_1(1)\hat g_2(-1)=\tfrac12(\sin0.3\pi/\pi)^2=\tfrac12(0.2575)^2\approx0.033$.
+\end{checkyourself}
+
+\section{Averages along a slide, and conditional expectation}
+\label{p:average}
+
+\begin{why}
+The paper's central object is $\E[\,I\mid\text{slow}\,]$: the picture
+averaged over everything the slow recipes do not fix. The paper says the
+phrase ``means nothing more than that''. Here is what it means in the
+language of your probability course, and why the sharp slide computes it
+exactly.
+\end{why}
+
+\paragraph{The average along a closed slide.}
+Take a whole-number vector $w$ and average the picture along the closed
+loop $u+tw$, $0\le t<1$:
+$\mathcal E_wI(u)=\int_0^1I(u+tw)\,dt$. Expand $I$ in waves; each wave
+becomes $e^{2\pi i\,k\cdot u}e^{2\pi it(k\cdot w)}$, and by
+Fact~\ref{f:oneintegral} its average is itself if $k\cdot w=0$ and zero
+otherwise. So
+\[
+  \mathcal E_wI(u)=\sum_{k\cdot w=0}\hat I(k)\,e^{2\pi i\,k\cdot u}:
+\]
+the slide keeps exactly the recipes orthogonal to it, with nothing left
+over. That is the paper's Theorem~3.1, and you have now proved it. A slide
+by a \emph{non}-whole-number vector would turn each wave a fractional
+number of times, and Fact~\ref{f:oneintegral} would not apply; the average
+would be a little of every wave.
+
+\paragraph{Conditional expectation, as a probabilist says it.}
+Let $U$ be a point chosen uniformly at random on the torus (every region
+gets probability equal to its area). The picture's value $I(U)$ is a random
+variable, and $\E[I(U)]=\hat I(0)$ is its mean. Now condition on the slow
+combined counts: let $S$ be the collection of values $k\cdot U\bmod1$ for
+the recipes $k$ in the kept set $L=\{k:k\cdot w=0\}$. Your probability
+course defines $\E[I(U)\mid S]$ as the function of $S$ that best predicts
+$I(U)$ in mean square --- equivalently, the average of $I$ over all points
+$U$ that share the same values of $S$. The points sharing the same slow
+counts are exactly the points on the same slide line $u+tw$ (the slide
+changes no slow count, and a point off the line has different ones), so
+the conditional expectation given $S$ is the average along the slide:
+$\E[I\mid S]=\mathcal E_wI$. That is why the paper can write
+$\E[\,I\mid\text{slow}\,]$ and mean the slide average.
+
+\paragraph{The projection view.}
+In the space of functions on the torus with the inner product
+$\langle f,g\rangle=\int f\bar g$, the waves are an orthonormal basis and
+$\E[\cdot\mid S]$ is the orthogonal projection onto the span of the waves
+with recipes in $L$. Two consequences the paper uses: projections are
+idempotent (averaging twice changes nothing), and projections onto nested
+subspaces compose --- projecting onto $L_1$ and then onto $L_1\cap L_2$ is
+projecting onto $L_1\cap L_2$ --- which is the \emph{tower property} of
+conditional expectation, $\E[\E[X\mid\mathcal G_1]\mid\mathcal G_2]=\E[X\mid\mathcal G_2]$
+for $\mathcal G_2\subseteq\mathcal G_1$, and the paper's Proposition~6.1:
+averages compose, and a cascade of poolings keeps the intersection of the
+recipe sets.
+
+\paragraph{Why ``linear'' matters.}
+$\E[\cdot\mid S]$ is linear: it respects sums and scalings. So any linear
+rule on pictures that cannot see the fast phases factors through it (the
+paper's Proposition~6.3). A nonlinear rule need not: $\int I^2$, the
+picture's energy, is unchanged by every slide but is not a function of the
+average --- two pictures with the same average can have different energy.
+
+\begin{checkyourself}
+Two families, $w=(1,1)$, and the picture $I(u_1,u_2)=g_1(u_1)g_2(u_2)$ of two
+$50\%$ strokes. What is $\mathcal E_wI$ as a function of $D=u_1-u_2$?
+\answer Kept recipes $(a,-a)$, coefficient $\hat g_1(a)\hat g_2(-a)=(\sin(a\pi/2)/a\pi)^2$
+for odd $a$ and $\tfrac14$ for $a=0$; so
+$\mathcal E_wI=\tfrac14+\sum_{a\ \text{odd}}(\sin(a\pi/2)/a\pi)^2e^{2\pi iaD}$,
+which sums to the tent: $\tfrac12-|D|$ for $|D|\le\tfrac12$ (the overlap of
+two half-width windows).
+\end{checkyourself}
+
+\section{Local rates, gradients, and the shape of a neighbourhood}
+\label{p:rates}
+
+\begin{why}
+``Slow'' and ``fast'' are statements about rates of combined counts; the
+heterodyne ratio is a ratio of rates; and the blur theorem needs the
+first-order Taylor expansion of the state map with a bound on its second
+derivative.
+\end{why}
+
+\paragraph{Gradients.}
+For a count $\cnt(x)$ on the plane, the gradient $\nabla\cnt=(\partial\cnt/\partial x_1,\partial\cnt/\partial x_2)$
+points in the direction of fastest increase, and its length is the rate of
+increase per unit distance in that direction: members per unit length,
+across the members. It is perpendicular to the level lines of $\cnt$, which
+are the members themselves. For parallel lines of pitch $T$ turned to angle
+$\alpha$, $\nabla\cnt=(\cos\alpha,\sin\alpha)/T$. Rates add: the combined
+count $k\cdot\cnt=\sum k_i\cnt_i$ has gradient $\sum k_i\nabla\cnt_i$.
+
+\paragraph{The heterodyne ratio.}
+For a recipe $(a,b)$ the paper compares $|a\nabla\cnt_1+b\nabla\cnt_2|$,
+the rate of the combination, with $\tfrac12(|a\nabla\cnt_1|+|b\nabla\cnt_2|)$,
+the average rate of the two harmonics that carry it. The word comes from
+radio: to \emph{heterodyne} is to multiply two signals and keep the
+difference frequency (Part~\ref{p:waves}'s product-to-sum identity), and
+the ratio says how much slower the difference is than the ingredients.
+
+\begin{example}
+Two families of parallel lines, pitch $1$, one turned by $10^\circ$, so
+that $\nabla\cnt_1=(1,0)$ and
+$\nabla\cnt_2=(\cos10^\circ,\sin10^\circ)=(0.985,0.174)$.
+The difference recipe has rate $|(0.015,-0.174)|=0.174$; the average
+member rate is $1$; $\het=0.174$, about $5.7$ members per band, inside the
+beat regime $\het<\tfrac14$. Turn the second family to $20^\circ$ and
+$\het=0.347$: four members per band is no longer reached and the bands
+stop reading as bands.
+\end{example}
+
+\paragraph{The state map near a point.}
+Write $\Phi=(\cnt_1,\dots,\cnt_K)$ and let $J$ be the $K\times2$ matrix
+whose rows are the gradients $\nabla\cnt_i(x)$ (the \emph{Jacobian}).
+Taylor's theorem in two variables says
+\[
+  \Phi(y)=\Phi(x)+J\,(y-x)+E(y),\qquad |E(y)|\le\tfrac12\kappa\,|y-x|^2,
+\]
+where $\kappa$ bounds the second derivatives of the counts near $x$. So a
+small disc around $x$ maps, to first order, onto a small parallelogram
+around $\Phi(x)$ spanned by the columns of $J$ --- and when all the families
+have nearly the same pitch and direction, the rows of $J$ are nearly equal
+and the parallelogram collapses to a short segment in the direction
+$(1,1,\dots,1)$: the black segment of the paper's Figure~2, the ``fast
+direction''. A combined count $k\cdot\Phi$ changes across the disc at rate
+$J^{\top}k=\sum k_i\nabla\cnt_i$, which is just the rate of the combination
+again: $k\cdot J(y-x)=(J^{\top}k)\cdot(y-x)$. The error term $E$ is what
+curvature of the members costs, and it is second order in the size of the
+disc.
+
+\begin{checkyourself}
+Two ring families of pitch $s$ centred at $c_1$ and $c_2$. What is
+$\nabla\cnt_i$ at a point $x$, and where is the difference recipe slow?
+\answer $\cnt_i=|x-c_i|/s$, so $\nabla\cnt_i=(x-c_i)/(s|x-c_i|)$, a unit
+vector from the centre over $s$. The difference is slow where the two unit
+vectors nearly agree: far from both centres in directions where they look
+alike, and along the line through them beyond either centre.
+\end{checkyourself}
+
+\section{Blurs, convolution, and the response of a window}
+\label{p:blur}
+
+\begin{why}
+A pooling observer averages over a neighbourhood with a weight $W$. The
+paper's Theorem~3.3 says this multiplies each recipe's wave by the window's
+response at that recipe's local rate. Here is what a convolution is, what
+the response is, and why a Gaussian blur is a low-pass filter.
+\end{why}
+
+\paragraph{Convolution.}
+Blurring a signal $S(x)$ with a weight $W$ (nonnegative, total weight one,
+symmetric about zero, concentrated within a distance $\rho$) means
+replacing each value by the weighted average of its neighbours:
+\[
+  (S*W)(x)=\int S(y)\,W(x-y)\,dy=\int S(x-z)\,W(z)\,dz .
+\]
+The second form says: look a displacement $z$ away, weight by $W(z)$, add
+up. Averaging in time with a slow meter is the same formula in $t$.
+
+\paragraph{The response.}
+Feed a plain wave $S(x)=e^{2\pi i\nu\cdot x}$ into the blur:
+\[
+  (S*W)(x)=\int e^{2\pi i\nu\cdot(x-z)}W(z)\,dz=e^{2\pi i\nu\cdot x}\int e^{-2\pi i\nu\cdot z}W(z)\,dz
+  =\widehat W(\nu)\,e^{2\pi i\nu\cdot x}.
+\]
+The wave comes out as itself times a number $\widehat W(\nu)$, the
+\emph{Fourier transform} of the window at the wave's rate vector $\nu$
+(a real number, by symmetry of $W$). Waves are the eigenfunctions of every
+blur; that is why they are the right basis. Two properties:
+$\widehat W(0)=\int W=1$, a constant passes unchanged; and for $|\nu|$ large
+compared with $1/\rho$ the integral averages a fast wave against a slowly
+varying weight and is nearly zero, a fast wave is wiped out. In between,
+$\widehat W$ falls off on the scale $1/\rho$: a \emph{low-pass} filter,
+passing rates below about $1/\rho$ and blocking those above. For the
+Gaussian $W(z)=(2\pi\rho^2)^{-1}e^{-|z|^2/2\rho^2}$ in the plane,
+$\widehat W(\nu)=e^{-2\pi^2\rho^2|\nu|^2}$, which is the standard
+integral; for a boxcar it is a sinc. Stretching the window to width $\rho$
+turns $\widehat W(\nu)$ into $\widehat W(\rho\nu)$, the form the paper
+writes.
+
+\paragraph{The second moment.}
+$m_2=\int|z|^2W(z)\,dz$ measures the window's width squared (for the
+Gaussian above, $2\rho^2$). It enters the paper's remainder bound because
+the curvature error $E(y)$ of Part~\ref{p:rates} is quadratic in $|y-x|$,
+and its average under the window is $\tfrac12\kappa m_2\rho^2$.
+
+\paragraph{The blur theorem, assembled.}
+Expand $S=I\circ\Phi$ in waves: $S(y)=\sum_k\hat I(k)e^{2\pi i\,k\cdot\Phi(y)}$.
+Near $x$, $k\cdot\Phi(y)=k\cdot\Phi(x)+\nu_k\cdot(y-x)+k\cdot E(y)$ with
+$\nu_k=J^{\top}k$ the recipe's local rate. Ignoring $E$, each term is a plain
+wave at rate $\nu_k$ times a constant, and the blur multiplies it by
+$\widehat W(\rho\nu_k)$. Restoring $E$, the factor $e^{2\pi i\,k\cdot E}$
+differs from $1$ by at most $2\pi|k||E|$, whose average under the window
+is at most $\pi|k|\kappa m_2\rho^2$; summing over recipes gives the paper's
+remainder bound. In the beat regime the slow recipes have
+$\rho|\nu_k|\ll1$ and are passed, the fast ones have $\rho|\nu_k|\gg1$ and
+are blocked, and the blur reports the average of Part~\ref{p:average} with
+a little leakage from the window's shoulders.
+
+\begin{checkyourself}
+A Gaussian blur of width $\rho=2$ pixels on a family of pitch $3$ pixels
+and its difference beat of pitch $30$ pixels. What fraction of each survives?
+\answer Rates $\tfrac13$ and $\tfrac1{30}$ per pixel;
+$\widehat W=e^{-2\pi^2\cdot4\cdot\nu^2}$ gives $e^{-8.8}\approx1.5\times10^{-4}$
+for the members and $e^{-0.088}\approx0.92$ for the beat.
+\end{checkyourself}
+
+\section{Front ends, composition, and hard versus soft}
+\label{p:frontend}
+
+\begin{why}
+An observer applies a function $N$ to each value before pooling. The paper's
+one-line lemma $N\circ(I\circ\Phi)=(N\circ I)\circ\Phi$ is associativity of
+composition; what $N$ can and cannot do to the recipes is
+Part~\ref{p:fourier}'s polynomial expansion.
+\end{why}
+
+Composition of functions is associative: $(N\circ I)\circ\Phi$ and
+$N\circ(I\circ\Phi)$ both mean ``first $\Phi$, then $I$, then $N$''. So a
+front end applied to the superposition is the same as a front end applied
+to the picture, looked up at the same state. The state map, and every rate,
+is untouched.
+
+What a front end does to recipes is Part~\ref{p:fourier}: a polynomial $N$
+of degree $n$ applied to an additive picture produces monomials of total
+degree at most $n$, hence (for pure tones) recipes of order at most $n$;
+applied to two-valued profiles it produces nothing a product of the
+profiles does not already contain; applied to a multiplicative picture it
+changes strengths only. A saturation $\min(g_1+g_2,1)$ is not a polynomial,
+but for two-valued profiles it equals $g_1+g_2-g_1g_2$, the picture of two
+inks laid one over the other (paint covers paint), which is why a
+saturating eye sees an added pair as if it were printed. A hard threshold
+$N(v)=[v>\tfrac12]$ applied to the added pair fires only where both profiles
+are on: the coincidence detector, whose picture is the product $g_1g_2$.
+
+\paragraph{Pool then respond, or respond then pool.}
+$g(\E[I\mid S])$ is a function of the slow counts, so it carries only slow
+recipes, though in new proportions ($g(e^{2\pi iD})$ contains
+$e^{2\pi i\,2D}$, recipe $(2,-2)$, still slow). $\E[N\circ I\mid S]$ can
+carry recipes that $I$ never had --- an additive $I$ has no cross recipe,
+$I^2$ does. Both are averages of a picture along the same fast directions.
+
+\begin{checkyourself}
+Which of these front ends, applied to two added $50\%$ hard pulse trains at
+a mistuned octave, lets a low-pass hear the $(2,-1)$ beat: identity,
+square, cube, threshold?
+\answer None. The beat needs the lower train's second harmonic, which a
+$50\%$ train lacks, and two-valued profiles cannot be given a harmonic by
+any front end (Part~\ref{p:fourier}, two-valued profiles). Soften the edges
+and the cube reopens it, because $g^2\ne g$ on the softened edges.
+\end{checkyourself}
+
+\section{Continued fractions and best approximation}
+\label{p:cf}
+
+\begin{why}
+Which recipe is slow, for two families at pitch ratio $x$, is a question
+about how well $x$ is approximated by fractions. The paper's Proposition~5.4
+uses the error formula for convergents and Hurwitz's constant.
+\end{why}
+
+\paragraph{The expansion.}
+For a real $x>0$, write $x=a_0+1/x_1$ with $a_0=\lfloor x\rfloor$ and
+$x_1>1$; then $x_1=a_1+1/x_2$, and so on. The whole numbers $a_0;a_1,a_2,\dots$
+are the \emph{partial quotients} and $x_n$ the \emph{complete quotients},
+$x_n=[a_n;a_{n+1},\dots]$. Rational $x$ terminates; irrational $x$ does not.
+Examples: $\pi=[3;7,15,1,292,\dots]$; $\sqrt2=[1;2,2,2,\dots]$; the golden
+ratio $\varphi=[1;1,1,1,\dots]$; $e=[2;1,2,1,1,4,1,1,6,\dots]$.
+
+\paragraph{Convergents.}
+Truncating gives fractions $h_n/k_n=[a_0;a_1,\dots,a_n]$, computed by the
+recurrences
+\[
+  h_n=a_nh_{n-1}+h_{n-2},\qquad k_n=a_nk_{n-1}+k_{n-2},\qquad
+  (h_{-1},k_{-1})=(1,0),\ (h_{-2},k_{-2})=(0,1).
+\]
+For $\pi$: $3/1,\ 22/7,\ 333/106,\ 355/113,\dots$ Two identities, both by
+induction on the recurrences: $h_{n-1}k_n-h_nk_{n-1}=(-1)^n$, and
+$x=(x_{n+1}h_n+h_{n-1})/(x_{n+1}k_n+k_{n-1})$ (replace the tail of the
+expansion by its exact value $x_{n+1}$).
+
+\begin{fact}[The error of a convergent]
+\label{f:cferror}
+$\displaystyle |k_nx-h_n|=\frac{1}{x_{n+1}k_n+k_{n-1}}$.
+\end{fact}
+
+\begin{proof}
+From the second identity,
+\[
+  k_nx-h_n=\frac{k_n(x_{n+1}h_n+h_{n-1})-h_n(x_{n+1}k_n+k_{n-1})}{x_{n+1}k_n+k_{n-1}}
+  =\frac{h_{n-1}k_n-h_nk_{n-1}}{x_{n+1}k_n+k_{n-1}}=\frac{(-1)^n}{x_{n+1}k_n+k_{n-1}}.
+\]
+\end{proof}
+
+So a convergent is a good approximation exactly when the \emph{next}
+complete quotient is large: $22/7$ is excellent for $\pi$ because
+$x_2=15.996$, and $355/113$ is famous because $x_4=292.6$. The classical
+theorems: every convergent is a \emph{best approximation} (no fraction with
+a smaller denominator is closer: Lagrange); $|x-h_n/k_n|<1/k_n^2$ always;
+and Hurwitz's theorem, that infinitely many fractions satisfy
+$|x-h/k|<1/(\sqrt5k^2)$ for every irrational $x$ while the constant $\sqrt5$
+cannot be improved, the golden ratio being the extreme case --- its partial
+quotients are all $1$, the smallest possible, so it is the \emph{worst
+approximable} number. Numbers whose partial quotients stay bounded are
+\emph{badly approximable}; $\sqrt2$ and the silver ratio $1+\sqrt2$ (all
+quotients $2$ after the first) are examples.
+
+\paragraph{From approximation to slowness.}
+Two parallel families of pitches $s_1$ and $s_2$, ratio $x=s_1/s_2$ (coarse
+over fine). The recipe $(h,-k)$ has rate $h/s_1-k/s_2=(h-kx)/s_1$, so it is
+slow exactly when $h/k$ approximates $x$ well, and the recipes that beat
+every lower-order recipe are the convergents. The paper's priced merit
+charges the recipe $|hk|$ for the two harmonics that carry it; with
+Fact~\ref{f:cferror},
+\[
+  \mu_n=\frac{|h_n/s_1-k_n/s_2|}{\tfrac12(h_n/s_1+k_n/s_2)}\,h_nk_n
+  =\frac{2h_nk_n\,|h_n-k_nx|}{h_n+k_nx}
+  =\frac{2h_nk_n}{(h_n+k_nx)(x_{n+1}k_n+k_{n-1})},
+\]
+which is the paper's closed form. Since $h_n\approx k_nx$, this is about
+$k_n|k_nx-h_n|=k_n/(x_{n+1}k_n+k_{n-1})\approx1/(x_{n+1}+k_{n-1}/k_n)$:
+a station exists, $\mu_n<\tfrac14$, when the next complete quotient (plus a
+fraction below one) exceeds about $4$. For the golden ratio every complete
+quotient is $\varphi$ and $k_{n-1}/k_n\to1/\varphi$, giving
+$\mu_n\to1/(\varphi+1/\varphi)=1/\sqrt5\approx0.447$: never a station,
+Hurwitz's constant reappearing as a desert.
+
+\begin{checkyourself}
+Compute the first three convergents of $2.05=41/20$ and say which is a
+station.
+\answer $2.05=[2;20]$: convergents $2/1$ and $41/20$. For $2/1$ the next
+complete quotient is $20$, so $\mu_0\approx1/20$: a strong station, the
+octave. The pair $16.4{:}8$ of the paper is this ratio.
+\end{checkyourself}
+
+\section{Lattices in the plane, and Lagrange--Gauss reduction}
+\label{p:lattice}
+
+\begin{why}
+In the plane the rates of the two families are vectors, the combined
+counts' rates $a\nabla\cnt_1+b\nabla\cnt_2$ form a lattice, and the slow
+recipe is a short vector of that lattice. The paper finds it by
+``Lagrange--Gauss reduction, the two-dimensional Euclidean algorithm''.
+\end{why}
+
+\paragraph{Lattices.}
+Two vectors $v_1,v_2$ in the plane, not parallel, generate the lattice
+$\Lambda=\{av_1+bv_2:a,b\in\Z\}$, a regular grid of points. Many pairs
+generate the same grid: $(v_1,v_2)$ and $(v_1,v_2+v_1)$ do, and in general
+any pair obtained by whole-number combinations with determinant $\pm1$
+(a \emph{unimodular} change of basis). The grid has a well-defined
+\emph{shortest nonzero vector}, and a basis in which $v_1$ is a shortest
+vector and $v_2$ is as short as it can then be is called \emph{reduced}.
+The area of the basic parallelogram, $|\det(v_1,v_2)|$, is the same for
+every basis.
+
+\paragraph{The reduction algorithm.}
+Given $(u,v)$ with $|u|\le|v|$: replace $v$ by $v-mu$ with
+$m=\operatorname{round}(u\cdot v/|u|^2)$, the whole number that makes the
+new $v$ as short as possible in the direction of $u$; if the new $v$ is
+shorter than $u$, swap them; repeat until nothing changes. It stops when
+$|u|\le|v|$ and $|u\cdot v|\le\tfrac12|u|^2$, and then $u$ is a shortest
+vector of the lattice (any $au+bv$ with $b\ne0$ is at least as long as
+$v$, and with $b=0$ at least as long as $u$). It is the Euclidean algorithm
+with vectors: subtract the right multiple, swap, repeat. In one dimension,
+with $u=1/s_2$ and $v=1/s_1$, the rounds \emph{are} the continued fraction
+of $s_1/s_2$ and the intermediate vectors are the convergents' rates.
+
+\begin{example}
+The families of Part~\ref{p:rates}: $u=\nabla\cnt_1=(1,0)$,
+$v=\nabla\cnt_2=(0.985,0.174)$. Then $m=\operatorname{round}(0.985)=1$,
+$v\leftarrow v-u=(-0.015,0.174)$, shorter than $u$, swap:
+$u=(-0.015,0.174)$, $v=(1,0)$. Now $u\cdot v/|u|^2=-0.015/0.0305=-0.49$,
+$m=0$, nothing changes: done. The shortest vector is
+$\nabla\cnt_2-\nabla\cnt_1$, the recipe $(-1,1)$, the difference beat, at
+rate $0.174$: what the eye sees when a sheet is turned ten degrees.
+\end{example}
+
+The paper's shader does this at every pixel, then checks a small window of
+combinations around the reduced basis with the price $|ab|$ attached,
+because the cheapest \emph{priced} recipe need not be the shortest vector
+(a longer vector with smaller whole-number coefficients can win). The
+one-dimensional statement, that the winners are convergents, is the
+special case in which all the rate vectors are parallel.
+
+\begin{checkyourself}
+Reduce the lattice generated by $u=(1,0)$ and $v=(0.5,0.02)$. What recipe
+wins, and what is its rate?
+\answer $m=\operatorname{round}(0.5)$ rounds to $0$ or $1$; take $1$:
+$v\leftarrow(-0.5,0.02)$, shorter, swap; then $u\cdot v/|u|^2=-0.5/0.2504\approx-2$,
+$v\leftarrow v+2u=(0,0.04)$, shorter, swap: $u=(0,0.04)$, $v=(-0.5,0.02)$;
+$u\cdot v/|u|^2=0.0008/0.0016=0.5$, round to $0$ or $1$, and either way
+$|v|$ stays about $0.5$: done. The shortest vector $(0,0.04)=2v_{\text{orig}}-u_{\text{orig}}$
+is the recipe $(-1,2)$: the second family's pitch is about half the first's,
+and the octave beat, at rate $0.04$, is what shows.
+\end{checkyourself}
+
+\section{Implicit functions, level sets, and folds}
+\label{p:implicit}
+
+\begin{why}
+A count is the solution $c$ of ``$x$ is on member $c$'', $F(x,c)=0$. Whether
+that solution is a smooth function of $x$ is the implicit function theorem;
+where it fails, the family folds. The paper's trichotomy and its fold law
+are this part.
+\end{why}
+
+\paragraph{Level sets and gradients.}
+The set $\{x:f(x)=v\}$ for a smooth $f$ on the plane is, wherever
+$\nabla f\ne0$, a smooth curve, and $\nabla f$ is perpendicular to it. The
+members of a family are the level sets of its count at whole-number
+values; the bands of the paper are level sets of a combined count.
+
+\begin{fact}[Implicit function theorem]
+Let $F(x,c)$ be smooth in $x\in\R^2$ and $c\in\R$, with $F(x_0,c_0)=0$ and
+$\partial F/\partial c\,(x_0,c_0)\ne0$. Then near $x_0$ there is a unique
+smooth function $c(x)$ with $c(x_0)=c_0$ and $F(x,c(x))=0$, and its
+gradient is $\nabla c=-\nabla_xF/(\partial F/\partial c)$.
+\end{fact}
+
+The partial derivative $\partial F/\partial c$ is the rate at which $F$
+changes when $c$ is nudged with $x$ held still. The idea of the proof: near
+the point, $F(x,c)\approx F(x_0,c_0)+\nabla_xF\cdot(x-x_0)+(\partial F/\partial c)(c-c_0)$,
+and if the last coefficient is nonzero this linear equation can be solved
+for $c$; the theorem says the nonlinear one can too, nearby. The gradient
+formula is that linear solve.
+
+\begin{example}
+Ruler: $F(x,c)=x/T-c$, $\partial F/\partial c=-1\ne0$ everywhere,
+$c(x)=x/T$. Rings: $F(x,c)=|x|-cs$, $c=|x|/s$, fine away from the centre.
+Rays: $F(x,c)=\operatorname{angle}(x)-c\,\alpha$ with $\alpha$ the step
+between rays; $c$ is the polar angle over $\alpha$, fine \emph{locally}
+everywhere except the centre, but the polar angle is not a single function
+on the plane: Part~\ref{p:winding}.
+\end{example}
+
+\paragraph{The fold.}
+Where $\partial F/\partial c=0$ the theorem gives nothing, and the typical
+failure is a double root. The model is $F(x,c)=c^2-x$ in one variable:
+for $x>0$ there are two solutions $c=\pm\sqrt x$, for $x<0$ none, and at
+$x=0$ they meet with vertical tangent. The graph of the solution set is a
+smooth curve (the parabola $x=c^2$) that is not the graph of a function of
+$x$: it \emph{folds} over. In a family of curves this is the
+\emph{envelope}: the curve that every member touches, where consecutive
+members cross. A nest of rings, each turned a little more than the last, is
+clean near the centre and folds where a corner of one ring first crosses
+the next; the paper computes that radius. In the language of catastrophe
+theory the fold is the simplest singularity of a smooth map, and stable:
+small changes to the family move it, never remove it.
+
+\paragraph{Fronts, gauges, and the Mach condition.}
+A convex shape $K$ with the origin inside defines a \emph{gauge}
+$\gamma(v)=\min\{t>0: v\in tK\}$, the scale of the copy of $K$ that just
+reaches $v$: the shape's own ruler (for the disc, ordinary length; for a
+square of half-side one, $\max(|v_1|,|v_2|)$). A \emph{front} is a family
+$\{\gamma(x-c_n)=ns\}$: copies of $K$ of size $ns$ centred at $c_n$, the
+$n$-th member. If the centre moves by $\delta$ per member,
+$c_n=n\delta$, member $n$ is the wave that left a source at position
+$n\delta$ and has spread to size $ns$. Consecutive members fail to nest ---
+one pokes through the last, and the count folds --- exactly when the source
+outruns its own waves in the shape's metric, $\gamma(-\delta)>s$: the
+\emph{supersonic} case, and the fold is the shock along the wake, the
+Mach cone of a jet. Subsonic sources nest forever. The general condition,
+the vanishing of the front's normal speed, is $\partial F/\partial c=0$ for
+$F(x,c)=\gamma(x-c\delta)-cs$: the next member no longer advances past the
+last at that point.
+
+\begin{checkyourself}
+Rings of pitch $s=1$ whose centres step by $\delta=(1.2,0)$ per member. Do
+they fold? What if $\delta=(0.8,0)$?
+\answer $\gamma(-\delta)=|\delta|=1.2>1$: supersonic, they fold along
+straight wake lines from the first member. At $0.8$: subsonic, they nest.
+\end{checkyourself}
+
+\section{Winding, covering spaces, and monodromy}
+\label{p:winding}
+
+\begin{why}
+The polar angle is defined only up to whole turns; a family built on it has
+a count that gains a whole number around a loop, a \emph{defect} with a
+\emph{charge}, and the bands of a pair containing it must end. The paper's
+winding rung is this part.
+\end{why}
+
+\paragraph{The polar angle is not a function.}
+Around the origin of the plane the angle $\vartheta(x)$ can be chosen
+continuously along any path, but going once round the origin brings it back
+to its start \emph{plus one full turn}. No continuous choice on the whole
+punctured plane exists: try, and somewhere a cut appears where the value
+jumps by a turn. The \emph{winding number} of a loop about the origin is
+the number of turns the angle gains along it; it is a whole number, it does
+not change when the loop is deformed without crossing the origin (deform a
+little and the whole number cannot jump), and it adds: a loop round two
+points winds the sum of the windings round each.
+
+\paragraph{Covering spaces, in one picture.}
+The map $t\mapsto e^{2\pi it}$ from the line to the circle wraps the line
+round the circle infinitely often, like a helix over a circle. A function
+on the circle that ``should'' be the angle --- $t$ itself --- lives on the
+helix, not on the circle; going once round the circle lifts to moving one
+turn up the helix. The line is the \emph{universal cover} of the circle,
+and ``the angle gains a turn per loop'' is ``the lift moves up one level''.
+The same picture over the punctured plane: a count built on the polar angle
+lives on the cover and comes down to the plane only up to whole numbers.
+The whole number a lift gains around a loop is the \emph{monodromy} of that
+loop, and the rule ``it depends only on which points the loop encloses, and
+adds'' is the winding number's.
+
+\paragraph{Why bands must end.}
+Suppose the difference count $D$ of a pair is defined on the plane up to
+whole numbers, and gains $q$ around a loop $\gamma$. Follow $D$ along
+$\gamma$: as a real-valued lift it ends $q$ higher than it started, so it
+crosses each whole-number level $q$ more times upward than downward. A
+band --- a level line of $D$ at a whole number --- that crosses the loop
+inward must, if it never ends, cross outward again, pairing an upward
+crossing with a downward one. The $q$ unpaired crossings belong to bands
+that enter and never leave: $q$ bands end inside $\gamma$, counted with
+sign. Adding a field $q\vartheta/2\pi$ to one family's count is the
+paper's way of making such a defect on purpose, and the number of endings
+inside any loop is then $q$ times the enclosed points, exactly.
+
+\paragraph{The core.}
+Near the defect the added count changes at rate $q/2\pi r$ (the angle
+changes by a full turn over a circle of circumference $2\pi r$), so the
+beat between the modified family and its twin has heterodyne ratio
+$\het=(q/2\pi r)/(1/s)=qs/2\pi r$, which reaches $\tfrac14$ at $r=2qs/\pi$.
+Inside, the beat is not slow enough to be a band; the bands end at the
+defect but are only bands outside the core.
+
+\begin{checkyourself}
+A field of $3\vartheta/2\pi$ is added to one of two identical line families
+of pitch $s=10$. How many bands end inside a loop round the centre, and how
+large is the core?
+\answer Three (with the same sign). $r^\star=2\cdot3\cdot10/\pi\approx19$.
+\end{checkyourself}
+
+\section{Symmetry, invariants, quotients, and evenly spread lines}
+\label{p:symmetry}
+
+\begin{why}
+The paper's final proposition says the third pattern is the quotient of the
+picture by the fast rephasing: everything a linear observer can measure
+without the fast phases is a function of the average. It also remarks that
+a slide with incommensurable rates, averaged for a long time, keeps only
+the constant. Both are about symmetry.
+\end{why}
+
+\paragraph{Shifts as a group.}
+Sliding the picture, $I\mapsto I(\cdot+h)$, by every $h$ on a line through
+the origin of the torus (whole and fractional amounts alike) is a
+\emph{group} of transformations: two slides compose to a slide, every slide
+has an inverse. Call the set of these slides $H$. A picture is
+\emph{invariant} under $H$ if every slide leaves it unchanged; a rule on
+pictures is invariant if it gives the same number for a picture and for
+every slid copy.
+
+\paragraph{Averaging makes invariants.}
+The average $\E_HI$ of a picture over all its slid copies is invariant:
+sliding it again only relabels the copies. And it is the most economical
+invariant: any \emph{linear} rule $F$ that is itself invariant satisfies
+$F(I)=\text{average over }h\text{ of }F(I(\cdot+h))=F(\E_HI)$, because a
+linear rule can be moved through an average. So invariant linear rules see
+only the average; the average is the \emph{quotient} of the picture by the
+symmetry, in the sense that it retains exactly what every slid copy has in
+common and nothing else. In wave language, $\E_H$ kills every wave the
+slides can turn and keeps every wave they cannot: the projection of
+Part~\ref{p:average}. This is a special case of a general principle
+(``invariants of a group action are functions on the orbit space''), and
+of the ergodic theorem, which says that for a measure-preserving motion the
+time average of a function converges to its average over the orbit closure.
+
+\paragraph{Evenly spread lines: Weyl's theorem.}
+A line $u_0+tw$ on the torus with $w_1/w_2$ irrational never closes. It does
+more: it spends, in the long run, equal time in equal areas. Proof by waves:
+for a recipe $k\ne0$, the average of $e^{2\pi i\,k\cdot(u_0+tw)}$ over
+$0\le t\le T$ is $e^{2\pi i\,k\cdot u_0}$ times
+$(e^{2\pi iT(k\cdot w)}-1)/(2\pi iT(k\cdot w))$, which tends to zero as $T$
+grows as long as $k\cdot w\ne0$ --- and $k\cdot w=k_1w_1+k_2w_2$ is never
+zero for whole numbers $k\ne0$ when $w_1/w_2$ is irrational. So the time
+average of every nonconstant wave tends to zero, hence the time average of
+any picture tends to its mean $\hat I(0)$: the paper's ``a slide whose rates
+have no common measure keeps only the constant''. Rational slopes close up
+and keep the recipes orthogonal to them; irrational ones keep nothing but
+the mean. That dichotomy, between closed orbits at rational ratios and
+evenly spread ones at irrational ratios, is the same dichotomy as stations
+against deserts in Part~\ref{p:cf}, seen from the torus.
+
+\begin{checkyourself}
+Why does the argument for ``linear rules see only the average'' fail for
+the rule $F(I)=\int I^2$?
+\answer $\int(\text{average of }I(\cdot+h))^2$ is not the average of
+$\int I(\cdot+h)^2$: squaring does not move through an average. Indeed
+$\int I^2$ is invariant but not a function of $\E_HI$.
+\end{checkyourself}
+
+\section{Sampling and aliasing: a strobe is a family}
+\label{p:sampling}
+
+\begin{why}
+A camera taking $f$ frames a second is a family in time whose picture is a
+comb of instants. The paper treats the wagon-wheel effect as a beat between
+the spokes and the frames, and needs one fact: a comb has every harmonic at
+equal strength.
+\end{why}
+
+\paragraph{The comb.}
+Sampling a signal at times $n/f$ multiplies it by a train of spikes at
+those instants. Viewed as a periodic function of the frame count $u=ft$,
+the train of spikes has Fourier coefficients that are all equal
+(a spike at $u=0$ has $\hat g(n)=\int\delta(u)e^{-2\pi inu}du=1$ for every
+$n$: the Poisson summation formula, if you want the name). So the sampler is
+a family whose profile has every harmonic at strength one, and the paper's
+price $|ab|$ for a recipe $(a,-b)$ between a spoke profile and the sampler
+charges only $|a|$, the spoke profile's harmonic; the sampler's harmonics
+are free.
+
+\paragraph{Aliasing as a beat.}
+A spoke passing at rate $r$ against frames at rate $f$ has recipes
+$(a,-b)$ with rate $ar-bf$. The classical alias is $a=1$: for $r$ near
+$bf$ the recipe $(1,-b)$ is slow and the wheel is seen turning at $r-bf$,
+backwards when $r<bf$ --- Nyquist's condition that no alias be slow is the
+condition that $r$ be below $f/2$, and the wagon-wheel reversal is what
+happens when it is not. With harmonics, $a=2$: for $r$ near $f/2$ the recipe
+$(2,-1)$ is slow, carried by the spoke profile's second harmonic, and a
+pooling eye sees a still wheel with twice the spokes --- which a $50\%$
+spoke duty extinguishes, Example~\ref{e:pulse}. The paper's
+\texttt{wagonwheel.mjs} measures both.
+
+\begin{checkyourself}
+Spokes at $r=36$ per second, frames at $f=24$. What does the eye see?
+\answer $r-f=12$ per second forwards from $(1,-1)$; also $2r-3f=0$, so the
+recipe $(2,-3)$ is exactly slow and, if the spokes are narrow, a still
+doubled wheel is superposed on the moving one. At $50\%$ duty only the
+moving wheel.
+\end{checkyourself}
+
+\section{The paper's words}
+\label{p:glossary}
+
+\begin{description}\small
+\item[Family] anything that comes in numbered members: ticks, clicks,
+lines, rings, rays, frames.
+\item[Count $\cnt$] members up to here, interpolated; Part~\ref{p:count}.
+\item[Superposition] two or more families laid over each other, whether
+they add (sounds, lights) or multiply (inks).
+\item[Third pattern, beat] the pattern of coincidences between two
+families, on neither of them.
+\item[State $\Phi$] the fractional counts of every family: a point of the
+torus; Part~\ref{p:torus}.
+\item[Picture $I$] what a state looks like: a function on the torus.
+\item[Recipe $k$] whole numbers combining counts; a wave of the picture;
+Part~\ref{p:fourier}.
+\item[Order] the sum of a recipe's entries' sizes; \textbf{price} their
+product.
+\item[Slow, fast] a combined count that changes slowly, or quickly,
+compared with the members; Part~\ref{p:rates}.
+\item[Heterodyne ratio $\het$] the rate of a combination over the average
+rate of its ingredients; one over the members per band.
+\item[Beat regime] $\het<\tfrac14$: more than four members per band.
+\item[Priced merit $\mu$] $\het$ times the price; the visible recipe
+minimises it; Part~\ref{p:cf}.
+\item[Station] a recipe beyond first order that shows; it locks the pitches
+at a rational ratio.
+\item[Desert] a ratio with no station at any order: bounded partial
+quotients.
+\item[Carrier] the members themselves, the fine texture pooling removes.
+\item[Slide, schedule $w$] a straight motion on the torus by whole numbers
+of members.
+\item[Pooling, envelope, pooled view] averaging before responding, and what
+it produces: $\E[I\mid\text{slow}]$; Part~\ref{p:average}.
+\item[Window $W$, response $\widehat W$] how an observer pools, and what it
+does to a wave; Part~\ref{p:blur}.
+\item[Front end $N$] what an observer does to each value before pooling;
+Part~\ref{p:frontend}.
+\item[Hard, soft] profiles taking two values, or blurred between them.
+\item[Duty $d$] the fraction of a period a member covers.
+\item[Duty null] a station extinguished because a profile lacks the harmonic
+that carries it.
+\item[Rephasing] shifting a family's count by a constant: a slide.
+\item[Rung] which of the three ways a count exists; Part~\ref{p:implicit}.
+\item[Defect, charge $q$] a point a count winds around, and by how much;
+Part~\ref{p:winding}.
+\item[Fold] where two members meet a point at the same index and the count
+branches.
+\item[Walking family] a nest whose members step in size, position and
+angle.
+\item[Gauge $\gamma$] a shape's own ruler.
+\item[Gate] a condition a script's result must meet, written before the
+result was known.
+\item[Golden image] a stored render the tool must reproduce exactly on
+every change.
+\end{description}
+
+\end{document}
