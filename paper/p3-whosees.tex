@@ -9,11 +9,13 @@ thrown on a wall by two projectors add again. The difference sounds like
 bookkeeping and is the whole reason a beat in the air needs an ear and a
 beat on paper does not.
 
-On the torus the two cases are two pictures. If family 1 has profile $g_1$
-(one where a click or a stroke is, zero between) and family 2 has $g_2$,
-then an additive superposition has the picture $I(x_1,x_2)=g_1(x_1)+g_2(x_2)$
-and a multiplicative one has $I(x_1,x_2)=g_1(x_1)\,g_2(x_2)$. Everything
-follows from expanding each in waves.
+On the torus the two cases are two pictures. Write $g_1$ for family 1's
+\emph{profile} --- one where a click or a stroke is, zero between, as a
+function of that family's count --- and $g_2$ for family 2's. An additive
+superposition has the picture $I(u_1,u_2)=g_1(u_1)+g_2(u_2)$ and a
+multiplicative one has $I(u_1,u_2)=g_1(u_1)\,g_2(u_2)$, with $u=(u_1,u_2)$
+the point of the torus as in Table~\ref{tab:symbols}. Everything follows
+from expanding each in waves.
 
 \begin{lookup}{the waves of a pulse train}
 What to look up: \emph{the Fourier coefficients of a rectangular pulse
@@ -22,18 +24,21 @@ consequences used: a train that is on for a fraction $d$ of each period has
 coefficients $\hat g(n)=\sin(n\pi d)/(n\pi)$ for $n\ne0$ and $\hat g(0)=d$;
 so $\hat g(n)$ is exactly zero when $nd$ is a whole number (a $50\%$ train
 has no even harmonics at all), and otherwise $|\hat g(n)|$ falls like
-$1/n$.
+$1/n$. And one word: the \emph{line} at a frequency, in a signal's
+spectrum, is the strength of that frequency's wave in it, read off with a
+Fourier transform.
 \end{lookup}
 
 \begin{theorem}[Who sees a beat]
 \label{thm:whosees}
-Write a recipe $k=(a,b)$ as \emph{cross} when both $a$ and $b$ are nonzero.
+Call a recipe $k=(a,b)$ \emph{cross} when both $a$ and $b$ are nonzero.
 \begin{enumerate}
-\item An additive picture $g_1(x_1)+g_2(x_2)$ has \emph{no cross recipes}:
-its waves are $(n,0)$ and $(0,n)$ only. A linear pooling observer, one that
-averages the superposition and nothing more, sees no beat in an additive
-superposition, ever.
-\item A multiplicative picture $g_1(x_1)\,g_2(x_2)$ carries every cross
+\item An additive picture $g_1(u_1)+g_2(u_2)$ has \emph{no cross recipes}:
+its waves are $(n,0)$ and $(0,n)$ only. A slide along $(1,1)$ removes every
+one of those but the constant, so a linear pooling observer --- one that
+averages the superposition and does nothing else --- sees a uniform grey
+in an additive superposition, and no beat, ever.
+\item A multiplicative picture $g_1(u_1)\,g_2(u_2)$ carries every cross
 recipe with strength $\hat I(a,b)=\hat g_1(a)\,\hat g_2(b)$: a linear
 observer sees the beat, with the strength of the two harmonics that make it.
 \item A front end that bends, $N''\ne0$, mints cross recipes out of an
@@ -45,13 +50,13 @@ when the sum is normalised to $(g_1+g_2)/2$.
 \end{theorem}
 
 \begin{proof}
-A wave on the torus with recipe $(a,b)$ is $e^{2\pi i(ax_1+bx_2)}$. The
-expansion of $g_1(x_1)$ contains only waves $e^{2\pi i\,n x_1}$, recipes
+A wave on the torus with recipe $(a,b)$ is $e^{2\pi i(au_1+bu_2)}$. The
+expansion of $g_1(u_1)$ contains only waves $e^{2\pi i\,nu_1}$, recipes
 $(n,0)$, and likewise $g_2$; a sum of the two contains nothing else, which
-is the first claim, and by Theorem~\ref{thm:sweep} any average that removes
-the single-family recipes removes everything. The product of two expansions
-is the sum over all pairs of the products of waves, and
-$e^{2\pi i\,ax_1}e^{2\pi i\,bx_2}$ is the wave of recipe $(a,b)$ with
+is the first claim, and by Theorem~\ref{thm:sweep} the slide along $(1,1)$
+keeps only recipes with $n\cdot1+0\cdot1=0$, the constant. The product of
+two expansions is the sum over all pairs of the products of waves, and
+$e^{2\pi i\,au_1}e^{2\pi i\,bu_2}$ is the wave of recipe $(a,b)$ with
 coefficient $\hat g_1(a)\hat g_2(b)$, which is the second. Expanding the
 square gives the third, the cross term $2g_1g_2$ contributing
 $2\hat g_1(a)\hat g_2(b)$ at $(a,b)$, and the normalisation divides by four.
@@ -60,10 +65,13 @@ $2\hat g_1(a)\hat g_2(b)$ at $(a,b)$, and the normalisation divides by four.
 Measured: the additive beat under a linear observer is $\obsAdditiveBeat$,
 zero to the precision of the arithmetic; the printed beat is
 $\obsPrintedBeat$; a squaring front end mints the additive beat at
-$\obsSquaringBeat$, exactly half the printed value; a saturating front end
-$\min(g_1+g_2,1)$, the front end of a photoreceptor or a clipping amplifier,
-mints it at $\obsSaturatingBeat$, nearly the printed value
-(script \texttt{observer.mjs}).
+$\obsSquaringBeat$, exactly half the printed value. A saturating front end
+$\min(g_1+g_2,1)$ --- a photoreceptor that cannot respond past full, a
+clipping amplifier --- mints it at $\obsSaturatingBeat$, and that is not a
+coincidence: for two profiles that are $0$ or $1$, $\min(g_1+g_2,1)$ equals
+$g_1+g_2-g_1g_2$, which is exactly the picture of two inks painted one over
+the other, so a saturating observer of two added lights sees the beat of the
+printed pair (script \texttt{observer.mjs}).
 
 This is the coincidence detector of \S\ref{sec:coincidence}, explained. A
 detector that fires only when both clicks are present is a front end that
@@ -83,39 +91,54 @@ the only place it can be: which recipes the observer's picture contains.
 
 \begin{corollary}[Hard patterns]
 \label{cor:hard}
-If the picture $I$ takes only two values, then for any front end $N$,
+\emph{(a)} If the picture $I$ takes only two values, $0$ and $1$ --- a
+printed pair, ink or no ink --- then for any front end $N$,
 \[
   N\circ I \;=\; N(0)+\big(N(1)-N(0)\big)\,I ,
 \]
 a constant plus a multiple of $I$: every observer sees the same recipes at
 the same relative strengths, and differs from every other only by a
-constant and a gain. A hard-edged pattern --- ink or no ink, click or no
-click --- has one third pattern, and every observer sees it.
+constant and a gain. \emph{(b)} If each \emph{profile} takes only the values
+$0$ and $1$ --- hard-edged clicks or strokes, added or multiplied --- then
+$g_i^2=g_i$, so any polynomial front end applied to the superposition
+produces only products of the profiles themselves, and a harmonic a profile
+lacks can never be minted: a duty null survives every front end.
 \end{corollary}
 
-The proof is the display: a function of a variable that takes two values is
-determined by its two values, and any such function is affine. Measured: the
-octave null of \S\ref{sec:selection} under a linear and a squaring observer
-agree to $\obsHardNull$.
+The proof of (a) is the display: a function of a variable that takes two
+values is determined by its two values, and any such function is affine.
+For (b), every term of $N(g_1+g_2)$ is a monomial $g_1^{m}g_2^{n}$, which
+for two-valued profiles is $g_1g_2$, $g_1$, $g_2$ or $1$, and each of those
+carries at each recipe the product of the profiles' own coefficients.
+Measured: the octave null of \S\ref{sec:selection} under a linear and a
+squaring observer agree to $\obsHardNull$.
 
 \begin{corollary}[Soft patterns]
 \label{cor:soft}
 Blur the edges of a $50\%$ train symmetrically, by any even smoothing. Its
 even harmonics stay exactly zero, so every \emph{linear} observer keeps the
-null at every blur. A squaring observer does not: it reopens the null with
-a strength that grows linearly in the width of the blur.
+null at every blur. A front end that squares the \emph{profile} --- the
+lowest bend that reaches the profile's own square, which for a multiplied
+pair is any squaring, and for an added pair is a cubic (the term
+$g_1^2g_2$) --- reopens the null with a strength that grows linearly in the
+width of the blur.
 \end{corollary}
 
 \begin{proof}
-A $50\%$ train satisfies $g(x+\tfrac12)=1-g(x)$; a symmetric smoothing
+A $50\%$ train satisfies $g(u+\tfrac12)=1-g(u)$; a symmetric smoothing
 preserves this half-turn antisymmetry, and a function with it has no even
-harmonics. Squaring destroys the antisymmetry exactly on the blurred edges
-and nowhere else, so the even harmonics it mints scale with the edge width.
+harmonics. On a blurred edge $g$ takes values strictly between $0$ and $1$,
+so $g^2\ne g$ there and nowhere else; squaring breaks the antisymmetry
+exactly on the edges, and the even harmonics it mints scale with their
+width. For an added pair the square $(g_1+g_2)^2$ contains $g_1$ and $g_2$
+only to the first power in its cross term, so the profile's own square
+first appears at the cube.
 \end{proof}
 
-Measured on strokes with anti-alias ramps of half-width \obsReopenRamps\
-units: the linear null holds at every ramp, and squaring reopens it at
-$\obsReopenAmps$, linear in the ramp (\texttt{observer.mjs}).
+Measured on printed strokes whose edges are softened over $\obsReopenRamps$
+units of a $16.4$-unit pitch: the linear null holds at every softening,
+and squaring reopens it at $\obsReopenAmps$, linear in the softening
+(\texttt{observer.mjs}).
 
 \subsection{The same theorem in an ear}
 \label{sec:ear}
@@ -126,17 +149,17 @@ mistuned octave, whose slow recipe is $(2,-1)$, twice the lower count minus
 the upper, beating five times a second --- add them as sounds add, and
 listen through four model ears: a low-pass filter alone (a linear ear),
 a squaring front end followed by the low-pass (the textbook square-law
-detector), a cubing front end, and a two-stage ear that squares, pools,
-and squares again. Sweep the lower train's duty from $30\%$ to $70\%$ and
-read the five-hertz line at the output. Figure~\ref{fig:ear} is the result
-(script \texttt{ear.mjs}).
+detector), a cubing front end, and a two-stage ear that squares, pools, and
+squares again. Sweep the lower train's duty from $30\%$ to $70\%$ and
+read the line at five hertz in the output. Figure~\ref{fig:ear} is the
+result (script \texttt{ear.mjs}).
 
 \begin{figure}[t]
   \centering
   \begin{tikzpicture}
     \begin{axis}[width=0.5\linewidth, height=5.4cm, ymode=log,
       title={hard pulses}, xlabel={duty of the lower train},
-      ylabel={the 5 Hz line at the ear's output},
+      ylabel={5 Hz line of the output (trains of unit height)},
       xmin=0.27, xmax=0.73, ymin=1e-7, ymax=1,
       xtick={0.3,0.4,0.5,0.6,0.7},
       tick align=outside, tick pos=left, axis line style={gray!60},
@@ -176,12 +199,14 @@ read the five-hertz line at the output. Figure~\ref{fig:ear} is the result
   duty (Theorem~\ref{thm:whosees}, first claim), and every nonlinear ear
   hears the beat except at duty one half, where it is extinguished
   $\earHardNullSquare\times$, $\earHardNullCubic\times$ and
-  $\earHardNullCascade\times$ under the three ears --- a hard pattern is
-  observer-proof (Corollary~\ref{cor:hard}). Right, the same pulses with
-  softened edges: the square-law ear keeps the null ($\earSoftNullSquare\times$),
-  the cubic ear reopens it to within $\earSoftNullCubic\times$ of its
-  neighbours (Corollary~\ref{cor:soft}, where cubing plays the part of
-  squaring one order up). Script \texttt{ear.mjs}, data \texttt{ear.json}.}
+  $\earHardNullCascade\times$ under the three ears --- two-valued profiles
+  are observer-proof (Corollary~\ref{cor:hard}(b)). Right, the same pulses
+  with softened edges: the square-law ear keeps the null
+  ($\earSoftNullSquare\times$) because its cross term never squares a
+  profile, and the cubic ear, whose $g_1^2g_2$ term does, reopens it to
+  within $\earSoftNullCubic\times$ of its neighbours
+  (Corollary~\ref{cor:soft}). Script \texttt{ear.mjs}, data
+  \texttt{ear.json}.}
   \label{fig:ear}
 \end{figure}
 

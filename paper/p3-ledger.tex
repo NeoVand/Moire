@@ -3,19 +3,21 @@
 
 Table~\ref{tab:predictions} lists every claim in this paper that has a
 number behind it, the domain it belongs to, the measured value, and the
-script that owns it. The table is generated from the scripts' own data
-files by the same program that writes every number in the text, and that
-program refuses to run if any experiment's gate fails; so a claim cannot
-outlive its evidence, and the numbers in the prose cannot drift from the
-numbers in the data.
+script that owns it. Each script ends with \emph{gates}: conditions its
+own result must meet, written down before the result was known. The table
+is generated from the scripts' data files by the same program that writes
+every number in the text, and that program refuses to run if any gate
+fails; so a claim cannot outlive its evidence, and the numbers in the prose
+cannot drift from the numbers in the data.
 
 \begin{table}[t]
   \centering\small
   \input{tab-predictions3}
   \caption{\figlead{The gated predictions, by domain.} ``Any'' means the
   claim is about pictures on a torus and holds for drawings, sounds and
-  anything else that counts; ``drawing'' and ``sound'' are the two domains
-  in which it was measured; ``a camera'' is the long exposure; ``instrument''
+  anything else that counts; ``drawing'', ``sound'' and ``a strobe'' are the
+  domains in which it was measured, on drawn strokes, on a model ear, and on
+  sampled frames; ``a camera'' is the long exposure; ``instrument''
   certifies the tool. No claim without a number; no number without a
   script.}
   \label{tab:predictions}
@@ -39,6 +41,22 @@ Lagrange's, Hurwitz's and Khinchin's~\cite{Hurwitz1891Annaherung,
 Khinchin1964Continued}. Defects with quantized charge are the dislocations
 of singular optics~\cite{NyeBerry1974Dislocations}.
 
+\begin{lookup}{what the neighbours already knew}
+The names above, in one line each. \emph{Indicial method}: draw each
+grating's lines numbered, and the moir\'e bands join the crossings whose
+numbers differ by a constant --- \S\ref{sec:coincidence} with a ruler.
+\emph{Multigrid index function}: de Bruijn numbered the lines of several
+grids to build Penrose tilings; his numbering is a count. \emph{Hull of an
+aperiodic solid}: physicists studying two incommensurate lattices describe
+where an atom sits in each as a point on a torus. \emph{Ergodic theory}:
+the mathematics of averages along a motion, whose basic fact is that the
+average along a symmetry keeps exactly what the symmetry leaves fixed.
+\emph{Convergents}: the lookup of \S\ref{sec:selection}.
+\emph{Dislocations of singular optics}: light waves whose phase winds
+round a point, whose fringes fork exactly as \S\ref{sec:counting}'s bands
+end.
+\end{lookup}
+
 \subsection{What is ours}
 The claim of the paper is that these are one subject, and that the one
 object $S=I\circ\Phi$ makes them so: every phenomenon above is a property
@@ -53,64 +71,87 @@ a quotient (Proposition~\ref{prop:invariant}); selection as best
 approximation with the harmonic price, so that stations are places on a
 pair whose ratio varies, and the threshold on the complete quotient with
 its deserts (\S\ref{sec:selection}); the duty null
-(Theorem~\ref{thm:dutynull}); the cascade theorem for beats of beats
-(Theorem~\ref{thm:cascade}); the trichotomy of counts with the fold law
-and the defect count (\S\ref{sec:counting}); and an instrument in which
-every one of these is a measurement (\S\ref{sec:instrument}).
+(Theorem~\ref{thm:dutynull}) on paper, in a model ear and under a strobe;
+the order-four theorem for beats of beats (Theorem~\ref{thm:cascade}); the
+trichotomy of counts with the fold law and the defect count
+(\S\ref{sec:counting}); and an instrument in which every one of these is a
+measurement (\S\ref{sec:instrument}).
 
 \subsection{How sure}
-Of the theorems: certain; they are proved above, and the proofs are short
-enough to check. Of the drawn predictions: certain; they are measured
-through the shipped renderer against brute-force truth, and the table is
-their record. Of the predictions in sound: the arithmetic is certain and
-the physics adds assumptions --- that an ear applies a bending front end
-before it pools, that a two-stage system exists in it --- which are
-standard but not ours, and the ear of Figure~\ref{fig:ear} is a
-\emph{model} of an ear, four lines of code, not a person. What the theory
-does not yet have is a prediction that a physicist would find surprising
-and that has been tested outside the tool on something that is not a
-simulation. The next subsection is the list of what would change that, in
-order of how little it would cost.
+Of the theorems: as sure as a proof of a few lines can make anything; they
+are above, and with the lookups in front of them a student can check each
+in an afternoon. Of the drawn predictions: as sure as a measurement against
+brute force through the shipped renderer, and the table is their record.
+Of the predictions in sound and under a strobe: the arithmetic is as sure
+as the theorems, and the physics adds assumptions --- that an ear applies
+a bending front end before it pools, that a two-stage system exists in it,
+that an eye averages consecutive frames --- which are standard but not
+ours; the ear of Figure~\ref{fig:ear} is a \emph{model} of an ear, four
+lines of code, not a person, and the wheel of \S\ref{sec:selection} is
+sampled frames, not a viewer. What the theory does not yet have is a
+prediction that a physicist would find surprising and that has been tested
+outside the tool on something that is not a simulation. The last
+subsection is the list of what would change that, in order of how little it
+would cost.
 
 \subsection{Where the depth is, and is not}
 The mathematics is elementary: every theorem is a few lines from Fourier
-series, the implicit function theorem and the arithmetic of convergents,
-and a good student can prove each in an afternoon once the statement is in
-front of them. That is a strength for a theory meant to be understood and
-a weakness for one meant to impress. The depth is in the unification. The
-same theorem says why a mistuned octave of square waves does not beat, why
-a wheel with $50\%$ sectors cannot show the $2{:}1$ station under a strobe,
-why a blurred grating reopens a null under a squaring observer while a
-sharp one does not, and why a symmetric pair of coupled oscillators has no
-even locking tongue --- that last one a known symmetry fact of dynamics,
-unified here rather than discovered. A theory that answers questions it
-was not built to answer is the standard we are trying to meet; the duty
-null and the temporal selection were the first two such answers, neither
-sought, both measured within the hour of being derived.
+series, the implicit function theorem and the arithmetic of convergents.
+That is a strength for a theory meant to be understood and a weakness for
+one meant to impress. The depth is in the unification. The same theorem
+says why a mistuned octave of square waves does not beat
+(Figure~\ref{fig:ear}), why a wheel with $50\%$ sectors cannot show the
+doubled still wheel under a strobe (\S\ref{sec:selection}), and why a
+blurred grating reopens a null under a squaring observer while a sharp one
+does not (Corollary~\ref{cor:soft}); we believe it also says why a
+symmetric pair of coupled oscillators has no even locking tongue --- the
+frequency ranges in which two oscillators lock at a ratio, a known
+symmetry fact of dynamics --- but that one is not measured here and is
+listed as a conjecture. A theory that answers questions it was not built
+to answer is the standard we are trying to meet; the duty null and the
+long exposure's selection of recipes (\S\ref{sec:pooling}) were the first
+two such answers, neither sought, both measured the day they were derived.
 
 \subsection{What to test at home, and what it would show}
 \begin{enumerate}
 \item \emph{The octave null} (Try-it, \S\ref{sec:whosees}). Two pulse
-waves at $200$ and $405$ hertz; the five-hertz beat present at $30\%$ duty,
-absent at $50\%$, present at $70\%$. Cheap; a synthesizer or a web page. It
-would confirm Theorem~\ref{thm:dutynull} in a real ear.
+waves at $200$ and $405$ hertz; the five-hertz throb present at $30\%$
+duty, absent at $50\%$, present at $70\%$. Cheap; a synthesizer or a web
+synth with a pulse-width control. What to expect: at $50\%$ the throb
+should be \emph{gone}, not merely weaker --- the model ears put it three to
+four orders of magnitude down --- while both tones stay plainly audible.
+It would confirm Theorem~\ref{thm:dutynull} in a real ear.
 \item \emph{The order of the ear's front end.} The same, with the pulses'
-edges softened by a low-pass on each oscillator. If the null at $50\%$
-survives, the ear's effective front end is quadratic; if the beat comes
-back, it is of higher order (Corollary~\ref{cor:soft}). Cheap, and not in
-the literature in this form as far as we can find.
+edges softened by a low-pass filter on \emph{each} oscillator, before they
+are mixed; a filter after the mixer acts on the sum and is a different
+experiment (it is linear, and Theorem~\ref{thm:whosees} says it cannot
+change the answer). If the null at $50\%$ survives, the ear's effective
+front end is quadratic; if the throb comes back, it is of higher order
+(Corollary~\ref{cor:soft}). Cheap, and not in the literature in this form
+as far as we can find.
 \item \emph{Beats of beats} (Try-it, \S\ref{sec:iterated}). Three sines at
-$300$, $330$, $363$ hertz; a three-hertz throb needs two stages of
-demodulation. The psychoacoustics of ``second-order beats'' has data; the
-theorem says what the data must show.
-\item \emph{The desert.} Two sawtooth tones at the golden ratio against two
-at $2.05$: the second beats, the first is rough and does not.
-\item \emph{The wagon wheel.} A spoked wheel under a strobe, or a fan on a
-phone's video: the theory says the perceived rotation is the priced
-convergent of the spoke rate over the frame rate, and that its reversals
-sit at the convergents. Not yet scripted; an afternoon.
+$300$, $330$, $363$ hertz; a three-hertz throb needs a front end of order
+four. Listening with the unaided ear is the experiment; building the
+two-stage version needs a program that can chain distortion, a low-pass and
+distortion again, which any audio workstation can. The psychoacoustics of
+``second-order beats'' has data; the theorem says what the data must show.
+\item \emph{The desert.} Two sawtooth tones at $200$ and $410$ hertz beat
+ten times a second; two at $200$ and $324$ hertz, the golden ratio, sound
+rough and do not beat at any rate you can count.
+\item \emph{The wagon wheel.} A fan on a phone's video, or a spoked wheel
+under a strobe with an adjustable rate. Near the frame rate the wheel turns
+slowly and reverses when the spoke rate crosses it. At half the frame rate
+a wheel with narrow spokes shows a still wheel with twice the spokes; a
+wheel whose spokes are as wide as the gaps between them shows only
+flicker (\S\ref{sec:selection}). The frames are simulated and gated; the
+eye is the experiment.
 \item \emph{The long exposure} (Try-it, \S\ref{sec:pooling}). Two window
 screens, one moving, a phone in night mode: the bands survive and the
 members do not, and moving both at rates $1{:}2$ keeps a different set of
 bands.
+\item \emph{The marker} (Try-it, \S\ref{sec:selection}). Two combs drawn
+at pitches near $2{:}1$ on paper or transparencies: the octave bands vanish
+when the coarse comb's ticks are thickened to half the gap and return at
+two thirds. Paper, a pen and a marker; the only test on this list that
+needs no electricity.
 \end{enumerate}

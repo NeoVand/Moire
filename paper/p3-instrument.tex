@@ -3,29 +3,79 @@
 
 Every result in this paper was found in a drawing tool before it was
 proved, and measured in the tool after. \Moire\ is a web application that
-draws superpositions of families the way this paper describes them: each
-layer is a count $\cnt_i$ and a stroke profile, evaluated at every pixel
---- by a formula for the exact and winding rungs, by a certified search for
-the fold rung --- and the picture on the torus is looked up, never
-rasterised in between, so a superposition has no resolution of its own and
-can be zoomed without inventing or destroying a beat. Fourteen families
-ship: lines, rings, rays, polygons, spirals of two kinds, waves, parabolas,
-hyperbolas, three lattices and tilings, and the walking families, with a
-field language for adding any function of position to a count.
+draws superpositions of families the way this paper describes them. Each
+layer is a count $\cnt_i$ and a stroke profile; at every pixel the count is
+evaluated --- by a formula for the exact and winding rungs, by a certified
+search for the fold rung --- and the picture on the torus is looked up
+there and then. No layer is ever drawn into an intermediate image and
+resampled, so a superposition has no resolution of its own: zooming asks
+the same counts at new points, and cannot invent a beat that the geometry
+does not have or destroy one it does. Fourteen families ship, sorted by
+rung: on the exact rung, parallel lines, concentric circles, squares,
+triangles and hexagons, the Archimedean and the logarithmic spiral, the
+wave, the parabola and the hyperbola, and three lattices (square,
+triangular, hexagonal) with their tilings; on the winding rung, the rays;
+and on the fold rung, the walking versions of the concentric shapes. A
+field language adds any function of position to a count.
 
-Three of its views are this paper's theorems running. The \emph{pooled}
-view is Theorem~\ref{thm:sweep}: the slide average, integrated in closed
-form --- every swept profile is piecewise cubic with corners known from the
-count, so the average is exact at every zoom, with no sampling and no
-noise, and it runs at the frame rate. The \emph{ratio} view is
-Definition~\ref{def:merit}: the priced merit at every pixel, reduced per
-pixel, drawn as a map that is dark where a beat must form. A
-\emph{square-law} toggle is Theorem~\ref{thm:universality}: the drawing
-squared before it is averaged, so that Corollary~\ref{cor:soft} can be
-watched as a null reopening when the zoom widens the strokes' ramps. Every
-view is a measurement with a gate: the tool's renders are checked against
-golden images through the real graphics device on every change, its solver
-is checked against a brute-force twin, and every number in this paper is
-written into the text by a script that fails if the experiment does. The
-tool, its source, and every script named in this paper are public
-\todo{URL}; the systems paper describes the engineering.
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.32\linewidth]{instrument-render.png}\hfill
+  \includegraphics[width=0.32\linewidth]{instrument-pooled.png}\hfill
+  \includegraphics[width=0.32\linewidth]{instrument-ratio.png}
+  \caption{\figlead{The three views, on a $3{:}1$ pair of line families.}
+  Left, the superposition as drawn. Middle, the pooled view: the slide
+  average of Theorem~\ref{thm:sweep} along the schedule the station's
+  recipe $(3,-1)$ asks for, integrated in closed form, so the bands are what
+  a slow observer sees and nothing else. Right, the ratio view: the priced
+  merit of Definition~\ref{def:merit} for the winning recipe at every pixel,
+  dark where a beat must form. Rendered by the tool's own capture path,
+  which the goldens of the regression suite also use.}
+  \label{fig:instrument}
+\end{figure}
+
+Three of its views are this paper's theorems running
+(Figure~\ref{fig:instrument}). The \emph{pooled} view is
+Theorem~\ref{thm:sweep}: the slide average, integrated in closed form.
+Along a slide every layer's coverage is its stroke profile, a window with
+soft edges, evaluated at a distance that changes linearly with the slide,
+so the coverage is a cubic polynomial on each stretch between corners and
+the corners are known from the count; the average is therefore a sum of
+integrals of polynomials with known endpoints, exact at every zoom, with no
+sampling and no noise, and it runs at the frame rate (certified against a
+$65{,}536$-point brute-force integral by \texttt{exactsweep.mjs}). The
+\emph{ratio} view is Definition~\ref{def:merit}: the priced merit of the
+winning recipe at every pixel, found by the lattice reduction of
+Proposition~\ref{prop:selection}, drawn as a map that is dark where a beat
+must form; for a first-order recipe it is the $\het$ of
+\S\ref{sec:slow}. A \emph{square-law} toggle is
+Theorem~\ref{thm:universality}: the drawing squared before it is averaged,
+so that Corollary~\ref{cor:soft} can be watched. The strokes' soft edges
+are a fixed width in pixels, so zooming out makes them a larger fraction
+of the pitch, and the null of a $2{:}1$ pair at coarse duty one half, flat
+under the linear pooled view at every zoom, reopens under the square-law
+toggle as the zoom widens the edges.
+
+Every view is a measurement with a gate, in two different senses that
+should not be confused. The count solver for the fold rung is checked
+against a brute-force twin that tries every member, so its answers are
+checked against truth. The renders are checked against golden images
+through the real graphics device on every change, which catches any change
+in what the tool draws but would preserve a wrong picture faithfully; the
+goldens are trusted because the scripts of Table~\ref{tab:predictions}
+check what they show against the theorems. And every number in this paper
+is written into the text by the program that fails if an experiment does.
+The tool, its source, and every script named in this paper are public at
+\todo{URL, to be supplied by the author}; the systems paper describes the
+engineering, and is where the proofs of \S\ref{sec:counting}'s closed
+forms live.
+
+\begin{tryit}{the three views}
+In \Moire, make two layers of parallel lines at pitches $15$ and $5$ and
+turn one by two degrees. The drawn view shows a fine texture with broad
+bands in it; the pooled view keeps the bands and drops the texture; the
+ratio view is dark exactly where the pooled view has bands. Now change the
+coarse pitch to $16$: the bands change shape, the dark region moves before
+they do, and the station table of \S\ref{sec:selection} says which recipe
+you are looking at.
+\end{tryit}

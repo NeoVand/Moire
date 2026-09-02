@@ -32,44 +32,53 @@ three families the diagonal slide $(1,1,1)$ keeps every recipe whose
 entries sum to zero: the three pairwise differences $(1,-1,0)$, $(0,1,-1)$,
 $(1,0,-1)$ and, among others, $(1,-2,1)$, the difference of two differences.
 That last recipe is the beat of beats, and whether an observer can see it
-depends on how many stages it has.
+depends on what its front end can reach.
 
-\begin{theorem}[Beats of beats need two stages]
+\begin{theorem}[Beats of beats need a front end of order four]
 \label{thm:cascade}
-Let three families add, with pairwise slow differences at rates
-$\delta_1$ and $\delta_2$ nearly equal. The recipe $(1,-2,1)$, at rate
-$|\delta_1-\delta_2|$, has \emph{order} $|1|+|-2|+|1|=4$. A front end that
-is a polynomial of degree $m$ mints only recipes of order at most $m$, so a
-square-law ear ($m=2$) and a cubic ear ($m=3$) hear nothing at the beat of
-beats; a cascade that squares, pools, and squares again hears it. A
+Let three \emph{pure} tones --- sinusoids, each carrying only its first
+harmonic --- add, with pairwise slow differences at rates $\delta_1$ and
+$\delta_2$ nearly equal. The recipe $(1,-2,1)$, at rate $|\delta_1-\delta_2|$,
+has order $|1|+|{-2}|+|1|=4$. A front end that is a polynomial of degree
+$n$ mints from pure tones only recipes of order at most $n$, so a
+square-law front end ($n=2$) and a cubic one ($n=3$) leave the beat of
+beats silent. A cascade that squares, pools, and squares again reaches it,
+because its first stage mints the two pairwise beats and its second
+multiplies them; so does a single stage of degree four, and a hard
+saturation, which is of every degree at once, reaches it weakly. A
 multiplicative superposition of the three carries the recipe at linear
 order, and a plain blur sees it.
 \end{theorem}
 
 \begin{proof}
-The $m$-th power of a sum $g_1+g_2+g_3$ expands into monomials
-$g_1^{m_1}g_2^{m_2}g_3^{m_3}$ with $m_1+m_2+m_3=m$, and the waves of such a
-monomial have recipes $(n_1,n_2,n_3)$ with $|n_i|$ at most the number of
-factors of $g_i$ present when each $g_i$ carries all its harmonics, so the
-order is at most $m$ in the only way that matters: the recipe $(1,-2,1)$
-needs two factors of $g_2$ and one each of the others, four factors, and a
-square or a cube has fewer. The cascade's first square mints the pairwise
-differences $(1,-1,0)$ and $(0,1,-1)$ at order two; the pooling keeps them
-and removes the rest; the second square multiplies them, and their product
-carries $(1,-2,1)$. A product of three pictures carries every recipe by
+A pure tone's wave has recipe $\pm1$ in its own count and $0$ in the
+others (a real cosine is $\tfrac12(e^{2\pi i\theta}+e^{-2\pi i\theta})$, so
+both signs are present). The $n$-th power of a sum of three such waves
+expands into monomials $g_1^{e_1}g_2^{e_2}g_3^{e_3}$ with
+$e_1+e_2+e_3=n$, and the recipes of such a monomial have $|k_i|\le e_i$,
+hence order at most $n$; the recipe $(1,-2,1)$ needs $e_2\ge2$ and
+$e_1,e_3\ge1$, four factors, which a square or a cube does not have. The
+cascade's first square mints the pairwise differences $(1,-1,0)$ and
+$(0,1,-1)$ at order two; the pooling keeps them and removes the rest; the
+second square multiplies two real waves, and a product of two real waves
+carries both the sum and the difference of their recipes --- the
+difference here is $(1,-1,0)-(0,1,-1)=(1,-2,1)$, the beat of beats. A
+product of three pictures carries every recipe by
 Theorem~\ref{thm:whosees}.
 \end{proof}
 
-Measured, on three tones at $300$, $330$ and $363$ hertz --- pairwise beats
-at $30$ and $33$, beat of beats at $3$ --- as a fraction of a first-order
-beat's strength: a square-law ear hears the three-hertz line at
-$\earTernarySquare$, a cubic ear at $\earTernaryCubic$, the cascade at
-$\earTernaryCascadePct\%$, and a multiplicative trio through a plain low-pass
-at $\earTernaryPrintedPct\%$ (\texttt{ear.mjs}; Figure~\ref{fig:ternary}).
-The prediction for hearing is that second-order beats are heard only by
-systems with at least two stages of demodulation; whether the auditory
-system has them is a question the psychoacoustics of ``second-order beats''
-has data on, and \S\ref{sec:ledger} names it as the test.
+Measured, on three sinusoids at $300$, $330$ and $363$ hertz --- pairwise
+beats at $30$ and $33$, beat of beats at $3$ --- as a fraction of a
+first-order beat's strength: a square-law ear hears the three-hertz line
+at $\earTernarySquare$, a cubic ear at $\earTernaryCubic$, the cascade at
+$\earTernaryCascadePct\%$, and a multiplicative trio through a plain
+low-pass at $\earTernaryPrintedPct\%$ (\texttt{ear.mjs};
+Figure~\ref{fig:ternary}). The prediction for hearing is that second-order
+beats of pure tones are heard only by a system whose front end reaches
+order four --- two stages of detection (a front end followed by pooling),
+or one stage of high order --- and the psychoacoustics of ``second-order
+beats'' has data the theorem constrains; \S\ref{sec:ledger} names it as
+the test.
 
 \begin{figure}[t]
   \centering
@@ -87,13 +96,14 @@ has data on, and \S\ref{sec:ledger} names it as the test.
       \addplot[fill=accent!70, draw=accent] table[x=index, y=fraction, col sep=comma]{data/ear-ternary.csv};
     \end{axis}
   \end{tikzpicture}
-  \caption{\figlead{The beat of beats, and who hears it.} Three tones added
-  in the air, listened to through a square-law ear, a cubic ear, and a
-  two-stage ear that squares, pools and squares again; and the same three
+  \caption{\figlead{The beat of beats, and who hears it.} Three pure tones
+  added in the air, listened to through a square-law ear, a cubic ear, and
+  a two-stage ear that squares, pools and squares again; and the same three
   families multiplied, through a plain low-pass. The recipe $(1,-2,1)$ has
-  order four: one stage of any degree below four cannot mint it, two
-  stages of degree two can, and a multiplicative superposition carries it
-  from the start. Script \texttt{ear.mjs}, data \texttt{ear-ternary.csv}.}
+  order four: one stage of degree two or three cannot mint it from pure
+  tones, two stages of degree two can, and a multiplicative superposition
+  carries it from the start. Script \texttt{ear.mjs}, data
+  \texttt{ear-ternary.csv}.}
   \label{fig:ternary}
 \end{figure}
 
@@ -123,49 +133,60 @@ or in superpositions that multiply. And yet its geometry --- where its
 members are, how fast its count runs, whether it exists at all --- is fixed
 by the parts alone, through $\Phi$, and is the same for every observer that
 can see it. That is emergence with a theorem attached, and the theorem is
-the last one of this section.
+the last one of this section. It is more abstract than the rest of the
+paper; the reader who takes it on trust loses nothing that follows.
 
 \begin{proposition}[The third pattern is the universal invariant]
 \label{prop:invariant}
-Fix a set of fast directions on the torus (a closed subgroup $H$ of
-rephasings) and let $\E_H I$ be the picture averaged along them. Every
-linear measurement of pictures that is unchanged by rephasing along $H$ ---
-every $F$ with $F(I(\cdot+h))=F(I)$ for all $h$ in $H$ --- is a function of
-$\E_HI$ alone: $F(I)=F(\E_HI)$. And every measurement of $\E_HI$ is
-unchanged by such rephasing. What can be measured of a superposition
-without knowing the fast phases is exactly what can be measured of its
-third pattern.
+Fix a set of fast directions on the torus, and let $H$ be the set of all
+slides along them, by any amount, whole or fractional: the
+\emph{rephasings} of the carriers. Let $\E_HI$ be the picture averaged over
+all of them. Call a rule $F$ that assigns a number to a picture
+\emph{linear} if it respects sums and scalings (an integral of the picture
+against any fixed weight is an example). Then every linear rule that gives
+the same number for a picture and for every rephased copy of it,
+$F(I(\cdot+h))=F(I)$ for all $h$ in $H$, is a function of the averaged
+picture alone: $F(I)=F(\E_HI)$. And every rule applied to $\E_HI$ is
+unchanged by rephasing. What can be measured of a superposition without
+knowing the fast phases is exactly what can be measured of its third
+pattern.
 \end{proposition}
 
 \begin{proof}
-Average the invariance over $H$: $F(I)=\int_H F(I(\cdot+h))\,dh$, and a
-linear measurement passes through an average,
-$\int_H F(I(\cdot+h))\,dh=F\big(\int_H I(\cdot+h)\,dh\big)=F(\E_HI)$. The
-converse is that $\E_HI$ is itself unchanged by rephasing along $H$.
+Average the invariance over $H$: $F(I)$ equals the average over $h$ of
+$F(I(\cdot+h))$, and a linear rule passes through an average, so that
+equals $F$ of the average of $I(\cdot+h)$, which is $F(\E_HI)$. The
+converse is that $\E_HI$ is itself unchanged by any further rephasing along
+$H$.
 \end{proof}
 
 The proposition says that ``the observable content of a superposition, to
 anyone who cannot resolve the fast phases, is its tower of averages'' is
 not a metaphor. It is the quotient of the picture by the fast rephasing,
 in the sense in which a quotient is the most general thing invariant under
-a symmetry. The word \emph{linear} cannot be dropped --- the total ink
-$\int I^2$ is invariant and is not a function of the average --- but the
-observers that matter physically are not linear functionals of the picture;
-they are front ends followed by pooling, and for those
+a symmetry: whatever two pictures differing only by a rephasing have in
+common is a function of their common average, and nothing more. The word
+\emph{linear} cannot be dropped --- the picture's energy $\int I^2$ is
+unchanged by rephasing and is not a function of the average --- but the
+observers that matter physically are not linear rules on the picture; they
+are front ends followed by pooling, and for those
 Theorem~\ref{thm:universality} already said that the picture is theirs and
-the geometry is not. This is weak emergence made exact, and it is a better
-claim than strong emergence made vague: a new family, with a new count,
-that no member of the parts' description contains, produced by a quotient
-that is exact rather than approximate, and exactly computable at every
-stage of the hierarchy.
+the geometry is not. In the philosophers' terms this is \emph{weak}
+emergence~\cite{Bedau1997Weak, Chalmers2006Emergence} --- the new pattern
+is in principle derivable from the parts --- made exact: a new family, with
+a new count, that no member of the parts' description contains, produced
+by a quotient that is exact rather than approximate, and exactly computable
+at every stage of the hierarchy. It is a better claim than strong
+emergence made vague.
 
 \begin{tryit}{a beat of beats}
 Three oscillators on a synthesizer, sine waves, at $300$, $330$ and $363$
 hertz. You will hear two fast throbs, at thirty and thirty-three per
 second, and the question is whether you also hear a slow one, three times a
-second. Theorem~\ref{thm:cascade} says a single nonlinear stage cannot
+second. Theorem~\ref{thm:cascade} says a single mild nonlinearity cannot
 produce it. Run the mix through a distortion effect and then a low-pass,
 one stage: no three-hertz throb should appear. Run it through distortion,
 a low-pass at about fifty hertz, and a second distortion: it should. If
-your unaided ear hears the slow throb, that is data.
+your unaided ear hears the slow throb, that is data about the order of your
+ear's front end.
 \end{tryit}

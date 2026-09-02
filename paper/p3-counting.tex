@@ -1,66 +1,94 @@
 \section{When counting fails}
 \label{sec:counting}
 
-Everything so far took the count for granted. A family is a set of members
-with a numbering, and the count at a point $x$ is the number $\nu$ such that
-$x$ lies on the interpolated member $\nu$: the solution of an equation
-$F(x,\nu)=0$, ``$x$ is on member $\nu$''. Whether that equation has a
-solution, and one solution, is not automatic, and the ways it can fail are
-the whole taxonomy of families. There are exactly three.
+Everything so far took the count for granted. Here is what it is, exactly.
+A family is a set of members with a numbering, and the count at a point $x$
+is the number $c$ such that $x$ lies on the interpolated member $c$: the
+solution of an equation
+\[
+  F(x,c)=0,\qquad\text{``$x$ is on member $c$''.}
+\]
+For a ruler of pitch $T$, $F(x,c)=x/T-c$, and the solution is
+$\cnt(x)=x/T$. For concentric rings a distance $s$ apart, $F(x,c)=|x|-cs$
+and $\cnt(x)=|x|/s$. For a family of rays from a point, member $c$ is the
+ray at angle $c$ times the angle between rays, and the solution is the
+polar angle of $x$ divided by that step --- which is where the trouble
+starts. Whether $F(x,c)=0$ has a solution, and one solution, that depends
+smoothly on $x$, is not automatic. It can happen in three ways, and two of
+them are failures.
 
 \begin{lookup}{the implicit function theorem, and winding}
-What to look up: \emph{the implicit function theorem}. The one consequence
-used: wherever $\partial F/\partial\nu\ne0$, the equation $F(x,\nu)=0$
-defines $\nu$ as a smooth function of $x$ near that point; where
-$\partial F/\partial\nu=0$ it may not. And \emph{winding number}: walk once
-round a point and the angle you make with it gains a full turn, $2\pi$,
-which no continuous choice of angle can undo.
+What to look up: \emph{the implicit function theorem}. The quantity
+$\partial F/\partial c$ is the rate at which $F$ changes when the member
+index is nudged and the point $x$ is held still (a \emph{partial
+derivative}). The one consequence used: wherever $\partial F/\partial c\ne0$,
+the equation $F(x,c)=0$ defines $c$ as a smooth function of $x$ near that
+point; where $\partial F/\partial c=0$ it may not. And \emph{winding
+number}: walk once round a point and the angle you make with it gains a
+full turn, which no continuous choice of angle can undo.
 \end{lookup}
+
+Two words before the theorem. A \emph{walking family} is a nest of curves
+--- circles, squares, hexagons --- each grown by a step $s$, displaced by a
+step $\delta$ and turned by a step $\theta$ more than the last; it is what
+an artist draws when the rings are not concentric. And the three cases
+below are called \emph{rungs}, because a family can be lifted from the
+first to the second by a field and never to the third, which is the last
+paragraph of the section. The theorem is about families in the plane: a
+family in time, like the click trains of \S\ref{sec:whosees}, has no loops
+to wind around and members that never cross, so its count is always a
+formula.
 
 \begin{theorem}[Trichotomy]
 \label{thm:trichotomy}
-The count $\nu(x)$ of a family exists in exactly one of three ways.
+The count of a family in the plane exists in exactly one of three ways.
 \emph{As a formula:} a single smooth function on the whole plane (the exact
-rung: lines, rings, rays, spirals, waves). \emph{Up to a whole number:} a
-function on the plane with a point removed, which gains a whole number each
-time a loop goes round the point (the winding rung: the polar angle is the
-prototype, and a family built on it has a \emph{defect} at the point, with
-a quantized charge). \emph{Only as a search:} where two members pass through
-the same point at the same interpolated index, $\partial F/\partial\nu=0$,
-the count branches, no relabelling repairs it, and the nearest member must
-be found by looking (the fold rung: walking families, whose members are
-each displaced and turned a little more than the last).
+rung: lines, rings, polygons, spirals, waves). \emph{Up to a whole number:}
+a function on the plane with a point removed, which gains a whole number
+each time a loop goes round the point (the winding rung: the rays are the
+prototype, and a family built on the polar angle has a \emph{defect} at
+the point, with a \emph{charge} that is the whole number gained). \emph{Only
+as a search:} where two members pass through the same point at the same
+interpolated index, $\partial F/\partial c=0$, the count branches, no
+relabelling repairs it, and the nearest member must be found by looking
+(the fold rung: the walking families).
 \end{theorem}
 
 \begin{proof}
-Where $\partial F/\partial\nu\ne0$ the lookup gives $\nu$ locally as a smooth
+Where $\partial F/\partial c\ne0$ the lookup gives $c$ locally as a smooth
 function of $x$. The local pieces glue into one function on the plane
 exactly when carrying a value round any loop brings it back to itself; if
 it comes back changed, the change is a whole number (the index of the same
 member), it depends only on which points the loop encloses, and it is the
-winding of the family about those points. Where $\partial F/\partial\nu=0$
-two members meet $x$ at the same index to first order; the local pieces join
-there instead of overlapping, and no cover of the plane makes the count a
-function again.
+winding of the family about those points. Where $\partial F/\partial c=0$
+two members meet $x$ at the same index to first order --- the equation has
+a double root in $c$, like $c^2=x$ at $x=0$ --- and just past such a point
+the equation has two solutions on one side and none on the other; the
+local pieces join at a crease instead of overlapping, and no choice of
+labels on a cover of the plane makes the count a single function again.
 \end{proof}
 
 \paragraph{Defects.}
 Add to a family's count the polar angle about a point divided by a full
-turn, times a whole number $A$. Nothing about the family's members changes
-away from the point, but the count now gains $A$ around any loop that
+turn, times a whole number $q$. Nothing about the family's members changes
+away from the point, but the count now gains $q$ around any loop that
 encloses it, and so does the difference $D$ against an unmodified twin. The
-bands of that pair, the level lines of $D$, must therefore \emph{end}: $A$
-of them inside any loop round the point, and, since winding adds, the
-signed number of endings inside any loop is $A$ times the number of enclosed
-points. That is the fork grating of optics~\cite{NyeBerry1974Dislocations}
-built from a count rather than a wavefront, and the count says one more
-thing: near the point the added count changes at a rate $A/2\pi r$, so the
-heterodyne ratio of the beat is $\het=As/2\pi r$ for a family of pitch $s$,
-and the bands cannot exist inside the core $r^\star=2As/\pi$, where the beat
-is no slower than the carrier. Measured on \defProbes\ probes with charges
-up to \defChargeMax: the count of endings is exact, and the core radius
-holds to within $\defCoreWorst$ (script \texttt{defects.mjs};
-Figure~\ref{fig:defects}).
+bands of that pair are the level lines of $D$, and a level line has to
+leave a loop as often as it enters --- unless the value of $D$ is not the
+same after one circuit, in which case $q$ lines that enter never leave.
+So $q$ bands \emph{end} inside any loop round the point, and, since winding
+adds, the signed number of endings inside any loop is $q$ times the number
+of enclosed points. That is the fork grating of
+optics~\cite{NyeBerry1974Dislocations} --- a grating with a line that
+forks, the signature of a wave that winds --- built from a count rather
+than a wavefront, and the count says one more thing: near the point the
+added count changes at a rate $q/2\pi r$, so the heterodyne ratio of the
+beat is $\het=qs/2\pi r$ for a family of pitch $s$, which reaches the edge
+of the beat regime, $\het=\tfrac14$, at $r^\star=2qs/\pi$; inside that
+core the beat is not slow enough to be a band. Measured on \defProbes\
+loops with charges up to \defChargeMax: the count of endings is exact, and
+the core radius holds to within $\defCoreWorst$ (script
+\texttt{defects.mjs}; Figure~\ref{fig:defects}).
 
 \begin{figure}[t]
   \centering
@@ -76,26 +104,30 @@ Figure~\ref{fig:defects}).
 \end{figure}
 
 \paragraph{Folds.}
-A walking family is a nest of curves --- circles, squares, hexagons --- each
-grown by a step $s$, displaced by a step $\delta$ and turned by a step
-$\theta$ more than the last. Its members are the fronts of something that
-spreads at speed $s$ from a source that moves at speed $|\delta|$ per
-member, and the family folds exactly where the front's normal speed
-vanishes. Two consequences have closed forms. A front that only moves folds
-if and only if the source is \emph{supersonic}: it moves faster than it
-spreads, $\rho(-\delta)>s$ in the gauge's own metric, and the fold is the
-shock along the wake. A front that only turns folds every shape but the
-circle, at the radius $s/(\theta\sin(\pi/k))$ for the regular $k$-gon, where
-a vertex of one member first crosses the next. Onsets measured by brute
-force on families that never saw the calculus are within
-\foldWorstOnsetPct\% of these radii (script \texttt{foldlaw.mjs};
-Figure~\ref{fig:foldlaw}). Beyond the fold the count is multivalued, the
-number of branches through a point grows with the distance from the centre,
-and no formula exists: a rational turn $2\pi a/b$ splits the family into $b$
-nests that can each be solved, and any other turn is provably beyond
-algebra. Searching for the nearest member is the price of a family whose
-count has folded, and the instrument of \S\ref{sec:instrument} pays it with
-a certificate rather than a guess.
+A walking family's members are the fronts of something that spreads at
+speed $s$ from a source that moves by $\delta$ and turns by $\theta$ per
+member, and the family folds exactly where a front's normal speed vanishes
+--- which is the theorem's $\partial F/\partial c=0$, written for a front:
+the next member no longer advances past the last at that point. Two
+consequences have closed forms, in terms of the shape's \emph{gauge}
+$\gamma$: $\gamma(v)$ is the length of a vector $v$ measured in the shape's
+own units, the size of the copy of the shape that just reaches $v$, so that
+for circles $\gamma$ is ordinary length. A front that only moves folds if
+and only if the source is \emph{supersonic}: it moves faster than it
+spreads, $\gamma(-\delta)>s$, and the fold is the shock along the wake. A
+front that only turns folds every shape but the circle, at the radius
+$s/(\theta\sin(\pi/k))$ for the regular $k$-gon, where a vertex of one
+member first crosses the next. Onsets measured by brute force on families
+that never saw the calculus are within \foldWorstOnsetPct\% of these radii
+(script \texttt{foldlaw.mjs}; Figure~\ref{fig:foldlaw}). Beyond the fold
+the count is multivalued, the number of branches through a point grows
+with the distance from the centre, and no formula exists: a rational turn
+$2\pi a/b$ splits the family into $b$ nests that can each be solved, and
+any other turn is shown in the companion paper (\S\ref{sec:instrument}) to
+be beyond any formula in $x$. Searching for the nearest member is the price
+of a family whose count has folded, and the instrument pays it with a
+certificate --- an interval of member indices that provably contains every
+member near the pixel --- rather than a guess.
 
 \begin{figure}[t]
   \centering
@@ -109,13 +141,14 @@ a certificate rather than a guess.
 \end{figure}
 
 One thing a field cannot do closes the taxonomy. A \emph{field} added to a
-count --- any function of position, the polar angle included --- shifts
-$\nu$ by a function of $x$ and leaves $\partial F/\partial\nu$ alone. So a
-field can move a family within its rung or lift it from the exact rung to
-the winding rung by a whole number, and it can never fold one. Folding is a
-property of the members' geometry; winding is a property of the count; and
-the third pattern, being a function of counts, inherits the winding and
-ends where the count does.
+count --- any function of position, including one like the polar angle
+that is defined only up to whole turns --- replaces $F(x,c)$ by
+$F(x,c-\phi(x))$: it shifts the solution $c$ by $\phi(x)$ and leaves
+$\partial F/\partial c$ alone. So a field can move a family within its rung
+or lift it from the exact rung to the winding rung by a whole number, and it
+can never fold one. Folding is a property of the members' geometry; winding
+is a property of the count; and the third pattern, being a function of
+counts, inherits the winding and ends where the count does.
 
 \begin{tryit}{a count that winds, and one that folds}
 In \Moire, take a single family of lines and type the polar angle divided

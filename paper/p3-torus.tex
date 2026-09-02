@@ -133,13 +133,15 @@ A pair of rulers with ten and nineteen divisions to the inch shows it:
 twice the first count minus the second rises by one per inch, and that is
 the pattern you see, faint but there. Nineteen to ten is nearly two to one,
 the ratio of an octave in music, so we call $(2,-1)$ the \emph{octave}
-recipe.
+recipe; a recipe with an entry beyond one that shows is called a
+\emph{station}, because it locks the two families at a rational ratio of
+their pitches, and its \emph{order} is the sum of its entries' sizes.
 
 \begin{definition}[Slow and fast; the heterodyne ratio]
 \label{def:eta}
 At a point $x$ each count has a local rate, its derivative $\nabla\cnt_i(x)$
 --- a number on a line, a vector in the plane, giving members per unit of
-distance. The rate of a combined count is $\nabla(k\cdot\cnt)=\sum_ik_i\nabla\cnt_i$.
+distance, or per second for a family in time. The rate of a combined count is $\nabla(k\cdot\cnt)=\sum_ik_i\nabla\cnt_i$.
 For a recipe $k=(a,b)$ on two families, its \emph{heterodyne ratio} is
 \[
   \het_{a,b}(x)\;=\;\frac{\lvert a\,\nabla\cnt_1+b\,\nabla\cnt_2\rvert}
@@ -193,17 +195,24 @@ are the \emph{carrier}, radio's word again, and a slow recipe is a
     $W$, $\rho$, $\widehat W$ & an observer's window, its width, and its response to a wave & \S\ref{sec:window} \\
     $N$ & an observer's front end: what it does to each value before pooling & \S\ref{sec:observer} \\
     $O$ & an observer: a front end, then a window, then anything & Theorem~\ref{thm:universality} \\
+    $g_i$, $\hat g_i(n)$ & a family's profile, and its $n$-th harmonic's strength & \S\ref{sec:whosees} \\
+    $\mu_{a,b}$ & the priced merit: $\het$ charged $|ab|$ & Definition~\ref{def:merit} \\
+    $h_n/k_n$, $x_{n+1}$ & a convergent and a complete quotient of a ratio & \S\ref{sec:selection} \\
+    $F(x,c)$ & the incidence: ``$x$ is on member $c$'' & \S\ref{sec:counting} \\
+    $q$ & a defect's charge: the whole number a count gains round it & \S\ref{sec:counting} \\
+    $s$, $\delta$, $\theta$, $\gamma$ & a walking family's steps in size, position and angle, and its shape's gauge & \S\ref{sec:counting} \\
     \bottomrule
   \end{tabular}
   \caption{\figlead{Every symbol in the paper}, and where it is introduced.
-  The lower half is used from \S\ref{sec:pooling} on.}
+  Everything below $\het$ is used from \S\ref{sec:pooling} on.}
   \label{tab:symbols}
 \end{table}
 
 \begin{tryit}{the map of where a beat can form}
 In \Moire\ (\S\ref{sec:instrument}), make two layers of parallel lines a few
 percent apart in pitch and turn on the \emph{ratio} view. The frame darkens
-where $\het<\tfrac14$: the bands you see in the ordinary view sit exactly
+where $\het<\tfrac14$ (for recipes beyond first order, the priced merit of
+\S\ref{sec:selection}): the bands you see in the ordinary view sit exactly
 inside the dark region, and as you change the pitches the dark region
 predicts where the bands go before they get there. Rotate one layer: the
 dark region moves to where the \emph{sum} is slow, and the bands follow.

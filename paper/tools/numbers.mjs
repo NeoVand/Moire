@@ -1117,6 +1117,24 @@ section('data/ear.json : an ear on aired pulse trains');
   console.log(`stations table: ${rows.length} rows`);
 }
 
+section('data/wagonwheel.json : the wagon wheel, a strobe as a family of frames');
+{
+  const w = load('wagonwheel.json');
+  const failed = w.gates.filter((g) => !g.ok);
+  if (failed.length) {
+    throw new Error(`wagonwheel.json has ${failed.length} failing gates; the prose claims none`);
+  }
+  macro('wagonFrameRate', w.frameRate);
+  macro('wagonReversalErr', sci(Math.max(...w.reversal.map((row) => Math.abs(row.seen - row.predicted)))));
+  macro('wagonDoubledDepth', sci(w.depths.doubled));
+  macro('wagonDoubledAtThirty', r(w.doubled.find((row) => Math.abs(row.d - 0.3) < 1e-9).contrast, 3));
+  const lawErr = Math.max(...w.doubled.filter((row) => row.law > 0.02).map((row) => Math.abs(row.contrast - row.law) / row.law));
+  macro('wagonLawPct', r(lawErr * 100, 1));
+  macro('wagonTripledDepthLow', sci(w.depths.tripledLow));
+  macro('wagonTripledDepthHigh', sci(w.depths.tripledHigh));
+  console.log(`wagon wheel: ${w.gates.length} gates pass; doubled wheel null ${w.depths.doubled.toExponential(1)}x`);
+}
+
 // ------------------------------------------------- paper 2: the predictions table
 // Section 5 of paper 2 is this table and nothing else: every claim with a
 // number behind it, the measured value, the gate the build enforces, and the
@@ -1187,6 +1205,7 @@ section('data/ear.json : an ear on aired pulse trains');
   const fold = load('foldlaw.json');
   const def = load('defects.json');
   const x = load('exactsweep.json');
+  const w3 = load('wagonwheel.json');
   const depth = (pair, duty) => d.nulls.find((n) => n.pair === pair && Math.abs(n.duty - duty) < 1e-9).depth;
   const dh = ear.octave.depths.hard;
   const ds = ear.octave.depths.soft;
@@ -1207,6 +1226,7 @@ section('data/ear.json : an ear on aired pulse trains');
     ['Beats of beats: one stage of degree two or three hears none, a cascade does', 'sound', '$' + sci(b.square / b.firstOrder) + '$, $' + sci(b.cubic / b.firstOrder) + '$ vs ' + r((100 * b.cascade) / b.firstOrder, 0) + '\\%', 'ear.mjs'],
     ['A multiplied trio carries the beat of beats at linear order', 'sound', r((100 * ear.printed.ternary) / ear.printed.firstOrder, 0) + '\\% of a first-order beat', 'ear.mjs'],
     ['The golden ratio is a desert in sound', 'sound', 'station line $' + r(ear.desert.station / Math.max(...ear.desert.goldenLines.map((g) => g.amp)), 1) + '\\times$ the golden pair\'s best', 'ear.mjs'],
+    ['The wagon wheel: seen at $r-f$ and reversing; at $r=f/2$ a doubled wheel stands still and vanishes at spoke duty $1/2$', 'a strobe', 'reversal exact; null $' + sci(w3.depths.doubled) + '\\times$ deep', 'wagonwheel.mjs'],
     ['Temporal selection: a shutter keeps the recipes its rates annihilate', 'a camera', '$' + th(e.selectivity) + '\\times$; kept to ' + r(e.faithful * 100, 2) + '\\%', 'exposure.mjs'],
     ['Record beats are convergents; the reduction names the true winner', 'any', conv.summary.oneD.recordsMatchConvergents + ' of ' + conv.summary.oneD.recordsMatchConvergents + '; ' + pc(conv.summary.twoD.shaderScanMatchesBruteForce / conv.summary.twoD.trials, 1) + '\\%', 'convergents.mjs'],
     ['Stations are the convergents with large complete quotients; deserts at $1/\\sqrt5$ and $1/2\\sqrt2$', 'any', th(st3.convergents) + ' classified; ' + r(st3.golden[st3.golden.length - 1].eta, 3) + ', ' + r(st3.silver, 3), 'stations.mjs'],

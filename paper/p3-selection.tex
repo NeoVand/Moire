@@ -3,66 +3,77 @@
 
 Every recipe is present in a multiplicative picture, and a bent front end
 puts most of them into an additive one. Which of them do you see? Two
-ingredients decide it, and the classical theory of beats keeps them apart.
-One is slowness: how small the recipe's heterodyne ratio is. The other is
-strength: how much of the picture the recipe carries, which for anything
-with edges falls off with the harmonics. The visible pattern is the one
-that is slow \emph{per unit of strength}.
+ingredients decide it. One is slowness: how small the recipe's heterodyne
+ratio is. The other is strength: how much of the picture the recipe
+carries, which for anything with edges falls off with the harmonics. The
+theory of two sinusoids --- the textbook theory of beats --- has only the
+first ingredient, because a sinusoid has one harmonic and nothing to
+choose between; families with edges have both, and the visible pattern is
+the one that is slow \emph{per unit of strength}.
 
 \begin{definition}[The priced merit]
 \label{def:merit}
 For a recipe $(a,b)$ with $ab\ne0$ on two families with local rates
-$g_1=\nabla\cnt_1$ and $g_2=\nabla\cnt_2$, the \emph{priced merit} is
+$\nabla\cnt_1$ and $\nabla\cnt_2$, the \emph{priced merit} is the heterodyne
+ratio of Definition~\ref{def:eta} charged the product of the harmonic
+orders that carry the recipe,
 \[
-  \het_{a,b}\;=\;\frac{\lvert a g_1+b g_2\rvert}{\tfrac12\big(\lvert a g_1\rvert+\lvert b g_2\rvert\big)}\cdot|ab| .
+  \mu_{a,b}\;=\;\het_{a,b}\cdot|ab|
+  \;=\;\frac{\lvert a\,\nabla\cnt_1+b\,\nabla\cnt_2\rvert}
+            {\tfrac12\big(\lvert a\,\nabla\cnt_1\rvert+\lvert b\,\nabla\cnt_2\rvert\big)}\cdot|ab| .
 \]
-The visible recipe is the one with the smallest priced merit, and
-$\het<\tfrac14$ is the beat regime.
+The visible recipe is the one with the smallest priced merit, and it shows
+as a beat when $\mu<\tfrac14$. For a first-order recipe $\mu=\het$, and the
+rule is the four members per band of \S\ref{sec:slow}; a recipe of order
+$ab$ is carried by harmonics $ab$ times weaker, and must be $ab$ times
+slower to show as strongly.
 \end{definition}
 
-The formula says: take the heterodyne ratio of Definition~\ref{def:eta} and
-charge it the product of the harmonic orders that carry it. The price is
-Theorem~\ref{thm:whosees}'s second claim read backwards: the recipe $(a,b)$
-is carried by the $a$-th harmonic of one family and the $b$-th of the other,
-each about $1/n$ strong, so the beat it makes has about $1/|ab|$ of the
-contrast of the first-order beat. Without the price the question has no
-answer. Every real ratio of pitches has rational approximations as good as
-you like, so at any point some recipe of enormous order is slower than
-every other, carried by harmonics no stroke has; with the price, comparable
-slowness resolves toward the lower order, and the minimum is a definite
-recipe at every point.
+The price is Theorem~\ref{thm:whosees}'s second claim read backwards: the
+recipe $(a,b)$ is carried by the $a$-th harmonic of one family and the
+$b$-th of the other, each about $1/n$ strong, so the beat it makes has
+about $1/|ab|$ of the contrast of the first-order beat. Without the price
+the question has no answer. Every real ratio of pitches has rational
+approximations as good as you like, so at any point some recipe of
+enormous order is slower than every other, carried by harmonics no stroke
+has --- a pair at the ratio $\sqrt2$ has a recipe $(41,-29)$ with more than
+three thousand members per band and nothing to draw them with; with the
+price, comparable slowness resolves toward the lower order, and the minimum
+is a definite recipe at every point.
 
 \begin{proposition}[Selection is best approximation]
 \label{prop:selection}
-For two parallel families of pitches $s_1$ and $s_2$ the recipes that beat
-every lower-order recipe, as the order is allowed to grow, are exactly the
+For two parallel families of pitches $s_1$ and $s_2$, the recipes that beat
+every lower-order recipe as the order is allowed to grow are exactly the
 convergents of the continued fraction of $s_1/s_2$ (\selRecordsMatch\ of
 \selRatios\ ratios measured, without exception). In the plane, where the
-rates are vectors, the minimiser is found at every point by reducing the
-lattice $\{a g_1+b g_2\}$, and the reduction names the brute-force winner in
-$99.8\%$ of \selTrials\ random pairs (script \texttt{convergents.mjs}).
+rates are vectors, the minimiser is found at every point by
+Lagrange--Gauss reduction of the lattice $\{a\nabla\cnt_1+b\nabla\cnt_2\}$
+--- the two-dimensional Euclidean algorithm, which finds a lattice's
+shortest vectors in a handful of steps~\cite{NguyenStehle2009Gauss} ---
+and the reduction names the brute-force winner in $99.8\%$ of
+\selTrials\ random pairs (script \texttt{convergents.mjs}).
 \end{proposition}
 
 \begin{lookup}{continued fractions}
 What to look up: \emph{continued fractions and convergents}, one page of
 any number theory text. The facts used: a real $x$ has an expansion
 $x=[a_0;a_1,a_2,\dots]$ into whole numbers, its \emph{partial quotients};
-truncating gives the fractions $h_n/k_n$, the \emph{convergents}, which are
-the best rational approximations of $x$ with denominators up to $k_n$; and
-the error of a convergent is
-$|h_n-k_nx|=1/(x_{n+1}k_n+k_{n-1})$, where $x_{n+1}=[a_{n+1};a_{n+2},\dots]$
-is the \emph{complete quotient}, everything after the $n$-th term. For the
-golden ratio every partial quotient is $1$; for $\sqrt2$ every one after
-the first is $2$; for $\pi$ they are $3;7,15,1,292,\dots$
+truncating gives the fractions $h_n/k_n$, the \emph{convergents} (here
+$k_n$ is a denominator, not a recipe), which are the best rational
+approximations of $x$ with denominators up to $k_n$; and the error of a
+convergent is $|h_n-k_nx|=1/(x_{n+1}k_n+k_{n-1})$, where
+$x_{n+1}=[a_{n+1};a_{n+2},\dots]$ is the \emph{complete quotient},
+everything after the $n$-th term. For the golden ratio every partial
+quotient is $1$; for $\sqrt2$, and for the silver ratio $1+\sqrt2$, every
+one after the first is $2$; for $\pi$ they are $3;7,15,1,292,\dots$
 \end{lookup}
 
 The proposition is Lagrange's theorem on best approximation with a
 different price: the classical statement prices a fraction $h/k$ by $k$,
 the priced merit charges $hk$, and the records turn out to be the same
-fractions. In the plane the theory is two-dimensional and the convergents
-become the short vectors of a lattice, found by the oldest lattice
-algorithm there is, but the reader who takes the one-dimensional case on
-trust loses nothing that follows.
+fractions. The reader who takes the one-dimensional case on trust loses
+nothing that follows.
 
 \subsection{Duty nulls}
 \label{sec:dutynull}
@@ -70,27 +81,31 @@ trust loses nothing that follows.
 Because a multiplicative picture's strength at a recipe is a product of
 harmonics, a station is carried by exactly the harmonics its integers name,
 and a family that lacks a harmonic cannot take part in a station that needs
-it. That is a prediction the classical theory does not make.
+it. That is a prediction the theory of sinusoids cannot make.
 
 \begin{theorem}[Duty nulls]
 \label{thm:dutynull}
-For two families whose pitches are in the ratio $p{:}q$ (coarse to fine),
-the visible station is the recipe $(q,-p)$, $q$ times the coarse count
-minus $p$ times the fine, carried by the coarse family's $q$-th harmonic and
-the fine family's $p$-th. A family whose members cover a fraction $d$ of
-their pitch has no $q$-th harmonic exactly when $qd$ is a whole number, so
-the station is extinguished at those duties and at no others.
+Let the coarse family's pitch be $a/b$ times the fine family's, in lowest
+terms. The visible station is the recipe $(a,-b)$: $a$ coarse counts minus
+$b$ fine counts, carried by the coarse family's $a$-th harmonic and the fine
+family's $b$-th. A family whose members cover a fraction $d$ of their pitch
+has no $a$-th harmonic exactly when $ad$ is a whole number, so the station
+is extinguished at those duties of the coarse family and at no others. A
+$2{:}1$ pair (coarse pitch twice the fine) has $a=2$, $b=1$: its station
+$(2,-1)$ dies at coarse duty $\tfrac12$; a $3{:}1$ pair's station $(3,-1)$
+dies at $\tfrac13$ and $\tfrac23$.
 \end{theorem}
 
 \begin{proof}
-For pitches $s_{\mathrm c}\approx(p/q)\,s_{\mathrm f}$ the combined count
-$q\cnt_{\mathrm c}-p\cnt_{\mathrm f}$ has rate
-$q/s_{\mathrm c}-p/s_{\mathrm f}\approx0$: it is the slow one. By
+With pitches $s_{\mathrm c}\approx(a/b)\,s_{\mathrm f}$ the combined count
+$a\cnt_{\mathrm c}-b\cnt_{\mathrm f}$ has rate
+$a/s_{\mathrm c}-b/s_{\mathrm f}\approx b/s_{\mathrm f}-b/s_{\mathrm f}=0$:
+it is the slow one, and no recipe of lower order is. By
 Theorem~\ref{thm:whosees} its strength is
-$\hat g_{\mathrm c}(q)\,\hat g_{\mathrm f}(-p)$, and by the lookup,
-$\hat g(n)=\sin(n\pi d)/n\pi$ vanishes exactly when $nd$ is a whole number.
-A symmetric softening of the edges multiplies each harmonic by a real
-factor and moves no zero.
+$\hat g_{\mathrm c}(a)\,\hat g_{\mathrm f}(-b)$, and by the lookup of
+\S\ref{sec:whosees}, $\hat g(n)=\sin(n\pi d)/n\pi$ vanishes exactly when
+$nd$ is a whole number. A symmetric softening of the edges multiplies each
+harmonic by a real factor and moves no zero.
 \end{proof}
 
 \begin{figure}[t]
@@ -115,7 +130,7 @@ factor and moves no zero.
   \includegraphics[width=\linewidth]{dutynull-triple.png}
   \caption{\figlead{Duty nulls.} Above: the strength of the station against
   the coarse family's duty, measured on drawn strokes (marks) over the law
-  $|\sin(q\pi d)/q\pi|\,|\hat g_{\text{fine}}(1)|$ (lines): the $2{:}1$
+  $|\sin(a\pi d)/a\pi|\,|\hat g_{\text{fine}}(1)|$ (lines): the $2{:}1$
   station dies at $d=\tfrac12$, the $3{:}1$ station at $\tfrac13$ and
   $\tfrac23$, and the softened edge of a drawn stroke is the only departure.
   Below: what pooling sees of the $2{:}1$ pair at coarse duty $0.35$, $0.5$
@@ -128,15 +143,33 @@ factor and moves no zero.
 
 Figure~\ref{fig:dutynull} is the theorem measured on paper;
 Figure~\ref{fig:ear} was the same theorem measured in an ear, and
-Corollary~\ref{cor:hard} is why the two agree: a hard-edged family has one
-set of harmonics, and every observer inherits it. Two readings. Forwards,
-fringe spectroscopy in reverse: find the duty at which a station dies and
-you have measured the family's duty to the precision of the null. Backwards,
-a warning about what ``the beat'' is: a $16.4{:}8$ pair also carries the
-recipe $(1,-2)$, one coarse count minus two fine, a real coefficient with a
-period of five units and no band anyone can see, and the first version of
-this experiment measured a null of \emph{that} and called it the station.
-The station is the slow recipe, not the small one.
+Corollary~\ref{cor:hard}(b) is why the two agree: a hard-edged family has
+one set of harmonics, and every observer inherits it. A strobe is a third
+place to measure it. A camera taking $f$ frames per second is a family
+whose picture is a comb, every harmonic equal, and a wheel whose spokes
+pass at $r$ per second beats against it: near $r=f$ the wheel is seen
+turning at $r-f$, backwards below the frame rate, the wagon-wheel effect
+of every western; at $r=f/2$ consecutive frames sit half a spoke apart, a
+pooling eye averages them, and what stands still is a wheel with
+\emph{twice} the spokes, carried by the spoke profile's second harmonic.
+So a wheel whose spokes are half the gap wide cannot show it. Simulated
+on sampled frames (script \texttt{wagonwheel.mjs}): the reversal is exact
+to $\wagonReversalErr$, the doubled wheel at spoke duty $0.3$ has contrast
+$\wagonDoubledAtThirty$ and tracks $|\sin(2\pi d)/2\pi|$ within
+$\wagonLawPct\%$, and at duty $\tfrac12$ it is $\wagonDoubledDepth\times$
+down; the tripled wheel at $r=f/3$ dies at duties $\tfrac13$ and
+$\tfrac23$ ($\wagonTripledDepthLow\times$, $\wagonTripledDepthHigh\times$).
+The frames are simulated and the eye is not; the prediction for a person
+is that a wheel with fat spokes never shows the doubled still wheel.
+
+Two readings. Forwards, a band as an instrument: find the duty at which a
+station dies and you have measured the family's duty to the precision of
+the null. Backwards, a warning about what ``the beat'' is: a $16.4{:}8$
+pair also carries the recipe $(1,-2)$, one coarse count minus two fine, a
+real coefficient with a period of five units and no band anyone can see,
+and the first version of this experiment measured a null of \emph{that}
+and called it the station. The station is the slow recipe, not the small
+one.
 
 \subsection{Which convergents are stations, and which ratios never beat}
 \label{sec:stations}
@@ -147,22 +180,28 @@ Let a pair have pitch ratio $x=[a_0;a_1,a_2,\dots]$ with convergents
 $h_n/k_n$ and complete quotients $x_{n+1}$. The priced merit of the recipe
 $(h_n,-k_n)$ is exactly
 \[
-  \het_n\;=\;\frac{2\,h_nk_n}{(h_n+k_nx)\,(x_{n+1}k_n+k_{n-1})},
+  \mu_n\;=\;\frac{2\,h_nk_n}{(h_n+k_nx)\,(x_{n+1}k_n+k_{n-1})},
 \]
-and the convergent is a station, $\het_n<\tfrac14$, exactly when
+and the convergent is a station, $\mu_n<\tfrac14$, exactly when
 $x_{n+1}+k_{n-1}/k_n>8/(1+k_nx/h_n)$, a bound within a few percent of $4$.
 A next partial quotient $a_{n+1}\ge5$ guarantees a station and
-$a_{n+1}\le2$ forbids one. For the golden ratio $\het_n\to1/\sqrt5$, for
-$\sqrt2$ it tends to $1/2\sqrt2$: neither pair has a station at any order.
+$a_{n+1}\le2$ forbids one. For the golden ratio $\mu_n\to1/\sqrt5$, for
+$\sqrt2$ and the silver ratio it tends to $1/2\sqrt2$: none of those pairs
+has a station at any order.
 \end{proposition}
 
 \begin{proof}
 Put the convergent's error $|h_n-k_nx|=1/(x_{n+1}k_n+k_{n-1})$ from the
 lookup into the merit $2hk\,|h-kx|/(h+kx)$; that is the identity. The
-threshold rearranges $\het_n<\tfrac14$, and the two bounds follow from
-$a_{n+1}<x_{n+1}<a_{n+1}+1$ and $0\le k_{n-1}/k_n<1$. For the golden ratio
-every complete quotient is the golden ratio $\varphi$ itself and
-$k_{n-1}/k_n\to1/\varphi$, so $\het_n\to1/(\varphi+1/\varphi)=1/\sqrt5$; for
+threshold rearranges $\mu_n<\tfrac14$. Since $a_{n+1}<x_{n+1}<a_{n+1}+1$
+and $0\le k_{n-1}/k_n<1$, a partial quotient of five or more puts the left
+side above $5$ and the right side is at most $8$ over $1$-and-a-bit; a
+partial quotient of two or less keeps the left side below $4$, and the
+small amount by which the right side can fall short of $4$, which is the
+convergent's own error, is smaller still for every denominator beyond the
+first few, a case check the script does. For the golden ratio every
+complete quotient is the golden ratio $\varphi$ itself and
+$k_{n-1}/k_n\to1/\varphi$, so $\mu_n\to1/(\varphi+1/\varphi)=1/\sqrt5$; for
 $\sqrt2$ the complete quotients are $1+\sqrt2$ and $k_{n-1}/k_n\to\sqrt2-1$.
 \end{proof}
 
@@ -175,11 +214,19 @@ which reads a pair's stations off its partial quotients, and the
 \emph{deserts}: a ratio whose partial quotients stay small never beats
 visibly at any order, however rich the families' harmonics. Measured on
 \stationsConvergents\ convergents of \stationsRatios\ random ratios, the
-identity holds to $\stationsIdentityErr$, the limit to $\stationsPerronErr$
-past the sixth convergent, and the threshold classifies every one; the
-golden ratio's merit tends to \stationsGoldenMerit\ and the silver ratio's
-to \stationsSilverMerit, both above $\tfrac14$ (\texttt{stations.mjs}).
-Table~\ref{tab:stations} reads the proposition on five pairs.
+identity agrees with the tool's own scan to $\stationsIdentityErr$, the
+limit holds to $\stationsPerronErr$ past the sixth convergent, the
+partial-quotient rules hold without exception, the golden ratio's merit
+tends to \stationsGoldenMerit\ and the silver ratio's to
+\stationsSilverMerit, both above $\tfrac14$ (\texttt{stations.mjs}).
+Table~\ref{tab:stations} reads the proposition on five pairs. The desert is
+in sound too: two sawtooth tones --- every harmonic present, falling like
+$1/n$ --- at $200$ and $410$ hertz, the ratio $2.05$, carry a station line
+at ten hertz through a square-law ear that is $\earDesertRatio\times$
+stronger than the strongest slow line of two sawtooths at $200$ hertz and
+$200$ times the golden ratio (\texttt{ear.mjs}). The prediction for
+hearing: golden intervals of harmonic-rich tones sound rough, but they
+never \emph{beat}.
 
 \begin{table}[t]
   \centering\small
@@ -193,13 +240,6 @@ Table~\ref{tab:stations} reads the proposition on five pairs.
   \texttt{stations.json}.}
   \label{tab:stations}
 \end{table}
-
-The desert is in sound too. Two sawtooth tones --- every harmonic present,
-falling like $1/n$ --- at the ratio $2.05$ carry a station line at ten hertz
-through a square-law ear that is $\earDesertRatio\times$ stronger than the
-strongest slow line of two sawtooths at the golden ratio
-(\texttt{ear.mjs}). The prediction for hearing: golden intervals of
-harmonic-rich tones sound rough, but they never \emph{beat}.
 
 \begin{figure}[t]
   \centering
