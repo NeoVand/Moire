@@ -603,22 +603,23 @@ function solveLayers(slots, fields, view, world, pixel, scanOn) {
         // a box `fieldScale` wide with the image's own aspect, and zero
         // outside it. Sampled at level zero, so the read needs no uniform
         // control flow and no mipmaps.
+        //
+        // The shift's gradient is deliberately NOT reported. The stroke is a
+        // Euclidean band, its width divided by the index gradient, so a
+        // reported warp makes a wander of lines a wander of pen widths as
+        // well: thin where the key crowds the members, fat where it spreads
+        // them, and the interleave that is the inverse moiré's black then
+        // covers 75% in one place and 100% in the next. Left at zero, the
+        // band is measured in the family's own phase and every member keeps
+        // its DUTY, which is the profile the theory pools; a keyed pair goes
+        // solid black in register. The price is that the rate machinery
+        // reads a keyed layer at its nominal rate.
         const L = slot.fieldScale.abs().max(1e-3);
         const u = local.x.div(L).add(0.5);
         const v = float(0.5).sub(local.y.div(L.mul(program.aspect)));
-        const dark = (uu, vv) => {
-          const inside = step(0, uu).mul(step(uu, 1)).mul(step(0, vv)).mul(step(vv, 1));
-          return float(1).sub(texture(program.texture, vec2(uu, vv), float(0)).r).mul(inside);
-        };
-        shift.assign(dark(u, v).mul(slot.fieldAmount));
-        // Central differences one texel apart, per world unit; v runs against y.
-        const eu = 1 / program.width;
-        const ev = 1 / program.height;
-        const gx = dark(u.add(eu), v).sub(dark(u.sub(eu), v)).div(L.mul(2 * eu));
-        const gy = dark(u, v.sub(ev))
-          .sub(dark(u, v.add(ev)))
-          .div(L.mul(program.aspect).mul(2 * ev));
-        shiftGrad.assign(vec2(gx, gy).mul(slot.fieldAmount));
+        const inside = step(0, u).mul(step(u, 1)).mul(step(0, v)).mul(step(v, 1));
+        const dark = float(1).sub(texture(program.texture, vec2(u, v), float(0)).r).mul(inside);
+        shift.assign(dark.mul(slot.fieldAmount));
       } else if (program) {
         const sample = fieldFunction(program, `moireField${index}`)(local, slot.fieldScale);
         shift.assign(sample.x.mul(slot.fieldAmount));

@@ -1091,6 +1091,7 @@ function Chrome({ onToggle }: { onToggle: () => void }) {
 export function Studio() {
   const [open, setOpen] = useState(readOpen);
   const [fieldLayerId, setFieldLayerId] = useState<string | null>(null);
+  const duplicateLayer = useProjectStore((s) => s.duplicateLayer);
   const layers = useProjectStore((s) => s.layers);
   const updateLayer = useProjectStore((s) => s.updateLayer);
   const fieldLayer = layers.find((layer) => layer.id === fieldLayerId) ?? null;
@@ -1157,9 +1158,38 @@ export function Studio() {
           layerId={fieldLayer.id}
           layerName={fieldLayer.name}
           field={fieldLayer.field}
+          spacing={fieldLayer.spacing}
           onChange={(patch) =>
             updateLayer(fieldLayer.id, { field: { ...fieldLayer.field, ...patch } })
           }
+          onSplit={(key, payload, amount) => {
+            // The picture goes into the difference of two layers. The key's
+            // other half lands on this layer's unmodulated twin when it has
+            // one -- the base the picture was meant to be read against -- and
+            // on a fresh copy otherwise. Alone, neither shows the picture.
+            const field = { ...fieldLayer.field, amount, source: '' };
+            updateLayer(fieldLayer.id, { field: { ...field, image: payload } });
+            const twin = layers.find(
+              (layer) =>
+                layer.id !== fieldLayer.id &&
+                layer.type === fieldLayer.type &&
+                Math.abs(layer.spacing - fieldLayer.spacing) < 1e-9 &&
+                !layer.field.image &&
+                !hasField(layer)
+            );
+            if (twin) {
+              updateLayer(twin.id, { field: { ...field, image: key } });
+              return;
+            }
+            duplicateLayer(fieldLayer.id);
+            const copyId = useProjectStore.getState().selectedLayerId;
+            if (copyId && copyId !== fieldLayer.id) {
+              updateLayer(copyId, {
+                name: `${fieldLayer.name} key`,
+                field: { ...field, image: key },
+              });
+            }
+          }}
           onClose={() => setFieldLayerId(null)}
         />
       )}

@@ -3,6 +3,7 @@ import { compileField, FIELD_PRESETS, type CompiledField } from '../fields/expr'
 import { evalField } from '../fields/evalExpr';
 import { tokenizeForDisplay, type ExprTokenKind } from '../fields/highlight';
 import { FIELD_NONE, type FieldSpec } from '../types/moire';
+import { KEY_AMOUNT, splitDarkness } from '../fields/imageKey';
 import { layerPath } from '../store/params';
 import { FloatingPanel } from './ui/FloatingPanel';
 import { Slider } from './ui/Slider';
@@ -14,8 +15,8 @@ const PREVIEW_WORLD = 320;
 
 type PreviewMode = 'fringes' | 'field';
 
-/** Long side of a stored image field: enough for a silhouette, small enough for a scene file. */
-const IMAGE_SIDE = 256;
+/** Long side of a stored image field: enough for a silhouette's edges to sit inside a pitch, small enough for a scene file. */
+const IMAGE_SIDE = 512;
 
 /**
  * A picked file as the field's image: fitted to `IMAGE_SIDE`, composited over
@@ -23,6 +24,50 @@ const IMAGE_SIDE = 256;
  * it. The shader reads its darkness, so a black silhouette on white is the
  * natural input and grey levels come through as fractions of the amount.
  */
+/** A darkness array as a greyscale PNG data URL, the form an image field is stored in. */
+function darknessToPng(dark: Float32Array, w: number, h: number): string {
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('no 2d context');
+  const image = ctx.createImageData(w, h);
+  for (let i = 0; i < w * h; i++) {
+    const l = Math.round(255 * (1 - Math.min(1, Math.max(0, dark[i]))));
+    image.data[4 * i] = image.data[4 * i + 1] = image.data[4 * i + 2] = l;
+    image.data[4 * i + 3] = 255;
+  }
+  ctx.putImageData(image, 0, 0);
+  return canvas.toDataURL('image/png');
+}
+
+/**
+ * The stored picture split into a key and a payload (see `imageKey.ts`): two
+ * images that alone show a wander and together show the picture.
+ */
+async function hideInKey(
+  image: string,
+  spacing: number,
+  extent: number
+): Promise<{ key: string; payload: string }> {
+  const el = new Image();
+  el.src = image;
+  await el.decode();
+  const w = el.naturalWidth;
+  const h = el.naturalHeight;
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('no 2d context');
+  ctx.drawImage(el, 0, 0);
+  const d = ctx.getImageData(0, 0, w, h).data;
+  const dark = new Float32Array(w * h);
+  for (let i = 0; i < w * h; i++) dark[i] = 1 - d[4 * i] / 255;
+  const pair = splitDarkness(dark, w, h, { spacing, extent, seed: (Math.random() * 1e9) >>> 0 });
+  return { key: darknessToPng(pair.key, w, h), payload: darknessToPng(pair.payload, w, h) };
+}
+
 async function imageToField(file: File): Promise<string> {
   const bitmap = await createImageBitmap(file);
   const s = Math.min(1, IMAGE_SIDE / Math.max(bitmap.width, bitmap.height));
@@ -312,14 +357,23 @@ export function FieldEditor({
   layerId,
   layerName,
   field,
+  spacing,
   onChange,
+  onSplit,
   onClose,
 }: {
   /** Which layer's field this is, so its two knobs can be addressed and animated. */
   layerId: string;
   layerName: string;
   field: FieldSpec;
+  /** The layer's pitch, which a key is budgeted against. */
+  spacing: number;
   onChange: (patch: Partial<FieldSpec>) => void;
+  /**
+   * The picture hidden across two layers: this one takes the key, a new copy
+   * takes the payload, both at `amount`.
+   */
+  onSplit: (key: string, payload: string, amount: number) => void;
   onClose: () => void;
 }) {
   const [draft, setDraft] = useState(field.source);
@@ -349,6 +403,17 @@ export function FieldEditor({
     // Half a member at black: the offset that interleaves the strokes of an
     // unmodulated twin, which is the inverse moiré's full contrast.
     onChange({ image, amount: field.image ? field.amount : 0.5 });
+  };
+  const [splitting, setSplitting] = useState(false);
+  const split = async () => {
+    if (!field.image || splitting) return;
+    setSplitting(true);
+    try {
+      const pair = await hideInKey(field.image, spacing, field.scale);
+      onSplit(pair.key, pair.payload, KEY_AMOUNT);
+    } finally {
+      setSplitting(false);
+    }
   };
 
   return (
@@ -457,14 +522,25 @@ export function FieldEditor({
                 {field.image ? 'Expression (ignored while an image is set)' : 'Expression'}
               </span>
               {field.image && (
-                <button
-                  type="button"
-                  className="text-[10px] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                  title="Drop the image and go back to the expression"
-                  onClick={() => onChange({ image: undefined })}
-                >
-                  Remove image
-                </button>
+                <span className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    className="text-[10px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] disabled:opacity-50"
+                    title="Hide the picture across two layers: this one takes a random key, a new copy takes the key minus the picture. Alone, each is a wander of lines; together they show the picture."
+                    disabled={splitting}
+                    onClick={() => void split()}
+                  >
+                    {splitting ? 'Hiding…' : 'Hide in a key'}
+                  </button>
+                  <button
+                    type="button"
+                    className="text-[10px] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                    title="Drop the image and go back to the expression"
+                    onClick={() => onChange({ image: undefined })}
+                  >
+                    Remove image
+                  </button>
+                </span>
               )}
               {!field.image && trimmed && (
                 <button

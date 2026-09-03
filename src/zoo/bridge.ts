@@ -1,6 +1,6 @@
 import { capturePng, captureSize, captureSettle, captureInfo } from '../gpu/capture';
-import { parseScene } from '../store/scene';
-import { useProjectStore } from '../store/project';
+import { parseScene, serializeScene } from '../store/scene';
+import { sceneOf, useProjectStore } from '../store/project';
 
 /**
  * The scene zoo's side of the harness: a window API the headless runner drives.
@@ -23,6 +23,8 @@ export interface ZooApi {
   load: (sceneText: string) => void;
   /** One settled frame as a PNG data URL, framed by the scene alone. */
   capture: (opts?: { width?: number; height?: number }) => Promise<string>;
+  /** The construction as a scene file's text, for a harness to read back. */
+  dump: () => string;
 }
 
 declare global {
@@ -46,6 +48,8 @@ window.__zoo = {
   load: (sceneText: string) => {
     useProjectStore.getState().loadScene(parseScene(sceneText));
   },
+
+  dump: () => serializeScene(sceneOf()),
 
   capture: async (opts = {}) => {
     const width = Math.round(opts.width ?? 640);

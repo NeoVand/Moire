@@ -56,6 +56,60 @@ of the pitch, and the null of a $2{:}1$ pair at coarse duty one half, flat
 under the linear pooled view at every zoom, reopens under the square-law
 toggle as the zoom widens the edges.
 
+The field language also runs the theory backwards. A picture with
+brightness $g$ is a field: give a copy of a layer the index shift
+$D=\tfrac12(1-g)$, read from the picture in the copy's own coordinates,
+and the tent of Corollary~\ref{cor:cases} says what any pooling observer
+sees of the pair. The strokes align where the picture is white and
+interleave where it is black, so in register the overlay is the picture,
+at half contrast, and nothing else (Figure~\ref{fig:inverse}). Out of
+register the same two layers are the classical band moir\'e with the
+picture riding on it. A quarter of a pitch apart, the offset is one
+quarter outside the figure and three quarters inside, which the tent
+cannot tell apart, and only the edges, where the offset passes through one
+half, stay dark: the silhouette turns into a line drawing. Two thirds of a
+pitch apart it is a negative. Turned by under a degree, the bands of the
+rotation carry it as a displacement, and as the turn closes the bands
+widen until one of them is the whole frame and the picture is back. The
+construction is one line because the count is the object: the picture is a
+slow combination chosen by hand, and the base family is free. It is also a
+secret-sharing scheme. One layer alone shows the picture, as a jog of half
+a pitch along its edges. Give both layers a random smooth key $K$ and the
+picture only to their difference --- the shift $AK+\tfrac14 D$ on one and
+$AK-\tfrac14 D$ on the other --- and each layer alone is a wander of lines
+with no picture in it, while the recipe $(1,-1)$ cancels the key and keeps
+the picture (Figure~\ref{fig:inverse}, bottom row). The key must not fold
+the family, so its slope is budgeted against the pitch, and the picture's
+edges are softened to that slope, so that no edge is the sharpest thing in
+either layer. In \Moire\ these are the Image button of the field editor,
+which stores the picture in the layer and shifts its index by the picture's
+darkness, and the Hide in a key action beside it, which puts the key on the
+picture's unmodulated twin.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.32\linewidth]{inverse-alone.png}\hfill
+  \includegraphics[width=0.32\linewidth]{inverse-aligned.png}\hfill
+  \includegraphics[width=0.32\linewidth]{inverse-quarter.png}\\[3pt]
+  \includegraphics[width=0.32\linewidth]{hidden-key.png}\hfill
+  \includegraphics[width=0.32\linewidth]{hidden-payload.png}\hfill
+  \includegraphics[width=0.32\linewidth]{hidden-aligned.png}
+  \caption{\figlead{The inverse problem, in the tool.} Top row, one layer
+  carries the picture as the index shift $D=\tfrac12(1-g)$. Alone (left),
+  the picture is in the lines. Over its unmodulated twin in register
+  (middle), the strokes interleave where the picture is black and the
+  overlay is the picture. A quarter of a pitch apart (right), inside and
+  outside the figure the offset differs by one half, which the tent of
+  Corollary~\ref{cor:cases} cannot tell from itself, and only the edges stay
+  dark. Bottom row, the picture shared between the two layers with a random
+  key: the key layer alone (left) and the payload layer alone (middle) are
+  wanders of lines with no picture in them; in register (right) the key
+  cancels and the picture is back, its edges softened to the key's slope.
+  Rendered by the tool's capture path from the scenes the field editor
+  writes.}
+  \label{fig:inverse}
+\end{figure}
+
 Every view is a measurement with a gate, in two different senses that
 should not be confused. The count solver for the fold rung is checked
 against a brute-force twin that tries every member, so its answers are
