@@ -25,6 +25,11 @@ import {
   uniformArray,
   wgslFn,
   texture,
+  floor,
+  fract,
+  dot,
+  log2,
+  atan,
 } from 'three/tsl';
 import {
   FIELD_NONE,
@@ -126,6 +131,15 @@ export function createLayerSlot() {
     frequency: uniform(1),
     fieldAmount: uniform(0),
     fieldScale: uniform(200),
+    // An image field's dials, all uniforms so none of them rebuilds: how the
+    // picture sits on the layers (0 plain, 1 halves, 2 weave), which side of a
+    // shared picture this is, the mip level its edges are read at, the weave's
+    // seed, and the weave's cell length in pitches.
+    fieldMode: uniform(0),
+    fieldRole: uniform(1),
+    fieldSoften: uniform(0),
+    fieldSeed: uniform(1),
+    fieldCell: uniform(1),
     typeFrom: uniform(1),
     morph: uniform(1),
     // Where this layer's tiling keeps its bins, how many per axis, and its
@@ -220,6 +234,11 @@ function writeField(slot: LayerSlot, field: FieldSpec | undefined) {
   // instant where clearing the source would be a rebuild.
   slot.fieldAmount.value = fieldSource(field) && spec.enabled !== false ? spec.amount : 0;
   slot.fieldScale.value = spec.scale || 200;
+  slot.fieldMode.value = spec.mode === 'halves' ? 1 : spec.mode === 'weave' ? 2 : 0;
+  slot.fieldRole.value = spec.role ?? 1;
+  slot.fieldSoften.value = Math.max(0, spec.soften ?? 0);
+  slot.fieldSeed.value = spec.seed ?? 1;
+  slot.fieldCell.value = Math.max(0.05, spec.cell ?? 1);
 }
 
 export function createCameraUniforms() {
@@ -600,26 +619,77 @@ function solveLayers(slots, fields, view, world, pixel, scanOn) {
       const program = fields[index];
       if (isImageField(program)) {
         // An image as the field: its darkness, read in layer coordinates over
-        // a box `fieldScale` wide with the image's own aspect, and zero
-        // outside it. Sampled at level zero, so the read needs no uniform
-        // control flow and no mipmaps.
+        // a box `fieldScale` wide with the image's own aspect, zero outside
+        // it, at the mip level `fieldSoften` asks for. Sampled at an explicit
+        // level, so the read needs no uniform control flow.
         //
         // The shift's gradient is deliberately NOT reported. The stroke is a
         // Euclidean band, its width divided by the index gradient, so a
-        // reported warp makes a wander of lines a wander of pen widths as
-        // well: thin where the key crowds the members, fat where it spreads
-        // them, and the interleave that is the inverse moiré's black then
+        // reported warp makes a jitter of lines a jitter of pen widths as
+        // well, and the interleave that is the inverse moiré's black then
         // covers 75% in one place and 100% in the next. Left at zero, the
         // band is measured in the family's own phase and every member keeps
-        // its DUTY, which is the profile the theory pools; a keyed pair goes
-        // solid black in register. The price is that the rate machinery
-        // reads a keyed layer at its nominal rate.
+        // its DUTY, which is the profile the theory pools. The price is that
+        // the rate machinery reads such a layer at its nominal rate.
         const L = slot.fieldScale.abs().max(1e-3);
-        const u = local.x.div(L).add(0.5);
-        const v = float(0.5).sub(local.y.div(L.mul(program.aspect)));
-        const inside = step(0, u).mul(step(u, 1)).mul(step(0, v)).mul(step(v, 1));
-        const dark = float(1).sub(texture(program.texture, vec2(u, v), float(0)).r).mul(inside);
-        shift.assign(dark.mul(slot.fieldAmount));
+        const H = L.mul(program.aspect);
+        const uvOf = (px, py) => vec2(px.div(L).add(0.5), float(0.5).sub(py.div(H)));
+        const insideOf = (uv) =>
+          step(0, uv.x).mul(step(uv.x, 1)).mul(step(0, uv.y)).mul(step(uv.y, 1));
+        const darkAt = (uv, level) =>
+          float(1).sub(texture(program.texture, uv, level).r).mul(insideOf(uv));
+        const mode = slot.fieldMode;
+        const isHalves = step(0.5, mode).mul(step(mode, 1.5));
+        const isWeave = step(1.5, mode);
+        // Plain and halves: the picture where we stand. Halves gives each side
+        // half the shift, signed by its role, so the pair's difference is the
+        // whole amount.
+        const d = darkAt(uvOf(local.x, local.y), slot.fieldSoften);
+        const direct = d.mul(slot.fieldAmount).mul(mix(float(1), slot.fieldRole.mul(0.5), isHalves));
+        // Weave: cells one pitch across the members and `fieldCell` pitches
+        // along them -- aligned to the members for parallel lines (x across,
+        // y along) and for concentric rings (radius across, arc along), square
+        // in layer space for everything else. Every cell shifts by half the
+        // amount, left or right by a hash of the cell and the seed; the layer
+        // of role -1 flips WHOLE cells inside the picture, with a probability
+        // equal to the cell's mean darkness (the picture read at the cell's
+        // centre at the mip level of the cell's size) drawn from a second
+        // hash. Flipping by the darkness itself would leave a partly dark cell
+        // with a partly cancelled jitter, and the picture's edges and thin
+        // strokes would show on that layer alone as calmer lines; flipping
+        // whole cells keeps every cell a full jitter, so alone both layers are
+        // the same weave everywhere, greys come out dithered, and in register
+        // the jitter cancels outside the picture and doubles inside it.
+        const p = slot.spacing.abs().max(1e-3);
+        const ell = p.mul(slot.fieldCell.max(0.05));
+        const isLine = step(slot.type, 0.1);
+        const isRing = step(0.9, slot.type).mul(step(slot.type, 4.5));
+        const TAU = float(6.283185307);
+        const r = length(local);
+        const theta = atan(local.y, local.x);
+        const nRing = floor(r.sub(slot.phase).div(p).add(0.5));
+        const sectors = floor(TAU.mul(nRing.abs().max(0.5)).mul(p).div(ell).add(0.5)).max(1);
+        const kRing = floor(theta.div(TAU).add(0.5).mul(sectors));
+        const cxLine = floor(local.x.sub(slot.phase).div(p).add(0.5));
+        const cxSquare = floor(local.x.div(p).add(0.5));
+        const cyAlong = floor(local.y.div(ell));
+        const cx = mix(mix(cxSquare, cxLine, isLine), nRing, isRing);
+        const cy = mix(cyAlong, kRing, isRing);
+        const thetaC = kRing.add(0.5).div(sectors).sub(0.5).mul(TAU);
+        const rC = nRing.mul(p).add(slot.phase);
+        const centreLine = vec2(cxLine.mul(p).add(slot.phase), cyAlong.add(0.5).mul(ell));
+        const centreSquare = vec2(cxSquare.mul(p), cyAlong.add(0.5).mul(ell));
+        const centreRing = vec2(rC.mul(thetaC.cos()), rC.mul(thetaC.sin()));
+        const centre = mix(mix(centreSquare, centreLine, isLine), centreRing, isRing);
+        const cellLevel = log2(p.mul(program.width).div(L).max(1)).max(slot.fieldSoften);
+        const dCell = darkAt(uvOf(centre.x, centre.y), cellLevel);
+        const hashOf = (salt) =>
+          fract(dot(vec3(cx, cy, slot.fieldSeed.add(salt)), vec3(12.9898, 78.233, 37.719)).sin().mul(43758.5453));
+        const jitter = step(0.5, hashOf(0)).mul(2).sub(1).mul(slot.fieldAmount).mul(0.5);
+        const flips = step(hashOf(0.5), dCell).mul(step(0.001, dCell));
+        const keeps = step(0, slot.fieldRole);
+        const weave = jitter.mul(mix(float(1).sub(flips.mul(2)), float(1), keeps));
+        shift.assign(mix(direct, weave, isWeave));
       } else if (program) {
         const sample = fieldFunction(program, `moireField${index}`)(local, slot.fieldScale);
         shift.assign(sample.x.mul(slot.fieldAmount));

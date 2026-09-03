@@ -53,6 +53,26 @@ export interface FieldSpec {
    * picture, and any offset shows it as a warp of the bands.
    */
   image?: string;
+  /**
+   * How the picture sits on the layers. `plain`, the default: this layer alone
+   * shifts by the picture. `halves`: two layers each take half the shift in
+   * opposite directions (`role`), so in register the overlay is the picture
+   * and alone each shows its edges faintly. `weave`: both layers jitter by
+   * half the amount per cell at random, and inside the picture the layer of
+   * role -1 flips its jitter, so alone each is the same weave everywhere and
+   * in register the picture is crisp at cell size -- visual cryptography in
+   * the count's currency. The partner of a shared picture is the layer that
+   * carries the same image with the opposite role.
+   */
+  mode?: 'plain' | 'halves' | 'weave';
+  /** Which side of a shared picture this layer is. */
+  role?: 1 | -1;
+  /** Softness of the picture's edges, in doublings of a texel (a mip level). */
+  soften?: number;
+  /** The weave's random signs come from this. Shared by a pair. */
+  seed?: number;
+  /** Length of a weave cell along the members, in pitches; across them it is one. */
+  cell?: number;
 }
 
 export const FIELD_NONE: FieldSpec = { source: '', amount: 3, scale: 200 };

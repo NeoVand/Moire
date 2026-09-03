@@ -142,7 +142,10 @@ export function Slider({
     setIsEditing(false);
   };
 
-  const pct = ((value - min) / (max - min)) * 100;
+  // A stored value can sit outside the range the markup allows (an image field
+  // widens Extent, and removing the image narrows it again); the thumb stays on
+  // the track either way.
+  const pct = Math.min(100, Math.max(0, ((value - min) / (max - min)) * 100));
   const mid = min < 0 && max > 0 ? ((0 - min) / (max - min)) * 100 : 0;
   const fillLeft = min < 0 && max > 0 ? Math.min(pct, mid) : 0;
   const fillWidth = min < 0 && max > 0 ? Math.abs(pct - mid) : pct;

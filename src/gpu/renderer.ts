@@ -137,8 +137,8 @@ function pairLicense(
  */
 /**
  * A layer's image field, decoded for the GPU. The data URL is a greyscale PNG
- * the field editor made; it is read at level zero with linear filtering and no
- * mipmaps, and `flipY` is off so texel row zero is the top of the picture.
+ * the field editor made; it is read at an explicit mip level with linear
+ * filtering, and `flipY` is off so texel row zero is the top of the picture.
  */
 async function loadImageField(data: string): Promise<ImageField> {
   // An image element rather than createImageBitmap on the bytes: the element's
@@ -150,8 +150,11 @@ async function loadImageField(data: string): Promise<ImageField> {
   const bitmap = await createImageBitmap(image, { colorSpaceConversion: 'none' });
   const texture = new THREE.Texture(bitmap);
   texture.flipY = false;
-  texture.generateMipmaps = false;
-  texture.minFilter = THREE.LinearFilter;
+  // Mipmaps are the edge-softness dial: the shader reads the picture at the
+  // level `fieldSoften` asks for, and a weave reads a cell's mean darkness at
+  // the level of the cell's size.
+  texture.generateMipmaps = true;
+  texture.minFilter = THREE.LinearMipmapLinearFilter;
   texture.magFilter = THREE.LinearFilter;
   texture.wrapS = THREE.ClampToEdgeWrapping;
   texture.wrapT = THREE.ClampToEdgeWrapping;

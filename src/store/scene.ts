@@ -118,6 +118,13 @@ function parseLayer(raw: unknown, index: number): PatternLayer {
       ...(typeof field.image === 'string' && field.image.startsWith('data:image/')
         ? { image: field.image }
         : {}),
+      ...(field.mode === 'plain' || field.mode === 'halves' || field.mode === 'weave'
+        ? { mode: field.mode }
+        : {}),
+      ...(field.role === 1 || field.role === -1 ? { role: field.role } : {}),
+      ...(typeof field.soften === 'number' ? { soften: num(field.soften, 0) } : {}),
+      ...(typeof field.seed === 'number' ? { seed: num(field.seed, 1) } : {}),
+      ...(typeof field.cell === 'number' ? { cell: num(field.cell, 1) } : {}),
     },
   };
 }

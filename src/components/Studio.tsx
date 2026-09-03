@@ -19,6 +19,8 @@ import {
   PATTERN_META,
   familyOf,
   hasField,
+  type FieldSpec,
+  type PatternLayer,
   isConcentric,
   isCurves,
   isGrid,
@@ -46,6 +48,33 @@ import { currentTiling } from '../lib/tilingChoice';
 import { tilingSpec, type TilingId } from '../gpu/tilings';
 
 const STUDIO_KEY = 'moire-studio-open';
+
+
+/**
+ * The other half of a shared picture: the layer carrying the same image with
+ * the opposite role. No id is stored for it; the picture is the link.
+ */
+function partnerOf(layers: PatternLayer[], layer: PatternLayer): PatternLayer | null {
+  const { image, role } = layer.field;
+  if (!image || !role) return null;
+  return (
+    layers.find(
+      (other) => other.id !== layer.id && other.field.image === image && other.field.role === -role
+    ) ?? null
+  );
+}
+
+/** The dials of a shared picture that are one setting on both layers. */
+const SHARED_FIELD_KEYS = new Set<keyof FieldSpec>([
+  'image',
+  'mode',
+  'amount',
+  'scale',
+  'soften',
+  'seed',
+  'cell',
+  'enabled',
+]);
 
 function readOpen() {
   try {
@@ -1158,37 +1187,69 @@ export function Studio() {
           layerId={fieldLayer.id}
           layerName={fieldLayer.name}
           field={fieldLayer.field}
-          spacing={fieldLayer.spacing}
-          onChange={(patch) =>
-            updateLayer(fieldLayer.id, { field: { ...fieldLayer.field, ...patch } })
-          }
-          onSplit={(key, payload, amount) => {
-            // The picture goes into the difference of two layers. The key's
-            // other half lands on this layer's unmodulated twin when it has
-            // one -- the base the picture was meant to be read against -- and
-            // on a fresh copy otherwise. Alone, neither shows the picture.
-            const field = { ...fieldLayer.field, amount, source: '' };
-            updateLayer(fieldLayer.id, { field: { ...field, image: payload } });
-            const twin = layers.find(
-              (layer) =>
-                layer.id !== fieldLayer.id &&
-                layer.type === fieldLayer.type &&
-                Math.abs(layer.spacing - fieldLayer.spacing) < 1e-9 &&
-                !layer.field.image &&
-                !hasField(layer)
-            );
+          partnerName={partnerOf(layers, fieldLayer)?.name ?? null}
+          onChange={(patch) => {
+            updateLayer(fieldLayer.id, { field: { ...fieldLayer.field, ...patch } });
+            // A shared picture's dials are one setting on two layers.
+            const partner = partnerOf(layers, fieldLayer);
+            if (!partner) return;
+            const shared = Object.fromEntries(
+              Object.entries(patch).filter(([key]) => SHARED_FIELD_KEYS.has(key as keyof FieldSpec))
+            ) as Partial<FieldSpec>;
+            if (Object.keys(shared).length) {
+              updateLayer(partner.id, { field: { ...partner.field, ...shared } });
+            }
+          }}
+          onShare={(mode) => {
+            const partner = partnerOf(layers, fieldLayer);
+            if (mode === 'plain') {
+              // Back to one layer: the partner gives the picture up.
+              if (partner) {
+                updateLayer(partner.id, {
+                  field: { ...partner.field, image: undefined, mode: undefined, role: undefined },
+                });
+              }
+              updateLayer(fieldLayer.id, { field: { ...fieldLayer.field, mode, role: undefined } });
+              return;
+            }
+            // Two layers. This one is the flipping side; the other half lands
+            // on the existing partner, else on this layer's unmodulated twin
+            // (same family and pitch, no field: the base the picture was meant
+            // to be read against), else on a fresh copy.
+            const seed = fieldLayer.field.seed ?? Math.floor(Math.random() * 1000) + 1;
+            const mine: FieldSpec = { ...fieldLayer.field, mode, seed, role: -1, source: '' };
+            const theirs: FieldSpec = { ...mine, role: 1 };
+            updateLayer(fieldLayer.id, { field: mine });
+            const twin =
+              partner ??
+              layers.find(
+                (layer) =>
+                  layer.id !== fieldLayer.id &&
+                  layer.type === fieldLayer.type &&
+                  Math.abs(layer.spacing - fieldLayer.spacing) < 1e-9 &&
+                  !layer.field.image &&
+                  !hasField(layer)
+              );
             if (twin) {
-              updateLayer(twin.id, { field: { ...field, image: key } });
+              updateLayer(twin.id, { field: theirs });
               return;
             }
             duplicateLayer(fieldLayer.id);
             const copyId = useProjectStore.getState().selectedLayerId;
             if (copyId && copyId !== fieldLayer.id) {
-              updateLayer(copyId, {
-                name: `${fieldLayer.name} key`,
-                field: { ...field, image: key },
-              });
+              updateLayer(copyId, { name: `${fieldLayer.name} pair`, field: theirs });
             }
+          }}
+          onRemove={() => {
+            const partner = partnerOf(layers, fieldLayer);
+            const bare = (field: FieldSpec): FieldSpec => ({
+              ...field,
+              image: undefined,
+              mode: undefined,
+              role: undefined,
+            });
+            if (partner) updateLayer(partner.id, { field: bare(partner.field) });
+            updateLayer(fieldLayer.id, { field: bare(fieldLayer.field) });
           }}
           onClose={() => setFieldLayerId(null)}
         />
