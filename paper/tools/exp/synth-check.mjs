@@ -1,5 +1,7 @@
-// The CPU replica of the shader's pooling synthesis (composite.ts,
-// poolSynthSource): the drawing's Fourier series in the phases, each term
+// The CPU replica of the shader's series synthesis (composite.ts,
+// poolSynthSource, used for three and four families and for the envelope's
+// stream frames; one and two families use the direct window integral,
+// poolDirect): the drawing's Fourier series in the phases, each term
 // under the pixel's Gaussian window at its own two-dimensional frequency,
 // for K = 2 with black ink on a white ground, checked against a brute-force
 // window average of the drawing itself. The formulas here are the WGSL's,

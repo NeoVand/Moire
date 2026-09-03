@@ -58,6 +58,10 @@ try {
   const page = await browser.newPage();
   page.setDefaultTimeout(180_000);
   page.on('pageerror', (err) => console.error('  page error:', err.message));
+  // A shader that fails to compile is reported on the console, not thrown.
+  page.on('console', (msg) => {
+    if (msg.type() === 'error' || msg.type() === 'warning') console.error('  console:', msg.text().slice(0, 4000));
+  });
   await page.setViewport({ ...VIEWPORT, deviceScaleFactor: 1 });
   await page.goto(`http://127.0.0.1:${port}/?zoo`, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => window.__zoo && window.__zoo.info() !== null, {

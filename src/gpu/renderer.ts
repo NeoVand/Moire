@@ -307,6 +307,7 @@ export class MoireRenderer {
   private poolable = false;
   private poolFinest = Infinity;
   private poolStroke = Infinity;
+  private poolK = 0;
   private fullCost = 0;
   private lastRequest = 0;
   private settleTimer = 0;
@@ -701,6 +702,7 @@ export class MoireRenderer {
     // At most four layers: the synthesis has (2M+1)^K terms.
     this.poolable =
       state.view.pool !== false && !envelope && !anyLattice && !hasLayerMorphs() && scalar.length <= 4;
+    this.poolK = scalar.length;
     this.poolFinest = Math.min(...scalar.map((l) => Math.abs(l.spacing)), Infinity);
     this.poolStroke = Math.min(...scalar.map((l) => Math.abs(l.thickness) * 0.5), Infinity);
     this.viewUniforms.pool.value = this.poolGate(state.camera.zoom * this.scale, this.scale);
@@ -758,11 +760,17 @@ export class MoireRenderer {
         this.lockedScale = 0;
         this.failedScale = 0;
       }
-      const start = this.lockedScale > 0 ? this.lockedScale : interactionScale(this.fullCost);
+      // An exact envelope streams by the synthesis, not the chain whose cost
+      // the rest frame measured: it starts full size and the pacing decides.
+      const synthStream = this.viewUniforms?.exactSweep.value === 1 && this.poolK <= 4;
+      const start =
+        this.lockedScale > 0 ? this.lockedScale : synthStream ? 1 : interactionScale(this.fullCost);
       if (start < 1) this.setScale(start);
+      if (this.viewUniforms) this.viewUniforms.stream.value = 1;
       this.startMetronome();
     } else if (!streaming) {
       this.inStream = false;
+      if (this.viewUniforms) this.viewUniforms.stream.value = 0;
     }
     this.armSettle();
     if (this.raf) return;
@@ -873,6 +881,8 @@ export class MoireRenderer {
    */
   private poolGate(zoom: number, scale: number): number {
     if (!this.poolable) return 0;
+    // One or two families draw through the window integral at every zoom.
+    if (this.poolK <= 2) return 1;
     const halfStroke = Math.max(this.poolStroke, (1.15 * scale) / Math.max(zoom, 1e-6));
     return this.poolFinest * zoom < POOL_PX || halfStroke * zoom < POOL_STROKE_PX ? 1 : 0;
   }
@@ -897,8 +907,10 @@ export class MoireRenderer {
     this.lockedScale = this.scale;
     this.locked = false;
     this.inStream = false;
-    if (this.scale === 1) return;
-    this.setScale(1);
+    const wasStream = this.viewUniforms?.stream.value === 1;
+    if (this.viewUniforms) this.viewUniforms.stream.value = 0;
+    if (this.scale === 1 && !wasStream) return;
+    if (this.scale !== 1) this.setScale(1);
     this.render();
   }
 
@@ -1012,10 +1024,13 @@ export class MoireRenderer {
       // hairline floor, the integral ramps and the pooling weight stay at
       // rest exactly as they do while a hand is on the zoom.
       this.cameraUniforms.scale.value = opts.interactionScale ?? 1;
+      // A stated interaction scale asks for the frame as a stream draws it.
+      if (this.viewUniforms) this.viewUniforms.stream.value = opts.interactionScale !== undefined ? 1 : 0;
       this.renderer.render(this.scene, this.camera);
       return await read(this.canvas);
     } finally {
       this.cameraUniforms.scale.value = this.scale;
+      if (this.viewUniforms) this.viewUniforms.stream.value = 0;
       this.cameraUniforms.zoom.value = zoom0;
       if (this.viewUniforms) this.viewUniforms.pool.value = this.poolGate(zoom0, this.scale);
       this.renderer.setPixelRatio(this.lastDpr || 1);

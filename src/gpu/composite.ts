@@ -309,6 +309,10 @@ export function createViewUniforms() {
     // then inks the whole pitch black; both were the zoom-out artifacts.
     // Scalar stacks only, like the exact sweep it reuses.
     pool: uniform(0),
+    // 1 while a hand is on the view. The exact envelope then draws by the
+    // synthesis below instead of the chain: the same terms, alias-free at
+    // any buffer, and cheap enough that the stream can start full size.
+    stream: uniform(0),
     // A flat exposure shift after the contrast expansion, for reading a fringe
     // field whose pivot sits too dark or too bright to print well.
     lift: uniform(0),
@@ -614,8 +618,13 @@ function solveLayers(slots, fields, view, world, pixel, pixelRest, scanOn) {
       // The hairline floor in REST pixels: the same widening while a hand is
       // on the zoom as after it settles, so the mean ink does not follow the
       // buffer. The drawn edge's ramp follows the buffer, which it must, and
-      // a ramp is mean-preserving.
-      halfT.assign(max(slot.thickness.mul(0.5), pixelRest.mul(1.15)));
+      // a ramp is mean-preserving. The floor exists so a sparse thin line
+      // survives the screen; it never takes more than 0.15 of the pitch, so
+      // a fine family keeps its true duty instead of inking its pitch black,
+      // continuously in the zoom, with no hand-over to carry.
+      const floorCap = slot.spacing.abs().mul(0.15);
+      const floorW = mix(pixelRest.mul(1.15), min(pixelRest.mul(1.15), floorCap), step(float(1e-3), slot.spacing.abs()));
+      halfT.assign(max(slot.thickness.mul(0.5), floorW));
       aa.assign(pixel.mul(0.7));
       aaRest.assign(pixelRest.mul(0.7));
       // How exactly the phase must be measured depends on who consumes it.
@@ -1750,25 +1759,22 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
   const isEnv = step(float(1.5), float(view.taps));
 
   // The pixel as a pooling observer (see the `pool` uniform): members per
-  // pixel of the finest visible family, and the weight with which the drawn
-  // colour hands over to the pooled one -- nothing under seven pixels a
-  // period, everything by four, which is where a hard stroke's harmonics
-  // start to beat with the pixel grid. Two weights: the REST one decides the
-  // look (how much ink the hairline floor gives up, how wide the box is),
-  // and never moves with the interaction buffer; the BUFFER one only asks
-  // whether the smaller buffer can still resolve the stroke, and hands over
-  // to the pooled colour where it cannot. Since the pooled colour is the box
-  // mean of the very drawing the plain path samples, that hand-over changes
-  // no mean: a coarse frame is the rest frame pooled, not a darker one.
+  // BUFFER pixel of the finest visible family, and the weight with which the
+  // drawn colour hands over to the synthesis -- nothing while every
+  // harmonic the buffer can show is one the synthesis carries, everything
+  // by the pitch where a hard stroke's harmonics reach the buffer's comb
+  // (seven pixels a period to four for a pair, which keeps eight harmonics;
+  // a shorter series hands over later). The drawing fails a buffer in two
+  // ways: a period it cannot resolve, and a stroke it cannot -- its
+  // 0.7-pixel ramp wider than the stroke's half-width, so every sample is
+  // partial. Measured in the buffer's own pixels: a coarser interaction
+  // buffer pools more, and since the synthesis draws the same profile the
+  // rest frame draws, only through the buffer's window, that changes no
+  // mean -- a coarse frame is the rest frame through a wider window.
   const poolPx = float(1).div(max(camera.zoom, float(0.08)));
   const poolPxRest = poolPx.mul(camera.scale.max(0.05));
   const poolWRest = float(0).toVar();
   const poolWBuf = float(0).toVar();
-  // The buffer fails the drawing in two ways: a period it cannot resolve
-  // (members per buffer pixel), and a stroke it cannot -- its 0.7-pixel ramp
-  // wider than the stroke's rest half-width, so every sample is partial. At
-  // rest the ramp is 0.7 of a floored half-width of 1.15 at most, and the
-  // stroke weight is zero: it moves only with the interaction buffer.
   const strokeW = float(0).toVar();
   solved.forEach(({ slot, halfT, aa }) => {
     const members = slot.active.div(slot.spacing.abs().max(1e-3));
@@ -1776,10 +1782,17 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
     poolWBuf.assign(max(poolWBuf, poolPx.mul(members)));
     strokeW.assign(max(strokeW, aa.div(halfT.max(1e-6)).mul(slot.active)));
   });
+  const [bandLo, bandHi] = POOL_BAND[Math.min(solved.length, 4)];
   const poolOn = view.pool.clamp(0, 1);
-  const poolTRest = smoothstep(float(0.14), float(0.25), poolWRest).mul(poolOn);
+  // The REST weight decides the look: how far the profile has gone from the
+  // drawn one (soft ramp, composited per layer) to the true one (hard, the
+  // window applied to the composite). The BUFFER weight decides only
+  // whether the buffer can still point-sample the drawing, and never moves
+  // a mean, because what it hands to is that same drawing under the
+  // buffer's window.
+  const poolTRest = smoothstep(float(bandLo), float(bandHi), poolWRest).mul(poolOn);
   const poolTBuf = max(
-    smoothstep(float(0.14), float(0.25), poolWBuf),
+    smoothstep(float(bandLo), float(bandHi), poolWBuf),
     smoothstep(float(0.65), float(1.0), strokeW)
   ).mul(poolOn);
   const poolT = max(poolTRest, poolTBuf);
@@ -1820,24 +1833,14 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
           .or(view.ratioC.equal(int(index)))
           .and(scanOn);
         const hInk = mix(halfT, max(slot.thickness.mul(0.5), float(1e-3)), isEnv);
-        // Inside the envelope the ramp never exceeds the half-stroke (see
-        // exactAlphaWgsl): the tap loop and the chain are twins.
-        const aaUse = mix(aa, aaRest.min(hInk), isEnv);
-        // The hairline floor widens a thin stroke to stay visible; while the
-        // pixel pools, that widening would darken the mean past the duty, so
-        // the widened stroke gives up ink in proportion, and the drawn colour
-        // meets the pooled one at the same mean. By the REST weight: a
-        // smaller interaction buffer must not change how dark a line is.
-        const conserve = mix(
-          float(1),
-          slot.thickness.mul(0.5).div(hInk.max(1e-6)).min(1),
-          poolTRest
-        );
+        // The ramp never exceeds the half-stroke (see exactAlphaWgsl): a
+        // symmetric ramp conserves a stroke's mass only while it fits inside
+        // it. The tap loop, the chain and the synthesis draw one profile.
+        const aaUse = mix(aa, aaRest, isEnv).min(hInk);
         const strokeAlpha = (d) =>
           float(1)
             .sub(smoothstep(hInk.sub(aaUse), hInk.add(aaUse), d))
-            .mul(slot.opacity)
-            .mul(conserve);
+            .mul(slot.opacity);
 
         const alpha = float(0).toVar();
         const alphaDiag = float(0).toVar();
@@ -1978,19 +1981,16 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
       argsDiag.push(phase, pr, vec3(slot.color), slot.active, float(1));
       return pr;
     });
-    // While a hand is on the view the buffer is smaller than the screen,
-    // and the envelope's own fine structure -- the beat is fast where two
-    // families cross, at the foci of a ring pair -- point-sampled at that
-    // buffer aliased into rosettes that vanished the moment the hand lifted.
-    // A reduced buffer therefore draws the envelope by the synthesis below:
-    // the same terms the chain integrates, the slide multiplier on each, and
-    // the buffer's own window on each at its true frequency, so nothing past
-    // the buffer's Nyquist is drawn. Same mean, no alias; at rest the exact
-    // chain, sharp.
-    const wEnv =
-      solved.length <= SYNTH_MAX_K
-        ? float(1).sub(smoothstep(float(0.6), float(0.95), camera.scale))
-        : float(0);
+    // While a hand is on the view the envelope is drawn by the synthesis
+    // below: the same terms the chain integrates, the slide multiplier on
+    // each, and the pixel's window on each at its true frequency, so nothing
+    // past the buffer's Nyquist is drawn. The chain point-sampled by a
+    // reduced buffer aliased its own fast beats -- at the foci of a ring
+    // pair -- into rosettes that vanished when the hand lifted; and the
+    // chain is slow, so every gesture opened on a coarse buffer. The
+    // synthesis is alias-free at any buffer and cheap, so the stream can
+    // start full size and stay crisp. Same mean; at rest the chain, sharp.
+    const wEnv = solved.length <= SYNTH_MAX_K ? view.stream.clamp(0, 1) : float(0);
     const exact = vec3(0).toVar();
     If(wEnv.lessThan(0.999), () => {
       const diag = chain(...argsDiag);
@@ -2006,7 +2006,7 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
     if (solved.length <= SYNTH_MAX_K) {
       If(wEnv.greaterThan(0.001), () => {
         const synth = poolSynth(solved.length);
-        const args: unknown[] = [view.observer, vec3(camera.background), view.sweep, devW, float(0.8)];
+        const args: unknown[] = [view.observer, vec3(camera.background), view.sweep, devW, float(SYNTH_SIGMA)];
         solved.forEach(({ slot, phase, sgrad }, index) => {
           args.push(phase, sgrad, prs[index], vec3(slot.color), slot.active, rates[index]);
         });
@@ -2023,64 +2023,92 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
   }).Else(() => {
     tapLoop();
     // The pixel as a pooling observer (see the `pool` uniform and
-    // poolSynthSource). Where the finest visible pitch is under about seven
-    // rest pixels a period the drawn colour hands over to the TRUE mean,
-    // fully by four: the synthesis over strokes of their true width with no
-    // ramp (two strokes in register pool to the light of one, a two-valued
-    // profile being its own square), under a Gaussian window whose width
-    // grows to half the coarsest pitch, so the carriers go, their aliases
-    // with them, and the count map stays -- the slow terms, at their true
-    // two-dimensional frequencies. The weight is the REST one, so a smaller
-    // interaction buffer moves it not at all.
-    //
-    // What the buffer moves is a second, inner hand-over. The drawing is
-    // point-sampled, and a buffer coarser than its stroke samples it wrong:
-    // the soft ramp is then wider than the stroke, every sample is partial,
-    // and partial coverages composed multiplicatively double-count where
-    // strokes coincide (Jensen on the ramps) -- a coarse frame came out
-    // darker than the rest frame, and the screen flashed at every notch of
-    // the ladder. So where the BUFFER cannot resolve the drawing, the
-    // drawing's share is replaced by its own synthesis: the same floored
-    // stroke, the same rest ramp, the same ink, under the buffer pixel's
-    // window alone. That has the drawing's mean by construction, ramps and
-    // all: a coarse frame is the rest frame pooled, not a darker one.
-    if (solved.length <= SYNTH_MAX_K) {
+    // poolSynthSource). Where the buffer can no longer show the drawing
+    // faithfully by point samples, the drawn colour hands over to the
+    // drawing's Fourier series under the pixel's own window: each term at
+    // its true two-dimensional frequency, kept or killed by a Gaussian half
+    // a pixel wide and cut past the buffer's Nyquist square. Nothing
+    // wider: a stripe the screen can show keeps its contrast (half of it at
+    // three pixels a period), only what would alias goes, and the beat
+    // emerges by eye, as it does on paper. The profile is the drawn one --
+    // the same floored stroke, the same rest ramp, the same ink -- so the
+    // hand-over changes no mean, and a coarse interaction buffer, seeing
+    // the same profile through its own wider window, shows the rest frame
+    // pooled rather than a darker or an aliased one.
+    // One or two families: the window integral itself (poolDirect), at
+    // every zoom -- it replaces the point-sampled drawing outright, so there
+    // is no hand-over and nothing to keep consistent. The window is as
+    // crisp as the drawn edge where the pitch is coarse and widens to keep
+    // a fine pitch's harmonics off the buffer's comb, in the buffer's own
+    // pixels, so a coarse interaction buffer sees the same drawing through
+    // a wider window: the same light, no alias, no flash.
+    if (solved.length <= 2) {
+      If(view.pool.greaterThan(0.5), () => {
+        // The window widens with the pitch, in the buffer's own pixels:
+        // the drawn edge's crispness at seven pixels a period and coarser,
+        // half a pixel by four, and 0.9 by two, where a stripe sits at the
+        // buffer's Nyquist and a Gaussian narrower than that would pass a
+        // quarter of it to beat with the pixel grid (0.9 passes 4%).
+        const sigma = mix(
+          float(DIRECT_SIGMA_COARSE),
+          float(DIRECT_SIGMA_FINE),
+          smoothstep(float(bandLo), float(bandHi), poolWBuf)
+        ).add(smoothstep(float(0.25), float(0.5), poolWBuf).mul(DIRECT_SIGMA_NYQUIST - DIRECT_SIGMA_FINE));
+        const sw = sigma.mul(poolPx);
+        const prs = solved.map(({ slot, halfT }) => vec4(max(halfT, float(1e-3)), slot.opacity, float(0), float(0)));
+        if (solved.length === 1) {
+          const { slot, phase } = solved[0];
+          meanOut.assign(
+            poolDirect1(float(0), vec3(camera.background), sw, phase, prs[0], vec3(slot.color), slot.active)
+          );
+        } else {
+          const n0 = solved[0].sgrad.div(solved[0].sgrad.length().max(1e-6));
+          const n1 = solved[1].sgrad.div(solved[1].sgrad.length().max(1e-6));
+          const rho = n0.dot(n1).clamp(-1, 1);
+          meanOut.assign(
+            poolDirect2(
+              float(0),
+              vec3(camera.background),
+              sw,
+              rho,
+              solved[0].phase,
+              prs[0],
+              vec3(solved[0].slot.color),
+              solved[0].slot.active,
+              solved[1].phase,
+              prs[1],
+              vec3(solved[1].slot.color),
+              solved[1].slot.active
+            )
+          );
+        }
+      });
+    } else if (solved.length <= SYNTH_MAX_K) {
+      // Three or four families: the series, with its hand-over band. Two
+      // profiles: the drawn one -- floored stroke, 0.7-rest-pixel ramp --
+      // is what the per-layer anti-aliasing composites, and its ramps
+      // double-count where strokes coincide; the true one is hard, and the
+      // window applies to the composite. The rest weight carries the look
+      // from the first to the second across the band; the buffer weight
+      // replaces point samples of the drawn profile by the drawn profile
+      // under the buffer's window.
       If(view.pool.greaterThan(0.5).and(poolT.greaterThan(0.001)), () => {
         const synth = poolSynth(solved.length);
-        const sigBuf = float(0.8);
-        // The coarsest pooled pitch, in buffer pixels: the rest window is
-        // half of it at full weight, which puts the carrier at 0.007.
-        const pitchMax = float(0).toVar();
-        solved.forEach(({ slot, sgrad }) => {
-          const gl = sgrad.length();
-          If(slot.active.greaterThan(0.5).and(gl.greaterThan(1e-4)), () => {
-            pitchMax.assign(max(pitchMax, float(1).div(gl)));
+        const call = (hard: boolean) => {
+          const args: unknown[] = [float(0), vec3(camera.background), float(0), float(0), float(SYNTH_SIGMA)];
+          solved.forEach(({ slot, halfT, aaRest, phase, sgrad }) => {
+            const ramp = hard ? float(0) : aaRest.min(halfT);
+            const pr = vec4(max(halfT, float(1e-3)), ramp, slot.opacity, float(0));
+            args.push(phase, sgrad, pr, vec3(slot.color), slot.active, float(1));
           });
-        });
-        const sigRest = pitchMax.mul(0.5).mul(poolTRest);
-        const sigma = sigBuf.mul(sigBuf).add(sigRest.mul(sigRest)).sqrt();
+          return synth(...args);
+        };
         const inner = meanOut.toVar();
         If(poolTBuf.greaterThan(0.001).and(poolTRest.lessThan(0.999)), () => {
-          const args: unknown[] = [float(0), vec3(camera.background), float(0), float(0), sigBuf];
-          solved.forEach(({ slot, halfT, aaRest, phase, sgrad }) => {
-            const conserve = mix(
-              float(1),
-              slot.thickness.mul(0.5).div(halfT.max(1e-6)).min(1),
-              poolTRest
-            );
-            const pr = vec4(max(halfT, float(1e-3)), aaRest, slot.opacity.mul(conserve), float(0));
-            args.push(phase, sgrad, pr, vec3(slot.color), slot.active, float(1));
-          });
-          inner.assign(mix(meanOut, synth(...args), poolTBuf));
+          inner.assign(mix(meanOut, call(false), poolTBuf));
         });
         If(poolTRest.greaterThan(0.001), () => {
-          const args: unknown[] = [float(0), vec3(camera.background), float(0), float(0), sigma];
-          solved.forEach(({ slot, phase, sgrad }) => {
-            const hInk = max(slot.thickness.mul(0.5), float(1e-3));
-            const pr = vec4(hInk, float(0), slot.opacity, float(0));
-            args.push(phase, sgrad, pr, vec3(slot.color), slot.active, float(1));
-          });
-          meanOut.assign(mix(inner, synth(...args), poolTRest));
+          meanOut.assign(mix(inner, call(true), poolTRest));
         }).Else(() => {
           meanOut.assign(inner);
         });
@@ -2309,6 +2337,158 @@ fn exactChain${K}(sweep: f32, bg: vec3<f32>, obs: f32, ${params}) -> vec3<f32> {
 `;
 }
 
+
+/**
+ * THE PIXEL'S WINDOW, AS THE INTEGRAL ITSELF. For a stack of one or two
+ * scalar families the pooled colour is computed in direct space: the pixel
+ * is an isotropic Gaussian window of standard deviation sw (world units);
+ * along family i's normal the window is a one-dimensional Gaussian of the
+ * same width, and along two normals the pair is bivariate normal with
+ * correlation n₀·n₁. A family inks where the displacement along its normal
+ * falls within a half-width h of a member, so the light is a probability:
+ * for one family Σ over members of Φ((c+h)/sw) − Φ((c−h)/sw); for two, the
+ * four ink patterns' probabilities from P₀, P₁ and the joint P₀₁, the joint
+ * exact in one dimension when the normals are within 25° of parallel (the
+ * moiré case: the joint's second axis is then narrower than the strokes)
+ * and otherwise a six-point Gauss–Legendre integral of the conditional
+ * over each stroke. No series, no harmonics, no hand-over: the same
+ * integral at every zoom and every buffer, a wider window on a coarser
+ * buffer, the same light. Hard ink is its own square, so the square-law
+ * observer is the same sum with the colours squared.
+ */
+const synthErf = wgslFn(`
+fn synthErf(x: f32) -> f32 {
+  let s = sign(x);
+  let ax = abs(x);
+  let t = 1.0 / (1.0 + 0.3275911 * ax);
+  let y = 1.0 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * exp(-ax * ax);
+  return s * y;
+}
+`, []);
+const synthPhi = wgslFn(`
+fn synthPhi(x: f32) -> f32 {
+  return 0.5 * (1.0 + synthErf(x * 0.70710678));
+}
+`, [synthErf]);
+const synthMember = wgslFn(`
+fn synthMember(ph: vec4<f32>, k: i32) -> f32 {
+  if (k >= 0) { return ph.x + f32(k) * max(ph.y - ph.x, 1e-6); }
+  return ph.x + f32(k) * max(ph.x - ph.z, 1e-6);
+}
+`, []);
+/** The member indices whose stroke can reach the window: k in [lo, hi] with
+ * |member(k)| <= reach, clamped to six either side of the nearest. */
+const synthMembers = wgslFn(`
+fn synthMembers(ph: vec4<f32>, reach: f32) -> vec2<i32> {
+  let up = max(ph.y - ph.x, 1e-6);
+  let dn = max(ph.x - ph.z, 1e-6);
+  let lo = i32(ceil((-reach - ph.x) / dn - 1e-4));
+  let hi = i32(floor((reach - ph.x) / up + 1e-4));
+  return vec2<i32>(max(lo, -6), min(hi, 6));
+}
+`, []);
+const synthCover = wgslFn(`
+fn synthCover(ph: vec4<f32>, h: f32, sw: f32) -> f32 {
+  let reach = 3.0 * sw + h;
+  let ks = synthMembers(ph, reach);
+  var P = 0.0;
+  for (var k = ks.x; k <= ks.y; k++) {
+    let c = synthMember(ph, k);
+    P += synthPhi((c + h) / sw) - synthPhi((c - h) / sw);
+  }
+  return clamp(P, 0.0, 1.0);
+}
+`, [synthMember, synthMembers, synthPhi]);
+const poolDirect1 = wgslFn(`
+fn poolDirect1(obs: f32, bg: vec3<f32>, sw: f32, ph0: vec4<f32>, pr0: vec4<f32>, col0: vec3<f32>, act0: f32) -> vec3<f32> {
+  let gap0 = max(abs(ph0.y - ph0.x), 1e-6);
+  let h0 = min(pr0.x, 0.5 * gap0);
+  let P0 = synthCover(ph0, h0, sw) * act0;
+  let cInk = mix(bg, col0, pr0.y);
+  let c = mix(bg, cInk, P0);
+  let c2 = mix(bg * bg, cInk * cInk, P0);
+  return mix(c, c2, obs);
+}
+`, [synthCover]);
+const poolDirect2 = wgslFn(`
+fn poolDirect2(obs: f32, bg: vec3<f32>, sw: f32, rho: f32, ph0: vec4<f32>, pr0: vec4<f32>, col0: vec3<f32>, act0: f32, ph1: vec4<f32>, pr1: vec4<f32>, col1: vec3<f32>, act1: f32) -> vec3<f32> {
+  let gap0 = max(abs(ph0.y - ph0.x), 1e-6);
+  let gap1 = max(abs(ph1.y - ph1.x), 1e-6);
+  let h0 = min(pr0.x, 0.5 * gap0);
+  let h1 = min(pr1.x, 0.5 * gap1);
+  let P0 = synthCover(ph0, h0, sw) * act0;
+  let P1 = synthCover(ph1, h1, sw) * act1;
+  var P01 = 0.0;
+  // No stroke of either family within the window's reach: no joint ink.
+  if (act0 > 0.5 && act1 > 0.5 && P0 > 1e-4 && P1 > 1e-4) {
+    let reach0 = 3.0 * sw + h0;
+    let reach1 = 3.0 * sw + h1;
+    let ks = synthMembers(ph0, reach0);
+    let ls = synthMembers(ph1, reach1);
+    if (abs(rho) > 0.9) {
+      // Nearly parallel: the second displacement is rho times the first.
+      let ir = 1.0 / rho;
+      for (var k = ks.x; k <= ks.y; k++) {
+        let c = synthMember(ph0, k);
+        let a0 = c - h0;
+        let b0 = c + h0;
+        for (var l = ls.x; l <= ls.y; l++) {
+          let d = synthMember(ph1, l);
+          let e0 = (d - h1) * ir;
+          let e1 = (d + h1) * ir;
+          let lo = max(a0, min(e0, e1));
+          let hi = min(b0, max(e0, e1));
+          if (hi > lo) { P01 += synthPhi(hi / sw) - synthPhi(lo / sw); }
+        }
+      }
+    } else {
+      // Crossing: integrate the conditional cover of the second family over
+      // each stroke of the first, under the first's Gaussian.
+      let s = sqrt(1.0 - rho * rho);
+      let sws = sw * s;
+      let lim = 3.0 * sw;
+      for (var k = ks.x; k <= ks.y; k++) {
+        let c = synthMember(ph0, k);
+        let a = max(c - h0, -lim);
+        let b = min(c + h0, lim);
+        if (b <= a) { continue; }
+        let mid = 0.5 * (a + b);
+        let half = 0.5 * (b - a);
+        for (var q = 0; q < 6; q++) {
+          var x = 0.2386191861; var wq = 0.4679139346;
+          if (q == 1) { x = -0.2386191861; }
+          if (q == 2) { x = 0.6612093865; wq = 0.3607615730; }
+          if (q == 3) { x = -0.6612093865; wq = 0.3607615730; }
+          if (q == 4) { x = 0.9324695142; wq = 0.1713244924; }
+          if (q == 5) { x = -0.9324695142; wq = 0.1713244924; }
+          let u = mid + half * x;
+          let wgt = half * wq * 0.39894228 * exp(-0.5 * u * u / (sw * sw)) / sw;
+          var G = 0.0;
+          for (var l = ls.x; l <= ls.y; l++) {
+            let d = synthMember(ph1, l);
+            G += synthPhi((d + h1 - rho * u) / sws) - synthPhi((d - h1 - rho * u) / sws);
+          }
+          P01 += wgt * clamp(G, 0.0, 1.0);
+        }
+      }
+    }
+  }
+  P01 = clamp(P01, 0.0, min(P0, P1));
+  let pNone = max(1.0 - P0 - P1 + P01, 0.0);
+  let pOnly0 = max(P0 - P01, 0.0);
+  let pOnly1 = max(P1 - P01, 0.0);
+  let c0 = mix(bg, col0, pr0.y);
+  let c1 = mix(bg, col1, pr1.y);
+  let cBoth = mix(c0, col1, pr1.y);
+  let c = pNone * bg + pOnly0 * c0 + pOnly1 * c1 + P01 * cBoth;
+  let c2 = pNone * bg * bg + pOnly0 * c0 * c0 + pOnly1 * c1 * c1 + P01 * cBoth * cBoth;
+  return mix(c, c2, obs);
+}
+`, [synthCover, synthMember, synthMembers, synthPhi]);
+const DIRECT_SIGMA_COARSE = 0.35;
+const DIRECT_SIGMA_FINE = 0.55;
+const DIRECT_SIGMA_NYQUIST = 0.9;
+
 /**
  * THE PIXEL'S WINDOW, TERM BY TERM. The pooled colour is the window
  * multiplier theorem run literally: the drawing's Fourier series in the K
@@ -2338,8 +2518,22 @@ fn exactChain${K}(sweep: f32, bg: vec3<f32>, obs: f32, ${params}) -> vec3<f32> {
  * against brute-force window averages, eight harmonics agree to a percent
  * of light where three were off by two.
  */
-const SYNTH_M = [0, 8, 8, 3, 1];
+const SYNTH_M = [0, 8, 8, 3, 2];
 const SYNTH_MAX_K = 4;
+/** The pixel's window, in buffer pixels: a Gaussian of this sigma, with the
+ * cut at the Nyquist square. Half a pixel keeps a stripe of three pixels a
+ * period at half contrast and one of five at three quarters. */
+const SYNTH_SIGMA = 0.55;
+/** Where the hand-over runs, in members per buffer pixel, by stack size: a
+ * series of M harmonics carries every term the buffer can show once the
+ * pitch is under 2M pixels, and a hard stroke's harmonics reach the comb
+ * from about seven pixels a period; shorter series hand over later. */
+const POOL_BAND: Record<number, [number, number]> = {
+  1: [0.14, 0.25],
+  2: [0.14, 0.25],
+  3: [0.167, 0.286],
+  4: [0.2, 0.333],
+};
 
 const SYNTH_SINC_WGSL = `
 fn synthSinc(x: f32) -> f32 {
@@ -2362,6 +2556,25 @@ fn synthRamp(a: f32) -> f32 {
 }
 `;
 const synthRamp = wgslFn(SYNTH_RAMP_WGSL);
+/** The integers m with |kp + m g| < c, intersected into [lo, hi]: the range
+ * of one index for which a term can still land inside the Nyquist square,
+ * given the frequency the outer indices have already accumulated (kp) and
+ * the most the inner ones can add (folded into c). Only surviving terms are
+ * visited, which is what keeps the synthesis at the plain render's cost. */
+const SYNTH_RANGE_WGSL = `
+fn synthRange(kp: f32, g: f32, c: f32, cur: vec2<i32>) -> vec2<i32> {
+  if (abs(g) < 1e-7) {
+    if (abs(kp) >= c) { return vec2<i32>(1, 0); }
+    return cur;
+  }
+  let a = (-c - kp) / g;
+  let b = (c - kp) / g;
+  let l = ceil(min(a, b) + 1e-4);
+  let h = floor(max(a, b) - 1e-4);
+  return vec2<i32>(max(cur.x, i32(l)), min(cur.y, i32(h)));
+}
+`;
+const synthRange = wgslFn(SYNTH_RANGE_WGSL);
 
 const poolSynthCache = new Map<number, ReturnType<typeof wgslFn>>();
 
@@ -2372,7 +2585,10 @@ function poolSynthSource(K: number): string {
     (i) =>
       `ph${i}: vec4<f32>, g${i}: vec2<f32>, pr${i}: vec4<f32>, col${i}: vec3<f32>, act${i}: f32, rate${i}: f32`
   ).join(', ');
-  const setup = L.map(
+  // Per layer, the constants: the profile in cycles of its own pitch, and
+  // one sine and cosine of each angle a harmonic advances by (the phase,
+  // the half-width, the floor clip, the ramp, the ramp's loss).
+  const consts = L.map(
     (i) => `let gap${i} = max(abs(ph${i}.y - ph${i}.x), 1e-6);
   let phi${i} = ph${i}.x / gap${i};
   let hc${i} = min(pr${i}.x / gap${i}, 0.5);
@@ -2384,30 +2600,18 @@ function poolSynthSource(K: number): string {
     aw${i} = clamp((hc${i} + rc${i} - wc${i}) / max(2.0 * rc${i}, 1e-6), 0.0, 1.0);
   }
   let wcl${i} = min(wc${i}, hc${i});
-  var F${i}: array<f32, ${M + 1}>;
-  var Q${i}: array<f32, ${M + 1}>;
-  for (var m = 0; m <= ${M}; m++) {
-    let mf = f32(m);
-    var Fm = 2.0 * hc${i};
-    var Bw = 2.0 * wcl${i};
-    if (m > 0) {
-      Fm = sin(6.28318530718 * mf * hc${i}) / (3.14159265359 * mf) * synthRamp(12.5663706144 * rc${i} * mf);
-      Bw = sin(6.28318530718 * mf * wcl${i}) / (3.14159265359 * mf);
-    }
-    F${i}[m] = Fm - (1.0 - aw${i}) * Bw;
-    Q${i}[m] = 0.514 * rc${i} * cos(6.28318530718 * mf * hc${i}) * synthRamp(10.3547 * rc${i} * mf);
-  }`
+  let th${i} = 6.28318530718 * phi${i};
+  let hh${i} = 6.28318530718 * hc${i};
+  let ww${i} = 6.28318530718 * wcl${i};
+  let ra${i} = 6.28318530718 * rc${i};
+  let qa${i} = 5.17735 * rc${i};
+  let tc${i} = cos(th${i}); let ts${i} = sin(th${i});
+  let hcs${i} = cos(hh${i}); let hsn${i} = sin(hh${i});
+  let wcs${i} = cos(ww${i}); let wsn${i} = sin(ww${i});
+  let rcs${i} = cos(ra${i}); let rsn${i} = sin(ra${i});
+  let qcs${i} = cos(qa${i}); let qsn${i} = sin(qa${i});
+  let e2${i} = exp(-2.0 * sig2 * dot(g${i}, g${i}));`
   ).join('\n  ');
-  const open = L.map((i) => `for (var m${i} = -${M}; m${i} <= ${M}; m${i}++) {`).join('\n  ');
-  const close = L.map(() => '}').join('\n  ');
-  const kExpr = L.map((i) => `f32(m${i}) * g${i}`).join(' + ');
-  const angExpr = L.map((i) => `f32(m${i}) * phi${i}`).join(' + ');
-  const sumM = L.map((i) => `f32(m${i})`).join(' + ');
-  const sumMR = L.map((i) => `f32(m${i}) * rate${i}`).join(' + ');
-  const perLayer = L.map(
-    (i) =>
-      `let i${i} = abs(m${i}); let d${i} = select(0.0, 1.0, m${i} == 0); let Fv${i} = F${i}[i${i}]; let Qv${i} = Q${i}[i${i}]; let a${i} = al${i} * Fv${i}; let b${i} = d${i} - a${i};`
-  ).join('\n      ');
   const linTerms = [
     `bg * (${L.map((j) => `b${j}`).join(' * ')})`,
     ...L.map(
@@ -2416,8 +2620,8 @@ function poolSynthSource(K: number): string {
   ];
   const sqPer = L.map(
     (i) =>
-      `let aa${i} = al${i} * al${i} * (Fv${i} - Qv${i}); let ab${i} = al${i} * (1.0 - al${i}) * Fv${i} + al${i} * al${i} * Qv${i}; let bb${i} = d${i} - al${i} * (2.0 - al${i}) * Fv${i} - al${i} * al${i} * Qv${i};`
-  ).join('\n        ');
+      `let aa${i} = al${i} * al${i} * (F${i} - Q${i}); let ab${i} = al${i} * (1.0 - al${i}) * F${i} + al${i} * al${i} * Q${i}; let bb${i} = d${i} - al${i} * (2.0 - al${i}) * F${i} - al${i} * al${i} * Q${i};`
+  ).join('\n            ');
   // Colour term t: 0 is the background (every layer a "not inked" factor b);
   // t = i + 1 is layer i's own colour (one below it, a at it, b above it).
   const fac = (t: number, j: number) => (t === 0 ? 'b' : j < t - 1 ? 'one' : j === t - 1 ? 'a' : 'b');
@@ -2440,27 +2644,87 @@ function poolSynthSource(K: number): string {
       sqTerms.push(`${t === u ? '' : '2.0 * '}${colName(t)} * ${colName(u)} * (${prod})`);
     }
   }
+  const sumM = L.map((i) => `mf${i}`).join(' + ');
+  const sumMR = L.map((i) => `mf${i} * rate${i}`).join(' + ');
+  // The innermost body: the term's window, the slide, the colour terms.
+  const term = `let kx = kpx${K} ; let ky = kpy${K};
+          let mm = max(abs(kx), abs(ky));
+          if (mm < 0.5) {
+            let Wc = W * (1.0 - smoothstep(0.42, 0.5, mm));
+            var Sm = 1.0;
+            if (sweep > 0.0) {
+              Sm = mix(synthSinc(sweep * (${sumM})), synthSinc(sweep * (${sumMR})), devW);
+            }
+            let cw = Cacc${K - 1} * Wc * Sm;
+            acc += cw * (${linTerms.join(' + ')});
+            if (obs > 0.001) {
+              ${sqPer}
+              acc2 += cw * (${sqTerms.join(' + ')});
+            }
+          }
+          W = W * R; R = R * e2${K - 1};`;
+  // One loop level: its range from the frequency the outer levels
+  // accumulated and the most the inner ones can add; every recurrence
+  // started at the range's first harmonic and advanced once per step, so
+  // no harmonic costs a transcendental and nothing is indexed.
+  const level = (i: number): string => {
+    const inner = i === K - 1;
+    const rest = L.filter((j) => j > i);
+    const rx = rest.length ? rest.map((j) => `${M}.0 * abs(g${j}.x)`).join(' + ') : '0.0';
+    const ry = rest.length ? rest.map((j) => `${M}.0 * abs(g${j}.y)`).join(' + ') : '0.0';
+    const gauss = inner
+      ? `let kxs = kpx${i} + mf${i}0 * g${i}.x; let kys = kpy${i} + mf${i}0 * g${i}.y;
+    var W = exp(-sig2 * (kxs * kxs + kys * kys));
+    var R = exp(-sig2 * (2.0 * (kpx${i} * g${i}.x + kpy${i} * g${i}.y) + (2.0 * mf${i}0 + 1.0) * dot(g${i}, g${i})));`
+      : '';
+    const acc =
+      i === 0
+        ? `let Cacc0 = pc0; let Sacc0 = ps0;`
+        : `let Cacc${i} = Cacc${i - 1} * pc${i} - Sacc${i - 1} * ps${i}; let Sacc${i} = Sacc${i - 1} * pc${i} + Cacc${i - 1} * ps${i};`;
+    return `var rg${i} = vec2<i32>(-${M}, ${M});
+  rg${i} = synthRange(kpx${i}, g${i}.x, 0.5 + ${rx}, rg${i});
+  rg${i} = synthRange(kpy${i}, g${i}.y, 0.5 + ${ry}, rg${i});
+  if (rg${i}.x <= rg${i}.y) {
+    let mf${i}0 = f32(rg${i}.x);
+    var pc${i} = cos(th${i} * mf${i}0); var ps${i} = sin(th${i} * mf${i}0);
+    var hC${i} = cos(hh${i} * mf${i}0); var hS${i} = sin(hh${i} * mf${i}0);
+    var wC${i} = cos(ww${i} * mf${i}0); var wS${i} = sin(ww${i} * mf${i}0);
+    var rC${i} = cos(ra${i} * mf${i}0); var rS${i} = sin(ra${i} * mf${i}0);
+    var qC${i} = cos(qa${i} * mf${i}0); var qS${i} = sin(qa${i} * mf${i}0);
+    ${gauss}
+    for (var m${i} = rg${i}.x; m${i} <= rg${i}.y; m${i}++) {
+      let mf${i} = f32(m${i});
+      var Fv${i} = 2.0 * hc${i}; var Bw${i} = 2.0 * wcl${i}; var ramp${i} = 1.0; var rampq${i} = 1.0;
+      if (m${i} != 0) {
+        let a = 12.5663706144 * rc${i} * mf${i};
+        if (abs(a) < 1e-2) { ramp${i} = 1.0 - a * a / 40.0; } else { ramp${i} = 12.0 * (2.0 * rS${i} - a * rC${i}) / (a * a * a); }
+        let aq = 10.3547 * rc${i} * mf${i};
+        if (abs(aq) < 1e-2) { rampq${i} = 1.0 - aq * aq / 40.0; } else { rampq${i} = 12.0 * (2.0 * qS${i} - aq * qC${i}) / (aq * aq * aq); }
+        Fv${i} = hS${i} / (3.14159265359 * mf${i}) * ramp${i};
+        Bw${i} = wS${i} / (3.14159265359 * mf${i});
+      }
+      let F${i} = Fv${i} - (1.0 - aw${i}) * Bw${i};
+      let Q${i} = 0.514 * rc${i} * hC${i} * rampq${i};
+      let d${i} = select(0.0, 1.0, m${i} == 0); let a${i} = al${i} * F${i}; let b${i} = d${i} - a${i};
+      ${acc}
+      let kpx${i + 1} = kpx${i} + mf${i} * g${i}.x; let kpy${i + 1} = kpy${i} + mf${i} * g${i}.y;
+      ${inner ? term : level(i + 1)}
+      { let t = pc${i} * tc${i} - ps${i} * ts${i}; ps${i} = ps${i} * tc${i} + pc${i} * ts${i}; pc${i} = t; }
+      { let t = hC${i} * hcs${i} - hS${i} * hsn${i}; hS${i} = hS${i} * hcs${i} + hC${i} * hsn${i}; hC${i} = t; }
+      { let t = wC${i} * wcs${i} - wS${i} * wsn${i}; wS${i} = wS${i} * wcs${i} + wC${i} * wsn${i}; wC${i} = t; }
+      { let t = rC${i} * rcs${i} - rS${i} * rsn${i}; rS${i} = rS${i} * rcs${i} + rC${i} * rsn${i}; rC${i} = t; }
+      { let t = qC${i} * qcs${i} - qS${i} * qsn${i}; qS${i} = qS${i} * qcs${i} + qC${i} * qsn${i}; qC${i} = t; }
+    }
+  }`;
+  };
   return `
 fn poolSynth${K}(obs: f32, bg: vec3<f32>, sweep: f32, devW: f32, sigma: f32, ${params}) -> vec3<f32> {
-  ${setup}
   let sig2 = 19.7392088 * sigma * sigma;
+  ${consts}
   var acc = vec3<f32>(0.0);
   var acc2 = vec3<f32>(0.0);
-  ${open}
-    let k = ${kExpr};
-    let mm = max(abs(k.x), abs(k.y));
-    if (mm < 0.5) {
-      let W = exp(-sig2 * dot(k, k)) * (1.0 - smoothstep(0.42, 0.5, mm));
-      let S = mix(synthSinc(sweep * (${sumM})), synthSinc(sweep * (${sumMR})), devW);
-      let cw = cos(6.28318530718 * (${angExpr})) * W * S;
-      ${perLayer}
-      acc += cw * (${linTerms.join(' + ')});
-      if (obs > 0.001) {
-        ${sqPer}
-        acc2 += cw * (${sqTerms.join(' + ')});
-      }
-    }
-  ${close}
+  let kpx0 = 0.0; let kpy0 = 0.0;
+  ${level(0)}
   return mix(acc, acc2, obs);
 }
 `;
@@ -2469,7 +2733,7 @@ fn poolSynth${K}(obs: f32, bg: vec3<f32>, sweep: f32, devW: f32, sigma: f32, ${p
 function poolSynth(K: number) {
   const cached = poolSynthCache.get(K);
   if (cached) return cached;
-  const fn = wgslFn(poolSynthSource(K), [synthSinc, synthRamp]);
+  const fn = wgslFn(poolSynthSource(K), [synthSinc, synthRamp, synthRange]);
   poolSynthCache.set(K, fn);
   return fn;
 }

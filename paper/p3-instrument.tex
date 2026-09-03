@@ -125,32 +125,38 @@ Figure~\ref{fig:alias}, and one pixel a period drew black, because a
 hairline rule that widens thin strokes so they survive the screen had
 widened them past the whole pitch. Both are the strobe of
 \S\ref{sec:stations} happening to the instrument. The cure is the window
-multiplier theorem taken literally. The drawing is a product of profiles
-on the torus, so it is a Fourier series in the $K$ counts; the pixel is a
-window; and the theorem says the pixel shows each term multiplied by the
-window's transform at that term's own spatial frequency, $\sum_i m_i
-\nabla\phi_i$. From seven pixels a period down to four the drawn colour
-hands over to exactly that sum, the window widening to half the pitch as
-it does. A carrier is a term the window kills; a beat that is slow at the
-pixel's scale is a term the window keeps --- the swans stay while the
-rings go grey; a term past the buffer's Nyquist square would alias when
-drawn, so it is not drawn at all, and nothing beats against the comb. The
-frequency is the term's true one, in two dimensions. A first cut
-integrated a box along one direction with every family in lockstep, which
-is the slide average of Theorem~\ref{thm:sweep} and is exact only where
-the families run parallel: where two ring families cross, between their
-centres, it kept the $(1,-1)$ term at full strength and drew rosettes, and
-the two-dimensional window is what puts the grey there. No supersampling,
-no texture filter, no guess at a blur: the pixel shows what a pooling
-observer of its own size sees, which is what the theorem says it must.
-The smaller buffer the tool draws into while a hand is on the zoom gets
-the same rule with its own window, the envelope included --- the slide
-multiplies each term by a sinc of its schedule, the pixel by its window,
-and the two commute --- with one care: every width that sets a mean, the
-hairline floor, the integral's ramp, the hand-over's weight, is measured
-in the pixels of the screen at rest, not of the buffer. A coarse frame is
-then the rest frame through a wider window, with the same light, and the
-screen no longer flashes at each notch of the zoom.
+multiplier theorem taken literally: the pixel is a window, and it shows
+the composite of the two-valued drawing averaged over that window. For
+one or two families the tool now computes that average exactly, at every
+zoom, in place of the point-sampled drawing. The window is an isotropic
+Gaussian; along each family's normal it is a Gaussian of the same width,
+and along two normals the pair is bivariate normal with correlation the
+cosine of the angle between them. A family inks where the displacement
+along its normal falls within a half-stroke of a member, so each ink
+pattern's probability is a sum of error functions: exact in one dimension
+where the normals are within twenty-five degrees of parallel, which is
+the moir\'e case, and a short Gauss--Legendre integral of the conditional
+where they cross. The window is as narrow as the drawn edge at seven
+pixels a period and coarser, half a pixel by four, and 0.9 of a pixel by
+two, where a stripe sits at the buffer's Nyquist frequency and a narrower
+window would pass a quarter of it to beat with the pixel grid. Nothing
+wider: a stripe the screen can show keeps its contrast, only what would
+alias goes, two strokes in register are the light of one, and the beat
+emerges by eye, as it does on paper. A first cut had integrated a box
+along one direction with every family in lockstep --- the slide average
+of Theorem~\ref{thm:sweep}, exact only where the families run parallel
+--- and drew rosettes where two ring families cross; a second erased every
+carrier under a window half a pitch wide, which is the envelope's
+observer, not the pixel's, and blurred what the screen could still show.
+Three and four families use the same theorem as a Fourier series, each
+term under the window at its own two-dimensional frequency, handed over
+from the drawing where the harmonics reach the comb; and the envelope,
+while a hand is on the view, is drawn by that series with the slide's
+sinc on each term, alias-free at any buffer and cheap enough to stream at
+full size, the exact chain returning when the hand lifts. Every width
+that sets a mean is measured in the pixels of the screen at rest; a
+coarse interaction buffer sees the same drawing through a wider window,
+with the same light.
 
 \begin{figure}[t]
   \centering
