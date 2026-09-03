@@ -1,7 +1,7 @@
 // Inverse moiré: from a target image to two families whose overlay shows it.
 //
 //   node paper/tools/exp/inverse-moire.mjs --out DIR [--target image.png]
-//        [--size 1000] [--pitch 10] [--duty 0.5] [--wobble 0.4] [--split] [--seed 1]
+//        [--size 1000 (longer side)] [--pitch 10] [--duty 0.5] [--wobble 0.4] [--split] [--seed 1]
 //
 // The theory (paper 3, sections 2 and 3). Give the base family a count xi1 and
 // the second family the count xi2 = xi1 - D. The recipe (1,-1) then has combined
@@ -31,7 +31,7 @@ const opt = (name, def) => {
   return i >= 0 && i + 1 < argv.length && !argv[i + 1].startsWith('--') ? argv[i + 1] : def;
 };
 const flag = (name) => argv.includes('--' + name);
-const SIZE = +opt('size', 1000);
+const LONG = +opt('size', 1000); // the canvas's longer side, px
 const P = +opt('pitch', 10); // pitch of the base family, px
 const DUTY = +opt('duty', 0.5); // ink fraction of each stroke
 const WOBBLE = +opt('wobble', 0.4); // |grad R| budget, as a fraction of 1/P
@@ -97,27 +97,28 @@ function readPng(path) {
   return { w, h, g };
 }
 
-// ---- the target, as brightness g in [0,1] on the SIZE x SIZE canvas.
-const target = new Float32Array(SIZE * SIZE).fill(1);
-if (TARGET) {
-  const img = readPng(TARGET);
-  const s = Math.max(img.w, img.h) / SIZE; // fit, keep aspect, white letterbox
-  const ox = (SIZE - img.w / s) / 2, oy = (SIZE - img.h / s) / 2;
-  for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) {
-    const u = (x - ox) * s - 0.5, v = (y - oy) * s - 0.5;
-    if (u < 0 || v < 0 || u >= img.w - 1 || v >= img.h - 1) continue;
+// ---- the target, as brightness g in [0,1] on a canvas with the target's aspect.
+const img = TARGET ? readPng(TARGET) : null;
+const W = img ? Math.round((LONG * img.w) / Math.max(img.w, img.h)) : LONG;
+const H = img ? Math.round((LONG * img.h) / Math.max(img.w, img.h)) : LONG;
+const SIZE = W; // row stride
+const target = new Float32Array(W * H).fill(1);
+if (img) {
+  const s = img.w / W;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const u = Math.min(img.w - 1.001, Math.max(0, (x + 0.5) * s - 0.5)), v = Math.min(img.h - 1.001, Math.max(0, (y + 0.5) * s - 0.5));
     const x0 = Math.floor(u), y0 = Math.floor(v), fx = u - x0, fy = v - y0;
     const i = y0 * img.w + x0;
-    target[y * SIZE + x] = (1 - fy) * ((1 - fx) * img.g[i] + fx * img.g[i + 1]) + fy * ((1 - fx) * img.g[i + img.w] + fx * img.g[i + img.w + 1]);
+    target[y * W + x] = (1 - fy) * ((1 - fx) * img.g[i] + fx * img.g[i + 1]) + fy * ((1 - fx) * img.g[i + img.w] + fx * img.g[i + img.w + 1]);
   }
 } else {
   // A heart, and a grey ramp underneath to show that grey levels work too.
-  for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) {
-    const u = ((x - SIZE / 2) / SIZE) * 3.2, v = -((y - SIZE * 0.42) / SIZE) * 3.2;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const u = ((x - W / 2) / W) * 3.2, v = -((y - H * 0.42) / H) * 3.2;
     const heart = Math.pow(u * u + v * v - 1, 3) - u * u * v * v * v;
     let g = heart < 0 ? 0 : 1;
-    if (y > SIZE * 0.84 && y < SIZE * 0.94 && x > SIZE * 0.1 && x < SIZE * 0.9) g = (x - SIZE * 0.1) / (SIZE * 0.8);
-    target[y * SIZE + x] = g;
+    if (y > H * 0.84 && y < H * 0.94 && x > W * 0.1 && x < W * 0.9) g = (x - W * 0.1) / (W * 0.8);
+    target[y * W + x] = g;
   }
 }
 
@@ -144,12 +145,12 @@ function blur(src, w, h, sigma) {
 
 // The offset field D = d (1 - g), with the target softened over about a pitch
 // so that D never climbs faster than the base count: no folds.
-const gSoft = blur(target, SIZE, SIZE, 0.45 * P);
-const D = new Float32Array(SIZE * SIZE);
+const gSoft = blur(target, W, H, 0.45 * P);
+const D = new Float32Array(W * H);
 for (let i = 0; i < D.length; i++) D[i] = DUTY * (1 - gSoft[i]);
 const sampleD = (x, y) => {
   // bilinear, x and y in pixel units (pixel centres at integer + 0.5)
-  const u = Math.min(SIZE - 1.001, Math.max(0, x - 0.5)), v = Math.min(SIZE - 1.001, Math.max(0, y - 0.5));
+  const u = Math.min(W - 1.001, Math.max(0, x - 0.5)), v = Math.min(H - 1.001, Math.max(0, y - 0.5));
   const x0 = Math.floor(u), y0 = Math.floor(v), fx = u - x0, fy = v - y0;
   const i = y0 * SIZE + x0;
   return (1 - fy) * ((1 - fx) * D[i] + fx * D[i + 1]) + fy * ((1 - fx) * D[i + SIZE] + fx * D[i + SIZE + 1]);
@@ -172,8 +173,8 @@ const frac = (v) => v - Math.floor(v);
 const ink = (xi) => frac(xi + DUTY / 2) < DUTY;
 
 // ---- rasterise the two layers and their overlay (ink where either has ink).
-const cov1 = new Float32Array(SIZE * SIZE), cov2 = new Float32Array(SIZE * SIZE), covB = new Float32Array(SIZE * SIZE);
-for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) {
+const cov1 = new Float32Array(W * H), cov2 = new Float32Array(W * H), covB = new Float32Array(W * H);
+for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
   let c1 = 0, c2 = 0, cb = 0;
   for (let sy = 0; sy < SS; sy++) for (let sx = 0; sx < SS; sx++) {
     const px = x + (sx + 0.5) / SS, py = y + (sy + 0.5) / SS;
@@ -185,50 +186,50 @@ for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) {
   const i = y * SIZE + x;
   cov1[i] = c1 / (SS * SS); cov2[i] = c2 / (SS * SS); covB[i] = cb / (SS * SS);
 }
-const grey = (cov) => { const out = new Uint8Array(SIZE * SIZE * 3); for (let i = 0; i < cov.length; i++) { const v = Math.round(255 * (1 - cov[i])); out[3 * i] = out[3 * i + 1] = out[3 * i + 2] = v; } return out; };
-const greyF = (f) => { const out = new Uint8Array(SIZE * SIZE * 3); for (let i = 0; i < f.length; i++) { const v = Math.round(255 * Math.min(1, Math.max(0, f[i]))); out[3 * i] = out[3 * i + 1] = out[3 * i + 2] = v; } return out; };
+const grey = (cov) => { const out = new Uint8Array(W * H * 3); for (let i = 0; i < cov.length; i++) { const v = Math.round(255 * (1 - cov[i])); out[3 * i] = out[3 * i + 1] = out[3 * i + 2] = v; } return out; };
+const greyF = (f) => { const out = new Uint8Array(W * H * 3); for (let i = 0; i < f.length; i++) { const v = Math.round(255 * Math.min(1, Math.max(0, f[i]))); out[3 * i] = out[3 * i + 1] = out[3 * i + 2] = v; } return out; };
 
 // What a pooling observer sees: the overlay blurred by one pitch.
-const trans = new Float32Array(SIZE * SIZE);
+const trans = new Float32Array(W * H);
 for (let i = 0; i < trans.length; i++) trans[i] = 1 - covB[i];
-const pooled = blur(trans, SIZE, SIZE, P);
+const pooled = blur(trans, W, H, P);
 // The theory's prediction: 1 - 2d + (d - D), i.e. 1 - 2d + d g on the softened target.
 let se = 0, n = 0, sxy = 0, sxx = 0, syy = 0, mx = 0, my = 0;
 for (let i = 0; i < trans.length; i++) { mx += pooled[i]; my += 1 - 2 * DUTY + DUTY * gSoft[i]; }
 mx /= trans.length; my /= trans.length;
-for (let y = 2 * P; y < SIZE - 2 * P; y++) for (let x = 2 * P; x < SIZE - 2 * P; x++) {
-  const i = y * SIZE + x;
+for (let y = 2 * P; y < H - 2 * P; y++) for (let x = 2 * P; x < W - 2 * P; x++) {
+  const i = y * W + x;
   const pred = 1 - 2 * DUTY + DUTY * gSoft[i];
   se += (pooled[i] - pred) ** 2; n++;
   sxy += (pooled[i] - mx) * (pred - my); sxx += (pooled[i] - mx) ** 2; syy += (pred - my) ** 2;
 }
 // Fold check: the second family's count must keep climbing.
 let gmin = Infinity, gmax = 0;
-for (let y = 1; y < SIZE - 1; y += 2) for (let x = 1; x < SIZE - 1; x += 2) {
+for (let y = 1; y < H - 1; y += 2) for (let x = 1; x < W - 1; x += 2) {
   const gx = (xi2(x + 1.5, y + 0.5) - xi2(x - 0.5, y + 0.5)) / 2, gy = (xi2(x + 0.5, y + 1.5) - xi2(x + 0.5, y - 0.5)) / 2;
   const m = Math.hypot(gx, gy) * P;
   if (m < gmin) gmin = m;
   if (m > gmax) gmax = m;
 }
-console.log(`canvas ${SIZE}px, pitch ${P}px, duty ${DUTY}, wobble ${WOBBLE}${SPLIT ? ', offset split across both layers' : ''}`);
+console.log(`canvas ${W}x${H}px, pitch ${P}px, duty ${DUTY}, wobble ${WOBBLE}${SPLIT ? ', offset split across both layers' : ''}`);
 console.log(`second family's rate over the base rate: min ${gmin.toFixed(2)}, max ${gmax.toFixed(2)} (a fold would be 0)`);
 console.log(`pooled overlay vs the theory's tent: rms ${(255 * Math.sqrt(se / n)).toFixed(1)} grey levels, correlation ${(sxy / Math.sqrt(sxx * syy)).toFixed(4)}`);
 
-const put = (name, rgb) => writePng(`${OUT}/${name}`, rgb, SIZE, SIZE);
+const put = (name, rgb) => writePng(`${OUT}/${name}`, rgb, W, H);
 put('target.png', greyF(target));
 put('layer1.png', grey(cov1));
 put('layer2.png', grey(cov2));
 put('overlay.png', grey(covB));
 put('pooled.png', greyF(pooled));
 // A contact sheet: target | layer 2 / overlay | pooled, each at half size.
-const H = SIZE / 2, M = new Uint8Array(4 * H * H * 3).fill(255);
-const tiles = [[greyF(target), 0, 0], [grey(cov2), H, 0], [grey(covB), 0, H], [greyF(pooled), H, H]];
-for (const [rgb, ox, oy] of tiles) for (let y = 0; y < H; y++) for (let x = 0; x < H; x++) {
+const TW = Math.floor(W / 2), TH = Math.floor(H / 2), M = new Uint8Array(4 * TW * TH * 3).fill(255);
+const tiles = [[greyF(target), 0, 0], [grey(cov2), TW, 0], [grey(covB), 0, TH], [greyF(pooled), TW, TH]];
+for (const [rgb, ox, oy] of tiles) for (let y = 0; y < TH; y++) for (let x = 0; x < TW; x++) {
   for (let k = 0; k < 3; k++) {
     let acc = 0;
-    for (let sy = 0; sy < 2; sy++) for (let sx = 0; sx < 2; sx++) acc += rgb[((2 * y + sy) * SIZE + 2 * x + sx) * 3 + k];
-    M[((oy + y) * 2 * H + ox + x) * 3 + k] = Math.round(acc / 4);
+    for (let sy = 0; sy < 2; sy++) for (let sx = 0; sx < 2; sx++) acc += rgb[((2 * y + sy) * W + 2 * x + sx) * 3 + k];
+    M[((oy + y) * 2 * TW + ox + x) * 3 + k] = Math.round(acc / 4);
   }
 }
-writePng(`${OUT}/sheet.png`, M, 2 * H, 2 * H);
+writePng(`${OUT}/sheet.png`, M, 2 * TW, 2 * TH);
 console.log(`wrote target, layer1, layer2, overlay, pooled and sheet to ${OUT}`);
