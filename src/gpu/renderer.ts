@@ -4,6 +4,7 @@ import { MAX_LAYERS, isGrid, type PatternLayer } from '../types/moire';
 import {
   buildColorNode,
   compileFieldCached,
+  type ImageField,
   createCameraUniforms,
   createSlots,
   createViewUniforms,
@@ -134,6 +135,31 @@ function pairLicense(
  * build — fast, but not per keystroke fast. The editor's own preview is CPU-drawn
  * and live, so what this delays is the canvas catching up, not the feedback.
  */
+/**
+ * A layer's image field, decoded for the GPU. The data URL is a greyscale PNG
+ * the field editor made; it is read at level zero with linear filtering and no
+ * mipmaps, and `flipY` is off so texel row zero is the top of the picture.
+ */
+async function loadImageField(data: string): Promise<ImageField> {
+  // An image element rather than createImageBitmap on the bytes: the element's
+  // decoder is the forgiving one, and a data URL that has been through a
+  // scene file deserves forgiveness.
+  const image = new Image();
+  image.src = data;
+  await image.decode();
+  const bitmap = await createImageBitmap(image, { colorSpaceConversion: 'none' });
+  const texture = new THREE.Texture(bitmap);
+  texture.flipY = false;
+  texture.generateMipmaps = false;
+  texture.minFilter = THREE.LinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  texture.wrapS = THREE.ClampToEdgeWrapping;
+  texture.wrapT = THREE.ClampToEdgeWrapping;
+  texture.colorSpace = THREE.NoColorSpace;
+  texture.needsUpdate = true;
+  return { texture, width: bitmap.width, height: bitmap.height, aspect: bitmap.height / bitmap.width };
+}
+
 const FIELD_SETTLE_MS = 220;
 
 /**
@@ -222,6 +248,8 @@ export class MoireRenderer {
   private building: Promise<void> | null = null;
   /** The expressions the live material was built for, one per slot. */
   private fieldSources: string[] = [];
+  /** Decoded image fields, by the key `fieldSource` gives them. */
+  private imageFields = new Map<string, ImageField>();
   /** How many slots the live material was built for. */
   private slotCount = MAX_LAYERS;
   private lastState: RendererSync | null = null;
@@ -385,13 +413,46 @@ export class MoireRenderer {
       this.cameraUniforms!,
       this.viewUniforms!,
       this.slots.slice(0, this.slotCount),
-      this.fieldSources
-        .slice(0, this.slotCount)
-        .map((source) => (source ? compileFieldCached(source) : null))
+      this.fieldSources.slice(0, this.slotCount).map((source) => this.programFor(source))
     );
     material.side = THREE.DoubleSide;
     material.toneMapped = false;
     return material;
+  }
+
+  /** A slot's field program: the decoded image, the compiled expression, or nothing. */
+  private programFor(source: string) {
+    if (!source) return null;
+    if (source.startsWith('image:')) return this.imageFields.get(source) ?? null;
+    return compileFieldCached(source);
+  }
+
+  /**
+   * Image fields decode before the material that samples them is built, and a
+   * texture no slot wants any more is released. Keyed by `fieldSource`, so the
+   * same image on two layers decodes once.
+   */
+  private async loadImageFields(state: RendererSync, wanted: string[]) {
+    const loads: Promise<void>[] = [];
+    wanted.forEach((source, i) => {
+      if (!source.startsWith('image:') || this.imageFields.has(source)) return;
+      const data = state.layers[i]?.field.image;
+      if (!data) return;
+      loads.push(
+        loadImageField(data)
+          .then((field) => {
+            this.imageFields.set(source, field);
+          })
+          .catch(() => undefined)
+      );
+    });
+    await Promise.all(loads);
+    for (const [key, field] of this.imageFields) {
+      if (!wanted.includes(key)) {
+        field.texture.dispose();
+        this.imageFields.delete(key);
+      }
+    }
   }
 
   sync(state: RendererSync) {
@@ -415,6 +476,8 @@ export class MoireRenderer {
       (source, i) => source === fieldSource(state.layers[i]?.field)
     );
     const slotsSettled = this.slotCount === slotsNeeded(state.layers);
+    for (const field of this.imageFields.values()) field.texture.dispose();
+    this.imageFields.clear();
     if (this.fieldTimer) clearTimeout(this.fieldTimer);
     if (fieldsSettled && slotsSettled) {
       this.fieldTimer = 0;
@@ -447,6 +510,8 @@ export class MoireRenderer {
 
     this.fieldSources = wanted;
     this.slotCount = wantedSlots;
+    await this.loadImageFields(state, wanted);
+    if (this.disposed) return;
     const previous = this.material;
     const material = this.buildMaterial();
     this.material = material;

@@ -599,7 +599,10 @@ function LayerStack({ onEditField }: { onEditField: (id: string) => void }) {
               </div>
               <FieldMark
                 active={hasField(layer)}
-                muted={!hasField(layer) && layer.field.source.trim().length > 0}
+                muted={
+                  !hasField(layer) &&
+                  (layer.field.source.trim().length > 0 || !!layer.field.image)
+                }
                 onClick={() => {
                   selectLayer(layer.id);
                   onEditField(layer.id);

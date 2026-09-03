@@ -43,6 +43,16 @@ export interface FieldSpec {
    * on, so older layers need no migration.
    */
   enabled?: boolean;
+  /**
+   * An image as the field. The index shifts by `amount` times the image's
+   * darkness, read in layer coordinates over a box `scale` world units wide
+   * (the height follows the image), and zero outside it; while it is set the
+   * expression is ignored. Stored as a data URL of a small greyscale PNG, so
+   * it travels with the scene. Against an unmodulated twin at amount one half
+   * this is the inverse moiré of paper 3: in register the overlay shows the
+   * picture, and any offset shows it as a warp of the bands.
+   */
+  image?: string;
 }
 
 export const FIELD_NONE: FieldSpec = { source: '', amount: 3, scale: 200 };
@@ -55,7 +65,7 @@ export const FIELD_NONE: FieldSpec = { source: '', amount: 3, scale: 200 };
 export function hasField(layer: Pick<PatternLayer, 'field'>): boolean {
   return (
     layer.field.enabled !== false &&
-    layer.field.source.trim().length > 0 &&
+    (!!layer.field.image || layer.field.source.trim().length > 0) &&
     layer.field.amount !== 0
   );
 }

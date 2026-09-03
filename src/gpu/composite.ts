@@ -24,6 +24,7 @@ import {
   step,
   uniformArray,
   wgslFn,
+  texture,
 } from 'three/tsl';
 import {
   FIELD_NONE,
@@ -172,8 +173,45 @@ export function compileFieldCached(source: string): CompiledField | null {
 export function fieldSource(field: FieldSpec | undefined): string {
   const spec = field ?? FIELD_NONE;
   if (spec.amount === 0) return '';
+  if (spec.image) return imageKey(spec.image);
   const source = spec.source.trim();
   return source && compileFieldCached(source) ? source : '';
+}
+
+/**
+ * An image field's key, as the material's "source": a new image is a new
+ * shader exactly as a new expression is. Hashed once per data URL, because the
+ * renderer asks on every dirty frame.
+ */
+const imageKeys = new Map<string, string>();
+function imageKey(data: string): string {
+  let key = imageKeys.get(data);
+  if (!key) {
+    let h = 2166136261;
+    for (let i = 0; i < data.length; i++) {
+      h ^= data.charCodeAt(i);
+      h = Math.imul(h, 16777619) >>> 0;
+    }
+    key = `image:${data.length}:${h.toString(16)}`;
+    if (imageKeys.size > 64) imageKeys.clear();
+    imageKeys.set(data, key);
+  }
+  return key;
+}
+
+/** An image as a field: its texture, its pixel size, and its height over its width. */
+export interface ImageField {
+  texture: THREE.Texture;
+  width: number;
+  height: number;
+  aspect: number;
+}
+
+/** What a slot's field is built from: an unrolled expression, an image, or nothing. */
+export type FieldProgram = CompiledField | ImageField | null;
+
+export function isImageField(program: FieldProgram): program is ImageField {
+  return !!program && 'texture' in program;
 }
 
 function writeField(slot: LayerSlot, field: FieldSpec | undefined) {
@@ -396,7 +434,7 @@ export function buildColorNode(
   camera: CameraUniforms,
   view: ViewUniforms,
   slots: LayerSlot[],
-  fields: (CompiledField | null)[] = []
+  fields: FieldProgram[] = []
 ) {
   return Fn(() => {
     const centered = screenCoordinate.sub(screenSize.mul(0.5));
@@ -560,7 +598,28 @@ function solveLayers(slots, fields, view, world, pixel, scanOn) {
       // arithmetic and no dispatch.
       const shiftGrad = vec2(0).toVar();
       const program = fields[index];
-      if (program) {
+      if (isImageField(program)) {
+        // An image as the field: its darkness, read in layer coordinates over
+        // a box `fieldScale` wide with the image's own aspect, and zero
+        // outside it. Sampled at level zero, so the read needs no uniform
+        // control flow and no mipmaps.
+        const L = slot.fieldScale.abs().max(1e-3);
+        const u = local.x.div(L).add(0.5);
+        const v = float(0.5).sub(local.y.div(L.mul(program.aspect)));
+        const dark = (uu, vv) => {
+          const inside = step(0, uu).mul(step(uu, 1)).mul(step(0, vv)).mul(step(vv, 1));
+          return float(1).sub(texture(program.texture, vec2(uu, vv), float(0)).r).mul(inside);
+        };
+        shift.assign(dark(u, v).mul(slot.fieldAmount));
+        // Central differences one texel apart, per world unit; v runs against y.
+        const eu = 1 / program.width;
+        const ev = 1 / program.height;
+        const gx = dark(u.add(eu), v).sub(dark(u.sub(eu), v)).div(L.mul(2 * eu));
+        const gy = dark(u, v.sub(ev))
+          .sub(dark(u, v.add(ev)))
+          .div(L.mul(program.aspect).mul(2 * ev));
+        shiftGrad.assign(vec2(gx, gy).mul(slot.fieldAmount));
+      } else if (program) {
         const sample = fieldFunction(program, `moireField${index}`)(local, slot.fieldScale);
         shift.assign(sample.x.mul(slot.fieldAmount));
         shiftGrad.assign(vec2(sample.y, sample.z).mul(slot.fieldAmount));

@@ -115,6 +115,9 @@ function parseLayer(raw: unknown, index: number): PatternLayer {
       amount: num(field.amount, FIELD_NONE.amount),
       scale: num(field.scale, FIELD_NONE.scale),
       ...(typeof field.enabled === 'boolean' ? { enabled: field.enabled } : {}),
+      ...(typeof field.image === 'string' && field.image.startsWith('data:image/')
+        ? { image: field.image }
+        : {}),
     },
   };
 }

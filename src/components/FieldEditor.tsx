@@ -14,6 +14,40 @@ const PREVIEW_WORLD = 320;
 
 type PreviewMode = 'fringes' | 'field';
 
+/** Long side of a stored image field: enough for a silhouette, small enough for a scene file. */
+const IMAGE_SIDE = 256;
+
+/**
+ * A picked file as the field's image: fitted to `IMAGE_SIDE`, composited over
+ * white, reduced to its luma, and stored as a PNG data URL so the scene carries
+ * it. The shader reads its darkness, so a black silhouette on white is the
+ * natural input and grey levels come through as fractions of the amount.
+ */
+async function imageToField(file: File): Promise<string> {
+  const bitmap = await createImageBitmap(file);
+  const s = Math.min(1, IMAGE_SIDE / Math.max(bitmap.width, bitmap.height));
+  const w = Math.max(1, Math.round(bitmap.width * s));
+  const h = Math.max(1, Math.round(bitmap.height * s));
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('no 2d context');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, w, h);
+  ctx.drawImage(bitmap, 0, 0, w, h);
+  bitmap.close();
+  const image = ctx.getImageData(0, 0, w, h);
+  const d = image.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const l = Math.round(0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2]);
+    d[i] = d[i + 1] = d[i + 2] = l;
+    d[i + 3] = 255;
+  }
+  ctx.putImageData(image, 0, 0);
+  return canvas.toDataURL('image/png');
+}
+
 /**
  * What the field will do to a layer, drawn as the fringes it produces.
  *
@@ -307,7 +341,15 @@ export function FieldEditor({
   };
 
   const enabled = field.enabled !== false;
-  const presetActive = FIELD_PRESETS.find((p) => p.source === trimmed)?.id;
+  const presetActive = !field.image && FIELD_PRESETS.find((p) => p.source === trimmed)?.id;
+  const fileRef = useRef<HTMLInputElement>(null);
+  const pickImage = async (file: File | undefined) => {
+    if (!file) return;
+    const image = await imageToField(file);
+    // Half a member at black: the offset that interleaves the strokes of an
+    // unmodulated twin, which is the inverse moiré's full contrast.
+    onChange({ image, amount: field.image ? field.amount : 0.5 });
+  };
 
   return (
     <FloatingPanel
@@ -328,9 +370,19 @@ export function FieldEditor({
     >
       <div className={`grid grid-cols-[16rem_1fr] gap-4 ${enabled ? '' : 'opacity-90'}`}>
         <div className="grid content-start gap-2">
-          <Preview source={lastGood.current} amount={field.amount} scale={field.scale} mode={mode} />
+          {field.image ? (
+            <img
+              src={field.image}
+              alt="Image field"
+              className="block w-full rounded-lg border border-[var(--border)] bg-[#121212] object-contain"
+              style={{ aspectRatio: '1 / 1' }}
+            />
+          ) : (
+            <Preview source={lastGood.current} amount={field.amount} scale={field.scale} mode={mode} />
+          )}
           <div className="flex items-center gap-1">
-            {(['fringes', 'field'] as const).map((m) => (
+            {!field.image &&
+              (['fringes', 'field'] as const).map((m) => (
               <button
                 key={m}
                 type="button"
@@ -350,8 +402,9 @@ export function FieldEditor({
             </span>
           </div>
           <p className="text-[10.5px] leading-[1.5] text-[var(--text-muted)]">
-            The fringes this layer will make against an unmodulated copy of itself: the level
-            sets of the field. The zero set is drawn heavier.
+            {field.image
+              ? 'The index shifts by Amount times the darkness, over Extent world units of width. Duplicate the layer, give the copy the image, and bring the two into register: the overlay shows the picture, and any offset shows it as a warp of the bands.'
+              : 'The fringes this layer will make against an unmodulated copy of itself: the level sets of the field. The zero set is drawn heavier.'}
           </p>
         </div>
 
@@ -359,6 +412,28 @@ export function FieldEditor({
           <div className="grid gap-1.5">
             <span className="text-[11px] text-[var(--text-secondary)]">Start from</span>
             <div className="grid grid-cols-3 gap-1">
+              <button
+                type="button"
+                title="Use an image as the field: a silhouette, or grey levels"
+                onClick={() => fileRef.current?.click()}
+                className={`h-6 rounded-md px-1 text-[10px] ${
+                  field.image
+                    ? 'text-[var(--text-primary)] ring-1 ring-inset ring-[color-mix(in_srgb,var(--text-primary)_45%,transparent)]'
+                    : 'text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'
+                }`}
+              >
+                Image…
+              </button>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  void pickImage(e.target.files?.[0]);
+                  e.target.value = '';
+                }}
+              />
               {FIELD_PRESETS.map((preset) => (
                 <button
                   key={preset.id}
@@ -378,8 +453,20 @@ export function FieldEditor({
 
           <div className="grid gap-1.5">
             <div className="flex items-center justify-between gap-2">
-              <span className="text-[11px] text-[var(--text-secondary)]">Expression</span>
-              {trimmed && (
+              <span className="text-[11px] text-[var(--text-secondary)]">
+                {field.image ? 'Expression (ignored while an image is set)' : 'Expression'}
+              </span>
+              {field.image && (
+                <button
+                  type="button"
+                  className="text-[10px] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                  title="Drop the image and go back to the expression"
+                  onClick={() => onChange({ image: undefined })}
+                >
+                  Remove image
+                </button>
+              )}
+              {!field.image && trimmed && (
                 <button
                   type="button"
                   className="text-[10px] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
@@ -411,10 +498,10 @@ export function FieldEditor({
             label="Extent"
             value={field.scale}
             min={8}
-            max={600}
+            max={field.image ? 2400 : 600}
             step={1}
             defaultValue={FIELD_NONE.scale}
-            info="The field's spatial size, in world units: how far it spreads across the canvas."
+            info="The field's spatial size, in world units: how far it spreads across the canvas. For an image, its width."
             path={layerId ? layerPath(layerId, 'field.scale') : undefined}
             onChange={(scale) => onChange({ scale })}
           />
