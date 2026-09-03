@@ -125,23 +125,32 @@ Figure~\ref{fig:alias}, and one pixel a period drew black, because a
 hairline rule that widens thin strokes so they survive the screen had
 widened them past the whole pitch. Both are the strobe of
 \S\ref{sec:stations} happening to the instrument. The cure is the window
-multiplier theorem applied to the pixel: from seven pixels a period down
-to four, every pixel becomes a pooling observer, and the drawn colour
-hands over to the slide average integrated in closed form, over a box that
-grows to a whole period of each family as the hand-over completes. A
-carrier the pixel cannot resolve averages to its duty, a beat that is slow
-at the pixel's scale survives as the tent --- the swans stay while the
-rings go grey --- and nothing beats against the comb. No supersampling, no
-texture filter, no guess at a blur: the pixel shows what a pooling
+multiplier theorem taken literally. The drawing is a product of profiles
+on the torus, so it is a Fourier series in the $K$ counts; the pixel is a
+window; and the theorem says the pixel shows each term multiplied by the
+window's transform at that term's own spatial frequency, $\sum_i m_i
+\nabla\phi_i$. From seven pixels a period down to four the drawn colour
+hands over to exactly that sum, the window widening to half the pitch as
+it does. A carrier is a term the window kills; a beat that is slow at the
+pixel's scale is a term the window keeps --- the swans stay while the
+rings go grey; a term past the buffer's Nyquist square would alias when
+drawn, so it is not drawn at all, and nothing beats against the comb. The
+frequency is the term's true one, in two dimensions. A first cut
+integrated a box along one direction with every family in lockstep, which
+is the slide average of Theorem~\ref{thm:sweep} and is exact only where
+the families run parallel: where two ring families cross, between their
+centres, it kept the $(1,-1)$ term at full strength and drew rosettes, and
+the two-dimensional window is what puts the grey there. No supersampling,
+no texture filter, no guess at a blur: the pixel shows what a pooling
 observer of its own size sees, which is what the theorem says it must.
-The smaller buffer the tool draws into while a hand is on the zoom, where
-the artifact had been worst, gets the same treatment with one care: every
-width that sets a mean --- the hairline floor, the integral's ramp, the
-hand-over's weight --- is measured in the pixels of the screen at rest,
-not of the buffer, and where the buffer cannot resolve a stroke it shows
-the drawing's own box mean rather than a point sample of it. A coarse
-frame is then the rest frame pooled, with the same light, and the screen
-no longer flashes at each notch of the zoom.
+The smaller buffer the tool draws into while a hand is on the zoom gets
+the same rule with its own window, the envelope included --- the slide
+multiplies each term by a sinc of its schedule, the pixel by its window,
+and the two commute --- with one care: every width that sets a mean, the
+hairline floor, the integral's ramp, the hand-over's weight, is measured
+in the pixels of the screen at rest, not of the buffer. A coarse frame is
+then the rest frame through a wider window, with the same light, and the
+screen no longer flashes at each notch of the zoom.
 
 \begin{figure}[t]
   \centering

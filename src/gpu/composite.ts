@@ -823,7 +823,13 @@ function solveLayers(slots, fields, view, world, pixel, pixelRest, scanOn) {
         // reads it, and the ring/curve directions cost transcendentals per
         // pixel per layer, so the whole block sits behind the scan gate
         // (uniform, and nothing here takes a screen derivative).
-        If(scanOn, () => {
+        // The family's screen gradient serves the scan's characters and the
+        // synthesis' term frequencies alike: the plain pool and the exact
+        // envelope's ladder frames need it with the scan off.
+        const needGrad = scanOn
+          .or(view.pool.greaterThan(0.5))
+          .or(view.exactSweep.greaterThan(0.5));
+        If(needGrad, () => {
           const dir = vec2(1, 0).toVar();
           If(slot.type.lessThanEqual(0.1), () => {
             dir.assign(lineIndexDir(float(0), warpGrad));
@@ -1814,7 +1820,9 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
           .or(view.ratioC.equal(int(index)))
           .and(scanOn);
         const hInk = mix(halfT, max(slot.thickness.mul(0.5), float(1e-3)), isEnv);
-        const aaUse = mix(aa, aaRest, isEnv);
+        // Inside the envelope the ramp never exceeds the half-stroke (see
+        // exactAlphaWgsl): the tap loop and the chain are twins.
+        const aaUse = mix(aa, aaRest.min(hInk), isEnv);
         // The hairline floor widens a thin stroke to stay visible; while the
         // pixel pools, that widening would darken the mean past the duty, so
         // the widened stroke gives up ink in proportion, and the drawn colour
@@ -1955,10 +1963,12 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
     const chain = exactChain(solved.length);
     const argsDev: unknown[] = [view.sweep, vec3(camera.background), view.observer];
     const argsDiag: unknown[] = [view.sweep, vec3(camera.background), view.observer];
+    const rates: unknown[] = [];
     const prs = solved.map(({ slot, aaRest, phase }, index) => {
       const hInk = max(slot.thickness.mul(0.5), float(1e-3));
       const pr = vec4(hInk, aaRest, slot.opacity, float(0));
       const rate = float(1).toVar();
+      rates.push(rate);
       If(scanOn, () => {
         If(view.ratioA.equal(int(index)), () => rate.assign(rateA));
         If(view.ratioB.equal(int(index)), () => rate.assign(rateB));
@@ -1968,15 +1978,42 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
       argsDiag.push(phase, pr, vec3(slot.color), slot.active, float(1));
       return pr;
     });
-    const diag = chain(...argsDiag);
-    // The deviation chain runs only where the scan actually deviates —
-    // devW is zero at most pixels of most scenes, and the chain is the
-    // expensive half. The 0.003 skirt costs at most 0.3% of a blend.
-    const dev = vec3(0).toVar();
-    If(devW.greaterThan(0.003), () => {
-      dev.assign(chain(...argsDev));
+    // While a hand is on the view the buffer is smaller than the screen,
+    // and the envelope's own fine structure -- the beat is fast where two
+    // families cross, at the foci of a ring pair -- point-sampled at that
+    // buffer aliased into rosettes that vanished the moment the hand lifted.
+    // A reduced buffer therefore draws the envelope by the synthesis below:
+    // the same terms the chain integrates, the slide multiplier on each, and
+    // the buffer's own window on each at its true frequency, so nothing past
+    // the buffer's Nyquist is drawn. Same mean, no alias; at rest the exact
+    // chain, sharp.
+    const wEnv =
+      solved.length <= SYNTH_MAX_K
+        ? float(1).sub(smoothstep(float(0.6), float(0.95), camera.scale))
+        : float(0);
+    const exact = vec3(0).toVar();
+    If(wEnv.lessThan(0.999), () => {
+      const diag = chain(...argsDiag);
+      // The deviation chain runs only where the scan actually deviates —
+      // devW is zero at most pixels of most scenes, and the chain is the
+      // expensive half. The 0.003 skirt costs at most 0.3% of a blend.
+      const dev = vec3(0).toVar();
+      If(devW.greaterThan(0.003), () => {
+        dev.assign(chain(...argsDev));
+      });
+      exact.assign(mix(diag, dev, devW.mul(step(0.003, devW))));
     });
-    meanOut.assign(mix(diag, dev, devW.mul(step(0.003, devW))));
+    if (solved.length <= SYNTH_MAX_K) {
+      If(wEnv.greaterThan(0.001), () => {
+        const synth = poolSynth(solved.length);
+        const args: unknown[] = [view.observer, vec3(camera.background), view.sweep, devW, float(0.8)];
+        solved.forEach(({ slot, phase, sgrad }, index) => {
+          args.push(phase, sgrad, prs[index], vec3(slot.color), slot.active, rates[index]);
+        });
+        exact.assign(mix(exact, synth(...args), wEnv));
+      });
+    }
+    meanOut.assign(exact);
     solved.forEach(({ slot, phase }, index) => {
       If(slot.active.greaterThan(0.5), () => {
         const mm = exactLayerMean(phase, prs[index]).toVar();
@@ -1985,15 +2022,15 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
     });
   }).Else(() => {
     tapLoop();
-    // The pixel as a pooling observer (see the `pool` uniform). Where the
-    // finest visible pitch is under about seven rest pixels a period the
-    // drawn colour hands over to the TRUE mean, fully by four: the sweep
-    // integrated in closed form over a stroke of its true width with a hair
-    // of ramp, so that two strokes in register pool to the light of one (a
-    // two-valued profile is its own square), and a box that grows to a whole
-    // period, so the slide average of Corollary~cor:cases replaces a pitch
-    // the screen cannot show -- the fine pattern goes, its aliases with it,
-    // and the count map stays. The weight is the REST one, so a smaller
+    // The pixel as a pooling observer (see the `pool` uniform and
+    // poolSynthSource). Where the finest visible pitch is under about seven
+    // rest pixels a period the drawn colour hands over to the TRUE mean,
+    // fully by four: the synthesis over strokes of their true width with no
+    // ramp (two strokes in register pool to the light of one, a two-valued
+    // profile being its own square), under a Gaussian window whose width
+    // grows to half the coarsest pitch, so the carriers go, their aliases
+    // with them, and the count map stays -- the slow terms, at their true
+    // two-dimensional frequencies. The weight is the REST one, so a smaller
     // interaction buffer moves it not at all.
     //
     // What the buffer moves is a second, inner hand-over. The drawing is
@@ -2003,44 +2040,52 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
     // strokes coincide (Jensen on the ramps) -- a coarse frame came out
     // darker than the rest frame, and the screen flashed at every notch of
     // the ladder. So where the BUFFER cannot resolve the drawing, the
-    // drawing's share is replaced by its own box mean: the same floored
-    // stroke, the same rest ramp, the same ink, integrated over two buffer
-    // pixels in each family. That has the drawing's mean by construction,
-    // ramps and all: a coarse frame is the rest frame pooled, not a darker
-    // one. At rest the inner weight equals the outer, and the drawing's
-    // share is at most a quarter and lightly boxed; both integrals run only
-    // inside the band, and only one of them either side of it. (Pooled grey
-    // is a LINEAR mean, encoded for the display.)
-    If(view.pool.greaterThan(0.5).and(poolT.greaterThan(0.001)), () => {
-      const chain = exactChain(solved.length);
-      const inner = meanOut.toVar();
-      If(poolTBuf.greaterThan(0.001).and(poolTRest.lessThan(0.999)), () => {
-        const args: unknown[] = [float(1), vec3(camera.background), view.observer];
-        solved.forEach(({ slot, halfT, aaRest, phase }) => {
-          const conserve = mix(
-            float(1),
-            slot.thickness.mul(0.5).div(halfT.max(1e-6)).min(1),
-            poolTRest
-          );
-          const pr = vec4(max(halfT, float(1e-3)), aaRest, slot.opacity.mul(conserve), float(0));
-          const rate = poolPx.div(slot.spacing.abs().max(1e-3)).mul(2).min(1);
-          args.push(phase, pr, vec3(slot.color), slot.active, rate);
+    // drawing's share is replaced by its own synthesis: the same floored
+    // stroke, the same rest ramp, the same ink, under the buffer pixel's
+    // window alone. That has the drawing's mean by construction, ramps and
+    // all: a coarse frame is the rest frame pooled, not a darker one.
+    if (solved.length <= SYNTH_MAX_K) {
+      If(view.pool.greaterThan(0.5).and(poolT.greaterThan(0.001)), () => {
+        const synth = poolSynth(solved.length);
+        const sigBuf = float(0.8);
+        // The coarsest pooled pitch, in buffer pixels: the rest window is
+        // half of it at full weight, which puts the carrier at 0.007.
+        const pitchMax = float(0).toVar();
+        solved.forEach(({ slot, sgrad }) => {
+          const gl = sgrad.length();
+          If(slot.active.greaterThan(0.5).and(gl.greaterThan(1e-4)), () => {
+            pitchMax.assign(max(pitchMax, float(1).div(gl)));
+          });
         });
-        inner.assign(mix(meanOut, chain(...args), poolTBuf));
-      });
-      If(poolTRest.greaterThan(0.001), () => {
-        const args: unknown[] = [float(1), vec3(camera.background), view.observer];
-        solved.forEach(({ slot, aaRest, phase }) => {
-          const hInk = max(slot.thickness.mul(0.5), float(1e-3));
-          const pr = vec4(hInk, aaRest.min(hInk.mul(0.02)), slot.opacity, float(0));
-          const rate = max(poolPx.div(slot.spacing.abs().max(1e-3)).mul(2), poolTRest).min(1);
-          args.push(phase, pr, vec3(slot.color), slot.active, rate);
+        const sigRest = pitchMax.mul(0.5).mul(poolTRest);
+        const sigma = sigBuf.mul(sigBuf).add(sigRest.mul(sigRest)).sqrt();
+        const inner = meanOut.toVar();
+        If(poolTBuf.greaterThan(0.001).and(poolTRest.lessThan(0.999)), () => {
+          const args: unknown[] = [float(0), vec3(camera.background), float(0), float(0), sigBuf];
+          solved.forEach(({ slot, halfT, aaRest, phase, sgrad }) => {
+            const conserve = mix(
+              float(1),
+              slot.thickness.mul(0.5).div(halfT.max(1e-6)).min(1),
+              poolTRest
+            );
+            const pr = vec4(max(halfT, float(1e-3)), aaRest, slot.opacity.mul(conserve), float(0));
+            args.push(phase, sgrad, pr, vec3(slot.color), slot.active, float(1));
+          });
+          inner.assign(mix(meanOut, synth(...args), poolTBuf));
         });
-        meanOut.assign(mix(inner, chain(...args), poolTRest));
-      }).Else(() => {
-        meanOut.assign(inner);
+        If(poolTRest.greaterThan(0.001), () => {
+          const args: unknown[] = [float(0), vec3(camera.background), float(0), float(0), sigma];
+          solved.forEach(({ slot, phase, sgrad }) => {
+            const hInk = max(slot.thickness.mul(0.5), float(1e-3));
+            const pr = vec4(hInk, float(0), slot.opacity, float(0));
+            args.push(phase, sgrad, pr, vec3(slot.color), slot.active, float(1));
+          });
+          meanOut.assign(mix(inner, synth(...args), poolTRest));
+        }).Else(() => {
+          meanOut.assign(inner);
+        });
       });
-    });
+    }
   });
 
   // The square-law observer grades about E[c²]; the linear one about E[c].
@@ -2080,11 +2125,16 @@ const exactTrioDist = wgslFn(EXACT_TRIO_DIST_WGSL);
 
 /** One layer's swept coverage: trio distance through the stroke profile.
  * pr = (hInk, aa, opacity, unused). Morphing stacks ride the tap loop, so
- * no second trio exists here. */
+ * no second trio exists here. The ramp never exceeds the half-stroke: a
+ * symmetric ramp conserves the stroke's mass only while it fits inside it,
+ * and a ramp wider than a sub-pixel stroke inflated its coverage (a 0.6 px
+ * stroke under a 0.7 px ramp carried 9% more ink than its width), which is
+ * not the drawing the sweep is meant to average. */
 const EXACT_ALPHA_WGSL = `
 fn exactAlphaWgsl(ph: vec4<f32>, pr: vec4<f32>, rate: f32, u: f32) -> f32 {
   let d = exactTrioDist(ph, rate, u);
-  return clamp((1.0 - smoothstep(pr.x - pr.y, pr.x + pr.y, d)) * pr.z, 0.0, 1.0);
+  let r = min(pr.y, pr.x);
+  return clamp((1.0 - smoothstep(pr.x - r, pr.x + r, d)) * pr.z, 0.0, 1.0);
 }
 `;
 const exactAlphaWgsl = wgslFn(EXACT_ALPHA_WGSL, [exactTrioDist]);
@@ -2113,8 +2163,9 @@ fn exactResidues(ph: vec4<f32>, pr: vec4<f32>, rate: f32, lo: f32,
   let gap = max(abs(ph.y - ph.x), 1e-6);
   let rg = rate * gap;
   let P = 1.0 / max(abs(rate), 1e-6);
-  let hlo = pr.x - pr.y;
-  let hhi = pr.x + pr.y;
+  let r = min(pr.y, pr.x);
+  let hlo = pr.x - r;
+  let hhi = pr.x + r;
   var corners: array<f32, ${EXACT_CORNERS}>;
   var cn = 0;
   // The nearest member's window, and the wrap seam, always.
@@ -2256,6 +2307,171 @@ fn exactChain${K}(sweep: f32, bg: vec3<f32>, obs: f32, ${params}) -> vec3<f32> {
   return total / max(sweep, 1e-6);
 }
 `;
+}
+
+/**
+ * THE PIXEL'S WINDOW, TERM BY TERM. The pooled colour is the window
+ * multiplier theorem run literally: the drawing's Fourier series in the K
+ * phases, each term multiplied by the pixel's window at that term's own
+ * spatial frequency, k = Σ mᵢ ∇φᵢ in cycles per buffer pixel. A carrier the
+ * pixel cannot resolve is a term with |k| large, and the window kills it; a
+ * beat that is slow at the pixel's scale is a term with |k| small, and it
+ * survives; a term past the buffer's Nyquist square would alias when drawn,
+ * so it is not drawn at all. The frequency is the term's TRUE one, in two
+ * dimensions: where two families run parallel the (1,−1) term is slow and
+ * the moiré is drawn, and where they cross at an angle it is fast and the
+ * pool is grey — which is what the one-dimensional lockstep sweep this
+ * replaces could not tell (it kept every (m,−m) term at full strength
+ * wherever the pitches matched, and drew rosettes where the families cross).
+ *
+ * Profiles are the drawn ones: a box of half-width h with smoothstep ramps
+ * of half-width r, coefficient sin(2πmh)/(πm) times the ramp's transform
+ * (synthRamp), a floor clip subtracted where the trio carries one. The square-law observer needs the series of
+ * a², a(1−a) and (1−a)² as well: hard ink is its own square, and the ramps'
+ * loss a(1−a) is modelled as two narrow pulses at the edges whose mass is
+ * the smoothstep's exact 0.514·r. The slide multiplies term m by
+ * sinc(sweep·Σmᵢrᵢ) (Theorem thm:sweep), so the envelope has the same form.
+ *
+ * Harmonics per layer by stack size: (2M+1)^K terms of a cosine each. A
+ * hairline is a narrow pulse with a wide spectrum, and a pair in register
+ * keeps every (m,−m) term slow, so a pair needs eight: checked on the CPU
+ * against brute-force window averages, eight harmonics agree to a percent
+ * of light where three were off by two.
+ */
+const SYNTH_M = [0, 8, 8, 3, 1];
+const SYNTH_MAX_K = 4;
+
+const SYNTH_SINC_WGSL = `
+fn synthSinc(x: f32) -> f32 {
+  let px = 3.14159265358979 * x;
+  if (abs(px) < 1e-4) { return 1.0; }
+  return sin(px) / px;
+}
+`;
+const synthSinc = wgslFn(SYNTH_SINC_WGSL);
+/** The drawn ramp is a smoothstep, whose slope is the parabolic bump
+ * 6t(1−t): a pulse with such ramps is a box convolved with that bump, so
+ * its m-th coefficient is the box's times the bump's transform at
+ * a = 4πrm (r the ramp half-width in cycles), 12(2 sin(a/2) − a cos(a/2))/a³.
+ * The ramps' loss a(1−a) is a bump of the same family, narrower (variance
+ * 0.034 against 0.05 in ramp units), so it uses the same form at 0.824 a. */
+const SYNTH_RAMP_WGSL = `
+fn synthRamp(a: f32) -> f32 {
+  if (a < 1e-2) { return 1.0 - a * a / 40.0; }
+  return 12.0 * (2.0 * sin(a * 0.5) - a * cos(a * 0.5)) / (a * a * a);
+}
+`;
+const synthRamp = wgslFn(SYNTH_RAMP_WGSL);
+
+const poolSynthCache = new Map<number, ReturnType<typeof wgslFn>>();
+
+function poolSynthSource(K: number): string {
+  const M = SYNTH_M[K];
+  const L = Array.from({ length: K }, (_, i) => i);
+  const params = L.map(
+    (i) =>
+      `ph${i}: vec4<f32>, g${i}: vec2<f32>, pr${i}: vec4<f32>, col${i}: vec3<f32>, act${i}: f32, rate${i}: f32`
+  ).join(', ');
+  const setup = L.map(
+    (i) => `let gap${i} = max(abs(ph${i}.y - ph${i}.x), 1e-6);
+  let phi${i} = ph${i}.x / gap${i};
+  let hc${i} = min(pr${i}.x / gap${i}, 0.5);
+  let rc${i} = clamp(pr${i}.y / gap${i}, 0.0, hc${i});
+  let al${i} = clamp(pr${i}.z, 0.0, 1.0) * act${i};
+  let wc${i} = max(ph${i}.w, 0.0) / gap${i};
+  var aw${i} = 1.0;
+  if (wc${i} > hc${i} - rc${i}) {
+    aw${i} = clamp((hc${i} + rc${i} - wc${i}) / max(2.0 * rc${i}, 1e-6), 0.0, 1.0);
+  }
+  let wcl${i} = min(wc${i}, hc${i});
+  var F${i}: array<f32, ${M + 1}>;
+  var Q${i}: array<f32, ${M + 1}>;
+  for (var m = 0; m <= ${M}; m++) {
+    let mf = f32(m);
+    var Fm = 2.0 * hc${i};
+    var Bw = 2.0 * wcl${i};
+    if (m > 0) {
+      Fm = sin(6.28318530718 * mf * hc${i}) / (3.14159265359 * mf) * synthRamp(12.5663706144 * rc${i} * mf);
+      Bw = sin(6.28318530718 * mf * wcl${i}) / (3.14159265359 * mf);
+    }
+    F${i}[m] = Fm - (1.0 - aw${i}) * Bw;
+    Q${i}[m] = 0.514 * rc${i} * cos(6.28318530718 * mf * hc${i}) * synthRamp(10.3547 * rc${i} * mf);
+  }`
+  ).join('\n  ');
+  const open = L.map((i) => `for (var m${i} = -${M}; m${i} <= ${M}; m${i}++) {`).join('\n  ');
+  const close = L.map(() => '}').join('\n  ');
+  const kExpr = L.map((i) => `f32(m${i}) * g${i}`).join(' + ');
+  const angExpr = L.map((i) => `f32(m${i}) * phi${i}`).join(' + ');
+  const sumM = L.map((i) => `f32(m${i})`).join(' + ');
+  const sumMR = L.map((i) => `f32(m${i}) * rate${i}`).join(' + ');
+  const perLayer = L.map(
+    (i) =>
+      `let i${i} = abs(m${i}); let d${i} = select(0.0, 1.0, m${i} == 0); let Fv${i} = F${i}[i${i}]; let Qv${i} = Q${i}[i${i}]; let a${i} = al${i} * Fv${i}; let b${i} = d${i} - a${i};`
+  ).join('\n      ');
+  const linTerms = [
+    `bg * (${L.map((j) => `b${j}`).join(' * ')})`,
+    ...L.map(
+      (i) => `col${i} * (${L.map((j) => (j < i ? `d${j}` : j === i ? `a${j}` : `b${j}`)).join(' * ')})`
+    ),
+  ];
+  const sqPer = L.map(
+    (i) =>
+      `let aa${i} = al${i} * al${i} * (Fv${i} - Qv${i}); let ab${i} = al${i} * (1.0 - al${i}) * Fv${i} + al${i} * al${i} * Qv${i}; let bb${i} = d${i} - al${i} * (2.0 - al${i}) * Fv${i} - al${i} * al${i} * Qv${i};`
+  ).join('\n        ');
+  // Colour term t: 0 is the background (every layer a "not inked" factor b);
+  // t = i + 1 is layer i's own colour (one below it, a at it, b above it).
+  const fac = (t: number, j: number) => (t === 0 ? 'b' : j < t - 1 ? 'one' : j === t - 1 ? 'a' : 'b');
+  const pairName = (x: string, y: string, j: number) => {
+    const key = [x, y].sort().join('|');
+    return {
+      'one|one': `d${j}`,
+      'a|one': `a${j}`,
+      'b|one': `b${j}`,
+      'a|a': `aa${j}`,
+      'a|b': `ab${j}`,
+      'b|b': `bb${j}`,
+    }[key];
+  };
+  const colName = (t: number) => (t === 0 ? 'bg' : `col${t - 1}`);
+  const sqTerms: string[] = [];
+  for (let t = 0; t <= K; t++) {
+    for (let u = t; u <= K; u++) {
+      const prod = L.map((j) => pairName(fac(t, j), fac(u, j), j)).join(' * ');
+      sqTerms.push(`${t === u ? '' : '2.0 * '}${colName(t)} * ${colName(u)} * (${prod})`);
+    }
+  }
+  return `
+fn poolSynth${K}(obs: f32, bg: vec3<f32>, sweep: f32, devW: f32, sigma: f32, ${params}) -> vec3<f32> {
+  ${setup}
+  let sig2 = 19.7392088 * sigma * sigma;
+  var acc = vec3<f32>(0.0);
+  var acc2 = vec3<f32>(0.0);
+  ${open}
+    let k = ${kExpr};
+    let mm = max(abs(k.x), abs(k.y));
+    if (mm < 0.5) {
+      let W = exp(-sig2 * dot(k, k)) * (1.0 - smoothstep(0.42, 0.5, mm));
+      let S = mix(synthSinc(sweep * (${sumM})), synthSinc(sweep * (${sumMR})), devW);
+      let cw = cos(6.28318530718 * (${angExpr})) * W * S;
+      ${perLayer}
+      acc += cw * (${linTerms.join(' + ')});
+      if (obs > 0.001) {
+        ${sqPer}
+        acc2 += cw * (${sqTerms.join(' + ')});
+      }
+    }
+  ${close}
+  return mix(acc, acc2, obs);
+}
+`;
+}
+
+function poolSynth(K: number) {
+  const cached = poolSynthCache.get(K);
+  if (cached) return cached;
+  const fn = wgslFn(poolSynthSource(K), [synthSinc, synthRamp]);
+  poolSynthCache.set(K, fn);
+  return fn;
 }
 
 function exactChain(K: number) {

@@ -695,10 +695,12 @@ export class MoireRenderer {
     // seven pixels a period down -- and it is asked of the BUFFER's pixels:
     // a smaller interaction buffer, or a small export, pools what it cannot
     // resolve, and the shader tells the two cases apart by the scale uniform.
-    this.poolable = state.view.pool !== false && !envelope && !anyLattice && !hasLayerMorphs();
     const scalar = state.layers.filter(
       (l) => l.visible && !isGrid(l.type) && !isRadialLines(l.type)
     );
+    // At most four layers: the synthesis has (2M+1)^K terms.
+    this.poolable =
+      state.view.pool !== false && !envelope && !anyLattice && !hasLayerMorphs() && scalar.length <= 4;
     this.poolFinest = Math.min(...scalar.map((l) => Math.abs(l.spacing)), Infinity);
     this.poolStroke = Math.min(...scalar.map((l) => Math.abs(l.thickness) * 0.5), Infinity);
     this.viewUniforms.pool.value = this.poolGate(state.camera.zoom * this.scale, this.scale);
