@@ -4,11 +4,9 @@ import { evalField } from '../fields/evalExpr';
 import { tokenizeForDisplay, type ExprTokenKind } from '../fields/highlight';
 import {
   Copy01Icon,
-  DicesIcon,
   Image01Icon,
   ImageRemove01Icon,
   ImageUpload01Icon,
-  ShuffleIcon,
 } from '@hugeicons/core-free-icons';
 import { FIELD_NONE, type FieldSpec } from '../types/moire';
 import { Icon, type HugeIcon } from './ui/Icon';
@@ -24,7 +22,7 @@ const PREVIEW_WORLD = 320;
 type PreviewMode = 'fringes' | 'field';
 
 /** Long side of a stored image field: enough for a silhouette's edges to sit inside a pitch, small enough for a scene file. */
-const IMAGE_SIDE = 512;
+export const IMAGE_SIDE = 512;
 
 /**
  * A picked file as the field's image: fitted to `IMAGE_SIDE`, composited over
@@ -319,7 +317,12 @@ const REFERENCE: { name: string; note: string }[] = [
 
 export type ShareMode = NonNullable<FieldSpec['mode']>;
 
-/** The three ways a picture can sit on the layers, as the Share row offers them. */
+/**
+ * The ways a picture can sit on the layers, as the Share row offers them. A
+ * third, the weave (both layers jittered per cell, one flipping inside the
+ * picture), is in the shader and readable from a scene file, but not offered:
+ * it hides the picture completely and costs the layers their look.
+ */
 const SHARE_MODES: { id: ShareMode; label: string; icon: HugeIcon; note: string }[] = [
   {
     id: 'plain',
@@ -329,15 +332,9 @@ const SHARE_MODES: { id: ShareMode; label: string; icon: HugeIcon; note: string 
   },
   {
     id: 'halves',
-    label: 'Halves',
+    label: 'Two layers',
     icon: Copy01Icon,
-    note: 'Two layers each take half the shift, in opposite directions. Crisp in register; alone, each shows the edges faintly.',
-  },
-  {
-    id: 'weave',
-    label: 'Weave',
-    icon: DicesIcon,
-    note: 'Both layers jitter by half the shift per cell, at random, and inside the picture one of them flips its cells. Alone, each is the same weave everywhere; in register the picture is crisp at cell size, with greys as dither.',
+    note: 'Half the shift on this layer and half, the other way, on its twin. In register the overlay is the picture; alone, each layer bends only along the picture\'s edges, by a quarter pitch, as gently as Edges says.',
   },
 ];
 
@@ -399,7 +396,8 @@ function PicturePanel({
   onRemove: () => void;
   onReplace: () => void;
 }) {
-  const mode: ShareMode = field.mode ?? 'plain';
+  // A scene can still carry a weave; the row shows it as Two layers.
+  const mode: ShareMode = field.mode === 'halves' || field.mode === 'weave' ? 'halves' : 'plain';
   const near = (a: number, b: number) => Math.abs(a - b) < 0.011;
   return (
     <div className="grid content-start gap-3">
@@ -452,7 +450,7 @@ function PicturePanel({
         max={4}
         step={0.1}
         defaultValue={0}
-        info="Softness of the picture's edges, in doublings of a pixel of the stored picture. Zero is the picture as stored; an outline gets wider with it."
+        info="Softness of the picture's edges, in doublings of a pixel of the stored picture. Zero is the picture as stored. On two layers it is how gently each line bends at an edge; an outline gets wider with it."
         path={layerPath(layerId, 'field.soften')}
         onChange={(soften) => onChange({ soften })}
       />
@@ -470,7 +468,7 @@ function PicturePanel({
 
       <div className="grid gap-1.5">
         <span className="text-[11px] text-[var(--text-secondary)]">Share</span>
-        <div className="grid grid-cols-3 gap-1">
+        <div className="grid grid-cols-2 gap-1">
           {SHARE_MODES.map((m) => (
             <Chip key={m.id} active={mode === m.id} title={m.note} onClick={() => onShare(m.id)}>
               <Icon icon={m.icon} size={12} />
@@ -484,31 +482,6 @@ function PicturePanel({
         </p>
       </div>
 
-      {mode === 'weave' && (
-        <div className="grid gap-2">
-          <Slider
-            label="Cell"
-            value={field.cell ?? 1}
-            min={0.5}
-            max={4}
-            step={0.25}
-            defaultValue={1}
-            info="Length of a jitter cell along the members, in pitches. Across the members a cell is always one pitch, so a line never straddles two."
-            path={layerPath(layerId, 'field.cell')}
-            onChange={(cell) => onChange({ cell })}
-          />
-          <div>
-            <Chip
-              active={false}
-              title="New random signs for every cell, on both layers"
-              onClick={() => onChange({ seed: Math.floor(Math.random() * 1000) + 1 })}
-            >
-              <Icon icon={ShuffleIcon} size={12} />
-              Reshuffle
-            </Chip>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

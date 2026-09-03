@@ -34,7 +34,7 @@ import { layerPath, viewPath } from '../store/params';
 import { VIEW_DEFAULTS, useProjectStore, useSelectedLayer } from '../store/project';
 import { CaptureDialog } from './CaptureDialog';
 import { ProjectsDialog } from './ProjectsDialog';
-import { FieldEditor } from './FieldEditor';
+import { FieldEditor, IMAGE_SIDE } from './FieldEditor';
 import { FAMILY_ICONS, PATTERN_ICONS } from './patternIcons';
 import { ColorField } from './ui/ColorField';
 import { FloatingPanel } from './ui/FloatingPanel';
@@ -1217,7 +1217,21 @@ export function Studio() {
             // (same family and pitch, no field: the base the picture was meant
             // to be read against), else on a fresh copy.
             const seed = fieldLayer.field.seed ?? Math.floor(Math.random() * 1000) + 1;
-            const mine: FieldSpec = { ...fieldLayer.field, mode, seed, role: -1, source: '' };
+            // A quarter-member jog is a kink; bent over half a pitch it is a
+            // gentle S, and the overlay's edge softens by the same half pitch,
+            // a hair at the scale of a picture. Edges is a mip level of the
+            // stored picture, so the half pitch is converted through the
+            // picture's width on the canvas.
+            const soften =
+              fieldLayer.field.soften ||
+              Math.min(
+                4,
+                Math.max(
+                  0,
+                  Math.log2((0.5 * fieldLayer.spacing * IMAGE_SIDE) / Math.max(1, fieldLayer.field.scale))
+                )
+              );
+            const mine: FieldSpec = { ...fieldLayer.field, mode, seed, soften, role: -1, source: '' };
             const theirs: FieldSpec = { ...mine, role: 1 };
             updateLayer(fieldLayer.id, { field: mine });
             const twin =
