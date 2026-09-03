@@ -1,6 +1,6 @@
 import * as THREE from 'three/webgpu';
 import { MeshBasicNodeMaterial } from 'three/webgpu';
-import { MAX_LAYERS, isGrid, type PatternLayer } from '../types/moire';
+import { MAX_LAYERS, isGrid, isRadialLines, type PatternLayer } from '../types/moire';
 import {
   buildColorNode,
   compileFieldCached,
@@ -210,6 +210,8 @@ const SETTLE_MS = 150;
  * measurement's own submit-to-completion latency counted against it.
  */
 const FRAME_BUDGET_MS = 18;
+/** Buffer pixels per period under which the plain render starts to pool (see `view.pool`). */
+const POOL_PX = 5;
 /** The buffer scales tried, largest first; each step halves the pixel count. */
 const INTERACTION_SCALES = [1, 0.71, 0.5, 0.35, 0.25];
 /** The frame interval a stream is held to: 60 frames a second, on any display. */
@@ -595,7 +597,7 @@ export class MoireRenderer {
     const contoursOn = state.view.envelopeContours;
     const wantsScan = envelope || contoursOn;
     // What sets a frame's cost class, for the interaction buffer's memory.
-    this.costKey = `${envelope ? 1 : 0}${ratioOn ? 1 : 0}${contoursOn ? 1 : 0}|${state.layers.length}|${this.lastWidth}x${this.lastHeight}@${this.lastDpr}`;
+    this.costKey = `${envelope ? 1 : 0}${ratioOn ? 1 : 0}${contoursOn ? 1 : 0}${this.viewUniforms?.pool.value ? 1 : 0}|${state.layers.length}|${this.lastWidth}x${this.lastHeight}@${this.lastDpr}`;
     // The regime mask and the orientation-aware sweep read the same ranked
     // pair the ratio view compares, so an enveloped stack keeps those uniforms
     // warm even with the ratio view off — falling back to the topmost scalar
@@ -676,6 +678,20 @@ export class MoireRenderer {
     // type ease (280 ms) rides the tap loop and the exact path resumes on
     // the next sync after it settles.
     this.viewUniforms.exactSweep.value = envelope && !anyLattice && !hasLayerMorphs() ? 1 : 0;
+    // The pixel as a pooling observer: the plain render pools where the
+    // finest visible pitch drops under a few buffer pixels (the buffer's
+    // pixel, so a reduced interaction buffer pools exactly as much more as
+    // it is coarser). Scalar stacks only, like the exact sweep it reuses;
+    // the envelope is already pooled.
+    const bufferZoom = state.camera.zoom * this.scale;
+    const finestPx = Math.min(
+      ...state.layers
+        .filter((l) => l.visible && !isGrid(l.type) && !isRadialLines(l.type))
+        .map((l) => Math.abs(l.spacing) * bufferZoom),
+      Infinity
+    );
+    const pool = !envelope && !anyLattice && !hasLayerMorphs() && finestPx < POOL_PX ? 1 : 0;
+    this.viewUniforms.pool.value = pool;
     if (visible.length === 1) {
       const pixel = 1 / Math.max(state.camera.zoom, 0.08);
       this.viewUniforms.pivotConst.value

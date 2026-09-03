@@ -287,6 +287,19 @@ export function createViewUniforms() {
     taps: uniform(1, 'int'),
     sweep: uniform(0),
     contrast: uniform(1),
+    // THE PIXEL AS A POOLING OBSERVER. Raised by the renderer when some
+    // visible family's pitch falls under a few buffer pixels: the plain
+    // render then blends, per pixel, toward the closed-form sweep run as a
+    // two-pixel box window over each family (rate 2·pixel/spacing, at most
+    // one period), which is the window multiplier theorem doing the
+    // anti-aliasing. A carrier the pixel cannot resolve averages to its
+    // duty, a beat that is slow at the pixel's scale survives as the tent,
+    // and nothing beats against the buffer's own comb. Point-sampling a
+    // family at two pixels a period draws the star of hyperbolae that
+    // concentric rings make against a pixel grid, and the hairline floor
+    // then inks the whole pitch black; both were the zoom-out artifacts.
+    // Scalar stacks only, like the exact sweep it reuses.
+    pool: uniform(0),
     // A flat exposure shift after the contrast expansion, for reading a fringe
     // field whose pivot sits too dark or too bright to print well.
     lift: uniform(0),
@@ -600,7 +613,7 @@ function solveLayers(slots, fields, view, world, pixel, scanOn) {
       // back to the nominal spacing — the sweep averages over the wrong period
       // and the carrier survives as sector-shaped hash. With the exact argmin
       // the neighbour trio is honest by construction.
-      const needPhase = max(view.sweep, max(view.ratio, view.contours));
+      const needPhase = max(max(view.sweep, view.pool), max(view.ratio, view.contours));
       const accept = max(halfT.sub(aa), float(0)).mul(step(needPhase, float(0)));
       const reject = max(halfT.add(aa), needPhase.mul(slot.spacing));
 
@@ -1711,6 +1724,17 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
   // through the aa ramp, which is all the integral needs.
   const isEnv = step(float(1.5), float(view.taps));
 
+  // The pixel as a pooling observer (see the `pool` uniform): members per
+  // buffer pixel of the finest visible family, and the weight with which the
+  // drawn colour hands over to the pooled one -- nothing under four and a
+  // half pixels a period, everything by two and a half.
+  const poolPx = float(1).div(max(camera.zoom, float(0.08)));
+  const poolW = float(0).toVar();
+  solved.forEach(({ slot }) => {
+    poolW.assign(max(poolW, poolPx.div(slot.spacing.abs().max(1e-3)).mul(slot.active)));
+  });
+  const poolT = smoothstep(float(0.22), float(0.4), poolW).mul(view.pool.clamp(0, 1));
+
   const tapLoop = () => {
   Loop(view.taps, ({ i }) => {
     // Centred on zero so that a single tap is the pattern itself, and so that
@@ -1747,8 +1771,20 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
           .or(view.ratioC.equal(int(index)))
           .and(scanOn);
         const hInk = mix(halfT, max(slot.thickness.mul(0.5), float(1e-3)), isEnv);
+        // The hairline floor widens a thin stroke to stay visible; while the
+        // pixel pools, that widening would darken the mean past the duty, so
+        // the widened stroke gives up ink in proportion, and the drawn colour
+        // meets the pooled one at the same mean.
+        const conserve = mix(
+          float(1),
+          slot.thickness.mul(0.5).div(hInk.max(1e-6)).min(1),
+          poolT
+        );
         const strokeAlpha = (d) =>
-          float(1).sub(smoothstep(hInk.sub(aa), hInk.add(aa), d)).mul(slot.opacity);
+          float(1)
+            .sub(smoothstep(hInk.sub(aa), hInk.add(aa), d))
+            .mul(slot.opacity)
+            .mul(conserve);
 
         const alpha = float(0).toVar();
         const alphaDiag = float(0).toVar();
@@ -1904,6 +1940,34 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
     });
   }).Else(() => {
     tapLoop();
+    // The pixel as a pooling observer (see the `pool` uniform). Where the
+    // finest visible pitch is under about four buffer pixels the drawn
+    // colour hands over to the sweep integrated as a box two pixels wide
+    // in each family, fully by two and a half pixels a period. The hairline
+    // floor keeps its full ink at the zooms where lines are lines, and
+    // gives it up in proportion as the pooled colour takes over.
+    If(view.pool.greaterThan(0.5).and(poolT.greaterThan(0.001)), () => {
+      const chain = exactChain(solved.length);
+      const args: unknown[] = [float(1), vec3(camera.background), view.observer];
+      solved.forEach(({ slot, aa, phase }) => {
+        const hInk = max(slot.thickness.mul(0.5), float(1e-3));
+        // Inside the integral the stroke keeps its true width AND its true
+        // edge: the 0.7-pixel ramp exists to anti-alias a drawn edge, and the
+        // integral anti-aliases by itself. At two pixels a period the ramp is
+        // wider than the stroke, and two profiles that soft, composed
+        // multiplicatively, average darker than two hard ones do (Jensen on
+        // the ramps): a duty-half pair in register pooled to 0.33 of the
+        // light instead of 0.5. A hair of ramp keeps the smoothstep's edges
+        // apart. (The pooled grey is a LINEAR mean, encoded for the display:
+        // the same light as the stripes it replaces, not the same pixel
+        // codes.)
+        const pr = vec4(hInk, aa.min(hInk.mul(0.02)), slot.opacity, float(0));
+        // Each family slides a box two buffer pixels wide, at most one period.
+        const rate = poolPx.div(slot.spacing.abs().max(1e-3)).mul(2).min(1);
+        args.push(phase, pr, vec3(slot.color), slot.active, rate);
+      });
+      meanOut.assign(mix(meanOut, chain(...args), poolT));
+    });
   });
 
   // The square-law observer grades about E[c²]; the linear one about E[c].
