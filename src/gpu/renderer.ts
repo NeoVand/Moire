@@ -210,8 +210,13 @@ const SETTLE_MS = 150;
  * measurement's own submit-to-completion latency counted against it.
  */
 const FRAME_BUDGET_MS = 18;
-/** Buffer pixels per period under which the plain render starts to pool (see `view.pool`). */
-const POOL_PX = 5;
+/**
+ * The pooling gate (see `view.pool`): buffer pixels per period under which,
+ * or a floored half-stroke in buffer pixels under which, the plain render is
+ * allowed to pool. Coarse on purpose: the shader's own weights decide.
+ */
+const POOL_PX = 12;
+const POOL_STROKE_PX = 1.4;
 /** The buffer scales tried, largest first; each step halves the pixel count. */
 const INTERACTION_SCALES = [1, 0.71, 0.5, 0.35, 0.25];
 /** The frame interval a stream is held to: 60 frames a second, on any display. */
@@ -298,6 +303,10 @@ export class MoireRenderer {
    * dispatched frame-aligned).
    */
   private scale = 1;
+  /** The pooling gate's zoom-free part, and the finest visible pitch (world units). */
+  private poolable = false;
+  private poolFinest = Infinity;
+  private poolStroke = Infinity;
   private fullCost = 0;
   private lastRequest = 0;
   private settleTimer = 0;
@@ -575,6 +584,7 @@ export class MoireRenderer {
     // Zoom is buffer pixels per world unit, so a reduced buffer scales it
     // with itself and the framing is identical by construction.
     this.cameraUniforms.zoom.value = state.camera.zoom * this.scale;
+    this.cameraUniforms.scale.value = this.scale;
     this.cameraUniforms.pan.value.set(state.camera.pan.x, state.camera.pan.y);
     this.cameraUniforms.background.value.set(state.backgroundColor);
     this.renderer?.setClearColor(state.backgroundColor, 1);
@@ -679,22 +689,19 @@ export class MoireRenderer {
     // the next sync after it settles.
     this.viewUniforms.exactSweep.value = envelope && !anyLattice && !hasLayerMorphs() ? 1 : 0;
     // The pixel as a pooling observer: the plain render pools where the
-    // finest visible pitch drops under a few buffer pixels (the buffer's
-    // pixel, so a reduced interaction buffer pools exactly as much more as
-    // it is coarser). Scalar stacks only, like the exact sweep it reuses;
-    // the envelope is already pooled.
-    const bufferZoom = state.camera.zoom * this.scale;
-    const finestPx = Math.min(
-      ...state.layers
-        .filter((l) => l.visible && !isGrid(l.type) && !isRadialLines(l.type))
-        .map((l) => Math.abs(l.spacing) * bufferZoom),
-      Infinity
+    // finest visible pitch drops under a few pixels a period. Scalar stacks
+    // only, like the exact sweep it reuses; the envelope is already pooled.
+    // The gate is coarse and cheap -- the shader's own weights decide, from
+    // seven pixels a period down -- and it is asked of the BUFFER's pixels:
+    // a smaller interaction buffer, or a small export, pools what it cannot
+    // resolve, and the shader tells the two cases apart by the scale uniform.
+    this.poolable = state.view.pool !== false && !envelope && !anyLattice && !hasLayerMorphs();
+    const scalar = state.layers.filter(
+      (l) => l.visible && !isGrid(l.type) && !isRadialLines(l.type)
     );
-    const pool =
-      state.view.pool !== false && !envelope && !anyLattice && !hasLayerMorphs() && finestPx < POOL_PX
-        ? 1
-        : 0;
-    this.viewUniforms.pool.value = pool;
+    this.poolFinest = Math.min(...scalar.map((l) => Math.abs(l.spacing)), Infinity);
+    this.poolStroke = Math.min(...scalar.map((l) => Math.abs(l.thickness) * 0.5), Infinity);
+    this.viewUniforms.pool.value = this.poolGate(state.camera.zoom * this.scale, this.scale);
     if (visible.length === 1) {
       const pixel = 1 / Math.max(state.camera.zoom, 0.08);
       this.viewUniforms.pivotConst.value
@@ -857,6 +864,17 @@ export class MoireRenderer {
     };
   }
 
+  /**
+   * Whether a buffer at this zoom (world units to its pixels), drawn at this
+   * fraction of the rest size, pools at all: a fine period, or a stroke whose
+   * rest floor (1.15 rest pixels) the buffer's pixels cannot resolve.
+   */
+  private poolGate(zoom: number, scale: number): number {
+    if (!this.poolable) return 0;
+    const halfStroke = Math.max(this.poolStroke, (1.15 * scale) / Math.max(zoom, 1e-6));
+    return this.poolFinest * zoom < POOL_PX || halfStroke * zoom < POOL_STROKE_PX ? 1 : 0;
+  }
+
   /** The buffer at a fraction of the full size, framing unchanged. */
   private setScale(scale: number) {
     if (!this.renderer || scale === this.scale) return;
@@ -936,7 +954,9 @@ export class MoireRenderer {
     return { width, height };
   }
 
-  async snapshot(opts: { scale?: number; aspect?: number; height?: number } = {}): Promise<Blob> {
+  async snapshot(
+    opts: { scale?: number; aspect?: number; height?: number; interactionScale?: number } = {}
+  ): Promise<Blob> {
     return this.snapshotWith(opts, (canvas) => encodeCanvasPng(canvas));
   }
 
@@ -948,7 +968,7 @@ export class MoireRenderer {
    * moment the callback is done with it either way.
    */
   async snapshotWith<T>(
-    opts: { scale?: number; aspect?: number; height?: number } = {},
+    opts: { scale?: number; aspect?: number; height?: number; interactionScale?: number } = {},
     read: (canvas: HTMLCanvasElement) => Promise<T> | T
   ): Promise<T> {
     // An export that lands inside a field rebuild waits for it rather than failing.
@@ -981,10 +1001,21 @@ export class MoireRenderer {
       this.renderer.setPixelRatio(1);
       this.renderer.setSize(width, height, false);
       this.cameraUniforms.zoom.value = zoom0 * zScale;
+      if (this.viewUniforms) {
+        this.viewUniforms.pool.value = this.poolGate(zoom0 * zScale, opts.interactionScale ?? 1);
+      }
+      // A harness may ask for the frame as the interaction ladder would draw
+      // it: the export is already at the reduced size (its zoom scaled), and
+      // this tells the shader how much smaller than rest that is, so the
+      // hairline floor, the integral ramps and the pooling weight stay at
+      // rest exactly as they do while a hand is on the zoom.
+      this.cameraUniforms.scale.value = opts.interactionScale ?? 1;
       this.renderer.render(this.scene, this.camera);
       return await read(this.canvas);
     } finally {
+      this.cameraUniforms.scale.value = this.scale;
       this.cameraUniforms.zoom.value = zoom0;
+      if (this.viewUniforms) this.viewUniforms.pool.value = this.poolGate(zoom0, this.scale);
       this.renderer.setPixelRatio(this.lastDpr || 1);
       this.renderer.setSize(this.lastWidth, this.lastHeight, false);
       this.render();

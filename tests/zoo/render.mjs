@@ -22,13 +22,18 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '..', '..');
 const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 
-const [scenesPath, outDirArg] = process.argv.slice(2).filter((a) => !a.startsWith('--'));
+const positional = process.argv.slice(2).filter((a, i, all) => !a.startsWith('--') && !(i > 0 && (all[i - 1] === '--scale' || all[i - 1] === '--interaction')));
+const [scenesPath, outDirArg] = positional;
 if (!scenesPath || !outDirArg) {
   console.error('usage: node tests/zoo/render.mjs <scenes.mjs> <outDir> [--scale N]');
   process.exit(2);
 }
 const scaleArg = process.argv.indexOf('--scale');
 const scale = scaleArg >= 0 ? Number(process.argv[scaleArg + 1]) : 1;
+// `--interaction s` draws every frame as the interaction ladder would at
+// buffer scale s (pair it with `--scale s` for the frame the ladder shows).
+const interArg = process.argv.indexOf('--interaction');
+const interactionScale = interArg >= 0 ? Number(process.argv[interArg + 1]) : undefined;
 
 const { cases } = await import(pathToFileURL(path.resolve(scenesPath)).href);
 const outDir = path.resolve(outDirArg);
@@ -62,14 +67,15 @@ try {
   for (const c of cases) {
     const t0 = Date.now();
     const dataUrl = await page.evaluate(
-      async ({ json, width, height }) => {
+      async ({ json, width, height, interactionScale }) => {
         window.__zoo.load(json);
-        return await window.__zoo.capture({ width, height });
+        return await window.__zoo.capture({ width, height, interactionScale });
       },
       {
         json: JSON.stringify(c.scene),
         width: CAPTURE.width * scale,
         height: CAPTURE.height * scale,
+        interactionScale,
       }
     );
     fs.writeFileSync(

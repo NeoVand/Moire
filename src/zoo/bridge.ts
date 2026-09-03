@@ -22,7 +22,7 @@ export interface ZooApi {
   /** Replace the construction with a scene file's text, wholesale. */
   load: (sceneText: string) => void;
   /** One settled frame as a PNG data URL, framed by the scene alone. */
-  capture: (opts?: { width?: number; height?: number }) => Promise<string>;
+  capture: (opts?: { width?: number; height?: number; interactionScale?: number }) => Promise<string>;
   /** The construction as a scene file's text, for a harness to read back. */
   dump: () => string;
 }
@@ -73,7 +73,7 @@ window.__zoo = {
 
     store.setCamera({ zoom });
     try {
-      const blob = await capturePng({ scale, aspect });
+      const blob = await capturePng({ scale, aspect, interactionScale: opts.interactionScale });
       return await blobToDataUrl(blob);
     } finally {
       useProjectStore.getState().setCamera({ zoom: sceneZoom });

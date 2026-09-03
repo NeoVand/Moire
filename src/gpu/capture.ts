@@ -5,6 +5,14 @@ export interface CaptureOptions {
   aspect?: number;
   /** An exact frame height in pixels, which overrides `scale` when given. */
   height?: number;
+  /**
+   * Draw the frame as the interaction ladder would at this buffer scale:
+   * the hairline floor, the integral ramps and the pooling weight stay at
+   * rest, the anti-aliasing ramp and the pooling box follow the buffer. A
+   * harness's way to test that a smaller buffer changes the blur and not
+   * the mean. Absent is rest.
+   */
+  interactionScale?: number;
 }
 
 type CaptureFn = (opts?: CaptureOptions) => Promise<Blob>;

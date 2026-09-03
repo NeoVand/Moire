@@ -244,6 +244,15 @@ function writeField(slot: LayerSlot, field: FieldSpec | undefined) {
 export function createCameraUniforms() {
   return {
     zoom: uniform(1),
+    // The interaction buffer's scale (1 at rest, down the ladder while a hand
+    // is on something). `zoom` already includes it, so `pixel` is the BUFFER
+    // pixel; `pixel * scale` is the pixel at rest. Everything that sets the
+    // picture's MEAN -- the hairline floor, the ramp inside an integral, the
+    // pooling weight -- is measured at rest, so a smaller buffer changes the
+    // blur and nothing else; only the anti-aliasing ramp of a drawn edge and
+    // the pooling box follow the buffer. Before this, thin strokes darkened
+    // and the pooled share jumped at every ladder step: the zoom flashed.
+    scale: uniform(1),
     pan: uniform(new THREE.Vector2(0, 0)),
     background: uniform(new THREE.Color(0xffffff)),
   };
@@ -487,7 +496,8 @@ export function buildColorNode(
       .or(view.ratio.greaterThan(0.5))
       .or(view.contours.greaterThan(0.5));
 
-    const solved = solveLayers(slots, fields, view, world, pixel, scanOn);
+    const pixelRest = pixel.mul(camera.scale.max(0.05));
+    const solved = solveLayers(slots, fields, view, world, pixel, pixelRest, scanOn);
     const coords = latticeCoords(solved);
     const scan = scanCharacters(view, solved, coords, scanOn);
     const lattice = matchLattices(view, solved, scan, coords, scanOn);
@@ -560,11 +570,15 @@ function latticeCoords(solved) {
 // here, so a tap costs arithmetic rather than a search — and a hidden layer
 // costs nothing, because the whole solve sits under the same branch that
 // decides whether the layer draws at all.
-function solveLayers(slots, fields, view, world, pixel, scanOn) {
+function solveLayers(slots, fields, view, world, pixel, pixelRest, scanOn) {
   return slots.map((slot, index) => {
     const local = vec2(0).toVar();
     const halfT = float(0).toVar();
     const aa = float(0).toVar();
+    // The ramp at rest, for the integrals (envelope, pooling pivot): a ramp
+    // that widened with the buffer drained the beat out of the enveloped
+    // average while zooming, and snapped back when the buffer settled.
+    const aaRest = float(0).toVar();
     const cell = vec4(0).toVar();
     const shift = float(0).toVar();
     const phase = vec4(0).toVar();
@@ -597,8 +611,13 @@ function solveLayers(slots, fields, view, world, pixel, scanOn) {
         ).sub(slot.position)
       );
 
-      halfT.assign(max(slot.thickness.mul(0.5), pixel.mul(1.15)));
+      // The hairline floor in REST pixels: the same widening while a hand is
+      // on the zoom as after it settles, so the mean ink does not follow the
+      // buffer. The drawn edge's ramp follows the buffer, which it must, and
+      // a ramp is mean-preserving.
+      halfT.assign(max(slot.thickness.mul(0.5), pixelRest.mul(1.15)));
       aa.assign(pixel.mul(0.7));
+      aaRest.assign(pixelRest.mul(0.7));
       // How exactly the phase must be measured depends on who consumes it.
       // The plain render only asks whether a member sits within the stroke, so
       // the rotated-ring scan may stop at the FIRST member that close
@@ -860,7 +879,7 @@ function solveLayers(slots, fields, view, world, pixel, scanOn) {
       });
     });
 
-    return { slot, local, halfT, aa, isLattice, cell, shift, phase, phaseFrom, sgrad };
+    return { slot, local, halfT, aa, aaRest, isLattice, cell, shift, phase, phaseFrom, sgrad };
   });
 }
 
@@ -1725,15 +1744,39 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
   const isEnv = step(float(1.5), float(view.taps));
 
   // The pixel as a pooling observer (see the `pool` uniform): members per
-  // buffer pixel of the finest visible family, and the weight with which the
-  // drawn colour hands over to the pooled one -- nothing under four and a
-  // half pixels a period, everything by two and a half.
+  // pixel of the finest visible family, and the weight with which the drawn
+  // colour hands over to the pooled one -- nothing under seven pixels a
+  // period, everything by four, which is where a hard stroke's harmonics
+  // start to beat with the pixel grid. Two weights: the REST one decides the
+  // look (how much ink the hairline floor gives up, how wide the box is),
+  // and never moves with the interaction buffer; the BUFFER one only asks
+  // whether the smaller buffer can still resolve the stroke, and hands over
+  // to the pooled colour where it cannot. Since the pooled colour is the box
+  // mean of the very drawing the plain path samples, that hand-over changes
+  // no mean: a coarse frame is the rest frame pooled, not a darker one.
   const poolPx = float(1).div(max(camera.zoom, float(0.08)));
-  const poolW = float(0).toVar();
-  solved.forEach(({ slot }) => {
-    poolW.assign(max(poolW, poolPx.div(slot.spacing.abs().max(1e-3)).mul(slot.active)));
+  const poolPxRest = poolPx.mul(camera.scale.max(0.05));
+  const poolWRest = float(0).toVar();
+  const poolWBuf = float(0).toVar();
+  // The buffer fails the drawing in two ways: a period it cannot resolve
+  // (members per buffer pixel), and a stroke it cannot -- its 0.7-pixel ramp
+  // wider than the stroke's rest half-width, so every sample is partial. At
+  // rest the ramp is 0.7 of a floored half-width of 1.15 at most, and the
+  // stroke weight is zero: it moves only with the interaction buffer.
+  const strokeW = float(0).toVar();
+  solved.forEach(({ slot, halfT, aa }) => {
+    const members = slot.active.div(slot.spacing.abs().max(1e-3));
+    poolWRest.assign(max(poolWRest, poolPxRest.mul(members)));
+    poolWBuf.assign(max(poolWBuf, poolPx.mul(members)));
+    strokeW.assign(max(strokeW, aa.div(halfT.max(1e-6)).mul(slot.active)));
   });
-  const poolT = smoothstep(float(0.22), float(0.4), poolW).mul(view.pool.clamp(0, 1));
+  const poolOn = view.pool.clamp(0, 1);
+  const poolTRest = smoothstep(float(0.14), float(0.25), poolWRest).mul(poolOn);
+  const poolTBuf = max(
+    smoothstep(float(0.14), float(0.25), poolWBuf),
+    smoothstep(float(0.65), float(1.0), strokeW)
+  ).mul(poolOn);
+  const poolT = max(poolTRest, poolTBuf);
 
   const tapLoop = () => {
   Loop(view.taps, ({ i }) => {
@@ -1749,7 +1792,7 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
 
     const colorDev = camera.background.toVar();
     const colorDiag = camera.background.toVar();
-    solved.forEach(({ slot, local, halfT, aa, isLattice, cell, shift, phase, phaseFrom }, index) => {
+    solved.forEach(({ slot, local, halfT, aa, aaRest, isLattice, cell, shift, phase, phaseFrom }, index) => {
       If(slot.active.greaterThan(0.5), () => {
         // The ranked layers advance at the integer rates that hold the
         // winning character fixed while everything else averages out;
@@ -1771,18 +1814,20 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
           .or(view.ratioC.equal(int(index)))
           .and(scanOn);
         const hInk = mix(halfT, max(slot.thickness.mul(0.5), float(1e-3)), isEnv);
+        const aaUse = mix(aa, aaRest, isEnv);
         // The hairline floor widens a thin stroke to stay visible; while the
         // pixel pools, that widening would darken the mean past the duty, so
         // the widened stroke gives up ink in proportion, and the drawn colour
-        // meets the pooled one at the same mean.
+        // meets the pooled one at the same mean. By the REST weight: a
+        // smaller interaction buffer must not change how dark a line is.
         const conserve = mix(
           float(1),
           slot.thickness.mul(0.5).div(hInk.max(1e-6)).min(1),
-          poolT
+          poolTRest
         );
         const strokeAlpha = (d) =>
           float(1)
-            .sub(smoothstep(hInk.sub(aa), hInk.add(aa), d))
+            .sub(smoothstep(hInk.sub(aaUse), hInk.add(aaUse), d))
             .mul(slot.opacity)
             .mul(conserve);
 
@@ -1910,9 +1955,9 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
     const chain = exactChain(solved.length);
     const argsDev: unknown[] = [view.sweep, vec3(camera.background), view.observer];
     const argsDiag: unknown[] = [view.sweep, vec3(camera.background), view.observer];
-    const prs = solved.map(({ slot, aa, phase }, index) => {
+    const prs = solved.map(({ slot, aaRest, phase }, index) => {
       const hInk = max(slot.thickness.mul(0.5), float(1e-3));
-      const pr = vec4(hInk, aa, slot.opacity, float(0));
+      const pr = vec4(hInk, aaRest, slot.opacity, float(0));
       const rate = float(1).toVar();
       If(scanOn, () => {
         If(view.ratioA.equal(int(index)), () => rate.assign(rateA));
@@ -1941,32 +1986,60 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
   }).Else(() => {
     tapLoop();
     // The pixel as a pooling observer (see the `pool` uniform). Where the
-    // finest visible pitch is under about four buffer pixels the drawn
-    // colour hands over to the sweep integrated as a box two pixels wide
-    // in each family, fully by two and a half pixels a period. The hairline
-    // floor keeps its full ink at the zooms where lines are lines, and
-    // gives it up in proportion as the pooled colour takes over.
+    // finest visible pitch is under about seven rest pixels a period the
+    // drawn colour hands over to the TRUE mean, fully by four: the sweep
+    // integrated in closed form over a stroke of its true width with a hair
+    // of ramp, so that two strokes in register pool to the light of one (a
+    // two-valued profile is its own square), and a box that grows to a whole
+    // period, so the slide average of Corollary~cor:cases replaces a pitch
+    // the screen cannot show -- the fine pattern goes, its aliases with it,
+    // and the count map stays. The weight is the REST one, so a smaller
+    // interaction buffer moves it not at all.
+    //
+    // What the buffer moves is a second, inner hand-over. The drawing is
+    // point-sampled, and a buffer coarser than its stroke samples it wrong:
+    // the soft ramp is then wider than the stroke, every sample is partial,
+    // and partial coverages composed multiplicatively double-count where
+    // strokes coincide (Jensen on the ramps) -- a coarse frame came out
+    // darker than the rest frame, and the screen flashed at every notch of
+    // the ladder. So where the BUFFER cannot resolve the drawing, the
+    // drawing's share is replaced by its own box mean: the same floored
+    // stroke, the same rest ramp, the same ink, integrated over two buffer
+    // pixels in each family. That has the drawing's mean by construction,
+    // ramps and all: a coarse frame is the rest frame pooled, not a darker
+    // one. At rest the inner weight equals the outer, and the drawing's
+    // share is at most a quarter and lightly boxed; both integrals run only
+    // inside the band, and only one of them either side of it. (Pooled grey
+    // is a LINEAR mean, encoded for the display.)
     If(view.pool.greaterThan(0.5).and(poolT.greaterThan(0.001)), () => {
       const chain = exactChain(solved.length);
-      const args: unknown[] = [float(1), vec3(camera.background), view.observer];
-      solved.forEach(({ slot, aa, phase }) => {
-        const hInk = max(slot.thickness.mul(0.5), float(1e-3));
-        // Inside the integral the stroke keeps its true width AND its true
-        // edge: the 0.7-pixel ramp exists to anti-alias a drawn edge, and the
-        // integral anti-aliases by itself. At two pixels a period the ramp is
-        // wider than the stroke, and two profiles that soft, composed
-        // multiplicatively, average darker than two hard ones do (Jensen on
-        // the ramps): a duty-half pair in register pooled to 0.33 of the
-        // light instead of 0.5. A hair of ramp keeps the smoothstep's edges
-        // apart. (The pooled grey is a LINEAR mean, encoded for the display:
-        // the same light as the stripes it replaces, not the same pixel
-        // codes.)
-        const pr = vec4(hInk, aa.min(hInk.mul(0.02)), slot.opacity, float(0));
-        // Each family slides a box two buffer pixels wide, at most one period.
-        const rate = poolPx.div(slot.spacing.abs().max(1e-3)).mul(2).min(1);
-        args.push(phase, pr, vec3(slot.color), slot.active, rate);
+      const inner = meanOut.toVar();
+      If(poolTBuf.greaterThan(0.001).and(poolTRest.lessThan(0.999)), () => {
+        const args: unknown[] = [float(1), vec3(camera.background), view.observer];
+        solved.forEach(({ slot, halfT, aaRest, phase }) => {
+          const conserve = mix(
+            float(1),
+            slot.thickness.mul(0.5).div(halfT.max(1e-6)).min(1),
+            poolTRest
+          );
+          const pr = vec4(max(halfT, float(1e-3)), aaRest, slot.opacity.mul(conserve), float(0));
+          const rate = poolPx.div(slot.spacing.abs().max(1e-3)).mul(2).min(1);
+          args.push(phase, pr, vec3(slot.color), slot.active, rate);
+        });
+        inner.assign(mix(meanOut, chain(...args), poolTBuf));
       });
-      meanOut.assign(mix(meanOut, chain(...args), poolT));
+      If(poolTRest.greaterThan(0.001), () => {
+        const args: unknown[] = [float(1), vec3(camera.background), view.observer];
+        solved.forEach(({ slot, aaRest, phase }) => {
+          const hInk = max(slot.thickness.mul(0.5), float(1e-3));
+          const pr = vec4(hInk, aaRest.min(hInk.mul(0.02)), slot.opacity, float(0));
+          const rate = max(poolPx.div(slot.spacing.abs().max(1e-3)).mul(2), poolTRest).min(1);
+          args.push(phase, pr, vec3(slot.color), slot.active, rate);
+        });
+        meanOut.assign(mix(inner, chain(...args), poolTRest));
+      }).Else(() => {
+        meanOut.assign(inner);
+      });
     });
   });
 
