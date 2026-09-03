@@ -62,27 +62,28 @@ $D=\tfrac12(1-g)$, read from the picture in the copy's own coordinates,
 and the tent of Corollary~\ref{cor:cases} says what any pooling observer
 sees of the pair. The strokes align where the picture is white and
 interleave where it is black, so in register the overlay is the picture,
-at half contrast, and nothing else (Figure~\ref{fig:inverse}). The amount
-is a dial: a whole member of shift at black is invisible inside the figure,
-so only its edges, where the shift passes through one half, stay dark, and
-the same picture is drawn as an outline. Out of register the same two
-layers are the classical band moir\'e with the picture riding on it. A
-quarter of a pitch apart, the offset is one quarter outside the figure and
-three quarters inside, which the tent cannot tell apart, and the picture
-fades to its edges. Turned by under a degree, the bands of the rotation
-carry it as a displacement, and as the turn closes the bands widen until
-one of them is the whole frame and the picture is back. The construction
-is one line because the count is the object: the picture is a slow
-combination chosen by hand, and the base family is free.
+at half contrast, and nothing else (Figure~\ref{fig:inverse}), grey
+levels included, since the tent is linear in the offset up to one half.
+The amount is a dial: a whole member of shift at black is invisible inside
+a dark region, so only its edges, where the shift passes through one half,
+stay dark, and a silhouette is drawn as an outline. Out of register the
+same two layers are the classical band moir\'e with the picture riding on
+it. Moved a quarter of a pitch, the picture rides on the bands two ring
+families make; turned or moved further, the bands narrow and the picture
+dissolves into them, and as the motion closes the bands widen until one of
+them is the whole frame and the picture is back. The construction is one
+line because the count is the object: the picture is a slow combination
+chosen by hand, and the base family is free --- concentric circles in the
+figure, which no straight-grating method reaches.
 
 The picture can also be shared between the two layers, and the theory
 says exactly how well. A crisp picture needs the difference of the two
 shifts to jump by one half at every edge, so at least one layer jumps
 there, and the least either can jump is a quarter, in opposite directions:
-half the shift on each layer. Alone, each layer then changes only along
-the picture's edges, by a quarter of a pitch, and the tool bends that
-quarter over half a pitch rather than kinking it, so the lines make a
-gentle S and the overlay's edge softens by the same half pitch, a hair at
+half the shift on each layer. Alone, each layer then changes only where
+the picture changes, by at most a quarter of a pitch, and the tool bends
+that quarter over half a pitch rather than kinking it, so the members make
+a gentle S and the overlay's edges soften by the same half pitch, a hair at
 the scale of a picture (Figure~\ref{fig:inverse}, bottom row). Hiding the
 picture from a single layer altogether is possible --- it is visual
 cryptography~\cite{NaorShamir1994Visual} in the count's currency, and
@@ -98,22 +99,22 @@ being the picture's unmodulated twin.
   \centering
   \includegraphics[width=0.32\linewidth]{inverse-alone.png}\hfill
   \includegraphics[width=0.32\linewidth]{inverse-aligned.png}\hfill
-  \includegraphics[width=0.32\linewidth]{inverse-outline.png}\\[3pt]
-  \includegraphics[width=0.32\linewidth]{halves-a.png}\hfill
-  \includegraphics[width=0.32\linewidth]{halves-b.png}\hfill
-  \includegraphics[width=0.32\linewidth]{halves-aligned.png}
-  \caption{\figlead{The inverse problem, in the tool.} Top row, one layer
-  carries the picture as the index shift $D=\tfrac12(1-g)$. Alone (left),
-  the picture is in the lines. Over its unmodulated twin in register
-  (middle), the strokes interleave where the picture is black and the
-  overlay is the picture. With a whole member of shift at black and the
-  edges softened (right), the inside is invisible and the picture is an
-  outline. Bottom row, the picture shared: each layer takes a quarter of a
-  pitch, one way (left) and the other (middle), bent over half a pitch, so
-  alone each shows only a soft ripple along the edges; in register (right)
-  the halves add to one half and the picture is back, crisp to half a
-  pitch. Rendered by the tool's capture path from scenes the field editor
-  writes.}
+  \includegraphics[width=0.32\linewidth]{inverse-quarter.png}\\[3pt]
+  \includegraphics[width=0.32\linewidth]{inverse-halves-a.png}\hfill
+  \includegraphics[width=0.32\linewidth]{inverse-halves-b.png}\hfill
+  \includegraphics[width=0.32\linewidth]{inverse-halves-aligned.png}
+  \caption{\figlead{The inverse problem, in the tool.} A grey-level
+  drawing on a family of concentric circles. Top row, one layer carries the
+  picture as the index shift $D=\tfrac12(1-g)$. Alone (left), the picture
+  is in the rings. Over its unmodulated twin in register (middle), the rings
+  interleave in proportion to the darkness and the overlay is the picture,
+  greys and all. Moved a quarter of a pitch (right), the picture rides on
+  the bands the two ring families make. Bottom row, the picture shared:
+  each layer takes a quarter of the shift, one way (left) and the other
+  (middle), bent over half a pitch, so alone each shows only a soft ripple
+  where the picture changes; in register (right) the quarters add to one
+  half and the picture is back. Rendered by the tool's capture path from
+  scenes the field editor writes (\texttt{inverse-scenes.mjs}).}
   \label{fig:inverse}
 \end{figure}
 
