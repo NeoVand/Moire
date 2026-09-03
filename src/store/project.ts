@@ -72,6 +72,12 @@ export interface ViewState {
    * threshold.
    */
   envelopeContours: boolean;
+  /**
+   * The plain render's pooling below a few pixels a period (see `view.pool`
+   * in the shader). On by default and not in the studio; a scene file can
+   * switch it off to show the aliasing it removes.
+   */
+  pool?: boolean;
   /** Contour stroke width in screen pixels. */
   contourWidth: number;
   /**
@@ -102,6 +108,7 @@ export const VIEW_DEFAULTS: ViewState = {
   envelopeMask: 0,
   envelopeSquare: false,
   envelopeContours: false,
+  pool: true,
   contourWidth: 1.6,
   contourBands: 0.4,
   ratio: false,

@@ -118,6 +118,41 @@ being the picture's unmodulated twin.
   \label{fig:inverse}
 \end{figure}
 
+The theory also runs against the tool's own pixels. A pixel is a comb
+family, and a family drawn at two pixels a period beats with it: zooming
+out on concentric circles once drew the star of hyperbolae of
+Figure~\ref{fig:alias}, and one pixel a period drew black, because a
+hairline rule that widens thin strokes so they survive the screen had
+widened them past the whole pitch. Both are the strobe of
+\S\ref{sec:stations} happening to the instrument. The cure is the window
+multiplier theorem applied to the pixel: where the finest visible pitch
+falls under a few buffer pixels, every pixel becomes a pooling observer,
+and the drawn colour hands over to the slide average integrated in closed
+form over a box two pixels wide in each family. A carrier the pixel cannot
+resolve averages to its duty, a beat that is slow at the pixel's scale
+survives as the tent --- the swans stay while the rings go grey --- and
+nothing beats against the comb. No supersampling, no texture filter, no
+guess at a blur: the pixel shows what a pooling observer of its own size
+sees, which is what the theorem says it must. The same rule applies
+unchanged to the smaller buffer the tool draws into while a hand is on the
+zoom, which is where the artifact had been worst.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.49\linewidth]{alias-before.png}\hfill
+  \includegraphics[width=0.49\linewidth]{alias-after.png}
+  \caption{\figlead{The tool's own moir\'e, and its cure.} The shared
+  swans of Figure~\ref{fig:inverse} on rings of pitch four, drawn at two
+  buffer pixels a period. Left, point-sampled: the rings beat with the
+  pixel comb into a star of hyperbolae, and the hairline floor darkens the
+  pitch. Right, every pixel a pooling observer: the rings average to their
+  duty and the swans, the slow beat of the two layers, remain. Both frames
+  are the tool's capture path (\texttt{alias-scenes.mjs}); the pooled grey
+  is a linear mean encoded for the display, the same light as the stripes
+  it replaces.}
+  \label{fig:alias}
+\end{figure}
+
 Every view is a measurement with a gate, in two different senses that
 should not be confused. The count solver for the fold rung is checked
 against a brute-force twin that tries every member, so its answers are

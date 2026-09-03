@@ -690,7 +690,10 @@ export class MoireRenderer {
         .map((l) => Math.abs(l.spacing) * bufferZoom),
       Infinity
     );
-    const pool = !envelope && !anyLattice && !hasLayerMorphs() && finestPx < POOL_PX ? 1 : 0;
+    const pool =
+      state.view.pool !== false && !envelope && !anyLattice && !hasLayerMorphs() && finestPx < POOL_PX
+        ? 1
+        : 0;
     this.viewUniforms.pool.value = pool;
     if (visible.length === 1) {
       const pixel = 1 / Math.max(state.camera.zoom, 0.08);
