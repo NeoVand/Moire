@@ -50,9 +50,40 @@ On every case the count-map error equals the protocol's noise floor to the third
 - Near field: no integral for most pixels, one or two error functions at an edge, a short quadrature at a corner. About 0.3 microseconds a pixel.
 - Mid field: the sums. Most of the frame's time, on a fifth of its pixels.
 
-Three things would change the picture. The sums are embarrassingly parallel and are exp, cos and sin, which is what a GPU is for. The term count can be traded for error through one threshold (the script's `--cut`), and the checkerboard at 0.013 error runs at 35×. And the mid field is where a hybrid would sample rather than sum, with the theory saying which pixels those are before any shading is done.
+Three things would change the picture. The sums are embarrassingly parallel and are exp, cos and sin, which is what a GPU is for. The term count can be traded for error through one threshold (the script's `--cut`). And the mid field is where a hybrid samples rather than sums, with the theory saying which pixels those are before any shading is done: the next section measures that.
+
+## The hybrid: the regime map with a term budget
+
+The per-pixel term count is known before any term is computed: it is the number of lattice points in the ellipse of surviving recipes (for the 3-torus cases, times the ripple harmonics that survive), from the Jacobian and the material's spectrum alone. So the method can decide per pixel, in advance, between the exact sum and a fallback. `yb.mjs --budget=B --samples=N` does that: where the estimate exceeds B the pixel is instead the mean of N stratified Gaussian samples of the shader (n by n strata in radius and angle, rotated per pixel by a hash), and everywhere else the exact routes run, which in the far field and the near field are nearly free. `--sweep` runs a ladder of budgets against supersampling at 4, 16, 64 and 256 samples on the same truth, and `yb-pareto.mjs` draws `figures/yb-pareto.svg`.
+
+Error and time relative to the unfiltered shader, 1000-sample truth, one JavaScript core. "MSAA at equal time" is read off the supersampling curve at the hybrid's time.
+
+| case | hybrid setting | error | time | MSAA at equal time | published state of the art |
+|---|---|---|---|---|---|
+| checkerboard | budget 100, 36 samples | 0.0078 | 25× | about 0.065 | |
+| checkerboard | budget 50, 36 samples | 0.0087 | 21× | about 0.07 | |
+| quadratic sine | budget 100, 36 samples | 0.0072 | 42× | 0.034 | |
+| quadratic sine | budget 50, 16 samples | 0.014 | 29× | 0.045 | |
+| circles | budget 100, 36 samples | 0.0088 | 36× | 0.046 | 0.035 at 4× |
+| circles | budget 25, 9 samples | 0.030 | 26× | 0.06 | |
+| checkerboard, ripples | budget 400, 64 samples | 0.012 | 98× | 0.027 | 0.071 at 2× |
+| checkerboard, ripples | budget 100, 36 samples | 0.016 | 53× | 0.040 | |
+| quadratic sine, ripples | budget 100, 36 samples | 0.017 | 45× | 0.040 | 0.045 at 2× |
+| quadratic sine, ripples | budget 50, 16 samples | 0.029 | 25× | 0.055 | |
+
+Three readings of the table.
+
+- **Against supersampling the hybrid is two to seven times better in error at equal time on every case**, and the gap is largest where the exact routes cover most of the frame (the plain checkerboard: 0.008 against 0.065 at 25×). It is smallest on the rippled cases, where most pixels end up sampled because the rippled shader has three marginally resolved counts through the whole mid field and its lighting harmonics cost about a hundred shader evaluations per exact pixel.
+- **Against the published approximations the hybrid reaches their error at five to twenty times their time, and two to four times lower error at ten to twenty-five times.** There is no point on our curve below about 18×, because the exact routes' fixed per-pixel work (the count geometry, the early-outs, a few error functions) already costs that much against a five-flop shader.
+- **Where the theory acts in the hybrid is the decision, not the samples.** The sampler is ordinary stratified supersampling. What makes the curve is knowing, per pixel and before shading, that the far field is its mean, that the near field is an error function or nothing, and that only the mid field needs samples. That is the oracle of `antialiasing.md` doing real work, and it is the part that transfers to any renderer.
+
+What did not work, so it is not tried again: a Laplace closed form for the highlight's Gaussian mean (the lobe is clipped and rarely one Gaussian peak; errors up to 1.2 against 1e-9 for the 64-sample harmonics), and nine Gauss–Hermite nodes for the same mean (the peak is 0.1 to 0.3 radians wide and the nodes miss it). The highlight's mean under the pixel genuinely needs the lighting sampled densely in the ripple angle, and that is the time floor of the rippled cases.
 
 ## Images
+
+`paper/figures/yb-pareto.svg`: error against time, one panel per case, the count-map curve from the hybrid's cheapest setting to the exact sum, the supersampling curve, the truth's noise floor, and the published points.
+
+
 
 `paper/figures/yb-<case>-strip.png`: truth, unfiltered, MSAA 4, count-map, with the moiré zone (rows 16 to 76, columns 160 to 320) magnified three times under each.
 

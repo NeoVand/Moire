@@ -40,6 +40,16 @@ const CUT = argNum('cut', 1e-4);
 const CROSS = argNum('cross', 600);
 const CURV = argNum('curv', 0.02);
 const RIPPLE_QUAD_MAX = argNum('rq', 1.8);
+// below this ripple sigma the lighting means use nine Gauss-Hermite nodes; the
+// highlight is a peak of width 0.1 to 0.3 radians, so this is only safe when
+// the window is narrower than that, which this scene never reaches
+const SLOW_LIGHT = argNum('slowlight', 0.05);
+// The hybrid: where a pixel's estimated term count exceeds BUDGET, the sums
+// give way to NSAMP stratified Gaussian samples of the shader itself. Set at
+// run time by the sweep.
+let BUDGET = argNum('budget', Infinity);
+let NSAMP = argNum('samples', 64);
+const SWEEP = args.includes('--sweep');
 const DIAG = args.includes('--diag');
 const QUICK = args.includes('--quick');
 
@@ -218,6 +228,66 @@ const renderMC = (shader, n, seed) => {
       img[p + 2] = c / n;
     }
   return img;
+};
+
+// Stratified Gaussian supersampling of a shader at one pixel: n by n strata
+// in (radius, angle), shifted per pixel by a hash, so the pattern is a
+// randomly shifted stratification and not a comb.
+const hash2 = (x, y) => {
+  let h = (x * 374761393 + y * 668265263) | 0;
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  h ^= h >>> 16;
+  const a = (h >>> 0) / 4294967296;
+  let g = (x * 2654435761 + y * 40503) | 0;
+  g = Math.imul(g ^ (g >>> 15), 2246822519);
+  g ^= g >>> 13;
+  return [a, (g >>> 0) / 4294967296];
+};
+// the pattern is built once per sample count: n by n strata in (radius,
+// angle) with a golden offset in angle per radial stratum; per pixel it is
+// rotated by a hashed angle, which keeps the Gaussian and breaks the comb
+let patternN = -1;
+let patternX = null;
+let patternY = null;
+const buildPattern = () => {
+  const n = Math.max(1, Math.round(Math.sqrt(NSAMP)));
+  patternN = NSAMP;
+  patternX = new Float64Array(n * n);
+  patternY = new Float64Array(n * n);
+  const gold = 0.6180339887498949;
+  let idx = 0;
+  for (let i = 0; i < n; i++) {
+    const u1 = (i + 0.5) / n;
+    const r = Math.sqrt(-2 * Math.log(1 - u1));
+    for (let j = 0; j < n; j++) {
+      const u2 = ((j + 0.5) / n + i * gold) % 1;
+      patternX[idx] = SIG * r * Math.cos(TAU * u2);
+      patternY[idx] = SIG * r * Math.sin(TAU * u2);
+      idx++;
+    }
+  }
+};
+const superSample = (shader, x, y, out) => {
+  if (patternN !== NSAMP) buildPattern();
+  const [h] = hash2(x, y);
+  const ca = Math.cos(TAU * h);
+  const sa = Math.sin(TAU * h);
+  const tmp = [0, 0, 0];
+  let a = 0;
+  let b = 0;
+  let c = 0;
+  const m = patternX.length;
+  for (let i = 0; i < m; i++) {
+    const px = patternX[i];
+    const py = patternY[i];
+    shader(x + ca * px - sa * py, y + sa * px + ca * py, tmp);
+    a += tmp[0];
+    b += tmp[1];
+    c += tmp[2];
+  }
+  out[0] = a / m;
+  out[1] = b / m;
+  out[2] = c / m;
 };
 
 // ---------------------------------------------------------------------------
@@ -428,6 +498,12 @@ const oursCheckerboard = (x, y, out, stats) => {
   const Kv = Math.ceil(reach / (TAU * Math.max(sigV, 1e-6)));
   let chk;
   if (Ku * Kv <= CROSS) {
+    const cross = Math.abs(gu[0] * gv[1] - gu[1] * gv[0]);
+    if (-Math.log(CUT) / (8 * Math.PI * SIG * SIG * Math.max(cross, 1e-12)) > BUDGET) {
+      superSample(checkerboard, x, y, out);
+      if (stats) stats.sampled++;
+      return;
+    }
     const Hu = d.Hs.map((r) => r.map((e) => e / 20));
     const Hv = d.Ht.map((r) => r.map((e) => e / 20));
     const cu = TAU * curvature(Hu);
@@ -652,6 +728,11 @@ const oursSinQuadratic = (x, y, out, stats) => {
     const varMin = Math.max(0, a - (b * b) / c); // residual exponent per k^2 after the best m
     const lnCut = Math.log(CUT);
     const K = Math.min(Math.ceil(Math.sqrt(-lnCut / Math.max(varMin, 1e-9))) + 2, 400);
+    if (K * (2 * Math.sqrt(-lnCut / c) + 1) * 0.7 > BUDGET) {
+      superSample(sinQuadratic, x, y, out);
+      if (stats) stats.sampled++;
+      return;
+    }
     const cq = TAU * curvature(Hq);
     const cpsi = curvature(Hpsi);
     let acc = 0.5;
@@ -801,6 +882,12 @@ const oursCircles = (x, y, out, stats) => {
   const rr = CR / CD;
   let disc;
   if (Ku * Kv <= CROSS) {
+    const cross = Math.abs(gu[0] * gv[1] - gu[1] * gv[0]);
+    if (-Math.log(CUT) / (2 * Math.PI * SIG * SIG * Math.max(cross, 1e-12)) > BUDGET) {
+      superSample(circles, x, y, out);
+      if (stats) stats.sampled++;
+      return;
+    }
     const Hu = d.Hs.map((r) => r.map((e) => e / CD));
     const Hv = d.Ht.map((r) => r.map((e) => e / CD));
     const cu = TAU * curvature(Hu);
@@ -1017,11 +1104,41 @@ const expectHarmonics = (coef, theta0, gth, Hth) => {
 const LcBuf = new Float64Array(HMAX + 1);
 const ScBuf = new Float64Array(HMAX + 1);
 
+// Where the ripple is slow across the pixel, E[LN] and E[spec] are Gaussian
+// expectations of smooth functions of theta: nine Gauss-Hermite nodes.
+const GH9 = [
+  [-4.512745863, 2.234584401e-5],
+  [-3.205429003, 2.789141321e-3],
+  [-2.076847979, 4.991640676e-2],
+  [-1.023255663, 0.2440975029],
+  [0, 0.4062513223],
+  [1.023255663, 0.2440975029],
+  [2.076847979, 4.991640676e-2],
+  [3.205429003, 2.789141321e-3],
+  [4.512745863, 2.234584401e-5],
+];
+const lightingMeansSlow = (dx, dy, v, pow, theta0, sigT) => {
+  let ln = 0;
+  let sp = 0;
+  for (const [node, wt] of GH9) {
+    const th = theta0 + Math.SQRT2 * sigT * node;
+    const c = Math.cos(th);
+    const nl = Math.sqrt(1 + c * c);
+    const nx = (dx * c) / nl;
+    const ny = (dy * c) / nl;
+    const nz = 1 / nl;
+    const l = Math.max(LIGHT[0] * nx + LIGHT[1] * ny + LIGHT[2] * nz, 0);
+    const rv = (2 * l * nx - LIGHT[0]) * v[0] + (2 * l * ny - LIGHT[1]) * v[1] + (2 * l * nz - LIGHT[2]) * v[2];
+    ln += wt * l;
+    sp += wt * Math.pow(Math.max(rv, 0), pow);
+  }
+  // the weights above are already normalised to one
+  return [ln, sp];
+};
+
 const oursCheckerboardRipples = (x, y, out, stats) => {
   const g = rippleGeometry(x, y);
   const { s, t, d, dx, dy, theta0, gth, Hth, v } = g;
-  lightingHarmonics(dx, dy, v, 50, LcBuf, ScBuf);
-  const spec = expectHarmonics(ScBuf, theta0, gth, Hth);
   const a = v[0] / 60; // parallax amplitude in cells
   const b = v[1] / 60;
   const muU = s / 20;
@@ -1034,8 +1151,37 @@ const oursCheckerboardRipples = (x, y, out, stats) => {
   const reach = Math.sqrt(-2 * Math.log(CUT));
   const Ku = Math.ceil(reach / (TAU * Math.max(sigU, 1e-6)));
   const Kv = Math.ceil(reach / (TAU * Math.max(sigV, 1e-6)));
+  // the budget decision comes before any per-pixel precomputation
+  const fourierRoute = Ku * Kv <= CROSS;
+  const straddle = (mu, sig, off) => Math.floor(2 * (mu - 6 * sig - off)) !== Math.floor(2 * (mu + 6 * sig + off));
+  if (fourierRoute) {
+    const Nmax0 = Math.min(HMAX + 2, Math.ceil(reach / Math.max(sigT, 1e-6)));
+    const cross = Math.abs(gu[0] * gv[1] - gu[1] * gv[0]);
+    const ellipse = -Math.log(CUT) / (2 * Math.PI * SIG * SIG * Math.max(cross, 1e-12));
+    if ((2 * Nmax0 + 1) * Math.max(1, ellipse / 4) > BUDGET) {
+      superSample(checkerboardRipples, x, y, out);
+      if (stats) stats.sampled++;
+      return;
+    }
+  } else if (straddle(muU, sigU, Math.abs(a)) || straddle(muV, sigV, Math.abs(b))) {
+    if (((10 * sigT) / Math.min(0.6 * sigT, 0.5)) * 8 * 3 > BUDGET) {
+      superSample(checkerboardRipples, x, y, out);
+      if (stats) stats.sampled++;
+      return;
+    }
+  }
+  let spec;
+  let meanLNslow = null;
+  if (!fourierRoute && sigT < SLOW_LIGHT) {
+    const mm = lightingMeansSlow(dx, dy, v, 50, theta0, sigT);
+    meanLNslow = mm[0];
+    spec = mm[1];
+  } else {
+    lightingHarmonics(dx, dy, v, 50, LcBuf, ScBuf);
+    spec = expectHarmonics(ScBuf, theta0, gth, Hth);
+  }
   let val;
-  if (Ku * Kv <= CROSS) {
+  if (fourierRoute) {
     // (k, l, N) sum
     const Hu = d.Hs.map((r) => r.map((e) => e / 20));
     const Hv = d.Ht.map((r) => r.map((e) => e / 20));
@@ -1108,12 +1254,9 @@ const oursCheckerboardRipples = (x, y, out, stats) => {
     }
   } else {
     // near the camera: is there an edge in the window at all (with the offset)?
-    const amp = Math.hypot(a, b) / 3; // the offset's amplitude in cells... a sin(theta) with |sin| <= 1: amplitude |a|, |b|
-    void amp;
-    const straddle = (mu, sig, off) => Math.floor(2 * (mu - 6 * sig - off)) !== Math.floor(2 * (mu + 6 * sig + off));
     const su = straddle(muU, sigU, Math.abs(a));
     const sv = straddle(muV, sigV, Math.abs(b));
-    const meanLN = expectHarmonics(LcBuf, theta0, gth, Hth);
+    const meanLN = meanLNslow !== null ? meanLNslow : expectHarmonics(LcBuf, theta0, gth, Hth);
     if (!su && !sv) {
       const chk = 0.5 + 2 * (fract(muU) >= 0.5 ? 0.5 : -0.5) * (fract(muV) >= 0.5 ? 0.5 : -0.5);
       val = meanLN * chk;
@@ -1234,9 +1377,6 @@ const JN = new Float64Array(4096);
 const oursSinQuadraticRipples = (x, y, out, stats) => {
   const g = rippleGeometry(x, y);
   const { s, t, d, dx, dy, theta0, gth, Hth, v } = g;
-  lightingHarmonics(dx, dy, v, 25, LcBuf, ScBuf);
-  const spec = expectHarmonics(ScBuf, theta0, gth, Hth);
-  const meanLN = expectHarmonics(LcBuf, theta0, gth, Hth);
   // the quadratic count and the field's count
   const cx = s;
   const cy = t + 55;
@@ -1274,8 +1414,43 @@ const oursSinQuadraticRipples = (x, y, out, stats) => {
   // slow ripple. Its conditional sigma of psi decides.
   const cpT0 = SIG * SIG * (gpsi[0] * gth[0] + gpsi[1] * gth[1]);
   const sigPsiGivenT = Math.sqrt(Math.max(0, SIG * SIG * (gpsi[0] * gpsi[0] + gpsi[1] * gpsi[1]) - (cpT0 * cpT0) / (sigT * sigT)));
+  const torusRoute = sigT >= 0.45 && (sigT > RIPPLE_QUAD_MAX || sigPsiGivenT > 0.25);
+  // the budget decision comes before any per-pixel precomputation
+  if (torusRoute) {
+    const lnCut0 = Math.log(CUT);
+    const app0 = 0.5 * S * (gpsi[0] * gpsi[0] + gpsi[1] * gpsi[1]);
+    const apt0 = 0.5 * S * (gpsi[0] * gth[0] + gpsi[1] * gth[1]);
+    const att0 = 0.5 * S * (gth[0] * gth[0] + gth[1] * gth[1]);
+    const det0 = gpsi[0] * gth[1] - gth[0] * gpsi[1];
+    const mr0 = Math.sqrt(Math.max(0, -lnCut0 / (app0 - (apt0 * apt0) / att0)));
+    const Nr0 = Math.sqrt(Math.max(0, -lnCut0 / att0));
+    const rx1 = -TAU * gq[0];
+    const ry1 = -TAU * gq[1];
+    const mRate = Math.abs((rx1 * gth[1] - gth[0] * ry1) / det0);
+    const Keff = mRate > 0.4 * Math.PI + 0.1 ? Math.min(200, Math.ceil((12 + mr0) / (mRate - 0.4 * Math.PI))) : 200;
+    if (Keff * (2 * mr0 + 1) * (2 * Nr0 + 1) * 0.5 > BUDGET) {
+      superSample(sinQuadraticRipples, x, y, out);
+      if (stats) stats.sampled++;
+      return;
+    }
+  } else if (((10 * sigT) / Math.min(0.6 * sigT, 0.5)) * 8 * 30 > BUDGET) {
+    superSample(sinQuadraticRipples, x, y, out);
+    if (stats) stats.sampled++;
+    return;
+  }
+  let spec;
+  let meanLN;
+  if (!torusRoute && sigT < SLOW_LIGHT) {
+    const mm = lightingMeansSlow(dx, dy, v, 25, theta0, sigT);
+    meanLN = mm[0];
+    spec = mm[1];
+  } else {
+    lightingHarmonics(dx, dy, v, 25, LcBuf, ScBuf);
+    spec = expectHarmonics(ScBuf, theta0, gth, Hth);
+    meanLN = expectHarmonics(LcBuf, theta0, gth, Hth);
+  }
   let w;
-  if (sigT >= 0.45 && (sigT > RIPPLE_QUAD_MAX || sigPsiGivenT > 0.25)) {
+  if (torusRoute) {
     // the (k, m, N) sum
     const lnCut = Math.log(CUT);
     const reach = Math.sqrt(-2 * lnCut);
@@ -1291,9 +1466,9 @@ const oursSinQuadraticRipples = (x, y, out, stats) => {
     const cq = TAU * curvature(Hq);
     const cp = curvature(Hpsi);
     const ct = curvature(Hth);
+    const K = 200;
     let acc = 0.5 * meanLN;
     let terms = 0;
-    const K = 200;
     for (let k = 1; k <= K; k++) {
       const row = besselJ(k); // J_m(0.4 pi k)
       // (m*, N*): the real solution of 2 pi k grad q + m grad psi + N grad theta = 0
@@ -1408,7 +1583,7 @@ const oursSinQuadraticRipples = (x, y, out, stats) => {
 const renderOurs = (method) => {
   const img = new Float64Array(W * H * 3);
   const out = [0, 0, 0];
-  const stats = { fourier: 0, direct: 0, torus: 0, terms: 0, msFourier: 0, msDirect: 0 };
+  const stats = { fourier: 0, direct: 0, torus: 0, sampled: 0, terms: 0, msFourier: 0, msDirect: 0 };
   for (let y = 0; y < H; y++)
     for (let x = 0; x < W; x++) {
       const t0 = performance.now();
@@ -1607,6 +1782,7 @@ const CASES = [
 ];
 const only = args.find((a) => a.startsWith('--only='));
 const results = {};
+const truths = {};
 for (const [name, shader, method, published] of CASES.filter(([n]) => !only || only.slice(7).split(',').includes(n))) {
   console.log(`${name}: rendering ground truth (1000 spp)...`);
   const gt = renderMC(shader, QUICK ? 200 : 1000, 101);
@@ -1615,6 +1791,7 @@ for (const [name, shader, method, published] of CASES.filter(([n]) => !only || o
   const msaa = {};
   for (const n of [2, 4, 8, 16]) msaa[n] = time(() => renderMC(shader, n, 7 + n));
   const noiseFloor = rms(gt, gt2) / Math.SQRT2;
+  truths[name] = gt;
   const r = {
     published,
     noiseFloor,
@@ -1640,6 +1817,43 @@ for (const [name, shader, method, published] of CASES.filter(([n]) => !only || o
     console.log(`  bands: far ${r.bands.far.noAA.toFixed(3)} -> ${r.bands.far.ours.toFixed(4)}, moire ${r.bands.moire.noAA.toFixed(3)} -> ${r.bands.moire.ours.toFixed(4)}, near ${r.bands.near.noAA.toFixed(3)} -> ${r.bands.near.ours.toFixed(4)}`);
   }
   results[name] = r;
+}
+
+if (SWEEP) {
+  const SETTINGS = [
+    { label: 'exact', budget: Infinity, samples: 0 },
+    { label: 'b400 s64', budget: 400, samples: 64 },
+    { label: 'b200 s64', budget: 200, samples: 64 },
+    { label: 'b100 s64', budget: 100, samples: 64 },
+    { label: 'b100 s36', budget: 100, samples: 36 },
+    { label: 'b50 s36', budget: 50, samples: 36 },
+    { label: 'b50 s16', budget: 50, samples: 16 },
+    { label: 'b25 s16', budget: 25, samples: 16 },
+    { label: 'b25 s9', budget: 25, samples: 9 },
+  ];
+  const sweep = {};
+  for (const [name, r] of Object.entries(results)) {
+    const [, shader, method] = CASES.find(([n]) => n === name);
+    if (!method) continue;
+    const gt = truths[name];
+    const noaa = time(() => renderMC(shader, 1, 1));
+    const points = [];
+    for (const n of [4, 16, 64, 256]) {
+      const m = time(() => renderMC(shader, n, 7 + n));
+      points.push({ label: `MSAA ${n}`, kind: 'msaa', err: rms(m.r, gt), rel: m.ms / noaa.ms });
+    }
+    points.push({ label: 'exact', kind: 'ours', err: r.ours.err, rel: r.ours.rel, sampled: 0, terms: r.ours.stats.terms });
+    for (const st of SETTINGS.filter((q) => q.label !== 'exact')) {
+      BUDGET = st.budget;
+      NSAMP = st.samples;
+      const o = time(() => renderOurs(method));
+      points.push({ label: st.label, kind: 'ours', err: rms(o.r.img, gt), rel: o.ms / noaa.ms, sampled: o.r.stats.sampled, terms: o.r.stats.terms });
+      console.log(`  ${name} ${st.label}: err ${points[points.length - 1].err.toFixed(4)} time ${points[points.length - 1].rel.toFixed(1)}x sampled ${o.r.stats.sampled}`);
+    }
+    BUDGET = Infinity;
+    sweep[name] = { noiseFloor: r.noiseFloor, published: r.published, points };
+  }
+  writeFileSync(new URL('../../data/yb-sweep.json', import.meta.url), JSON.stringify(sweep, null, 1));
 }
 
 const gates = {};
