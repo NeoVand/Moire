@@ -3,7 +3,7 @@
 // and with Fourier jets for the filtered frame. No per-shader derivation.
 // Run: node paper/tools/exp/fjet-yb.mjs [--probe] [--quick] [--only=a,b]
 
-import { writeFileSync } from 'node:fs';
+import { writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { deflateSync } from 'node:zlib';
 import { Worker, isMainThread, parentPort, workerData } from 'node:worker_threads';
 import os from 'node:os';
@@ -365,6 +365,9 @@ const oursPixel = (cs, x, y, stats) => {
   if (process.env.FJET_PANEL) px.localPanel = Number(process.env.FJET_PANEL);
   if (process.env.FJET_PANEL_B) px.localPanelB = Number(process.env.FJET_PANEL_B);
   if (process.env.FJET_LOCALSIG) px.localSigma = Number(process.env.FJET_LOCALSIG);
+  if (process.env.FJET_PARSIN) px.parallelSin = Number(process.env.FJET_PARSIN);
+  if (process.env.FJET_PARSIG) px.parallelSigma = Number(process.env.FJET_PARSIG);
+  if (process.env.FJET_LINEMAX) px.lineMaxPeriods = Number(process.env.FJET_LINEMAX);
   const out = cs.eval(FJ, x, y, true);
   // channels with the same structure (grey shaders build three equal
   // elements) are computed once
@@ -626,8 +629,18 @@ const results = {};
 for (const cs of wanted) {
   console.log(`${cs.name}: truth on ${NWORKERS} workers...`);
   const n = QUICK ? 200 : 1000;
-  const gt = (await parallelFrame(cs, 'truth', n, 101, false)).img;
-  const gt2 = (await parallelFrame(cs, 'truth', n, 202, false)).img;
+  // the truths are cached on disk per case and sample count: they are the
+  // protocol's, not the compiler's, and cost an hour a pair
+  const truthPath = (seed) => new URL(`../../data/truth-${cs.name}-${n}-${seed}.f64`, import.meta.url);
+  const loadTruth = async (seed) => {
+    const path = truthPath(seed);
+    if (existsSync(path)) return new Float64Array(readFileSync(path).buffer.slice(0));
+    const img = (await parallelFrame(cs, 'truth', n, seed, false)).img;
+    writeFileSync(path, Buffer.from(img.buffer));
+    return img;
+  };
+  const gt = await loadTruth(101);
+  const gt2 = await loadTruth(202);
   const floor = rms(gt, gt2) / Math.SQRT2;
   // the unfiltered shader's time is measured single-threaded, as the
   // reference of the relative cost

@@ -1109,7 +1109,7 @@ export class Pixel {
     this.foldGrowth = 2; // cap on the growth of harmonic ranges under curvature
     this.maxK2 = 64; // range cap per axis of a two-axis residual transform
     this.maxKline = 64; // range cap per axis under a line condition
-    this.parallelSigma = 0.15; // an axis below this sigma, parallel to a faster one, is local
+    this.parallelSigma = 0.03; // an axis below this sigma, parallel to a faster one, is local
     this.parallelSin = 0.26; // sine of the angle within which axes count as parallel
     this.lineMaxPeriods = 24; // pointwise along a line up to this many periods of the fastest axis
     this.localPanel = 3; // Gauss-Legendre panel width along a local axis, in pixel-sigmas of it
