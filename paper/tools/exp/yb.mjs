@@ -17,7 +17,7 @@
 //
 // Run: node paper/tools/exp/yb.mjs [--probe] [--quick] [--only=name,name]
 
-import { writeFileSync } from 'node:fs';
+import { writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { deflateSync } from 'node:zlib';
 
 const OUT = new URL('../../data/yb.json', import.meta.url);
@@ -39,6 +39,7 @@ const argNum = (name, dflt) => {
 const CUT = argNum('cut', 1e-4);
 const CROSS = argNum('cross', 600);
 const CURV = argNum('curv', 0.02);
+const RIPPLE_QUAD_MAX = argNum('rq', 1.8);
 const DIAG = args.includes('--diag');
 const QUICK = args.includes('--quick');
 
@@ -258,6 +259,52 @@ const qphase = (b, Q, sig) => {
 
 const curvature = (Hs) => SIG * SIG * Hs.reduce((m, r) => Math.max(m, ...r.map(Math.abs)), 0);
 
+// the same, scalar in and out (QP_RE, QP_IM), for the hot loops
+let QP_RE = 0;
+let QP_IM = 0;
+const qphaseS = (bx, by, q00, q01, q11, sig) => {
+  const r2 = sig * sig;
+  const ir = 1 / r2;
+  // M = Sigma^{-1} - i Q: m00 = ir - i q00, m01 = -i q01, m11 = ir - i q11
+  // det = m00 m11 - m01^2
+  const detR = ir * ir - q00 * q11 + q01 * q01;
+  const detI = -ir * (q00 + q11);
+  // num = m11 bx^2 - 2 m01 bx by + m00 by^2
+  const numR = ir * bx * bx + ir * by * by;
+  const numI = -q11 * bx * bx + 2 * q01 * bx * by - q00 * by * by;
+  const dd = detR * detR + detI * detI;
+  const quadR = (numR * detR + numI * detI) / dd;
+  const quadI = (numI * detR - numR * detI) / dd;
+  const ex = -0.5 * quadR;
+  if (ex < -40) {
+    QP_RE = 0;
+    QP_IM = 0;
+    return;
+  }
+  const ey = -0.5 * quadI;
+  const tr = r2 * (q00 + q11);
+  const dq = r2 * r2 * (q00 * q11 - q01 * q01);
+  const disc = Math.sqrt(Math.max(0, (tr * tr) / 4 - dq));
+  const l1 = tr / 2 + disc;
+  const l2 = tr / 2 - disc;
+  // principal roots of (1 - i l) without trigonometry:
+  // sqrt(1 - i l) = sqrt((|w| + 1)/2) - i sign(l) sqrt((|w| - 1)/2), |w| = sqrt(1 + l^2)
+  const w1 = Math.sqrt(1 + l1 * l1);
+  const r1r = Math.sqrt((w1 + 1) / 2);
+  const r1i = -(l1 < 0 ? -1 : 1) * Math.sqrt(Math.max(0, (w1 - 1) / 2));
+  const w2 = Math.sqrt(1 + l2 * l2);
+  const r2r = Math.sqrt((w2 + 1) / 2);
+  const r2i = -(l2 < 0 ? -1 : 1) * Math.sqrt(Math.max(0, (w2 - 1) / 2));
+  const dr = r1r * r2r - r1i * r2i;
+  const di = r1r * r2i + r1i * r2r;
+  const dn = dr * dr + di * di;
+  const e = Math.exp(ex);
+  const er = e * Math.cos(ey);
+  const ei = e * Math.sin(ey);
+  QP_RE = (er * dr + ei * di) / dn;
+  QP_IM = (ei * dr - er * di) / dn;
+};
+
 // standard normal cdf
 const Phi = (z) => {
   if (z < -8) return 0;
@@ -406,13 +453,9 @@ const oursCheckerboard = (x, y, out, stats) => {
         for (let k = k0; k <= k1; k += 2) {
           const bx = TAU * (k * gu[0] + l * gv[0]);
           const by = TAU * (k * gu[1] + l * gv[1]);
-          const Q = [
-            [TAU * (k * Hu[0][0] + l * Hv[0][0]), TAU * (k * Hu[0][1] + l * Hv[0][1])],
-            [TAU * (k * Hu[1][0] + l * Hv[1][0]), TAU * (k * Hu[1][1] + l * Hv[1][1])],
-          ];
-          const w = qphase([bx, by], Q, SIG);
+          qphaseS(bx, by, TAU * (k * Hu[0][0] + l * Hv[0][0]), TAU * (k * Hu[0][1] + l * Hv[0][1]), TAU * (k * Hu[1][1] + l * Hv[1][1]), SIG);
           const ph = TAU * (k * muU + l * muV);
-          acc += ((Math.cos(ph) * w[0] - Math.sin(ph) * w[1]) / (k * l));
+          acc += (Math.cos(ph) * QP_RE - Math.sin(ph) * QP_IM) / (k * l);
           terms++;
         }
       } else {
@@ -630,14 +673,9 @@ const oursSinQuadratic = (x, y, out, stats) => {
         for (let m = mlo; m <= mhi; m++) {
           const jm = J(k, m);
           if (Math.abs(jm) < 1e-10) continue;
-          const bb = [TAU * k * gq[0] + m * gpsi[0], TAU * k * gq[1] + m * gpsi[1]];
-          const Q = [
-            [TAU * k * Hq[0][0] + m * Hpsi[0][0], TAU * k * Hq[0][1] + m * Hpsi[0][1]],
-            [TAU * k * Hq[1][0] + m * Hpsi[1][0], TAU * k * Hq[1][1] + m * Hpsi[1][1]],
-          ];
-          const mult = qphase(bb, Q, SIG);
+          qphaseS(TAU * k * gq[0] + m * gpsi[0], TAU * k * gq[1] + m * gpsi[1], TAU * k * Hq[0][0] + m * Hpsi[0][0], TAU * k * Hq[0][1] + m * Hpsi[0][1], TAU * k * Hq[1][1] + m * Hpsi[1][1], SIG);
           const ph = TAU * k * muq + m * mupsi;
-          sumIm += jm * (Math.cos(ph) * mult[1] + Math.sin(ph) * mult[0]);
+          sumIm += jm * (Math.cos(ph) * QP_IM + Math.sin(ph) * QP_RE);
           terms++;
         }
       } else {
@@ -787,13 +825,9 @@ const oursCircles = (x, y, out, stats) => {
           if (Math.abs(c) < 1e-9) continue;
           const bx = TAU * (k * gu[0] + l * gv[0]);
           const by = TAU * (k * gu[1] + l * gv[1]);
-          const Q = [
-            [TAU * (k * Hu[0][0] + l * Hv[0][0]), TAU * (k * Hu[0][1] + l * Hv[0][1])],
-            [TAU * (k * Hu[1][0] + l * Hv[1][0]), TAU * (k * Hu[1][1] + l * Hv[1][1])],
-          ];
-          const w = qphase([bx, by], Q, SIG);
+          qphaseS(bx, by, TAU * (k * Hu[0][0] + l * Hv[0][0]), TAU * (k * Hu[0][1] + l * Hv[0][1]), TAU * (k * Hu[1][1] + l * Hv[1][1]), SIG);
           const ph = TAU * (k * muU + l * muV);
-          acc += c * (Math.cos(ph) * w[0] - Math.sin(ph) * w[1]);
+          acc += c * (Math.cos(ph) * QP_RE - Math.sin(ph) * QP_IM);
           terms++;
         }
       } else {
@@ -1053,12 +1087,8 @@ const oursCheckerboardRipples = (x, y, out, stats) => {
           const ph = TAU * (k * muU + l * muV) + N * theta0;
           let re;
           if (secondOrder) {
-            const Q = [
-              [TAU * (k * Hu[0][0] + l * Hv[0][0]) + N * Hth[0][0], TAU * (k * Hu[0][1] + l * Hv[0][1]) + N * Hth[0][1]],
-              [TAU * (k * Hu[1][0] + l * Hv[1][0]) + N * Hth[1][0], TAU * (k * Hu[1][1] + l * Hv[1][1]) + N * Hth[1][1]],
-            ];
-            const w = qphase([bx, by], Q, SIG);
-            re = Math.cos(ph) * w[0] - Math.sin(ph) * w[1];
+            qphaseS(bx, by, TAU * (k * Hu[0][0] + l * Hv[0][0]) + N * Hth[0][0], TAU * (k * Hu[0][1] + l * Hv[0][1]) + N * Hth[0][1], TAU * (k * Hu[1][1] + l * Hv[1][1]) + N * Hth[1][1], SIG);
+            re = Math.cos(ph) * QP_RE - Math.sin(ph) * QP_IM;
           } else {
             const e = 0.5 * SIG * SIG * (bx * bx + by * by);
             if (e > -lnCut + 2) continue;
@@ -1147,6 +1177,234 @@ const oursCheckerboardRipples = (x, y, out, stats) => {
   out[2] = vv;
 };
 
+// ---------------------------------------------------------------------------
+// The rippled quadratic sine: w = fract(phi), phi = q(s', t') + 0.2 sin(psi'),
+// with the parallax offset s' = s + h vx, t' = t + h vy, h = sin(theta)/3.
+// To first order in the offset, phi = q + alpha sin theta + 0.2 sin(psi + gamma
+// sin theta), alpha = (q_s vx + q_t vy)/3 (up to a cycle off axis), gamma =
+// (vx + vy)/3. Jacobi-Anger twice:
+//   e^{2 pi i k phi} = sum_m sum_n J_m(0.4 pi k) J_n(2 pi k alpha + m gamma)
+//                      e^{i(2 pi k q + m psi + n theta)},
+// LN(theta) = sum_p L_p e^{i p theta} multiplies it, and every (k, m, N) term
+// is pushed through the pixel at its rate 2 pi k grad q + m grad psi + N grad
+// theta. Off the far field the ripple angle is slow and the plain method runs
+// conditioned on theta under a quadrature.
+// ---------------------------------------------------------------------------
+// J_n(z) for n in [nlo, nhi], written to out[n - nlo]
+const besselRange = (z, nlo, nhi, out) => {
+  const az = Math.abs(z);
+  const nmax = Math.max(Math.abs(nlo), Math.abs(nhi));
+  let J;
+  if (az < 1e-12) {
+    J = new Float64Array(nmax + 1);
+    J[0] = 1;
+  } else if (nmax + 2 < 0.8 * az) {
+    // forward recurrence is stable below the turning point
+    J = new Float64Array(nmax + 1);
+    J[0] = besselJ0(az);
+    if (nmax >= 1) J[1] = besselJ1(az);
+    for (let n = 1; n < nmax; n++) J[n + 1] = ((2 * n) / az) * J[n] - J[n - 1];
+  } else {
+    J = besselRow(az, nmax);
+  }
+  for (let n = nlo; n <= nhi; n++) {
+    const an = Math.abs(n);
+    let v = an <= nmax ? J[an] : 0;
+    if (n < 0 && an % 2 === 1) v = -v;
+    if (z < 0 && an % 2 === 1) v = -v;
+    out[n - nlo] = v;
+  }
+};
+
+// E[fract(Phi)] for a one-dimensional Gaussian count, by whichever route is cheap
+const expectFractGauss = (mu, sig) => {
+  if (sig < 0.04) return expectFract1(mu, sig);
+  let acc = 0.5;
+  const K = Math.ceil(1.1 / sig) + 2;
+  for (let k = 1; k <= K; k++) {
+    const e = Math.exp(-2 * Math.PI * Math.PI * sig * sig * k * k);
+    if (e < 1e-9) break;
+    acc -= (Math.sin(TAU * k * mu) * e) / (Math.PI * k);
+  }
+  return acc;
+};
+
+const JN = new Float64Array(4096);
+
+const oursSinQuadraticRipples = (x, y, out, stats) => {
+  const g = rippleGeometry(x, y);
+  const { s, t, d, dx, dy, theta0, gth, Hth, v } = g;
+  lightingHarmonics(dx, dy, v, 25, LcBuf, ScBuf);
+  const spec = expectHarmonics(ScBuf, theta0, gth, Hth);
+  const meanLN = expectHarmonics(LcBuf, theta0, gth, Hth);
+  // the quadratic count and the field's count
+  const cx = s;
+  const cy = t + 55;
+  const G = 0.003;
+  const gq = [0, 0];
+  const Hq = [
+    [0, 0],
+    [0, 0],
+  ];
+  for (let i = 0; i < 2; i++) {
+    gq[i] = G * (2 * QA * cx * d.s[i] + 2 * QB * cy * d.t[i] + QC * (cy * d.s[i] + cx * d.t[i]));
+    for (let j = 0; j < 2; j++)
+      Hq[i][j] =
+        G *
+        (2 * QA * (d.s[i] * d.s[j] + cx * d.Hs[i][j]) +
+          2 * QB * (d.t[i] * d.t[j] + cy * d.Ht[i][j]) +
+          QC * (d.s[i] * d.t[j] + d.t[i] * d.s[j] + cy * d.Hs[i][j] + cx * d.Ht[i][j]));
+  }
+  const muq = G * (QA * cx * cx + QB * cy * cy + QC * cx * cy);
+  const mupsi = cx + cy;
+  const gpsi = [d.s[0] + d.t[0], d.s[1] + d.t[1]];
+  const Hpsi = [
+    [d.Hs[0][0] + d.Ht[0][0], d.Hs[0][1] + d.Ht[0][1]],
+    [d.Hs[1][0] + d.Ht[1][0], d.Hs[1][1] + d.Ht[1][1]],
+  ];
+  const qs = G * (2 * QA * cx + QC * cy);
+  const qt = G * (2 * QB * cy + QC * cx);
+  const alpha = (qs * v[0] + qt * v[1]) / 3;
+  const gamma = (v[0] + v[1]) / 3;
+  const S = SIG * SIG;
+  const sigT = SIG * Math.hypot(gth[0], gth[1]);
+  // given theta, the field psi is slow wherever grad psi and grad theta are
+  // nearly collinear, which is the whole mid field; the quadrature route
+  // with the one-dimensional conditional count then applies far beyond a
+  // slow ripple. Its conditional sigma of psi decides.
+  const cpT0 = SIG * SIG * (gpsi[0] * gth[0] + gpsi[1] * gth[1]);
+  const sigPsiGivenT = Math.sqrt(Math.max(0, SIG * SIG * (gpsi[0] * gpsi[0] + gpsi[1] * gpsi[1]) - (cpT0 * cpT0) / (sigT * sigT)));
+  let w;
+  if (sigT >= 0.45 && (sigT > RIPPLE_QUAD_MAX || sigPsiGivenT > 0.25)) {
+    // the (k, m, N) sum
+    const lnCut = Math.log(CUT);
+    const reach = Math.sqrt(-2 * lnCut);
+    const LP = (p) => (p === 0 ? LcBuf[0] : Math.abs(p) <= HMAX ? LcBuf[Math.abs(p)] / 2 : 0);
+    let P = 1;
+    while (P < HMAX && Math.abs(LcBuf[P]) > 1e-6) P++;
+    // quadratic form of the weight in (m, N) for fixed k:
+    //   exponent = -(app (m-m*)^2 + 2 apt (m-m*)(N-N*) + att (N-N*)^2)
+    const app = 0.5 * S * (gpsi[0] * gpsi[0] + gpsi[1] * gpsi[1]);
+    const apt = 0.5 * S * (gpsi[0] * gth[0] + gpsi[1] * gth[1]);
+    const att = 0.5 * S * (gth[0] * gth[0] + gth[1] * gth[1]);
+    const det = gpsi[0] * gth[1] - gth[0] * gpsi[1];
+    const cq = TAU * curvature(Hq);
+    const cp = curvature(Hpsi);
+    const ct = curvature(Hth);
+    let acc = 0.5 * meanLN;
+    let terms = 0;
+    const K = 200;
+    for (let k = 1; k <= K; k++) {
+      const row = besselJ(k); // J_m(0.4 pi k)
+      // (m*, N*): the real solution of 2 pi k grad q + m grad psi + N grad theta = 0
+      const rx = -TAU * k * gq[0];
+      const ry = -TAU * k * gq[1];
+      const mStar = (rx * gth[1] - gth[0] * ry) / det;
+      const NStar = (gpsi[0] * ry - rx * gpsi[1]) / det;
+      const mr = Math.sqrt(Math.max(0, -lnCut / (app - (apt * apt) / att)));
+      const mlo = Math.max(-(row.length - 1), Math.ceil(mStar - mr));
+      const mhi = Math.min(row.length - 1, Math.floor(mStar + mr));
+      if (mhi < mlo) {
+        if (Math.abs(mStar) > row.length + mr + 2) break;
+        continue;
+      }
+      let sumIm = 0;
+      let any = false;
+      for (let m = mlo; m <= mhi; m++) {
+        const jm = m < 0 && Math.abs(m) % 2 === 1 ? -row[-m] : row[Math.abs(m)];
+        if (Math.abs(jm) < 1e-8) continue;
+        const dm = m - mStar;
+        const Ncen = NStar - (apt * dm) / att;
+        const Nr = Math.sqrt(Math.max(0, (-lnCut - app * dm * dm + (apt * apt * dm * dm) / att) / att));
+        const N0 = Math.ceil(Ncen - Nr);
+        const N1 = Math.floor(Ncen + Nr);
+        if (N1 < N0) continue;
+        const z = TAU * k * alpha + m * gamma;
+        // Bessel J_n(z) for n = N - p, p in [-P, P]
+        const nlo = N0 - P;
+        const nhi = N1 + P;
+        if (nhi - nlo + 1 > JN.length) continue;
+        besselRange(z, nlo, nhi, JN);
+        const secondOrder = k * cq + Math.max(Math.abs(mlo), Math.abs(mhi)) * cp + Math.max(Math.abs(N0), Math.abs(N1)) * ct >= CURV;
+        for (let N = N0; N <= N1; N++) {
+          let coef = 0;
+          for (let p = -P; p <= P; p++) coef += LP(p) * JN[N - p - nlo];
+          coef *= jm;
+          if (Math.abs(coef) < 1e-9) continue;
+          const bx = TAU * k * gq[0] + m * gpsi[0] + N * gth[0];
+          const by = TAU * k * gq[1] + m * gpsi[1] + N * gth[1];
+          const ph = TAU * k * muq + m * mupsi + N * theta0;
+          let im;
+          if (secondOrder) {
+            qphaseS(bx, by, TAU * k * Hq[0][0] + m * Hpsi[0][0] + N * Hth[0][0], TAU * k * Hq[0][1] + m * Hpsi[0][1] + N * Hth[0][1], TAU * k * Hq[1][1] + m * Hpsi[1][1] + N * Hth[1][1], SIG);
+            im = Math.cos(ph) * QP_IM + Math.sin(ph) * QP_RE;
+          } else {
+            const e = 0.5 * S * (bx * bx + by * by);
+            if (e > -lnCut + 2) continue;
+            im = Math.sin(ph) * Math.exp(-e);
+          }
+          sumIm += coef * im;
+          terms++;
+          any = true;
+        }
+      }
+      // fract(phi) = 1/2 + sum_{k != 0} (i / (2 pi k)) e^{2 pi i k phi}: the pair
+      // (k, -k) gives -(1/(pi k)) Im[...]
+      acc -= sumIm / (Math.PI * k);
+      void any;
+    }
+    w = acc;
+    if (stats) {
+      stats.torus++;
+      stats.terms += terms;
+    }
+  } else {
+    // the ripple is slow: quadrature over theta, the plain method conditioned
+    const cqT = S * (gq[0] * gth[0] + gq[1] * gth[1]);
+    const cpT = S * (gpsi[0] * gth[0] + gpsi[1] * gth[1]);
+    const sT2 = sigT * sigT;
+    // conditional covariance of (q, psi) given theta (rank one)
+    const vqq = Math.max(0, S * (gq[0] * gq[0] + gq[1] * gq[1]) - (cqT * cqT) / sT2);
+    const vpp = Math.max(0, S * (gpsi[0] * gpsi[0] + gpsi[1] * gpsi[1]) - (cpT * cpT) / sT2);
+    const vqp = S * (gq[0] * gpsi[0] + gq[1] * gpsi[1]) - (cqT * cpT) / sT2;
+    const half = 5 * sigT;
+    const panelW = Math.min(0.6 * sigT, 0.5);
+    const panels = Math.max(1, Math.ceil((2 * half) / panelW));
+    let acc = 0;
+    let wsum = 0;
+    for (let q = 0; q < panels; q++) {
+      const pa = theta0 - half + ((2 * half) * q) / panels;
+      const pb = theta0 - half + ((2 * half) * (q + 1)) / panels;
+      const hw = (pb - pa) / 2;
+      const mid = (pa + pb) / 2;
+      for (const [node, wt] of GL) {
+        const th = mid + hw * node;
+        const dens = Math.exp((-(th - theta0) * (th - theta0)) / (2 * sT2));
+        const c = Math.cos(th);
+        const nl = Math.sqrt(1 + c * c);
+        const ln = Math.max(LIGHT[0] * ((dx * c) / nl) + LIGHT[1] * ((dy * c) / nl) + LIGHT[2] / nl, 0);
+        const off = Math.sin(th);
+        const mq = muq + (cqT * (th - theta0)) / sT2 + alpha * off;
+        const mp = mupsi + (cpT * (th - theta0)) / sT2 + gamma * off;
+        // fold the field: phi = q + 0.2 sin psi, linear in (q, psi) about the means
+        const cps = Math.cos(mp);
+        const sps = Math.sin(mp);
+        const muphi = mq + 0.2 * sps;
+        const varphi = vqq + 2 * 0.2 * cps * vqp + 0.04 * cps * cps * vpp;
+        const ef = expectFractGauss(muphi, Math.sqrt(Math.max(0, varphi)));
+        const wgt = wt * hw * dens;
+        acc += wgt * ln * ef;
+        wsum += wgt;
+      }
+    }
+    w = acc / wsum;
+    if (stats) stats.direct++;
+  }
+  out[0] = w + spec;
+  out[1] = w + spec;
+  out[2] = meanLN + spec;
+};
+
 const renderOurs = (method) => {
   const img = new Float64Array(W * H * 3);
   const out = [0, 0, 0];
@@ -1214,16 +1472,16 @@ const chunk = (type, data) => {
   crc.writeUInt32BE(crc32(td));
   return Buffer.concat([len, td, crc]);
 };
-const writePNG = (path, img) => {
-  const raw = Buffer.alloc((W * 3 + 1) * H);
-  for (let y = 0; y < H; y++) {
-    raw[y * (W * 3 + 1)] = 0;
-    for (let x = 0; x < W; x++)
-      for (let c = 0; c < 3; c++) raw[y * (W * 3 + 1) + 1 + x * 3 + c] = Math.floor(clamp01(img[(y * W + x) * 3 + c]) * 256 - 1e-4);
+const writePNG = (path, img, w = W, h = H) => {
+  const raw = Buffer.alloc((w * 3 + 1) * h);
+  for (let y = 0; y < h; y++) {
+    raw[y * (w * 3 + 1)] = 0;
+    for (let x = 0; x < w; x++)
+      for (let c = 0; c < 3; c++) raw[y * (w * 3 + 1) + 1 + x * 3 + c] = Math.floor(clamp01(img[(y * w + x) * 3 + c]) * 256 - 1e-4);
   }
   const ihdr = Buffer.alloc(13);
-  ihdr.writeUInt32BE(W, 0);
-  ihdr.writeUInt32BE(H, 4);
+  ihdr.writeUInt32BE(w, 0);
+  ihdr.writeUInt32BE(h, 4);
   ihdr[8] = 8;
   ihdr[9] = 2;
   ihdr[10] = 0;
@@ -1231,6 +1489,28 @@ const writePNG = (path, img) => {
   ihdr[12] = 0;
   const png = Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), chunk('IHDR', ihdr), chunk('IDAT', deflateSync(raw)), chunk('IEND', Buffer.alloc(0))]);
   writeFileSync(path, png);
+};
+
+// A comparison strip: four frames side by side, and under each a 3x crop of
+// the moire zone (rows 16-76, columns 160-320), with a one-pixel white gap.
+const writeStrip = (path, frames) => {
+  const cx0 = 160;
+  const cy0 = 16;
+  const cw = 160;
+  const ch = 60;
+  const Z = 3;
+  const gap = 4;
+  const w = 4 * W + 3 * gap;
+  const h = H + gap + ch * Z;
+  const img = new Float64Array(w * h * 3).fill(1);
+  frames.forEach((f, i) => {
+    const ox = i * (W + gap);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) for (let c = 0; c < 3; c++) img[((y) * w + ox + x) * 3 + c] = f[(y * W + x) * 3 + c];
+    for (let y = 0; y < ch * Z; y++)
+      for (let x = 0; x < cw * Z; x++)
+        for (let c = 0; c < 3; c++) img[((H + gap + y) * w + ox + x) * 3 + c] = f[((cy0 + Math.floor(y / Z)) * W + cx0 + Math.floor(x / Z)) * 3 + c];
+  });
+  writePNG(path, img, w, h);
 };
 
 // ---------------------------------------------------------------------------
@@ -1254,6 +1534,7 @@ if (PROBE) {
     ['sinQuadratic', sinQuadratic, oursSinQuadratic],
     ['circles', circles, oursCircles],
     ['checkerboardRipples', checkerboardRipples, oursCheckerboardRipples],
+    ['sinQuadraticRipples', sinQuadraticRipples, oursSinQuadraticRipples],
   ]) {
     console.log(name);
     for (const [x, y] of [
@@ -1322,7 +1603,7 @@ const CASES = [
   ['sinQuadratic', sinQuadratic, oursSinQuadratic, null],
   ['circles', circles, oursCircles, { noAA: 0.148, theirs: 0.035, theirsTime: 4, dorn: 0.063, msaa: 0.087, msaaTime: 3 }],
   ['checkerboardRipples', checkerboardRipples, oursCheckerboardRipples, { noAA: 0.194, theirs: 0.071, theirsTime: 2, dorn: 0.102, msaa: 0.233, msaaTime: 2 }],
-  ['sinQuadraticRipples', sinQuadraticRipples, null, { noAA: 0.184, theirs: 0.045, theirsTime: 2, dorn: 0.094, msaa: 0.158, msaaTime: 3 }],
+  ['sinQuadraticRipples', sinQuadraticRipples, oursSinQuadraticRipples, { noAA: 0.184, theirs: 0.045, theirsTime: 2, dorn: 0.094, msaa: 0.158, msaaTime: 3 }],
 ];
 const only = args.find((a) => a.startsWith('--only='));
 const results = {};
@@ -1353,6 +1634,7 @@ for (const [name, shader, method, published] of CASES.filter(([n]) => !only || o
       near: { rows: [80, 320], noAA: rmsRows(noaa.r, gt, 80, 320), ours: rmsRows(ours.r.img, gt, 80, 320), msaa4: rmsRows(msaa[4].r, gt, 80, 320) },
     };
     writePNG(new URL(`yb-${name}-ours.png`, IMG), ours.r.img);
+    writeStrip(new URL(`yb-${name}-strip.png`, IMG), [gt, noaa.r, msaa[4].r, ours.r.img]);
     console.log(`  ours ${r.ours.err.toFixed(4)} (8-bit ${r.ours.err8.toFixed(4)}, vs second truth ${r.ours.errVsSecond.toFixed(4)}); published theirs ${published ? published.theirs + ' at ' + published.theirsTime + 'x, Dorn ' + published.dorn + ', MSAA ' + published.msaa + ' at ' + published.msaaTime + 'x' : 'n/a'}`);
     console.log(`  time: no AA ${noaa.ms.toFixed(0)} ms, ours ${ours.ms.toFixed(0)} ms (${r.ours.rel.toFixed(1)}x), MSAA4 ${msaa[4].ms.toFixed(0)} ms (${r.msaa[4].rel.toFixed(1)}x)  stats ${JSON.stringify(ours.r.stats)}`);
     console.log(`  bands: far ${r.bands.far.noAA.toFixed(3)} -> ${r.bands.far.ours.toFixed(4)}, moire ${r.bands.moire.noAA.toFixed(3)} -> ${r.bands.moire.ours.toFixed(4)}, near ${r.bands.near.noAA.toFixed(3)} -> ${r.bands.near.ours.toFixed(4)}`);
@@ -1369,6 +1651,19 @@ for (const [name, r] of Object.entries(results)) {
   }
 }
 const ok = Object.values(gates).every(Boolean);
-writeFileSync(OUT, JSON.stringify({ protocol: { W, H, sigma: SIG, groundTruthSamples: QUICK ? 200 : 1000 }, results, gates }, null, 1));
+// merge with what earlier runs of other cases left in the file
+let merged = { protocol: { W, H, sigma: SIG, groundTruthSamples: QUICK ? 200 : 1000 }, results: {}, gates: {} };
+if (only && existsSync(OUT) && !QUICK) {
+  try {
+    const prev = JSON.parse(readFileSync(OUT, 'utf8'));
+    if (prev.protocol && prev.protocol.groundTruthSamples === merged.protocol.groundTruthSamples) merged = prev;
+  } catch (e) {
+    void e;
+  }
+}
+Object.assign(merged.results, results);
+Object.assign(merged.gates, gates);
+merged.budget = { cut: CUT, cross: CROSS, curv: CURV };
+if (!QUICK) writeFileSync(OUT, JSON.stringify(merged, null, 1));
 console.log(gates);
 console.log(ok ? 'all gates pass' : 'GATE FAILURE');

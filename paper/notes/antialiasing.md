@@ -78,6 +78,10 @@ Known: ray differentials (Igehy 1999) compute $J$; EWA (Heckbert 1989) is the pu
 
 New, I think: the single statement with the trichotomy as a pixel classification, and the fold as the one irreducible search; the exact multiplier for arbitrary periodic $N \circ I$ with the station arithmetic as the cost oracle (the surviving-term count, found by the lattice reduction the tool already runs); the second-order pushforward in closed form; the order results (a diffuse shader cannot moiré two bump maps, a specular one must; beats of beats need order four) as facts about shading; and aliasing read as a station of the content against the sampler, with the desert as the reason quasi-random jitter works.
 
+## Measured against a published benchmark
+
+`benchmark-yb.md` reports the method on the Yang and Barnes (Eurographics 2018) procedural-shader band-limiting benchmark, rebuilt from their public code so that the unfiltered errors match theirs to three decimals. On all five cases tried, including the two with a rippled normal map and a parallax coupling, the count-map error equals the protocol's own noise floor (0.005 to 0.007 RMS) against their published 0.035 to 0.071, at a cost of 70 to 1000 times the unfiltered shader on a CPU in JavaScript, which is at or below the cost of supersampling to the same error.
+
 ## What I would build
 
 1. **The oracle.** Per pixel, from $J$ and a material's spectrum, the number and identity of surviving recipes. It tells a renderer where supersampling is needed and where the mean suffices, before shading. Cheap: the ratio view's lattice reduction.
