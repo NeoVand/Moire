@@ -25,6 +25,7 @@ import {
   uniformArray,
   wgslFn,
   texture,
+  uv,
   floor,
   fract,
   dot,
@@ -313,6 +314,10 @@ export function createViewUniforms() {
     // synthesis below instead of the chain: the same terms, alias-free at
     // any buffer, and cheap enough that the stream can start full size.
     stream: uniform(0),
+    // 1 when the exact envelope of a pair reads its tents from the table the
+    // renderer draws each frame (see buildTableColorNode) instead of running
+    // the chain per pixel.
+    table: uniform(0),
     // A flat exposure shift after the contrast expansion, for reading a fringe
     // field whose pivot sits too dark or too bright to print well.
     lift: uniform(0),
@@ -479,7 +484,8 @@ export function buildColorNode(
   camera: CameraUniforms,
   view: ViewUniforms,
   slots: LayerSlot[],
-  fields: FieldProgram[] = []
+  fields: FieldProgram[] = [],
+  table: THREE.Texture | null = null
 ) {
   return Fn(() => {
     const centered = screenCoordinate.sub(screenSize.mul(0.5));
@@ -505,7 +511,7 @@ export function buildColorNode(
     const coords = latticeCoords(solved);
     const scan = scanCharacters(view, solved, coords, scanOn);
     const lattice = matchLattices(view, solved, scan, coords, scanOn);
-    const swept = sweepStack(camera, view, solved, lattice.coh, scan, scanOn);
+    const swept = sweepStack(camera, view, solved, lattice.coh, scan, scanOn, table);
     return grade(camera, view, swept.mean, swept.pivot, scan.etaAll, scan.etaEnv, [
       { val: scan.beatVal, rate: scan.beatRate, eta: scan.eta, on: float(1) },
       ...lattice.chars,
@@ -1055,6 +1061,9 @@ function scanCharacters(view, solved, latGrads, scanOn) {
   const rateA = float(1).toVar();
   const rateB = float(1).toVar();
   const rateC = float(1).toVar();
+  // The winner's character (a, b) itself, for the pair table's row.
+  const pickA = float(0).toVar();
+  const pickB = float(0).toVar();
   // The winning character's beat phase and its per-pixel rate, for the
   // contour overlay: level sets of the phase at integers are the fringe
   // centres, and the rate turns a phase residual into screen pixels.
@@ -1120,6 +1129,8 @@ function scanCharacters(view, solved, latGrads, scanOn) {
         rateA.assign(who === 2 ? float(1) : wP);
         rateB.assign(who === 0 ? wQ : who === 2 ? wP : float(1));
         rateC.assign(who === 0 ? float(1) : wQ);
+        pickA.assign(a);
+        pickB.assign(b);
         beatVal.assign(xP.mul(a).add(xQ.mul(b)));
         beatRate.assign(length(beat));
       });
@@ -1328,6 +1339,8 @@ function scanCharacters(view, solved, latGrads, scanOn) {
     rateA,
     rateB,
     rateC,
+    pickA,
+    pickB,
     beatVal,
     beatRate,
     devW,
@@ -1707,8 +1720,8 @@ function tilingInk(slot, p) {
  * taps averaged into the mean the envelope grades. One tap at zero sweep
  * is the ordinary render, bit for bit.
  */
-function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
-  const { rateA, rateB, rateC, devW } = scan;
+function sweepStack(camera, view, solved, latCoh, scan, scanOn, table = null) {
+  const { rateA, rateB, rateC, devW, pickA, pickB } = scan;
   // Two averages ride the loop together: the winning schedule's, and the
   // plain diagonal's. They differ only in the ranked scalar layers' slide
   // rates, so the second costs a few instructions per tap, and the blend by
@@ -1992,7 +2005,8 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
     // start full size and stay crisp. Same mean; at rest the chain, sharp.
     const wEnv = solved.length <= SYNTH_MAX_K ? view.stream.clamp(0, 1) : float(0);
     const exact = vec3(0).toVar();
-    If(wEnv.lessThan(0.999), () => {
+    const tableOn = view.table.greaterThan(0.5);
+    If(wEnv.lessThan(0.999).and(tableOn.not()), () => {
       const diag = chain(...argsDiag);
       // The deviation chain runs only where the scan actually deviates —
       // devW is zero at most pixels of most scenes, and the chain is the
@@ -2004,7 +2018,7 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
       exact.assign(mix(diag, dev, devW.mul(step(0.003, devW))));
     });
     if (solved.length <= SYNTH_MAX_K) {
-      If(wEnv.greaterThan(0.001), () => {
+      If(wEnv.greaterThan(0.001).and(tableOn.not()), () => {
         const synth = poolSynth(solved.length);
         const args: unknown[] = [view.observer, vec3(camera.background), view.sweep, devW, float(SYNTH_SIGMA)];
         solved.forEach(({ slot, phase, sgrad }, index) => {
@@ -2016,10 +2030,80 @@ function sweepStack(camera, view, solved, latCoh, scan, scanOn) {
     meanOut.assign(exact);
     solved.forEach(({ slot, phase }, index) => {
       If(slot.active.greaterThan(0.5), () => {
-        const mm = exactLayerMean(phase, prs[index]).toVar();
+        const mm = vec2(0).toVar();
+        // Under the table the gap is the pitch and the profile symmetric, so
+        // the layer's mean over its period is closed form: the stroke's mass
+        // is its width (a symmetric ramp conserves it), and the square loses
+        // 0.514 of a ramp to the ramp's shoulders.
+        If(view.table.greaterThan(0.5), () => {
+          const gap = slot.spacing.abs().max(1e-3);
+          const h = min(prs[index].x, gap.mul(0.5));
+          const r = min(prs[index].y, h);
+          const al = prs[index].z.clamp(0, 1);
+          const m1 = al.mul(h.mul(2)).div(gap).min(1);
+          const m2 = al.mul(al).mul(h.mul(2).sub(r.mul(0.514))).div(gap).clamp(0, 1);
+          mm.assign(vec2(m1, m2));
+        }).Else(() => {
+          mm.assign(exactLayerMean(phase, prs[index]));
+        });
         pivotStep(vec3(slot.color), mm.x, mm.y);
       });
     });
+    // THE ENVELOPE OF A PAIR IS A PICTURE ON THE QUOTIENT. Its slide average
+    // depends on the two phases only through one number, the character the
+    // schedule holds fixed: φ₁ − φ₂ for the diagonal, aφ₁ + bφ₂ for the
+    // deviation the scan picked. So it is a one-dimensional periodic
+    // function of that count -- the tent -- and the renderer tabulates it
+    // once per frame by the exact chain (512 samples a cycle, one row per
+    // character), where before the chain ran per pixel. The pixel then
+    // reads the tent at its own count through its window: a Gaussian along
+    // the count of width sigma times the character's gradient, five
+    // Gauss--Hermite taps, and the pivot (the tent's mean) where the beat
+    // is faster than the window resolves. Ninety milliseconds a frame
+    // became a few texture reads; the fast beats at a ring pair's foci,
+    // which the per-pixel chain point-sampled into rosettes on a reduced
+    // buffer, are anti-aliased; and a stream draws exactly the rest frame.
+    if (solved.length === 2 && table) {
+      If(tableOn, () => {
+        const [L0, L1] = solved;
+        const gap0 = L0.phase.y.sub(L0.phase.x).abs().max(1e-6);
+        const gap1 = L1.phase.y.sub(L1.phase.x).abs().max(1e-6);
+        const phi0 = L0.phase.x.div(gap0);
+        const phi1 = L1.phase.x.div(gap1);
+        const sig = float(TABLE_SIGMA);
+        const lookup = (row, chi, s) => {
+          const v = row.add(0.5).div(TABLE_ROWS);
+          const acc = vec3(0).toVar();
+          TABLE_TAPS.forEach(([t, wq]) => {
+            acc.addAssign(texture(table, vec2(fract(chi.add(s.mul(t))), v)).rgb.mul(wq));
+          });
+          // Five taps average a tent evenly only while they span well under a
+          // cycle; past 0.12 of a cycle the beat is unresolvable anyway, and
+          // the pixel shows the tent's mean, which is the pivot.
+          return mix(acc, pivotOut, smoothstep(float(0.12), float(0.28), s));
+        };
+        const rowDiag = float(tableRow(1, -1));
+        const Td = lookup(rowDiag, phi0.sub(phi1), sig.mul(L0.sgrad.sub(L1.sgrad).length()));
+        // The deviation's character (a, b) is in the scan's ranked order, A
+        // and B; the table's rows are in slot order, so swap when A is slot 1.
+        // Then normalise to a > 0, in the table's range.
+        const swap = step(float(0.5), float(view.ratioA));
+        const aR = mix(pickA, pickB, swap);
+        const bR = mix(pickB, pickA, swap);
+        const flip = step(aR, float(-0.5));
+        const a = aR.mul(float(1).sub(flip.mul(2)));
+        const b = bR.mul(float(1).sub(flip.mul(2)));
+        const valid = step(float(0.5), a)
+          .mul(step(a, float(TABLE_A_MAX + 0.5)))
+          .mul(step(float(0.5), b.abs()))
+          .mul(step(b.abs(), float(TABLE_B_MAX + 0.5)));
+        const bi = mix(b.add(TABLE_B_MAX), b.add(TABLE_B_MAX - 1), step(float(0.5), b));
+        const rowDev = a.sub(1).mul(2 * TABLE_B_MAX).add(bi);
+        const chiDev = phi0.mul(a).add(phi1.mul(b));
+        const Tdev = lookup(rowDev, chiDev, sig.mul(L0.sgrad.mul(a).add(L1.sgrad.mul(b)).length()));
+        meanOut.assign(mix(Td, Tdev, devW.mul(step(0.003, devW)).mul(valid)));
+      });
+    }
   }).Else(() => {
     tapLoop();
     // The pixel as a pooling observer (see the `pool` uniform and
@@ -2489,6 +2573,79 @@ const DIRECT_SIGMA_COARSE = 0.35;
 const DIRECT_SIGMA_FINE = 0.55;
 const DIRECT_SIGMA_NYQUIST = 0.9;
 
+
+/**
+ * THE PAIR TABLE. One row per character (a, b), a in 1..TABLE_A_MAX and b in
+ * -TABLE_B_MAX..TABLE_B_MAX without 0 (the diagonal is (1, -1)); along the
+ * row, TABLE_N samples of the tent over one cycle of the character's count.
+ * Each texel runs the exact chain on synthetic trios that realise the count
+ * -- phase chi/a for the first family, 0 for the second, symmetric members a
+ * pitch apart -- under the schedule that holds the character fixed, rates
+ * (|b|, -a·sign b). Whole-number sweeps give the same tent, so the sweep
+ * is one; the profile is the chain's (true width, the rest ramp), and the
+ * observer's front end is applied inside, so the table is E[c] or E[c²].
+ */
+export const TABLE_N = 512;
+export const TABLE_A_MAX = 6;
+export const TABLE_B_MAX = 6;
+export const TABLE_ROWS = TABLE_A_MAX * 2 * TABLE_B_MAX;
+/** The pixel's window along the count, in buffer pixels: the tent is smooth,
+ * its harmonics fall as 1/m², so the drawn edge's crispness serves. */
+const TABLE_SIGMA = 0.4;
+
+/** Five-point Gauss--Hermite taps for a unit Gaussian: offsets and weights. */
+const TABLE_TAPS: [number, number][] = [
+  [0, 0.533333],
+  [1.355626, 0.222076],
+  [-1.355626, 0.222076],
+  [2.85697, 0.011257],
+  [-2.85697, 0.011257],
+];
+function tableRow(a: number, b: number): number {
+  return (a - 1) * 2 * TABLE_B_MAX + (b < 0 ? b + TABLE_B_MAX : b + TABLE_B_MAX - 1);
+}
+
+export function buildTableColorNode(camera: CameraUniforms, view: ViewUniforms, slots: LayerSlot[]) {
+  return Fn(() => {
+    const u = uv();
+    const chi = u.x;
+    // A render target's first texel row is the quad's TOP edge (uv.y = 1),
+    // and sampling reads v = 0 there: the row is written upside down so that
+    // the lookup's v = (row + 0.5) / rows lands on it.
+    const row = floor(float(1).sub(u.y).mul(TABLE_ROWS));
+    const a = floor(row.div(2 * TABLE_B_MAX)).add(1);
+    const bi = row.sub(a.sub(1).mul(2 * TABLE_B_MAX));
+    const b = mix(bi.sub(TABLE_B_MAX), bi.sub(TABLE_B_MAX - 1), step(float(TABLE_B_MAX - 0.5), bi));
+    const wP = b.abs();
+    const wQ = a.negate().mul(b.sign());
+    const gap0 = slots[0].spacing.abs().max(1e-3);
+    const gap1 = slots[1].spacing.abs().max(1e-3);
+    const x0 = chi.div(a).mul(gap0);
+    const ph0 = vec4(x0, x0.add(gap0), x0.sub(gap0), float(0));
+    const ph1 = vec4(float(0), gap1, gap1.negate(), float(0));
+    const aaRest = float(0.7).div(camera.zoom.max(0.08)).mul(camera.scale.max(0.05));
+    const pr0 = vec4(max(slots[0].thickness.mul(0.5), float(1e-3)), aaRest, slots[0].opacity, float(0));
+    const pr1 = vec4(max(slots[1].thickness.mul(0.5), float(1e-3)), aaRest, slots[1].opacity, float(0));
+    const chain = exactChain(2);
+    const c = chain(
+      float(1),
+      vec3(camera.background),
+      view.observer,
+      ph0,
+      pr0,
+      vec3(slots[0].color),
+      slots[0].active,
+      wP,
+      ph1,
+      pr1,
+      vec3(slots[1].color),
+      slots[1].active,
+      wQ
+    );
+    return vec4(c, float(1));
+  })();
+}
+
 /**
  * THE PIXEL'S WINDOW, TERM BY TERM. The pooled colour is the window
  * multiplier theorem run literally: the drawing's Fourier series in the K
@@ -2885,3 +3042,4 @@ export function createSlots(count = MAX_LAYERS): LayerSlot[] {
   const tiling = createTilingNodes();
   return Array.from({ length: count }, () => ({ ...createLayerSlot(), tiling }));
 }
+

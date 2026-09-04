@@ -3,6 +3,9 @@ import { MeshBasicNodeMaterial } from 'three/webgpu';
 import { MAX_LAYERS, isGrid, isRadialLines, type PatternLayer } from '../types/moire';
 import {
   buildColorNode,
+  buildTableColorNode,
+  TABLE_N,
+  TABLE_ROWS,
   compileFieldCached,
   type ImageField,
   createCameraUniforms,
@@ -308,6 +311,9 @@ export class MoireRenderer {
   private poolFinest = Infinity;
   private poolStroke = Infinity;
   private poolK = 0;
+  /** The pair table (see buildTableColorNode): a render target the exact envelope reads. */
+  private tableRT: THREE.RenderTarget | null = null;
+  private tableScene: THREE.Scene | null = null;
   private fullCost = 0;
   private lastRequest = 0;
   private settleTimer = 0;
@@ -370,7 +376,7 @@ export class MoireRenderer {
     if (this.scene && this.camera) {
       try {
         await this.renderer.compileAsync(this.scene, this.camera);
-        this.renderer.render(this.scene, this.camera);
+        this.draw();
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         throw new Error(`WebGPU shader compile failed: ${message}`);
@@ -406,6 +412,29 @@ export class MoireRenderer {
     this.slots = createSlots(MAX_LAYERS);
     this.fieldSources = this.slots.map(() => '');
 
+    // The pair table: 512 samples of the tent per character row, half floats,
+    // wrapping along the count so the window's taps wrap with it.
+    const rt = new THREE.RenderTarget(TABLE_N, TABLE_ROWS, {
+      type: THREE.HalfFloatType,
+      format: THREE.RGBAFormat,
+      minFilter: THREE.LinearFilter,
+      magFilter: THREE.LinearFilter,
+      generateMipmaps: false,
+      depthBuffer: false,
+    });
+    rt.texture.wrapS = THREE.RepeatWrapping;
+    rt.texture.wrapT = THREE.ClampToEdgeWrapping;
+    rt.texture.colorSpace = THREE.NoColorSpace;
+    this.tableRT = rt;
+    const tableMaterial = new MeshBasicNodeMaterial();
+    tableMaterial.colorNode = buildTableColorNode(this.cameraUniforms, this.viewUniforms, this.slots.slice(0, 2));
+    tableMaterial.side = THREE.DoubleSide;
+    tableMaterial.toneMapped = false;
+    const tableMesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), tableMaterial);
+    tableMesh.frustumCulled = false;
+    this.tableScene = new THREE.Scene();
+    this.tableScene.add(tableMesh);
+
     const material = this.buildMaterial();
     this.material = material;
 
@@ -428,7 +457,8 @@ export class MoireRenderer {
       this.cameraUniforms!,
       this.viewUniforms!,
       this.slots.slice(0, this.slotCount),
-      this.fieldSources.slice(0, this.slotCount).map((source) => this.programFor(source))
+      this.fieldSources.slice(0, this.slotCount).map((source) => this.programFor(source)),
+      this.tableRT?.texture ?? null
     );
     material.side = THREE.DoubleSide;
     material.toneMapped = false;
@@ -546,7 +576,7 @@ export class MoireRenderer {
     }
     if (this.disposed) return;
     const t0 = performance.now();
-    this.renderer.render(this.scene, this.camera);
+    this.draw();
     if (this.scale === 1) void this.measure(t0);
     previous?.dispose();
     // Nothing syncs while a build is in flight, so an edit made during one is only
@@ -608,7 +638,7 @@ export class MoireRenderer {
     const contoursOn = state.view.envelopeContours;
     const wantsScan = envelope || contoursOn;
     // What sets a frame's cost class, for the interaction buffer's memory.
-    this.costKey = `${envelope ? 1 : 0}${ratioOn ? 1 : 0}${contoursOn ? 1 : 0}${this.viewUniforms?.pool.value ? 1 : 0}|${state.layers.length}|${this.lastWidth}x${this.lastHeight}@${this.lastDpr}`;
+    this.costKey = `${envelope ? 1 : 0}${ratioOn ? 1 : 0}${contoursOn ? 1 : 0}${this.viewUniforms?.pool.value ? 1 : 0}${this.viewUniforms?.table.value ? 1 : 0}|${state.layers.length}|${this.lastWidth}x${this.lastHeight}@${this.lastDpr}`;
     // The regime mask and the orientation-aware sweep read the same ranked
     // pair the ratio view compares, so an enveloped stack keeps those uniforms
     // warm even with the ratio view off — falling back to the topmost scalar
@@ -689,6 +719,33 @@ export class MoireRenderer {
     // type ease (280 ms) rides the tap loop and the exact path resumes on
     // the next sync after it settles.
     this.viewUniforms.exactSweep.value = envelope && !anyLattice && !hasLayerMorphs() ? 1 : 0;
+    // The pair table serves the exact envelope of two field-free scalar
+    // families under a whole-number sweep (a walking family's trio is not
+    // symmetric, and a partial sweep is not a function of the count alone).
+    const scalarNow = state.layers.filter(
+      (l) => l.visible && !isGrid(l.type) && !isRadialLines(l.type)
+    );
+    const sweepWhole =
+      Math.abs(state.view.envelopeSweep - Math.round(state.view.envelopeSweep)) < 1e-3 &&
+      state.view.envelopeSweep >= 1;
+    // Only families whose trio is symmetric with a constant gap can be
+    // tabulated: a geometric ring family or a wave has a pitch that varies
+    // along the frame, and its tent with it.
+    const TABLE_TYPES = new Set([
+      'straight-lines',
+      'concentric-circles',
+      'concentric-squares',
+      'concentric-triangles',
+      'concentric-polygons',
+      'curve-spiral',
+    ]);
+    const tableOn =
+      this.viewUniforms.exactSweep.value === 1 &&
+      scalarNow.length === 2 &&
+      visible.length === 2 &&
+      sweepWhole &&
+      scalarNow.every((l) => TABLE_TYPES.has(l.type) && !l.field?.source && !l.field?.image);
+    this.viewUniforms.table.value = tableOn ? 1 : 0;
     // The pixel as a pooling observer: the plain render pools where the
     // finest visible pitch drops under a few pixels a period. Scalar stacks
     // only, like the exact sweep it reuses; the envelope is already pooled.
@@ -738,7 +795,7 @@ export class MoireRenderer {
     const step = () => {
       this.writeSlots();
       if (this.ready && this.renderer && this.scene && this.camera) {
-        this.renderer.render(this.scene, this.camera);
+        this.draw();
       }
       this.morphRaf = hasLayerMorphs() ? requestAnimationFrame(step) : 0;
     };
@@ -778,7 +835,7 @@ export class MoireRenderer {
       this.raf = 0;
       if (!this.ready || !this.renderer || !this.scene || !this.camera) return;
       const t0 = performance.now();
-      this.renderer.render(this.scene, this.camera);
+      this.draw();
       if (!streaming && this.scale === 1) void this.measure(t0);
     });
   }
@@ -885,6 +942,17 @@ export class MoireRenderer {
     if (this.poolK <= 2) return 1;
     const halfStroke = Math.max(this.poolStroke, (1.15 * scale) / Math.max(zoom, 1e-6));
     return this.poolFinest * zoom < POOL_PX || halfStroke * zoom < POOL_STROKE_PX ? 1 : 0;
+  }
+
+  /** One frame: the pair table when the exact envelope reads it, then the picture. */
+  private draw() {
+    if (!this.renderer || !this.scene || !this.camera) return;
+    if (this.viewUniforms?.table.value === 1 && this.tableRT && this.tableScene) {
+      this.renderer.setRenderTarget(this.tableRT);
+      this.renderer.render(this.tableScene, this.camera);
+      this.renderer.setRenderTarget(null);
+    }
+    this.renderer.render(this.scene, this.camera);
   }
 
   /** The buffer at a fraction of the full size, framing unchanged. */
@@ -1026,7 +1094,7 @@ export class MoireRenderer {
       this.cameraUniforms.scale.value = opts.interactionScale ?? 1;
       // A stated interaction scale asks for the frame as a stream draws it.
       if (this.viewUniforms) this.viewUniforms.stream.value = opts.interactionScale !== undefined ? 1 : 0;
-      this.renderer.render(this.scene, this.camera);
+      this.draw();
       return await read(this.canvas);
     } finally {
       this.cameraUniforms.scale.value = this.scale;

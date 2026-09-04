@@ -150,13 +150,25 @@ carrier under a window half a pitch wide, which is the envelope's
 observer, not the pixel's, and blurred what the screen could still show.
 Three and four families use the same theorem as a Fourier series, each
 term under the window at its own two-dimensional frequency, handed over
-from the drawing where the harmonics reach the comb; and the envelope,
-while a hand is on the view, is drawn by that series with the slide's
-sinc on each term, alias-free at any buffer and cheap enough to stream at
-full size, the exact chain returning when the hand lifts. Every width
-that sets a mean is measured in the pixels of the screen at rest; a
-coarse interaction buffer sees the same drawing through a wider window,
-with the same light.
+from the drawing where the harmonics reach the comb, and their envelopes,
+while a hand is on the view, are drawn by that series with the slide's
+sinc on each term. Every width that sets a mean is measured in the pixels
+of the screen at rest; a coarse interaction buffer sees the same drawing
+through a wider window, with the same light.
+
+The envelope of a pair is a case of the same rule, and the cheapest one.
+Its slide average depends on the two counts only through the character
+the schedule holds fixed, so it is a periodic function of one number, the
+tent of \S\ref{sec:stations}, composed with that character's count map.
+The tool now tabulates the tent once a frame by the certified integrator,
+512 samples a cycle and one row for each character the scan can pick,
+and a pixel reads the tent at its own count through its window, a
+Gaussian along the count of the pixel's width times the character's
+gradient. Where the integrator ran once per pixel it runs once per texel;
+the fast beats at a ring pair's foci, which a reduced buffer had
+point-sampled into rosettes, are averaged to the tent's mean where they
+pass the pixel's resolving power; and the frame drawn under a moving hand
+is the frame drawn after it lifts.
 
 \begin{figure}[t]
   \centering
