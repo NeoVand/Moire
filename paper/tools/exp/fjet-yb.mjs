@@ -4,6 +4,9 @@
 // Run: node paper/tools/exp/fjet-yb.mjs [--probe] [--quick] [--only=a,b]
 
 import { writeFileSync } from 'node:fs';
+import { deflateSync } from 'node:zlib';
+import { Worker, isMainThread, parentPort, workerData } from 'node:worker_threads';
+import os from 'node:os';
 import * as F from './fjet.mjs';
 import { Jet, Pixel } from './fjet.mjs';
 
@@ -13,6 +16,7 @@ const H = 320;
 const SIG = 0.5;
 const args = process.argv.slice(2);
 const PROBE = args.includes('--probe');
+const SAVE = args.includes('--save');
 const QUICK = args.includes('--quick');
 const only = args.find((a) => a.startsWith('--only='));
 
@@ -170,7 +174,8 @@ const checkerboard = (O, I) => {
   const tt = O.select(O.ge(ys, 0.5), 1, 0);
   const ans0 = O.add(O.mul(ss, tt), O.mul(O.sub(1, ss), O.sub(1, tt)));
   const { LN, spec } = lighting(O, normal, I.light, I.viewer, 50, false);
-  const v = O.add(O.mul(LN, ans0), spec);
+  const PART = process.env.FJET_PART;
+  const v = PART === 'spec' ? spec : PART === 'diff' ? O.mul(LN, ans0) : PART === 'LN' ? LN : PART === 'ss' ? O.mul(LN, ss) : PART === 'tt' ? O.mul(LN, tt) : PART === 'sstt' ? O.mul(O.mul(LN, ss), tt) : O.add(O.mul(LN, ans0), spec);
   return [v, v, v];
 };
 
@@ -357,8 +362,18 @@ const brutePixel = (cs, x, y, n, seed, ch = 0) => {
 const oursPixel = (cs, x, y, stats) => {
   F.resetAxes();
   const px = new Pixel(SIG, 1e-4);
+  if (process.env.FJET_PANEL) px.localPanel = Number(process.env.FJET_PANEL);
+  if (process.env.FJET_PANEL_B) px.localPanelB = Number(process.env.FJET_PANEL_B);
+  if (process.env.FJET_LOCALSIG) px.localSigma = Number(process.env.FJET_LOCALSIG);
   const out = cs.eval(FJ, x, y, true);
-  const vals = out.map((el) => px.expect(el));
+  // channels with the same structure (grey shaders build three equal
+  // elements) are computed once
+  const done = new Map();
+  const vals = out.map((el) => {
+    const key = F.elementKey(el);
+    if (!done.has(key)) done.set(key, px.expect(el));
+    return done.get(key);
+  });
   if (stats) {
     stats.terms += px.stats.terms;
     stats.recipes += px.stats.recipes;
@@ -377,7 +392,163 @@ const rms = (a, b) => {
   return Math.sqrt(acc / a.length);
 };
 
+// render rows [y0, y1) of the truth with n samples; the row's stream is
+// seeded by the frame seed and the row
+const renderRowsMC = (cs, n, seed, y0, y1) => {
+  const out = new Float64Array((y1 - y0) * W * 3);
+  for (let y = y0; y < y1; y++) {
+    const r = rng(seed * 100003 + y);
+    for (let x = 0; x < W; x++) {
+      let a = 0;
+      let b = 0;
+      let c = 0;
+      for (let i = 0; i < n; i++) {
+        const [dx, dy] = gaussPair(r);
+        const v = cs.eval(NUM, x + SIG * dx, y + SIG * dy, false);
+        a += v[0];
+        b += v[1];
+        c += v[2];
+      }
+      const p = ((y - y0) * W + x) * 3;
+      out[p] = a / n;
+      out[p + 1] = b / n;
+      out[p + 2] = c / n;
+    }
+  }
+  return out;
+};
+
+// a worker evaluates rows of one case, ours or the truth, on request
+if (!isMainThread) {
+  const cs = CASES.find((c) => c.name === workerData.name);
+  parentPort.on('message', (msg) => {
+    if (msg.type === 'exit') process.exit(0);
+    if (msg.type === 'truth') {
+      const out = renderRowsMC(cs, msg.n, msg.seed, msg.y0, msg.y1);
+      parentPort.postMessage({ type: 'truth', y0: msg.y0, y1: msg.y1, out }, [out.buffer]);
+      return;
+    }
+    const out = new Float64Array((msg.y1 - msg.y0) * W * 3);
+    const stats = { terms: 0, recipes: 0, dfts: 0, overflow: 0 };
+    for (let y = msg.y0; y < msg.y1; y++)
+      for (let x = 0; x < W; x++) {
+        const v = oursPixel(cs, x, y, stats);
+        const p = ((y - msg.y0) * W + x) * 3;
+        out[p] = v[0];
+        out[p + 1] = v[1];
+        out[p + 2] = v[2];
+      }
+    parentPort.postMessage({ type: 'rows', y0: msg.y0, y1: msg.y1, out, stats }, [out.buffer]);
+  });
+}
+
+// PNG output (8-bit, the benchmark's own quantisation) and a comparison
+// strip: truth, unfiltered, ours, and ten times the error
+const crcTable = (() => {
+  const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+const crc32 = (buf) => {
+  let c = 0xffffffff;
+  for (let i = 0; i < buf.length; i++) c = crcTable[(c ^ buf[i]) & 0xff] ^ (c >>> 8);
+  return (c ^ 0xffffffff) >>> 0;
+};
+const chunk = (type, data) => {
+  const len = Buffer.alloc(4);
+  len.writeUInt32BE(data.length);
+  const td = Buffer.concat([Buffer.from(type, 'ascii'), data]);
+  const crc = Buffer.alloc(4);
+  crc.writeUInt32BE(crc32(td));
+  return Buffer.concat([len, td, crc]);
+};
+const writePNG = (path, img, w = W, h = H) => {
+  const raw = Buffer.alloc((w * 3 + 1) * h);
+  for (let y = 0; y < h; y++) {
+    raw[y * (w * 3 + 1)] = 0;
+    for (let x = 0; x < w; x++)
+      for (let c = 0; c < 3; c++) raw[y * (w * 3 + 1) + 1 + x * 3 + c] = Math.floor(clamp01(img[(y * w + x) * 3 + c]) * 256 - 1e-4);
+  }
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(w, 0);
+  ihdr.writeUInt32BE(h, 4);
+  ihdr[8] = 8;
+  ihdr[9] = 2;
+  ihdr[10] = 0;
+  ihdr[11] = 0;
+  ihdr[12] = 0;
+  const png = Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), chunk('IHDR', ihdr), chunk('IDAT', deflateSync(raw)), chunk('IEND', Buffer.alloc(0))]);
+  writeFileSync(path, png);
+};
+const writeStrip = (path, frames) => {
+  const cx0 = 160;
+  const cy0 = 16;
+  const cw = 160;
+  const ch = 60;
+  const Z = 3;
+  const gap = 4;
+  const n = frames.length;
+  const w = n * W + (n - 1) * gap;
+  const h = H + gap + ch * Z;
+  const img = new Float64Array(w * h * 3).fill(1);
+  frames.forEach((f, i) => {
+    const ox = i * (W + gap);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) for (let c = 0; c < 3; c++) img[(y * w + ox + x) * 3 + c] = f[(y * W + x) * 3 + c];
+    for (let y = 0; y < ch * Z; y++)
+      for (let x = 0; x < cw * Z; x++)
+        for (let c = 0; c < 3; c++) img[((H + gap + y) * w + ox + x) * 3 + c] = f[((cy0 + Math.floor(y / Z)) * W + cx0 + Math.floor(x / Z)) * 3 + c];
+  });
+  writePNG(path, img, w, h);
+};
+
+// the frame, rows farmed out to workers; kind 'ours' or 'truth' (n, seed)
+const NWORKERS = Math.max(1, Math.min(os.cpus().length - 1, 12));
+const parallelFrame = (cs, kind, n, seed, progress) =>
+  new Promise((resolve) => {
+    const img = new Float64Array(W * H * 3);
+    const stats = { terms: 0, recipes: 0, dfts: 0, overflow: 0 };
+    const chunk = kind === 'truth' ? 8 : 2;
+    let next = 0;
+    let done = 0;
+    let finished = 0;
+    const t0 = performance.now();
+    const workers = [];
+    const dispatch = (w) => {
+      if (next >= H) {
+        w.postMessage({ type: 'exit' });
+        finished++;
+        if (finished === workers.length) resolve({ img, stats, seconds: (performance.now() - t0) / 1000 });
+        return;
+      }
+      const y0 = next;
+      const y1 = Math.min(H, next + chunk);
+      next = y1;
+      w.postMessage(kind === 'truth' ? { type: 'truth', n, seed, y0, y1 } : { type: 'rows', y0, y1 });
+    };
+    for (let i = 0; i < NWORKERS; i++) {
+      const w = new Worker(new URL(import.meta.url), { workerData: { name: cs.name } });
+      workers.push(w);
+      w.on('message', (msg) => {
+        img.set(msg.out, msg.y0 * W * 3);
+        if (msg.stats) for (const k of Object.keys(stats)) stats[k] += msg.stats[k];
+        done += msg.y1 - msg.y0;
+        if (progress && done % 40 < chunk) process.stdout.write(`  ${kind} row ${done}/${H} (${((performance.now() - t0) / 1000).toFixed(0)} s)\n`);
+        dispatch(w);
+      });
+      w.on('error', (e) => {
+        console.error(e);
+        process.exit(1);
+      });
+      dispatch(w);
+    }
+  });
+
 const wanted = CASES.filter((c) => !only || only.slice(7).split(',').includes(c.name));
+const main = async () => {
 
 const atArg = process.argv.find((a) => a.startsWith('--at='));
 const PROBE_AT = atArg ? atArg.slice(5).split(';').map((p) => p.split(',').map(Number)) : null;
@@ -453,30 +624,29 @@ if (strideArg) {
 
 const results = {};
 for (const cs of wanted) {
-  console.log(`${cs.name}: truth...`);
+  console.log(`${cs.name}: truth on ${NWORKERS} workers...`);
   const n = QUICK ? 200 : 1000;
-  const gt = renderMC(cs, n, 101);
-  const gt2 = renderMC(cs, n, 202);
+  const gt = (await parallelFrame(cs, 'truth', n, 101, false)).img;
+  const gt2 = (await parallelFrame(cs, 'truth', n, 202, false)).img;
   const floor = rms(gt, gt2) / Math.SQRT2;
+  // the unfiltered shader's time is measured single-threaded, as the
+  // reference of the relative cost
   const t0 = performance.now();
   const noaa = renderMC(cs, 1, 1);
   const tNoaa = performance.now() - t0;
-  const img = new Float64Array(W * H * 3);
-  const stats = { terms: 0, recipes: 0, dfts: 0, overflow: 0 };
-  const t1 = performance.now();
-  for (let y = 0; y < H; y++) {
-    for (let x = 0; x < W; x++) {
-      const v = oursPixel(cs, x, y, stats);
-      const p = (y * W + x) * 3;
-      img[p] = v[0];
-      img[p + 1] = v[1];
-      img[p + 2] = v[2];
-    }
-    if (y % 40 === 39) process.stdout.write(`  row ${y + 1}/${H} (${((performance.now() - t1) / 1000).toFixed(0)} s)\n`);
-  }
-  const tOurs = performance.now() - t1;
-  const r = { noAA: rms(noaa, gt), ours: rms(img, gt), floor, rel: tOurs / tNoaa, seconds: tOurs / 1000, stats };
+  const { img, stats, seconds } = await parallelFrame(cs, 'ours', 0, 0, true);
+  const r = { noAA: rms(noaa, gt), ours: rms(img, gt), floor, rel: (seconds * 1000 * NWORKERS) / tNoaa, seconds, workers: NWORKERS, stats };
   results[cs.name] = r;
-  console.log(`  no AA ${r.noAA.toFixed(4)}  ours ${r.ours.toFixed(4)}  floor ${floor.toFixed(4)}  time ${r.seconds.toFixed(0)} s (${r.rel.toFixed(0)}x)  ${JSON.stringify(stats)}`);
+  if (SAVE) {
+    const IMG = new URL('../../figures/', import.meta.url);
+    const err = new Float64Array(W * H * 3);
+    for (let i = 0; i < err.length; i++) err[i] = 10 * Math.abs(clamp01(img[i]) - clamp01(gt[i]));
+    writePNG(new URL(`fjet-${cs.name}-gt.png`, IMG), gt);
+    writePNG(new URL(`fjet-${cs.name}-ours.png`, IMG), img);
+    writeStrip(new URL(`fjet-${cs.name}-strip.png`, IMG), [gt, noaa, img, err]);
+  }
+  console.log(`  no AA ${r.noAA.toFixed(4)}  ours ${r.ours.toFixed(4)}  floor ${floor.toFixed(4)}  time ${r.seconds.toFixed(0)} s on ${NWORKERS} workers (${r.rel.toFixed(0)}x single-thread)  ${JSON.stringify(stats)}`);
+  writeFileSync(new URL('../../data/fjet-yb.json', import.meta.url), JSON.stringify({ protocol: { W, H, sigma: SIG, samples: QUICK ? 200 : 1000 }, results }, null, 1));
 }
-writeFileSync(new URL('../../data/fjet-yb.json', import.meta.url), JSON.stringify({ protocol: { W, H, sigma: SIG, samples: QUICK ? 200 : 1000 }, results }, null, 1));
+};
+if (isMainThread) main();

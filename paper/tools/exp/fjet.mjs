@@ -193,7 +193,24 @@ export class Axis {
 //    count plus its field), sig }
 //  { kind: 'clo', axes: [Axis], fn: (coords: number[]) -> Jet, sig }
 const picFactor = (axis, fn, sig) => ({ kind: 'pic', axis, fn, sig });
-const cloFactor = (axes, fn, sig) => ({ kind: 'clo', axes, fn, sig });
+// a closure remembers its last evaluation: the traced shader is a graph,
+// and a point evaluates every shared sub-expression once
+const sameCoords = (a, b) => {
+  if (!b || a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+  return true;
+};
+const cloFactor = (axes, fn, sig) => {
+  let lastCs = null;
+  let lastVal = null;
+  const memo = (cs) => {
+    if (sameCoords(cs, lastCs)) return lastVal;
+    lastVal = fn(cs);
+    lastCs = cs.slice();
+    return lastVal;
+  };
+  return { kind: 'clo', axes, fn: memo, sig };
+};
 
 let sigCounter = 0;
 const freshSig = (base) => `${base}#${sigCounter++}`;
@@ -263,8 +280,18 @@ const resolveFactor = (f) => {
   return cloFactor(targets, (cs) => fn(slots.map(([i, m]) => m * cs[i])), `${f.sig}∘alias`);
 };
 
-// evaluate an element at torus coordinates (Map axisId -> u in periods) as a Jet
+// evaluate an element at torus coordinates (Map axisId -> u in periods) as a
+// Jet; the last evaluation is remembered by the coordinates of its axes
 const evalElement = (el, coords) => {
+  if (!el._axes) el._axes = el.axes();
+  const key = el._axes.map((a) => coords.get(a.id));
+  if (el._lastKey && sameCoords(key, el._lastKey)) return el._lastVal;
+  const v = evalElementRaw(el, coords);
+  el._lastKey = key;
+  el._lastVal = v;
+  return v;
+};
+const evalElementRaw = (el, coords) => {
   let acc = J0;
   for (const t of el.terms) {
     let v = t.c.re;
@@ -917,6 +944,157 @@ const pruneRate2 = (x, others) => {
   return relaxedRate2(x, others);
 };
 
+// The jump levels of a picture: the coordinates in [0,1) where a periodic
+// picture jumps (found once per picture, remembered on it); an edge picture
+// has its step or kink at raw zero.
+const levelsOfFn = (fn) => {
+  const M = 96;
+  const vals = [];
+  for (let i = 0; i <= M; i++) vals.push(fn(i / M));
+  let vmin = Infinity;
+  let vmax = -Infinity;
+  for (const v of vals) {
+    vmin = Math.min(vmin, v);
+    vmax = Math.max(vmax, v);
+  }
+  const levels = [];
+  for (let i = 0; i < M; i++) {
+    const d = Math.abs(vals[i + 1] - vals[i]);
+    if (d > 0.25 * Math.max(vmax - vmin, 1e-12) + 1e-12) {
+      let x0 = i / M;
+      let x1 = (i + 1) / M;
+      const f0 = vals[i];
+      for (let it = 0; it < 30; it++) {
+        const xm = (x0 + x1) / 2;
+        if (Math.abs(fn(xm) - f0) > d / 2) x1 = xm;
+        else x0 = xm;
+      }
+      levels.push((x0 + x1) / 2);
+    }
+  }
+  return levels;
+};
+const factorLevels = (f, axis) => {
+  if (f._levels) return f._levels;
+  if (axis.kind === 'edge') f._levels = [0];
+  else f._levels = levelsOfFn(f.kind === 'pic' ? f.fn : (u) => f.fn([u]).v);
+  return f._levels;
+};
+// where a coordinate along a path crosses a level (plus any integer for a
+// periodic axis): the coordinate is sampled, each bracket bisected
+const cutsOnPath = (items, lo, hi) => {
+  const cuts = [];
+  for (const { coord, levels, periodic, samples } of items) {
+    if (levels.length === 0) continue;
+    const N = samples;
+    const cs = [];
+    for (let i = 0; i <= N; i++) cs.push(coord(lo + ((hi - lo) * i) / N));
+    for (let i = 0; i < N; i++) {
+      const s0 = lo + ((hi - lo) * i) / N;
+      const s1 = lo + ((hi - lo) * (i + 1)) / N;
+      const c0 = cs[i];
+      const c1 = cs[i + 1];
+      const cmin = Math.min(c0, c1);
+      const cmax = Math.max(c0, c1);
+      for (const l of levels) {
+        const k0 = periodic ? Math.ceil(cmin - l) : 0;
+        const k1 = periodic ? Math.floor(cmax - l) : 0;
+        for (let k = k0; k <= k1; k++) {
+          const target = l + k;
+          if (!periodic && (target < cmin || target > cmax)) continue;
+          let x0 = s0;
+          let x1 = s1;
+          let f0 = c0 - target;
+          for (let it = 0; it < 18; it++) {
+            const xm = (x0 + x1) / 2;
+            const fm = coord(xm) - target;
+            if ((fm < 0) === (f0 < 0)) {
+              x0 = xm;
+              f0 = fm;
+            } else x1 = xm;
+          }
+          cuts.push((x0 + x1) / 2);
+        }
+      }
+    }
+  }
+  return cuts;
+};
+// a jump scan of a value along a path, for closures over several axes
+const scanJumps = (at, lo, hi, M = 24) => {
+  const vals = [];
+  for (let i = 0; i <= M; i++) vals.push(at(lo + ((hi - lo) * i) / M));
+  let vmin = Infinity;
+  let vmax = -Infinity;
+  for (const v of vals) {
+    vmin = Math.min(vmin, v);
+    vmax = Math.max(vmax, v);
+  }
+  const jumps = [];
+  for (let i = 0; i < M; i++) {
+    const d = Math.abs(vals[i + 1] - vals[i]);
+    if (d > 0.25 * Math.max(vmax - vmin, 1e-12) + 1e-12) {
+      let x0 = lo + ((hi - lo) * i) / M;
+      let x1 = lo + ((hi - lo) * (i + 1)) / M;
+      const f0 = vals[i];
+      for (let it = 0; it < 24; it++) {
+        const xm = (x0 + x1) / 2;
+        if (Math.abs(at(xm) - f0) > d / 2) x1 = xm;
+        else x0 = xm;
+      }
+      // a steep slope shrinks with the bracket, a jump does not
+      if (Math.abs(at(x1) - at(x0)) < 0.5 * d) continue;
+      jumps.push((x0 + x1) / 2);
+    }
+  }
+  return jumps;
+};
+
+const lgamma = (x) => {
+  // Lanczos, enough for the bound
+  const g = [76.18009172947146, -86.50532032941677, 24.01409824083091, -1.231739572450155, 0.1208650973866179e-2, -0.5395239384953e-5];
+  let y = x;
+  let t = x + 5.5;
+  t -= (x + 0.5) * Math.log(t);
+  let ser = 1.000000000190015;
+  for (const c of g) ser += c / ++y;
+  return -t + Math.log((2.5066282746310005 * ser) / x);
+};
+// one harmonic of the jet-valued samples: sum_i S_i e^{-2 pi i m u_i}
+const residualCoefAt = (nodes, SR, SI, N, m) => {
+  let a0 = 0;
+  let a1 = 0;
+  let a2 = 0;
+  let a3 = 0;
+  let a4 = 0;
+  let a5 = 0;
+  let b0 = 0;
+  let b1 = 0;
+  let b2 = 0;
+  let b3 = 0;
+  let b4 = 0;
+  let b5 = 0;
+  for (let i = 0; i < N; i++) {
+    const ang = -TAU * m * nodes[i][0];
+    const c = Math.cos(ang);
+    const s = Math.sin(ang);
+    const o = 6 * i;
+    a0 += SR[o] * c - SI[o] * s;
+    b0 += SR[o] * s + SI[o] * c;
+    a1 += SR[o + 1] * c - SI[o + 1] * s;
+    b1 += SR[o + 1] * s + SI[o + 1] * c;
+    a2 += SR[o + 2] * c - SI[o + 2] * s;
+    b2 += SR[o + 2] * s + SI[o + 2] * c;
+    a3 += SR[o + 3] * c - SI[o + 3] * s;
+    b3 += SR[o + 3] * s + SI[o + 3] * c;
+    a4 += SR[o + 4] * c - SI[o + 4] * s;
+    b4 += SR[o + 4] * s + SI[o + 4] * c;
+    a5 += SR[o + 5] * c - SI[o + 5] * s;
+    b5 += SR[o + 5] * s + SI[o + 5] * c;
+  }
+  return [new Jet(a0, a1, a2, a3, a4, a5), new Jet(b0, b1, b2, b3, b4, b5)];
+};
+
 // ---------------------------------------------------------------------------
 // Evaluation of E[element] at one pixel
 // ---------------------------------------------------------------------------
@@ -930,6 +1108,10 @@ export class Pixel {
     this.localSigma = 0.02; // below this pixel-sigma (in periods) an axis is local
     this.foldGrowth = 2; // cap on the growth of harmonic ranges under curvature
     this.maxK2 = 64; // range cap per axis of a two-axis residual transform
+    this.maxKline = 64; // range cap per axis under a line condition
+    this.parallelSigma = 0.15; // an axis below this sigma, parallel to a faster one, is local
+    this.parallelSin = 0.26; // sine of the angle within which axes count as parallel
+    this.lineMaxPeriods = 24; // pointwise along a line up to this many periods of the fastest axis
     this.localPanel = 3; // Gauss-Legendre panel width along a local axis, in pixel-sigmas of it
     this.stats = { terms: 0, recipes: 0, dfts: 0, overflow: 0, localNodes: 0 };
   }
@@ -998,18 +1180,21 @@ export class Pixel {
     return j.v + j.gx * m[0] + j.gy * m[1] + 0.5 * (j.hxx * m[0] * m[0] + 2 * j.hxy * m[0] * m[1] + j.hyy * m[1] * m[1]);
   }
   // the value of a term at one point of the pixel (both local axes fixed)
-  pointValue(t, m, localCoords) {
-    const coords = new Map(localCoords);
-    for (const a of this.termAxes(t)) if (!coords.has(a.id)) coords.set(a.id, this.countAt(a, m));
-    const j = t.c.re;
-    let v = j.v + j.gx * m[0] + j.gy * m[1] + 0.5 * (j.hxx * m[0] * m[0] + 2 * j.hxy * m[0] * m[1] + j.hyy * m[1] * m[1]);
-    for (const f of t.f) {
-      if (f.kind === 'pic') v *= f.fn(axisCoordinate(f.axis, coords));
-      else v *= f.fn(f.axes.map((a) => axisCoordinate(a, coords))).v;
-      if (v === 0) break;
+  pointValue(ts, m, localCoords) {
+    const coords = this.pointCoords(ts, m, localCoords);
+    let total = 0;
+    for (const t of ts) {
+      const j = t.c.re;
+      let v = j.v + j.gx * m[0] + j.gy * m[1] + 0.5 * (j.hxx * m[0] * m[0] + 2 * j.hxy * m[0] * m[1] + j.hyy * m[1] * m[1]);
+      for (const f of t.f) {
+        if (v === 0) break;
+        if (f.kind === 'pic') v *= f.fn(axisCoordinate(f.axis, coords));
+        else v *= f.fn(f.axes.map((a) => axisCoordinate(a, coords))).v;
+      }
+      total += v;
     }
     this.stats.recipes++;
-    return v;
+    return total;
   }
   prepareAxis(axis) {
     if (axis.kind === 'edge') {
@@ -1039,20 +1224,47 @@ export class Pixel {
     const p = axis.kind === 'edge' ? axis.edgePeriod : 1;
     return [axis.count.hxx / p, axis.count.hxy / p, axis.count.hyy / p];
   }
+  // terms with the same factor structure (the same axes in the same
+  // roles) share every decision and every node: they are evaluated as one
+  // bundle, the point values summed
   expect(el) {
     let total = 0;
-    for (const t of el.terms) {
+    const groups = new Map();
+    for (const t0 of el.terms) {
+      const t = this.resolveTerm(t0);
+      const key = t.f.map((f) => (f.kind === 'pic' ? `p${f.axis.id}` : `c${f.axes.map((a) => a.id).join('.')}`)).sort().join('|');
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(t);
+    }
+    for (const ts of groups.values()) {
       const t0 = DEBUG ? performance.now() : 0;
       const d0 = this.stats.dfts;
       const r0 = this.stats.recipes;
-      const v = this.expectTerm(t);
+      const v = this.expectTerm(ts);
       if (DEBUG) {
-        const axes = this.termAxes(t).map((a) => `${a.label}#${a.id}${a.kind === 'edge' ? 'E' : ''}(s=${this.axisSigma(a).toExponential(1)}${a.field ? ',F' : ''})`);
-        console.log(`    term ${t.f.map((f) => (f.kind === 'pic' ? `pic[${f.axis.label}#${f.axis.id}]` : `clo[${f.axes.map((a) => a.label + '#' + a.id).join(',')}]`)).join('*') || '1'} coef ${t.c.re.v.toExponential(2)} axes ${axes.join(' ')} -> ${v.toExponential(3)} dfts ${this.stats.dfts - d0} recipes ${this.stats.recipes - r0} ${(performance.now() - t0).toFixed(0)} ms`);
+        const t = ts[0];
+        const axes = this.bundleAxes(ts).map((a) => `${a.label}#${a.id}${a.kind === 'edge' ? 'E' : ''}(s=${this.axisSigma(a).toExponential(1)}${a.field ? ',F' : ''})`);
+        console.log(`    bundle[${ts.length}] ${t.f.map((f) => (f.kind === 'pic' ? `pic[${f.axis.label}#${f.axis.id}]` : `clo[${f.axes.map((a) => a.label + '#' + a.id).join(',')}]`)).join('*') || '1'} axes ${axes.join(' ')} -> ${v.toExponential(3)} dfts ${this.stats.dfts - d0} recipes ${this.stats.recipes - r0} ${(performance.now() - t0).toFixed(0)} ms`);
       }
       total += v;
     }
     return total;
+  }
+  bundleAxes(ts) {
+    const set = new Map();
+    for (const t of ts)
+      for (const f of t.f) {
+        if (f.kind === 'pic') collectAxis(f.axis, set);
+        else for (const a of f.axes) collectAxis(a, set);
+      }
+    return [...set.values()];
+  }
+  // the coordinates of every axis of a bundle at pixel displacement m,
+  // local values taking precedence
+  pointCoords(ts, m, localCoords) {
+    const coords = new Map(localCoords);
+    for (const a of this.bundleAxes(ts)) if (!coords.has(a.id)) coords.set(a.id, this.countAt(a, m));
+    return coords;
   }
   // every axis a term touches: pic axes, their fields' axes, closure axes
   termAxes(t) {
@@ -1071,23 +1283,27 @@ export class Pixel {
     for (const f of t.f) out = mulFactors(out, [resolveFactor(f)]);
     return { c: t.c, f: out };
   }
-  expectTerm(t) {
-    this.stats.terms++;
+  expectTerm(ts) {
+    this.stats.terms += ts.length;
     this._resCache = new Map();
-    t = this.resolveTerm(t);
-    if (t.f.length === 0) {
-      const j = t.c.re;
-      return j.v + 0.5 * this.sig * this.sig * (j.hxx + j.hyy);
+    if (ts[0].f.length === 0) {
+      let v = 0;
+      for (const t of ts) {
+        const j = t.c.re;
+        v += j.v + 0.5 * this.sig * this.sig * (j.hxx + j.hyy);
+      }
+      return v;
     }
-    let axes = this.termAxes(t);
+    let axes = this.bundleAxes(ts);
     for (const a of axes) this.prepareAxis(a);
+    let t = ts[0];
     // a local axis whose only appearance is a picture constant over the
-    // reach contributes that constant and is dropped
+    // reach contributes that constant and is dropped (single terms)
     let factors = t.f;
     let coefRe = t.c.re;
     let coefIm = t.c.im;
     let changed = false;
-    for (const a of axes) {
+    for (const a of ts.length === 1 ? axes : []) {
       if (this.axisSigma(a) >= this.localSigma) continue;
       const usedElsewhere = factors.some((f) => (f.kind === 'clo' && f.axes.includes(a)) || (f.kind === 'pic' && f.axis !== a && f.axis.field && f.axis.field.axes().includes(a)) || (f.kind === 'pic' && f.axis === a && f.axis.field));
       if (usedElsewhere) continue;
@@ -1116,7 +1332,8 @@ export class Pixel {
         const j = t.c.re;
         return j.v + 0.5 * this.sig * this.sig * (j.hxx + j.hyy);
       }
-      axes = this.termAxes(t);
+      ts = [t];
+      axes = this.bundleAxes(ts);
     }
     // axes with no rate at all (a count at its stationary point) are
     // frozen: their coordinate is a number, the count at the point
@@ -1126,13 +1343,34 @@ export class Pixel {
     // without a field over another local axis go first, so that the second
     // axis's jumps can be located with the first one fixed
     const local = axes.filter((a) => a.count.gradNorm() >= 1e-9 && this.axisSigma(a) < this.localSigma);
+    // an axis nearly parallel to a faster axis of the term is local too
+    // while its own sigma is moderate: along their common direction the
+    // spectral sum is a station family without end, and quadrature is cheap
+    for (const a of axes) {
+      if (local.includes(a) || a.count.gradNorm() < 1e-9 || this.axisSigma(a) >= this.parallelSigma) continue;
+      const ga = this.axisRate(a);
+      const na = Math.hypot(ga[0], ga[1]);
+      for (const o of axes) {
+        if (o === a || o.count.gradNorm() < 1e-9 || this.axisSigma(o) <= this.axisSigma(a)) continue;
+        const go = this.axisRate(o);
+        const no = Math.hypot(go[0], go[1]);
+        if (Math.abs(ga[0] * go[1] - ga[1] * go[0]) / (na * no) < this.parallelSin) {
+          local.push(a);
+          break;
+        }
+      }
+    }
     if (local.length === 0) {
       const base = new Map();
       for (const o of frozen) base.set(o.id, o.count.v);
-      return this.spectral(t, { dim: 2, sig: this.sig }, base);
+      let v = 0;
+      for (const tj of ts) v += this.spectral(tj, { dim: 2, sig: this.sig }, base);
+      return v;
     }
     const localIds = new Set(local.map((a) => a.id));
     const fieldOnLocal = (a) => !!a.field && a.field.axes().some((x) => localIds.has(x.id));
+    // straight edges only? then the cuts are exact and the quadrature plain
+    const straight = ts.every((t) => t.f.every((f) => (f.kind === 'pic' ? !f.axis.field : f.axes.length === 1 && !f.axes[0].field)));
     local.sort((p, q) => (fieldOnLocal(p) ? 1 : 0) - (fieldOnLocal(q) ? 1 : 0));
     // quadrature over the local axes, at most two independent directions;
     // coordinates and rates in each axis's own units
@@ -1156,14 +1394,16 @@ export class Pixel {
         break;
       }
     }
-    const nodesA = this.localNodes(t, a, null);
-    let acc = 0;
     if (!b) {
       const sigA = this.axisSigma(a) * this.axisScale(a);
       // along the line every other axis has a rate; if any is slow there
       // (a picture that changes little along the line, or a second local
       // axis nearly parallel to the first) the line is integrated pointwise
       // by quadrature with its jumps located, otherwise spectrally
+      // pointwise unless the fastest axis along the line runs more than
+      // lineMaxPeriods periods across it: along a line every pair of axes
+      // can cancel (rates are scalars), so the spectral sum is only short
+      // when the line is far field for all of them
       let lineLocal = false;
       let rMax = 0;
       for (const o of axes) {
@@ -1173,34 +1413,47 @@ export class Pixel {
         if (this.sig * gl < this.localSigma) lineLocal = true;
         else if (o.kind !== 'edge') rMax = Math.max(rMax, gl);
       }
-      let wsum = 0;
-      const weighted = nodesA.map(([ua, w]) => {
-        const dens = Math.exp((-(ua - a.count.v) * (ua - a.count.v)) / (2 * sigA * sigA));
-        wsum += w * dens;
-        return [ua, w * dens];
-      });
-      for (const [ua, wa] of weighted) {
-        if (wa / wsum < 1e-12) continue;
+      if (rMax * 12 * this.sig <= this.lineMaxPeriods) lineLocal = true;
+      // the integral along the line at a value of the axis: pointwise
+      // quadrature or the conditioned spectral sum, times the density
+      const along = (ua) => {
         const da = (ua - a.count.v) / na; // screen displacement along nhat
         const m = [da * nhat[0], da * nhat[1]];
-        if (lineLocal) {
-          acc += (wa / wsum) * this.lineQuadrature(t, m, ehat, rMax);
-          continue;
+        const dens = Math.exp((-(ua - a.count.v) * (ua - a.count.v)) / (2 * sigA * sigA));
+        if (dens < 1e-14) return [0, dens];
+        let E = 0;
+        if (lineLocal) E = this.lineQuadrature(ts, m, ehat, rMax);
+        else {
+          const coords = new Map();
+          coords.set(a.id, ua);
+          for (const o of local) if (o !== a) coords.set(o.id, this.countAt(o, m));
+          for (const o of frozen) coords.set(o.id, this.countAt(o, m));
+          for (const tj of ts) E += this.spectral(tj, { dim: 1, sig: this.sig, m, e: ehat }, coords);
         }
+        return [dens * E, dens];
+      };
+      // the axis's own jumps on the line through the centre seed the cuts
+      const centreCoords = (ua) => {
+        const da = (ua - a.count.v) / na;
+        const m = [da * nhat[0], da * nhat[1]];
         const coords = new Map();
         coords.set(a.id, ua);
-        for (const o of local) if (o !== a) coords.set(o.id, this.countAt(o, m));
-        for (const o of frozen) coords.set(o.id, this.countAt(o, m));
-        acc += (wa / wsum) * this.spectral(t, { dim: 1, sig: this.sig, m, e: ehat }, coords);
-      }
-      return acc;
+        for (const o of axes) if (o !== a) coords.set(o.id, this.countAt(o, m));
+        return coords;
+      };
+      this.localNodes(ts, a, centreCoords);
+      const seeds = this._lastJumps || [];
+      if (DEBUG) console.log(`      1-local a=${a.label}#${a.id} (sig ${sigA.toExponential(2)}) ${lineLocal ? 'line quadrature' : 'spectral line'} seeds ${seeds.length}${straight ? ' straight' : ''}`);
+      return this.adaptiveAlong(a, sigA, along, seeds, straight);
     }
     const gb = rawRate(b);
     const det = ga[0] * gb[1] - ga[1] * gb[0];
+    // the point where the two counts take the values (ua, ub): the inverse
+    // of the matrix whose rows are the two gradients
     const pointOf = (ua, ub) => {
       const da = ua - a.count.v;
       const db = ub - b.count.v;
-      return [(gb[1] * da - gb[0] * db) / det, (-ga[1] * da + ga[0] * db) / det];
+      return [(gb[1] * da - ga[1] * db) / det, (-gb[0] * da + ga[0] * db) / det];
     };
     const coordsAt = (ua, ub) => {
       const m = pointOf(ua, ub);
@@ -1216,92 +1469,142 @@ export class Pixel {
     const sab = S * (ga[0] * gb[0] + ga[1] * gb[1]);
     const sbb = S * (gb[0] * gb[0] + gb[1] * gb[1]);
     const dS = saa * sbb - sab * sab;
-    // where the number of jumps along the second axis changes with the
-    // first (a disc's extreme points), the integrand along the first axis
-    // has a singularity: locate those points and cut the first axis there
-    const sigA0 = this.axisSigma(a) * this.axisScale(a);
-    const jumpCount = (ua) => this.localNodes(t, b, (ub) => coordsAt(ua, ub)).length;
-    const aCuts = [];
-    if (t.f.some((f) => f.kind === 'clo' && f.axes.length > 1) || b.field) {
-      const NA = 24;
-      let prev = jumpCount(a.count.v - 6 * sigA0);
-      for (let i = 1; i <= NA; i++) {
-        const u1 = a.count.v - 6 * sigA0 + (12 * sigA0 * i) / NA;
-        const cnt = jumpCount(u1);
-        if (cnt !== prev) {
-          let x0 = u1 - (12 * sigA0) / NA;
-          let x1 = u1;
-          for (let it = 0; it < 30; it++) {
-            const xm = (x0 + x1) / 2;
-            if (jumpCount(xm) === prev) x0 = xm;
-            else x1 = xm;
-          }
-          aCuts.push((x0 + x1) / 2);
-          prev = cnt;
-        }
-      }
-    }
-    // the first axis's own jumps are located on the second axis's centre line
-    const nodesA2 = this.localNodes(t, a, (ua) => coordsAt(ua, b.count.v), aCuts);
-    if (DEBUG) console.log(`      2-local a=${a.label}#${a.id} (sig ${sigA0.toExponential(2)}) b=${b.label}#${b.id} nodesA ${nodesA2.length} aCuts ${aCuts.map((u) => u.toFixed(4)).join(',')}`);
-    let wsum = 0;
-    const contributions = [];
-    for (const [ua, wa0] of nodesA2) {
-      // the second axis's nodes, with its jumps located at this first node
-      const nodesB = this.localNodes(t, b, (ub) => coordsAt(ua, ub));
-      if (DEBUG && Math.abs(ua - a.count.v) < 0.3 * sigA0) console.log(`        ua ${ua.toFixed(5)} nodesB ${nodesB.length} jumps ${this._lastJumps.map((u) => u.toFixed(5)).join(',')}`);
+    // the integral along the second axis at a value of the first, with the
+    // second axis's jumps located there: [value, mass]
+    const along = (ua) => {
+      const nodesB = this.localNodes(ts, b, (ub) => coordsAt(ua, ub));
+      let F = 0;
+      let W = 0;
+      const da = ua - a.count.v;
       for (const [ub, wb0] of nodesB) {
-        const da = ua - a.count.v;
         const db = ub - b.count.v;
         const q = (sbb * da * da - 2 * sab * da * db + saa * db * db) / dS;
-        const dens = Math.exp(-0.5 * q);
-        const w = wa0 * wb0 * dens;
-        if (w < 1e-14) continue;
-        const m = pointOf(ua, ub);
-        const coords = new Map();
-        coords.set(a.id, ua);
-        coords.set(b.id, ub);
-        for (const o of local) if (o !== a && o !== b) coords.set(o.id, this.countAt(o, m));
-        contributions.push([w, m, coords]);
-        wsum += w;
+        const w = wb0 * Math.exp(-0.5 * q);
+        if (w < 1e-16) continue;
+        W += w;
+        F += w * this.pointValue(ts, pointOf(ua, ub), coordsAt(ua, ub));
+      }
+      return [F, W];
+    };
+    const sigA0 = this.axisSigma(a) * this.axisScale(a);
+    // with straight edges the first axis's own crossings are its cuts
+    let seeds = [];
+    if (straight) {
+      this.localNodes(ts, a, (ua) => coordsAt(ua, b.count.v));
+      seeds = this._lastJumps || [];
+    }
+    if (DEBUG) console.log(`      2-local a=${a.label}#${a.id} (sig ${sigA0.toExponential(2)}) b=${b.label}#${b.id}${straight ? ' straight' : ''}`);
+    return this.adaptiveAlong(a, sigA0, along, seeds, straight);
+  }
+  // E[term] as the integral along a local axis of an integrated function:
+  // along(u) returns [F, W], the integral of value times density and of the
+  // density over everything else at u. Nodes: the function's own jumps
+  // (an edge along the other direction) located by bisection on a scan,
+  // extra cuts, Gauss-Legendre panels, then refinement where halving a
+  // panel changes its sum.
+  adaptiveAlong(a, sigA0, along, extraCuts, quick = false) {
+    const lo = a.count.v - 6 * sigA0;
+    const hi = a.count.v + 6 * sigA0;
+    const NA = quick ? 0 : 24;
+    const ratio = (r) => (r[1] > 1e-300 ? r[0] / r[1] : 0);
+    const scan = [];
+    for (let i = 0; i <= NA; i++) scan.push(along(lo + ((hi - lo) * i) / NA));
+    let vmin = Infinity;
+    let vmax = -Infinity;
+    for (let i = 0; i <= NA; i++) {
+      const v = ratio(scan[i]);
+      vmin = Math.min(vmin, v);
+      vmax = Math.max(vmax, v);
+    }
+    const cuts = [lo, hi, ...extraCuts.filter((u) => u > lo && u < hi)];
+    for (let i = 0; i < NA; i++) {
+      const u0 = lo + ((hi - lo) * i) / NA;
+      const u1 = lo + ((hi - lo) * (i + 1)) / NA;
+      const d = Math.abs(ratio(scan[i + 1]) - ratio(scan[i]));
+      if (d > 0.25 * Math.max(vmax - vmin, 1e-12) + 1e-12) {
+        let x0 = u0;
+        let x1 = u1;
+        const f0 = ratio(scan[i]);
+        for (let it = 0; it < 20; it++) {
+          const xm = (x0 + x1) / 2;
+          if (Math.abs(ratio(along(xm)) - f0) > d / 2) x1 = xm;
+          else x0 = xm;
+        }
+        // a steep slope shrinks with the bracket, a jump does not; the
+        // refinement takes care of slopes
+        if (Math.abs(ratio(along(x1)) - ratio(along(x0))) < 0.5 * d) continue;
+        cuts.push((x0 + x1) / 2);
       }
     }
-    for (const [w, m, coords] of contributions) acc += (w / wsum) * this.spectral(t, { dim: 0, m }, coords);
-    return acc;
+    cuts.sort((p, q) => p - q);
+    const gl = (pa, pb) => {
+      const half = (pb - pa) / 2;
+      const mid = (pa + pb) / 2;
+      let F = 0;
+      let W = 0;
+      for (const [node, wt] of GL8) {
+        const r = along(mid + half * node);
+        F += wt * half * r[0];
+        W += wt * half * r[1];
+      }
+      return [F, W];
+    };
+    let massEst = 0;
+    const panels0 = [];
+    for (let i = 0; i + 1 < cuts.length; i++) {
+      const pa = cuts[i];
+      const pb = cuts[i + 1];
+      if (pb - pa < 1e-15) continue;
+      const n = Math.max(1, Math.ceil((pb - pa) / (this.localPanel * sigA0)));
+      for (let q = 0; q < n; q++) {
+        const qa = pa + ((pb - pa) * q) / n;
+        const qb = pa + ((pb - pa) * (q + 1)) / n;
+        const r = gl(qa, qb);
+        panels0.push([qa, qb, r]);
+        massEst += r[1];
+      }
+    }
+    const tol = 1e-5 * Math.max(massEst, 1e-300);
+    let Ftot = 0;
+    let Wtot = 0;
+    let refined = 0;
+    if (quick) {
+      for (const [, , r] of panels0) {
+        Ftot += r[0];
+        Wtot += r[1];
+      }
+      this.stats.localNodes += 1;
+      return Wtot > 0 ? Ftot / Wtot : 0;
+    }
+    const refine = (qa, qb, r, depth) => {
+      const mid = (qa + qb) / 2;
+      const r1 = gl(qa, mid);
+      const r2 = gl(mid, qb);
+      const diff = Math.abs(r1[0] + r2[0] - r[0]);
+      if (diff > tol && depth < 6) {
+        refined++;
+        refine(qa, mid, r1, depth + 1);
+        refine(mid, qb, r2, depth + 1);
+      } else {
+        Ftot += r1[0] + r2[0];
+        Wtot += r1[1] + r2[1];
+      }
+    };
+    for (const [qa, qb, r] of panels0) refine(qa, qb, r, 0);
+    if (DEBUG) console.log(`        adaptive: cuts ${cuts.length - 2} panels ${panels0.length} refined ${refined}`);
+    this.stats.localNodes += 1;
+    return Wtot > 0 ? Ftot / Wtot : 0;
   }
   // E[term] along the line z = m + s e, s ~ N(0, sig^2): Gauss-Legendre
   // panels no wider than a quarter period of the fastest axis along the
   // line, cut at the jumps of the term's value along it
-  lineQuadrature(t, m, e, rMax) {
+  lineQuadrature(ts, m, e, rMax) {
     const sig = this.sig;
     const lo = -6 * sig;
     const hi = 6 * sig;
-    const at = (u) => this.pointValue(t, [m[0] + u * e[0], m[1] + u * e[1]], new Map());
-    const M = 24;
-    const vals = [];
-    for (let i = 0; i <= M; i++) vals.push(at(lo + ((hi - lo) * i) / M));
-    let vmin = Infinity;
-    let vmax = -Infinity;
-    for (const v of vals) {
-      vmin = Math.min(vmin, v);
-      vmax = Math.max(vmax, v);
-    }
-    const jumps = [];
-    for (let i = 0; i < M; i++) {
-      if (Math.abs(vals[i + 1] - vals[i]) > 0.25 * Math.max(vmax - vmin, 1e-12) + 1e-12) {
-        let x0 = lo + ((hi - lo) * i) / M;
-        let x1 = lo + ((hi - lo) * (i + 1)) / M;
-        const f0 = vals[i];
-        for (let it = 0; it < 40; it++) {
-          const xm = (x0 + x1) / 2;
-          if (Math.abs(at(xm) - f0) > Math.abs(vals[i + 1] - vals[i]) / 2) x1 = xm;
-          else x0 = xm;
-        }
-        jumps.push((x0 + x1) / 2);
-      }
-    }
-    const cuts = [lo, ...jumps, hi];
-    const width = Math.min(this.localPanel * sig, rMax > 0 ? 0.25 / rMax : Infinity);
+    const at = (u) => this.pointValue(ts, [m[0] + u * e[0], m[1] + u * e[1]], new Map());
+    const cuts = this.pathCuts(ts, (u) => [m[0] + u * e[0], m[1] + u * e[1]], lo, hi, e, at);
+    const width = Math.min(this.localPanel * sig, rMax > 0 ? 0.5 / rMax : Infinity);
     let acc = 0;
     let wsum = 0;
     for (let i = 0; i + 1 < cuts.length; i++) {
@@ -1325,58 +1628,86 @@ export class Pixel {
     this.stats.localNodes += 1;
     return acc / wsum;
   }
+  // the cuts of a bundle along a path z(u), u in [lo, hi]: where the
+  // shifted coordinate of an axis with pictures crosses one of their jump
+  // levels, and the jumps of closures over several axes by a value scan
+  pathCuts(ts, pathZ, lo, hi, e, at) {
+    const items = [];
+    const perAxis = new Map();
+    let needScan = false;
+    for (const t of ts)
+      for (const f of t.f) {
+        if (f.kind === 'pic') {
+          const l = factorLevels(f, f.axis);
+          if (!perAxis.has(f.axis.id)) perAxis.set(f.axis.id, { axis: f.axis, levels: new Set() });
+          for (const v of l) perAxis.get(f.axis.id).levels.add(v);
+        } else if (f.axes.length === 1) {
+          const l = factorLevels(f, f.axes[0]);
+          if (!perAxis.has(f.axes[0].id)) perAxis.set(f.axes[0].id, { axis: f.axes[0], levels: new Set() });
+          for (const v of l) perAxis.get(f.axes[0].id).levels.add(v);
+        } else needScan = true;
+      }
+    // the fastest rate along the path among all axes sets the sampling
+    let rMaxAll = 0;
+    if (e)
+      for (const a of this.bundleAxes(ts)) {
+        const g = this.axisRate(a);
+        rMaxAll = Math.max(rMaxAll, Math.abs(g[0] * e[0] + g[1] * e[1]));
+      }
+    const samples = Math.max(12, Math.ceil(4 * rMaxAll * (hi - lo)) + 4);
+    for (const { axis, levels } of perAxis.values()) {
+      if (levels.size === 0) continue;
+      items.push({
+        coord: (u) => axisCoordinate(axis, this.pointCoords(ts, pathZ(u), new Map())),
+        levels: [...levels],
+        periodic: axis.kind !== 'edge',
+        samples,
+      });
+    }
+    let cuts = cutsOnPath(items, lo, hi);
+    if (needScan) cuts = cuts.concat(scanJumps(at, lo, hi));
+    return [lo, ...cuts.filter((u) => u > lo && u < hi), hi].sort((p, q) => p - q);
+  }
   // quadrature nodes along a local axis: [u, weight]; the weights carry the
   // Gaussian density normalised to one when the axis is integrated alone
   // (nodes for a second axis have the plain Gauss-Legendre weights and the
   // joint density is applied by the caller)
-  localNodes(t, axis, coordsAt, extraCuts = []) {
+  localNodes(ts, axis, coordsAt, extraCuts = []) {
     const sigA = this.axisSigma(axis) * this.axisScale(axis);
     const c0 = axis.count.v;
     const lo = c0 - 6 * sigA;
     const hi = c0 + 6 * sigA;
-    // the pictures of this axis in the term, to find jumps and constancy;
-    // with a coordinate callback (every other axis a number once this one
-    // is), pictures through fields and closures on the axis are probed too
-    const fns = [];
-    for (const f of t.f) {
-      if (f.kind === 'pic' && f.axis === axis) {
-        if (!f.axis.field) fns.push(f.fn);
-        else if (coordsAt) {
-          const field = f.axis.field;
-          const fn = f.fn;
-          fns.push((u) => fn(u + evalElement(field, coordsAt(u)).v));
+    // the pictures of this axis in the bundle jump where its shifted
+    // coordinate crosses their levels; with a coordinate callback (every
+    // other axis a number once this one is) the field is included and
+    // closures over several axes are scanned for jumps
+    const levels = new Set();
+    const multi = [];
+    for (const t of ts)
+      for (const f of t.f) {
+        if (f.kind === 'pic' && f.axis === axis) {
+          if (!f.axis.field || coordsAt) for (const v of factorLevels(f, axis)) levels.add(v);
+        } else if (f.kind === 'clo' && f.axes.includes(axis)) {
+          if (f.axes.length === 1 && !axis.field) for (const v of factorLevels(f, axis)) levels.add(v);
+          else if (coordsAt) multi.push(f);
         }
-      } else if (f.kind === 'clo' && f.axes.includes(axis)) {
-        if (f.axes.length === 1 && !axis.field) fns.push((u) => f.fn([u]).v);
-        else if (coordsAt) fns.push((u) => f.fn(f.axes.map((x) => axisCoordinate(x, coordsAt(u)))).v);
       }
+    let jumps = [];
+    if (levels.size) {
+      const field = axis.field;
+      const coord = field && coordsAt ? (u) => u + evalElement(field, coordsAt(u)).v : (u) => u;
+      // sampling follows the field's variation along the axis
+      let samples = 12;
+      if (field && coordsAt) samples = 24;
+      jumps = cutsOnPath([{ coord, levels: [...levels], periodic: axis.kind !== 'edge', samples }], lo, hi);
     }
-    const probe = (u) => fns.reduce((p, g) => p * g(u), 1);
-    // sample for jumps
-    const M = 24;
-    const vals = [];
-    for (let i = 0; i <= M; i++) vals.push(probe(lo + ((hi - lo) * i) / M));
-    let vmin = Infinity;
-    let vmax = -Infinity;
-    for (const v of vals) {
-      vmin = Math.min(vmin, v);
-      vmax = Math.max(vmax, v);
-    }
-    const otherFactors = t.f.some((f) => (f.kind === 'clo' && f.axes.includes(axis)) || (f.kind === 'pic' && f.axis.field && f.axis.field.axes().includes(axis)));
-    void otherFactors;
-    const jumps = [];
-    for (let i = 0; i < M; i++) {
-      if (Math.abs(vals[i + 1] - vals[i]) > 0.25 * Math.max(vmax - vmin, 1e-12) + 1e-12) {
-        let x0 = lo + ((hi - lo) * i) / M;
-        let x1 = lo + ((hi - lo) * (i + 1)) / M;
-        const f0 = vals[i];
-        for (let it = 0; it < 40; it++) {
-          const xm = (x0 + x1) / 2;
-          if (Math.abs(probe(xm) - f0) > Math.abs(vals[i + 1] - vals[i]) / 2) x1 = xm;
-          else x0 = xm;
-        }
-        jumps.push((x0 + x1) / 2);
-      }
+    if (multi.length) {
+      const at = (u) => {
+        let v = 1;
+        for (const f of multi) v *= f.fn(f.axes.map((x) => axisCoordinate(x, coordsAt(u)))).v;
+        return v;
+      };
+      jumps = jumps.concat(scanJumps(at, lo, hi));
     }
     this._lastJumps = jumps;
     const cuts = [lo, ...jumps, ...extraCuts.filter((u) => u > lo && u < hi), hi].sort((p, q) => p - q);
@@ -1385,7 +1716,8 @@ export class Pixel {
       const a = cuts[i];
       const b = cuts[i + 1];
       if (b - a < 1e-15) continue;
-      const panels = Math.max(1, Math.ceil((b - a) / (this.localPanel * sigA)));
+      const pw = coordsAt && this.localPanelB ? this.localPanelB : this.localPanel;
+      const panels = Math.max(1, Math.ceil((b - a) / (pw * sigA)));
       for (let q = 0; q < panels; q++) {
         const pa = a + ((b - a) * q) / panels;
         const pb = a + ((b - a) * (q + 1)) / panels;
@@ -1453,7 +1785,7 @@ export class Pixel {
     const c = { re: coefRe, im: coefIm };
     // a point condition (two local axes fixed): everything is evaluated at
     // the point, no series
-    if (cond.dim === 0) return this.pointValue(t, cond.m, localCoords);
+    if (cond.dim === 0) return this.pointValue([t], cond.m, localCoords);
     // residual axes: spectral field axes and closure axes not fixed locally
     const residualMap = new Map();
     for (const p of pics) if (p.axis.field) for (const a of p.axis.field.axes()) if (!localCoords.has(a.id)) residualMap.set(a.id, a);
@@ -1471,7 +1803,7 @@ export class Pixel {
     const Ks = this.effectiveKs(
       [...grads, ...resGrads].map(proj),
       [...pics.map((p) => this.hessNorm(p.axis, cond)), ...residual.map((a) => this.hessNorm(a, cond))],
-    );
+    ).map((K) => (cond.dim === 1 ? Math.min(K, this.maxKline) : K));
     const picCoef = pics.map((p, i) => {
       const K = roundK(Ks[i]);
       const axis = p.axis;
@@ -1552,11 +1884,14 @@ export class Pixel {
   // product of powers per field, so the fields and closures are sampled once
   // per node set and combined per harmonic combination. The node count
   // follows the exponential's bandwidth, sum |k| max|2 pi G| plus a margin.
-  residualCoef1(resFn, K, axis, fields, clos, localCoords) {
+  // the node set of a residual axis for given field harmonics (jump-aware
+  // when closures jump), with its field and closure samples; the range K is
+  // capped at the field exponential's bandwidth
+  residualSetFor(K, axis, fields, clos, localCoords) {
     const per = axis.kind === 'edge' ? axis.edgePeriod : 1;
     const wrap = axis.kind === 'edge' ? (u) => axis.center + (u - Math.round(u)) * per : (u) => u;
     if (!this._resCache) this._resCache = new Map();
-    const baseKey = `${axis.id}`;
+    const baseKey = `${axis.id}|${fields.map((f) => (f.elem ? `e${f.tag}` : `a${f.axis.id}`)).join(',')}|${clos.length}`;
     let base = this._resCache.get(baseKey);
     if (!base) {
       // field amplitudes from a coarse scan, and closure jumps
@@ -1568,9 +1903,9 @@ export class Pixel {
       for (let i = 0; i <= M0; i++) {
         const m = new Map(localCoords);
         m.set(axis.id, wrap(i / M0));
-        fields.forEach(({ axis: fa }, fi) => {
+        fields.forEach(({ axis: fa, elem }, fi) => {
           const p = fa.kind === 'edge' ? fa.edgePeriod : 1;
-          amp[fi] = Math.max(amp[fi], Math.abs((TAU * evalElement(fa.field, m).v) / p));
+          amp[fi] = Math.max(amp[fi], Math.abs((TAU * evalElement(elem || fa.field, m).v) / p));
         });
         let v = 1;
         for (const cl of clos) {
@@ -1581,6 +1916,34 @@ export class Pixel {
         cmin = Math.min(cmin, v);
         cmax = Math.max(cmax, v);
       }
+      // is each field one sinusoid of the axis? then its exponential's
+      // coefficients obey the Bessel bound (A/2)^n / n!, used for pruning
+      const fieldVals = fields.map(({ axis: fa, elem }) => {
+        const p = fa.kind === 'edge' ? fa.edgePeriod : 1;
+        const vals = new Float64Array(M0);
+        for (let i = 0; i < M0; i++) {
+          const m = new Map(localCoords);
+          m.set(axis.id, wrap(i / M0));
+          vals[i] = (TAU * evalElement(elem || fa.field, m).v) / p;
+        }
+        return vals;
+      });
+      const sinus = fieldVals.map((vals) => {
+        let a1 = 0;
+        let rest = 0;
+        for (let j = 1; j <= 8; j++) {
+          let re = 0;
+          let im = 0;
+          for (let i = 0; i < M0; i++) {
+            re += vals[i] * Math.cos((TAU * j * i) / M0);
+            im -= vals[i] * Math.sin((TAU * j * i) / M0);
+          }
+          const a = (2 * Math.hypot(re, im)) / M0;
+          if (j === 1) a1 = a;
+          else rest += a;
+        }
+        return rest < 1e-3 * a1 + 1e-12 ? a1 : -1;
+      });
       const jumps = [];
       for (let i = 0; i < M0; i++) {
         const d = Math.abs(cloVals[i + 1] - cloVals[i]);
@@ -1606,7 +1969,25 @@ export class Pixel {
           jumps.push((x0 + x1) / 2);
         }
       }
-      base = { amp, jumps, sets: new Map() };
+      // the closures' own harmonic magnitudes (no jumps: their series
+      // converges and a Bessel bound convolves with it); with jumps, none
+      let cloHarm = null;
+      if (jumps.length === 0 && clos.length > 0) {
+        cloHarm = new Float64Array(33);
+        for (let j = -16; j <= 16; j++) {
+          let re = 0;
+          let im = 0;
+          for (let i = 0; i < M0; i++) {
+            re += cloVals[i] * Math.cos((TAU * j * i) / M0);
+            im -= cloVals[i] * Math.sin((TAU * j * i) / M0);
+          }
+          cloHarm[j + 16] = Math.hypot(re, im) / M0;
+        }
+      } else if (clos.length === 0) {
+        cloHarm = new Float64Array(33);
+        cloHarm[16] = 1;
+      }
+      base = { amp, jumps, sinus, cloHarm, sets: new Map() };
       this._resCache.set(baseKey, base);
     }
     // bandwidth for these harmonics; with no closure on the axis the field
@@ -1615,7 +1996,9 @@ export class Pixel {
     fields.forEach(({ k }, fi) => {
       bwF += Math.abs(k) * base.amp[fi] + 4;
     });
-    if (clos.length === 0) K = Math.min(K, Math.ceil(bwF));
+    // closures on the axis add their own bandwidth: taken as twice the
+    // axis's plain range plus a margin
+    K = Math.min(K, Math.ceil(bwF) + (clos.length ? 2 * this.harmonicsFor(axis) + 8 : 0));
     const bw = K + 4 + bwF;
     let M = 128;
     while (M < 2 * bw + 2) M *= 2;
@@ -1644,12 +2027,12 @@ export class Pixel {
         }
       }
       // samples at the nodes
-      const fieldSamples = fields.map(({ axis: fa }) =>
+      const fieldSamples = fields.map(({ axis: fa, elem }) =>
         nodes.map(([u]) => {
           const m = new Map(localCoords);
           m.set(axis.id, wrap(u));
           const p = fa.kind === 'edge' ? fa.edgePeriod : 1;
-          return (TAU * evalElement(fa.field, m).v) / p;
+          return (TAU * evalElement(elem || fa.field, m).v) / p;
         }),
       );
       const cloSamples = nodes.map(([u]) => {
@@ -1664,7 +2047,19 @@ export class Pixel {
       set = { nodes, fieldSamples, cloSamples, ex };
       base.sets.set(M, set);
     }
-    const { nodes, fieldSamples, cloSamples, ex } = set;
+    // the Bessel bound's amplitude for these harmonics, or -1 if any
+    // field is not one sinusoid
+    let bessel = 0;
+    fields.forEach(({ k }, fi) => {
+      if (bessel < 0) return;
+      if (base.sinus[fi] < 0) bessel = -1;
+      else bessel += Math.abs(k) * base.sinus[fi];
+    });
+    return { set, K, bessel, cloHarm: base.cloHarm };
+  }
+  residualCoef1(resFn, K0, axis, fields, clos, localCoords) {
+    const { set, K } = this.residualSetFor(K0, axis, fields, clos, localCoords);
+    const { nodes, fieldSamples, ex } = set;
     const N = nodes.length;
     if (clos.length === 0) {
       // scalar samples: a plain DFT on numbers, wrapped as constant jets
@@ -1702,42 +2097,203 @@ export class Pixel {
       }
       return { re, im, K };
     }
-    const sr = new Array(N);
-    const si = new Array(N);
+    const { SR, SI } = this.residualSamples(set, fields, N);
+    const re = [];
+    const im = [];
+    for (let m = -K; m <= K; m++) {
+      const [a, b] = residualCoefAt(nodes, SR, SI, N, m);
+      re.push(a);
+      im.push(b);
+    }
+    return { re, im, K };
+  }
+  // the weighted, phased, jet-valued samples of a node set for given field
+  // harmonics: six components per node
+  residualSamples(set, fields, N) {
+    const { nodes, fieldSamples, cloSamples } = set;
+    const key = fields.map((f) => f.k).join(',');
+    if (!set.samples) set.samples = new Map();
+    const hit = set.samples.get(key);
+    if (hit) return hit;
+    const SR = new Float64Array(6 * N);
+    const SI = new Float64Array(6 * N);
     for (let i = 0; i < N; i++) {
       let ph = 0;
       fields.forEach(({ k }, fi) => {
         ph += k * fieldSamples[fi][i];
       });
-      const j = cloSamples[i].scale(nodes[i][1]);
-      sr[i] = j.scale(Math.cos(ph));
-      si[i] = j.scale(Math.sin(ph));
+      const j = cloSamples[i];
+      const w = nodes[i][1];
+      const c0 = w * Math.cos(ph);
+      const s0 = w * Math.sin(ph);
+      const o = 6 * i;
+      SR[o] = j.v * c0;
+      SR[o + 1] = j.gx * c0;
+      SR[o + 2] = j.gy * c0;
+      SR[o + 3] = j.hxx * c0;
+      SR[o + 4] = j.hxy * c0;
+      SR[o + 5] = j.hyy * c0;
+      SI[o] = j.v * s0;
+      SI[o + 1] = j.gx * s0;
+      SI[o + 2] = j.gy * s0;
+      SI[o + 3] = j.hxx * s0;
+      SI[o + 4] = j.hxy * s0;
+      SI[o + 5] = j.hyy * s0;
     }
-    const re = [];
-    const im = [];
-    // e^{-2 pi i m u_j} by powers: keep the running phasor per node
-    const pr = new Float64Array(N).fill(1);
-    const pi = new Float64Array(N).fill(0);
-    // start at m = -K: phasor e^{+2 pi i K u}
-    for (let i = 0; i < N; i++) {
-      const ang = TAU * K * nodes[i][0];
-      pr[i] = Math.cos(ang);
-      pi[i] = Math.sin(ang);
+    const out = { SR, SI };
+    if (set.samples.size > 4096) set.samples.clear();
+    set.samples.set(key, out);
+    return out;
+  }
+  // Two residual axes X and Y where X's field is over Y and the pictures'
+  // fields split into a part on X and a part on Y (no term mixing them),
+  // closures on Y only. With phi the shifted coordinate of X, the field
+  // exponential is a product, and the transform over (X, Y) at harmonics
+  // (m, n) is A(m) B_m(n): A the transform over phi of the X-part, B_m the
+  // transform over Y of the Y-part times X's field at harmonic m and the
+  // closures. Returns null when the structure is not this.
+  chainResidual(c, cr, ci, phi0, bx, by, q00, q01, q11, logCoef, residual, resGrads, resHess, resK, fields, clos, cond, localCoords) {
+    const lnCut = Math.log(this.cut);
+    let ix = -1;
+    for (let i = 0; i < 2; i++) {
+      const a = residual[i];
+      const o = residual[1 - i];
+      if (a.field && a.kind !== 'edge' && a.field.axes().every((z) => z.id === o.id || localCoords.has(z.id)) && (!o.field || o.field.axes().every((z) => localCoords.has(z.id)))) ix = i;
     }
-    for (let m = -K; m <= K; m++) {
-      let aR = J0;
-      let aI = J0;
-      for (let i = 0; i < N; i++) {
-        aR = aR.add(sr[i].scale(pr[i]).sub(si[i].scale(pi[i])));
-        aI = aI.add(sr[i].scale(pi[i]).add(si[i].scale(pr[i])));
-        const nr = pr[i] * ex[i][0] - pi[i] * ex[i][1];
-        pi[i] = pr[i] * ex[i][1] + pi[i] * ex[i][0];
-        pr[i] = nr;
+    const why = (r) => {
+      if (DEBUG) console.log(`      chain rejected: ${r} residual [${residual.map((a) => `${a.label}#${a.id}${a.field ? '(F:' + a.field.axes().map((z) => z.label + '#' + z.id).join(',') + ')' : ''}`).join(', ')}] fields [${fields.map((f) => `${f.axis.label}#${f.axis.id}(F:${f.axis.field.axes().map((z) => z.label + '#' + z.id).join(',')})`).join(', ')}] clos [${clos.map((cl) => cl.axes.map((a) => a.label + '#' + a.id).join(',')).join(' | ')}]`);
+      return null;
+    };
+    if (ix < 0) return why('no chain head');
+    const X = residual[ix];
+    const Y = residual[1 - ix];
+    if (clos.some((cl) => cl.axes.some((a) => a.id === X.id))) return why('closure on X');
+    // split every field element into an X part (pictures on X only, with
+    // constant coefficients) and a Y part
+    const split = [];
+    for (const { k, axis } of fields) {
+      const xTerms = [];
+      const yTerms = [];
+      for (const t of axis.field.terms) {
+        const onX = t.f.some((f) => (f.kind === 'pic' ? f.axis.id === X.id : f.axes.some((a) => a.id === X.id)));
+        const onY = t.f.some((f) => (f.kind === 'pic' ? f.axis.id === Y.id : f.axes.some((a) => a.id === Y.id)));
+        if (onX && onY) return why('a field term mixes X and Y');
+        if (onX) {
+          if (!t.f.every((f) => f.kind === 'pic' && f.axis.id === X.id) || !jetIsConst(t.c.re) || !jetIsZero(t.c.im)) return why('X part not constant pictures on X');
+          xTerms.push(t);
+        } else yTerms.push(t);
       }
-      re.push(aR);
-      im.push(aI);
+      split.push({ k, axis, xTerms, yElem: new Element(yTerms) });
     }
-    return { re, im, K };
+    // A(m): the transform over phi of exp(2 pi i sum k G_X(phi))
+    const fnX = (phi) => {
+      let v = 0;
+      for (const { k, axis, xTerms } of split) {
+        const per = axis.kind === 'edge' ? axis.edgePeriod : 1;
+        for (const t of xTerms) {
+          let w = t.c.re.v;
+          for (const f of t.f) w *= f.fn(phi);
+          v += (k * w) / per;
+        }
+      }
+      return v;
+    };
+    // the range over phi is the exponential's own bandwidth (its
+    // amplitude plus a margin), never more than the axis's range
+    const keyA = `chainA|${X.id}|${split.map((q) => q.k).join(',')}`;
+    let A = this._resCache.get(keyA);
+    if (!A) {
+      let amp = 0;
+      for (let i = 0; i < 64; i++) amp = Math.max(amp, Math.abs(TAU * fnX(i / 64)));
+      const KX = Math.min(resK[ix], Math.ceil(amp) + 8);
+      let M = 128;
+      while (M < 2 * (KX + amp + 8)) M *= 2;
+      const re = new Float64Array(2 * KX + 1);
+      const im = new Float64Array(2 * KX + 1);
+      for (let i = 0; i < M; i++) {
+        const u = i / M;
+        const ph = TAU * fnX(u);
+        const cr0 = Math.cos(ph) / M;
+        const ci0 = Math.sin(ph) / M;
+        // e^{-2 pi i m u} from m = -KX by a running phasor
+        const step = -TAU * u;
+        const dc = Math.cos(step);
+        const ds = Math.sin(step);
+        let pr = Math.cos(-KX * step);
+        let pi = Math.sin(-KX * step);
+        for (let m = -KX; m <= KX; m++) {
+          re[KX + m] += cr0 * pr - ci0 * pi;
+          im[KX + m] += cr0 * pi + ci0 * pr;
+          const nr = pr * dc - pi * ds;
+          pi = pr * ds + pi * dc;
+          pr = nr;
+        }
+      }
+      A = { re, im, K: KX };
+      this._resCache.set(keyA, A);
+      this.stats.dfts++;
+    }
+    const KX = A.K;
+    const gX = resGrads[ix];
+    const hX = resHess[ix];
+    const gY = resGrads[1 - ix];
+    const hY = resHess[1 - ix];
+    const yFields = split.filter((q) => q.yElem.terms.length > 0).map((q) => ({ k: q.k, axis: q.axis, elem: q.yElem, tag: `${q.axis.id}` }));
+    let acc = 0;
+    for (let m = -KX; m <= KX; m++) {
+      const ar = A.re[KX + m];
+      const ai = A.im[KX + m];
+      const magA = Math.hypot(ar, ai);
+      if (magA < 1e-12) continue;
+      const mbx = bx + TAU * m * gX[0];
+      const mby = by + TAU * m * gX[1];
+      const mq00 = q00 + TAU * m * hX[0];
+      const mq01 = q01 + TAU * m * hX[1];
+      const mq11 = q11 + TAU * m * hX[2];
+      // B_m(n): the transform over Y of the Y parts, X's field at harmonic
+      // m, and the closures, at the harmonics n (within the bandwidth-capped
+      // range) that can pass the cut
+      const fs = m === 0 ? yFields : [...yFields, { k: m, axis: X, elem: X.field, tag: `x${X.id}` }];
+      const { set, K: KY, bessel, cloHarm } = this.residualSetFor(resK[1 - ix], Y, fs, clos, localCoords);
+      const N = set.nodes.length;
+      let samples = null;
+      for (let n = -KY; n <= KY; n++) {
+        const nbx = mbx + TAU * n * gY[0];
+        const nby = mby + TAU * n * gY[1];
+        const nq00 = mq00 + TAU * n * hY[0];
+        const nq01 = mq01 + TAU * n * hY[1];
+        const nq11 = mq11 + TAU * n * hY[2];
+        const lm = logMult(nbx, nby, nq00, nq01, nq11, cond);
+        // the coefficient is the closures' series convolved with the field
+        // exponential's, whose terms obey |J_j(A)| <= (A/2)^|j| / |j|!
+        let lb = 0;
+        if (bessel >= 0 && cloHarm) {
+          let bound = 0;
+          for (let j = -16; j <= 16; j++) {
+            const L = cloHarm[j + 16];
+            if (L < 1e-14) continue;
+            const d = Math.abs(n - j);
+            const bj = d === 0 ? 1 : Math.min(1, Math.exp(d * Math.log(Math.max(bessel / 2, 1e-300)) - lgamma(d + 1)));
+            bound += L * bj;
+          }
+          lb = Math.log(Math.max(2 * bound, 1e-300));
+          if (lb > 0) lb = 0;
+        }
+        if (lm + logCoef + Math.log(magA) + lb < lnCut) continue;
+        if (!samples) {
+          samples = this.residualSamples(set, fs, N);
+          this.stats.dfts++;
+        }
+        const [br, bi] = residualCoefAt(set.nodes, samples.SR, samples.SI, N, n);
+        const mag = magA * Math.hypot(br.v, bi.v);
+        if (mag < 1e-12 || lm + logCoef + Math.log(mag) < lnCut) continue;
+        const cj0 = cjMul(c, cjScaleC({ re: br, im: bi }, ar, ai));
+        const v = termExpectation(cjScaleC(cj0, cr, ci), phi0 + this.axisPhase(X, m) + this.axisPhase(Y, n), nbx, nby, nq00, nq01, nq11, cond);
+        this.stats.recipes++;
+        acc += v[0];
+      }
+    }
+    return acc;
   }
   residualSum(c, picCoef, ks, bx, by, logCoef, residual, resGrads, resHess, resK, clos, cond, localCoords) {
     const S = this.sig * this.sig;
@@ -1838,6 +2394,77 @@ export class Pixel {
       return acc;
     }
     if (residual.length === 2) {
+      const chain = this.chainResidual(c, cr, ci, phi0, bx, by, q00, q01, q11, logCoef, residual, resGrads, resHess, resK, fields, clos, cond, localCoords);
+      if (chain !== null) return chain;
+      // separable: every field and closure lives on one of the two axes,
+      // so the transform is two one-axis transforms, each remembered by
+      // the harmonics of the fields on its axis and reused across the other
+      const nonLocalAxes = (el) => el.axes().filter((a) => !localCoords.has(a.id));
+      const axisOf = (axesList) => {
+        const ids = new Set(axesList.map((a) => a.id));
+        if (ids.size !== 1) return -1;
+        return residual.findIndex((a) => ids.has(a.id));
+      };
+      let separable = true;
+      const sideF = fields.map(({ axis }) => axisOf(nonLocalAxes(axis.field)));
+      const sideC = clos.map((cl) => axisOf(cl.axes.filter((a) => !localCoords.has(a.id))));
+      if (sideF.some((i) => i < 0) || sideC.some((i) => i < 0)) separable = false;
+      if (separable) {
+        const parts = [0, 1].map((side) => {
+          const axis = residual[side];
+          const fs = fields.filter((_, i) => sideF[i] === side);
+          const cs = clos.filter((_, i) => sideC[i] === side);
+          const key = `sep|${axis.id}|${fs.map((f) => `${f.axis.id}:${f.k}`).join(',')}|${cs.map((cl) => cl.sig.length).join(',')}`;
+          let coef = this._resCache.get(key);
+          if (!coef) {
+            const resFn1 = (cs1) => {
+              const m = new Map(localCoords);
+              m.set(axis.id, cs1[0]);
+              let ph = 0;
+              for (const { k, axis: fa } of fs) {
+                const per = fa.kind === 'edge' ? fa.edgePeriod : 1;
+                ph += (TAU * k * evalElement(fa.field, m).v) / per;
+              }
+              let re = Jet.c(Math.cos(ph));
+              let im = Jet.c(Math.sin(ph));
+              for (const cl of cs) {
+                const cs2 = cl.axes.map((a) => (localCoords.has(a.id) ? localCoords.get(a.id) : cs1[0]));
+                const j = cl.fn(cs2);
+                re = re.mul(j);
+                im = im.mul(j);
+              }
+              return { re, im };
+            };
+            coef = this.residualCoef1(resFn1, resK[side], axis, fs, cs, localCoords);
+            this.stats.dfts++;
+            this._resCache.set(key, coef);
+          }
+          return coef;
+        });
+        let acc = 0;
+        const [c0, c1] = parts;
+        for (let m0 = -c0.K; m0 <= c0.K; m0++) {
+          const a0 = { re: c0.re[c0.K + m0], im: c0.im[c0.K + m0] };
+          const mag0 = Math.hypot(a0.re.v, a0.im.v);
+          if (mag0 < 1e-12) continue;
+          for (let m1 = -c1.K; m1 <= c1.K; m1++) {
+            const a1 = { re: c1.re[c1.K + m1], im: c1.im[c1.K + m1] };
+            const mag = mag0 * Math.hypot(a1.re.v, a1.im.v);
+            if (mag < 1e-12) continue;
+            const nbx = bx + TAU * (m0 * resGrads[0][0] + m1 * resGrads[1][0]);
+            const nby = by + TAU * (m0 * resGrads[0][1] + m1 * resGrads[1][1]);
+            const nq00 = q00 + TAU * (m0 * resHess[0][0] + m1 * resHess[1][0]);
+            const nq01 = q01 + TAU * (m0 * resHess[0][1] + m1 * resHess[1][1]);
+            const nq11 = q11 + TAU * (m0 * resHess[0][2] + m1 * resHess[1][2]);
+            if (logMult(nbx, nby, nq00, nq01, nq11, cond) + logCoef + Math.log(mag) < lnCut) continue;
+            const cj0 = cjMul(c, cjMul(a0, a1));
+            const v = termExpectation(cjScaleC(cj0, cr, ci), phi0 + this.axisPhase(residual[0], m0) + this.axisPhase(residual[1], m1), nbx, nby, nq00, nq01, nq11, cond);
+            this.stats.recipes++;
+            acc += v[0];
+          }
+        }
+        return acc;
+      }
       const K0 = resK[0];
       const K1 = resK[1];
       const cacheable = fields.length === 0 && residual.every((a) => a.kind !== 'edge') && localCoords.size === 0;
@@ -2021,6 +2648,9 @@ const fourierJet2 = (fn, K0in, K1in, axes) => {
   return { re, im, K0, K1 };
 };
 
+// a structural key of an element: its terms' coefficients and factor
+// signatures, for recognising equal channels
+export const elementKey = (el) => elementSig(el);
 export const resetAxes = () => {
   axisCounter = 0;
   axisRegistry.clear();

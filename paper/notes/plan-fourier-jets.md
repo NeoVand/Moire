@@ -37,6 +37,20 @@ Their shaders animate. The compiler's jets gain a time component, the pixel a sh
 
 Not the theorems, which are elementary. The combination: one rule replacing a rulebook, a benchmark at its floor automatically, hardware-speed filtering by reusing mipmaps on the right torus, and motion blur for free from the same jets. If Stage 1 and Stage 2 both land, the method is better than the state of the art on both axes it is measured on, and general. If only Stage 1 lands, it is a strong paper. The risks, in order: shaders whose count set is large (fire) making per-pixel transforms expensive, which the product-of-single-axis representation and caching are designed to prevent; smooth functions of multi-axis pictures forcing large transforms, which should be rare; and the tables' accuracy under strong anisotropy, which is the known EWA trade and can be measured.
 
+## Ledger of Stage 1 (what the compiler had to learn)
+
+Each of these was a wrong number at a probe pixel, and each is the theory, not a patch.
+
+- A count's harmonic range is set by the slowest rate its multiples can reach with the other counts' help, not by its own rate: the quadratic sine at (240,20) has the sawtooth's fifth harmonic in register with the sine field's first through the perspective, a station, and a range of two harmonics missed it by 9e-3.
+- The family of that station has a stationary point inside the pixel, a fold, so its multiples decay algebraically; the pruning uses the second-order magnitude of the quadratic-phase integral, which is exact, and a curvature budget where the recipe is not yet complete.
+- Two local axes are evaluated at the point they fix, never through a truncated series; a second local axis has its jumps located with the first fixed; the first axis's nodes are placed on the integrated function along the second, with its own jumps located and panels refined where halving changes the sum, because an edge whose position moves with a field along the second axis makes that function steep but continuous.
+- An axis slow along the conditioning line is integrated pointwise along it. Freezing it to its value at the line's centre cost 5e-2 at one pixel of the quadratic sine.
+- One axis per count: sine and cosine of one argument, relu and step of one argument; a count that is an integer multiple of an existing one is the same torus, and the two axes of the palette lookup (argument modulo 8, its fractional part) otherwise make an exact station and a million recipes.
+- An edge whose argument carries a field is periodised over the field's amplitude, and is a local axis in raw units when the smooth part's reach is small against that amplitude: the specular highlight on a rippled surface.
+- A count at its stationary point (rate zero, curvature not) is frozen at its value; a sum of pictures on one axis with constant coefficients is one picture; a composition whose coefficients vary across the pixel is a jet-valued closure.
+
+Open: colour circles. Its per-cell radius is 0.1 sin(xf + yf) + 0.1 cos(xf - yf) with xf = floor(s/d): the floor's smooth part is a third and fourth count, (s + t)/(2 pi d) and (s - t)/(2 pi d), entering the disc's indicator only through shifted coordinates. Near and mid field they are local and the point evaluation handles them. Far field the four-axis closure's transform factorises: for each harmonic pair (m1, m2) of the two slow counts, the transform over the angle variables of the indicator is a function of the radius alone, tabulated once, and what remains is a two-axis transform over (s, t) with a smooth kernel; the slow recipes are a desert (the rates are in the ratio pi) and few. To build.
+
 ## Order of work
 
 1. Jets and the expression language; trace their checkerboard.
