@@ -1245,6 +1245,7 @@ export class Pixel {
         const t = ts[0];
         const axes = this.bundleAxes(ts).map((a) => `${a.label}#${a.id}${a.kind === 'edge' ? 'E' : ''}(s=${this.axisSigma(a).toExponential(1)}${a.field ? ',F' : ''})`);
         console.log(`    bundle[${ts.length}] ${t.f.map((f) => (f.kind === 'pic' ? `pic[${f.axis.label}#${f.axis.id}]` : `clo[${f.axes.map((a) => a.label + '#' + a.id).join(',')}]`)).join('*') || '1'} axes ${axes.join(' ')} -> ${v.toExponential(3)} dfts ${this.stats.dfts - d0} recipes ${this.stats.recipes - r0} ${(performance.now() - t0).toFixed(0)} ms`);
+        if (this.stats.chainPairs) console.log(`      chain: pairs ${this.stats.chainPairs} live ${this.stats.chainLive} ns ${this.stats.chainNs} samples ${this.stats.chainSamples} (avg N ${((this.stats.chainSampleN || 0) / Math.max(1, this.stats.chainSamples || 1)).toFixed(0)}) coefs ${this.stats.chainCoefs} | set ${(this.stats.chainSetMs || 0).toFixed(0)} ms samples ${(this.stats.chainSampleMs || 0).toFixed(0)} ms coefs ${(this.stats.chainCoefMs || 0).toFixed(0)} ms`);
       }
       total += v;
     }
@@ -2240,11 +2241,14 @@ export class Pixel {
     const hY = resHess[1 - ix];
     const yFields = split.filter((q) => q.yElem.terms.length > 0).map((q) => ({ k: q.k, axis: q.axis, elem: q.yElem, tag: `${q.axis.id}` }));
     let acc = 0;
+    const st = this.stats;
+    st.chainPairs = (st.chainPairs || 0) + 2 * KX + 1;
     for (let m = -KX; m <= KX; m++) {
       const ar = A.re[KX + m];
       const ai = A.im[KX + m];
       const magA = Math.hypot(ar, ai);
-      if (magA < 1e-12) continue;
+      // the coefficient alone must pass the cut (the multiplier is at most one)
+      if (magA < 1e-12 || logCoef + Math.log(magA) < lnCut) continue;
       const mbx = bx + TAU * m * gX[0];
       const mby = by + TAU * m * gX[1];
       const mq00 = q00 + TAU * m * hX[0];
@@ -2254,10 +2258,22 @@ export class Pixel {
       // m, and the closures, at the harmonics n (within the bandwidth-capped
       // range) that can pass the cut
       const fs = m === 0 ? yFields : [...yFields, { k: m, axis: X, elem: X.field, tag: `x${X.id}` }];
+      const t0 = DEBUG ? performance.now() : 0;
       const { set, K: KY, bessel, cloHarm } = this.residualSetFor(resK[1 - ix], Y, fs, clos, localCoords);
+      if (DEBUG) st.chainSetMs = (st.chainSetMs || 0) + performance.now() - t0;
       const N = set.nodes.length;
+      st.chainLive = (st.chainLive || 0) + 1;
       let samples = null;
-      for (let n = -KY; n <= KY; n++) {
+      // the harmonics of Y that can pass sit around the one that makes the
+      // rate slowest: search outward from it, stopping a side after two
+      // failures in a row
+      const gy1 = cond.dim === 1 ? gY[0] * cond.e[0] + gY[1] * cond.e[1] : 0;
+      const gyn = cond.dim === 1 ? gy1 * gy1 : gY[0] * gY[0] + gY[1] * gY[1];
+      const proj = cond.dim === 1 ? (mbx * cond.e[0] + mby * cond.e[1]) * gy1 : mbx * gY[0] + mby * gY[1];
+      const nStar = gyn > 1e-30 ? Math.round(-proj / (TAU * gyn)) : 0;
+      const tryN = (n) => {
+        if (n < -KY || n > KY) return false;
+        st.chainNs = (st.chainNs || 0) + 1;
         const nbx = mbx + TAU * n * gY[0];
         const nby = mby + TAU * n * gY[1];
         const nq00 = mq00 + TAU * n * hY[0];
@@ -2279,18 +2295,36 @@ export class Pixel {
           lb = Math.log(Math.max(2 * bound, 1e-300));
           if (lb > 0) lb = 0;
         }
-        if (lm + logCoef + Math.log(magA) + lb < lnCut) continue;
+        if (lm + logCoef + Math.log(magA) + lb < lnCut) return false;
         if (!samples) {
+          const t1 = DEBUG ? performance.now() : 0;
           samples = this.residualSamples(set, fs, N);
+          if (DEBUG) st.chainSampleMs = (st.chainSampleMs || 0) + performance.now() - t1;
+          st.chainSamples = (st.chainSamples || 0) + 1;
+          st.chainSampleN = (st.chainSampleN || 0) + N;
           this.stats.dfts++;
         }
+        const t2 = DEBUG ? performance.now() : 0;
         const [br, bi] = residualCoefAt(set.nodes, samples.SR, samples.SI, N, n);
+        if (DEBUG) st.chainCoefMs = (st.chainCoefMs || 0) + performance.now() - t2;
+        st.chainCoefs = (st.chainCoefs || 0) + 1;
         const mag = magA * Math.hypot(br.v, bi.v);
-        if (mag < 1e-12 || lm + logCoef + Math.log(mag) < lnCut) continue;
+        if (mag < 1e-12 || lm + logCoef + Math.log(mag) < lnCut) return true;
         const cj0 = cjMul(c, cjScaleC({ re: br, im: bi }, ar, ai));
         const v = termExpectation(cjScaleC(cj0, cr, ci), phi0 + this.axisPhase(X, m) + this.axisPhase(Y, n), nbx, nby, nq00, nq01, nq11, cond);
         this.stats.recipes++;
         acc += v[0];
+        return true;
+      };
+      tryN(nStar);
+      for (let side = -1; side <= 1; side += 2) {
+        let fails = 0;
+        for (let d = 1; d <= 2 * KY + 1 && fails < 2; d++) {
+          const n = nStar + side * d;
+          if (n < -KY || n > KY) break;
+          if (tryN(n)) fails = 0;
+          else fails++;
+        }
       }
     }
     return acc;
