@@ -1,0 +1,24 @@
+{
+  "checked": 876,
+  "mismatches": 1,
+  "firstFailures": [
+    {
+      "x": 472,
+      "y": 93,
+      "displayCodes": [
+        232,
+        232,
+        232
+      ],
+      "expectedRoundedDisplayCode": 48
+    }
+  ],
+  "passed": false,
+  "family": "x=13..639 step17, y=93..359 step11; original-source horizon >3px; parity stable within +/-0.01px",
+  "expandedGridDiagnostic": {
+    "checked": 839,
+    "mismatches": 0,
+    "firstFailures": [],
+    "family": "Additional y=13 step11 grid; not the committed frame-registration family. This exposed two source residuals at y=90 in the historical paused raw control."
+  }
+}

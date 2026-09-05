@@ -1,0 +1,98 @@
+{
+  "status": "passed-native-registration",
+  "registration_rule": "fixed-grid-count-cell-neighborhood-v2",
+  "pane_pixels": [
+    640,
+    360
+  ],
+  "window_pixels": [
+    1920,
+    360
+  ],
+  "captures": [
+    {
+      "name": "At rest",
+      "capture": "native/evidence/synchronized-render-20260905T232023.396211Z/report.json",
+      "validation": "native/evidence/synchronized-render-20260905T232023.396211Z/validation-1788650796444.json",
+      "validation_sha256": "759f83dd2f6565cbcc58c0836649c78258d4192cb14454d8c1dc437517903f1f",
+      "source_time_seconds": 0,
+      "saved_game_frame": null,
+      "saved_render_family": null,
+      "stable_points": 878,
+      "mismatches": 0,
+      "game_frames": 120,
+      "render_families": 121,
+      "views": 363,
+      "explicit_cut_game_frames": [
+        0
+      ],
+      "combined_tsr": false,
+      "performance_measurement": false
+    },
+    {
+      "name": "Moving",
+      "capture": "native/evidence/synchronized-render-20260905T232105.896347Z/report.json",
+      "validation": "native/evidence/synchronized-render-20260905T232105.896347Z/validation-1788650796465.json",
+      "validation_sha256": "7882da5029441a3b6fef27ebf68952b71c0c54a94eb45192f487b0fc522942ee",
+      "source_time_seconds": 4.321043326461222,
+      "saved_game_frame": 91,
+      "saved_render_family": 93,
+      "stable_points": 873,
+      "mismatches": 0,
+      "game_frames": 120,
+      "render_families": 121,
+      "views": 363,
+      "explicit_cut_game_frames": [
+        0
+      ],
+      "combined_tsr": false,
+      "performance_measurement": false
+    },
+    {
+      "name": "Moving + combined TSR",
+      "capture": "native/evidence/synchronized-render-20260905T232228.937444Z/report.json",
+      "validation": "native/evidence/synchronized-render-20260905T232228.937444Z/validation-1788650796465.json",
+      "validation_sha256": "7604434d590fbfafe761929c188ab07fdf624eef583c94a77809fd9c7e4b4b7c",
+      "source_time_seconds": 4.908064185583498,
+      "saved_game_frame": 91,
+      "saved_render_family": 93,
+      "stable_points": 871,
+      "mismatches": 0,
+      "game_frames": 120,
+      "render_families": 121,
+      "views": 363,
+      "explicit_cut_game_frames": [
+        0
+      ],
+      "combined_tsr": true,
+      "performance_measurement": false
+    },
+    {
+      "name": "Deliberate cuts + combined TSR",
+      "capture": "native/evidence/synchronized-render-20260905T232319.229573Z/report.json",
+      "validation": "native/evidence/synchronized-render-20260905T232319.229573Z/validation-1788650796476.json",
+      "validation_sha256": "5054d065f90b8c2f9d6569f3a5310390d9b5b969ee10a1707f7dabd533814ba7",
+      "source_time_seconds": 0.9920632829307579,
+      "saved_game_frame": 91,
+      "saved_render_family": 93,
+      "stable_points": 870,
+      "mismatches": 0,
+      "game_frames": 120,
+      "render_families": 121,
+      "views": 363,
+      "explicit_cut_game_frames": [
+        0,
+        22,
+        40,
+        59,
+        75,
+        92,
+        106
+      ],
+      "combined_tsr": true,
+      "performance_measurement": false
+    }
+  ],
+  "temporal_quality_established": false,
+  "performance_established": false
+}

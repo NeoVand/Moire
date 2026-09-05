@@ -1,0 +1,11 @@
+{
+  "FileVersion": 3,
+  "Version": 1,
+  "VersionName": "0.1.0",
+  "FriendlyName": "Moiré Synchronized Comparison",
+  "Description": "Opt-in synchronized ordinary-game comparison views in the isolated MoireComparison project.",
+  "Category": "Rendering",
+  "CanContainContent": false,
+  "EnabledByDefault": false,
+  "Modules": [{ "Name": "MoireCompare", "Type": "Runtime", "LoadingPhase": "PostEngineInit" }]
+}

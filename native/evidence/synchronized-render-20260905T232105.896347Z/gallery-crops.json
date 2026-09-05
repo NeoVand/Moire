@@ -1,0 +1,49 @@
+{
+  "source": "comparison.png",
+  "sourceSha256": "feb4086fcc81fcf0a367fd2e9b9cba85e48d6fce2b604af815ad74b713aed6ae",
+  "operation": "Lossless rectangular crop using recorded per-view output rectangles; no resampling or color conversion",
+  "results": [
+    {
+      "arm": 0,
+      "file": "native/evidence/synchronized-render-20260905T232105.896347Z/raw.png",
+      "rect": [
+        0,
+        0,
+        640,
+        360
+      ],
+      "sha256": "79ce8a784ecd571862cfb19c47aa47393b827dfcb57f15552ee24aff66abaefb",
+      "pixels": 230400,
+      "visibleRed": 0,
+      "visibleMagenta": 0
+    },
+    {
+      "arm": 1,
+      "file": "native/evidence/synchronized-render-20260905T232105.896347Z/tsr.png",
+      "rect": [
+        640,
+        0,
+        1280,
+        360
+      ],
+      "sha256": "8e0e36525094b9a8b29648449b2a37c382a790860e6b67d45d91158afd4d4426",
+      "pixels": 230400,
+      "visibleRed": 0,
+      "visibleMagenta": 0
+    },
+    {
+      "arm": 2,
+      "file": "native/evidence/synchronized-render-20260905T232105.896347Z/analytic.png",
+      "rect": [
+        1280,
+        0,
+        1920,
+        360
+      ],
+      "sha256": "4106ec7ab5504c9ec7758fe39aab47577d17a9fc97f7bad9a6ac6c8883fa149d",
+      "pixels": 230400,
+      "visibleRed": 0,
+      "visibleMagenta": 0
+    }
+  ]
+}

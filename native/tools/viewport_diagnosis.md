@@ -47,7 +47,7 @@ The first otherwise clean Shot attempt is [preserved](../evidence/viewport-diagn
 
 ### Uninterrupted motion
 
-The separate `--uninterrupted` option keeps the sequence playing through the Shot request, file completion, and two subsequent observation ticks. The fixed and paused-motion commands above retain their original behavior. The three native captures below completed without errors or ensures, with matching frozen sources. Independent saved-frame phase registration is the next acceptance gate.
+The separate `--uninterrupted` option keeps the sequence playing through the Shot request, file completion, and two subsequent observation ticks. The fixed and paused-motion commands above retain their original behavior. The three native captures below completed without errors or ensures, with matching frozen sources. The independent [quality and phase report](../evidence/game-quality-20260905T220123687Z/report.json) accepts the saved raw frame uniquely at 2.0166667739550275 seconds, recorded post-tick frame 67: all 876 dense registration points and 45 stable quality probes pass, and all 54 anti-aliasing probes are retained. Neighboring recorded frames 65, 66, and 68 produce 14, 2, and 6 raw mismatches. TSR and analytic match that saved-frame latency and camera metadata; their filtered pixels are not separately registered as raw samples.
 
 ```sh
 # Inspect the complete configuration without launching Unreal.

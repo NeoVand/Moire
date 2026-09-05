@@ -1,0 +1,236 @@
+{
+  "schema": "moire-synchronized-validation-v1",
+  "status": "validation-failed",
+  "passed": false,
+  "performanceMeasurement": false,
+  "temporalQualityEstablished": false,
+  "observedMetadataPassed": true,
+  "comparability": {
+    "passed": false,
+    "primaryRasterVerified": true,
+    "imageAndObservedMetadataPassed": false
+  },
+  "checks": [
+    {
+      "name": "schema and terminal telemetry",
+      "passed": true
+    },
+    {
+      "name": "ordinary game route",
+      "passed": true
+    },
+    {
+      "name": "process succeeded without ensures",
+      "passed": true
+    },
+    {
+      "name": "capture source hashes stable",
+      "passed": true
+    },
+    {
+      "name": "owned source scene and map preparation",
+      "passed": true
+    },
+    {
+      "name": "point material hash agrees with prepared scene",
+      "passed": true
+    },
+    {
+      "name": "analytic material hash agrees with prepared scene",
+      "passed": true
+    },
+    {
+      "name": "sky material hash agrees with prepared scene",
+      "passed": true
+    },
+    {
+      "name": "documented gamma-only command and common source settings",
+      "passed": true
+    },
+    {
+      "name": "screenshot file was processed",
+      "passed": true
+    },
+    {
+      "name": "supported source motion",
+      "passed": true
+    },
+    {
+      "name": "explicit temporal/source mode metadata",
+      "passed": true
+    },
+    {
+      "name": "observed source mode agrees with requested run",
+      "passed": true
+    },
+    {
+      "name": "supported image and recorded pane size",
+      "passed": true
+    },
+    {
+      "name": "bounded observation metadata",
+      "passed": true
+    },
+    {
+      "name": "view records have finite matrices and identifiers",
+      "passed": true
+    },
+    {
+      "name": "each recorded render family contains exactly three arms",
+      "passed": true
+    },
+    {
+      "name": "complete expected game-frame coverage",
+      "passed": true
+    },
+    {
+      "name": "render-family identifiers are unique",
+      "passed": true
+    },
+    {
+      "name": "three distinct persistent histories and controllers",
+      "passed": true
+    },
+    {
+      "name": "shared camera, AA, history, cuts and output crops match the source",
+      "passed": true
+    },
+    {
+      "name": "arm1: temporal jitter actually varies",
+      "passed": true
+    },
+    {
+      "name": "arm2: temporal jitter actually varies",
+      "passed": true
+    },
+    {
+      "name": "raw crop validates documented transfer palette",
+      "passed": true
+    },
+    {
+      "name": "saved image identifies the required source pose",
+      "passed": false,
+      "detail": "0 image-matching families among 1 candidates; moving-image-registration"
+    }
+  ],
+  "failures": [
+    {
+      "name": "saved image identifies the required source pose",
+      "passed": false,
+      "detail": "0 image-matching families among 1 candidates; moving-image-registration"
+    }
+  ],
+  "warnings": [
+    "Uniform-buffer CPU-copy diagnostics were enabled; this capture is unsuitable for performance timing."
+  ],
+  "registration": {
+    "passed": false,
+    "candidates": [
+      {
+        "gameFrame": 91,
+        "renderFrameNumber": 93,
+        "sourceTime": 0.9920632829307579,
+        "checked": 876,
+        "mismatches": 1,
+        "firstFailures": [
+          {
+            "x": 472,
+            "y": 93,
+            "displayCodes": [
+              232,
+              232,
+              232
+            ],
+            "expectedRoundedDisplayCode": 48
+          }
+        ],
+        "passed": false,
+        "family": "x=13..639 step17, y=93..359 step11; original-source horizon >3px; parity stable within +/-0.01px",
+        "expandedGridDiagnostic": {
+          "checked": 839,
+          "mismatches": 0,
+          "firstFailures": [],
+          "family": "Additional y=13 step11 grid; not the committed frame-registration family. This exposed two source residuals at y=90 in the historical paused raw control."
+        }
+      }
+    ],
+    "savedGameFrame": null,
+    "sourceTime": null,
+    "kind": "moving-image-registration",
+    "savedRenderFrameNumber": null,
+    "identity": "Raw pixels must select exactly one recorded post-request rendered family. Callback frame is only an interval endpoint."
+  },
+  "heldOutSource": null,
+  "rigorousSourceNeighborhoods": null,
+  "observationCoverage": {
+    "expectedGameFrames": 120,
+    "observedGameFrames": 120,
+    "recordedRenderFamilies": 121,
+    "missingGameFrames": []
+  },
+  "calibration": {
+    "transfer": "documented-power-gamma-2.2",
+    "rawPalette": {
+      "passed": true,
+      "method": "documented-power-gamma-2.2; each raw pixel must be within one integer code of a rounded source-palette color on the normalized 0–255 display scale. Native sample precision is retained when supplied. No transfer curve or parameter is fitted.",
+      "pixels": 230400,
+      "pixelsOutsideOneCodeOfRoundedPalette": 0,
+      "worstRoundedByteError": 1,
+      "worstUnroundedByteError": 1.0046878779662336,
+      "nearestPaletteClassCounts": {
+        "dark": 87476,
+        "light": 87244,
+        "sky": 55680
+      },
+      "expectedUnroundedDisplayBytes": [
+        [
+          47.67943424047372,
+          47.67943424047372,
+          47.67943424047372
+        ],
+        [
+          233.00468787796623,
+          233.00468787796623,
+          233.00468787796623
+        ],
+        [
+          91.54322863228488,
+          100.87583874810366,
+          110.86042423273335
+        ]
+      ],
+      "firstFailures": []
+    },
+    "anchors": null
+  },
+  "limitations": [
+    "PostRenderView records final graph-construction state; they are not GPU-completion or performance measurements.",
+    "Only the raw crop independently identifies source pose/time. Other panes are associated through their common rendered family, camera matrices and constant-source anchors.",
+    "Equal fixed-pose frames cannot identify an exact saved game frame. Moving frames that match multiple recorded source times are rejected.",
+    "Primary output rectangles and requested resolution are not measurements of the private primary raster rectangle.",
+    "This is registration and configuration validation, not a filter-quality score, temporal trajectory evaluation or frame-rate benchmark.",
+    "The committed registration guard tests nine nearby parity samples, not every point in the neighborhood; very fast counts can alias between guard samples. Expanded-grid residuals are retained with count-rate diagnostics.",
+    "Power-gamma 2.2 follows the documented gamma-only ordinary Shot path; source palette and constant anchors validate this readback, not arbitrary continuous transfer accuracy."
+  ],
+  "inputs": {
+    "capture": {
+      "path": "native/evidence/synchronized-render-20260905T232319.229573Z/report.json",
+      "sha256": "4562ea250efa53fe245c77f92dcf64414349b26bacb51398d6f35f5df9e603f0"
+    },
+    "telemetry": {
+      "path": "native/evidence/synchronized-render-20260905T232319.229573Z/views.json",
+      "sha256": "a336a33c778e76377c793a8a4643bea693401514d0c817d9f21edc057e8a625f"
+    },
+    "preparation": {
+      "path": "native/evidence/synchronized-render-20260905T232319.229573Z/preparation.json",
+      "sha256": "e791a7fb8929f85f38944fa3ace79f3c298ad91fa8fa6c214bcfc0cd6bc5a0f9"
+    },
+    "image": {
+      "path": "native/evidence/synchronized-render-20260905T232319.229573Z/comparison.png",
+      "sha256": "9a0131e4aa04fa3bfa948e41681b19b90bd641a9b98b1205c84d9b4f70e15cd5"
+    }
+  },
+  "createdAt": "2026-09-05T23:24:47.597Z",
+  "validatorSha256": "8bd88555c86a5c659700a2109983cf3766d50bce6990e97a31207eb76afceb5a",
+  "sourceHelperSha256": "6d0d9325792b45ff78c606a77bfd82b9b027c1d36b667043a008e3bc3fb1d080"
+}

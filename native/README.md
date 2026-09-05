@@ -1,8 +1,8 @@
 # Native Unreal comparison
 
-This is an isolated **content-only Unreal 5.8.2 project** with a matched point source, actual Unreal TSR configuration, and the shared analytic HLSL material. The [comparison gallery](comparison.html) now shows clean ordinary-game Metal captures at rest and while the camera keeps moving. The user's existing Unreal project and engine installation are not edited.
+This is an isolated **Unreal 5.8.2 project** with a matched point source, actual Unreal TSR configuration, and the shared analytic HLSL material. A project-local runtime plugin supplies the opt-in synchronized view. The [comparison gallery](comparison.html) shows ordinary-game Metal captures at rest and while the camera keeps moving. The user's existing Unreal project and engine installation are not edited.
 
-The [moving native workflow](tools/live.md) supplies camera-following materials, matched sequences and autoplay maps. The analytic pattern has been observed moving in a normal Unreal game window. The latest triplet keeps playback running through readback. Raw pixels uniquely identify the saved time, with matching camera and capture timing in the other arms. Trajectory-wide temporal quality, synchronized native presentation, replay-history checks and controlled frame timing remain pending.
+The [synchronized native workflow](tools/synchronized-comparison.md) now renders all three panes in one game window. [Four native captures](evidence/synchronized-native-20260905/README.md) pass camera, actual raster, AA, history and original-source registration checks: static, moving, analytic plus TSR, and deliberate cuts. The gallery uses lossless crops from the static and moving windows. Trajectory-wide temporal quality, post-cut recovery, a live interaction layer and controlled frame timing remain pending.
 
 Use the working [ordinary-game screenshot workflow](tools/viewport_diagnosis.md) for new captures. It uses plain `Shot` from a real game window at 640×360, with identical source and display settings across arms. The earlier [Movie Render Queue workflow](tools/capture-mrq.md) and [MRQ gallery](comparison-mrq.html) remain as separate controls. MRQ creates an offline view family. Neither capture duration nor screenshot writing time measures sustained real-time throughput.
 
@@ -14,6 +14,8 @@ From the repository:
 
 ```sh
 node native/Unreal/MoireComparison/Scripts/stage_kernel.mjs
+
+python3 native/tools/synchronized_comparison.py build --execute --timeout 600
 
 "/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/Mac/UnrealEditor-Cmd" \
   "/Users/neo/repos/Moire/native/Unreal/MoireComparison/MoireComparison.uproject" \
@@ -77,7 +79,7 @@ The newer [uninterrupted capture report](evidence/game-quality-20260905T22124104
 
 All 54 quality probes remain. Linear RGB RMSE is 0.279080 / 0.0961393 / 0.00433559 for raw / TSR / analytic, with a maximum analytic residual of 0.00229292 beyond the unchanged display-code allowance. These are selected-pixel, filter-specific results for one genuinely moving frame, not a temporal-error curve or performance measurement. The gallery now uses this newer triplet; the held-frame controls above remain archived.
 
-The next integration step is the [synchronized native viewport](tools/synchronized-view-design.md), followed by a combined filtered-shading + TSR arm and native whole-frame timing. The source investigation identifies a project-local runtime plugin route; that plugin has not yet been built.
+The [synchronized native viewport workflow](tools/synchronized-comparison.md) implements the project-local plugin route described in the [source investigation](tools/synchronized-view-design.md). The build, scene preparation and four native registration runs pass. A corrected source-only count-cell bound replaces the old sampled-parity stability claim on the same pixel grid; all older diagnostics are preserved. Native whole-frame timing remains separate.
 
 ## Earlier MRQ controls
 

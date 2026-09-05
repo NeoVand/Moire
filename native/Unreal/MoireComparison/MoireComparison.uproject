@@ -2,8 +2,12 @@
   "FileVersion": 3,
   "EngineAssociation": "5.8",
   "Category": "Rendering research",
-  "Description": "Matched fixed-pose comparison: point shading, Unreal TSR, and the shared analytic material.",
+  "Description": "Isolated point shading, Unreal TSR, and analytic material comparison with fixed controls and an opt-in synchronized game view.",
   "Plugins": [
+    {
+      "Name": "MoireCompare",
+      "Enabled": true
+    },
     {
       "Name": "PythonScriptPlugin",
       "Enabled": true,

@@ -1,0 +1,5225 @@
+{
+  "schema": "moire-synchronized-validation-v1",
+  "status": "validation-failed",
+  "passed": false,
+  "performanceMeasurement": false,
+  "temporalQualityEstablished": false,
+  "observedMetadataPassed": false,
+  "comparability": {
+    "passed": false,
+    "primaryRasterVerified": true,
+    "imageAndObservedMetadataPassed": false
+  },
+  "checks": [
+    {
+      "name": "schema and terminal telemetry",
+      "passed": true
+    },
+    {
+      "name": "ordinary game route",
+      "passed": true
+    },
+    {
+      "name": "process succeeded without ensures",
+      "passed": true
+    },
+    {
+      "name": "capture source hashes stable",
+      "passed": true
+    },
+    {
+      "name": "owned source scene and map preparation",
+      "passed": true
+    },
+    {
+      "name": "point material hash agrees with prepared scene",
+      "passed": true
+    },
+    {
+      "name": "analytic material hash agrees with prepared scene",
+      "passed": true
+    },
+    {
+      "name": "sky material hash agrees with prepared scene",
+      "passed": true
+    },
+    {
+      "name": "documented gamma-only command and common source settings",
+      "passed": true
+    },
+    {
+      "name": "screenshot file was processed",
+      "passed": true
+    },
+    {
+      "name": "supported source motion",
+      "passed": true
+    },
+    {
+      "name": "explicit temporal/source mode metadata",
+      "passed": true
+    },
+    {
+      "name": "observed source mode agrees with requested run",
+      "passed": true
+    },
+    {
+      "name": "supported image and recorded pane size",
+      "passed": true
+    },
+    {
+      "name": "bounded observation metadata",
+      "passed": true
+    },
+    {
+      "name": "view records have finite matrices and identifiers",
+      "passed": true
+    },
+    {
+      "name": "each recorded render family contains exactly three arms",
+      "passed": true
+    },
+    {
+      "name": "complete expected game-frame coverage",
+      "passed": false,
+      "detail": "Missing game frames: 119"
+    },
+    {
+      "name": "render-family identifiers are unique",
+      "passed": true
+    },
+    {
+      "name": "three distinct persistent histories and controllers",
+      "passed": true
+    },
+    {
+      "name": "shared camera, AA, history, cuts and output crops match the source",
+      "passed": true
+    },
+    {
+      "name": "arm1: temporal jitter actually varies",
+      "passed": true
+    },
+    {
+      "name": "raw crop validates documented transfer palette",
+      "passed": true
+    },
+    {
+      "name": "saved image identifies the required source pose",
+      "passed": true,
+      "detail": "1 image-matching families among 1 candidates; fixed-pose-image-registration"
+    },
+    {
+      "name": "all panes share sky and constant-source registration anchors",
+      "passed": true,
+      "detail": "36 sky, 24 constant-ground anchors; 0 mismatches"
+    }
+  ],
+  "failures": [
+    {
+      "name": "complete expected game-frame coverage",
+      "passed": false,
+      "detail": "Missing game frames: 119"
+    }
+  ],
+  "warnings": [
+    "Uniform-buffer CPU-copy diagnostics were enabled; this capture is unsuitable for performance timing.",
+    "7 additional raw-source mismatches in the held-out expanded grid; registration is not a full-source correctness pass."
+  ],
+  "registration": {
+    "passed": true,
+    "candidates": [
+      {
+        "gameFrame": 91,
+        "renderFrameNumber": 93,
+        "sourceTime": 0,
+        "checked": 885,
+        "mismatches": 0,
+        "firstFailures": [],
+        "passed": true,
+        "family": "x=13..639 step17, y=93..359 step11; original-source horizon >3px; parity stable within +/-0.01px",
+        "expandedGridDiagnostic": {
+          "checked": 816,
+          "mismatches": 7,
+          "firstFailures": [
+            {
+              "x": 47,
+              "y": 90,
+              "expected": 233,
+              "observed": [
+                48,
+                48,
+                48
+              ],
+              "horizonDistancePixels": 3.1426989660129476,
+              "sourceCounts": [
+                -267.51349770904784,
+                -381.98849374239603
+              ],
+              "countRatesPerPixel": {
+                "method": "Centered difference of the original rational camera rays, step0.001px",
+                "dx": [
+                  0.9817009090227202,
+                  0
+                ],
+                "dy": [
+                  85.12222382384493,
+                  124.00441067268275
+                ]
+              }
+            },
+            {
+              "x": 81,
+              "y": 90,
+              "expected": 48,
+              "observed": [
+                232,
+                232,
+                232
+              ],
+              "horizonDistancePixels": 3.1426989660129476,
+              "sourceCounts": [
+                -234.13566680223084,
+                -381.98849374239603
+              ],
+              "countRatesPerPixel": {
+                "method": "Centered difference of the original rational camera rays, step0.001px",
+                "dx": [
+                  0.9817009090227202,
+                  0
+                ],
+                "dy": [
+                  74.50146929168966,
+                  124.00441067268275
+                ]
+              }
+            },
+            {
+              "x": 132,
+              "y": 90,
+              "expected": 48,
+              "observed": [
+                232,
+                232,
+                232
+              ],
+              "horizonDistancePixels": 3.1426989660129476,
+              "sourceCounts": [
+                -184.0689204420054,
+                -381.98849374239603
+              ],
+              "countRatesPerPixel": {
+                "method": "Centered difference of the original rational camera rays, step0.001px",
+                "dx": [
+                  0.9817009090369311,
+                  0
+                ],
+                "dy": [
+                  58.57033749346385,
+                  124.00441067268275
+                ]
+              }
+            },
+            {
+              "x": 234,
+              "y": 90,
+              "expected": 233,
+              "observed": [
+                48,
+                48,
+                48
+              ],
+              "horizonDistancePixels": 3.1426989660129476,
+              "sourceCounts": [
+                -83.93542772155446,
+                -381.98849374239603
+              ],
+              "countRatesPerPixel": {
+                "method": "Centered difference of the original rational camera rays, step0.001px",
+                "dx": [
+                  0.9817009090227202,
+                  0
+                ],
+                "dy": [
+                  26.708073897019347,
+                  124.00441067268275
+                ]
+              }
+            },
+            {
+              "x": 404,
+              "y": 90,
+              "expected": 48,
+              "observed": [
+                232,
+                232,
+                232
+              ],
+              "horizonDistancePixels": 3.1426989660129476,
+              "sourceCounts": [
+                82.95372681253036,
+                -381.98849374239603
+              ],
+              "countRatesPerPixel": {
+                "method": "Centered difference of the original rational camera rays, step0.001px",
+                "dx": [
+                  0.9817009090085094,
+                  0
+                ],
+                "dy": [
+                  -26.395698763721498,
+                  124.00441067268275
+                ]
+              }
+            },
+            {
+              "x": 557,
+              "y": 90,
+              "expected": 233,
+              "observed": [
+                48,
+                48,
+                48
+              ],
+              "horizonDistancePixels": 3.1426989660129476,
+              "sourceCounts": [
+                233.15396589320676,
+                -381.98849374239603
+              ],
+              "countRatesPerPixel": {
+                "method": "Centered difference of the original rational camera rays, step0.001px",
+                "dx": [
+                  0.9817009090085094,
+                  0
+                ],
+                "dy": [
+                  -74.18909415839892,
+                  124.00441067268275
+                ]
+              }
+            },
+            {
+              "x": 591,
+              "y": 90,
+              "expected": 48,
+              "observed": [
+                232,
+                232,
+                232
+              ],
+              "horizonDistancePixels": 3.1426989660129476,
+              "sourceCounts": [
+                266.53179680002376,
+                -381.98849374239603
+              ],
+              "countRatesPerPixel": {
+                "method": "Centered difference of the original rational camera rays, step0.001px",
+                "dx": [
+                  0.9817009090227202,
+                  0
+                ],
+                "dy": [
+                  -84.80984869055419,
+                  124.00441067268275
+                ]
+              }
+            }
+          ],
+          "family": "Additional y=13 step11 grid; not the committed frame-registration family. This exposed two source residuals at y=90 in the historical paused raw control."
+        }
+      }
+    ],
+    "savedGameFrame": null,
+    "sourceTime": 0,
+    "kind": "fixed-pose-image-registration",
+    "savedRenderFrameNumber": null,
+    "identity": "A static source can validate the pose but cannot identify which equal-pose rendered family supplied the PNG."
+  },
+  "heldOutSource": {
+    "checked": 816,
+    "mismatches": 7,
+    "firstFailures": [
+      {
+        "x": 47,
+        "y": 90,
+        "expected": 233,
+        "observed": [
+          48,
+          48,
+          48
+        ],
+        "horizonDistancePixels": 3.1426989660129476,
+        "sourceCounts": [
+          -267.51349770904784,
+          -381.98849374239603
+        ],
+        "countRatesPerPixel": {
+          "method": "Centered difference of the original rational camera rays, step0.001px",
+          "dx": [
+            0.9817009090227202,
+            0
+          ],
+          "dy": [
+            85.12222382384493,
+            124.00441067268275
+          ]
+        }
+      },
+      {
+        "x": 81,
+        "y": 90,
+        "expected": 48,
+        "observed": [
+          232,
+          232,
+          232
+        ],
+        "horizonDistancePixels": 3.1426989660129476,
+        "sourceCounts": [
+          -234.13566680223084,
+          -381.98849374239603
+        ],
+        "countRatesPerPixel": {
+          "method": "Centered difference of the original rational camera rays, step0.001px",
+          "dx": [
+            0.9817009090227202,
+            0
+          ],
+          "dy": [
+            74.50146929168966,
+            124.00441067268275
+          ]
+        }
+      },
+      {
+        "x": 132,
+        "y": 90,
+        "expected": 48,
+        "observed": [
+          232,
+          232,
+          232
+        ],
+        "horizonDistancePixels": 3.1426989660129476,
+        "sourceCounts": [
+          -184.0689204420054,
+          -381.98849374239603
+        ],
+        "countRatesPerPixel": {
+          "method": "Centered difference of the original rational camera rays, step0.001px",
+          "dx": [
+            0.9817009090369311,
+            0
+          ],
+          "dy": [
+            58.57033749346385,
+            124.00441067268275
+          ]
+        }
+      },
+      {
+        "x": 234,
+        "y": 90,
+        "expected": 233,
+        "observed": [
+          48,
+          48,
+          48
+        ],
+        "horizonDistancePixels": 3.1426989660129476,
+        "sourceCounts": [
+          -83.93542772155446,
+          -381.98849374239603
+        ],
+        "countRatesPerPixel": {
+          "method": "Centered difference of the original rational camera rays, step0.001px",
+          "dx": [
+            0.9817009090227202,
+            0
+          ],
+          "dy": [
+            26.708073897019347,
+            124.00441067268275
+          ]
+        }
+      },
+      {
+        "x": 404,
+        "y": 90,
+        "expected": 48,
+        "observed": [
+          232,
+          232,
+          232
+        ],
+        "horizonDistancePixels": 3.1426989660129476,
+        "sourceCounts": [
+          82.95372681253036,
+          -381.98849374239603
+        ],
+        "countRatesPerPixel": {
+          "method": "Centered difference of the original rational camera rays, step0.001px",
+          "dx": [
+            0.9817009090085094,
+            0
+          ],
+          "dy": [
+            -26.395698763721498,
+            124.00441067268275
+          ]
+        }
+      },
+      {
+        "x": 557,
+        "y": 90,
+        "expected": 233,
+        "observed": [
+          48,
+          48,
+          48
+        ],
+        "horizonDistancePixels": 3.1426989660129476,
+        "sourceCounts": [
+          233.15396589320676,
+          -381.98849374239603
+        ],
+        "countRatesPerPixel": {
+          "method": "Centered difference of the original rational camera rays, step0.001px",
+          "dx": [
+            0.9817009090085094,
+            0
+          ],
+          "dy": [
+            -74.18909415839892,
+            124.00441067268275
+          ]
+        }
+      },
+      {
+        "x": 591,
+        "y": 90,
+        "expected": 48,
+        "observed": [
+          232,
+          232,
+          232
+        ],
+        "horizonDistancePixels": 3.1426989660129476,
+        "sourceCounts": [
+          266.53179680002376,
+          -381.98849374239603
+        ],
+        "countRatesPerPixel": {
+          "method": "Centered difference of the original rational camera rays, step0.001px",
+          "dx": [
+            0.9817009090227202,
+            0
+          ],
+          "dy": [
+            -84.80984869055419,
+            124.00441067268275
+          ]
+        }
+      }
+    ],
+    "family": "Additional y=13 step11 grid; not the committed frame-registration family. This exposed two source residuals at y=90 in the historical paused raw control.",
+    "passed": false
+  },
+  "rigorousSourceNeighborhoods": {
+    "frozenGrid": {
+      "family": "frozen x13 step17, y93 step11",
+      "selection": "Source-only count extrema at all four ±0.01px rectangle corners with fixed-sign denominator; both half-cell indices must remain unchanged. Output colors never select exclusions.",
+      "total": 925,
+      "stableChecked": 878,
+      "stableMismatches": [],
+      "rejected": [
+        {
+          "x": 13,
+          "y": 93,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -154.19666356825084,
+            -191.9859511836646
+          ],
+          "maximum": [
+            -153.6854022344237,
+            -191.33678582619496
+          ],
+          "lowHalfCells": [
+            -309,
+            -384
+          ],
+          "highHalfCells": [
+            -308,
+            -383
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 30,
+          "y": 93,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -145.64443597156472,
+            -191.9859511836646
+          ],
+          "maximum": [
+            -145.1609745598333,
+            -191.33678582619496
+          ],
+          "lowHalfCells": [
+            -292,
+            -384
+          ],
+          "highHalfCells": [
+            -291,
+            -383
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 47,
+          "y": 93,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -137.0922083748786,
+            -191.9859511836646
+          ],
+          "maximum": [
+            -136.63654688524295,
+            -191.33678582619496
+          ],
+          "lowHalfCells": [
+            -275,
+            -384
+          ],
+          "highHalfCells": [
+            -274,
+            -383
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 64,
+          "y": 93,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -128.53998077819247,
+            -191.9859511836646
+          ],
+          "maximum": [
+            -128.1121192106526,
+            -191.33678582619496
+          ],
+          "lowHalfCells": [
+            -258,
+            -384
+          ],
+          "highHalfCells": [
+            -257,
+            -383
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 81,
+          "y": 93,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -119.98775318150636,
+            -191.9859511836646
+          ],
+          "maximum": [
+            -119.5876915360622,
+            -191.33678582619496
+          ],
+          "lowHalfCells": [
+            -240,
+            -384
+          ],
+          "highHalfCells": [
+            -240,
+            -383
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 98,
+          "y": 93,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -111.43552558482023,
+            -191.9859511836646
+          ],
+          "maximum": [
+            -111.06326386147182,
+            -191.33678582619496
+          ],
+          "lowHalfCells": [
+            -223,
+            -384
+          ],
+          "highHalfCells": [
+            -223,
+            -383
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 115,
+          "y": 93,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -102.88329798813409,
+            -191.9859511836646
+          ],
+          "maximum": [
+            -102.53883618688145,
+            -191.33678582619496
+          ],
+          "lowHalfCells": [
+            -206,
+            -384
+          ],
+          "highHalfCells": [
+            -206,
+            -383
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 132,
+          "y": 93,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -94.33107039144797,
+            -191.9859511836646
+          ],
+          "maximum": [
+            -94.0144085122911,
+            -191.33678582619496
+          ],
+          "lowHalfCells": [
+            -189,
+            -384
+          ],
+          "highHalfCells": [
+            -189,
+            -383
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 149,
+          "y": 93,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -85.77884279476184,
+            -191.9859511836646
+          ],
+          "maximum": [
+            -85.48998083770073,
+            -191.33678582619496
+          ],
+          "lowHalfCells": [
+            -172,
+            -384
+          ],
+          "highHalfCells": [
+            -171,
+            -383
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 166,
+          "y": 93,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -77.22661519807572,
+            -191.9859511836646
+          ],
+          "maximum": [
+            -76.96555316311037,
+            -191.33678582619496
+          ],
+          "lowHalfCells": [
+            -155,
+            -384
+          ],
+          "highHalfCells": [
+            -154,
+            -383
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 183,
+          "y": 93,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -68.67438760138958,
+            -191.9859511836646
+          ],
+          "maximum": [
+            -68.44112548852,
+            -191.33678582619496
+          ],
+          "lowHalfCells": [
+            -138,
+            -384
+          ],
+          "highHalfCells": [
+            -137,
+            -383
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 200,
+          "y": 93,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -60.12216000470346,
+            -191.9859511836646
+          ],
+          "maximum": [
+            -59.91669781392961,
+            -191.33678582619496
+          ],
+          "lowHalfCells": [
+            -121,
+            -384
+          ],
+          "highHalfCells": [
+            -120,
+            -383
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 217,
+          "y": 93,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -51.569932408017344,
+            -191.9859511836646
+          ],
+          "maximum": [
+            -51.39227013933925,
+            -191.33678582619496
+          ],
+          "lowHalfCells": [
+            -104,
+            -384
+          ],
+          "highHalfCells": [
+            -103,
+            -383
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 234,
+          "y": 93,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -43.01770481133121,
+            -191.9859511836646
+          ],
+          "maximum": [
+            -42.86784246474889,
+            -191.33678582619496
+          ],
+          "lowHalfCells": [
+            -87,
+            -384
+          ],
+          "highHalfCells": [
+            -86,
+            -383
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 251,
+          "y": 93,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -34.46547721464509,
+            -191.9859511836646
+          ],
+          "maximum": [
+            -34.34341479015851,
+            -191.33678582619496
+          ],
+          "lowHalfCells": [
+            -69,
+            -384
+          ],
+          "highHalfCells": [
+            -69,
+            -383
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 268,
+          "y": 93,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -25.913249617958957,
+            -191.9859511836646
+          ],
+          "maximum": [
+            -25.81898711556815,
+            -191.33678582619496
+          ],
+          "lowHalfCells": [
+            -52,
+            -384
+          ],
+          "highHalfCells": [
+            -52,
+            -383
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 285,
+          "y": 93,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -17.36102202127284,
+            -191.9859511836646
+          ],
+          "maximum": [
+            -17.294559440977768,
+            -191.33678582619496
+          ],
+          "lowHalfCells": [
+            -35,
+            -384
+          ],
+          "highHalfCells": [
+            -35,
+            -383
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 302,
+          "y": 93,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -8.808794424586724,
+            -191.9859511836646
+          ],
+          "maximum": [
+            -8.770131766387406,
+            -191.33678582619496
+          ],
+          "lowHalfCells": [
+            -18,
+            -384
+          ],
+          "highHalfCells": [
+            -18,
+            -383
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 319,
+          "y": 93,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -0.2565668279005865,
+            -191.9859511836646
+          ],
+          "maximum": [
+            -0.24570409179702338,
+            -191.33678582619496
+          ],
+          "lowHalfCells": [
+            -1,
+            -384
+          ],
+          "highHalfCells": [
+            -1,
+            -383
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 336,
+          "y": 93,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            8.268694844352646,
+            -191.9859511836646
+          ],
+          "maximum": [
+            8.30572221301692,
+            -191.33678582619496
+          ],
+          "lowHalfCells": [
+            16,
+            -384
+          ],
+          "highHalfCells": [
+            16,
+            -383
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 353,
+          "y": 93,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            16.79312251894303,
+            -191.9859511836646
+          ],
+          "maximum": [
+            16.857949809703037,
+            -191.33678582619496
+          ],
+          "lowHalfCells": [
+            33,
+            -384
+          ],
+          "highHalfCells": [
+            33,
+            -383
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 370,
+          "y": 93,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            25.31755019353339,
+            -191.9859511836646
+          ],
+          "maximum": [
+            25.410177406389174,
+            -191.33678582619496
+          ],
+          "lowHalfCells": [
+            50,
+            -384
+          ],
+          "highHalfCells": [
+            50,
+            -383
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 387,
+          "y": 93,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            33.84197786812375,
+            -191.9859511836646
+          ],
+          "maximum": [
+            33.96240500307529,
+            -191.33678582619496
+          ],
+          "lowHalfCells": [
+            67,
+            -384
+          ],
+          "highHalfCells": [
+            67,
+            -383
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 404,
+          "y": 93,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            42.36640554271411,
+            -191.9859511836646
+          ],
+          "maximum": [
+            42.514632599761406,
+            -191.33678582619496
+          ],
+          "lowHalfCells": [
+            84,
+            -384
+          ],
+          "highHalfCells": [
+            85,
+            -383
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 421,
+          "y": 93,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            50.89083321730451,
+            -191.9859511836646
+          ],
+          "maximum": [
+            51.066860196447564,
+            -191.33678582619496
+          ],
+          "lowHalfCells": [
+            101,
+            -384
+          ],
+          "highHalfCells": [
+            102,
+            -383
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 438,
+          "y": 93,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            59.415260891894874,
+            -191.9859511836646
+          ],
+          "maximum": [
+            59.61908779313368,
+            -191.33678582619496
+          ],
+          "lowHalfCells": [
+            118,
+            -384
+          ],
+          "highHalfCells": [
+            119,
+            -383
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 455,
+          "y": 93,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            67.93968856648523,
+            -191.9859511836646
+          ],
+          "maximum": [
+            68.1713153898198,
+            -191.33678582619496
+          ],
+          "lowHalfCells": [
+            135,
+            -384
+          ],
+          "highHalfCells": [
+            136,
+            -383
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 472,
+          "y": 93,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            76.4641162410756,
+            -191.9859511836646
+          ],
+          "maximum": [
+            76.72354298650592,
+            -191.33678582619496
+          ],
+          "lowHalfCells": [
+            152,
+            -384
+          ],
+          "highHalfCells": [
+            153,
+            -383
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 489,
+          "y": 93,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            84.988543915666,
+            -191.9859511836646
+          ],
+          "maximum": [
+            85.27577058319203,
+            -191.33678582619496
+          ],
+          "lowHalfCells": [
+            169,
+            -384
+          ],
+          "highHalfCells": [
+            170,
+            -383
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 506,
+          "y": 93,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            93.51297159025636,
+            -191.9859511836646
+          ],
+          "maximum": [
+            93.8279981798782,
+            -191.33678582619496
+          ],
+          "lowHalfCells": [
+            187,
+            -384
+          ],
+          "highHalfCells": [
+            187,
+            -383
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 523,
+          "y": 93,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            102.03739926484673,
+            -191.9859511836646
+          ],
+          "maximum": [
+            102.3802257765643,
+            -191.33678582619496
+          ],
+          "lowHalfCells": [
+            204,
+            -384
+          ],
+          "highHalfCells": [
+            204,
+            -383
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 540,
+          "y": 93,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            110.56182693943708,
+            -191.9859511836646
+          ],
+          "maximum": [
+            110.93245337325042,
+            -191.33678582619496
+          ],
+          "lowHalfCells": [
+            221,
+            -384
+          ],
+          "highHalfCells": [
+            221,
+            -383
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 557,
+          "y": 93,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            119.08625461402744,
+            -191.9859511836646
+          ],
+          "maximum": [
+            119.48468096993653,
+            -191.33678582619496
+          ],
+          "lowHalfCells": [
+            238,
+            -384
+          ],
+          "highHalfCells": [
+            238,
+            -383
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 574,
+          "y": 93,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            127.61068228861785,
+            -191.9859511836646
+          ],
+          "maximum": [
+            128.03690856662269,
+            -191.33678582619496
+          ],
+          "lowHalfCells": [
+            255,
+            -384
+          ],
+          "highHalfCells": [
+            256,
+            -383
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 591,
+          "y": 93,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            136.1351099632082,
+            -191.9859511836646
+          ],
+          "maximum": [
+            136.5891361633088,
+            -191.33678582619496
+          ],
+          "lowHalfCells": [
+            272,
+            -384
+          ],
+          "highHalfCells": [
+            273,
+            -383
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 608,
+          "y": 93,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            144.65953763779856,
+            -191.9859511836646
+          ],
+          "maximum": [
+            145.14136375999493,
+            -191.33678582619496
+          ],
+          "lowHalfCells": [
+            289,
+            -384
+          ],
+          "highHalfCells": [
+            290,
+            -383
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 625,
+          "y": 93,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            153.18396531238892,
+            -191.9859511836646
+          ],
+          "maximum": [
+            153.69359135668105,
+            -191.33678582619496
+          ],
+          "lowHalfCells": [
+            306,
+            -384
+          ],
+          "highHalfCells": [
+            307,
+            -383
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 64,
+          "y": 104,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -46.01125653194117,
+            -63.765320716850695
+          ],
+          "maximum": [
+            -45.95401020929423,
+            -63.68196902874777
+          ],
+          "lowHalfCells": [
+            -93,
+            -128
+          ],
+          "highHalfCells": [
+            -92,
+            -128
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 200,
+          "y": 104,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -21.520900427115528,
+            -63.765320716850695
+          ],
+          "maximum": [
+            -21.492209792589016,
+            -63.68196902874777
+          ],
+          "lowHalfCells": [
+            -44,
+            -128
+          ],
+          "highHalfCells": [
+            -43,
+            -128
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 489,
+          "y": 104,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            30.485518769318876,
+            -63.765320716850695
+          ],
+          "maximum": [
+            30.524707818595527,
+            -63.68196902874777
+          ],
+          "lowHalfCells": [
+            60,
+            -128
+          ],
+          "highHalfCells": [
+            61,
+            -128
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 625,
+          "y": 104,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            54.947319186024075,
+            -63.765320716850695
+          ],
+          "maximum": [
+            55.01506392342117,
+            -63.68196902874777
+          ],
+          "lowHalfCells": [
+            109,
+            -128
+          ],
+          "highHalfCells": [
+            110,
+            -128
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 64,
+          "y": 115,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -28.020667628160542,
+            -35.81426885242304
+          ],
+          "maximum": [
+            -27.99856967009448,
+            -35.783341608889494
+          ],
+          "lowHalfCells": [
+            -57,
+            -72
+          ],
+          "highHalfCells": [
+            -56,
+            -72
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 625,
+          "y": 115,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            33.47795627428533,
+            -35.81426885242304
+          ],
+          "maximum": [
+            33.503949618720696,
+            -35.783341608889494
+          ],
+          "lowHalfCells": [
+            66,
+            -72
+          ],
+          "highHalfCells": [
+            67,
+            -72
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 421,
+          "y": 126,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            7.9973024896049125,
+            -23.577010241853852
+          ],
+          "maximum": [
+            8.002966547139483,
+            -23.561023088442532
+          ],
+          "lowHalfCells": [
+            15,
+            -48
+          ],
+          "highHalfCells": [
+            16,
+            -48
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": true,
+          "expected": 233,
+          "observed": [
+            48,
+            48,
+            48
+          ],
+          "horizonDistancePixels": 39.14269896601294
+        },
+        {
+          "x": 98,
+          "y": 192,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -6.500361345731871,
+            -3.9294344041012472
+          ],
+          "maximum": [
+            -6.498538177734909,
+            -3.9272186864794207
+          ],
+          "lowHalfCells": [
+            -14,
+            -8
+          ],
+          "highHalfCells": [
+            -13,
+            -8
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 115,
+          "y": 192,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -6.001484803465419,
+            -3.9294344041012472
+          ],
+          "maximum": [
+            -5.999756521581163,
+            -3.9272186864794207
+          ],
+          "lowHalfCells": [
+            -13,
+            -8
+          ],
+          "highHalfCells": [
+            -12,
+            -8
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 608,
+          "y": 214,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            6.99982458009718,
+            -1.9135285122681633
+          ],
+          "maximum": [
+            7.001411113710301,
+            -1.9120132430539662
+          ],
+          "lowHalfCells": [
+            13,
+            -4
+          ],
+          "highHalfCells": [
+            14,
+            -4
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        }
+      ],
+      "passed": true,
+      "limitation": "This certifies the mathematical original-source neighborhood, not a bound on GPU coordinate error. It supplements and never replaces the frozen registration family or nominal expanded-grid residuals."
+    },
+    "expandedGrid": {
+      "family": "expanded x13 step17, y13 step11",
+      "selection": "Source-only count extrema at all four ±0.01px rectangle corners with fixed-sign denominator; both half-cell indices must remain unchanged. Output colors never select exclusions.",
+      "total": 1147,
+      "stableChecked": 808,
+      "stableMismatches": [],
+      "rejected": [
+        {
+          "x": 13,
+          "y": 13,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 30,
+          "y": 13,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 47,
+          "y": 13,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 64,
+          "y": 13,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 81,
+          "y": 13,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 98,
+          "y": 13,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 115,
+          "y": 13,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 132,
+          "y": 13,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 149,
+          "y": 13,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 166,
+          "y": 13,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 183,
+          "y": 13,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 200,
+          "y": 13,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 217,
+          "y": 13,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 234,
+          "y": 13,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 251,
+          "y": 13,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 268,
+          "y": 13,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 285,
+          "y": 13,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 302,
+          "y": 13,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 319,
+          "y": 13,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 336,
+          "y": 13,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 353,
+          "y": 13,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 370,
+          "y": 13,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 387,
+          "y": 13,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 404,
+          "y": 13,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 421,
+          "y": 13,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 438,
+          "y": 13,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 455,
+          "y": 13,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 472,
+          "y": 13,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 489,
+          "y": 13,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 506,
+          "y": 13,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 523,
+          "y": 13,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 540,
+          "y": 13,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 557,
+          "y": 13,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 574,
+          "y": 13,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 591,
+          "y": 13,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 608,
+          "y": 13,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 625,
+          "y": 13,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 13,
+          "y": 24,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 30,
+          "y": 24,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 47,
+          "y": 24,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 64,
+          "y": 24,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 81,
+          "y": 24,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 98,
+          "y": 24,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 115,
+          "y": 24,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 132,
+          "y": 24,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 149,
+          "y": 24,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 166,
+          "y": 24,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 183,
+          "y": 24,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 200,
+          "y": 24,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 217,
+          "y": 24,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 234,
+          "y": 24,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 251,
+          "y": 24,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 268,
+          "y": 24,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 285,
+          "y": 24,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 302,
+          "y": 24,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 319,
+          "y": 24,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 336,
+          "y": 24,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 353,
+          "y": 24,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 370,
+          "y": 24,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 387,
+          "y": 24,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 404,
+          "y": 24,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 421,
+          "y": 24,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 438,
+          "y": 24,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 455,
+          "y": 24,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 472,
+          "y": 24,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 489,
+          "y": 24,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 506,
+          "y": 24,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 523,
+          "y": 24,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 540,
+          "y": 24,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 557,
+          "y": 24,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 574,
+          "y": 24,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 591,
+          "y": 24,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 608,
+          "y": 24,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 625,
+          "y": 24,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 13,
+          "y": 35,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 30,
+          "y": 35,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 47,
+          "y": 35,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 64,
+          "y": 35,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 81,
+          "y": 35,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 98,
+          "y": 35,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 115,
+          "y": 35,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 132,
+          "y": 35,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 149,
+          "y": 35,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 166,
+          "y": 35,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 183,
+          "y": 35,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 200,
+          "y": 35,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 217,
+          "y": 35,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 234,
+          "y": 35,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 251,
+          "y": 35,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 268,
+          "y": 35,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 285,
+          "y": 35,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 302,
+          "y": 35,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 319,
+          "y": 35,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 336,
+          "y": 35,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 353,
+          "y": 35,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 370,
+          "y": 35,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 387,
+          "y": 35,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 404,
+          "y": 35,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 421,
+          "y": 35,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 438,
+          "y": 35,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 455,
+          "y": 35,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 472,
+          "y": 35,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 489,
+          "y": 35,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 506,
+          "y": 35,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 523,
+          "y": 35,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 540,
+          "y": 35,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 557,
+          "y": 35,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 574,
+          "y": 35,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 591,
+          "y": 35,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 608,
+          "y": 35,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 625,
+          "y": 35,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 13,
+          "y": 46,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 30,
+          "y": 46,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 47,
+          "y": 46,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 64,
+          "y": 46,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 81,
+          "y": 46,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 98,
+          "y": 46,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 115,
+          "y": 46,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 132,
+          "y": 46,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 149,
+          "y": 46,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 166,
+          "y": 46,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 183,
+          "y": 46,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 200,
+          "y": 46,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 217,
+          "y": 46,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 234,
+          "y": 46,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 251,
+          "y": 46,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 268,
+          "y": 46,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 285,
+          "y": 46,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 302,
+          "y": 46,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 319,
+          "y": 46,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 336,
+          "y": 46,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 353,
+          "y": 46,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 370,
+          "y": 46,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 387,
+          "y": 46,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 404,
+          "y": 46,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 421,
+          "y": 46,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 438,
+          "y": 46,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 455,
+          "y": 46,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 472,
+          "y": 46,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 489,
+          "y": 46,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 506,
+          "y": 46,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 523,
+          "y": 46,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 540,
+          "y": 46,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 557,
+          "y": 46,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 574,
+          "y": 46,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 591,
+          "y": 46,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 608,
+          "y": 46,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 625,
+          "y": 46,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 13,
+          "y": 57,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 30,
+          "y": 57,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 47,
+          "y": 57,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 64,
+          "y": 57,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 81,
+          "y": 57,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 98,
+          "y": 57,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 115,
+          "y": 57,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 132,
+          "y": 57,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 149,
+          "y": 57,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 166,
+          "y": 57,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 183,
+          "y": 57,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 200,
+          "y": 57,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 217,
+          "y": 57,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 234,
+          "y": 57,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 251,
+          "y": 57,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 268,
+          "y": 57,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 285,
+          "y": 57,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 302,
+          "y": 57,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 319,
+          "y": 57,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 336,
+          "y": 57,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 353,
+          "y": 57,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 370,
+          "y": 57,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 387,
+          "y": 57,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 404,
+          "y": 57,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 421,
+          "y": 57,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 438,
+          "y": 57,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 455,
+          "y": 57,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 472,
+          "y": 57,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 489,
+          "y": 57,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 506,
+          "y": 57,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 523,
+          "y": 57,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 540,
+          "y": 57,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 557,
+          "y": 57,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 574,
+          "y": 57,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 591,
+          "y": 57,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 608,
+          "y": 57,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 625,
+          "y": 57,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 13,
+          "y": 68,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 30,
+          "y": 68,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 47,
+          "y": 68,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 64,
+          "y": 68,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 81,
+          "y": 68,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 98,
+          "y": 68,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 115,
+          "y": 68,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 132,
+          "y": 68,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 149,
+          "y": 68,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 166,
+          "y": 68,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 183,
+          "y": 68,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 200,
+          "y": 68,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 217,
+          "y": 68,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 234,
+          "y": 68,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 251,
+          "y": 68,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 268,
+          "y": 68,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 285,
+          "y": 68,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 302,
+          "y": 68,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 319,
+          "y": 68,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 336,
+          "y": 68,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 353,
+          "y": 68,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 370,
+          "y": 68,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 387,
+          "y": 68,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 404,
+          "y": 68,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 421,
+          "y": 68,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 438,
+          "y": 68,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 455,
+          "y": 68,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 472,
+          "y": 68,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 489,
+          "y": 68,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 506,
+          "y": 68,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 523,
+          "y": 68,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 540,
+          "y": 68,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 557,
+          "y": 68,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 574,
+          "y": 68,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 591,
+          "y": 68,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 608,
+          "y": 68,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 625,
+          "y": 68,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 13,
+          "y": 79,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 30,
+          "y": 79,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 47,
+          "y": 79,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 64,
+          "y": 79,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 81,
+          "y": 79,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 98,
+          "y": 79,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 115,
+          "y": 79,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 132,
+          "y": 79,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 149,
+          "y": 79,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 166,
+          "y": 79,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 183,
+          "y": 79,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 200,
+          "y": 79,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 217,
+          "y": 79,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 234,
+          "y": 79,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 251,
+          "y": 79,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 268,
+          "y": 79,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 285,
+          "y": 79,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 302,
+          "y": 79,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 319,
+          "y": 79,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 336,
+          "y": 79,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 353,
+          "y": 79,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 370,
+          "y": 79,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 387,
+          "y": 79,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 404,
+          "y": 79,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 421,
+          "y": 79,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 438,
+          "y": 79,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 455,
+          "y": 79,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 472,
+          "y": 79,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 489,
+          "y": 79,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 506,
+          "y": 79,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 523,
+          "y": 79,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 540,
+          "y": 79,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 557,
+          "y": 79,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 574,
+          "y": 79,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 591,
+          "y": 79,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 608,
+          "y": 79,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 625,
+          "y": 79,
+          "reason": "center outside finite ground"
+        },
+        {
+          "x": 13,
+          "y": 90,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -301.86166289421635,
+            -383.2324961121442
+          ],
+          "maximum": [
+            -299.9271499158858,
+            -380.75238303869884
+          ],
+          "lowHalfCells": [
+            -604,
+            -767
+          ],
+          "highHalfCells": [
+            -600,
+            -762
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 30,
+          "y": 90,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -285.1194741590962,
+            -383.2324961121442
+          ],
+          "maximum": [
+            -283.2911697906939,
+            -380.75238303869884
+          ],
+          "lowHalfCells": [
+            -571,
+            -767
+          ],
+          "highHalfCells": [
+            -567,
+            -762
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": true,
+          "expected": 48,
+          "observed": [
+            232,
+            232,
+            232
+          ],
+          "horizonDistancePixels": 3.1426989660129476
+        },
+        {
+          "x": 47,
+          "y": 90,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -268.37728542397605,
+            -383.2324961121442
+          ],
+          "maximum": [
+            -266.65518966550206,
+            -380.75238303869884
+          ],
+          "lowHalfCells": [
+            -537,
+            -767
+          ],
+          "highHalfCells": [
+            -534,
+            -762
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": true,
+          "expected": 233,
+          "observed": [
+            48,
+            48,
+            48
+          ],
+          "horizonDistancePixels": 3.1426989660129476
+        },
+        {
+          "x": 64,
+          "y": 90,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -251.63509668885592,
+            -383.2324961121442
+          ],
+          "maximum": [
+            -250.0192095403102,
+            -380.75238303869884
+          ],
+          "lowHalfCells": [
+            -504,
+            -767
+          ],
+          "highHalfCells": [
+            -501,
+            -762
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": true,
+          "expected": 233,
+          "observed": [
+            48,
+            48,
+            48
+          ],
+          "horizonDistancePixels": 3.1426989660129476
+        },
+        {
+          "x": 81,
+          "y": 90,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -234.89290795373577,
+            -383.2324961121442
+          ],
+          "maximum": [
+            -233.38322941511828,
+            -380.75238303869884
+          ],
+          "lowHalfCells": [
+            -470,
+            -767
+          ],
+          "highHalfCells": [
+            -467,
+            -762
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": true,
+          "expected": 48,
+          "observed": [
+            232,
+            232,
+            232
+          ],
+          "horizonDistancePixels": 3.1426989660129476
+        },
+        {
+          "x": 98,
+          "y": 90,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -218.15071921861562,
+            -383.2324961121442
+          ],
+          "maximum": [
+            -216.74724928992637,
+            -380.75238303869884
+          ],
+          "lowHalfCells": [
+            -437,
+            -767
+          ],
+          "highHalfCells": [
+            -434,
+            -762
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 115,
+          "y": 90,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -201.40853048349544,
+            -383.2324961121442
+          ],
+          "maximum": [
+            -200.11126916473452,
+            -380.75238303869884
+          ],
+          "lowHalfCells": [
+            -403,
+            -767
+          ],
+          "highHalfCells": [
+            -401,
+            -762
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": true,
+          "expected": 233,
+          "observed": [
+            48,
+            48,
+            48
+          ],
+          "horizonDistancePixels": 3.1426989660129476
+        },
+        {
+          "x": 132,
+          "y": 90,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -184.6663417483753,
+            -383.2324961121442
+          ],
+          "maximum": [
+            -183.47528903954267,
+            -380.75238303869884
+          ],
+          "lowHalfCells": [
+            -370,
+            -767
+          ],
+          "highHalfCells": [
+            -367,
+            -762
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": true,
+          "expected": 48,
+          "observed": [
+            232,
+            232,
+            232
+          ],
+          "horizonDistancePixels": 3.1426989660129476
+        },
+        {
+          "x": 149,
+          "y": 90,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -167.92415301325514,
+            -383.2324961121442
+          ],
+          "maximum": [
+            -166.8393089143508,
+            -380.75238303869884
+          ],
+          "lowHalfCells": [
+            -336,
+            -767
+          ],
+          "highHalfCells": [
+            -334,
+            -762
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": true,
+          "expected": 48,
+          "observed": [
+            232,
+            232,
+            232
+          ],
+          "horizonDistancePixels": 3.1426989660129476
+        },
+        {
+          "x": 166,
+          "y": 90,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -151.18196427813498,
+            -383.2324961121442
+          ],
+          "maximum": [
+            -150.20332878915892,
+            -380.75238303869884
+          ],
+          "lowHalfCells": [
+            -303,
+            -767
+          ],
+          "highHalfCells": [
+            -301,
+            -762
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": true,
+          "expected": 233,
+          "observed": [
+            48,
+            48,
+            48
+          ],
+          "horizonDistancePixels": 3.1426989660129476
+        },
+        {
+          "x": 183,
+          "y": 90,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -134.43977554301483,
+            -383.2324961121442
+          ],
+          "maximum": [
+            -133.56734866396704,
+            -380.75238303869884
+          ],
+          "lowHalfCells": [
+            -269,
+            -767
+          ],
+          "highHalfCells": [
+            -268,
+            -762
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": true,
+          "expected": 48,
+          "observed": [
+            232,
+            232,
+            232
+          ],
+          "horizonDistancePixels": 3.1426989660129476
+        },
+        {
+          "x": 200,
+          "y": 90,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -117.69758680789468,
+            -383.2324961121442
+          ],
+          "maximum": [
+            -116.93136853877515,
+            -380.75238303869884
+          ],
+          "lowHalfCells": [
+            -236,
+            -767
+          ],
+          "highHalfCells": [
+            -234,
+            -762
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": true,
+          "expected": 48,
+          "observed": [
+            232,
+            232,
+            232
+          ],
+          "horizonDistancePixels": 3.1426989660129476
+        },
+        {
+          "x": 217,
+          "y": 90,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -100.95539807277454,
+            -383.2324961121442
+          ],
+          "maximum": [
+            -100.2953884135833,
+            -380.75238303869884
+          ],
+          "lowHalfCells": [
+            -202,
+            -767
+          ],
+          "highHalfCells": [
+            -201,
+            -762
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": true,
+          "expected": 233,
+          "observed": [
+            48,
+            48,
+            48
+          ],
+          "horizonDistancePixels": 3.1426989660129476
+        },
+        {
+          "x": 234,
+          "y": 90,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -84.21320933765436,
+            -383.2324961121442
+          ],
+          "maximum": [
+            -83.65940828839143,
+            -380.75238303869884
+          ],
+          "lowHalfCells": [
+            -169,
+            -767
+          ],
+          "highHalfCells": [
+            -168,
+            -762
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": true,
+          "expected": 233,
+          "observed": [
+            48,
+            48,
+            48
+          ],
+          "horizonDistancePixels": 3.1426989660129476
+        },
+        {
+          "x": 251,
+          "y": 90,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -67.47102060253422,
+            -383.2324961121442
+          ],
+          "maximum": [
+            -67.02342816319953,
+            -380.75238303869884
+          ],
+          "lowHalfCells": [
+            -135,
+            -767
+          ],
+          "highHalfCells": [
+            -135,
+            -762
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": true,
+          "expected": 48,
+          "observed": [
+            232,
+            232,
+            232
+          ],
+          "horizonDistancePixels": 3.1426989660129476
+        },
+        {
+          "x": 268,
+          "y": 90,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -50.72883186741405,
+            -383.2324961121442
+          ],
+          "maximum": [
+            -50.387448038007676,
+            -380.75238303869884
+          ],
+          "lowHalfCells": [
+            -102,
+            -767
+          ],
+          "highHalfCells": [
+            -101,
+            -762
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": true,
+          "expected": 233,
+          "observed": [
+            48,
+            48,
+            48
+          ],
+          "horizonDistancePixels": 3.1426989660129476
+        },
+        {
+          "x": 285,
+          "y": 90,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -33.98664313229392,
+            -383.2324961121442
+          ],
+          "maximum": [
+            -33.75146791281578,
+            -380.75238303869884
+          ],
+          "lowHalfCells": [
+            -68,
+            -767
+          ],
+          "highHalfCells": [
+            -68,
+            -762
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": true,
+          "expected": 233,
+          "observed": [
+            48,
+            48,
+            48
+          ],
+          "horizonDistancePixels": 3.1426989660129476
+        },
+        {
+          "x": 302,
+          "y": 90,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -17.244454397173786,
+            -383.2324961121442
+          ],
+          "maximum": [
+            -17.115487787623916,
+            -380.75238303869884
+          ],
+          "lowHalfCells": [
+            -35,
+            -767
+          ],
+          "highHalfCells": [
+            -35,
+            -762
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": true,
+          "expected": 48,
+          "observed": [
+            232,
+            232,
+            232
+          ],
+          "horizonDistancePixels": 3.1426989660129476
+        },
+        {
+          "x": 319,
+          "y": 90,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -0.5022656620536099,
+            -383.2324961121442
+          ],
+          "maximum": [
+            -0.4795076624320145,
+            -380.75238303869884
+          ],
+          "lowHalfCells": [
+            -2,
+            -767
+          ],
+          "highHalfCells": [
+            -1,
+            -762
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": true,
+          "expected": 48,
+          "observed": [
+            232,
+            232,
+            232
+          ],
+          "horizonDistancePixels": 3.1426989660129476
+        },
+        {
+          "x": 336,
+          "y": 90,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            16.136900721436096,
+            -383.2324961121442
+          ],
+          "maximum": [
+            16.25961976569607,
+            -380.75238303869884
+          ],
+          "lowHalfCells": [
+            32,
+            -767
+          ],
+          "highHalfCells": [
+            32,
+            -762
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": true,
+          "expected": 233,
+          "observed": [
+            48,
+            48,
+            48
+          ],
+          "horizonDistancePixels": 3.1426989660129476
+        },
+        {
+          "x": 353,
+          "y": 90,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            32.772880846628,
+            -383.2324961121442
+          ],
+          "maximum": [
+            33.0018085008162,
+            -380.75238303869884
+          ],
+          "lowHalfCells": [
+            65,
+            -767
+          ],
+          "highHalfCells": [
+            66,
+            -762
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": true,
+          "expected": 48,
+          "observed": [
+            232,
+            232,
+            232
+          ],
+          "horizonDistancePixels": 3.1426989660129476
+        },
+        {
+          "x": 370,
+          "y": 90,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            49.408860971819855,
+            -383.2324961121442
+          ],
+          "maximum": [
+            49.74399723593638,
+            -380.75238303869884
+          ],
+          "lowHalfCells": [
+            98,
+            -767
+          ],
+          "highHalfCells": [
+            99,
+            -762
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": true,
+          "expected": 48,
+          "observed": [
+            232,
+            232,
+            232
+          ],
+          "horizonDistancePixels": 3.1426989660129476
+        },
+        {
+          "x": 387,
+          "y": 90,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            66.04484109701171,
+            -383.2324961121442
+          ],
+          "maximum": [
+            66.48618597105651,
+            -380.75238303869884
+          ],
+          "lowHalfCells": [
+            132,
+            -767
+          ],
+          "highHalfCells": [
+            132,
+            -762
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": true,
+          "expected": 233,
+          "observed": [
+            48,
+            48,
+            48
+          ],
+          "horizonDistancePixels": 3.1426989660129476
+        },
+        {
+          "x": 404,
+          "y": 90,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            82.68082122220358,
+            -383.2324961121442
+          ],
+          "maximum": [
+            83.22837470617665,
+            -380.75238303869884
+          ],
+          "lowHalfCells": [
+            165,
+            -767
+          ],
+          "highHalfCells": [
+            166,
+            -762
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": true,
+          "expected": 48,
+          "observed": [
+            232,
+            232,
+            232
+          ],
+          "horizonDistancePixels": 3.1426989660129476
+        },
+        {
+          "x": 421,
+          "y": 90,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            99.31680134739551,
+            -383.2324961121442
+          ],
+          "maximum": [
+            99.97056344129686,
+            -380.75238303869884
+          ],
+          "lowHalfCells": [
+            198,
+            -767
+          ],
+          "highHalfCells": [
+            199,
+            -762
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": true,
+          "expected": 48,
+          "observed": [
+            232,
+            232,
+            232
+          ],
+          "horizonDistancePixels": 3.1426989660129476
+        },
+        {
+          "x": 438,
+          "y": 90,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            115.95278147258738,
+            -383.2324961121442
+          ],
+          "maximum": [
+            116.712752176417,
+            -380.75238303869884
+          ],
+          "lowHalfCells": [
+            231,
+            -767
+          ],
+          "highHalfCells": [
+            233,
+            -762
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": true,
+          "expected": 233,
+          "observed": [
+            48,
+            48,
+            48
+          ],
+          "horizonDistancePixels": 3.1426989660129476
+        },
+        {
+          "x": 455,
+          "y": 90,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            132.58876159777924,
+            -383.2324961121442
+          ],
+          "maximum": [
+            133.45494091153714,
+            -380.75238303869884
+          ],
+          "lowHalfCells": [
+            265,
+            -767
+          ],
+          "highHalfCells": [
+            266,
+            -762
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": true,
+          "expected": 233,
+          "observed": [
+            48,
+            48,
+            48
+          ],
+          "horizonDistancePixels": 3.1426989660129476
+        },
+        {
+          "x": 472,
+          "y": 90,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            149.2247417229711,
+            -383.2324961121442
+          ],
+          "maximum": [
+            150.19712964665726,
+            -380.75238303869884
+          ],
+          "lowHalfCells": [
+            298,
+            -767
+          ],
+          "highHalfCells": [
+            300,
+            -762
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": true,
+          "expected": 48,
+          "observed": [
+            232,
+            232,
+            232
+          ],
+          "horizonDistancePixels": 3.1426989660129476
+        },
+        {
+          "x": 489,
+          "y": 90,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            165.86072184816302,
+            -383.2324961121442
+          ],
+          "maximum": [
+            166.9393183817774,
+            -380.75238303869884
+          ],
+          "lowHalfCells": [
+            331,
+            -767
+          ],
+          "highHalfCells": [
+            333,
+            -762
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": true,
+          "expected": 233,
+          "observed": [
+            48,
+            48,
+            48
+          ],
+          "horizonDistancePixels": 3.1426989660129476
+        },
+        {
+          "x": 506,
+          "y": 90,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            182.4967019733549,
+            -383.2324961121442
+          ],
+          "maximum": [
+            183.68150711689762,
+            -380.75238303869884
+          ],
+          "lowHalfCells": [
+            364,
+            -767
+          ],
+          "highHalfCells": [
+            367,
+            -762
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": true,
+          "expected": 233,
+          "observed": [
+            48,
+            48,
+            48
+          ],
+          "horizonDistancePixels": 3.1426989660129476
+        },
+        {
+          "x": 523,
+          "y": 90,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            199.13268209854675,
+            -383.2324961121442
+          ],
+          "maximum": [
+            200.42369585201774,
+            -380.75238303869884
+          ],
+          "lowHalfCells": [
+            398,
+            -767
+          ],
+          "highHalfCells": [
+            400,
+            -762
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": true,
+          "expected": 48,
+          "observed": [
+            232,
+            232,
+            232
+          ],
+          "horizonDistancePixels": 3.1426989660129476
+        },
+        {
+          "x": 540,
+          "y": 90,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            215.7686622237386,
+            -383.2324961121442
+          ],
+          "maximum": [
+            217.1658845871379,
+            -380.75238303869884
+          ],
+          "lowHalfCells": [
+            431,
+            -767
+          ],
+          "highHalfCells": [
+            434,
+            -762
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 557,
+          "y": 90,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            232.40464234893048,
+            -383.2324961121442
+          ],
+          "maximum": [
+            233.90807332225802,
+            -380.75238303869884
+          ],
+          "lowHalfCells": [
+            464,
+            -767
+          ],
+          "highHalfCells": [
+            467,
+            -762
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": true,
+          "expected": 233,
+          "observed": [
+            48,
+            48,
+            48
+          ],
+          "horizonDistancePixels": 3.1426989660129476
+        },
+        {
+          "x": 574,
+          "y": 90,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            249.04062247412242,
+            -383.2324961121442
+          ],
+          "maximum": [
+            250.65026205737826,
+            -380.75238303869884
+          ],
+          "lowHalfCells": [
+            498,
+            -767
+          ],
+          "highHalfCells": [
+            501,
+            -762
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": true,
+          "expected": 48,
+          "observed": [
+            232,
+            232,
+            232
+          ],
+          "horizonDistancePixels": 3.1426989660129476
+        },
+        {
+          "x": 591,
+          "y": 90,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            265.67660259931426,
+            -383.2324961121442
+          ],
+          "maximum": [
+            267.3924507924984,
+            -380.75238303869884
+          ],
+          "lowHalfCells": [
+            531,
+            -767
+          ],
+          "highHalfCells": [
+            534,
+            -762
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": true,
+          "expected": 48,
+          "observed": [
+            232,
+            232,
+            232
+          ],
+          "horizonDistancePixels": 3.1426989660129476
+        },
+        {
+          "x": 608,
+          "y": 90,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            282.3125827245061,
+            -383.2324961121442
+          ],
+          "maximum": [
+            284.1346395276185,
+            -380.75238303869884
+          ],
+          "lowHalfCells": [
+            564,
+            -767
+          ],
+          "highHalfCells": [
+            568,
+            -762
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": true,
+          "expected": 233,
+          "observed": [
+            48,
+            48,
+            48
+          ],
+          "horizonDistancePixels": 3.1426989660129476
+        },
+        {
+          "x": 625,
+          "y": 90,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            298.94856284969796,
+            -383.2324961121442
+          ],
+          "maximum": [
+            300.8768282627386,
+            -380.75238303869884
+          ],
+          "lowHalfCells": [
+            597,
+            -767
+          ],
+          "highHalfCells": [
+            601,
+            -762
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": true,
+          "expected": 48,
+          "observed": [
+            232,
+            232,
+            232
+          ],
+          "horizonDistancePixels": 3.1426989660129476
+        },
+        {
+          "x": 81,
+          "y": 101,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -52.06710845819669,
+            -78.93977272112012
+          ],
+          "maximum": [
+            -51.98916954488784,
+            -78.81730876858468
+          ],
+          "lowHalfCells": [
+            -105,
+            -158
+          ],
+          "highHalfCells": [
+            -104,
+            -158
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 166,
+          "y": 101,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -33.51147465270963,
+            -78.93977272112012
+          ],
+          "maximum": [
+            -33.459757782065644,
+            -78.81730876858468
+          ],
+          "lowHalfCells": [
+            -68,
+            -158
+          ],
+          "highHalfCells": [
+            -67,
+            -158
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 489,
+          "y": 101,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            36.94764705506747,
+            -78.93977272112012
+          ],
+          "maximum": [
+            37.00429983962482,
+            -78.81730876858468
+          ],
+          "lowHalfCells": [
+            73,
+            -158
+          ],
+          "highHalfCells": [
+            74,
+            -158
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 574,
+          "y": 101,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            55.47705881788966,
+            -78.93977272112012
+          ],
+          "maximum": [
+            55.5599336451119,
+            -78.81730876858468
+          ],
+          "lowHalfCells": [
+            110,
+            -158
+          ],
+          "highHalfCells": [
+            111,
+            -158
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 13,
+          "y": 112,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -37.62595177328359,
+            -41.01079815211678
+          ],
+          "maximum": [
+            -37.59358058142063,
+            -40.97205018457822
+          ],
+          "lowHalfCells": [
+            -76,
+            -83
+          ],
+          "highHalfCells": [
+            -76,
+            -82
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 30,
+          "y": 112,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -35.539099206823046,
+            -41.01079815211678
+          ],
+          "maximum": [
+            -35.508387361791435,
+            -40.97205018457822
+          ],
+          "lowHalfCells": [
+            -72,
+            -83
+          ],
+          "highHalfCells": [
+            -72,
+            -82
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 47,
+          "y": 112,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -33.452246640362496,
+            -41.01079815211678
+          ],
+          "maximum": [
+            -33.423194142162245,
+            -40.97205018457822
+          ],
+          "lowHalfCells": [
+            -67,
+            -83
+          ],
+          "highHalfCells": [
+            -67,
+            -82
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 64,
+          "y": 112,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -31.36539407390196,
+            -41.01079815211678
+          ],
+          "maximum": [
+            -31.33800092253306,
+            -40.97205018457822
+          ],
+          "lowHalfCells": [
+            -63,
+            -83
+          ],
+          "highHalfCells": [
+            -63,
+            -82
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 81,
+          "y": 112,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -29.278541507441417,
+            -41.01079815211678
+          ],
+          "maximum": [
+            -29.252807702903866,
+            -40.97205018457822
+          ],
+          "lowHalfCells": [
+            -59,
+            -83
+          ],
+          "highHalfCells": [
+            -59,
+            -82
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 98,
+          "y": 112,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -27.191688940980875,
+            -41.01079815211678
+          ],
+          "maximum": [
+            -27.167614483274672,
+            -40.97205018457822
+          ],
+          "lowHalfCells": [
+            -55,
+            -83
+          ],
+          "highHalfCells": [
+            -55,
+            -82
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 115,
+          "y": 112,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -25.10483637452033,
+            -41.01079815211678
+          ],
+          "maximum": [
+            -25.082421263645482,
+            -40.97205018457822
+          ],
+          "lowHalfCells": [
+            -51,
+            -83
+          ],
+          "highHalfCells": [
+            -51,
+            -82
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 132,
+          "y": 112,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -23.01798380805979,
+            -41.01079815211678
+          ],
+          "maximum": [
+            -22.997228044016296,
+            -40.97205018457822
+          ],
+          "lowHalfCells": [
+            -47,
+            -83
+          ],
+          "highHalfCells": [
+            -46,
+            -82
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 149,
+          "y": 112,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -20.931131241599243,
+            -41.01079815211678
+          ],
+          "maximum": [
+            -20.912034824387103,
+            -40.97205018457822
+          ],
+          "lowHalfCells": [
+            -42,
+            -83
+          ],
+          "highHalfCells": [
+            -42,
+            -82
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 166,
+          "y": 112,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -18.8442786751387,
+            -41.01079815211678
+          ],
+          "maximum": [
+            -18.826841604757917,
+            -40.97205018457822
+          ],
+          "lowHalfCells": [
+            -38,
+            -83
+          ],
+          "highHalfCells": [
+            -38,
+            -82
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 183,
+          "y": 112,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -16.757426108678157,
+            -41.01079815211678
+          ],
+          "maximum": [
+            -16.741648385128723,
+            -40.97205018457822
+          ],
+          "lowHalfCells": [
+            -34,
+            -83
+          ],
+          "highHalfCells": [
+            -34,
+            -82
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 200,
+          "y": 112,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -14.670573542217616,
+            -41.01079815211678
+          ],
+          "maximum": [
+            -14.65645516549953,
+            -40.97205018457822
+          ],
+          "lowHalfCells": [
+            -30,
+            -83
+          ],
+          "highHalfCells": [
+            -30,
+            -82
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 217,
+          "y": 112,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -12.583720975757075,
+            -41.01079815211678
+          ],
+          "maximum": [
+            -12.571261945870342,
+            -40.97205018457822
+          ],
+          "lowHalfCells": [
+            -26,
+            -83
+          ],
+          "highHalfCells": [
+            -26,
+            -82
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 234,
+          "y": 112,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -10.49686840929653,
+            -41.01079815211678
+          ],
+          "maximum": [
+            -10.486068726241154,
+            -40.97205018457822
+          ],
+          "lowHalfCells": [
+            -21,
+            -83
+          ],
+          "highHalfCells": [
+            -21,
+            -82
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 251,
+          "y": 112,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -8.410015842835989,
+            -41.01079815211678
+          ],
+          "maximum": [
+            -8.40087550661196,
+            -40.97205018457822
+          ],
+          "lowHalfCells": [
+            -17,
+            -83
+          ],
+          "highHalfCells": [
+            -17,
+            -82
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 268,
+          "y": 112,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -6.3231632763754435,
+            -41.01079815211678
+          ],
+          "maximum": [
+            -6.315682286982772,
+            -40.97205018457822
+          ],
+          "lowHalfCells": [
+            -13,
+            -83
+          ],
+          "highHalfCells": [
+            -13,
+            -82
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 285,
+          "y": 112,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -4.236310709914903,
+            -41.01079815211678
+          ],
+          "maximum": [
+            -4.230489067353578,
+            -40.97205018457822
+          ],
+          "lowHalfCells": [
+            -9,
+            -83
+          ],
+          "highHalfCells": [
+            -9,
+            -82
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 302,
+          "y": 112,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -2.1494581434543627,
+            -41.01079815211678
+          ],
+          "maximum": [
+            -2.1452958477243897,
+            -40.97205018457822
+          ],
+          "lowHalfCells": [
+            -5,
+            -83
+          ],
+          "highHalfCells": [
+            -5,
+            -82
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 319,
+          "y": 112,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -0.06260557699381694,
+            -41.01079815211678
+          ],
+          "maximum": [
+            -0.06010262809519599,
+            -40.97205018457822
+          ],
+          "lowHalfCells": [
+            -1,
+            -83
+          ],
+          "highHalfCells": [
+            -1,
+            -82
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 336,
+          "y": 112,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            2.022637423040312,
+            -41.01079815211678
+          ],
+          "maximum": [
+            2.0267021101331464,
+            -40.97205018457822
+          ],
+          "lowHalfCells": [
+            4,
+            -83
+          ],
+          "highHalfCells": [
+            4,
+            -82
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 353,
+          "y": 112,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            4.107830642669506,
+            -41.01079815211678
+          ],
+          "maximum": [
+            4.113554676593687,
+            -40.97205018457822
+          ],
+          "lowHalfCells": [
+            8,
+            -83
+          ],
+          "highHalfCells": [
+            8,
+            -82
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 370,
+          "y": 112,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            6.193023862298694,
+            -41.01079815211678
+          ],
+          "maximum": [
+            6.200407243054233,
+            -40.97205018457822
+          ],
+          "lowHalfCells": [
+            12,
+            -83
+          ],
+          "highHalfCells": [
+            12,
+            -82
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 387,
+          "y": 112,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            8.278217081927883,
+            -41.01079815211678
+          ],
+          "maximum": [
+            8.287259809514772,
+            -40.97205018457822
+          ],
+          "lowHalfCells": [
+            16,
+            -83
+          ],
+          "highHalfCells": [
+            16,
+            -82
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 404,
+          "y": 112,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            10.36341030155707,
+            -41.01079815211678
+          ],
+          "maximum": [
+            10.374112375975313,
+            -40.97205018457822
+          ],
+          "lowHalfCells": [
+            20,
+            -83
+          ],
+          "highHalfCells": [
+            20,
+            -82
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 421,
+          "y": 112,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            12.44860352118627,
+            -41.01079815211678
+          ],
+          "maximum": [
+            12.460964942435865,
+            -40.97205018457822
+          ],
+          "lowHalfCells": [
+            24,
+            -83
+          ],
+          "highHalfCells": [
+            24,
+            -82
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 438,
+          "y": 112,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            14.533796740815458,
+            -41.01079815211678
+          ],
+          "maximum": [
+            14.547817508896404,
+            -40.97205018457822
+          ],
+          "lowHalfCells": [
+            29,
+            -83
+          ],
+          "highHalfCells": [
+            29,
+            -82
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 455,
+          "y": 112,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            16.618989960444647,
+            -41.01079815211678
+          ],
+          "maximum": [
+            16.634670075356944,
+            -40.97205018457822
+          ],
+          "lowHalfCells": [
+            33,
+            -83
+          ],
+          "highHalfCells": [
+            33,
+            -82
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 472,
+          "y": 112,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            18.704183180073834,
+            -41.01079815211678
+          ],
+          "maximum": [
+            18.721522641817486,
+            -40.97205018457822
+          ],
+          "lowHalfCells": [
+            37,
+            -83
+          ],
+          "highHalfCells": [
+            37,
+            -82
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 489,
+          "y": 112,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            20.789376399703034,
+            -41.01079815211678
+          ],
+          "maximum": [
+            20.808375208278026,
+            -40.97205018457822
+          ],
+          "lowHalfCells": [
+            41,
+            -83
+          ],
+          "highHalfCells": [
+            41,
+            -82
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 506,
+          "y": 112,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            22.874569619332224,
+            -41.01079815211678
+          ],
+          "maximum": [
+            22.895227774738576,
+            -40.97205018457822
+          ],
+          "lowHalfCells": [
+            45,
+            -83
+          ],
+          "highHalfCells": [
+            45,
+            -82
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 523,
+          "y": 112,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            24.95976283896141,
+            -41.01079815211678
+          ],
+          "maximum": [
+            24.98208034119912,
+            -40.97205018457822
+          ],
+          "lowHalfCells": [
+            49,
+            -83
+          ],
+          "highHalfCells": [
+            49,
+            -82
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 540,
+          "y": 112,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            27.0449560585906,
+            -41.01079815211678
+          ],
+          "maximum": [
+            27.068932907659658,
+            -40.97205018457822
+          ],
+          "lowHalfCells": [
+            54,
+            -83
+          ],
+          "highHalfCells": [
+            54,
+            -82
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 557,
+          "y": 112,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            29.130149278219786,
+            -41.01079815211678
+          ],
+          "maximum": [
+            29.155785474120197,
+            -40.97205018457822
+          ],
+          "lowHalfCells": [
+            58,
+            -83
+          ],
+          "highHalfCells": [
+            58,
+            -82
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 574,
+          "y": 112,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            31.215342497848987,
+            -41.01079815211678
+          ],
+          "maximum": [
+            31.242638040580747,
+            -40.97205018457822
+          ],
+          "lowHalfCells": [
+            62,
+            -83
+          ],
+          "highHalfCells": [
+            62,
+            -82
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 591,
+          "y": 112,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            33.300535717478176,
+            -41.01079815211678
+          ],
+          "maximum": [
+            33.329490607041286,
+            -40.97205018457822
+          ],
+          "lowHalfCells": [
+            66,
+            -83
+          ],
+          "highHalfCells": [
+            66,
+            -82
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 608,
+          "y": 112,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            35.385728937107366,
+            -41.01079815211678
+          ],
+          "maximum": [
+            35.41634317350183,
+            -40.97205018457822
+          ],
+          "lowHalfCells": [
+            70,
+            -83
+          ],
+          "highHalfCells": [
+            70,
+            -82
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 625,
+          "y": 112,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            37.47092215673655,
+            -41.01079815211678
+          ],
+          "maximum": [
+            37.50319573996237,
+            -40.97205018457822
+          ],
+          "lowHalfCells": [
+            74,
+            -83
+          ],
+          "highHalfCells": [
+            75,
+            -82
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 132,
+          "y": 123,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -16.010540989386882,
+            -26.17551612191219
+          ],
+          "maximum": [
+            -15.999977058080354,
+            -26.156764815873416
+          ],
+          "lowHalfCells": [
+            -33,
+            -53
+          ],
+          "highHalfCells": [
+            -32,
+            -53
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": false
+        },
+        {
+          "x": 47,
+          "y": 255,
+          "stable": false,
+          "reason": "at least one count crosses a half-cell boundary",
+          "minimum": [
+            -5.000486221416101,
+            0.43565562283476744
+          ],
+          "maximum": [
+            -4.999524514978695,
+            0.4365220192021111
+          ],
+          "lowHalfCells": [
+            -11,
+            0
+          ],
+          "highHalfCells": [
+            -10,
+            0
+          ],
+          "countBoundaryGuard": 1e-10,
+          "nominalMismatch": true,
+          "expected": 48,
+          "observed": [
+            232,
+            232,
+            232
+          ],
+          "horizonDistancePixels": 168.14269896601294
+        }
+      ],
+      "passed": true,
+      "limitation": "This certifies the mathematical original-source neighborhood, not a bound on GPU coordinate error. It supplements and never replaces the frozen registration family or nominal expanded-grid residuals."
+    }
+  },
+  "observationCoverage": {
+    "expectedGameFrames": 120,
+    "observedGameFrames": 119,
+    "recordedRenderFamilies": 120,
+    "missingGameFrames": [
+      119
+    ]
+  },
+  "calibration": {
+    "transfer": "documented-power-gamma-2.2",
+    "rawPalette": {
+      "passed": true,
+      "method": "documented-power-gamma-2.2; each raw pixel must be within one integer code of a rounded source-palette color on the normalized 0–255 display scale. Native sample precision is retained when supplied. No transfer curve or parameter is fitted.",
+      "pixels": 230400,
+      "pixelsOutsideOneCodeOfRoundedPalette": 0,
+      "worstRoundedByteError": 1,
+      "worstUnroundedByteError": 1.0046878779662336,
+      "nearestPaletteClassCounts": {
+        "dark": 87331,
+        "light": 87389,
+        "sky": 55680
+      },
+      "expectedUnroundedDisplayBytes": [
+        [
+          47.67943424047372,
+          47.67943424047372,
+          47.67943424047372
+        ],
+        [
+          233.00468787796623,
+          233.00468787796623,
+          233.00468787796623
+        ],
+        [
+          91.54322863228488,
+          100.87583874810366,
+          110.86042423273335
+        ]
+      ],
+      "firstFailures": []
+    },
+    "anchors": {
+      "sky": 36,
+      "constantGround": 24,
+      "failures": [],
+      "passed": true
+    }
+  },
+  "limitations": [
+    "PostRenderView records final graph-construction state; they are not GPU-completion or performance measurements.",
+    "Only the raw crop independently identifies source pose/time. Other panes are associated through their common rendered family, camera matrices and constant-source anchors.",
+    "Equal fixed-pose frames cannot identify an exact saved game frame. Moving frames that match multiple recorded source times are rejected.",
+    "Primary output rectangles and requested resolution are not measurements of the private primary raster rectangle.",
+    "This is registration and configuration validation, not a filter-quality score, temporal trajectory evaluation or frame-rate benchmark.",
+    "The committed registration guard tests nine nearby parity samples, not every point in the neighborhood; very fast counts can alias between guard samples. Expanded-grid residuals are retained with count-rate diagnostics.",
+    "Power-gamma 2.2 follows the documented gamma-only ordinary Shot path; source palette and constant anchors validate this readback, not arbitrary continuous transfer accuracy."
+  ],
+  "inputs": {
+    "capture": {
+      "path": "native/evidence/synchronized-render-20260905T231601.091385Z/report.json",
+      "sha256": "ec0896967fc56cafd8dcdfe57a1f4e175cf343705d1db6b83778a78a5e483401"
+    },
+    "telemetry": {
+      "path": "native/evidence/synchronized-render-20260905T231601.091385Z/views.json",
+      "sha256": "db7a2b99ae8b5d65d6ce8d99d1b3adce30cee6ad76518df899528c062b09545b"
+    },
+    "preparation": {
+      "path": "native/evidence/synchronized-render-20260905T231601.091385Z/preparation.json",
+      "sha256": "c9991229e26d666003cd130517b47ea7a914a346cf08e6cf3c492f27345043d4"
+    },
+    "image": {
+      "path": "native/evidence/synchronized-render-20260905T231601.091385Z/comparison.png",
+      "sha256": "71cfdd35404e25059f9a440e9f01678eb912dc8859810fe65cd053fcad47b73a"
+    }
+  },
+  "createdAt": "2026-09-05T23:19:18.292Z",
+  "validatorSha256": "8bd88555c86a5c659700a2109983cf3766d50bce6990e97a31207eb76afceb5a",
+  "sourceHelperSha256": "6d0d9325792b45ff78c606a77bfd82b9b027c1d36b667043a008e3bc3fb1d080"
+}

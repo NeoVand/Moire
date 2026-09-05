@@ -12,7 +12,7 @@ for script in ROOT.rglob("*.py"):
     ast.parse(script.read_text(encoding="utf-8"), filename=str(script))
 descriptor = json.loads((PROJECT / "MoireComparison.uproject").read_text())
 assert descriptor["EngineAssociation"] == "5.8" and "Modules" not in descriptor
-assert {p["Name"] for p in descriptor["Plugins"] if p["Enabled"]} == {"PythonScriptPlugin", "EditorScriptingUtilities", "SequencerScripting", "MovieRenderPipeline"}
+assert {p["Name"] for p in descriptor["Plugins"] if p["Enabled"]} == {"PythonScriptPlugin", "EditorScriptingUtilities", "SequencerScripting", "MovieRenderPipeline", "MoireCompare"}
 assert any(p["Name"] == "AndroidFileServer" and not p["Enabled"] for p in descriptor["Plugins"])
 assert "AndroidFileServerRuntimeSettings" not in (PROJECT / "Config" / "DefaultEngine.ini").read_text()
 spec = importlib.util.spec_from_file_location("scene_contract", PROJECT / "Scripts" / "scene_contract.py")

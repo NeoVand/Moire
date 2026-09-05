@@ -1,0 +1,197 @@
+{
+  "scope": "Independent source-pose check only; startup frame accounting failed; not a complete capture validation",
+  "checked": 885,
+  "mismatches": 0,
+  "firstFailures": [],
+  "passed": true,
+  "family": "x=13..639 step17, y=93..359 step11; original-source horizon >3px; parity stable within +/-0.01px",
+  "expandedGridDiagnostic": {
+    "checked": 816,
+    "mismatches": 7,
+    "firstFailures": [
+      {
+        "x": 47,
+        "y": 90,
+        "expected": 233,
+        "observed": [
+          48,
+          48,
+          48
+        ],
+        "horizonDistancePixels": 3.1426989660129476,
+        "sourceCounts": [
+          -267.51349770904784,
+          -381.98849374239603
+        ],
+        "countRatesPerPixel": {
+          "method": "Centered difference of the original rational camera rays, step0.001px",
+          "dx": [
+            0.9817009090227202,
+            0
+          ],
+          "dy": [
+            85.12222382384493,
+            124.00441067268275
+          ]
+        }
+      },
+      {
+        "x": 81,
+        "y": 90,
+        "expected": 48,
+        "observed": [
+          232,
+          232,
+          232
+        ],
+        "horizonDistancePixels": 3.1426989660129476,
+        "sourceCounts": [
+          -234.13566680223084,
+          -381.98849374239603
+        ],
+        "countRatesPerPixel": {
+          "method": "Centered difference of the original rational camera rays, step0.001px",
+          "dx": [
+            0.9817009090227202,
+            0
+          ],
+          "dy": [
+            74.50146929168966,
+            124.00441067268275
+          ]
+        }
+      },
+      {
+        "x": 132,
+        "y": 90,
+        "expected": 48,
+        "observed": [
+          232,
+          232,
+          232
+        ],
+        "horizonDistancePixels": 3.1426989660129476,
+        "sourceCounts": [
+          -184.0689204420054,
+          -381.98849374239603
+        ],
+        "countRatesPerPixel": {
+          "method": "Centered difference of the original rational camera rays, step0.001px",
+          "dx": [
+            0.9817009090369311,
+            0
+          ],
+          "dy": [
+            58.57033749346385,
+            124.00441067268275
+          ]
+        }
+      },
+      {
+        "x": 234,
+        "y": 90,
+        "expected": 233,
+        "observed": [
+          48,
+          48,
+          48
+        ],
+        "horizonDistancePixels": 3.1426989660129476,
+        "sourceCounts": [
+          -83.93542772155446,
+          -381.98849374239603
+        ],
+        "countRatesPerPixel": {
+          "method": "Centered difference of the original rational camera rays, step0.001px",
+          "dx": [
+            0.9817009090227202,
+            0
+          ],
+          "dy": [
+            26.708073897019347,
+            124.00441067268275
+          ]
+        }
+      },
+      {
+        "x": 404,
+        "y": 90,
+        "expected": 48,
+        "observed": [
+          232,
+          232,
+          232
+        ],
+        "horizonDistancePixels": 3.1426989660129476,
+        "sourceCounts": [
+          82.95372681253036,
+          -381.98849374239603
+        ],
+        "countRatesPerPixel": {
+          "method": "Centered difference of the original rational camera rays, step0.001px",
+          "dx": [
+            0.9817009090085094,
+            0
+          ],
+          "dy": [
+            -26.395698763721498,
+            124.00441067268275
+          ]
+        }
+      },
+      {
+        "x": 557,
+        "y": 90,
+        "expected": 233,
+        "observed": [
+          48,
+          48,
+          48
+        ],
+        "horizonDistancePixels": 3.1426989660129476,
+        "sourceCounts": [
+          233.15396589320676,
+          -381.98849374239603
+        ],
+        "countRatesPerPixel": {
+          "method": "Centered difference of the original rational camera rays, step0.001px",
+          "dx": [
+            0.9817009090085094,
+            0
+          ],
+          "dy": [
+            -74.18909415839892,
+            124.00441067268275
+          ]
+        }
+      },
+      {
+        "x": 591,
+        "y": 90,
+        "expected": 48,
+        "observed": [
+          232,
+          232,
+          232
+        ],
+        "horizonDistancePixels": 3.1426989660129476,
+        "sourceCounts": [
+          266.53179680002376,
+          -381.98849374239603
+        ],
+        "countRatesPerPixel": {
+          "method": "Centered difference of the original rational camera rays, step0.001px",
+          "dx": [
+            0.9817009090227202,
+            0
+          ],
+          "dy": [
+            -84.80984869055419,
+            124.00441067268275
+          ]
+        }
+      }
+    ],
+    "family": "Additional y=13 step11 grid; not the committed frame-registration family. This exposed two source residuals at y=90 in the historical paused raw control."
+  }
+}

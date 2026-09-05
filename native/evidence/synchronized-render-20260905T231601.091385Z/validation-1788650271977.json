@@ -1,0 +1,606 @@
+{
+  "schema": "moire-synchronized-validation-v1",
+  "status": "validation-failed",
+  "passed": false,
+  "performanceMeasurement": false,
+  "temporalQualityEstablished": false,
+  "observedMetadataPassed": false,
+  "comparability": {
+    "passed": false,
+    "primaryRasterVerified": true,
+    "imageAndObservedMetadataPassed": false
+  },
+  "checks": [
+    {
+      "name": "schema and terminal telemetry",
+      "passed": true
+    },
+    {
+      "name": "ordinary game route",
+      "passed": true
+    },
+    {
+      "name": "process succeeded without ensures",
+      "passed": true
+    },
+    {
+      "name": "capture source hashes stable",
+      "passed": true
+    },
+    {
+      "name": "owned source scene and map preparation",
+      "passed": true
+    },
+    {
+      "name": "point material hash agrees with prepared scene",
+      "passed": true
+    },
+    {
+      "name": "analytic material hash agrees with prepared scene",
+      "passed": true
+    },
+    {
+      "name": "sky material hash agrees with prepared scene",
+      "passed": true
+    },
+    {
+      "name": "documented gamma-only command and common source settings",
+      "passed": true
+    },
+    {
+      "name": "screenshot file was processed",
+      "passed": true
+    },
+    {
+      "name": "supported source motion",
+      "passed": true
+    },
+    {
+      "name": "explicit temporal/source mode metadata",
+      "passed": true
+    },
+    {
+      "name": "observed source mode agrees with requested run",
+      "passed": true
+    },
+    {
+      "name": "supported image and recorded pane size",
+      "passed": true
+    },
+    {
+      "name": "bounded observation metadata",
+      "passed": true
+    },
+    {
+      "name": "view records have finite matrices and identifiers",
+      "passed": true
+    },
+    {
+      "name": "each recorded render family contains exactly three arms",
+      "passed": true
+    },
+    {
+      "name": "complete expected game-frame coverage",
+      "passed": false,
+      "detail": "Missing game frames: 119"
+    },
+    {
+      "name": "render-family identifiers are unique",
+      "passed": true
+    },
+    {
+      "name": "three distinct persistent histories and controllers",
+      "passed": true
+    },
+    {
+      "name": "shared camera, AA, history, cuts and output crops match the source",
+      "passed": true
+    },
+    {
+      "name": "arm1: temporal jitter actually varies",
+      "passed": true
+    },
+    {
+      "name": "raw crop validates documented transfer palette",
+      "passed": true
+    },
+    {
+      "name": "saved image identifies the required source pose",
+      "passed": true,
+      "detail": "1 image-matching families among 1 candidates; fixed-pose-image-registration"
+    },
+    {
+      "name": "all panes share sky and constant-source registration anchors",
+      "passed": true,
+      "detail": "36 sky, 24 constant-ground anchors; 0 mismatches"
+    }
+  ],
+  "failures": [
+    {
+      "name": "complete expected game-frame coverage",
+      "passed": false,
+      "detail": "Missing game frames: 119"
+    }
+  ],
+  "warnings": [
+    "Uniform-buffer CPU-copy diagnostics were enabled; this capture is unsuitable for performance timing.",
+    "7 additional raw-source mismatches in the held-out expanded grid; registration is not a full-source correctness pass."
+  ],
+  "registration": {
+    "passed": true,
+    "candidates": [
+      {
+        "gameFrame": 91,
+        "renderFrameNumber": 93,
+        "sourceTime": 0,
+        "checked": 885,
+        "mismatches": 0,
+        "firstFailures": [],
+        "passed": true,
+        "family": "x=13..639 step17, y=93..359 step11; original-source horizon >3px; parity stable within +/-0.01px",
+        "expandedGridDiagnostic": {
+          "checked": 816,
+          "mismatches": 7,
+          "firstFailures": [
+            {
+              "x": 47,
+              "y": 90,
+              "expected": 233,
+              "observed": [
+                48,
+                48,
+                48
+              ],
+              "horizonDistancePixels": 3.1426989660129476,
+              "sourceCounts": [
+                -267.51349770904784,
+                -381.98849374239603
+              ],
+              "countRatesPerPixel": {
+                "method": "Centered difference of the original rational camera rays, step0.001px",
+                "dx": [
+                  0.9817009090227202,
+                  0
+                ],
+                "dy": [
+                  85.12222382384493,
+                  124.00441067268275
+                ]
+              }
+            },
+            {
+              "x": 81,
+              "y": 90,
+              "expected": 48,
+              "observed": [
+                232,
+                232,
+                232
+              ],
+              "horizonDistancePixels": 3.1426989660129476,
+              "sourceCounts": [
+                -234.13566680223084,
+                -381.98849374239603
+              ],
+              "countRatesPerPixel": {
+                "method": "Centered difference of the original rational camera rays, step0.001px",
+                "dx": [
+                  0.9817009090227202,
+                  0
+                ],
+                "dy": [
+                  74.50146929168966,
+                  124.00441067268275
+                ]
+              }
+            },
+            {
+              "x": 132,
+              "y": 90,
+              "expected": 48,
+              "observed": [
+                232,
+                232,
+                232
+              ],
+              "horizonDistancePixels": 3.1426989660129476,
+              "sourceCounts": [
+                -184.0689204420054,
+                -381.98849374239603
+              ],
+              "countRatesPerPixel": {
+                "method": "Centered difference of the original rational camera rays, step0.001px",
+                "dx": [
+                  0.9817009090369311,
+                  0
+                ],
+                "dy": [
+                  58.57033749346385,
+                  124.00441067268275
+                ]
+              }
+            },
+            {
+              "x": 234,
+              "y": 90,
+              "expected": 233,
+              "observed": [
+                48,
+                48,
+                48
+              ],
+              "horizonDistancePixels": 3.1426989660129476,
+              "sourceCounts": [
+                -83.93542772155446,
+                -381.98849374239603
+              ],
+              "countRatesPerPixel": {
+                "method": "Centered difference of the original rational camera rays, step0.001px",
+                "dx": [
+                  0.9817009090227202,
+                  0
+                ],
+                "dy": [
+                  26.708073897019347,
+                  124.00441067268275
+                ]
+              }
+            },
+            {
+              "x": 404,
+              "y": 90,
+              "expected": 48,
+              "observed": [
+                232,
+                232,
+                232
+              ],
+              "horizonDistancePixels": 3.1426989660129476,
+              "sourceCounts": [
+                82.95372681253036,
+                -381.98849374239603
+              ],
+              "countRatesPerPixel": {
+                "method": "Centered difference of the original rational camera rays, step0.001px",
+                "dx": [
+                  0.9817009090085094,
+                  0
+                ],
+                "dy": [
+                  -26.395698763721498,
+                  124.00441067268275
+                ]
+              }
+            },
+            {
+              "x": 557,
+              "y": 90,
+              "expected": 233,
+              "observed": [
+                48,
+                48,
+                48
+              ],
+              "horizonDistancePixels": 3.1426989660129476,
+              "sourceCounts": [
+                233.15396589320676,
+                -381.98849374239603
+              ],
+              "countRatesPerPixel": {
+                "method": "Centered difference of the original rational camera rays, step0.001px",
+                "dx": [
+                  0.9817009090085094,
+                  0
+                ],
+                "dy": [
+                  -74.18909415839892,
+                  124.00441067268275
+                ]
+              }
+            },
+            {
+              "x": 591,
+              "y": 90,
+              "expected": 48,
+              "observed": [
+                232,
+                232,
+                232
+              ],
+              "horizonDistancePixels": 3.1426989660129476,
+              "sourceCounts": [
+                266.53179680002376,
+                -381.98849374239603
+              ],
+              "countRatesPerPixel": {
+                "method": "Centered difference of the original rational camera rays, step0.001px",
+                "dx": [
+                  0.9817009090227202,
+                  0
+                ],
+                "dy": [
+                  -84.80984869055419,
+                  124.00441067268275
+                ]
+              }
+            }
+          ],
+          "family": "Additional y=13 step11 grid; not the committed frame-registration family. This exposed two source residuals at y=90 in the historical paused raw control."
+        }
+      }
+    ],
+    "savedGameFrame": null,
+    "sourceTime": 0,
+    "kind": "fixed-pose-image-registration",
+    "savedRenderFrameNumber": null,
+    "identity": "A static source can validate the pose but cannot identify which equal-pose rendered family supplied the PNG."
+  },
+  "heldOutSource": {
+    "checked": 816,
+    "mismatches": 7,
+    "firstFailures": [
+      {
+        "x": 47,
+        "y": 90,
+        "expected": 233,
+        "observed": [
+          48,
+          48,
+          48
+        ],
+        "horizonDistancePixels": 3.1426989660129476,
+        "sourceCounts": [
+          -267.51349770904784,
+          -381.98849374239603
+        ],
+        "countRatesPerPixel": {
+          "method": "Centered difference of the original rational camera rays, step0.001px",
+          "dx": [
+            0.9817009090227202,
+            0
+          ],
+          "dy": [
+            85.12222382384493,
+            124.00441067268275
+          ]
+        }
+      },
+      {
+        "x": 81,
+        "y": 90,
+        "expected": 48,
+        "observed": [
+          232,
+          232,
+          232
+        ],
+        "horizonDistancePixels": 3.1426989660129476,
+        "sourceCounts": [
+          -234.13566680223084,
+          -381.98849374239603
+        ],
+        "countRatesPerPixel": {
+          "method": "Centered difference of the original rational camera rays, step0.001px",
+          "dx": [
+            0.9817009090227202,
+            0
+          ],
+          "dy": [
+            74.50146929168966,
+            124.00441067268275
+          ]
+        }
+      },
+      {
+        "x": 132,
+        "y": 90,
+        "expected": 48,
+        "observed": [
+          232,
+          232,
+          232
+        ],
+        "horizonDistancePixels": 3.1426989660129476,
+        "sourceCounts": [
+          -184.0689204420054,
+          -381.98849374239603
+        ],
+        "countRatesPerPixel": {
+          "method": "Centered difference of the original rational camera rays, step0.001px",
+          "dx": [
+            0.9817009090369311,
+            0
+          ],
+          "dy": [
+            58.57033749346385,
+            124.00441067268275
+          ]
+        }
+      },
+      {
+        "x": 234,
+        "y": 90,
+        "expected": 233,
+        "observed": [
+          48,
+          48,
+          48
+        ],
+        "horizonDistancePixels": 3.1426989660129476,
+        "sourceCounts": [
+          -83.93542772155446,
+          -381.98849374239603
+        ],
+        "countRatesPerPixel": {
+          "method": "Centered difference of the original rational camera rays, step0.001px",
+          "dx": [
+            0.9817009090227202,
+            0
+          ],
+          "dy": [
+            26.708073897019347,
+            124.00441067268275
+          ]
+        }
+      },
+      {
+        "x": 404,
+        "y": 90,
+        "expected": 48,
+        "observed": [
+          232,
+          232,
+          232
+        ],
+        "horizonDistancePixels": 3.1426989660129476,
+        "sourceCounts": [
+          82.95372681253036,
+          -381.98849374239603
+        ],
+        "countRatesPerPixel": {
+          "method": "Centered difference of the original rational camera rays, step0.001px",
+          "dx": [
+            0.9817009090085094,
+            0
+          ],
+          "dy": [
+            -26.395698763721498,
+            124.00441067268275
+          ]
+        }
+      },
+      {
+        "x": 557,
+        "y": 90,
+        "expected": 233,
+        "observed": [
+          48,
+          48,
+          48
+        ],
+        "horizonDistancePixels": 3.1426989660129476,
+        "sourceCounts": [
+          233.15396589320676,
+          -381.98849374239603
+        ],
+        "countRatesPerPixel": {
+          "method": "Centered difference of the original rational camera rays, step0.001px",
+          "dx": [
+            0.9817009090085094,
+            0
+          ],
+          "dy": [
+            -74.18909415839892,
+            124.00441067268275
+          ]
+        }
+      },
+      {
+        "x": 591,
+        "y": 90,
+        "expected": 48,
+        "observed": [
+          232,
+          232,
+          232
+        ],
+        "horizonDistancePixels": 3.1426989660129476,
+        "sourceCounts": [
+          266.53179680002376,
+          -381.98849374239603
+        ],
+        "countRatesPerPixel": {
+          "method": "Centered difference of the original rational camera rays, step0.001px",
+          "dx": [
+            0.9817009090227202,
+            0
+          ],
+          "dy": [
+            -84.80984869055419,
+            124.00441067268275
+          ]
+        }
+      }
+    ],
+    "family": "Additional y=13 step11 grid; not the committed frame-registration family. This exposed two source residuals at y=90 in the historical paused raw control.",
+    "passed": false
+  },
+  "observationCoverage": {
+    "expectedGameFrames": 120,
+    "observedGameFrames": 119,
+    "recordedRenderFamilies": 120,
+    "missingGameFrames": [
+      119
+    ]
+  },
+  "calibration": {
+    "transfer": "documented-power-gamma-2.2",
+    "rawPalette": {
+      "passed": true,
+      "method": "documented-power-gamma-2.2; each raw pixel must be within one integer code of a rounded source-palette color on the normalized 0–255 display scale. Native sample precision is retained when supplied. No transfer curve or parameter is fitted.",
+      "pixels": 230400,
+      "pixelsOutsideOneCodeOfRoundedPalette": 0,
+      "worstRoundedByteError": 1,
+      "worstUnroundedByteError": 1.0046878779662336,
+      "nearestPaletteClassCounts": {
+        "dark": 87331,
+        "light": 87389,
+        "sky": 55680
+      },
+      "expectedUnroundedDisplayBytes": [
+        [
+          47.67943424047372,
+          47.67943424047372,
+          47.67943424047372
+        ],
+        [
+          233.00468787796623,
+          233.00468787796623,
+          233.00468787796623
+        ],
+        [
+          91.54322863228488,
+          100.87583874810366,
+          110.86042423273335
+        ]
+      ],
+      "firstFailures": []
+    },
+    "anchors": {
+      "sky": 36,
+      "constantGround": 24,
+      "failures": [],
+      "passed": true
+    }
+  },
+  "limitations": [
+    "PostRenderView records final graph-construction state; they are not GPU-completion or performance measurements.",
+    "Only the raw crop independently identifies source pose/time. Other panes are associated through their common rendered family, camera matrices and constant-source anchors.",
+    "Equal fixed-pose frames cannot identify an exact saved game frame. Moving frames that match multiple recorded source times are rejected.",
+    "Primary output rectangles and requested resolution are not measurements of the private primary raster rectangle.",
+    "This is registration and configuration validation, not a filter-quality score, temporal trajectory evaluation or frame-rate benchmark.",
+    "The committed registration guard tests nine nearby parity samples, not every point in the neighborhood; very fast counts can alias between guard samples. Expanded-grid residuals are retained with count-rate diagnostics.",
+    "Power-gamma 2.2 follows the documented gamma-only ordinary Shot path; source palette and constant anchors validate this readback, not arbitrary continuous transfer accuracy."
+  ],
+  "inputs": {
+    "capture": {
+      "path": "native/evidence/synchronized-render-20260905T231601.091385Z/report.json",
+      "sha256": "ec0896967fc56cafd8dcdfe57a1f4e175cf343705d1db6b83778a78a5e483401"
+    },
+    "telemetry": {
+      "path": "native/evidence/synchronized-render-20260905T231601.091385Z/views.json",
+      "sha256": "db7a2b99ae8b5d65d6ce8d99d1b3adce30cee6ad76518df899528c062b09545b"
+    },
+    "preparation": {
+      "path": "native/evidence/synchronized-render-20260905T231601.091385Z/preparation.json",
+      "sha256": "c9991229e26d666003cd130517b47ea7a914a346cf08e6cf3c492f27345043d4"
+    },
+    "image": {
+      "path": "native/evidence/synchronized-render-20260905T231601.091385Z/comparison.png",
+      "sha256": "71cfdd35404e25059f9a440e9f01678eb912dc8859810fe65cd053fcad47b73a"
+    }
+  },
+  "createdAt": "2026-09-05T23:17:51.976Z",
+  "validatorSha256": "c9687fae7c8616e09c323aa07b5174c8046ff4f93175aac25121d92a98499170",
+  "sourceHelperSha256": "6d0d9325792b45ff78c606a77bfd82b9b027c1d36b667043a008e3bc3fb1d080"
+}

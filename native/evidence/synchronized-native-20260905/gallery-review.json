@@ -1,0 +1,26 @@
+{
+  "status": "passed",
+  "gallery_sha256": "a78b601cb3375395ab667719e7d96cb47f61f967d926a253e9afb6dd8c9e00cf",
+  "css_unchanged": true,
+  "button_labels": [
+    "At rest",
+    "In motion"
+  ],
+  "native_original_and_crop_links_exist": [
+    "evidence/synchronized-render-20260905T232023.396211Z/analytic.png",
+    "evidence/synchronized-render-20260905T232023.396211Z/raw.png",
+    "evidence/synchronized-render-20260905T232023.396211Z/tsr.png",
+    "evidence/synchronized-render-20260905T232105.896347Z/analytic.png",
+    "evidence/synchronized-render-20260905T232105.896347Z/comparison.png",
+    "evidence/synchronized-render-20260905T232105.896347Z/raw.png",
+    "evidence/synchronized-render-20260905T232105.896347Z/tsr.png"
+  ],
+  "browser_review": {
+    "tab": "http://localhost:5175/native/comparison.html",
+    "at_rest_dom_checked": true,
+    "in_motion_clicked": true,
+    "all_three_motion_images_loaded_at_640x360": true,
+    "screenshot_visually_reviewed": true,
+    "new_controls_added": false
+  }
+}

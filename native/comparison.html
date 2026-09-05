@@ -47,26 +47,26 @@
     <section id="comparison-images" class="images" aria-label="Matched Unreal game captures at rest">
       <figure>
         <figcaption>No anti-aliasing <span>Point shading</span></figcaption>
-        <a href="evidence/viewport-diagnosis-20260905T212312.706151Z-raw-Glide0/frames/raw_Glide0.0064.png" aria-label="Open no anti-aliasing image at original size"><img src="evidence/viewport-diagnosis-20260905T212312.706151Z-raw-Glide0/frames/raw_Glide0.0064.png" width="640" height="360" alt="At rest: an unfiltered checkerboard plane with dense false bands toward the horizon."></a>
+        <a href="evidence/synchronized-render-20260905T232023.396211Z/raw.png" aria-label="Open no anti-aliasing image at original size"><img src="evidence/synchronized-render-20260905T232023.396211Z/raw.png" width="640" height="360" alt="At rest: an unfiltered checkerboard plane with dense false bands toward the horizon."></a>
       </figure>
       <figure>
         <figcaption>Unreal TSR <span>Native resolution</span></figcaption>
-        <a href="evidence/viewport-diagnosis-20260905T212352.013770Z-tsr-Glide0/frames/tsr_Glide0.0064.png" aria-label="Open Unreal TSR image at original size"><img src="evidence/viewport-diagnosis-20260905T212352.013770Z-tsr-Glide0/frames/tsr_Glide0.0064.png" width="640" height="360" alt="At rest: the same checkerboard rendered with Unreal TSR."></a>
+        <a href="evidence/synchronized-render-20260905T232023.396211Z/tsr.png" aria-label="Open Unreal TSR image at original size"><img src="evidence/synchronized-render-20260905T232023.396211Z/tsr.png" width="640" height="360" alt="At rest: the same checkerboard rendered with Unreal TSR."></a>
       </figure>
       <figure>
         <figcaption class="ours">Our method <span>Shared analytic shader</span></figcaption>
-        <a href="evidence/viewport-diagnosis-20260905T212408.788462Z-analytic-Glide0/frames/analytic_Glide0.0064.png" aria-label="Open our method image at original size"><img src="evidence/viewport-diagnosis-20260905T212408.788462Z-analytic-Glide0/frames/analytic_Glide0.0064.png" width="640" height="360" alt="At rest: the same checkerboard rendered with our analytic shader."></a>
+        <a href="evidence/synchronized-render-20260905T232023.396211Z/analytic.png" aria-label="Open our method image at original size"><img src="evidence/synchronized-render-20260905T232023.396211Z/analytic.png" width="640" height="360" alt="At rest: the same checkerboard rendered with our analytic shader."></a>
       </figure>
     </section>
     <footer>
-      <p>Unreal game renderer · 640 × 360</p>
+      <p>Rendered together in Unreal · 640 × 360 per view</p>
       <p id="capture-context" aria-live="polite">Captured at rest. Open any image to inspect the original pixels.</p>
     </footer>
     <details>
       <summary>Capture details and evidence</summary>
-      <p>These are captures of Unreal 5.8.2’s ordinary game renderer, with the same procedural checkerboard, camera and display settings. At rest uses 64 warmup ticks. In motion keeps the camera playing through capture. Raw pixels identify the saved frame at 2.017 seconds; the other methods have matching camera and readback timing. These are still images, so they do not measure temporal quality over a trajectory or game frame rate.</p>
+      <p>Each set comes from one synchronized Unreal 5.8.2 game window. All three views share the same procedural checkerboard, camera and clock, with separate temporal histories. In motion keeps the camera moving through capture; raw pixels identify the saved pose at 4.321 seconds. The displayed images are lossless crops of that window. These are still images, so they do not measure temporal quality over a trajectory or game frame rate.</p>
       <p>TSR uses 100% input/output resolution and a 200% history. Our shader integrates a Gaussian pixel window with standard deviation 0.5 pixel; TSR has a different reconstruction filter. The scene is unlit, and exposure, tone curve, vignette, motion blur and dynamic resolution are disabled. Independent checks verify the source, color transfer and camera registration.</p>
-      <p><a href="evidence/game-quality-20260905T212821544Z/README.md">At-rest evidence</a> · <a href="evidence/game-quality-20260905T221241048Z/README.md">Moving-frame evidence</a> · <a href="tools/viewport_diagnosis.md">Reproduce the captures</a> · <a href="comparison-mrq.html">Earlier MRQ gallery</a></p>
+      <p><a href="evidence/synchronized-native-20260905/README.md">Synchronized evidence</a> · <a href="evidence/synchronized-render-20260905T232105.896347Z/comparison.png">Original game window</a> · <a href="tools/synchronized-comparison.md">Reproduce the captures</a> · <a href="comparison-mrq.html">Earlier MRQ gallery</a></p>
     </details>
   </main>
   <script>
@@ -75,18 +75,18 @@
         label: 'At rest',
         context: 'Captured at rest. Open any image to inspect the original pixels.',
         images: [
-          'evidence/viewport-diagnosis-20260905T212312.706151Z-raw-Glide0/frames/raw_Glide0.0064.png',
-          'evidence/viewport-diagnosis-20260905T212352.013770Z-tsr-Glide0/frames/tsr_Glide0.0064.png',
-          'evidence/viewport-diagnosis-20260905T212408.788462Z-analytic-Glide0/frames/analytic_Glide0.0064.png'
+          'evidence/synchronized-render-20260905T232023.396211Z/raw.png',
+          'evidence/synchronized-render-20260905T232023.396211Z/tsr.png',
+          'evidence/synchronized-render-20260905T232023.396211Z/analytic.png'
         ]
       },
       motion: {
         label: 'In motion',
         context: 'Captured while the camera is moving. Open any image to inspect the original pixels.',
         images: [
-          'evidence/viewport-diagnosis-20260905T215931.012554Z-raw-Glide0/frames/raw_Glide0.0120.png',
-          'evidence/viewport-diagnosis-20260905T220005.031523Z-tsr-Glide0/frames/tsr_Glide0.0120.png',
-          'evidence/viewport-diagnosis-20260905T220034.396327Z-analytic-Glide0/frames/analytic_Glide0.0120.png'
+          'evidence/synchronized-render-20260905T232105.896347Z/raw.png',
+          'evidence/synchronized-render-20260905T232105.896347Z/tsr.png',
+          'evidence/synchronized-render-20260905T232105.896347Z/analytic.png'
         ]
       }
     };

@@ -1,0 +1,9 @@
+{
+  "commit": "9d57f5493615f8e7da921d937dd6e58df7f4debf",
+  "path": "demo/ours-kernel-next.hlsl",
+  "sha256": "61cb0e7763d04da1e3bb8f527ab63d991d44acf3ae15579f658f4a319970ccf6",
+  "validation": "CPU compiler first; production kernel unchanged",
+  "compiler_report": "native/evidence/compile-20260905T231007.963871Z/report.json",
+  "compiler_jobs_passed": 8,
+  "runtime_and_numerical_validation": "pending; no promotion"
+}

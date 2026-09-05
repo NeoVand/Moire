@@ -1,0 +1,127 @@
+{
+  "schema": "moire-synchronized-validation-v1",
+  "status": "validation-failed",
+  "passed": false,
+  "performanceMeasurement": false,
+  "temporalQualityEstablished": false,
+  "observedMetadataPassed": false,
+  "comparability": {
+    "passed": false,
+    "primaryRasterVerified": false,
+    "imageAndObservedMetadataPassed": false
+  },
+  "checks": [
+    {
+      "name": "schema and terminal telemetry",
+      "passed": true
+    },
+    {
+      "name": "ordinary game route",
+      "passed": true
+    },
+    {
+      "name": "process succeeded without ensures",
+      "passed": true
+    },
+    {
+      "name": "capture source hashes stable",
+      "passed": true
+    },
+    {
+      "name": "owned source scene and map preparation",
+      "passed": true
+    },
+    {
+      "name": "point material hash agrees with prepared scene",
+      "passed": true
+    },
+    {
+      "name": "analytic material hash agrees with prepared scene",
+      "passed": true
+    },
+    {
+      "name": "sky material hash agrees with prepared scene",
+      "passed": true
+    },
+    {
+      "name": "documented gamma-only command and common source settings",
+      "passed": true
+    },
+    {
+      "name": "screenshot file was processed",
+      "passed": true
+    },
+    {
+      "name": "supported source motion",
+      "passed": true
+    },
+    {
+      "name": "explicit temporal/source mode metadata",
+      "passed": true
+    },
+    {
+      "name": "supported image and recorded pane size",
+      "passed": true
+    },
+    {
+      "name": "complete bounded observation metadata",
+      "passed": true
+    },
+    {
+      "name": "view records have finite matrices and identifiers",
+      "passed": true
+    },
+    {
+      "name": "one complete three-view family per recorded game frame",
+      "passed": false
+    }
+  ],
+  "failures": [
+    {
+      "name": "one complete three-view family per recorded game frame",
+      "passed": false
+    }
+  ],
+  "warnings": [],
+  "registration": {
+    "passed": false,
+    "candidates": [],
+    "savedGameFrame": null,
+    "sourceTime": null
+  },
+  "heldOutSource": null,
+  "calibration": {
+    "transfer": "documented-power-gamma-2.2",
+    "rawPalette": null,
+    "anchors": null
+  },
+  "limitations": [
+    "PostRenderView records final graph-construction state; they are not GPU-completion or performance measurements.",
+    "Only the raw crop independently identifies source pose/time. Other panes are associated through their common rendered family, camera matrices and constant-source anchors.",
+    "Equal fixed-pose frames cannot identify an exact saved game frame. Moving frames that match multiple recorded source times are rejected.",
+    "Primary output rectangles and requested resolution are not measurements of the private primary raster rectangle.",
+    "This is registration and configuration validation, not a filter-quality score, temporal trajectory evaluation or frame-rate benchmark.",
+    "Power-gamma 2.2 follows the documented gamma-only ordinary Shot path; source palette and constant anchors validate this readback, not arbitrary continuous transfer accuracy."
+  ],
+  "inputs": {
+    "capture": {
+      "path": "native/evidence/synchronized-render-20260905T231601.091385Z/report.json",
+      "sha256": "ec0896967fc56cafd8dcdfe57a1f4e175cf343705d1db6b83778a78a5e483401"
+    },
+    "telemetry": {
+      "path": "native/evidence/synchronized-render-20260905T231601.091385Z/views.json",
+      "sha256": "db7a2b99ae8b5d65d6ce8d99d1b3adce30cee6ad76518df899528c062b09545b"
+    },
+    "preparation": {
+      "path": "native/evidence/synchronized-render-20260905T231601.091385Z/preparation.json",
+      "sha256": "c9991229e26d666003cd130517b47ea7a914a346cf08e6cf3c492f27345043d4"
+    },
+    "image": {
+      "path": "native/evidence/synchronized-render-20260905T231601.091385Z/comparison.png",
+      "sha256": "71cfdd35404e25059f9a440e9f01678eb912dc8859810fe65cd053fcad47b73a"
+    }
+  },
+  "createdAt": "2026-09-05T23:16:44.051Z",
+  "validatorSha256": "19e34ab30154ca752ad6dc2911f0fd54747dfa959d8b5c31268a84710e874077",
+  "sourceHelperSha256": "6d0d9325792b45ff78c606a77bfd82b9b027c1d36b667043a008e3bc3fb1d080"
+}
