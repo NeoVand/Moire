@@ -3992,9 +3992,9 @@ export class Pixel {
       let K1 = resK[1];
       // a smooth closure's coefficients decay: probe a modest range first
       // and keep it when its outer ring is already below the cut
-      if (K0 > 12 || K1 > 12) {
-        const Kp0 = Math.min(K0, 12);
-        const Kp1 = Math.min(K1, 12);
+      if (K0 > 16 || K1 > 16) {
+        const Kp0 = Math.min(K0, 16);
+        const Kp1 = Math.min(K1, 16);
         const probe = fourierJet2(resFn, Kp0, Kp1, residual);
         let ring = 0;
         let peak = 0;
@@ -4005,7 +4005,7 @@ export class Pixel {
             peak = Math.max(peak, mag);
             if (Math.abs(m0) === probe.K0 || Math.abs(m1) === probe.K1) ring = Math.max(ring, mag);
           }
-        if (ring < 1e-3 * this.cut * Math.max(peak, 1e-300) || ring < 1e-12) {
+        if (ring < 0.1 * this.cut * Math.max(peak, 1e-300) || ring < 1e-12) {
           K0 = Kp0;
           K1 = Kp1;
           this._probeJet2 = probe;
