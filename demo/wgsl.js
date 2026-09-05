@@ -327,6 +327,7 @@ ${KERNEL}
     var tint = vec3f(0.2, 0.3, 0.9);
     if (regime < 1.5) { tint = vec3f(0.2, 0.8, 0.3); }
     if (regime > 2.5) { tint = vec3f(0.9, 0.3, 0.2); }
+    if (regime > 3.5) { tint = vec3f(0.9, 0.2, 0.9); }
     return vec4f(tint * (0.5 + 0.5 * v), 1.0);
   }
   return vec4f(vec3f(v), 1.0);

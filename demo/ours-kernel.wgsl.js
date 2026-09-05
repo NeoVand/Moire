@@ -35,7 +35,7 @@
 //     a bivariate normal with the two edge normals' cosine; a disc pulls
 //     back to a conic, an exact quadratic in screen space, integrated by
 //     quadRegion. Beyond the guard (the denominator within 5.5 sigma of
-//     zero, or more than 5 edges a count or 9 discs in reach) the spectral
+//     zero, or more than 10 edges a count or 9 discs in reach) the spectral
 //     path with the second-order model. These are the entry points for a
 //     plane under a pinhole camera; the Jets entries are for counts whose
 //     jets come from elsewhere.
@@ -136,24 +136,31 @@ fn latticeReach(J: Jets, S: f32) -> f32 {
 
 // the checkerboard's spectral path: 1/2 - (2 / pi^2) sum over odd (k, l) of
 // Re E[e^{2 pi i (k u + l v)}] / (k l) over the reduced lattice within reach
-fn checkerSpectral(J: Jets, S: f32) -> f32 {
+fn checkerSpectral(J: Jets, S: f32) -> vec2f {
   let L: Lattice = reduceLattice(J.gu, J.gv);
   let R: f32 = latticeReach(J, S);
   let n1: f32 = length(L.b1);
   let perp: f32 = sqrt(max(dot(L.b2, L.b2) - dot(L.b1, L.b2) * dot(L.b1, L.b2) / dot(L.b1, L.b1), 1e-30));
+  // a lattice whose shortest vector is under 1e-4 cycles a pixel would need
+  // more than 1e4 recipes along it: the enumeration is declined to the mean
+  if (n1 < 1e-4 || perp < 1e-4) { return vec2f(0.5, 0.0); }
   let nMax: f32 = floor(R / perp);
   var acc: f32 = 0.5;
   var count: f32 = 0.0;
-  var n: f32 = -nMax;
-  loop {
-    if (n > nMax) { break; }
+  var tried: i32 = 0; // every recipe attempted, accepted or not, counts toward the bound
+  let nCount: i32 = 2 * i32(min(nMax, 4096.0)) + 1;
+  for (var iN: i32 = 0; iN < nCount; iN++) {
+    let n: f32 = -min(nMax, 4096.0) + f32(iN);
     let c: vec2f = n * L.b2;
     let mStar: f32 = -dot(c, L.b1) / dot(L.b1, L.b1);
     let hw: f32 = sqrt(max(R * R - n * n * perp * perp, 0.0)) / n1;
-    var m: f32 = ceil(mStar - hw);
+    let m0: f32 = ceil(mStar - hw);
     let mEnd: f32 = floor(mStar + hw);
-    loop {
-      if (m > mEnd) { break; }
+    let mCount: i32 = i32(min(mEnd - m0, 4096.0)) + 1;
+    for (var iM: i32 = 0; iM < mCount; iM++) {
+      let m: f32 = m0 + f32(iM);
+      tried += 1;
+      if (tried > 4096) { break; }
       let kl: vec2f = m * L.T0 + n * L.T1;
       let k: f32 = kl.x;
       let l: f32 = kl.y;
@@ -166,13 +173,12 @@ fn checkerSpectral(J: Jets, S: f32) -> f32 {
         acc += coef * multRe(phi0, bb, qq, S);
         count += 1.0;
       }
-      m += 1.0;
       if (count > 2048.0) { break; }
     }
-    n += 1.0;
-    if (count > 2048.0) { break; }
+    if (count > 2048.0 || tried > 4096) { break; }
   }
-  return acc;
+  // exhaustion of either cap leaves a partial sum: reported as such
+  return vec2f(acc, select(1.0, 0.0, count > 2048.0 || tried > 4096));
 }
 
 const DISC_R: f32 = 0.4166666666666667; // 25/3 over the cell 20
@@ -197,24 +203,31 @@ fn j1overx(x: f32) -> f32 {
 }
 // the circles' spectral path: the disc's series over the reduced lattice,
 // coefficient (-1)^(k + l) rho J1(2 pi rho |kappa|) / |kappa|, DC pi rho^2
-fn circlesSpectral(J: Jets, S: f32) -> f32 {
+fn circlesSpectral(J: Jets, S: f32) -> vec2f {
   let L: Lattice = reduceLattice(J.gu, J.gv);
   let R: f32 = latticeReach(J, S);
   let n1: f32 = length(L.b1);
   let perp: f32 = sqrt(max(dot(L.b2, L.b2) - dot(L.b1, L.b2) * dot(L.b1, L.b2) / dot(L.b1, L.b1), 1e-30));
+  // a lattice whose shortest vector is under 1e-4 cycles a pixel would need
+  // more than 1e4 recipes along it: the enumeration is declined to the mean
+  if (n1 < 1e-4 || perp < 1e-4) { return vec2f(0.5454, 0.0); }
   let nMax: f32 = floor(R / perp);
   var acc: f32 = 0.0;
   var count: f32 = 0.0;
-  var n: f32 = -nMax;
-  loop {
-    if (n > nMax) { break; }
+  var tried: i32 = 0; // every recipe attempted, accepted or not, counts toward the bound
+  let nCount: i32 = 2 * i32(min(nMax, 4096.0)) + 1;
+  for (var iN: i32 = 0; iN < nCount; iN++) {
+    let n: f32 = -min(nMax, 4096.0) + f32(iN);
     let c: vec2f = n * L.b2;
     let mStar: f32 = -dot(c, L.b1) / dot(L.b1, L.b1);
     let hw: f32 = sqrt(max(R * R - n * n * perp * perp, 0.0)) / n1;
-    var m: f32 = ceil(mStar - hw);
+    let m0: f32 = ceil(mStar - hw);
     let mEnd: f32 = floor(mStar + hw);
-    loop {
-      if (m > mEnd) { break; }
+    let mCount: i32 = i32(min(mEnd - m0, 4096.0)) + 1;
+    for (var iM: i32 = 0; iM < mCount; iM++) {
+      let m: f32 = m0 + f32(iM);
+      tried += 1;
+      if (tried > 4096) { break; }
       let kl: vec2f = m * L.T0 + n * L.T1;
       let k: f32 = kl.x;
       let l: f32 = kl.y;
@@ -227,13 +240,12 @@ fn circlesSpectral(J: Jets, S: f32) -> f32 {
       let phi0: f32 = TAU * (k * J.u0 + l * J.v0);
       acc += coef * multRe(phi0, bb, qq, S);
       count += 1.0;
-      m += 1.0;
       if (count > 2048.0) { break; }
     }
-    n += 1.0;
-    if (count > 2048.0) { break; }
+    if (count > 2048.0 || tried > 4096) { break; }
   }
-  return acc;
+  // exhaustion of either cap leaves a partial sum: reported as such
+  return vec2f(acc, select(1.0, 0.0, count > 2048.0 || tried > 4096));
 }
 `;
 
@@ -444,7 +456,7 @@ fn edgeRange(u0: f32, g: vec2f, r: vec2f, sig: f32) -> EdgeRange {
   if (abs(u0) > 1048576.0) { E.ok = false; return E; }
   let hlo: f32 = ceil(2.0 * (u0 - reach));
   let hhi: f32 = floor(2.0 * (u0 + reach));
-  if (hhi - hlo > 9.0) { E.ok = false; return E; }
+  if (hhi - hlo > 19.0) { E.ok = false; return E; }
   // the edges actually within reach; the value of w below the lowest of
   // them follows from that edge's parity (an integer edge jumps -1 to +1,
   // a half-integer edge +1 to -1), with no epsilon, so it holds at any
@@ -465,7 +477,7 @@ fn edgeRange(u0: f32, g: vec2f, r: vec2f, sig: f32) -> EdgeRange {
       last = max(last, h);
     }
   }
-  if (count > 5.0) { E.ok = false; return E; }
+  if (count > 10.0) { E.ok = false; return E; }
   if (count > 0.0) {
     let even: bool = abs(first - 2.0 * round(0.5 * first)) < 0.5;
     E.low = select(1.0, -1.0, even);
@@ -493,7 +505,8 @@ fn checkerMeanHMode(hu: vec3f, hv: vec3f, hd: vec3f, x: f32, y: f32, period: f32
   if (!eu.ok || !ev.ok) {
     if (mode == 4u) { return vec2f(0.5, 3.0); }
     let J: Jets = jetsFromHomography(hu, hv, hd, x, y, period);
-    return vec2f(checkerSpectral(J, S), 3.0);
+    let sp: vec2f = checkerSpectral(J, S);
+    return vec2f(sp.x, select(4.0, 3.0, sp.y > 0.5)); // 3 the lattice fallback, 4 declined or exhausted: approximate
   }
   if (mode == 5u) { return vec2f(0.5, 1.0); }
   var acc: f32 = eu.low * ev.low;
@@ -563,15 +576,14 @@ fn circlesMeanHMode(hu: vec3f, hv: vec3f, hd: vec3f, x: f32, y: f32, period: f32
   if (denom <= 0.05 || (nu1 - nu0 + 1.0) * (nv1 - nv0 + 1.0) > 9.5 || abs(u0) > 1048576.0 || abs(v0) > 1048576.0) {
     if (mode == 4u) { return vec2f(0.5454, 3.0); }
     let J: Jets = jetsFromHomography(hu, hv, hd, x, y, period);
-    return vec2f(circlesSpectral(J, S), 3.0);
+    let sp: vec2f = circlesSpectral(J, S);
+    return vec2f(sp.x, select(4.0, 3.0, sp.y > 0.5));
   }
   if (mode == 5u) { return vec2f(0.5454, 1.0); }
-  // the affine numerators in cells and their gradients
-  let nuA: f32 = Nu / period;
-  let nvA: f32 = Nv / period;
-  let dnu: vec2f = hu.xy / period;
-  let dnv: vec2f = hv.xy / period;
-  let s2: f32 = 1.0 / (D * D);
+  // the conic through the pullback: (u - cu) = (du + a . X) / (1 + r . X) with
+  // a = gu + du r, so the disc is (du + a . X)^2 + (dv + b . X)^2 <= R^2 (1 + r . X)^2,
+  // an exact quadratic in X built from fractional offsets, no cell origin subtracted
+  let r: vec2f = dD / D;
   let L: f32 = 5.5 * sig;
   var acc: f32 = 0.0;
   let cellsU: i32 = i32(nu1 - nu0) + 1;
@@ -580,17 +592,16 @@ fn circlesMeanHMode(hu: vec3f, hv: vec3f, hd: vec3f, x: f32, y: f32, period: f32
     for (var iv: i32 = 0; iv < cellsV; iv++) {
       let cu: f32 = nu0 + f32(iu) + 0.5;
       let cv: f32 = nv0 + f32(iv) + 0.5;
-      // q(X) = (nu - cu D)^2 + (nv - cv D)^2 - R^2 D^2, scaled by 1 / D^2: exact in screen space
-      let A0: f32 = nuA - cu * D;
-      let B0: f32 = nvA - cv * D;
-      let dA: vec2f = dnu - cu * dD;
-      let dB: vec2f = dnv - cv * dD;
-      let a0: f32 = (A0 * A0 + B0 * B0 - DISC_R * DISC_R * D * D) * s2;
-      let g: vec2f = (2.0 * A0 * dA + 2.0 * B0 * dB - 2.0 * DISC_R * DISC_R * D * dD) * s2;
+      let du: f32 = u0 - cu;
+      let dv: f32 = v0 - cv;
+      let a: vec2f = gu + du * r;
+      let b: vec2f = gv + dv * r;
+      let a0: f32 = du * du + dv * dv - DISC_R * DISC_R;
+      let g: vec2f = 2.0 * du * a + 2.0 * dv * b - 2.0 * DISC_R * DISC_R * r;
       let H: vec3f = vec3f(
-        2.0 * (dA.x * dA.x + dB.x * dB.x - DISC_R * DISC_R * dD.x * dD.x),
-        2.0 * (dA.x * dA.y + dB.x * dB.y - DISC_R * DISC_R * dD.x * dD.y),
-        2.0 * (dA.y * dA.y + dB.y * dB.y - DISC_R * DISC_R * dD.y * dD.y)) * s2;
+        2.0 * (a.x * a.x + b.x * b.x - DISC_R * DISC_R * r.x * r.x),
+        2.0 * (a.x * a.y + b.x * b.y - DISC_R * DISC_R * r.x * r.y),
+        2.0 * (a.y * a.y + b.y * b.y - DISC_R * DISC_R * r.y * r.y));
       // the quadratic's range over the footprint: outside, inside, or integrate
       let hn: f32 = sqrt(H.x * H.x + 2.0 * H.y * H.y + H.z * H.z);
       let range: f32 = L * length(g) + 0.5 * L * L * hn;
@@ -770,7 +781,8 @@ fn checkerMeanMode(J: Jets, S: f32, mode: u32) -> vec2f {
     return vec2f(0.5 + 0.5 * e, 1.0);
   }
   if (mode == 1u) { return vec2f(0.5, 2.0); }
-  return vec2f(checkerSpectral(J, S), 2.0);
+  let sp = checkerSpectral(J, S);
+  return vec2f(sp.x, select(4.0, 2.0, sp.y > 0.5));
 }
 
 // P(q(X) <= 0) for X ~ N(0, S I) and q(x) = a0 + g . x + x^T H x / 2: the
@@ -903,7 +915,8 @@ fn circlesMeanMode(J: Jets, S: f32, mode: u32) -> vec2f {
     return vec2f(acc, 1.0);
   }
   if (mode == 1u) { return vec2f(0.5454, 2.0); }
-  return vec2f(circlesSpectral(J, S), 2.0);
+  let sp = circlesSpectral(J, S);
+  return vec2f(sp.x, select(4.0, 2.0, sp.y > 0.5));
 }
 `;
 

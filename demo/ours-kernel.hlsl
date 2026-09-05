@@ -87,24 +87,31 @@ float latticeReach(Jets J, float S) {
 
 // the checkerboard's spectral path: 1/2 - (2 / pi^2) sum over odd (k, l) of
 // Re E[e^{2 pi i (k u + l v)}] / (k l) over the reduced lattice within reach
-float checkerSpectral(Jets J, float S) {
+float2 checkerSpectral(Jets J, float S) {
   Lattice L = reduceLattice(J.gu, J.gv);
   float R = latticeReach(J, S);
   float n1 = length(L.b1);
   float perp = sqrt(max(dot(L.b2, L.b2) - dot(L.b1, L.b2) * dot(L.b1, L.b2) / dot(L.b1, L.b1), 1e-30));
+  // a lattice whose shortest vector is under 1e-4 cycles a pixel would need
+  // more than 1e4 recipes along it: the enumeration is declined to the mean
+  if (n1 < 1e-4 || perp < 1e-4) { return float2(0.5, 0.0); }
   float nMax = floor(R / perp);
   float acc = 0.5;
   float count = 0.0;
-  float n = -nMax;
-  while (true) {
-    if (n > nMax) { break; }
+  int tried = 0; // every recipe attempted, accepted or not, counts toward the bound
+  int nCount = 2 * int(min(nMax, 4096.0)) + 1;
+  for (int iN = 0; iN < nCount; iN++) {
+    float n = -min(nMax, 4096.0) + float(iN);
     float2 c = n * L.b2;
     float mStar = -dot(c, L.b1) / dot(L.b1, L.b1);
     float hw = sqrt(max(R * R - n * n * perp * perp, 0.0)) / n1;
-    float m = ceil(mStar - hw);
+    float m0 = ceil(mStar - hw);
     float mEnd = floor(mStar + hw);
-    while (true) {
-      if (m > mEnd) { break; }
+    int mCount = int(min(mEnd - m0, 4096.0)) + 1;
+    for (int iM = 0; iM < mCount; iM++) {
+      float m = m0 + float(iM);
+      tried += 1;
+      if (tried > 4096) { break; }
       float2 kl = m * L.T0 + n * L.T1;
       float k = kl.x;
       float l = kl.y;
@@ -117,13 +124,12 @@ float checkerSpectral(Jets J, float S) {
         acc += coef * multRe(phi0, bb, qq, S);
         count += 1.0;
       }
-      m += 1.0;
       if (count > 2048.0) { break; }
     }
-    n += 1.0;
-    if (count > 2048.0) { break; }
+    if (count > 2048.0 || tried > 4096) { break; }
   }
-  return acc;
+  // exhaustion of either cap leaves a partial sum: reported as such
+  return float2(acc, ((count > 2048.0 || tried > 4096) ? (0.0) : (1.0)));
 }
 
 static const float DISC_R = 0.4166666666666667; // 25/3 over the cell 20
@@ -148,24 +154,31 @@ float j1overx(float x) {
 }
 // the circles' spectral path: the disc's series over the reduced lattice,
 // coefficient (-1)^(k + l) rho J1(2 pi rho |kappa|) / |kappa|, DC pi rho^2
-float circlesSpectral(Jets J, float S) {
+float2 circlesSpectral(Jets J, float S) {
   Lattice L = reduceLattice(J.gu, J.gv);
   float R = latticeReach(J, S);
   float n1 = length(L.b1);
   float perp = sqrt(max(dot(L.b2, L.b2) - dot(L.b1, L.b2) * dot(L.b1, L.b2) / dot(L.b1, L.b1), 1e-30));
+  // a lattice whose shortest vector is under 1e-4 cycles a pixel would need
+  // more than 1e4 recipes along it: the enumeration is declined to the mean
+  if (n1 < 1e-4 || perp < 1e-4) { return float2(0.5454, 0.0); }
   float nMax = floor(R / perp);
   float acc = 0.0;
   float count = 0.0;
-  float n = -nMax;
-  while (true) {
-    if (n > nMax) { break; }
+  int tried = 0; // every recipe attempted, accepted or not, counts toward the bound
+  int nCount = 2 * int(min(nMax, 4096.0)) + 1;
+  for (int iN = 0; iN < nCount; iN++) {
+    float n = -min(nMax, 4096.0) + float(iN);
     float2 c = n * L.b2;
     float mStar = -dot(c, L.b1) / dot(L.b1, L.b1);
     float hw = sqrt(max(R * R - n * n * perp * perp, 0.0)) / n1;
-    float m = ceil(mStar - hw);
+    float m0 = ceil(mStar - hw);
     float mEnd = floor(mStar + hw);
-    while (true) {
-      if (m > mEnd) { break; }
+    int mCount = int(min(mEnd - m0, 4096.0)) + 1;
+    for (int iM = 0; iM < mCount; iM++) {
+      float m = m0 + float(iM);
+      tried += 1;
+      if (tried > 4096) { break; }
       float2 kl = m * L.T0 + n * L.T1;
       float k = kl.x;
       float l = kl.y;
@@ -178,13 +191,12 @@ float circlesSpectral(Jets J, float S) {
       float phi0 = OURS_TAU * (k * J.u0 + l * J.v0);
       acc += coef * multRe(phi0, bb, qq, S);
       count += 1.0;
-      m += 1.0;
       if (count > 2048.0) { break; }
     }
-    n += 1.0;
-    if (count > 2048.0) { break; }
+    if (count > 2048.0 || tried > 4096) { break; }
   }
-  return acc;
+  // exhaustion of either cap leaves a partial sum: reported as such
+  return float2(acc, ((count > 2048.0 || tried > 4096) ? (0.0) : (1.0)));
 }
 
 // the probability under N(0, sigma^2) of the set where lin/2 y^2 + b y + c <= 0
@@ -452,7 +464,7 @@ EdgeRange edgeRange(float u0, float2 g, float2 r, float sig) {
   if (abs(u0) > 1048576.0) { E.ok = false; return E; }
   float hlo = ceil(2.0 * (u0 - reach));
   float hhi = floor(2.0 * (u0 + reach));
-  if (hhi - hlo > 9.0) { E.ok = false; return E; }
+  if (hhi - hlo > 19.0) { E.ok = false; return E; }
   // the edges actually within reach; the value of w below the lowest of
   // them follows from that edge's parity (an integer edge jumps -1 to +1,
   // a half-integer edge +1 to -1), with no epsilon, so it holds at any
@@ -473,7 +485,7 @@ EdgeRange edgeRange(float u0, float2 g, float2 r, float sig) {
       last = max(last, h);
     }
   }
-  if (count > 5.0) { E.ok = false; return E; }
+  if (count > 10.0) { E.ok = false; return E; }
   if (count > 0.0) {
     bool even = abs(first - 2.0 * round(0.5 * first)) < 0.5;
     E.low = ((even) ? (-1.0) : (1.0));
@@ -501,7 +513,8 @@ float2 checkerMeanHMode(float3 hu, float3 hv, float3 hd, float x, float y, float
   if (!eu.ok || !ev.ok) {
     if (mode == 4) { return float2(0.5, 3.0); }
     Jets J = jetsFromHomography(hu, hv, hd, x, y, period);
-    return float2(checkerSpectral(J, S), 3.0);
+    float2 sp = checkerSpectral(J, S);
+    return float2(sp.x, ((sp.y > 0.5) ? (3.0) : (4.0))); // 3 the lattice fallback, 4 declined or exhausted: approximate
   }
   if (mode == 5) { return float2(0.5, 1.0); }
   float acc = eu.low * ev.low;
@@ -571,15 +584,14 @@ float2 circlesMeanHMode(float3 hu, float3 hv, float3 hd, float x, float y, float
   if (denom <= 0.05 || (nu1 - nu0 + 1.0) * (nv1 - nv0 + 1.0) > 9.5 || abs(u0) > 1048576.0 || abs(v0) > 1048576.0) {
     if (mode == 4) { return float2(0.5454, 3.0); }
     Jets J = jetsFromHomography(hu, hv, hd, x, y, period);
-    return float2(circlesSpectral(J, S), 3.0);
+    float2 sp = circlesSpectral(J, S);
+    return float2(sp.x, ((sp.y > 0.5) ? (3.0) : (4.0)));
   }
   if (mode == 5) { return float2(0.5454, 1.0); }
-  // the affine numerators in cells and their gradients
-  float nuA = Nu / period;
-  float nvA = Nv / period;
-  float2 dnu = hu.xy / period;
-  float2 dnv = hv.xy / period;
-  float s2 = 1.0 / (D * D);
+  // the conic through the pullback: (u - cu) = (du + a . X) / (1 + r . X) with
+  // a = gu + du r, so the disc is (du + a . X)^2 + (dv + b . X)^2 <= R^2 (1 + r . X)^2,
+  // an exact quadratic in X built from fractional offsets, no cell origin subtracted
+  float2 r = dD / D;
   float L = 5.5 * sig;
   float acc = 0.0;
   int cellsU = int(nu1 - nu0) + 1;
@@ -588,17 +600,16 @@ float2 circlesMeanHMode(float3 hu, float3 hv, float3 hd, float x, float y, float
     for (int iv = 0; iv < cellsV; iv++) {
       float cu = nu0 + float(iu) + 0.5;
       float cv = nv0 + float(iv) + 0.5;
-      // q(X) = (nu - cu D)^2 + (nv - cv D)^2 - R^2 D^2, scaled by 1 / D^2: exact in screen space
-      float A0 = nuA - cu * D;
-      float B0 = nvA - cv * D;
-      float2 dA = dnu - cu * dD;
-      float2 dB = dnv - cv * dD;
-      float a0 = (A0 * A0 + B0 * B0 - DISC_R * DISC_R * D * D) * s2;
-      float2 g = (2.0 * A0 * dA + 2.0 * B0 * dB - 2.0 * DISC_R * DISC_R * D * dD) * s2;
+      float du = u0 - cu;
+      float dv = v0 - cv;
+      float2 a = gu + du * r;
+      float2 b = gv + dv * r;
+      float a0 = du * du + dv * dv - DISC_R * DISC_R;
+      float2 g = 2.0 * du * a + 2.0 * dv * b - 2.0 * DISC_R * DISC_R * r;
       float3 H = float3(
-        2.0 * (dA.x * dA.x + dB.x * dB.x - DISC_R * DISC_R * dD.x * dD.x),
-        2.0 * (dA.x * dA.y + dB.x * dB.y - DISC_R * DISC_R * dD.x * dD.y),
-        2.0 * (dA.y * dA.y + dB.y * dB.y - DISC_R * DISC_R * dD.y * dD.y)) * s2;
+        2.0 * (a.x * a.x + b.x * b.x - DISC_R * DISC_R * r.x * r.x),
+        2.0 * (a.x * a.y + b.x * b.y - DISC_R * DISC_R * r.x * r.y),
+        2.0 * (a.y * a.y + b.y * b.y - DISC_R * DISC_R * r.y * r.y));
       // the quadratic's range over the footprint: outside, inside, or integrate
       float hn = sqrt(H.x * H.x + 2.0 * H.y * H.y + H.z * H.z);
       float range = L * length(g) + 0.5 * L * L * hn;
