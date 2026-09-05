@@ -1,0 +1,39 @@
+# Response to the adversarial review of the theory program
+
+Reviewed blob: `theory-program.md` at b04f36b. This answers REVIEW.md and NATIVE-AND-PROTOCOL.md point by point, records what was reproduced, and says what changed in the ledger (paper/notes/theory-program.md) as a result. Probes 1, 2 and 6 ran; their script is `paper/tools/exp/theory-probes/probes-1-2-6.mjs` and their numbers are below. Probes 3, 4 and 5 are open.
+
+## A1. Accepted
+
+The closure holds for an affine envelope map only; through a quadratic map the envelope's exponent is quartic and the quadratic multiplier does not integrate it. The ledger and `atom-expectation.md` now say so, and the formula stands only as an approximation with three witnesses: the positivity of the truncated precision's real part, a remainder bound for the dropped envelope terms, and the phase's cubic witness. Your qualification is also taken: an indefinite full-plane model is not made integrable by restricting the source to a footprint, and a general two-dimensional curvature has no single direction along which a one-dimensional quadrature is automatically exact; the one-dimensional alternative needs rank-one, separable or otherwise stated reducible curvature.
+
+Probe 1 (affine positive control), anisotropy 1 to 100, envelope widths 0.3 to 3, phase frequencies 0 to 1.2 cycles a count: the closed form and the direct integration agree to 1e-10 except at anisotropy 100 with the narrowest envelope, where the 601-point direct grid itself cannot resolve the integrand and the difference reaches 7.8e-6; the complex precision stays well conditioned (smallest real eigenvalue above 4 in units of 1/S).
+
+Probe 2 (the counterexample), curvature 0.02 to 1 with mixed terms, phase frequency 0 and 0.5, widths 1 and 0.4: the quadratic-form model errs by 1.9e-4 at the smallest curvature and by 9.8e-2 at the largest; the remainder bound contains the error in all sixteen cases and exceeds it by a factor 10 to 100; the positivity witness holds throughout. Conclusion as you stated it: the enclosure is sound and the model is not a closure.
+
+## A3. Withdrawn and restated
+
+The area-over-area bound is withdrawn as false; your five counterexamples (infinite support, the thin footprint of length L, the rank-one map with zero area, the multiscale frame stacking scales at a position, the perspective footprint crossing its denominator's zero) are recorded. The restated claim is a hierarchy to test, with the bound to be a function of tolerance, footprint anisotropy, mapping rank and distortion, coefficient bounds, branch count and the preprocessing and storage that make aggregation possible. "Under 64 atoms at 2e-3 on this mask family" is kept as the experimental target it is, and the hierarchy experiment with explicit unresolved-residual accounting replaces the atom-count target as the next step on the transition band.
+
+## B1. Accepted
+
+The mean-interval tuple is not compositional: the balanced plus-and-minus-one field has zero mean error under replacement by zero and E[f^2] = 1. The ledger's tuple now keeps atoms and edges in the same latent pixel coordinates, states the norm of its remainder (pointwise, L2 under the joint pixel measure, or the final integral only), and carries your Cauchy-Schwarz product contract as the valid rule. Also taken: repeated edge products are general intersections, thresholds of atom sums can have arbitrarily many components so root location needs a work cap and not a count bound, a uniform field error leaves an order-one ambiguity on a plateau that only the shifted enclosure resolves, and warping changes the measure under which a norm must hold. Probe 4 (aligned and opposite oscillatory products with identical marginal means) and probe 5 (plateaus) are the next fixtures.
+
+## C1. Accepted
+
+The absolute coefficient tail of the half-interval indicator diverges (|c_n| = 1 / (pi |n|) at odd n), so perimeter over M bounds nothing absolute; it bounds the squared L2 tail energy under finite-perimeter assumptions, with a norm error of order the square root of P / M. The quantity to certify is the omitted part of the pushforward-weighted integral, with the map's assumptions stated (full-rank affine damping, rank-deficient resonant directions, nonlinear stationary-phase cases), and the total allowance is the sum of the dropped terms. The ledger says so; the derivation is open.
+
+## E1. Accepted, with a measurement
+
+The transverse integral leaves phi(y) exp(i (b y + c) / (d + e y) - a^2 S / (2 (d + e y)^2)) under the depth Gaussian, a rational integrand and not a cubic phase; an Airy formula addresses a surrogate; a third-order jet does not determine a map; a rational Taylor model needs a remainder tied to the pole's distance and has none across the pole; generic two-dimensional cubics have mixed terms. The kernel's `multDepthRe` computes exactly your integrand (the transverse Gaussian in closed form, 24 Gauss-Legendre nodes along depth with the exact rational phase), and probe 6 measures the alternatives against a 40001-point reference with the pole at 40, 12, 6, 3, 1.5 and 0.8 sigma: the quadratic model errs by 1.8e-4, 6.7e-3, 2.0e-2, 6.7e-2, then 2.6e-2 and 3.5e-4 as the integral itself vanishes; the cubic surrogate by 1.1e-5, 2.5e-4, 3.1e-3, 2.4e-2, 2.2e-3, 1.7e-4; the depth quadrature by 4.5e-5, 7.3e-5, 4.1e-5, 1.2e-4, 8.6e-4, 2.6e-4. From 1.5 sigma the 2.5-sigma ball meets the pole and the probe refuses polynomial bounds, as the kernel refuses D <= 0. Exact rational conditioning stays; its open items are the quadrature's error bound and its cost where many recipes take it.
+
+## The organizing principle. Adopted as the contract
+
+The conditional-expectation hierarchy under the joint pixel measure, with the covariance carried through products, is now the ledger's organizing section, together with its limits as you state them: not a complexity theorem, conditional means may be expensive, the work cap separate from the error budget, the interval and the declared fallback when the error stays unresolved. The temporal statement is recorded as the only temporal guarantee we have: two representations within epsilon of the same instantaneous integral differ by at most 2 epsilon at a handover; determinism alone establishes nothing under TSR.
+
+## The protocol companion. Accepted
+
+The ownership split as you wrote it; the three evidence axes beside every status; the fixture contract (versioned JSON with claim, revision, expression, map, window, domain, norm, budget, work cap, expected witness or decline, reference and its convergence, exact candidate entry; recorded value, interval, work, status and disagreement, failures preserved); the pairing rules for handovers, warps, products, thresholds and temporal tests; the allocation of error across the whole expression including the summed tail; the 8-bit target's transfer function and range. The benchmark families and the named cost host (Apple M4, Metal, Unreal 5.8.2, 1920x1080, four methods separately, incremental and whole-frame cost with everything included, bracketed by raw controls) are in the ledger verbatim in substance. Your order is taken: B2's honest enclosure (done as stated: sound, 10x to 100x loose, the band-mass form derived in `enclosure-band-bound.md` and awaiting your read), the affine control and the curved counterexample (done), then the hierarchy experiment with unresolved-residual accounting, before any optimisation of a measured bottleneck.
+
+## One disagreement, small
+
+On the enclosure's outside mass: your form adds the window's mass outside the ball as an allowance. The band-mass form in `enclosure-band-bound.md` removes it by bounding the coverage error with the mass of the set where the two indicators can differ, which needs no ball; if you see a hole in that argument it should be said before the prototype. Everything else in the review I take as written.
