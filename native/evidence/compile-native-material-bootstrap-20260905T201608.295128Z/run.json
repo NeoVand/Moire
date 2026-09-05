@@ -1,0 +1,58 @@
+{
+  "status": "failed",
+  "started_at": "20260905T201608.295128Z",
+  "exit_code": 255,
+  "command_argv": [
+    "/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/Mac/UnrealEditor-Cmd",
+    "/Users/neo/repos/Moire/native/Unreal/MoireComparison/MoireComparison.uproject",
+    "-run=pythonscript",
+    "-script=/Users/neo/repos/Moire/native/Unreal/MoireComparison/Scripts/bootstrap.py",
+    "-unattended",
+    "-nop4",
+    "-nosplash",
+    "-nullrhi",
+    "-nosound",
+    "-stdout",
+    "-FullStdOutLogOutput",
+    "-abslog=/Users/neo/repos/Moire/native/Unreal/MoireComparison/Saved/Logs/analytic-bootstrap-nullrhi-20260905T201608.295128Z.engine.log"
+  ],
+  "rhi": "Null",
+  "rendered": false,
+  "source_hashes_before": {
+    "Config/DefaultEngine.ini": "76d6bfd602f35c0e4896f7f492fa5b7ed0aa061a7ae5b3d1044397bc50e286c6",
+    "Config/DefaultGame.ini": "f93a248bb1340490b08a649c16a38a93afdf840852ee54575dec76ab9509f3f1",
+    "MoireComparison.uproject": "3e87cb7e46d2b1d325a83288164418dded7478c8e210c7ddfeeb9ed09137e9a1",
+    "Scripts/analytic_material.py": "e14cf5faf5a7570699ec0c7fa1f6d3cc5502edd8c6a81dcd878410f94027f169",
+    "Scripts/bootstrap.py": "3c5d7f94f7807fe97f12508dd6019bdc2d368c027de093acbb863cc515126c13",
+    "Scripts/scene_contract.py": "dfd8ac7def736ae7146286add5109cc059c51dd377e2615de9b8933516ec7a6d",
+    "Scripts/stage_kernel.mjs": "528620a27681ad56ce70e3615a076f82fe139e2183eb055a618054ab9d75227d",
+    "Shaders/Moire/Generated/Kernel.ush": "e8645aa6ea68b239d490d90d1144a9bb41c90c34dec25e5ebf4725be70d25a8e",
+    "Shaders/Moire/Generated/source.json": "de3998d056ad416820ff4e8d1674213037a25cc1116c4776ccab59f442f33fcf"
+  },
+  "source_hashes_after": {
+    "Config/DefaultEngine.ini": "76d6bfd602f35c0e4896f7f492fa5b7ed0aa061a7ae5b3d1044397bc50e286c6",
+    "Config/DefaultGame.ini": "f93a248bb1340490b08a649c16a38a93afdf840852ee54575dec76ab9509f3f1",
+    "MoireComparison.uproject": "3e87cb7e46d2b1d325a83288164418dded7478c8e210c7ddfeeb9ed09137e9a1",
+    "Scripts/analytic_material.py": "e14cf5faf5a7570699ec0c7fa1f6d3cc5502edd8c6a81dcd878410f94027f169",
+    "Scripts/bootstrap.py": "3c5d7f94f7807fe97f12508dd6019bdc2d368c027de093acbb863cc515126c13",
+    "Scripts/scene_contract.py": "dfd8ac7def736ae7146286add5109cc059c51dd377e2615de9b8933516ec7a6d",
+    "Scripts/stage_kernel.mjs": "528620a27681ad56ce70e3615a076f82fe139e2183eb055a618054ab9d75227d",
+    "Shaders/Moire/Generated/Kernel.ush": "e8645aa6ea68b239d490d90d1144a9bb41c90c34dec25e5ebf4725be70d25a8e",
+    "Shaders/Moire/Generated/source.json": "de3998d056ad416820ff4e8d1674213037a25cc1116c4776ccab59f442f33fcf"
+  },
+  "stdout_sha256": "e763ed9a554eb772cda0bb021c73dff6c466d7adbd01233f4f80e5478ab592ea",
+  "stdout_local_path": "/Users/neo/repos/Moire/native/Unreal/MoireComparison/Saved/Logs/analytic-bootstrap-nullrhi-20260905T201608.295128Z.stdout.log",
+  "engine": {
+    "MajorVersion": 5,
+    "MinorVersion": 8,
+    "PatchVersion": 2,
+    "Changelist": 56702186,
+    "CompatibleChangelist": 55116800,
+    "IsLicenseeVersion": 0,
+    "IsPromotedBuild": 1,
+    "BranchName": "++UE5+Release-5.8"
+  },
+  "limitations": [
+    "NullRHI asset bindings/include setup only; no Metal rendering or shader numerical validation."
+  ]
+}

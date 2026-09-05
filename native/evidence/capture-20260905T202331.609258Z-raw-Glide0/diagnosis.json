@@ -1,0 +1,17 @@
+{
+  "status": "failed-no-image",
+  "stopped_owned_pid": 99658,
+  "termination": "SIGTERM after verifying the exact project and unique capture-log command-line path; process handled termination and returned0",
+  "observed": [
+    "Metal SM6 initialized",
+    "No shader compilation failure reported",
+    "Console queries confirm requested raw AA0 and100% input/output screen percentages",
+    "Frame-step logs advance through warm-up and record one capture request at sequence frame64",
+    "No PNG output after132.8seconds",
+    "Process sample shows the game engine continuing to render and Metal viewport/backbuffer activity",
+    "All watched source hashes unchanged"
+  ],
+  "inference": "The expected Mac offscreen texture path was not actually selected: FGenericWindow::IsRenderingOffScreen returnsfalse, causing Slate to use the Metal viewport route. Exact missing readback callback cause is not proven by the stack sample alone.",
+  "other_gpu_arms_started": false,
+  "user_editor_touched": false
+}

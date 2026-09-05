@@ -1,0 +1,11 @@
+In file included from /Users/neo/repos/Moire/native/evidence/compile-20260905T201037.883192Z/checker-compute.hlsl:1:
+/Users/neo/repos/Moire/demo/ours-kernel.hlsl:483:104: error: use of undeclared identifier 'checkerMeanHMode'
+float2 checkerMeanH(float3 hu, float3 hv, float3 hd, float x, float y, float period, float S) { return checkerMeanHMode(hu, hv, hd, x, y, period, S, 0); }
+                                                                                                       ^
+/Users/neo/repos/Moire/demo/ours-kernel.hlsl:551:104: error: use of undeclared identifier 'circlesMeanHMode'; did you mean 'checkerMeanHMode'?
+float2 circlesMeanH(float3 hu, float3 hv, float3 hd, float x, float y, float period, float S) { return circlesMeanHMode(hu, hv, hd, x, y, period, S, 0); }
+                                                                                                       ^~~~~~~~~~~~~~~~
+                                                                                                       checkerMeanHMode
+/Users/neo/repos/Moire/demo/ours-kernel.hlsl:485:8: note: 'checkerMeanHMode' declared here
+float2 checkerMeanHMode(float3 hu, float3 hv, float3 hd, float x, float y, float period, float S, uint mode) {
+       ^

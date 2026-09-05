@@ -47,6 +47,47 @@ def camera_pose(pose):
     }
 
 
+def homography_normalized(pose, aspect_ratio=WIDTH / HEIGHT):
+    """Period-normalized ground counts from (ViewportUV.x, ViewportUV.y, 1).
+
+    ViewportUV spans [0, 1] with Y downward. The quotient (hu.p / hd.p,
+    hv.p / hd.p) is the Three ground point's (X, Z) divided by the checker
+    period; hd.p < 0 identifies rays facing the ground. Vertical FOV stays
+    50 degrees as the viewport aspect changes. To use device-pixel positions
+    in checkerMeanH, divide each row's first two coefficients by viewport
+    width and height respectively, leave its constant unchanged, and pass
+    period=1. Pixel variance S=0.25 then means sigma=0.5 device pixels.
+    """
+    if not math.isfinite(aspect_ratio) or aspect_ratio <= 0:
+        raise ValueError("Viewport aspect ratio must be finite and positive.")
+    camera = camera_pose(pose)
+    eye, target = camera["three_eye"], camera["three_target"]
+
+    def normalized(vector):
+        length = math.sqrt(sum(value * value for value in vector))
+        return tuple(value / length for value in vector)
+
+    def cross(a, b):
+        return (a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0])
+
+    forward = normalized(tuple(b - a for a, b in zip(eye, target)))
+    right = normalized(cross(forward, (0.0, 1.0, 0.0)))
+    up = cross(right, forward)
+    tangent = math.tan(math.radians(VERTICAL_FOV_DEGREES / 2.0))
+    ray_x = tuple(2.0 * tangent * aspect_ratio * value for value in right)
+    ray_y = tuple(-2.0 * tangent * value for value in up)
+    ray_0 = tuple(f - 0.5 * x - 0.5 * y for f, x, y in zip(forward, ray_x, ray_y))
+    rays = (ray_x, ray_y, ray_0)
+    period = camera["period_world"]
+    # Intersect eye + t*ray with Y=0, t=-eye.y/ray.y. These are exact
+    # linear numerators and denominator, with no local Taylor expansion.
+    return {
+        "hu": tuple((eye[0] * ray[1] - eye[1] * ray[0]) / period for ray in rays),
+        "hv": tuple((eye[2] * ray[1] - eye[1] * ray[2]) / period for ray in rays),
+        "hd": tuple(ray[1] for ray in rays),
+    }
+
+
 def checker_code(period_world):
     """Unfiltered source only. This is not an analytic filtering implementation."""
     period_cm = period_world * CM_PER_WORLD_UNIT

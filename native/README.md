@@ -1,107 +1,83 @@
-# Native Unreal comparison preparation
+# Native Unreal comparison
 
-This is a separate **content-only UE 5.8 project**. Its Python bootstrap has run successfully with **NullRHI**, generating and then regenerating three maps and three materials with zero errors/warnings. Static Python/JSON and coordinate checks also pass. **It has not rendered**, opened a graphical editor, or produced a native comparison result. There is no analytic material or placeholder “ours” panel yet. The final-configuration evidence is [the successful run manifest](evidence/20260905T200045.051834Z/run.json) and [bootstrap metadata](evidence/20260905T200045.051834Z/bootstrap.json); full local logs remain in the ignored project `Saved/Logs` directory.
+This is an isolated **content-only Unreal 5.8.2 project** with a matched point source, actual Unreal TSR configuration, and the shared analytic HLSL material. Six maps, six materials and six camera sequences have been generated successfully. Shader bodies pass standalone DXC compilation; actual captured images and Metal execution are separate gates. The user's existing Unreal project and engine installation are not edited.
 
-The existing project at `/Users/neo/Documents/Unreal Projects/MyProject` and the engine installation are untouched. Generated scene assets and project run logs stay inside this project; Unreal also uses its normal shared derived-data cache. The bootstrap refuses to run with another active project, uses only `/Game/MoireComparison`, and replaces only generator-tagged materials/maps and generator-prefixed actors. Treat that package tree as generated; put manual work elsewhere. Do not run it during Play In Editor. A failed first run can leave an untagged partial package; inspect that package rather than removing the ownership guard.
+Start with [the controlled viewport capture workflow](tools/capture-native.md). The first target is one still pose per method at 640×360, then the other fixed poses. Motion replay, disocclusion and native performance remain later checks. Offline capture frame stepping is not evidence of sustained real-time throughput.
 
-AndroidFileServer is explicitly disabled in this Mac project. Its default-enabled editor plugin otherwise writes an Android server configuration and generated token into `DefaultEngine.ini`. That unrelated generated section was removed; the final successful rerun checks that the project configuration remains unchanged.
+The first Mac offscreen viewport run initialized Metal SM6, finished shader compilation and stepped through the requested frame, but delivered no PNG. Its [failure record](evidence/capture-20260905T202331.609258Z-raw-Glide0/diagnosis.json) is preserved. That viewport readback route is not currently verified; a separate native render-target capture is being prepared. No native image is claimed from the failed run.
 
-## What is prepared
+## Reproduce the project
 
-- Three fixed camera maps: `Glide0` (glide, t=0), `Glide8` (glide, t=8), and `Approach4` (approach, t=4, detail=2). These are still poses, **not a motion replay or temporal-stability benchmark**.
-- An unlit procedural point checker and a constant unlit sky sphere; no lights, Lumen, ray tracing, fog, motion blur, or auto exposure.
-- Raw mode uses Unreal AA method **0**. The baseline uses Unreal's actual **TSR, method 4**, at a requested 1920×1080 input/output resolution. A 200% TSR history is declared separately; it is not a reduced-resolution render input.
-- Both native modes consume the same procedural source. This differs from the browser baseline's mipmapped checker plus anisotropic filtering and Three TRAA. The two baseline pipelines must not be presented as interchangeable results. A native mipmapped/anisotropic arm can be added after this source-matching gate.
+From the repository:
 
-Unreal's [Custom Material Expression](https://dev.epicgames.com/documentation/unreal-engine/custom-material-expressions-in-unreal-engine?lang=en-US) supplies the **unfiltered** point source here. Nothing in the bootstrap implements analytic filtering.
+```sh
+node native/Unreal/MoireComparison/Scripts/stage_kernel.mjs
 
-## Exact scene convention
+"/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/Mac/UnrealEditor-Cmd" \
+  "/Users/neo/repos/Moire/native/Unreal/MoireComparison/MoireComparison.uproject" \
+  -run=pythonscript \
+  -script="/Users/neo/repos/Moire/native/Unreal/MoireComparison/Scripts/bootstrap.py" \
+  -unattended -nop4 -nosplash -nullrhi
 
-`Scripts/scene_contract.py` mirrors the fixed scene in `src/compare/scene.ts`:
+PYTHONDONTWRITEBYTECODE=1 python3 native/tools/capture_native.py --prepare
+```
 
-| Quantity | Native preparation |
-| --- | --- |
+The first command stages the author-owned HLSL for Unreal's existing `/Project` shader mapping. Generated includes and assets are ignored; the generators are the source of truth. The stage adds namespace isolation and checks source/generator/output hashes, without changing the mathematics. Start Unreal after staging a settled author handoff. Restage and restart after a kernel change so cached includes cannot be attributed to newer code.
+
+The bootstrap refuses the wrong project, writes only `/Game/MoireComparison`, and replaces only generator-tagged materials/maps and generator-prefixed actors. Put manual work outside that generated package tree. A partially failed first creation may leave an untagged package; inspect it before trying again. AndroidFileServer is explicitly disabled to prevent unrelated generated server configuration. The sequence preparer separately tags its assets and verifies that source maps remain unchanged.
+
+`NullRHI` creates assets without rendering. The [six-map bootstrap](evidence/compile-native-material-bootstrap-20260905T201802.877543Z/run.json) and [sequence preparation](evidence/capture-prepare-20260905T202250.332646Z/report.json) completed with clean exits. This exercises the actual editor bindings and material connections, but does not compile a Metal runtime material or verify native pixels.
+
+## Methods and scene contract
+
+| Item | Contract |
+|---|---|
+| Point maps | `Glide0`, `Glide8`, `Approach4` |
+| Analytic maps | Same names with `_Analytic` appended |
+| Raw | Procedural point shader; Unreal AA method 0 |
+| TSR | Same procedural shader; actual Unreal AA method 4; input/output at 100%; history at 200% |
+| Analytic | Shared `checkerMeanH`; AA disabled; Gaussian variance 0.25 device pixels² |
+| Camera poses | Glide t=0; glide t=8; approach t=4 with detail=2 |
 | Coordinates | Three `(x,y,z)` → Unreal `(-z,x,y) × 100` cm |
 | Checker counts | `u = UE.Y / (100 × period)`, `v = -UE.X / (100 × period)` |
 | Period | `4/detail` Three world units; two half-period squares per axis |
 | White predicate | The two `fract(count) >= 0.5` predicates are equal |
 | Linear dark / light | `0.025 / 0.82` |
 | Linear sky | `(0.105, 0.13, 0.16)` |
-| Ground | XY plane at UE Z=0, width 10,000,000 cm; mesh bounds checked at generation |
+| Ground | XY plane, Z=0, width 10,000,000 cm |
 | Camera height | 1,200 cm |
-| Projection | 50° **vertical** FOV; `2 atan(tan(25°) × 16/9)` horizontal FOV |
-| Output request | 1920×1080, aspect constrained to 16:9 |
+| Projection | 50° vertical; 79.316878520382° horizontal at constrained 16:9 |
 
-The axis mapping preserves camera orientation, checker phase, and negative-coordinate parity. The bootstrap measures the Engine plane's bounds before scaling instead of assuming a particular asset size. Native point shading uses half-cell predicates; the browser's sign-of-sine implementation differs exactly on discontinuity boundaries, where a point convention is needed.
+The engine plane's bounds are measured before scaling. A constant unlit sphere supplies the sky. Lights, Lumen, reflections, ray tracing, fog, motion blur and automatic exposure are disabled in the prepared scene. Native point shading differs from the browser's sign-of-sine convention exactly on a discontinuity; nearby stable points and filtered references are checked separately.
 
-The background sphere is a constant material behind the ground, not Three's clear color. Unreal's clipping, mesh interpolation, camera activation, and output transform still need verification. The ground's distant outer edge and a three-device-pixel band around its geometric horizon are outside the existing material-only reference gate. Do not report sky/silhouette accuracy from that gate.
+The analytic [Custom Material Expression](https://dev.epicgames.com/documentation/unreal-engine/custom-material-expressions-in-unreal-engine?lang=en-US) receives `ViewportUV` and `ViewSize`. Its normalized homography rows divide their XY coefficients by the actual dimensions, and `ViewportUV × ViewSize` supplies the pixel center without another half-pixel shift. Counts are already period-normalized, so the kernel receives period 1. Rows are fixed to the map's camera; moving the camera requires updating them.
 
-## Reproduce asset generation without rendering
+The native TSR arm consumes the same procedural source as native raw. The browser baseline consumes a mipmapped checker with anisotropic filtering plus Three TRAA. These are distinct pipelines; their scores cannot be interchanged. A native mipmapped/anisotropic arm remains a useful additional comparison once this matched-source gate works.
 
-Validated installation: UE **5.8.2**, changelist **56702186**, `/Users/Shared/Epic Games/UE_5.8`. This command has generated the assets successfully; the evidence records the complete invocation, including local log routing:
+The shared kernel returns regime 4 for declined or exhausted work. Current material adapters display the value component and do not yet measure unsupported-pixel coverage. A flagged partial or declined value is not a certified integral. Whole-image error and unsupported-region diagnostics remain required.
 
-```sh
-"/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/Mac/UnrealEditor-Cmd" \
-  "/Users/neo/repos/Moire/native/Unreal/MoireComparison/MoireComparison.uproject" \
-  -run=pythonscript \
-  -script="/Users/neo/repos/Moire/native/Unreal/MoireComparison/Scripts/bootstrap.py" \
-  -unattended -nop4 -nosplash -nullrhi
-```
-
-Local `PythonScriptCommandlet.cpp` explicitly parses `-Script=`, enables Python, runs the script, and returns an error on Python failure. The actual log reports RHI `Null`, no GPU, successful Python execution, and a clean exit. **Asset generation under NullRHI does not verify the Metal shader or guarantee the material has compiled for the runtime shader platform.** The Python bindings and editor-subsystem asset operations did execute successfully. No rendering-capable launch has been performed.
-
-On success the script writes three maps and three materials under `Content/MoireComparison`, and a unique `Saved/MoireComparison/bootstrap-<UTC>.json` with camera coordinates, material contract, measured mesh dimensions, generator hashes, and engine version. Generated content is ignored because the reviewed source is the reproducible generator. The command uses a separate process and does not communicate with the user's existing editor.
-
-## First actual raw and TSR sessions
-
-After the asset step succeeds, launch **one mode at a time** to avoid competing GPU workloads. Use the same map, output request, shader warm-up, and capture schedule for both. These exact commands are also **unexecuted**:
+## Capturing and interpreting results
 
 ```sh
-# Raw point shading. CameraActor is configured to auto-activate for Player 0.
-"/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/Mac/UnrealEditor.app/Contents/MacOS/UnrealEditor" \
-  "/Users/neo/repos/Moire/native/Unreal/MoireComparison/MoireComparison.uproject" \
-  /Game/MoireComparison/Maps/Glide0 -game -windowed -ResX=1920 -ResY=1080 \
-  -ExecCmds="r.AntiAliasingMethod 0,r.ScreenPercentage 100,r.SecondaryScreenPercentage.GameViewport 100,r.DynamicRes.OperationMode 0,ShowFlag.Tonemapper 0"
-
-# Close the raw session before launching this actual native TSR session.
-"/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/Mac/UnrealEditor.app/Contents/MacOS/UnrealEditor" \
-  "/Users/neo/repos/Moire/native/Unreal/MoireComparison/MoireComparison.uproject" \
-  /Game/MoireComparison/Maps/Glide0 -game -windowed -ResX=1920 -ResY=1080 \
-  -ExecCmds="sg.AntiAliasingQuality 3,r.AntiAliasingMethod 4,r.ScreenPercentage 100,r.SecondaryScreenPercentage.GameViewport 100,r.DynamicRes.OperationMode 0,r.TSR.History.ScreenPercentage 200,ShowFlag.Tonemapper 0"
+PYTHONDONTWRITEBYTECODE=1 python3 native/tools/capture_native.py --arm raw --pose Glide0 --render
+PYTHONDONTWRITEBYTECODE=1 python3 native/tools/capture_native.py --arm tsr --pose Glide0 --render
+PYTHONDONTWRITEBYTECODE=1 python3 native/tools/capture_native.py --arm analytic --pose Glide0 --render
 ```
 
-Repeat with `Glide8` and `Approach4`. Opening a new process gives a fresh history. Allow shader/PSO compilation to finish, then explicitly measure history warm-up and save captures at known frame counts. These commands do not implement exact-frame capture automation yet. In particular, wall-clock waiting while compilation stalls does not prove that 64 frames have rendered.
+Run one method at a time. The runner uses the actual game viewport through Unreal's automated LevelSequence capture, with one spatial sample and one temporal sample per frame, no tiling, 64 warm-up frame steps, and the saved frame explicitly identified. It retains process status, dimensions, source hashes, requested and logged console settings, shader errors and images. It does not silently treat process success as pipeline verification. No rendering measurements should be called performance while other editors or GPU jobs are active.
 
-`ShowFlag.Tonemapper=0` in the launch commands, disabled exposure, and unlit emission request a simple output path. The ShowFlag is deliberately absent from `DefaultEngine.ini`: the first preparation attempt exposed an engine ensure because a cheat console variable cannot be set from that INI section; the console command is the supported entry used here. **These settings do not establish byte equality with Three's linear-to-sRGB output.** Before measuring error, capture known dark/light/sky values in a linear render target or verify the screen transfer function; record target format, output transfer, pre-exposure, HDR/SDR, and any remaining postprocessing. Do not silently grade native screenshots as linear or assume an ICC-managed desktop screenshot equals a render-target readback.
+Unlit emission, disabled exposure, `r.EyeAdaptation.PreExposureOverride=1`, and the `ShowFlag.Tonemapper 0` console command request a simple output path. They do not prove equality with Three's linear-to-sRGB output. PNGs are viewport output, not linear measurements. Before scoring, verify the transfer function and known dark/light/sky values or obtain a linear render-target readback. Also check actual content dimensions, camera activation, horizon, off-axis phase, active Metal shader platform and effective AA mode.
 
-The first visual checks are the active camera, exact content viewport size (including Retina scaling), no unexpected pawn/overlay, aspect/FOV, quadrant phase, horizon row, and matching off-axis samples. Query the live values of the requested console variables and record the actual shader platform. Local configuration support is not proof of the active runtime pipeline.
+The existing material reference excludes the outer plane edge and a three-pixel band at the geometric horizon. Do not infer silhouette or sky accuracy from its scores. The fixed scenes do not yet test motion, history recovery after cuts, disocclusion, or gameplay. Capture warm-up frame counts describe sequence stepping; verify the actual temporal-history state before claiming an exact TSR history age.
 
-## Evidence required from each mode
-
-Store results in a new `Saved/MoireComparison/<UTC>-<mode>-<pose>/` folder; do not overwrite earlier runs. Each bundle should contain:
-
-1. The actual viewport screenshot/readback and its exact pixel dimensions. Use an ordinary viewport capture; tiled high-resolution screenshots change sampling/history and are not interchangeable.
-2. Metadata with engine build, OS/GPU/Metal shader platform, project/generator/source hashes, pose/map, period, camera transform/FOV/aspect, AA method, quality, input/output/history dimensions, dynamic resolution, and all effective postprocess/exposure/output settings.
-3. Exact rendered frame count since reset/camera cut, shader-compilation completion, temporal warm-up policy, elapsed replay time, and capture frame index. Distinguish cold and settled TSR images. Continuous motion and disocclusion tests remain to be implemented.
-4. Independent-source errors in linear light, reported separately from screenshot quantization; the source must use the actual captured camera/viewport. Keep failed pixels in the results and state the horizon/outer-edge exclusions.
-5. GPU and completed-frame timing after warm-up, timed in isolation from browsers/other editors. Name the scope (material, TSR, full frame) and save distributions, not a claimed FPS derived from overlapping pass timers.
-
-No comparison with an analytic native material is possible yet. That next adapter should follow the shared WGSL source/invariance gates, preserve the same counts/filter convention, and be measured in this same host. This preparation does not imply that port exists.
-
-## API checks and current validation
-
-Run the static check without importing Unreal:
+## Verification
 
 ```sh
-PYTHONDONTWRITEBYTECODE=1 python3 /Users/neo/repos/Moire/native/check_preparation.py
+PYTHONDONTWRITEBYTECODE=1 python3 native/check_preparation.py
+PYTHONDONTWRITEBYTECODE=1 python3 native/tools/compile_hlsl.py --spirv
+PYTHONDONTWRITEBYTECODE=1 python3 native/tools/compile_material.py
 ```
 
-It checks Python syntax, project JSON, cross-coordinate camera projection and count fixtures, phase, and FOV conversion. The generator's exact API names/signatures were checked against the installed 5.8 headers and implementations:
+The static checks compare 135 independent off-axis ground rays and 90 sky rays across three poses and three aspect ratios, plus camera/count/phase/FOV fixtures. [Compiler validation](tools/README.md) runs the real installed DXC library: checker/circles, compute/pixel, DXIL/SPIR-V; the exact material bodies also compile under macro and duplicate-include checks. A known-invalid shader must fail. DXIL is unsigned because the signing library is absent. Neither DXIL nor SPIR-V acceptance proves Metal execution or image quality.
 
-- `PythonScriptPlugin/Private/PythonScriptCommandlet.cpp`: commandlet syntax and failure handling.
-- `LevelEditor/Public/LevelEditorSubsystem.h`, `UnrealEd/Public/Subsystems/EditorActorSubsystem.h`, and `EditorAssetSubsystem.h`: map/actor creation, saving, and asset ownership tags.
-- `MaterialEditor/Public/MaterialEditingLibrary.h` and `Engine/Public/Materials/MaterialExpressionCustom.h`: node creation, connections, custom inputs, and recompilation.
-- `Engine/Classes/Camera/CameraComponent.h`: horizontal FOV and aspect; `CameraActor.h` plus `PlayerController.cpp`: Player 0 camera auto-activation.
-- `RenderCore/Private/RenderUtils.cpp`: `SupportsTSR` reads `GetSupportsGen5TemporalAA`; `Engine/Config/Mac/DataDrivenPlatformInfo.ini` enables it for Metal SM5/SM6. `Engine/Private/SceneView.cpp` identifies AA 0 and AA 4.
-
-Epic's Python docs additionally confirm [AutoReceiveInput.PLAYER0](https://dev.epicgames.com/documentation/en-us/unreal-engine/python-api/class/AutoReceiveInput?application_version=5.6), [CustomInput.input_name](https://dev.epicgames.com/documentation/en-us/unreal-engine/python-api/class/CustomInput?application_version=5.6), and [Rotator's named pitch/yaw/roll fields](https://dev.epicgames.com/documentation/en-us/unreal-engine/python-api/class/Rotator?application_version=5.6). Those web pages are 5.6; installed 5.8 declarations were used for the project-specific API checks, then the concrete script executed under 5.8.2 NullRHI. Native render execution, runtime camera activation, history, output color, and performance remain unchecked.
+The installed Unreal 5.8 source was used to verify `/Project` mapping, Custom Material includes, viewport UV/size outputs, editor asset APIs, camera activation, AA method identifiers and Metal TSR support. Each evidence bundle records the tested bytes and actual execution scope. Failed attempts are retained alongside successful runs.

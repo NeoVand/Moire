@@ -1,0 +1,416 @@
+{
+  "action": "prepare",
+  "argv": [
+    "/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/Mac/UnrealEditor-Cmd",
+    "/Users/neo/repos/Moire/native/Unreal/MoireComparison/MoireComparison.uproject",
+    "-run=pythonscript",
+    "-script=/Users/neo/repos/Moire/native/Unreal/MoireComparison/Scripts/prepare_capture.py",
+    "-nullrhi",
+    "-unattended",
+    "-nop4",
+    "-nosplash",
+    "-nosound",
+    "-stdout",
+    "-FullStdOutLogOutput",
+    "-AbsLog=/Users/neo/repos/Moire/native/evidence/capture-prepare-20260905T202250.332646Z/unreal.log"
+  ],
+  "output_directory": "/Users/neo/repos/Moire/native/evidence/capture-prepare-20260905T202250.332646Z",
+  "renderer_will_start": false,
+  "execute_requested": true,
+  "started_at": "20260905T202250.332646Z",
+  "status": "process-passed",
+  "source_hashes": {
+    "native/tools/capture_native.py": "86e55a65db9901d80487878a308265b809cac57caf7c2f4fc9e4927df19983d5",
+    "native/Unreal/MoireComparison/Scripts/prepare_capture.py": "c0e6c9d54c76bb5b395e223a0b25504b88e47ca9f094de57063d6a977f6deb1f",
+    "native/Unreal/MoireComparison/Scripts/scene_contract.py": "dfd8ac7def736ae7146286add5109cc059c51dd377e2615de9b8933516ec7a6d",
+    "native/Unreal/MoireComparison/Scripts/analytic_material.py": "e14cf5faf5a7570699ec0c7fa1f6d3cc5502edd8c6a81dcd878410f94027f169",
+    "native/Unreal/MoireComparison/MoireComparison.uproject": "ff189fbd6a336b7566ed6fcbcf98fafdee4ce56de78bee3624907097f8e63814",
+    "native/Unreal/MoireComparison/Config/DefaultEngine.ini": "76d6bfd602f35c0e4896f7f492fa5b7ed0aa061a7ae5b3d1044397bc50e286c6",
+    "native/Unreal/MoireComparison/Shaders/Moire/Generated/Kernel.ush": "9fc69877f79ed170e926825b119018623f68ffa887a9ae73d179eb9550a52f26",
+    "native/Unreal/MoireComparison/Shaders/Moire/Generated/source.json": "39c3ead89d0a8fb3d4497b3e42ae70b3ba7e22bfb710b491a33172c902936286",
+    "demo/ours-kernel.wgsl.js": "ac855cdb4d478faf8130176d8dda2507b28909218a8d955c6b1e724e6c083cd1",
+    "demo/ours-kernel.hlsl": "85c87f01b4d16a18dbad1fa8a34dc2e793eeb0769377569fb3432ebf7a5595bc",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_Analytic_Approach4.uasset": "19a7043b8e3a8b152ec11e160d6cd0f5d99df8590ea566517d92fae9c6b3101a",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_Analytic_Glide0.uasset": "60529526d4a05b8441a597de9588c008a1c341f55c44ccf28c11f8d5fb97eaa5",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_Analytic_Glide8.uasset": "473b6f2c08ce8d16b49fc3df28dd4409c164dc695ae20576fb3029d14a279b82",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_Checker_Detail1.uasset": "dfc9682c330ecaaac01d4e5bf49fc7c7e1bdd9aeb8cf9835d73e2bceaedc41ac",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_Checker_Detail2.uasset": "9e7f9ffe0b638b5c24913330183a08633e0f719115cd05b2f18ea87acacf98ac",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_Sky.uasset": "2db5c3fc276261d2ab9750054863ed180395957397855d92f0602953ffe628a2"
+  },
+  "engine_build": {
+    "MajorVersion": 5,
+    "MinorVersion": 8,
+    "PatchVersion": 2,
+    "Changelist": 56702186,
+    "CompatibleChangelist": 55116800,
+    "IsLicenseeVersion": 0,
+    "IsPromotedBuild": 1,
+    "BranchName": "++UE5+Release-5.8"
+  },
+  "capture_contract": {
+    "pose": "Glide0",
+    "arm": "raw",
+    "map": "/Game/MoireComparison/Maps/Glide0",
+    "sequence": "/Game/MoireComparison/CaptureSequences/Glide0",
+    "output_size_requested": [
+      640,
+      360
+    ],
+    "fixed_fps": 60,
+    "warmup_sequence_frames": 64,
+    "output_sequence_frames": [
+      64
+    ],
+    "spatial_samples": 1,
+    "temporal_subsamples": 1,
+    "tiling": false,
+    "readback": "PNG from normal game-viewport backbuffer; 8-bit output, transfer function not yet calibrated",
+    "performance_measurement": false
+  },
+  "artifacts": [],
+  "exit_code": 0,
+  "elapsed_wall_seconds": 7.2358624580083415,
+  "source_hashes_after": {
+    "native/tools/capture_native.py": "86e55a65db9901d80487878a308265b809cac57caf7c2f4fc9e4927df19983d5",
+    "native/Unreal/MoireComparison/Scripts/prepare_capture.py": "c0e6c9d54c76bb5b395e223a0b25504b88e47ca9f094de57063d6a977f6deb1f",
+    "native/Unreal/MoireComparison/Scripts/scene_contract.py": "dfd8ac7def736ae7146286add5109cc059c51dd377e2615de9b8933516ec7a6d",
+    "native/Unreal/MoireComparison/Scripts/analytic_material.py": "e14cf5faf5a7570699ec0c7fa1f6d3cc5502edd8c6a81dcd878410f94027f169",
+    "native/Unreal/MoireComparison/MoireComparison.uproject": "ff189fbd6a336b7566ed6fcbcf98fafdee4ce56de78bee3624907097f8e63814",
+    "native/Unreal/MoireComparison/Config/DefaultEngine.ini": "76d6bfd602f35c0e4896f7f492fa5b7ed0aa061a7ae5b3d1044397bc50e286c6",
+    "native/Unreal/MoireComparison/Shaders/Moire/Generated/Kernel.ush": "9fc69877f79ed170e926825b119018623f68ffa887a9ae73d179eb9550a52f26",
+    "native/Unreal/MoireComparison/Shaders/Moire/Generated/source.json": "39c3ead89d0a8fb3d4497b3e42ae70b3ba7e22bfb710b491a33172c902936286",
+    "demo/ours-kernel.wgsl.js": "ac855cdb4d478faf8130176d8dda2507b28909218a8d955c6b1e724e6c083cd1",
+    "demo/ours-kernel.hlsl": "85c87f01b4d16a18dbad1fa8a34dc2e793eeb0769377569fb3432ebf7a5595bc",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_Analytic_Approach4.uasset": "19a7043b8e3a8b152ec11e160d6cd0f5d99df8590ea566517d92fae9c6b3101a",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_Analytic_Glide0.uasset": "60529526d4a05b8441a597de9588c008a1c341f55c44ccf28c11f8d5fb97eaa5",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_Analytic_Glide8.uasset": "473b6f2c08ce8d16b49fc3df28dd4409c164dc695ae20576fb3029d14a279b82",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_Checker_Detail1.uasset": "dfc9682c330ecaaac01d4e5bf49fc7c7e1bdd9aeb8cf9835d73e2bceaedc41ac",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_Checker_Detail2.uasset": "9e7f9ffe0b638b5c24913330183a08633e0f719115cd05b2f18ea87acacf98ac",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_Sky.uasset": "2db5c3fc276261d2ab9750054863ed180395957397855d92f0602953ffe628a2"
+  },
+  "source_hashes_stable": true,
+  "preparation_report": "/Users/neo/repos/Moire/native/Unreal/MoireComparison/Saved/MoireComparison/prepare-capture-20260905T202256.868118Z.json",
+  "preparation_sha256": "bec62fff67a452c1259fa366099f53af36e41265d6c4366bc252b295bfb6c925",
+  "preparation": {
+    "created_at": "20260905T202256.868118Z",
+    "status": "passed",
+    "project": "/Users/neo/repos/Moire/native/Unreal/MoireComparison",
+    "engine": "5.8.2-56702186+++UE5+Release-5.8",
+    "generator": "native-capture-v1",
+    "rendered": false,
+    "frame_rate": 60,
+    "sequence_range": [
+      0,
+      512
+    ],
+    "hashes": {
+      "prepare_capture.py": "c0e6c9d54c76bb5b395e223a0b25504b88e47ca9f094de57063d6a977f6deb1f",
+      "scene_contract.py": "dfd8ac7def736ae7146286add5109cc059c51dd377e2615de9b8933516ec7a6d"
+    },
+    "sequences": [
+      {
+        "pose": {
+          "name": "Glide0",
+          "motion": "glide",
+          "time": 0.0,
+          "detail": 1.0
+        },
+        "map": "/Game/MoireComparison/Maps/Glide0",
+        "sequence": "/Game/MoireComparison/CaptureSequences/Glide0",
+        "arms": [
+          "raw",
+          "tsr"
+        ],
+        "camera": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "binding_id": "<Struct 'Guid' (0xa0f490b03a0) {}>",
+        "camera_pose": {
+          "name": "Glide0",
+          "motion": "glide",
+          "time": 0.0,
+          "detail": 1.0,
+          "three_eye": [
+            0.0,
+            12.0,
+            28.0
+          ],
+          "three_target": [
+            0.0,
+            0.0,
+            -22.0
+          ],
+          "unreal_location_cm": [
+            -2800.0,
+            0.0,
+            1200.0
+          ],
+          "unreal_target_cm": [
+            2200.0,
+            0.0,
+            0.0
+          ],
+          "unreal_rotation_degrees": {
+            "pitch": -13.495733280795811,
+            "yaw": 0.0,
+            "roll": 0.0
+          },
+          "period_world": 4.0,
+          "horizontal_fov_degrees": 79.31687852038162
+        },
+        "map_sha256": "3117a9f6f6b86983b0c03dc9dc92dae73b6c67b5453f9cc486002484485dd85d",
+        "sequence_sha256": "ad4f3a2d5bd23e96b6cbdba9bf0720cbaf2f843036b671f9afee91ff6d6e1e1e"
+      },
+      {
+        "pose": {
+          "name": "Glide0",
+          "motion": "glide",
+          "time": 0.0,
+          "detail": 1.0
+        },
+        "map": "/Game/MoireComparison/Maps/Glide0_Analytic",
+        "sequence": "/Game/MoireComparison/CaptureSequences/Glide0_Analytic",
+        "arms": [
+          "analytic"
+        ],
+        "camera": "/Game/MoireComparison/Maps/Glide0_Analytic.Glide0_Analytic:PersistentLevel.CameraActor_0",
+        "binding_id": "<Struct 'Guid' (0xa0f490b14e0) {}>",
+        "camera_pose": {
+          "name": "Glide0",
+          "motion": "glide",
+          "time": 0.0,
+          "detail": 1.0,
+          "three_eye": [
+            0.0,
+            12.0,
+            28.0
+          ],
+          "three_target": [
+            0.0,
+            0.0,
+            -22.0
+          ],
+          "unreal_location_cm": [
+            -2800.0,
+            0.0,
+            1200.0
+          ],
+          "unreal_target_cm": [
+            2200.0,
+            0.0,
+            0.0
+          ],
+          "unreal_rotation_degrees": {
+            "pitch": -13.495733280795811,
+            "yaw": 0.0,
+            "roll": 0.0
+          },
+          "period_world": 4.0,
+          "horizontal_fov_degrees": 79.31687852038162
+        },
+        "map_sha256": "769128a884f95fc5075e2d337b0e2c03d7a811d8ac6cf0f1fe3e489dbd17a1d4",
+        "sequence_sha256": "85cdebe3d3a284e7068d575a63b3f7afdf8d55df095b82d098dce71f970643a1"
+      },
+      {
+        "pose": {
+          "name": "Glide8",
+          "motion": "glide",
+          "time": 8.0,
+          "detail": 1.0
+        },
+        "map": "/Game/MoireComparison/Maps/Glide8",
+        "sequence": "/Game/MoireComparison/CaptureSequences/Glide8",
+        "arms": [
+          "raw",
+          "tsr"
+        ],
+        "camera": "/Game/MoireComparison/Maps/Glide8.Glide8:PersistentLevel.CameraActor_0",
+        "binding_id": "<Struct 'Guid' (0xa0f490b12f0) {}>",
+        "camera_pose": {
+          "name": "Glide8",
+          "motion": "glide",
+          "time": 8.0,
+          "detail": 1.0,
+          "three_eye": [
+            4.705895550506519,
+            12.0,
+            28.0
+          ],
+          "three_target": [
+            2.1176529977279337,
+            0.0,
+            -22.0
+          ],
+          "unreal_location_cm": [
+            -2800.0,
+            470.58955505065194,
+            1200.0
+          ],
+          "unreal_target_cm": [
+            2200.0,
+            211.76529977279336,
+            0.0
+          ],
+          "unreal_rotation_degrees": {
+            "pitch": -13.478346777114242,
+            "yaw": -2.9632625952875062,
+            "roll": 0.0
+          },
+          "period_world": 4.0,
+          "horizontal_fov_degrees": 79.31687852038162
+        },
+        "map_sha256": "ace6dde5113fb7681fb2382ec6c45bf674c913b1866672ac04a5c8395c2971f7",
+        "sequence_sha256": "9118005dd58731be6df8e43b83f83ccdd52b48f9fc32cdf40057d7916dd6691f"
+      },
+      {
+        "pose": {
+          "name": "Glide8",
+          "motion": "glide",
+          "time": 8.0,
+          "detail": 1.0
+        },
+        "map": "/Game/MoireComparison/Maps/Glide8_Analytic",
+        "sequence": "/Game/MoireComparison/CaptureSequences/Glide8_Analytic",
+        "arms": [
+          "analytic"
+        ],
+        "camera": "/Game/MoireComparison/Maps/Glide8_Analytic.Glide8_Analytic:PersistentLevel.CameraActor_0",
+        "binding_id": "<Struct 'Guid' (0xa0f490b1400) {}>",
+        "camera_pose": {
+          "name": "Glide8",
+          "motion": "glide",
+          "time": 8.0,
+          "detail": 1.0,
+          "three_eye": [
+            4.705895550506519,
+            12.0,
+            28.0
+          ],
+          "three_target": [
+            2.1176529977279337,
+            0.0,
+            -22.0
+          ],
+          "unreal_location_cm": [
+            -2800.0,
+            470.58955505065194,
+            1200.0
+          ],
+          "unreal_target_cm": [
+            2200.0,
+            211.76529977279336,
+            0.0
+          ],
+          "unreal_rotation_degrees": {
+            "pitch": -13.478346777114242,
+            "yaw": -2.9632625952875062,
+            "roll": 0.0
+          },
+          "period_world": 4.0,
+          "horizontal_fov_degrees": 79.31687852038162
+        },
+        "map_sha256": "fa2a63066100fea559b113468fd44a7785c24adff6ca3abda62baf155011c7ff",
+        "sequence_sha256": "b4edb12a5ae8f94b3de614a37c3178539e5cd7332ae919a6ec8c8ce2a358a77b"
+      },
+      {
+        "pose": {
+          "name": "Approach4",
+          "motion": "approach",
+          "time": 4.0,
+          "detail": 2.0
+        },
+        "map": "/Game/MoireComparison/Maps/Approach4",
+        "sequence": "/Game/MoireComparison/CaptureSequences/Approach4",
+        "arms": [
+          "raw",
+          "tsr"
+        ],
+        "camera": "/Game/MoireComparison/Maps/Approach4.Approach4:PersistentLevel.CameraActor_0",
+        "binding_id": "<Struct 'Guid' (0xa0f490b12e0) {}>",
+        "camera_pose": {
+          "name": "Approach4",
+          "motion": "approach",
+          "time": 4.0,
+          "detail": 2.0,
+          "three_eye": [
+            0.0,
+            12.0,
+            18.75113345321237
+          ],
+          "three_target": [
+            0.0,
+            0.0,
+            -31.24886654678763
+          ],
+          "unreal_location_cm": [
+            -1875.113345321237,
+            0.0,
+            1200.0
+          ],
+          "unreal_target_cm": [
+            3124.886654678763,
+            0.0,
+            0.0
+          ],
+          "unreal_rotation_degrees": {
+            "pitch": -13.495733280795811,
+            "yaw": 0.0,
+            "roll": 0.0
+          },
+          "period_world": 2.0,
+          "horizontal_fov_degrees": 79.31687852038162
+        },
+        "map_sha256": "1e4749845d18cac2f30e1b7de23a852de9b97cfd3ea7d07e29e70079a74bb40d",
+        "sequence_sha256": "215364697d7bff8c0e73754df2e762ecc6bd192406898b5d00e7e6bb5755d6cc"
+      },
+      {
+        "pose": {
+          "name": "Approach4",
+          "motion": "approach",
+          "time": 4.0,
+          "detail": 2.0
+        },
+        "map": "/Game/MoireComparison/Maps/Approach4_Analytic",
+        "sequence": "/Game/MoireComparison/CaptureSequences/Approach4_Analytic",
+        "arms": [
+          "analytic"
+        ],
+        "camera": "/Game/MoireComparison/Maps/Approach4_Analytic.Approach4_Analytic:PersistentLevel.CameraActor_0",
+        "binding_id": "<Struct 'Guid' (0xa0f490b1880) {}>",
+        "camera_pose": {
+          "name": "Approach4",
+          "motion": "approach",
+          "time": 4.0,
+          "detail": 2.0,
+          "three_eye": [
+            0.0,
+            12.0,
+            18.75113345321237
+          ],
+          "three_target": [
+            0.0,
+            0.0,
+            -31.24886654678763
+          ],
+          "unreal_location_cm": [
+            -1875.113345321237,
+            0.0,
+            1200.0
+          ],
+          "unreal_target_cm": [
+            3124.886654678763,
+            0.0,
+            0.0
+          ],
+          "unreal_rotation_degrees": {
+            "pitch": -13.495733280795811,
+            "yaw": 0.0,
+            "roll": 0.0
+          },
+          "period_world": 2.0,
+          "horizontal_fov_degrees": 79.31687852038162
+        },
+        "map_sha256": "c0b3f2cd227659e59a51f7071e56ae60e9a078e5622160703b59e5232c21f4c6",
+        "sequence_sha256": "3ebd57979ed64c437bbb81eef85f56fd39e10202eba287dceaed99dcf27e37cc"
+      }
+    ]
+  }
+}

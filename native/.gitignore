@@ -9,3 +9,6 @@
 **/*.xcodeproj/
 **/*.xcworkspace/
 /Unreal/MoireComparison/Content/MoireComparison/
+/Unreal/MoireComparison/Shaders/Moire/Generated/
+/evidence/**/*.log
+/evidence/**/process-sample.txt

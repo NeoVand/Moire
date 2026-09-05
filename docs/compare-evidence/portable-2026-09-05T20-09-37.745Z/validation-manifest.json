@@ -1,0 +1,78 @@
+{
+  "createdAt": "2026-09-05T20:09:37.745957+00:00",
+  "outputDirectory": "/var/folders/gz/kmzkq37n5kd3zqj75h46ktww0000gn/T/moire-frozen-kernel-2026-09-05T20-09-37.745Z",
+  "commitBefore": "1d6a1a02007c7e4ffe109a8117beec0310c0ee34",
+  "sourceHashesBefore": {
+    "demo/ours-kernel.wgsl.js": "aa45150f04d8b1bda65bc5b7d409a97e638ae55cda9319c617cc99fff8e1221e",
+    "demo/ours-kernel.hlsl": "367e70f05f57c1e6e24316a6a58fa6883fd7a7787963690ce16a0c3ec91074bd",
+    "demo/emit-hlsl.mjs": "c25813017d2fc61fdfa8d086d94335cd9464e95ca60873a3d03194c4c30af5f2",
+    "src/compare/scene.ts": "1bc167f22ad07d36d475b8a7ec0b782cb725c807438547d577b8bdd8ae4accee",
+    "src/compare/authorKernel.ts": "b89d8889947a8333b4f15e2e8870fcf9f95ec4d420c442e77298aec17833d3d0",
+    "src/compare/spectral.ts": "0cc609d922870d49e504c355783d313c402aecc1451b6f055dcf7203bbc0d9d4",
+    "tests/compare/homography-browser.mjs": "d731f82b488f2a8f78a655d2bc9801ae504da333682521f543b84884af1e232f",
+    "tests/compare/homography.mjs": "22c1b9189d6fcf99fe7f06599f38345cdf4db9342ab8487e41a6acbffe864e73",
+    "tests/compare/browser-entry.mjs": "484e2b9b66cbea6d2a2c280a6853444609f4ef26d68a3160e26e3cfe81927c9b",
+    "tests/compare/materials.mjs": "783b089cc330a220ef9690e7083384c2e26b222c07d3442a8ac1931f16eb24ef",
+    "tests/compare/reference.mjs": "c73eb2366b43fbd6845a0c6cefe976b81dbfa40bb6eb3dd86cbea76dfb6e9820",
+    "tests/compare/run.mjs": "e1c3cc577be3560626781c849974b398b33a526e155f3e9255bf5fe3df09f736"
+  },
+  "commands": [
+    {
+      "name": "test-compare",
+      "command": [
+        "npm",
+        "run",
+        "test:compare"
+      ],
+      "startedAt": "2026-09-05T20:09:37.752858+00:00",
+      "log": "/var/folders/gz/kmzkq37n5kd3zqj75h46ktww0000gn/T/moire-frozen-kernel-2026-09-05T20-09-37.745Z/test-compare.log",
+      "status": "passed",
+      "exitCode": 0,
+      "elapsedSeconds": 4.873393749992829
+    },
+    {
+      "name": "build",
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "startedAt": "2026-09-05T20:09:42.626525+00:00",
+      "log": "/var/folders/gz/kmzkq37n5kd3zqj75h46ktww0000gn/T/moire-frozen-kernel-2026-09-05T20-09-37.745Z/build.log",
+      "status": "passed",
+      "exitCode": 0,
+      "elapsedSeconds": 5.4013658330077305
+    },
+    {
+      "name": "targeted-lint",
+      "command": [
+        "npx",
+        "eslint",
+        "src/compare"
+      ],
+      "startedAt": "2026-09-05T20:09:48.028225+00:00",
+      "log": "/var/folders/gz/kmzkq37n5kd3zqj75h46ktww0000gn/T/moire-frozen-kernel-2026-09-05T20-09-37.745Z/targeted-lint.log",
+      "status": "passed",
+      "exitCode": 0,
+      "elapsedSeconds": 1.2044055000296794
+    }
+  ],
+  "sourceHashesAfter": {
+    "demo/ours-kernel.wgsl.js": "aa45150f04d8b1bda65bc5b7d409a97e638ae55cda9319c617cc99fff8e1221e",
+    "demo/ours-kernel.hlsl": "367e70f05f57c1e6e24316a6a58fa6883fd7a7787963690ce16a0c3ec91074bd",
+    "demo/emit-hlsl.mjs": "c25813017d2fc61fdfa8d086d94335cd9464e95ca60873a3d03194c4c30af5f2",
+    "src/compare/scene.ts": "1bc167f22ad07d36d475b8a7ec0b782cb725c807438547d577b8bdd8ae4accee",
+    "src/compare/authorKernel.ts": "b89d8889947a8333b4f15e2e8870fcf9f95ec4d420c442e77298aec17833d3d0",
+    "src/compare/spectral.ts": "0cc609d922870d49e504c355783d313c402aecc1451b6f055dcf7203bbc0d9d4",
+    "tests/compare/homography-browser.mjs": "d731f82b488f2a8f78a655d2bc9801ae504da333682521f543b84884af1e232f",
+    "tests/compare/homography.mjs": "22c1b9189d6fcf99fe7f06599f38345cdf4db9342ab8487e41a6acbffe864e73",
+    "tests/compare/browser-entry.mjs": "484e2b9b66cbea6d2a2c280a6853444609f4ef26d68a3160e26e3cfe81927c9b",
+    "tests/compare/materials.mjs": "783b089cc330a220ef9690e7083384c2e26b222c07d3442a8ac1931f16eb24ef",
+    "tests/compare/reference.mjs": "c73eb2366b43fbd6845a0c6cefe976b81dbfa40bb6eb3dd86cbea76dfb6e9820",
+    "tests/compare/run.mjs": "e1c3cc577be3560626781c849974b398b33a526e155f3e9255bf5fe3df09f736"
+  },
+  "sourceHashesStable": true,
+  "commitAfter": "1d6a1a02007c7e4ffe109a8117beec0310c0ee34",
+  "completedAt": "2026-09-05T20:09:49.241932+00:00",
+  "status": "passed"
+}

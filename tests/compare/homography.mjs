@@ -88,7 +88,7 @@ try {
     const actual = byName.get(c.name);
     const problems = [];
     if (!Number.isFinite(actual.mean) || actual.mean < -1e-5 || actual.mean > 1 + 1e-5) problems.push('nonfinite or out-of-range mean');
-    if (actual.regime !== 1 && actual.regime !== 3) problems.push('unknown integration regime');
+    if (![1, 3, 4].includes(actual.regime)) problems.push('unknown integration regime');
     if (c.expectedRegime !== undefined && actual.regime !== c.expectedRegime) problems.push('expected coverage path');
     if (c.expected !== undefined && Math.abs(actual.mean - c.expected) > c.tolerance) problems.push('independent source target');
     if (c.base) {

@@ -1,0 +1,350 @@
+{
+  "created_at": "20260905T201809.881446Z",
+  "engine": "5.8.2-56702186+++UE5+Release-5.8",
+  "project": "/Users/neo/repos/Moire/native/Unreal/MoireComparison",
+  "generator": "native-scene-v1",
+  "status": "assets-generated; native rendering and camera activation not yet verified",
+  "rendered": false,
+  "width": 1920,
+  "height": 1080,
+  "vertical_fov_degrees": 50.0,
+  "horizontal_fov_degrees": 79.31687852038162,
+  "plane_width_cm": 10000000.0,
+  "engine_plane_bounds_cm": [
+    100.0,
+    100.0,
+    1.6081227129549798e-14
+  ],
+  "source": "equal half-cell parity; point shader and shared homography integration",
+  "kernel": {
+    "createdAt": "2026-09-05T20:17:45.210Z",
+    "source": "demo/ours-kernel.hlsl",
+    "sourceSha256": "85c87f01b4d16a18dbad1fa8a34dc2e793eeb0769377569fb3432ebf7a5595bc",
+    "generator": "demo/ours-kernel.wgsl.js",
+    "generatorSha256": "ac855cdb4d478faf8130176d8dda2507b28909218a8d955c6b1e724e6c083cd1",
+    "adapter": "native/Unreal/MoireComparison/Scripts/stage_kernel.mjs",
+    "adapterSha256": "528620a27681ad56ce70e3615a076f82fe139e2183eb055a618054ab9d75227d",
+    "output": "Shaders/Moire/Generated/Kernel.ush",
+    "outputSha256": "9fc69877f79ed170e926825b119018623f68ffa887a9ae73d179eb9550a52f26",
+    "transformation": "Namespace MoireKernel; PI and TAU constant tokens renamed. No numerical or control-flow changes."
+  },
+  "poses": [
+    {
+      "name": "Glide0",
+      "motion": "glide",
+      "time": 0.0,
+      "detail": 1.0,
+      "three_eye": [
+        0.0,
+        12.0,
+        28.0
+      ],
+      "three_target": [
+        0.0,
+        0.0,
+        -22.0
+      ],
+      "unreal_location_cm": [
+        -2800.0,
+        0.0,
+        1200.0
+      ],
+      "unreal_target_cm": [
+        2200.0,
+        0.0,
+        0.0
+      ],
+      "unreal_rotation_degrees": {
+        "pitch": -13.495733280795811,
+        "yaw": 0.0,
+        "roll": 0.0
+      },
+      "period_world": 4.0,
+      "horizontal_fov_degrees": 79.31687852038162,
+      "map": "/Game/MoireComparison/Maps/Glide0",
+      "arm": "point",
+      "normalized_homography": {
+        "hu": [
+          -4.973948353653318,
+          0.0,
+          2.486974176826659
+        ],
+        "hv": [
+          -0.0,
+          -7.000984608159613,
+          4.78404354269409
+        ],
+        "hd": [
+          -0.0,
+          -0.9068632912123852,
+          0.2200586931308684
+        ]
+      }
+    },
+    {
+      "name": "Glide0",
+      "motion": "glide",
+      "time": 0.0,
+      "detail": 1.0,
+      "three_eye": [
+        0.0,
+        12.0,
+        28.0
+      ],
+      "three_target": [
+        0.0,
+        0.0,
+        -22.0
+      ],
+      "unreal_location_cm": [
+        -2800.0,
+        0.0,
+        1200.0
+      ],
+      "unreal_target_cm": [
+        2200.0,
+        0.0,
+        0.0
+      ],
+      "unreal_rotation_degrees": {
+        "pitch": -13.495733280795811,
+        "yaw": 0.0,
+        "roll": 0.0
+      },
+      "period_world": 4.0,
+      "horizontal_fov_degrees": 79.31687852038162,
+      "map": "/Game/MoireComparison/Maps/Glide0_Analytic",
+      "arm": "shared-homography",
+      "normalized_homography": {
+        "hu": [
+          -4.973948353653318,
+          0.0,
+          2.486974176826659
+        ],
+        "hv": [
+          -0.0,
+          -7.000984608159613,
+          4.78404354269409
+        ],
+        "hd": [
+          -0.0,
+          -0.9068632912123852,
+          0.2200586931308684
+        ]
+      }
+    },
+    {
+      "name": "Glide8",
+      "motion": "glide",
+      "time": 8.0,
+      "detail": 1.0,
+      "three_eye": [
+        4.705895550506519,
+        12.0,
+        28.0
+      ],
+      "three_target": [
+        2.1176529977279337,
+        0.0,
+        -22.0
+      ],
+      "unreal_location_cm": [
+        -2800.0,
+        470.58955505065194,
+        1200.0
+      ],
+      "unreal_target_cm": [
+        2200.0,
+        211.76529977279336,
+        0.0
+      ],
+      "unreal_rotation_degrees": {
+        "pitch": -13.478346777114242,
+        "yaw": -2.9632625952875062,
+        "roll": 0.0
+      },
+      "period_world": 4.0,
+      "horizontal_fov_degrees": 79.31687852038162,
+      "map": "/Game/MoireComparison/Maps/Glide8",
+      "arm": "point",
+      "normalized_homography": {
+        "hu": [
+          -4.967297621130085,
+          -1.1006901829870057,
+          2.9105993899962623
+        ],
+        "hv": [
+          0.2571314215064946,
+          -6.999749083091689,
+          4.653237110960716
+        ],
+        "hd": [
+          0.0,
+          -0.9069292948753609,
+          0.22038677831620426
+        ]
+      }
+    },
+    {
+      "name": "Glide8",
+      "motion": "glide",
+      "time": 8.0,
+      "detail": 1.0,
+      "three_eye": [
+        4.705895550506519,
+        12.0,
+        28.0
+      ],
+      "three_target": [
+        2.1176529977279337,
+        0.0,
+        -22.0
+      ],
+      "unreal_location_cm": [
+        -2800.0,
+        470.58955505065194,
+        1200.0
+      ],
+      "unreal_target_cm": [
+        2200.0,
+        211.76529977279336,
+        0.0
+      ],
+      "unreal_rotation_degrees": {
+        "pitch": -13.478346777114242,
+        "yaw": -2.9632625952875062,
+        "roll": 0.0
+      },
+      "period_world": 4.0,
+      "horizontal_fov_degrees": 79.31687852038162,
+      "map": "/Game/MoireComparison/Maps/Glide8_Analytic",
+      "arm": "shared-homography",
+      "normalized_homography": {
+        "hu": [
+          -4.967297621130085,
+          -1.1006901829870057,
+          2.9105993899962623
+        ],
+        "hv": [
+          0.2571314215064946,
+          -6.999749083091689,
+          4.653237110960716
+        ],
+        "hd": [
+          0.0,
+          -0.9069292948753609,
+          0.22038677831620426
+        ]
+      }
+    },
+    {
+      "name": "Approach4",
+      "motion": "approach",
+      "time": 4.0,
+      "detail": 2.0,
+      "three_eye": [
+        0.0,
+        12.0,
+        18.75113345321237
+      ],
+      "three_target": [
+        0.0,
+        0.0,
+        -31.24886654678763
+      ],
+      "unreal_location_cm": [
+        -1875.113345321237,
+        0.0,
+        1200.0
+      ],
+      "unreal_target_cm": [
+        3124.886654678763,
+        0.0,
+        0.0
+      ],
+      "unreal_rotation_degrees": {
+        "pitch": -13.495733280795811,
+        "yaw": 0.0,
+        "roll": 0.0
+      },
+      "period_world": 2.0,
+      "horizontal_fov_degrees": 79.31687852038162,
+      "map": "/Game/MoireComparison/Maps/Approach4",
+      "arm": "point",
+      "normalized_homography": {
+        "hu": [
+          -9.947896707306636,
+          0.0,
+          4.973948353653318
+        ],
+        "hv": [
+          -0.0,
+          -9.808240438017247,
+          8.550440342774232
+        ],
+        "hd": [
+          -0.0,
+          -0.9068632912123852,
+          0.2200586931308684
+        ]
+      }
+    },
+    {
+      "name": "Approach4",
+      "motion": "approach",
+      "time": 4.0,
+      "detail": 2.0,
+      "three_eye": [
+        0.0,
+        12.0,
+        18.75113345321237
+      ],
+      "three_target": [
+        0.0,
+        0.0,
+        -31.24886654678763
+      ],
+      "unreal_location_cm": [
+        -1875.113345321237,
+        0.0,
+        1200.0
+      ],
+      "unreal_target_cm": [
+        3124.886654678763,
+        0.0,
+        0.0
+      ],
+      "unreal_rotation_degrees": {
+        "pitch": -13.495733280795811,
+        "yaw": 0.0,
+        "roll": 0.0
+      },
+      "period_world": 2.0,
+      "horizontal_fov_degrees": 79.31687852038162,
+      "map": "/Game/MoireComparison/Maps/Approach4_Analytic",
+      "arm": "shared-homography",
+      "normalized_homography": {
+        "hu": [
+          -9.947896707306636,
+          0.0,
+          4.973948353653318
+        ],
+        "hv": [
+          -0.0,
+          -9.808240438017247,
+          8.550440342774232
+        ],
+        "hd": [
+          -0.0,
+          -0.9068632912123852,
+          0.2200586931308684
+        ]
+      }
+    }
+  ],
+  "hashes": {
+    "bootstrap.py": "3c5d7f94f7807fe97f12508dd6019bdc2d368c027de093acbb863cc515126c13",
+    "scene_contract.py": "dfd8ac7def736ae7146286add5109cc059c51dd377e2615de9b8933516ec7a6d",
+    "analytic_material.py": "e14cf5faf5a7570699ec0c7fa1f6d3cc5502edd8c6a81dcd878410f94027f169"
+  }
+}

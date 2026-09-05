@@ -12,7 +12,7 @@ for script in ROOT.rglob("*.py"):
     ast.parse(script.read_text(encoding="utf-8"), filename=str(script))
 descriptor = json.loads((PROJECT / "MoireComparison.uproject").read_text())
 assert descriptor["EngineAssociation"] == "5.8" and "Modules" not in descriptor
-assert {p["Name"] for p in descriptor["Plugins"] if p["Enabled"]} == {"PythonScriptPlugin", "EditorScriptingUtilities"}
+assert {p["Name"] for p in descriptor["Plugins"] if p["Enabled"]} == {"PythonScriptPlugin", "EditorScriptingUtilities", "SequencerScripting", "MovieRenderPipeline"}
 assert any(p["Name"] == "AndroidFileServer" and not p["Enabled"] for p in descriptor["Plugins"])
 assert "AndroidFileServerRuntimeSettings" not in (PROJECT / "Config" / "DefaultEngine.ini").read_text()
 spec = importlib.util.spec_from_file_location("scene_contract", PROJECT / "Scripts" / "scene_contract.py")
@@ -37,6 +37,9 @@ def cross(a, b):
 
 
 count = 0
+ray_checks = sky_checks = 0
+checker_values = set()
+viewports = ((1920, 1080), (800, 600), (1080, 1920))
 for pose in contract.POSES:
     camera = contract.camera_pose(pose)
     eye, target = camera["three_eye"], camera["three_target"]
@@ -63,7 +66,50 @@ for pose in contract.POSES:
         uq = (ue_point[1] / (100*period), -ue_point[0] / (100*period))
         assert q == uq
         count += 1
+    assert contract.homography_normalized(pose) == contract.homography_normalized(
+        pose, contract.WIDTH / contract.HEIGHT)
+    for width, height in viewports:
+        rows = contract.homography_normalized(pose, width / height)
+        pixel_rows = {key: (row[0] / width, row[1] / height, row[2])
+                      for key, row in rows.items()}
+        for fraction_x in (0.03, 0.19, 0.43, 0.77, 0.97):
+            for fraction_y in (0.05, 0.24, 0.40, 0.68, 0.94):
+                x = math.floor(fraction_x * width) + 0.5
+                y = math.floor(fraction_y * height) + 0.5
+                uv = (x / width, y / height, 1.0)
+                # Independently trace a native pitch/yaw camera ray. This
+                # uses neither the homography rows nor its Three look-at basis.
+                tangent = math.tan(math.radians(contract.VERTICAL_FOV_DEGREES / 2))
+                sx = (2 * uv[0] - 1) * tangent * width / height
+                sy = (1 - 2 * uv[1]) * tangent
+                ray = tuple(f + sx*r + sy*u for f, r, u in zip(ue_forward, ue_right, ue_up))
+                denominator = dot(rows["hd"], uv)
+                assert math.isclose(denominator, ray[2], abs_tol=1e-14)
+                assert (denominator < 0) == (ray[2] < 0)
+                if ray[2] >= 0:
+                    sky_checks += 1
+                    continue
+                origin = camera["unreal_location_cm"]
+                distance = -origin[2] / ray[2]
+                point = tuple(a + distance*b for a, b in zip(origin, ray))
+                expected = (point[1] / (100 * camera["period_world"]),
+                            -point[0] / (100 * camera["period_world"]))
+                normalized_counts = tuple(dot(rows[key], uv) / denominator for key in ("hu", "hv"))
+                pixel = (x, y, 1.0)
+                pixel_counts = tuple(dot(pixel_rows[key], pixel) / dot(pixel_rows["hd"], pixel)
+                                     for key in ("hu", "hv"))
+                for values in (normalized_counts, pixel_counts):
+                    assert all(math.isclose(a, b, rel_tol=1e-12, abs_tol=2e-12)
+                               for a, b in zip(values, expected)), (pose, width, height, x, y, values, expected)
+                    parity = (values[0] % 1 >= 0.5) == (values[1] % 1 >= 0.5)
+                    expected_parity = (expected[0] - math.floor(expected[0]) >= 0.5) == (
+                        expected[1] - math.floor(expected[1]) >= 0.5)
+                    assert parity == expected_parity
+                    checker_values.add(parity)
+                ray_checks += 1
+assert ray_checks > 0 and sky_checks > 0 and checker_values == {False, True}
 for u, v, expected in [(.25, .25, True), (.25, .75, False), (.75, .25, False), (.75, .75, True), (-.25, -.75, False)]:
     assert ((u % 1 >= .5) == (v % 1 >= .5)) == expected
 print(f"PASS Python syntax/project JSON, {count} cross-coordinate projection/count fixtures, checker parity, and vertical/horizontal FOV conversion.")
+print(f"PASS normalized and device-pixel homographies: {ray_checks} independent off-axis ground rays, {sky_checks} sky rays, all 3 poses and {len(viewports)} viewport aspects.")
 print(f"Horizontal FOV: {contract.HORIZONTAL_FOV_DEGREES:.12f} degrees. This static check does not launch Unreal or render.")

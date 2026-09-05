@@ -1,0 +1,6 @@
+#include "/Users/neo/repos/Moire/demo/ours-kernel.hlsl"
+cbuffer Inputs : register(b0) { float4 HU; float4 HV; float4 HD; float4 Settings; };
+float4 Main(float4 pixel : SV_Position) : SV_Target0 {
+  float2 result = circlesMeanH(HU.xyz, HV.xyz, HD.xyz, pixel.x, pixel.y, Settings.z, Settings.w);
+  return float4(result, 0.0, 1.0);
+}

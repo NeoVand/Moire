@@ -1,0 +1,120 @@
+{
+  "status": "passed-asset-generation-only",
+  "started_at": "20260905T201802.877543Z",
+  "exit_code": 0,
+  "command_argv": [
+    "/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/Mac/UnrealEditor-Cmd",
+    "/Users/neo/repos/Moire/native/Unreal/MoireComparison/MoireComparison.uproject",
+    "-run=pythonscript",
+    "-script=/Users/neo/repos/Moire/native/Unreal/MoireComparison/Scripts/bootstrap.py",
+    "-unattended",
+    "-nop4",
+    "-nosplash",
+    "-nullrhi",
+    "-nosound",
+    "-stdout",
+    "-FullStdOutLogOutput",
+    "-abslog=/Users/neo/repos/Moire/native/Unreal/MoireComparison/Saved/Logs/analytic-bootstrap-nullrhi-20260905T201802.877543Z.engine.log"
+  ],
+  "rhi": "Null",
+  "rendered": false,
+  "source_hashes_before": {
+    "Config/DefaultEngine.ini": "76d6bfd602f35c0e4896f7f492fa5b7ed0aa061a7ae5b3d1044397bc50e286c6",
+    "Config/DefaultGame.ini": "f93a248bb1340490b08a649c16a38a93afdf840852ee54575dec76ab9509f3f1",
+    "MoireComparison.uproject": "3e87cb7e46d2b1d325a83288164418dded7478c8e210c7ddfeeb9ed09137e9a1",
+    "Scripts/analytic_material.py": "e14cf5faf5a7570699ec0c7fa1f6d3cc5502edd8c6a81dcd878410f94027f169",
+    "Scripts/bootstrap.py": "3c5d7f94f7807fe97f12508dd6019bdc2d368c027de093acbb863cc515126c13",
+    "Scripts/scene_contract.py": "dfd8ac7def736ae7146286add5109cc059c51dd377e2615de9b8933516ec7a6d",
+    "Scripts/stage_kernel.mjs": "528620a27681ad56ce70e3615a076f82fe139e2183eb055a618054ab9d75227d",
+    "Shaders/Moire/Generated/Kernel.ush": "9fc69877f79ed170e926825b119018623f68ffa887a9ae73d179eb9550a52f26",
+    "Shaders/Moire/Generated/source.json": "39c3ead89d0a8fb3d4497b3e42ae70b3ba7e22bfb710b491a33172c902936286"
+  },
+  "source_hashes_after": {
+    "Config/DefaultEngine.ini": "76d6bfd602f35c0e4896f7f492fa5b7ed0aa061a7ae5b3d1044397bc50e286c6",
+    "Config/DefaultGame.ini": "f93a248bb1340490b08a649c16a38a93afdf840852ee54575dec76ab9509f3f1",
+    "MoireComparison.uproject": "3e87cb7e46d2b1d325a83288164418dded7478c8e210c7ddfeeb9ed09137e9a1",
+    "Scripts/analytic_material.py": "e14cf5faf5a7570699ec0c7fa1f6d3cc5502edd8c6a81dcd878410f94027f169",
+    "Scripts/bootstrap.py": "3c5d7f94f7807fe97f12508dd6019bdc2d368c027de093acbb863cc515126c13",
+    "Scripts/scene_contract.py": "dfd8ac7def736ae7146286add5109cc059c51dd377e2615de9b8933516ec7a6d",
+    "Scripts/stage_kernel.mjs": "528620a27681ad56ce70e3615a076f82fe139e2183eb055a618054ab9d75227d",
+    "Shaders/Moire/Generated/Kernel.ush": "9fc69877f79ed170e926825b119018623f68ffa887a9ae73d179eb9550a52f26",
+    "Shaders/Moire/Generated/source.json": "39c3ead89d0a8fb3d4497b3e42ae70b3ba7e22bfb710b491a33172c902936286"
+  },
+  "stdout_sha256": "9e7ae5850627a06d8fec4ec722241770ee241da10512919bd17f80dbfdca69af",
+  "stdout_local_path": "/Users/neo/repos/Moire/native/Unreal/MoireComparison/Saved/Logs/analytic-bootstrap-nullrhi-20260905T201802.877543Z.stdout.log",
+  "engine": {
+    "MajorVersion": 5,
+    "MinorVersion": 8,
+    "PatchVersion": 2,
+    "Changelist": 56702186,
+    "CompatibleChangelist": 55116800,
+    "IsLicenseeVersion": 0,
+    "IsPromotedBuild": 1,
+    "BranchName": "++UE5+Release-5.8"
+  },
+  "limitations": [
+    "NullRHI asset bindings/include setup only; no Metal rendering or shader numerical validation."
+  ],
+  "assets": [
+    {
+      "path": "Content/MoireComparison/Maps/Approach4.umap",
+      "bytes": 15398,
+      "sha256": "1e4749845d18cac2f30e1b7de23a852de9b97cfd3ea7d07e29e70079a74bb40d"
+    },
+    {
+      "path": "Content/MoireComparison/Maps/Approach4_Analytic.umap",
+      "bytes": 13484,
+      "sha256": "c0b3f2cd227659e59a51f7071e56ae60e9a078e5622160703b59e5232c21f4c6"
+    },
+    {
+      "path": "Content/MoireComparison/Maps/Glide0.umap",
+      "bytes": 15161,
+      "sha256": "3117a9f6f6b86983b0c03dc9dc92dae73b6c67b5453f9cc486002484485dd85d"
+    },
+    {
+      "path": "Content/MoireComparison/Maps/Glide0_Analytic.umap",
+      "bytes": 13445,
+      "sha256": "769128a884f95fc5075e2d337b0e2c03d7a811d8ac6cf0f1fe3e489dbd17a1d4"
+    },
+    {
+      "path": "Content/MoireComparison/Maps/Glide8.umap",
+      "bytes": 15365,
+      "sha256": "ace6dde5113fb7681fb2382ec6c45bf674c913b1866672ac04a5c8395c2971f7"
+    },
+    {
+      "path": "Content/MoireComparison/Maps/Glide8_Analytic.umap",
+      "bytes": 13445,
+      "sha256": "fa2a63066100fea559b113468fd44a7785c24adff6ca3abda62baf155011c7ff"
+    },
+    {
+      "path": "Content/MoireComparison/Materials/M_Analytic_Approach4.uasset",
+      "bytes": 7043,
+      "sha256": "19a7043b8e3a8b152ec11e160d6cd0f5d99df8590ea566517d92fae9c6b3101a"
+    },
+    {
+      "path": "Content/MoireComparison/Materials/M_Analytic_Glide0.uasset",
+      "bytes": 7029,
+      "sha256": "60529526d4a05b8441a597de9588c008a1c341f55c44ccf28c11f8d5fb97eaa5"
+    },
+    {
+      "path": "Content/MoireComparison/Materials/M_Analytic_Glide8.uasset",
+      "bytes": 7062,
+      "sha256": "473b6f2c08ce8d16b49fc3df28dd4409c164dc695ae20576fb3029d14a279b82"
+    },
+    {
+      "path": "Content/MoireComparison/Materials/M_Checker_Detail1.uasset",
+      "bytes": 6264,
+      "sha256": "dfc9682c330ecaaac01d4e5bf49fc7c7e1bdd9aeb8cf9835d73e2bceaedc41ac"
+    },
+    {
+      "path": "Content/MoireComparison/Materials/M_Checker_Detail2.uasset",
+      "bytes": 6264,
+      "sha256": "9e7f9ffe0b638b5c24913330183a08633e0f719115cd05b2f18ea87acacf98ac"
+    },
+    {
+      "path": "Content/MoireComparison/Materials/M_Sky.uasset",
+      "bytes": 5273,
+      "sha256": "2db5c3fc276261d2ab9750054863ed180395957397855d92f0602953ffe628a2"
+    }
+  ]
+}

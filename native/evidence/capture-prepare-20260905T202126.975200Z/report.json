@@ -1,0 +1,74 @@
+{
+  "action": "prepare",
+  "argv": [
+    "/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/Mac/UnrealEditor-Cmd",
+    "/Users/neo/repos/Moire/native/Unreal/MoireComparison/MoireComparison.uproject",
+    "-run=pythonscript",
+    "-script=/Users/neo/repos/Moire/native/Unreal/MoireComparison/Scripts/prepare_capture.py",
+    "-nullrhi",
+    "-unattended",
+    "-nop4",
+    "-nosplash",
+    "-nosound",
+    "-stdout",
+    "-FullStdOutLogOutput",
+    "-AbsLog=/Users/neo/repos/Moire/native/evidence/capture-prepare-20260905T202126.975200Z/unreal.log"
+  ],
+  "output_directory": "/Users/neo/repos/Moire/native/evidence/capture-prepare-20260905T202126.975200Z",
+  "renderer_will_start": false,
+  "execute_requested": true,
+  "started_at": "20260905T202126.975200Z",
+  "status": "process-passed",
+  "source_hashes": {
+    "native/tools/capture_native.py": "f45bf465647948065994e12cc72aca555f12250e4160abab143cd32e3d08241e",
+    "native/Unreal/MoireComparison/Scripts/prepare_capture.py": "c0e6c9d54c76bb5b395e223a0b25504b88e47ca9f094de57063d6a977f6deb1f",
+    "native/Unreal/MoireComparison/Scripts/scene_contract.py": "dfd8ac7def736ae7146286add5109cc059c51dd377e2615de9b8933516ec7a6d",
+    "native/Unreal/MoireComparison/Scripts/analytic_material.py": "e14cf5faf5a7570699ec0c7fa1f6d3cc5502edd8c6a81dcd878410f94027f169",
+    "native/Unreal/MoireComparison/MoireComparison.uproject": "ff189fbd6a336b7566ed6fcbcf98fafdee4ce56de78bee3624907097f8e63814",
+    "native/Unreal/MoireComparison/Config/DefaultEngine.ini": "76d6bfd602f35c0e4896f7f492fa5b7ed0aa061a7ae5b3d1044397bc50e286c6",
+    "native/Unreal/MoireComparison/Shaders/Moire/Generated/Kernel.ush": "9fc69877f79ed170e926825b119018623f68ffa887a9ae73d179eb9550a52f26"
+  },
+  "engine_build": {
+    "MajorVersion": 5,
+    "MinorVersion": 8,
+    "PatchVersion": 2,
+    "Changelist": 56702186,
+    "CompatibleChangelist": 55116800,
+    "IsLicenseeVersion": 0,
+    "IsPromotedBuild": 1,
+    "BranchName": "++UE5+Release-5.8"
+  },
+  "capture_contract": {
+    "pose": "Glide0",
+    "arm": "raw",
+    "map": "/Game/MoireComparison/Maps/Glide0",
+    "sequence": "/Game/MoireComparison/CaptureSequences/Glide0",
+    "output_size_requested": [
+      640,
+      360
+    ],
+    "fixed_fps": 60,
+    "warmup_sequence_frames": 64,
+    "output_sequence_frames": [
+      64
+    ],
+    "spatial_samples": 1,
+    "temporal_subsamples": 1,
+    "tiling": false,
+    "readback": "PNG from normal game-viewport backbuffer; 8-bit output, transfer function not yet calibrated",
+    "performance_measurement": false
+  },
+  "artifacts": [],
+  "exit_code": 0,
+  "elapsed_wall_seconds": 6.965786707994994,
+  "source_hashes_after": {
+    "native/tools/capture_native.py": "f45bf465647948065994e12cc72aca555f12250e4160abab143cd32e3d08241e",
+    "native/Unreal/MoireComparison/Scripts/prepare_capture.py": "c0e6c9d54c76bb5b395e223a0b25504b88e47ca9f094de57063d6a977f6deb1f",
+    "native/Unreal/MoireComparison/Scripts/scene_contract.py": "dfd8ac7def736ae7146286add5109cc059c51dd377e2615de9b8933516ec7a6d",
+    "native/Unreal/MoireComparison/Scripts/analytic_material.py": "e14cf5faf5a7570699ec0c7fa1f6d3cc5502edd8c6a81dcd878410f94027f169",
+    "native/Unreal/MoireComparison/MoireComparison.uproject": "ff189fbd6a336b7566ed6fcbcf98fafdee4ce56de78bee3624907097f8e63814",
+    "native/Unreal/MoireComparison/Config/DefaultEngine.ini": "76d6bfd602f35c0e4896f7f492fa5b7ed0aa061a7ae5b3d1044397bc50e286c6",
+    "native/Unreal/MoireComparison/Shaders/Moire/Generated/Kernel.ush": "9fc69877f79ed170e926825b119018623f68ffa887a9ae73d179eb9550a52f26"
+  },
+  "source_hashes_stable": true
+}

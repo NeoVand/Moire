@@ -1,0 +1,249 @@
+{
+  "started_at": "20260905T201745.240756Z",
+  "status": "passed",
+  "stage": {
+    "createdAt": "2026-09-05T20:17:45.210Z",
+    "source": "demo/ours-kernel.hlsl",
+    "sourceSha256": "85c87f01b4d16a18dbad1fa8a34dc2e793eeb0769377569fb3432ebf7a5595bc",
+    "generator": "demo/ours-kernel.wgsl.js",
+    "generatorSha256": "ac855cdb4d478faf8130176d8dda2507b28909218a8d955c6b1e724e6c083cd1",
+    "adapter": "native/Unreal/MoireComparison/Scripts/stage_kernel.mjs",
+    "adapterSha256": "528620a27681ad56ce70e3615a076f82fe139e2183eb055a618054ab9d75227d",
+    "output": "Shaders/Moire/Generated/Kernel.ush",
+    "outputSha256": "9fc69877f79ed170e926825b119018623f68ffa887a9ae73d179eb9550a52f26",
+    "transformation": "Namespace MoireKernel; PI and TAU constant tokens renamed. No numerical or control-flow changes."
+  },
+  "source_hashes": {
+    "native/Unreal/MoireComparison/Shaders/Moire/Generated/Kernel.ush": "9fc69877f79ed170e926825b119018623f68ffa887a9ae73d179eb9550a52f26",
+    "native/Unreal/MoireComparison/Scripts/analytic_material.py": "e14cf5faf5a7570699ec0c7fa1f6d3cc5502edd8c6a81dcd878410f94027f169",
+    "native/Unreal/MoireComparison/Scripts/scene_contract.py": "dfd8ac7def736ae7146286add5109cc059c51dd377e2615de9b8933516ec7a6d",
+    "native/Unreal/MoireComparison/Scripts/stage_kernel.mjs": "528620a27681ad56ce70e3615a076f82fe139e2183eb055a618054ab9d75227d",
+    "demo/ours-kernel.hlsl": "85c87f01b4d16a18dbad1fa8a34dc2e793eeb0769377569fb3432ebf7a5595bc",
+    "demo/ours-kernel.wgsl.js": "ac855cdb4d478faf8130176d8dda2507b28909218a8d955c6b1e724e6c083cd1"
+  },
+  "jobs": [
+    {
+      "argv": [
+        "/Users/neo/repos/Moire/native/tools/build/dxc_compile",
+        "/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/ThirdParty/ShaderConductor/Mac/libdxcompiler.dylib",
+        "/Users/neo/repos/Moire/native/evidence/compile-material-20260905T201745.240756Z/Glide0.hlsl",
+        "Main",
+        "ps_6_0",
+        "/Users/neo/repos/Moire/native/tools/build/compile-material-20260905T201745.240756Z/Glide0.dxil",
+        "-HV",
+        "2021",
+        "-O3"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.22106004098895937,
+      "stdout": "DXC_VERSION 1.8 FLAGS 0\nCOMPILE_PASSED BYTES 12592 ELAPSED_MS 34.2722\n",
+      "diagnostics": "warning: DXIL signing library (dxil.dll,libdxil.so) not found.  Resulting DXIL will not be signed for use in release environments.\n\n",
+      "pose": {
+        "name": "Glide0",
+        "motion": "glide",
+        "time": 0.0,
+        "detail": 1.0
+      },
+      "backend": "dxil",
+      "wrapper_sha256": "e10034d110c005d70b1cf2c923e4c2695cf2381829da7d0cc06c3c0f9e2532cb",
+      "material_body": "float3 hu = float3(-4.9739483536533182 / ViewportSize.x, 0 / ViewportSize.y, 2.4869741768266591);\nfloat3 hv = float3(-0 / ViewportSize.x, -7.0009846081596132 / ViewportSize.y, 4.7840435426940902);\nfloat3 hd = float3(-0 / ViewportSize.x, -0.90686329121238518 / ViewportSize.y, 0.2200586931308684);\nfloat2 pixel = ViewportUV * ViewportSize;\nfloat ink = MoireKernel::checkerMeanH(hu, hv, hd, pixel.x, pixel.y, 1.0, 0.25).x;\nfloat value = 0.025000000000000001 + 0.79499999999999993 * ink;\nreturn float3(value, value, value);",
+      "object_bytes": 12592,
+      "object_sha256": "e706cf2febad9f88471496871b6b002d0d4551aebb3b917cf438a24a37669bb7",
+      "object_path": "/Users/neo/repos/Moire/native/tools/build/compile-material-20260905T201745.240756Z/Glide0.dxil",
+      "object_magic_valid": true
+    },
+    {
+      "argv": [
+        "/Users/neo/repos/Moire/native/tools/build/dxc_compile",
+        "/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/ThirdParty/ShaderConductor/Mac/libdxcompiler.dylib",
+        "/Users/neo/repos/Moire/native/evidence/compile-material-20260905T201745.240756Z/Glide0.hlsl",
+        "Main",
+        "ps_6_0",
+        "/Users/neo/repos/Moire/native/tools/build/compile-material-20260905T201745.240756Z/Glide0.spv",
+        "-HV",
+        "2021",
+        "-O3",
+        "-spirv",
+        "-fspv-target-env=vulkan1.1",
+        "-fvk-use-dx-layout"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.04411562503082678,
+      "stdout": "DXC_VERSION 1.8 FLAGS 0\nCOMPILE_PASSED BYTES 35576 ELAPSED_MS 38.8434\n",
+      "diagnostics": "",
+      "pose": {
+        "name": "Glide0",
+        "motion": "glide",
+        "time": 0.0,
+        "detail": 1.0
+      },
+      "backend": "spirv",
+      "wrapper_sha256": "e10034d110c005d70b1cf2c923e4c2695cf2381829da7d0cc06c3c0f9e2532cb",
+      "material_body": "float3 hu = float3(-4.9739483536533182 / ViewportSize.x, 0 / ViewportSize.y, 2.4869741768266591);\nfloat3 hv = float3(-0 / ViewportSize.x, -7.0009846081596132 / ViewportSize.y, 4.7840435426940902);\nfloat3 hd = float3(-0 / ViewportSize.x, -0.90686329121238518 / ViewportSize.y, 0.2200586931308684);\nfloat2 pixel = ViewportUV * ViewportSize;\nfloat ink = MoireKernel::checkerMeanH(hu, hv, hd, pixel.x, pixel.y, 1.0, 0.25).x;\nfloat value = 0.025000000000000001 + 0.79499999999999993 * ink;\nreturn float3(value, value, value);",
+      "object_bytes": 35576,
+      "object_sha256": "7b88ebe439ed652a29733ca7f780739994dbade0a4c8fca0293d6c6cc670dd45",
+      "object_path": "/Users/neo/repos/Moire/native/tools/build/compile-material-20260905T201745.240756Z/Glide0.spv",
+      "object_magic_valid": true
+    },
+    {
+      "argv": [
+        "/Users/neo/repos/Moire/native/tools/build/dxc_compile",
+        "/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/ThirdParty/ShaderConductor/Mac/libdxcompiler.dylib",
+        "/Users/neo/repos/Moire/native/evidence/compile-material-20260905T201745.240756Z/Glide8.hlsl",
+        "Main",
+        "ps_6_0",
+        "/Users/neo/repos/Moire/native/tools/build/compile-material-20260905T201745.240756Z/Glide8.dxil",
+        "-HV",
+        "2021",
+        "-O3"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.024023042002227157,
+      "stdout": "DXC_VERSION 1.8 FLAGS 0\nCOMPILE_PASSED BYTES 12704 ELAPSED_MS 19.6807\n",
+      "diagnostics": "warning: DXIL signing library (dxil.dll,libdxil.so) not found.  Resulting DXIL will not be signed for use in release environments.\n\n",
+      "pose": {
+        "name": "Glide8",
+        "motion": "glide",
+        "time": 8.0,
+        "detail": 1.0
+      },
+      "backend": "dxil",
+      "wrapper_sha256": "4f25f01f1e9a2c7c6ad31a1e7d1d4d3de0061fe8c2e40ddae04b61d60f691a45",
+      "material_body": "float3 hu = float3(-4.9672976211300854 / ViewportSize.x, -1.1006901829870057 / ViewportSize.y, 2.9105993899962623);\nfloat3 hv = float3(0.2571314215064946 / ViewportSize.x, -6.9997490830916886 / ViewportSize.y, 4.653237110960716);\nfloat3 hd = float3(0 / ViewportSize.x, -0.90692929487536089 / ViewportSize.y, 0.22038677831620426);\nfloat2 pixel = ViewportUV * ViewportSize;\nfloat ink = MoireKernel::checkerMeanH(hu, hv, hd, pixel.x, pixel.y, 1.0, 0.25).x;\nfloat value = 0.025000000000000001 + 0.79499999999999993 * ink;\nreturn float3(value, value, value);",
+      "object_bytes": 12704,
+      "object_sha256": "310df954ada8254e1550031b921ee116443c29747a44d90d8051ad5dda741b98",
+      "object_path": "/Users/neo/repos/Moire/native/tools/build/compile-material-20260905T201745.240756Z/Glide8.dxil",
+      "object_magic_valid": true
+    },
+    {
+      "argv": [
+        "/Users/neo/repos/Moire/native/tools/build/dxc_compile",
+        "/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/ThirdParty/ShaderConductor/Mac/libdxcompiler.dylib",
+        "/Users/neo/repos/Moire/native/evidence/compile-material-20260905T201745.240756Z/Glide8.hlsl",
+        "Main",
+        "ps_6_0",
+        "/Users/neo/repos/Moire/native/tools/build/compile-material-20260905T201745.240756Z/Glide8.spv",
+        "-HV",
+        "2021",
+        "-O3",
+        "-spirv",
+        "-fspv-target-env=vulkan1.1",
+        "-fvk-use-dx-layout"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.03790708299493417,
+      "stdout": "DXC_VERSION 1.8 FLAGS 0\nCOMPILE_PASSED BYTES 35648 ELAPSED_MS 34.0642\n",
+      "diagnostics": "",
+      "pose": {
+        "name": "Glide8",
+        "motion": "glide",
+        "time": 8.0,
+        "detail": 1.0
+      },
+      "backend": "spirv",
+      "wrapper_sha256": "4f25f01f1e9a2c7c6ad31a1e7d1d4d3de0061fe8c2e40ddae04b61d60f691a45",
+      "material_body": "float3 hu = float3(-4.9672976211300854 / ViewportSize.x, -1.1006901829870057 / ViewportSize.y, 2.9105993899962623);\nfloat3 hv = float3(0.2571314215064946 / ViewportSize.x, -6.9997490830916886 / ViewportSize.y, 4.653237110960716);\nfloat3 hd = float3(0 / ViewportSize.x, -0.90692929487536089 / ViewportSize.y, 0.22038677831620426);\nfloat2 pixel = ViewportUV * ViewportSize;\nfloat ink = MoireKernel::checkerMeanH(hu, hv, hd, pixel.x, pixel.y, 1.0, 0.25).x;\nfloat value = 0.025000000000000001 + 0.79499999999999993 * ink;\nreturn float3(value, value, value);",
+      "object_bytes": 35648,
+      "object_sha256": "4619ce8aa87d680547e5347957d8383b40a12661163c3b474a556353997e31fb",
+      "object_path": "/Users/neo/repos/Moire/native/tools/build/compile-material-20260905T201745.240756Z/Glide8.spv",
+      "object_magic_valid": true
+    },
+    {
+      "argv": [
+        "/Users/neo/repos/Moire/native/tools/build/dxc_compile",
+        "/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/ThirdParty/ShaderConductor/Mac/libdxcompiler.dylib",
+        "/Users/neo/repos/Moire/native/evidence/compile-material-20260905T201745.240756Z/Approach4.hlsl",
+        "Main",
+        "ps_6_0",
+        "/Users/neo/repos/Moire/native/tools/build/compile-material-20260905T201745.240756Z/Approach4.dxil",
+        "-HV",
+        "2021",
+        "-O3"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.02353808400221169,
+      "stdout": "DXC_VERSION 1.8 FLAGS 0\nCOMPILE_PASSED BYTES 12592 ELAPSED_MS 19.7913\n",
+      "diagnostics": "warning: DXIL signing library (dxil.dll,libdxil.so) not found.  Resulting DXIL will not be signed for use in release environments.\n\n",
+      "pose": {
+        "name": "Approach4",
+        "motion": "approach",
+        "time": 4.0,
+        "detail": 2.0
+      },
+      "backend": "dxil",
+      "wrapper_sha256": "7abd171577560708861bfd945b5fa18a35178ca697d14e7e760e868b5f093591",
+      "material_body": "float3 hu = float3(-9.9478967073066364 / ViewportSize.x, 0 / ViewportSize.y, 4.9739483536533182);\nfloat3 hv = float3(-0 / ViewportSize.x, -9.808240438017247 / ViewportSize.y, 8.5504403427742321);\nfloat3 hd = float3(-0 / ViewportSize.x, -0.90686329121238518 / ViewportSize.y, 0.2200586931308684);\nfloat2 pixel = ViewportUV * ViewportSize;\nfloat ink = MoireKernel::checkerMeanH(hu, hv, hd, pixel.x, pixel.y, 1.0, 0.25).x;\nfloat value = 0.025000000000000001 + 0.79499999999999993 * ink;\nreturn float3(value, value, value);",
+      "object_bytes": 12592,
+      "object_sha256": "485d0d39fc69f47bd711dcbaf3af07acd7bffc5398d6fe7c4bf527fa62097c20",
+      "object_path": "/Users/neo/repos/Moire/native/tools/build/compile-material-20260905T201745.240756Z/Approach4.dxil",
+      "object_magic_valid": true
+    },
+    {
+      "argv": [
+        "/Users/neo/repos/Moire/native/tools/build/dxc_compile",
+        "/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/ThirdParty/ShaderConductor/Mac/libdxcompiler.dylib",
+        "/Users/neo/repos/Moire/native/evidence/compile-material-20260905T201745.240756Z/Approach4.hlsl",
+        "Main",
+        "ps_6_0",
+        "/Users/neo/repos/Moire/native/tools/build/compile-material-20260905T201745.240756Z/Approach4.spv",
+        "-HV",
+        "2021",
+        "-O3",
+        "-spirv",
+        "-fspv-target-env=vulkan1.1",
+        "-fvk-use-dx-layout"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.03950999997323379,
+      "stdout": "DXC_VERSION 1.8 FLAGS 0\nCOMPILE_PASSED BYTES 35576 ELAPSED_MS 35.6865\n",
+      "diagnostics": "",
+      "pose": {
+        "name": "Approach4",
+        "motion": "approach",
+        "time": 4.0,
+        "detail": 2.0
+      },
+      "backend": "spirv",
+      "wrapper_sha256": "7abd171577560708861bfd945b5fa18a35178ca697d14e7e760e868b5f093591",
+      "material_body": "float3 hu = float3(-9.9478967073066364 / ViewportSize.x, 0 / ViewportSize.y, 4.9739483536533182);\nfloat3 hv = float3(-0 / ViewportSize.x, -9.808240438017247 / ViewportSize.y, 8.5504403427742321);\nfloat3 hd = float3(-0 / ViewportSize.x, -0.90686329121238518 / ViewportSize.y, 0.2200586931308684);\nfloat2 pixel = ViewportUV * ViewportSize;\nfloat ink = MoireKernel::checkerMeanH(hu, hv, hd, pixel.x, pixel.y, 1.0, 0.25).x;\nfloat value = 0.025000000000000001 + 0.79499999999999993 * ink;\nreturn float3(value, value, value);",
+      "object_bytes": 35576,
+      "object_sha256": "b11949b2894812daf33a9d1fd217a0818bf80c4308fa0098ab8cad60cfa09bb7",
+      "object_path": "/Users/neo/repos/Moire/native/tools/build/compile-material-20260905T201745.240756Z/Approach4.spv",
+      "object_magic_valid": true
+    }
+  ],
+  "renderer_or_gpu_started": false,
+  "dxc_library_sha256": "298628808d849fea036fb92302d84a07124fec619d2d7b6f80db23462e7d03d0",
+  "driver_source_sha256": "27ab0f412f3ebddc6e6caef27223c16bc1358e138081758da6a6e2483da8083a",
+  "runner_source_sha256": "005a21f6677493b40e1f11661c0bfe265ffe744391622705b2a6e1a82c4030ca",
+  "environment": "Standalone DXC with PI/TAU macros and a duplicate include; actual staged namespace and Python-generated material body",
+  "limitations": [
+    "Not Unreal-generated Material.ush or a complete engine material permutation.",
+    "No Metal/MSL device compilation or pixel execution.",
+    "Uniform viewport size and varying UV stay symbolic during compilation."
+  ],
+  "driver_build": {
+    "argv": [
+      "xcrun",
+      "clang++",
+      "-std=c++14",
+      "-O2",
+      "-I/Users/Shared/Epic Games/UE_5.8/Engine/Source/ThirdParty/ShaderConductor/ShaderConductor/External/DirectXShaderCompiler/include",
+      "/Users/neo/repos/Moire/native/tools/dxc_compile.cpp",
+      "-o",
+      "/Users/neo/repos/Moire/native/tools/build/dxc_compile"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 0.321208041976206,
+    "stdout": "",
+    "diagnostics": ""
+  },
+  "source_hashes_after": {
+    "native/Unreal/MoireComparison/Shaders/Moire/Generated/Kernel.ush": "9fc69877f79ed170e926825b119018623f68ffa887a9ae73d179eb9550a52f26",
+    "native/Unreal/MoireComparison/Scripts/analytic_material.py": "e14cf5faf5a7570699ec0c7fa1f6d3cc5502edd8c6a81dcd878410f94027f169",
+    "native/Unreal/MoireComparison/Scripts/scene_contract.py": "dfd8ac7def736ae7146286add5109cc059c51dd377e2615de9b8933516ec7a6d",
+    "native/Unreal/MoireComparison/Scripts/stage_kernel.mjs": "528620a27681ad56ce70e3615a076f82fe139e2183eb055a618054ab9d75227d",
+    "demo/ours-kernel.hlsl": "85c87f01b4d16a18dbad1fa8a34dc2e793eeb0769377569fb3432ebf7a5595bc",
+    "demo/ours-kernel.wgsl.js": "ac855cdb4d478faf8130176d8dda2507b28909218a8d955c6b1e724e6c083cd1"
+  }
+}

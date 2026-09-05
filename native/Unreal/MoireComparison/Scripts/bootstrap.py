@@ -18,6 +18,7 @@ PROJECT_DIR = SCRIPT_DIR.parent
 if SCRIPT_DIR.as_posix() not in sys.path:
     sys.path.insert(0, SCRIPT_DIR.as_posix())
 import scene_contract as contract
+import analytic_material
 
 OWNER_TAG = "MoireComparisonGenerator"
 OWNER = "native-scene-v1"
@@ -39,7 +40,7 @@ def checked_asset(assets, path):
     return asset
 
 
-def material(assets, tools, name, code, world_position=False):
+def material(assets, tools, name, code, world_position=False, screen_position=False):
     path = contract.PACKAGE_ROOT + "/Materials/" + name
     value = checked_asset(assets, path)
     if value is None:
@@ -53,15 +54,23 @@ def material(assets, tools, name, code, world_position=False):
     custom = library.create_material_expression(value, unreal.MaterialExpressionCustom, -300, 0)
     custom.set_editor_property("code", code)
     custom.set_editor_property("output_type", unreal.CustomMaterialOutputType.CMOT_FLOAT3)
-    custom.set_editor_property("inputs", [])
+    connections = []
     if world_position:
-        world_input = unreal.CustomInput()
-        world_input.set_editor_property("input_name", "WorldPosition")
-        custom.set_editor_property("inputs", [world_input])
-        position = library.create_material_expression(value, unreal.MaterialExpressionWorldPosition, -600, 0)
-        # Its default is absolute world position, including WPO; this mesh has no WPO.
-        require(library.connect_material_expressions(position, "", custom, "WorldPosition"),
-                "Could not connect the absolute world position")
+        connections.append(("WorldPosition", unreal.MaterialExpressionWorldPosition, ""))
+    if screen_position:
+        connections.extend([("ViewportUV", unreal.MaterialExpressionScreenPosition, "ViewportUV"),
+                            ("ViewportSize", unreal.MaterialExpressionViewSize, "")])
+        custom.set_editor_property("include_file_paths", [analytic_material.INCLUDE])
+    inputs = []
+    for name, _, _ in connections:
+        item = unreal.CustomInput()
+        item.set_editor_property("input_name", name)
+        inputs.append(item)
+    custom.set_editor_property("inputs", inputs)
+    for index, (name, expression, output) in enumerate(connections):
+        source = library.create_material_expression(value, expression, -600, index * 200)
+        require(library.connect_material_expressions(source, output, custom, name),
+                f"Could not connect {name}")
     require(library.connect_material_property(custom, "", unreal.MaterialProperty.MP_EMISSIVE_COLOR),
             "Could not connect the unlit emissive material")
     errors = library.recompile_material(value)
@@ -88,6 +97,7 @@ def main():
     require(active_project == PROJECT_DIR,
             f"Wrong project: {active_project}. Run only in {PROJECT_DIR}; no assets changed.")
     require((PROJECT_DIR / "MoireComparison.uproject").is_file(), "Project descriptor missing")
+    kernel = analytic_material.staged_kernel(PROJECT_DIR)
     assets = unreal.get_editor_subsystem(unreal.EditorAssetSubsystem)
     actors = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
     levels = unreal.get_editor_subsystem(unreal.LevelEditorSubsystem)
@@ -112,16 +122,22 @@ def main():
     require(sphere_diameter > 0, "Invalid Engine Sphere bounds")
 
     pose_records = []
+    jobs = []
     for pose in contract.POSES:
+        analytic = material(assets, tools, "M_Analytic_" + pose["name"],
+                            analytic_material.checker_code(pose), screen_position=True)
+        jobs.append((pose, pose["name"], "point", checks[int(pose["detail"])]))
+        jobs.append((pose, pose["name"] + "_Analytic", "shared-homography", analytic))
+    for pose, map_name, arm, ground_material in jobs:
         info = contract.camera_pose(pose)
-        path = contract.PACKAGE_ROOT + "/Maps/" + pose["name"]
+        path = contract.PACKAGE_ROOT + "/Maps/" + map_name
         existing = checked_asset(assets, path)
         require(levels.load_level(path) if existing else levels.new_level(path, False), f"Could not open {path}")
         # Framework actors are left alone; only our marked generated actors are replaced.
         for actor in actors.get_all_level_actors():
             if actor.get_actor_label().startswith(ACTOR_PREFIX):
                 require(actors.destroy_actor(actor), "Could not replace generated actor")
-        mesh_actor(actors, "Ground", plane, checks[int(pose["detail"])],
+        mesh_actor(actors, "Ground", plane, ground_material,
                    (desired_width / plane_size[0], desired_width / plane_size[1], 1.0))
         # Constant unlit background, beyond the ground's outer corners. No light or atmosphere.
         sky_scale = desired_width * 4.0 / sphere_diameter
@@ -139,7 +155,8 @@ def main():
         world = require(unreal.load_asset(path), f"Could not reload map package {path}")
         assets.set_metadata_tag(world, OWNER_TAG, OWNER)
         require(levels.save_current_level(), f"Could not save {path}")
-        pose_records.append({**info, "map": path})
+        pose_records.append({**info, "map": path, "arm": arm,
+                             "normalized_homography": contract.homography_normalized(pose)})
 
     require(levels.load_level(contract.PACKAGE_ROOT + "/Maps/Glide0"), "Could not reopen first pose")
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ")
@@ -153,10 +170,11 @@ def main():
         "vertical_fov_degrees": contract.VERTICAL_FOV_DEGREES,
         "horizontal_fov_degrees": contract.HORIZONTAL_FOV_DEGREES,
         "plane_width_cm": desired_width, "engine_plane_bounds_cm": plane_size,
-        "source": "equal half-cell parity; unfiltered procedural checker",
+        "source": "equal half-cell parity; point shader and shared homography integration",
+        "kernel": kernel,
         "poses": pose_records,
         "hashes": {p.name: hashlib.sha256(p.read_bytes()).hexdigest()
-                   for p in [Path(__file__), SCRIPT_DIR / "scene_contract.py"]},
+                   for p in [Path(__file__), SCRIPT_DIR / "scene_contract.py", SCRIPT_DIR / "analytic_material.py"]},
     }
     report_path = output / f"bootstrap-{stamp}.json"
     report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")

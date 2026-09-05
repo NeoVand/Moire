@@ -2,7 +2,7 @@
   "FileVersion": 3,
   "EngineAssociation": "5.8",
   "Category": "Rendering research",
-  "Description": "Isolated matched-scene preparation: point shading and native Unreal TSR. No analytic material yet.",
+  "Description": "Matched fixed-pose comparison: point shading, Unreal TSR, and the shared analytic material.",
   "Plugins": [
     {
       "Name": "PythonScriptPlugin",
@@ -13,6 +13,20 @@
     },
     {
       "Name": "EditorScriptingUtilities",
+      "Enabled": true,
+      "TargetAllowList": [
+        "Editor"
+      ]
+    },
+    {
+      "Name": "SequencerScripting",
+      "Enabled": true,
+      "TargetAllowList": [
+        "Editor"
+      ]
+    },
+    {
+      "Name": "MovieRenderPipeline",
       "Enabled": true,
       "TargetAllowList": [
         "Editor"

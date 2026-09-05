@@ -1,0 +1,545 @@
+{
+  "status": "passed",
+  "sourceManifest": "/var/folders/gz/kmzkq37n5kd3zqj75h46ktww0000gn/T/moire-frozen-kernel-2026-09-05T20-09-37.745Z/validation-manifest.json",
+  "comparisons": {
+    "homography": {
+      "previous": "/Users/neo/repos/Moire/docs/compare-evidence/homography-2026-09-05T19-58-05.274Z.json",
+      "current": "/var/folders/gz/kmzkq37n5kd3zqj75h46ktww0000gn/T/moire-frozen-kernel-2026-09-05T20-09-37.745Z/moire-homography-1788638978331.json",
+      "browser": "Chrome/152.0.7977.76",
+      "adapter": {
+        "vendor": "apple",
+        "architecture": "metal-3"
+      },
+      "previousSourceHashes": {
+        "demo/ours-kernel.wgsl.js": "8bfc894a3641890459d5dd64069acdccfc3470de47799cade39dc5972220d6b6",
+        "tests/compare/homography-browser.mjs": "d731f82b488f2a8f78a655d2bc9801ae504da333682521f543b84884af1e232f",
+        "tests/compare/homography.mjs": "22c1b9189d6fcf99fe7f06599f38345cdf4db9342ab8487e41a6acbffe864e73"
+      },
+      "currentSourceHashes": {
+        "demo/ours-kernel.wgsl.js": "aa45150f04d8b1bda65bc5b7d409a97e638ae55cda9319c617cc99fff8e1221e",
+        "tests/compare/homography-browser.mjs": "d731f82b488f2a8f78a655d2bc9801ae504da333682521f543b84884af1e232f",
+        "tests/compare/homography.mjs": "22c1b9189d6fcf99fe7f06599f38345cdf4db9342ab8487e41a6acbffe864e73"
+      },
+      "sourceHashesStableDuringCurrentRun": true,
+      "cases": 100,
+      "allResultsExactlyEqual": true,
+      "changedResults": [],
+      "maxMeanDelta": 0,
+      "maxIndependentTargetError": {
+        "name": "single-edge-shift-64",
+        "error": 4.309825216253227e-05,
+        "tolerance": 0.0001
+      },
+      "maxScaleInvarianceDifference": 1.9073486328125e-06,
+      "format": "Float32 storage buffer",
+      "failures": []
+    },
+    "materials": {
+      "previous": "/Users/neo/repos/Moire/docs/compare-evidence/homography-materials-2026-09-05T19-58-06.001Z.json",
+      "current": "/var/folders/gz/kmzkq37n5kd3zqj75h46ktww0000gn/T/moire-frozen-kernel-2026-09-05T20-09-37.745Z/moire-comparison-materials-1788638979391.json",
+      "browser": "Chrome/152.0.7977.76",
+      "adapter": {
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "",
+        "description": ""
+      },
+      "previousSourceHashes": {
+        "src/compare/scene.ts": "1bc167f22ad07d36d475b8a7ec0b782cb725c807438547d577b8bdd8ae4accee",
+        "src/compare/spectral.ts": "0cc609d922870d49e504c355783d313c402aecc1451b6f055dcf7203bbc0d9d4",
+        "src/compare/authorKernel.ts": "b89d8889947a8333b4f15e2e8870fcf9f95ec4d420c442e77298aec17833d3d0",
+        "demo/ours-kernel.wgsl.js": "8bfc894a3641890459d5dd64069acdccfc3470de47799cade39dc5972220d6b6",
+        "tests/compare/browser-entry.mjs": "484e2b9b66cbea6d2a2c280a6853444609f4ef26d68a3160e26e3cfe81927c9b",
+        "tests/compare/reference.mjs": "c73eb2366b43fbd6845a0c6cefe976b81dbfa40bb6eb3dd86cbea76dfb6e9820",
+        "tests/compare/materials.mjs": "783b089cc330a220ef9690e7083384c2e26b222c07d3442a8ac1931f16eb24ef"
+      },
+      "currentSourceHashes": {
+        "src/compare/scene.ts": "1bc167f22ad07d36d475b8a7ec0b782cb725c807438547d577b8bdd8ae4accee",
+        "src/compare/spectral.ts": "0cc609d922870d49e504c355783d313c402aecc1451b6f055dcf7203bbc0d9d4",
+        "src/compare/authorKernel.ts": "b89d8889947a8333b4f15e2e8870fcf9f95ec4d420c442e77298aec17833d3d0",
+        "demo/ours-kernel.wgsl.js": "aa45150f04d8b1bda65bc5b7d409a97e638ae55cda9319c617cc99fff8e1221e",
+        "tests/compare/browser-entry.mjs": "484e2b9b66cbea6d2a2c280a6853444609f4ef26d68a3160e26e3cfe81927c9b",
+        "tests/compare/reference.mjs": "c73eb2366b43fbd6845a0c6cefe976b81dbfa40bb6eb3dd86cbea76dfb6e9820",
+        "tests/compare/materials.mjs": "783b089cc330a220ef9690e7083384c2e26b222c07d3442a8ac1931f16eb24ef"
+      },
+      "sourceHashesStableDuringCurrentRun": true,
+      "cases": [
+        {
+          "configuration": {
+            "width": 192,
+            "height": 128,
+            "time": 0,
+            "motion": "glide",
+            "detail": 1
+          },
+          "probes": 40,
+          "allProbeFieldsExactlyEqual": true,
+          "allSummaryFieldsExactlyEqual": true,
+          "maxAbsoluteDeltaByNumericProbeField": {
+            "x": 0,
+            "y": 0,
+            "raw": 0.0,
+            "spectral": 0.0,
+            "lattice": 0.0,
+            "reference": 0.0,
+            "point": 0.0,
+            "pointDifference": 0.0,
+            "sequenceDifference": 0.0,
+            "rawError": 0.0,
+            "spectralError": 0.0,
+            "latticeError": 0.0,
+            "latticeMinusSpectral": 0,
+            "spectralFloat": 0.0,
+            "latticeFloat": 0.0,
+            "spectralFloatError": 0.0,
+            "latticeFloatError": 0.0,
+            "spectralQuantizationDelta": 0.0,
+            "latticeQuantizationDelta": 0.0,
+            "latticeFloatMinusSpectral": 0.0,
+            "homography": 0.0,
+            "homographyFloat": 0.0,
+            "homographyError": 0.0,
+            "homographyFloatError": 0.0,
+            "homographyQuantizationDelta": 0.0,
+            "homographyMinusSpectral": 0,
+            "homographyMinusLattice": 0,
+            "homographyFloatMinusSpectral": 0.0,
+            "homographyFloatMinusLattice": 0
+          },
+          "summary": {
+            "width": 192,
+            "height": 128,
+            "time": 0,
+            "motion": "glide",
+            "detail": 1,
+            "probes": 40,
+            "stablePointChecks": 39,
+            "latticePolarityChecks": 0,
+            "latticeDarkPolarityChecks": 0,
+            "latticeLightPolarityChecks": 0,
+            "rawRms": 0.2864870446691125,
+            "spectralRms": 0.0011876345414903783,
+            "latticeRms": 0.0017389668282766714,
+            "referenceDifferenceRms": 0.0007041080585702832,
+            "worstSpectral": 0.0025214924531823946,
+            "worstLattice": 0.004951587003820063,
+            "latticeVsSpectralRms": 0.001386483884679508,
+            "floatFormat": "RGBA32Float",
+            "spectralFloatRms": 0.0004564247449390733,
+            "latticeFloatRms": 0.001214472080292814,
+            "worstSpectralFloat": 0.0014461100101470503,
+            "worstLatticeFloat": 0.003273780941963178,
+            "spectralQuantizationRms": 0.0010787081837456722,
+            "latticeQuantizationRms": 0.001058708931386454,
+            "latticeFloatVsSpectralRms": 0.0011722451361325,
+            "homographyPolarityChecks": 0,
+            "homographyDarkPolarityChecks": 0,
+            "homographyLightPolarityChecks": 0,
+            "homographyRms": 0.001177399117858748,
+            "homographyFloatRms": 0.00045365449611080603,
+            "worstHomography": 0.0025214924531823946,
+            "worstHomographyFloat": 0.0014920651912688765,
+            "homographyQuantizationRms": 0.0010806192113890817,
+            "homographyVsSpectralRms": 0.0006200544431702727,
+            "homographyVsLatticeRms": 0.001240108886340543,
+            "homographyFloatVsSpectralRms": 2.9363659180047003e-05,
+            "homographyFloatVsLatticeRms": 0.001158931860145101
+          },
+          "floatReadback": {
+            "requested": "RGBA32Float",
+            "actual": "RGBA32Float",
+            "precisionBits": 32,
+            "limitation": null
+          },
+          "validation": {
+            "spectralValidation": {
+              "format": "RGBA32Float",
+              "channels": 98304,
+              "nonFiniteChannels": 0,
+              "outOfRangeChannels": 0,
+              "minLinearRGB": 0.02500000037252903,
+              "maxLinearRGB": 0.8199999928474426,
+              "maxAlphaError": 0
+            },
+            "latticeValidation": {
+              "format": "RGBA32Float",
+              "channels": 98304,
+              "nonFiniteChannels": 0,
+              "outOfRangeChannels": 0,
+              "minLinearRGB": 0.02500000037252903,
+              "maxLinearRGB": 0.8199999928474426,
+              "maxAlphaError": 0
+            },
+            "homographyValidation": {
+              "format": "RGBA32Float",
+              "channels": 98304,
+              "nonFiniteChannels": 0,
+              "outOfRangeChannels": 0,
+              "minLinearRGB": 0.02500000037252903,
+              "maxLinearRGB": 0.8199999928474426,
+              "maxAlphaError": 0
+            }
+          }
+        },
+        {
+          "configuration": {
+            "width": 192,
+            "height": 128,
+            "time": 8,
+            "motion": "glide",
+            "detail": 1
+          },
+          "probes": 40,
+          "allProbeFieldsExactlyEqual": true,
+          "allSummaryFieldsExactlyEqual": true,
+          "maxAbsoluteDeltaByNumericProbeField": {
+            "x": 0,
+            "y": 0,
+            "raw": 0.0,
+            "spectral": 0.0,
+            "lattice": 0.0,
+            "reference": 0.0,
+            "point": 0.0,
+            "pointDifference": 0.0,
+            "sequenceDifference": 0.0,
+            "rawError": 0.0,
+            "spectralError": 0.0,
+            "latticeError": 0.0,
+            "latticeMinusSpectral": 0,
+            "spectralFloat": 0.0,
+            "latticeFloat": 0.0,
+            "spectralFloatError": 0.0,
+            "latticeFloatError": 0.0,
+            "spectralQuantizationDelta": 0.0,
+            "latticeQuantizationDelta": 0.0,
+            "latticeFloatMinusSpectral": 0.0,
+            "homography": 0.0,
+            "homographyFloat": 0.0,
+            "homographyError": 0.0,
+            "homographyFloatError": 0.0,
+            "homographyQuantizationDelta": 0.0,
+            "homographyMinusSpectral": 0,
+            "homographyMinusLattice": 0,
+            "homographyFloatMinusSpectral": 0.0,
+            "homographyFloatMinusLattice": 0
+          },
+          "summary": {
+            "width": 192,
+            "height": 128,
+            "time": 8,
+            "motion": "glide",
+            "detail": 1,
+            "probes": 40,
+            "stablePointChecks": 38,
+            "latticePolarityChecks": 1,
+            "latticeDarkPolarityChecks": 1,
+            "latticeLightPolarityChecks": 0,
+            "rawRms": 0.3162694272673268,
+            "spectralRms": 0.0009711429164697105,
+            "latticeRms": 0.001774796123381298,
+            "referenceDifferenceRms": 0.0006922044675449872,
+            "worstSpectral": 0.0017847562303730108,
+            "worstLattice": 0.004301198323567568,
+            "latticeVsSpectralRms": 0.0016405098559491651,
+            "floatFormat": "RGBA32Float",
+            "spectralFloatRms": 0.00024717102356682625,
+            "latticeFloatRms": 0.001341799118951686,
+            "worstSpectralFloat": 0.0007945191860199152,
+            "worstLatticeFloat": 0.004673805236816431,
+            "spectralQuantizationRms": 0.0009825492919539542,
+            "latticeQuantizationRms": 0.001047611473724257,
+            "latticeFloatVsSpectralRms": 0.0013232643005478934,
+            "homographyPolarityChecks": 1,
+            "homographyDarkPolarityChecks": 1,
+            "homographyLightPolarityChecks": 0,
+            "homographyRms": 0.0009711429164697105,
+            "homographyFloatRms": 0.0002478836937371435,
+            "worstHomography": 0.0017847562303730108,
+            "worstHomographyFloat": 0.0007945787906646906,
+            "homographyQuantizationRms": 0.000990252452226168,
+            "homographyVsSpectralRms": 0,
+            "homographyVsLatticeRms": 0.0016405098559491651,
+            "homographyFloatVsSpectralRms": 2.7404943859373448e-05,
+            "homographyFloatVsLatticeRms": 0.0013165052646910002
+          },
+          "floatReadback": {
+            "requested": "RGBA32Float",
+            "actual": "RGBA32Float",
+            "precisionBits": 32,
+            "limitation": null
+          },
+          "validation": {
+            "spectralValidation": {
+              "format": "RGBA32Float",
+              "channels": 98304,
+              "nonFiniteChannels": 0,
+              "outOfRangeChannels": 0,
+              "minLinearRGB": 0.02500000037252903,
+              "maxLinearRGB": 0.8199999928474426,
+              "maxAlphaError": 0
+            },
+            "latticeValidation": {
+              "format": "RGBA32Float",
+              "channels": 98304,
+              "nonFiniteChannels": 0,
+              "outOfRangeChannels": 0,
+              "minLinearRGB": 0.02500000037252903,
+              "maxLinearRGB": 0.8199999928474426,
+              "maxAlphaError": 0
+            },
+            "homographyValidation": {
+              "format": "RGBA32Float",
+              "channels": 98304,
+              "nonFiniteChannels": 0,
+              "outOfRangeChannels": 0,
+              "minLinearRGB": 0.02500000037252903,
+              "maxLinearRGB": 0.8199999928474426,
+              "maxAlphaError": 0
+            }
+          }
+        },
+        {
+          "configuration": {
+            "width": 192,
+            "height": 128,
+            "time": 4,
+            "motion": "approach",
+            "detail": 2
+          },
+          "probes": 40,
+          "allProbeFieldsExactlyEqual": true,
+          "allSummaryFieldsExactlyEqual": true,
+          "maxAbsoluteDeltaByNumericProbeField": {
+            "x": 0,
+            "y": 0,
+            "raw": 0.0,
+            "spectral": 0.0,
+            "lattice": 0.0,
+            "reference": 0.0,
+            "point": 0.0,
+            "pointDifference": 0.0,
+            "sequenceDifference": 0.0,
+            "rawError": 0.0,
+            "spectralError": 0.0,
+            "latticeError": 0.0,
+            "latticeMinusSpectral": 0,
+            "spectralFloat": 0.0,
+            "latticeFloat": 0.0,
+            "spectralFloatError": 0.0,
+            "latticeFloatError": 0.0,
+            "spectralQuantizationDelta": 0.0,
+            "latticeQuantizationDelta": 0.0,
+            "latticeFloatMinusSpectral": 0.0,
+            "homography": 0.0,
+            "homographyFloat": 0.0,
+            "homographyError": 0.0,
+            "homographyFloatError": 0.0,
+            "homographyQuantizationDelta": 0.0,
+            "homographyMinusSpectral": 0,
+            "homographyMinusLattice": 0,
+            "homographyFloatMinusSpectral": 0.0,
+            "homographyFloatMinusLattice": 0
+          },
+          "summary": {
+            "width": 192,
+            "height": 128,
+            "time": 4,
+            "motion": "approach",
+            "detail": 2,
+            "probes": 40,
+            "stablePointChecks": 35,
+            "latticePolarityChecks": 0,
+            "latticeDarkPolarityChecks": 0,
+            "latticeLightPolarityChecks": 0,
+            "rawRms": 0.33310797396974323,
+            "spectralRms": 0.001204279452786662,
+            "latticeRms": 0.0017587702539592785,
+            "referenceDifferenceRms": 0.0012222568160546652,
+            "worstSpectral": 0.002327400656307377,
+            "worstLattice": 0.003963970857508103,
+            "latticeVsSpectralRms": 0.0018601633295108112,
+            "floatFormat": "RGBA32Float",
+            "spectralFloatRms": 0.000517340953405915,
+            "latticeFloatRms": 0.0011890481371816426,
+            "worstSpectralFloat": 0.0014743471145630682,
+            "worstLatticeFloat": 0.0027578628063202326,
+            "spectralQuantizationRms": 0.0010455518241496307,
+            "latticeQuantizationRms": 0.001201874780634687,
+            "latticeFloatVsSpectralRms": 0.0010711899472482715,
+            "homographyPolarityChecks": 0,
+            "homographyDarkPolarityChecks": 0,
+            "homographyLightPolarityChecks": 0,
+            "homographyRms": 0.001204279452786662,
+            "homographyFloatRms": 0.0005172766156277518,
+            "worstHomography": 0.002327400656307377,
+            "worstHomographyFloat": 0.0014739000797272528,
+            "homographyQuantizationRms": 0.0010439053284326512,
+            "homographyVsSpectralRms": 0,
+            "homographyVsLatticeRms": 0.0018601633295108112,
+            "homographyFloatVsSpectralRms": 9.534978235418772e-06,
+            "homographyFloatVsLatticeRms": 0.001072306932061695
+          },
+          "floatReadback": {
+            "requested": "RGBA32Float",
+            "actual": "RGBA32Float",
+            "precisionBits": 32,
+            "limitation": null
+          },
+          "validation": {
+            "spectralValidation": {
+              "format": "RGBA32Float",
+              "channels": 98304,
+              "nonFiniteChannels": 0,
+              "outOfRangeChannels": 0,
+              "minLinearRGB": 0.025000901892781258,
+              "maxLinearRGB": 0.8199993968009949,
+              "maxAlphaError": 0
+            },
+            "latticeValidation": {
+              "format": "RGBA32Float",
+              "channels": 98304,
+              "nonFiniteChannels": 0,
+              "outOfRangeChannels": 0,
+              "minLinearRGB": 0.025001706555485725,
+              "maxLinearRGB": 0.8199982643127441,
+              "maxAlphaError": 0
+            },
+            "homographyValidation": {
+              "format": "RGBA32Float",
+              "channels": 98304,
+              "nonFiniteChannels": 0,
+              "outOfRangeChannels": 0,
+              "minLinearRGB": 0.02500099502503872,
+              "maxLinearRGB": 0.8199989795684814,
+              "maxAlphaError": 0
+            }
+          }
+        }
+      ],
+      "allResultsExactlyEqual": true,
+      "totalProbes": 120
+    },
+    "live": {
+      "previous": "/Users/neo/repos/Moire/docs/compare-evidence/homography-live-2026-09-05T19-58-08.655Z.json",
+      "current": "/var/folders/gz/kmzkq37n5kd3zqj75h46ktww0000gn/T/moire-frozen-kernel-2026-09-05T20-09-37.745Z/moire-comparison-live-1788638981133.json",
+      "browser": "Chrome/152.0.7977.76",
+      "adapter": null,
+      "previousSourceHashes": null,
+      "currentSourceHashes": null,
+      "sourceHashesStableDuringCurrentRun": "Covered by validation-manifest before/after hashes",
+      "deterministicResultFields": {
+        "initial": {
+          "exactlyEqual": true
+        },
+        "moved": {
+          "exactlyEqual": true
+        },
+        "repeated": {
+          "exactlyEqual": true
+        },
+        "detail": {
+          "exactlyEqual": true
+        },
+        "resized": {
+          "exactlyEqual": true
+        },
+        "textureChecks": {
+          "exactlyEqual": true
+        }
+      },
+      "kernelHashes": {
+        "before": {
+          "raw": {
+            "previous": 3637639517,
+            "current": 3637639517,
+            "exactlyEqual": true
+          },
+          "spectral": {
+            "previous": 1075096878,
+            "current": 1075096878,
+            "exactlyEqual": true
+          }
+        },
+        "lattice": {
+          "raw": {
+            "previous": 3637639517,
+            "current": 3637639517,
+            "exactlyEqual": true
+          },
+          "spectral": {
+            "previous": 3892262016,
+            "current": 3892262016,
+            "exactlyEqual": true
+          }
+        },
+        "homography": {
+          "raw": {
+            "previous": 3637639517,
+            "current": 3637639517,
+            "exactlyEqual": true
+          },
+          "spectral": {
+            "previous": 1809121132,
+            "current": 1809121132,
+            "exactlyEqual": true
+          }
+        },
+        "restored": {
+          "raw": {
+            "previous": 3637639517,
+            "current": 3637639517,
+            "exactlyEqual": true
+          },
+          "spectral": {
+            "previous": 1075096878,
+            "current": 1075096878,
+            "exactlyEqual": true
+          }
+        }
+      },
+      "note": "Live timing/history frame counters are scheduling-dependent and are not performance measurements; their functional assertions passed."
+    }
+  },
+  "artifacts": [
+    {
+      "path": "/var/folders/gz/kmzkq37n5kd3zqj75h46ktww0000gn/T/moire-frozen-kernel-2026-09-05T20-09-37.745Z/build.log",
+      "sha256": "d96525add7b2bbece2e7a3bfa1d291593e2794b1d9e55fd52c182c8d3f588ed0",
+      "bytes": 998
+    },
+    {
+      "path": "/var/folders/gz/kmzkq37n5kd3zqj75h46ktww0000gn/T/moire-frozen-kernel-2026-09-05T20-09-37.745Z/moire-comparison-live-1788638981133.json",
+      "sha256": "f692f69965d2673a8c862a4228ee39450d7aa1b75a0e68aec95865bca58e6793",
+      "bytes": 19822
+    },
+    {
+      "path": "/var/folders/gz/kmzkq37n5kd3zqj75h46ktww0000gn/T/moire-frozen-kernel-2026-09-05T20-09-37.745Z/moire-comparison-live-1788638981133.png",
+      "sha256": "504bd7b04b76e818edebfe3210863a10414b1e1d2b19e56c94ceff5980c318f9",
+      "bytes": 164017
+    },
+    {
+      "path": "/var/folders/gz/kmzkq37n5kd3zqj75h46ktww0000gn/T/moire-frozen-kernel-2026-09-05T20-09-37.745Z/moire-comparison-materials-1788638979391.json",
+      "sha256": "319afeb07447e7db25f67a6a4e3f0d90b2d15b8f7f9bcd330371b700ed109c60",
+      "bytes": 194122
+    },
+    {
+      "path": "/var/folders/gz/kmzkq37n5kd3zqj75h46ktww0000gn/T/moire-frozen-kernel-2026-09-05T20-09-37.745Z/moire-homography-1788638978331.json",
+      "sha256": "45814c280958431e744028ade4d41717a57d41352f231c0f07b138c5edf5b89d",
+      "bytes": 55123
+    },
+    {
+      "path": "/var/folders/gz/kmzkq37n5kd3zqj75h46ktww0000gn/T/moire-frozen-kernel-2026-09-05T20-09-37.745Z/targeted-lint.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/var/folders/gz/kmzkq37n5kd3zqj75h46ktww0000gn/T/moire-frozen-kernel-2026-09-05T20-09-37.745Z/test-compare.log",
+      "sha256": "5576e4fa1a212748d416609ab8fe68b6462ff3768841ffcaf2ea8e1fdfd7c6ef",
+      "bytes": 6084
+    },
+    {
+      "path": "/var/folders/gz/kmzkq37n5kd3zqj75h46ktww0000gn/T/moire-frozen-kernel-2026-09-05T20-09-37.745Z/validation-manifest.json",
+      "sha256": "336a886822119089a223a6bb29bdc00be40104fb3fd5696ac7472c08bae6eb81",
+      "bytes": 4079
+    }
+  ]
+}

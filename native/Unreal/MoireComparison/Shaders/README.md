@@ -1,0 +1,3 @@
+Run `node native/Unreal/MoireComparison/Scripts/stage_kernel.mjs` from the repository before starting Unreal. It imports the shared author generator, checks the emitted HLSL agrees, and creates the ignored `Moire/Generated/Kernel.ush` plus a source manifest. Unreal 5.8 maps the existing project `Shaders` directory to `/Project` during startup; no engine modification or C++ module is required.
+
+The include puts helpers in `MoireKernel` and renames the PI/TAU constant tokens to avoid Unreal macro collisions. It does not maintain another numerical implementation. The asset bootstrap checks source, generator, adapter and output hashes before it creates materials. Restart Unreal after restaging to invalidate previously cached shader source.
