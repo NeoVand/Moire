@@ -916,17 +916,14 @@ const circlesProjective = (cam, x, y, S, R = 5 / 12) => {
       const du = P.u0 - cu;
       const dv = P.v0 - cv;
       if (Math.hypot(du, dv) - R > 3.5 * sig * gmax / (1 - 6 * sig * rn) + 1e-6) continue;
-      // q(X) = (nu - cu D)^2 + (nv - cv D)^2 - R^2 D^2, nu, nv, D affine
-      const A0 = P.nu0 - cu * P.D;
-      const B0 = P.nv0 - cv * P.D;
-      const dA = [P.dnu[0] - cu * P.dD[0], P.dnu[1] - cu * P.dD[1]];
-      const dB = [P.dnv[0] - cv * P.dD[0], P.dnv[1] - cv * P.dD[1]];
-      const a0 = A0 * A0 + B0 * B0 - R * R * P.D * P.D;
-      const g = [2 * A0 * dA[0] + 2 * B0 * dB[0] - 2 * R * R * P.D * P.dD[0], 2 * A0 * dA[1] + 2 * B0 * dB[1] - 2 * R * R * P.D * P.dD[1]];
-      const H = [2 * (dA[0] * dA[0] + dB[0] * dB[0] - R * R * P.dD[0] * P.dD[0]), 2 * (dA[0] * dA[1] + dB[0] * dB[1] - R * R * P.dD[0] * P.dD[1]), 2 * (dA[1] * dA[1] + dB[1] * dB[1] - R * R * P.dD[1] * P.dD[1])];
-      // scale q by 1 / D0^2 so the coefficients are O(1)
-      const s2 = 1 / (P.D * P.D);
-      acc += quadRegion(a0 * s2, [g[0] * s2, g[1] * s2], [H[0] * s2, H[1] * s2, H[2] * s2], S);
+      // the conic through the pullback (the kernel's rebased form): with a = gu + du r and
+      // b = gv + dv r, the disc is (du + a . X)^2 + (dv + b . X)^2 <= R^2 (1 + r . X)^2
+      const a = [P.gu[0] + du * P.r[0], P.gu[1] + du * P.r[1]];
+      const b = [P.gv[0] + dv * P.r[0], P.gv[1] + dv * P.r[1]];
+      const a0 = du * du + dv * dv - R * R;
+      const g = [2 * du * a[0] + 2 * dv * b[0] - 2 * R * R * P.r[0], 2 * du * a[1] + 2 * dv * b[1] - 2 * R * R * P.r[1]];
+      const H = [2 * (a[0] * a[0] + b[0] * b[0] - R * R * P.r[0] * P.r[0]), 2 * (a[0] * a[1] + b[0] * b[1] - R * R * P.r[0] * P.r[1]), 2 * (a[1] * a[1] + b[1] * b[1] - R * R * P.r[1] * P.r[1])];
+      acc += quadRegion(a0, g, H, S);
       discs++;
     }
   return { value: acc, discs };
