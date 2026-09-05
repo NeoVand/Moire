@@ -1,6 +1,6 @@
 import { NoToneMapping, SRGBColorSpace, WebGPURenderer } from 'three/webgpu';
 import { createBenchmarkScene, METHODS } from './scene';
-import type { CameraMotion, Homography, Method } from './scene';
+import type { CameraMotion, Homography, Kernel, Method } from './scene';
 import { createTemporalBaseline } from './temporal';
 import type { TemporalBaseline } from './temporal';
 import { createGpuTiming } from './timing';
@@ -11,6 +11,7 @@ export interface ComparisonInfo {
   frame: number; playing: boolean; fps: number; motion: CameraMotion; detail: number;
   methods: Method[]; gpuMs: Record<Method, number | null>; historyFrames: number;
   homography: Homography | null;
+  kernel: Kernel;
 }
 type Panel = { renderer: WebGPURenderer; content: ReturnType<typeof createBenchmarkScene>; temporal?: TemporalBaseline; timing: GpuTiming };
 // Three's initialized WebGPU backend owns a standard GPUDevice. The bundled
@@ -32,7 +33,7 @@ export class ComparisonRenderer {
     ready: false, backend: 'WebGPU', width: 480, height: 640, time: 0,
     frame: 0, playing: true, fps: 0, motion: 'glide', detail: 1,
     methods: METHODS, gpuMs: { raw: null, temporal: null, spectral: null }, historyFrames: 0,
-    homography: null,
+    homography: null, kernel: 'projective',
   };
   constructor(canvases: Record<Method, HTMLCanvasElement>, publish: (state: ComparisonInfo) => void) {
     this.canvases = canvases; this.publish = publish;
@@ -78,7 +79,7 @@ export class ComparisonRenderer {
     (renderer.backend as DeviceBackend).device?.queue.onSubmittedWorkDone()));
 
   private tick = async (now: number) => {
-    if (this.disposed) return;
+    if (this.disposed || this.preparing) return;
     const dt = this.previous ? Math.max((now - this.previous) / 1000, 0) : 0;
     this.previous = now;
     if (dt > 0.25) this.resetTaa();
@@ -87,7 +88,7 @@ export class ComparisonRenderer {
     this.draw();
     // Count completed batches, not an animation loop feeding a growing GPU queue.
     await this.complete();
-    if (this.disposed) return;
+    if (this.disposed || this.preparing) return;
     this.meterFrames++;
     if (!this.meterStart) this.meterStart = now;
     if (now - this.meterStart >= 700) {
@@ -136,6 +137,41 @@ export class ComparisonRenderer {
     this.state.detail = Math.max(0.5, Math.min(4, detail));
     for (const { timing } of this.panels.values()) timing.reset();
     this.resetTaa(); this.draw();
+  };
+  setKernel = async (kernel: Kernel) => {
+    if (kernel !== 'projective' && kernel !== 'lattice') throw new Error('Unknown integration kernel.');
+    if (kernel === this.state.kernel || !this.info().ready) return;
+    this.preparing = true;
+    cancelAnimationFrame(this.loop);
+    this.publish(this.info());
+    const panel = this.panels.get('spectral')!;
+    const next = createBenchmarkScene('spectral', kernel);
+    let installed = false;
+    try {
+      await this.complete();
+      if (this.disposed) return;
+      next.update(this.state.time, this.state.motion, this.state.width, this.state.height, this.state.detail);
+      await panel.renderer.compileAsync(next.scene, next.camera);
+      if (this.disposed) return;
+      const old = panel.content;
+      panel.content = next;
+      installed = true;
+      old.dispose();
+      this.state.kernel = kernel;
+      panel.timing.reset();
+      this.state.gpuMs.spectral = null;
+      this.draw();
+      await this.complete();
+    } finally {
+      if (!installed) next.dispose();
+      if (!this.disposed) {
+        this.preparing = false;
+        this.previous = 0;
+        this.meterStart = 0; this.meterFrames = 0; this.state.fps = 0;
+        this.publish(this.info());
+        this.loop = requestAnimationFrame(this.tick);
+      }
+    }
   };
   resetTaa = () => this.panels.get('temporal')?.temporal?.reset();
   pause = () => this.play(false);

@@ -5,8 +5,10 @@ import {
 } from 'three/webgpu';
 import { dot, float, mix, positionWorld, screenCoordinate, sign, sin, texture, uniform, vec3 } from 'three/tsl';
 import { projectiveChecker } from './spectral';
+import { authorChecker } from './authorKernel';
 
 export type Method = 'raw' | 'temporal' | 'spectral';
+export type Kernel = 'projective' | 'lattice';
 export const METHODS: Method[] = ['raw', 'temporal', 'spectral'];
 export const PERIOD = 4;
 export const DARK = 0.025;
@@ -68,7 +70,7 @@ function makeCheckerTexture() {
   return tex;
 }
 
-export function createBenchmarkScene(method: Method) {
+export function createBenchmarkScene(method: Method, kernel: Kernel = 'projective') {
   const scene = new Scene();
   scene.background = new Color(0.105, 0.13, 0.16);
   const camera = new PerspectiveCamera(50, 1, 0.1, 100000);
@@ -93,7 +95,9 @@ export function createBenchmarkScene(method: Method) {
     const dxx = dx.mul(d.x).mul(-2).div(den);
     const dxy = dx.mul(d.y).add(dy.mul(d.x)).negate().div(den);
     const dyy = dy.mul(d.y).mul(-2).div(den);
-    ink = projectiveChecker(q, dx, dy, dxx, dxy, dyy, float(SIGMA), d.xy.div(den));
+    ink = kernel === 'lattice'
+      ? authorChecker(q, dx, dy, dxx, dxy, dyy, float(SIGMA))
+      : projectiveChecker(q, dx, dy, dxx, dxy, dyy, float(SIGMA), d.xy.div(den));
   }
   // wgslFn's type declarations erase its declared scalar return type.
   material.colorNode = mix(vec3(DARK), vec3(LIGHT), ink as ReturnType<typeof float>);

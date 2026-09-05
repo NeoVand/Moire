@@ -27,6 +27,9 @@ h2 { font-size: 14px; font-weight: 550; margin: 0; }
 .compare-surface canvas { display: block; width: 100%; height: 100%; cursor: crosshair; }
 .compare-crosshair { position: absolute; transform: translate(-50%, -50%); width: 11px; height: 11px; border: 1px solid #fff; outline: 1px solid #131c24; pointer-events: none; }
 .compare-method-label { font-size: 11px; color: #a4a6aa; padding: 0 13px; margin: 13px 0 0; min-height: 16px; }
+.compare-kernel { font-size: inherit; color: inherit; padding: 0 2px; border: 0; background: transparent; max-width: 100%; }
+.compare-kernel:disabled { opacity: .5; cursor: wait; }
+.compare-error { margin: 8px 25px 0; color: #f0b3a8; font-size: 12px; }
 .compare-footer { display: flex; align-items: center; gap: 16px; padding: 17px 25px; font-size: 11px; color: #bbbfc3; }
 .muted { color: #7f858b; }
 .compare-live { margin-left: auto; color: #939ba2; font-variant-numeric: tabular-nums; }

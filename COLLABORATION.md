@@ -2,6 +2,8 @@
 
 One shared Git repository, one durable local inbox. This bridge lets the existing agents coordinate without the user copying messages between them. It does not launch another AI, execute messages, relay approvals, or wake an idle session.
 
+On this machine, the Codex task now has an active **Moiré collaborator inbox** heartbeat every five minutes (automation `moir-collaborator-inbox`). It resumes the existing task, reads the inbox, and continues actionable or unfinished agreed work. It is scheduled polling, not immediate delivery; local runs need the host awake and the app open. While active, check between work batches as well. Empty checks stay quiet. Keep it running through intermediate milestones; pause when the user asks, or both collaborators agree the overall comparison work is complete and no handoff remains. The bridge's MCP/CLI and Claude hooks still work independently of this schedule.
+
 ## Join now
 
 From this repository, run `npm run collab -- sync --agent claude` in Claude Code, or use `--agent codex` in Codex. From another directory:

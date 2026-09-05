@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ComparisonRenderer } from './renderer';
 import type { ComparisonInfo } from './renderer';
 import { METHODS } from './scene';
-import type { CameraMotion, Method } from './scene';
+import type { CameraMotion, Kernel, Method } from './scene';
 import { PERIOD } from './scene';
 import { referencePixel, srgbToLinear } from './reference';
 
@@ -75,10 +75,15 @@ export function Comparison() {
       {METHODS.map(method => <article className={`compare-panel compare-${method}`} key={method}>
         <div className="compare-panel-title"><h2>{labels[method].title}</h2><span className="compare-timing" title="Median sum of GPU pass durations. Pass intervals can overlap, so this is not elapsed frame time. Includes temporal rendering passes; excludes copies, uploads and presentation."><small>GPU pass sum</small>{info?.gpuMs[method] == null ? '— ms' : `${info.gpuMs[method]!.toFixed(2)} ms`}</span></div>
         <div className="compare-surface"><canvas ref={el => { if (el) canvas.current[method] = el; }} aria-label={labels[method].title} onClick={inspect} title="Click a pixel to pause and compare it with a sampled reference" />{inspection && info && <span className="compare-crosshair" style={{ left: `${(inspection.x + 0.5) / info.width * 100}%`, top: `${(inspection.y + 0.5) / info.height * 100}%` }} />}</div>
-        <p className="compare-method-label">{labels[method].subtitle}</p>
+        {method === 'spectral' ? <div className="compare-method-label"><select className="compare-kernel" aria-label="Integration kernel" disabled={!info?.ready} value={info?.kernel ?? 'projective'} onChange={e => {
+          setInspection(undefined); setError('');
+          void engine.current?.setKernel(e.target.value as Kernel).catch(e => setError(e instanceof Error ? e.message : String(e)));
+        }}><option value="projective">Projected edges + spectral</option><option value="lattice">Shared lattice kernel</option></select></div>
+        : <p className="compare-method-label">{labels[method].subtitle}</p>}
       </article>)}
     </section>
     {!info?.ready && <div className="compare-loading" role="status">{error || 'Preparing three live renderers…'}</div>}
+    {error && info?.ready && <p className="compare-error" role="alert">{error}</p>}
     <footer className="compare-footer">
       <span>Grazing checkerboard <span className="muted">·</span> <span className="muted">click a pixel to inspect</span></span>
       <span className="compare-live">{info?.ready ? `${Math.round(info.fps)} fps · ${info.width} × ${info.height} per view · WebGPU` : 'WebGPU'}</span>
@@ -103,8 +108,8 @@ export function Comparison() {
       <button className="compare-close" aria-label="Close" onClick={() => setDetails(false)}>×</button>
       <h2>Judge it in motion.</h2>
       <p>A grazing plane makes texture detail, false patterns, blur and motion shimmer easy to compare. This scene follows the procedural-material benchmark used by <a href="https://yyuting.github.io/docs/eg_2018.html" target="_blank" rel="noreferrer">Yang and Barnes</a>, with an interactive camera.</p>
-      <p>The middle view uses the official Three.js temporal AA implementation with a mipmapped checker texture and 16× anisotropic filtering. It is a practical browser baseline. DLAA and FSR require a separate native comparison.</p>
-      <p>Our view runs a first GPU specialization of the Fourier integration method. It uses exact projected edge geometry nearby and a spectral approximation farther away, with a Gaussian pixel footprint. The general compiler, exact horizon conditioning and bumped materials are still to be connected.</p>
+      <p>The middle view uses the official Three.js temporal AA implementation with a mipmapped checker texture and 16× anisotropic filtering. It is a practical browser baseline. Unreal TSR, DLAA and FSR require a separate native comparison.</p>
+      <p>Our view can use either of two GPU implementations of the Fourier integration method, under the same Gaussian pixel footprint. The first uses exact projected edge geometry nearby and a finite spectral sum farther away. The shared kernel uses correlated coverage and a reduced lattice of spectral terms. Both approximate perspective away from the coverage path; exact horizon conditioning and bumped materials are still to be connected.</p>
       <p>Pause to compare settled images; play to expose shimmer. The frame rate counts completed batches of all three views. The GPU meter sums pass durations, whose timestamp intervals can overlap; it is not elapsed frame time. Different reconstruction filters can trade sharpness for smoothness; this demo does not declare a winner from appearance alone.</p>
     </section></div>}
   </main>;

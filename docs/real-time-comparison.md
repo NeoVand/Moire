@@ -94,3 +94,34 @@ The timestamp distinction is measured, not hypothetical: one 1080p integration f
 The captured reports are preserved byte-for-byte: [material accuracy](compare-evidence/materials-2026-09-05T18-34-02.950Z.json), [live UI and inspector](compare-evidence/live-2026-09-05T18-33-54.375Z.json), and [GPU intervals and completed timings](compare-evidence/performance-2026-09-05T18-35-43.958Z.json). The performance record includes the source hashes and all individual timestamp intervals. The material run followed the final character/box-pruning changes and exercised the same shader hash subsequently timed.
 
 Still outstanding: a converged whole-image reference and error view in this harness, temporal error against per-frame references, explicit disocclusion/silhouette tests, sustained-frame and native game-engine timing, other materials, the general compiler emitter, and a native-engine comparison with current reconstruction systems. The immediate result is a working comparison surface on which those claims can now be tested visibly.
+
+## Shared kernel integration gate
+
+The third pane now switches between **Projected edges + spectral** and **Shared lattice kernel**. The latter directly imports Claude's `OURS_KERNEL` from `demo/ours-kernel.wgsl.js`; there is one shared implementation, not a copied shader. The adapter packs the exact period-normalized gradients/Hessians into `Jets` and passes variance `0.25`. Both paths keep the same center `(i + 0.5, j + 0.5)`, equal-parity checker, homography, linear intensities, camera, and Gaussian reference. Switching compiles the selected material, preserves the pose, clears its old timing samples, and leaves the temporal baseline intact. The current default remains the projected-edge path.
+
+The shared kernel uses a joint Gaussian approximation of the counts for coverage and reduced-lattice enumeration for spectral terms. Its coverage model is not the exact projective edge geometry used by the existing foreground path. Its enumeration is capped and its curvature model is local; neither path includes exact depth conditioning or geometric silhouettes. These are two implementations to measure, not interchangeable certified integrals.
+
+On the unchanged 120 reference probes, both rendered correctly and the shared kernel's separate float16 readback was finite and in range. The measured linear RMS values are:
+
+| Camera and detail | No AA | Projected edges + spectral | Shared lattice |
+|---|---:|---:|---:|
+| Glide, t = 0, detail 1 | 0.286487 | 0.001188 | 0.001739 |
+| Glide, t = 8, detail 1 | 0.316269 | 0.000971 | 0.001775 |
+| Approach, t = 4, detail 2 | 0.333108 | 0.001204 | 0.001759 |
+
+These selected-pixel values use the original 8-bit linear capture protocol; differences near one quantization step or the sampled-reference disagreement do not establish a fine ranking. A more diagnostic foreground case is `(143,64)` at glide t = 0: reference `0.159754295`, sequence disagreement `0.000012131`, projected-edge output `0.160784314`, shared-kernel output `0.164705882`. Its center is `(143.5,64.5)`. The unchanged report retains every pixel, including these losses; the next investigation is the coverage model rather than a visual declaration of a winner.
+
+Evidence: [final shared material gate](compare-evidence/shared-materials-2026-09-05T19-29-17.887Z.json) and [live switching, controls, and inspector](compare-evidence/shared-live-2026-09-05T19-29-01.042Z.json). The earlier reports sent to Claude are retained as well. The final material run reproduces the values exactly and additionally records which resolved parity classes the fixed probes actually cover (one dark interior, no fully resolved light interior). Material and performance runners hash the source before rendering and reject changes during a run, avoiding a cached browser module being attributed to newer code on disk. The original RGBA8 errors remain comparable; a separate RGBA16Float pass checks the shared output for nonfinite values and clipping that the byte target could hide.
+
+The [shared timing run](compare-evidence/shared-performance-2026-09-05T19-30-51.298Z.json) measures one method at a time in the test, with the same five warm frames and 15 measured frames per case. These cells are **median GPU span / completed wall time** in milliseconds:
+
+| Resolution and pose | No AA | Texture + TRAA | Projected edges + spectral | Shared lattice |
+|---|---:|---:|---:|---:|
+| 640 × 360, t = 0 | 9.07 / 10.00 | 4.38 / 7.50 | 8.63 / 9.80 | 10.43 / 11.80 |
+| 640 × 360, t = 8 | 9.46 / 10.30 | 4.99 / 9.30 | 8.59 / 9.90 | 10.34 / 11.50 |
+| 1920 × 1080, t = 0 | 5.46 / 8.00 | 10.52 / 13.90 | 12.18 / 13.50 | 24.16 / 25.30 |
+| 1920 × 1080, t = 8 | 5.05 / 6.10 | 4.80 / 8.40 | 13.22 / 13.90 | 22.96 / 24.10 |
+
+Desktop contention and scheduling are substantial in this run: even the 1080p raw arm spans 2–12.4 ms of completed wall time. Claude stopped its demo and GPU benchmarking during the window, and this final run followed completion of the app build, but other desktop processes were not controlled. These are measured observations under load, not stable intrinsic shader costs or a native game budget. The shared kernel has not demonstrated the agreed accuracy-at-equal-or-lower-cost replacement gate; both choices remain available and the default is unchanged.
+
+The timing audit now resolves each query set **once** through Three, then copies those same already-resolved bytes to compute the diagnostic intervals and elapsed span. The earlier double-resolution consistency assertion failed on one run; it did not identify a rendering failure or establish a driver cause. The revised 240 samples all pass the same-byte sum and enclosing-wall checks. Each case is saved before validation, including raw timestamp pairs and discrepancy fields, so future failures retain evidence instead of discarding the run. The application still labels its public accumulator **GPU pass sum**.

@@ -93,11 +93,29 @@ try {
   }
   for (const shot of Object.values(result.resized)) assert.deepEqual([shot.width, shot.height], [160, 160]);
   assert.equal(result.info.backend.toLowerCase(), 'webgpu');
+  const kernelSwitch = await page.evaluate(async () => {
+    const app = window.__compare;
+    const hash = method => app.pixels(method).data.reduce((v, c) => Math.imul(v ^ c, 16777619), 2166136261) >>> 0;
+    const before = { raw: hash('raw'), spectral: hash('spectral'), state: app.info() };
+    await app.setKernel('lattice');
+    const lattice = { raw: hash('raw'), spectral: hash('spectral'), state: app.info() };
+    await app.setKernel('projective');
+    const restored = { raw: hash('raw'), spectral: hash('spectral'), state: app.info() };
+    return { before, lattice, restored };
+  });
+  assert.equal(kernelSwitch.lattice.state.kernel, 'lattice');
+  assert.equal(kernelSwitch.lattice.state.ready, true);
+  assert.equal(kernelSwitch.lattice.state.time, kernelSwitch.before.state.time);
+  assert.deepEqual(kernelSwitch.lattice.state.homography, kernelSwitch.before.state.homography);
+  assert.equal(kernelSwitch.lattice.raw, kernelSwitch.before.raw, 'Kernel switch changed the source view.');
+  assert.equal(kernelSwitch.restored.spectral, kernelSwitch.before.spectral, 'Returning to the original kernel changed its output.');
   await page.click('button[aria-expanded]');
   await page.waitForSelector('[role="dialog"]');
   assert.match(await page.$eval('[role="dialog"]', el => el.textContent), /DLAA/);
   await page.click('button[aria-label="Close"]');
   await page.waitForSelector('[role="dialog"]', { hidden: true });
+  await page.select('select[aria-label="Integration kernel"]', 'lattice');
+  await page.waitForFunction(() => window.__compare.info().ready && window.__compare.info().kernel === 'lattice');
   // Return to native panel dimensions before translating a real UI click into
   // a device-pixel coordinate. The bridge's earlier small buffers were tests.
   await page.evaluate(async () => {
@@ -125,7 +143,7 @@ try {
   await page.click('.compare-play');
   await page.screenshot({ path: out.replace(/\.json$/, '.png'), fullPage: true });
   assert.deepEqual(errors, [], `Browser errors: ${errors.join('\n')}`);
-  fs.writeFileSync(out, JSON.stringify({ createdAt: new Date().toISOString(), browser: await browser.version(), result, inspection }, null, 2), { flag: 'wx' });
+  fs.writeFileSync(out, JSON.stringify({ createdAt: new Date().toISOString(), browser: await browser.version(), result, kernelSwitch, inspection }, null, 2), { flag: 'wx' });
   console.log(`PASS synchronized live WebGPU comparison, real TRAA history/reset, resize, texture phase, controls, pixel inspector; ${out}`);
 } finally {
   await browser.close(); await server.close();
