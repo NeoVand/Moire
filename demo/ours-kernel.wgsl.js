@@ -20,7 +20,14 @@
 //     parity is the same in the coverage sum and the Fourier series
 //   The jets are ratios of the numerators, so the sign of D does not
 //   matter to the kernel; the caller decides ground against sky.
-// Domain: the checkerboard at any magnification, curvature to second order.
+//   fn circlesMean(J: Jets, S: f32) -> vec2f
+//     the same for the circles picture: the disc of radius 5/12 cell at
+//     the cell's centre (Yang-Barnes: radius 25/3, gap 5/3, cell 20), the
+//     counts in cells; coverage of the disc's quadratic argument in its
+//     Hessian eigenframe where at most a few discs are within reach, the
+//     Fourier series with J1 coefficients over the reduced lattice elsewhere
+// Domain: the checkerboard and the circles at any magnification, curvature
+// to second order.
 // Not in it: the ground/sky edge or any silhouette, the compiler's exact
 // depth conditioning, certified whole-image bounds. The spectral
 // enumeration is capped at 2048 lattice points a pixel.
@@ -228,4 +235,212 @@ fn checkerMean(J: Jets, S: f32) -> vec2f {
   return vec2f(acc, 2.0);
 }
 
+
+// ---------------------------------------------------------------------------
+// circles
+// ---------------------------------------------------------------------------
+const DISC_R: f32 = 0.4166666666666667; // 25/3 over the cell 20
+
+// J1(x)/x, the disc's coefficient shape (Numerical Recipes rational forms, |err| ~ 1e-8)
+fn j1overx(x: f32) -> f32 {
+  let ax = abs(x);
+  if (ax < 1e-3) { return 0.5 - x * x / 16.0; }
+  if (ax < 8.0) {
+    let y = x * x;
+    let num = 72362614232.0 + y * (-7895059235.0 + y * (242396853.1 + y * (-2972611.439 + y * (15704.48260 + y * (-30.16036606)))));
+    let den = 144725228442.0 + y * (2300535178.0 + y * (18583304.74 + y * (99447.43394 + y * (376.9991397 + y))));
+    return num / den; // J1(x) = x * num / den
+  }
+  let z = 8.0 / ax;
+  let y = z * z;
+  let xx = ax - 2.356194491;
+  let p1 = 1.0 + y * (0.183105e-2 + y * (-0.3516396496e-4 + y * (0.2457520174e-5 + y * (-0.240337019e-6))));
+  let p2 = 0.04687499995 + y * (-0.2002690873e-3 + y * (0.8449199096e-5 + y * (-0.88228987e-6 + y * 0.105787412e-6)));
+  let j1 = sqrt(0.636619772 / ax) * (cos(xx) * p1 - z * sin(xx) * p2);
+  return j1 / ax; // even in x
+}
+
+// P(q(X) <= 0) for X ~ N(0, S I) and q(x) = a0 + g . x + x^T H x / 2: the
+// quadratic region in the Hessian's eigenframe, the inner coordinate the
+// larger eigenvalue's (the interval between the roots of a quadratic), the
+// outer integrated by Gauss-Legendre 8 on panels of 1.2 sigma split where the
+// discriminant changes sign
+fn quadCoverage(a0: f32, g: vec2f, H: vec3f, S: f32) -> f32 {
+  let sig = sqrt(S);
+  let tr = H.x + H.z;
+  let dt = H.x * H.z - H.y * H.y;
+  let disc = sqrt(max(0.25 * tr * tr - dt, 0.0));
+  var l1 = 0.5 * tr + disc; // eigenvalues
+  var l2 = 0.5 * tr - disc;
+  // eigenvector of l1
+  var e1 = vec2f(1.0, 0.0);
+  if (abs(H.y) > 1e-12) { e1 = normalize(vec2f(l1 - H.z, H.y)); }
+  else if (H.z > H.x) { e1 = vec2f(0.0, 1.0); }
+  var e2 = vec2f(-e1.y, e1.x);
+  // the inner coordinate is the one with the larger |eigenvalue|
+  var lin = l1; var lout = l2; var ein = e1; var eout = e2;
+  if (abs(l2) > abs(l1)) { lin = l2; lout = l1; ein = e2; eout = e1; }
+  let gin = dot(g, ein);
+  let gout = dot(g, eout);
+  if (abs(lin) < 1e-9) {
+    // affine region: a half plane
+    let gn = length(g);
+    if (gn < 1e-12) { return select(0.0, 1.0, a0 <= 0.0); }
+    return Phi(-a0 / (sig * gn));
+  }
+  // for outer coordinate t: c(t) = a0 + gout t + lout t^2 / 2; inner quadratic lin/2 y^2 + gin y + c(t) <= 0
+  // discriminant D(t) = gin^2 - 2 lin c(t): a quadratic in t; its sign changes are the panel cuts
+  let A = -lin * lout;      // coefficient of t^2 in D
+  let B = -2.0 * lin * gout; // of t
+  let C = gin * gin - 2.0 * lin * a0;
+  var cuts = array<f32, 4>(-5.5 * sig, 5.5 * sig, 5.5 * sig, 5.5 * sig);
+  var ncut = 2;
+  if (abs(A) > 1e-12) {
+    let dd = B * B - 4.0 * A * C;
+    if (dd > 0.0) {
+      let sq = sqrt(dd);
+      let r1 = (-B - sq) / (2.0 * A);
+      let r2 = (-B + sq) / (2.0 * A);
+      let lo = min(r1, r2);
+      let hi = max(r1, r2);
+      if (lo > -5.5 * sig && lo < 5.5 * sig) { cuts[ncut] = lo; ncut += 1; }
+      if (hi > -5.5 * sig && hi < 5.5 * sig) { cuts[ncut] = hi; ncut += 1; }
+    }
+  } else if (abs(B) > 1e-12) {
+    let r = -C / B;
+    if (r > -5.5 * sig && r < 5.5 * sig) { cuts[ncut] = r; ncut += 1; }
+  }
+  // sort the cuts (at most 4)
+  for (var i = 0; i < 4; i++) { for (var j = i + 1; j < 4; j++) { if (cuts[j] < cuts[i]) { let t = cuts[i]; cuts[i] = cuts[j]; cuts[j] = t; } } }
+  var glx = GLX;
+  var glw = GLW;
+  var acc = 0.0;
+  for (var seg = 0; seg < 3; seg++) {
+    let a = cuts[seg];
+    let b = cuts[seg + 1];
+    if (b - a < 1e-9) { continue; }
+    let panels = ceil((b - a) / (1.2 * sig));
+    let dz = (b - a) / panels;
+    var q = 0.0;
+    loop {
+      if (q >= panels) { break; }
+      let pa = a + q * dz;
+      let half = 0.5 * dz;
+      let mid = pa + half;
+      for (var k = 0; k < 8; k++) {
+        let t = mid + half * glx[k];
+        let phi = 0.3989422804014327 * exp(-0.5 * t * t / S) / sig;
+        let c = a0 + gout * t + 0.5 * lout * t * t;
+        let D = gin * gin - 2.0 * lin * c;
+        var p = 0.0;
+        if (D > 0.0) {
+          let sq = sqrt(D);
+          let y1 = (-gin - sq) / lin;
+          let y2 = (-gin + sq) / lin;
+          let lo = min(y1, y2);
+          let hi = max(y1, y2);
+          if (lin > 0.0) { p = Phi(hi / sig) - Phi(lo / sig); }
+          else { p = 1.0 - (Phi(hi / sig) - Phi(lo / sig)); }
+        } else if (lin < 0.0) { p = 1.0; }
+        acc += glw[k] * half * phi * p;
+      }
+      q += 1.0;
+    }
+  }
+  return acc;
+}
+
+// the circles' pixel mean: 1/2 + ... no: the disc indicator's expectation
+fn circlesMean(J: Jets, S: f32) -> vec2f {
+  let sig = sqrt(S);
+  let gmax = max(length(J.gu), length(J.gv));
+  if (gmax < 0.15) {
+    // coverage: the discs whose cell is within reach; each region's
+    // argument (u - cu)^2 + (v - cv)^2 - rho^2 as a quadratic in the pixel
+    let reach = 3.0 * sig * gmax + DISC_R;
+    let nu0 = floor(J.u0 - reach);
+    let nu1 = floor(J.u0 + reach);
+    let nv0 = floor(J.v0 - reach);
+    let nv1 = floor(J.v0 + reach);
+    var acc = 0.0;
+    var nu = nu0;
+    loop {
+      if (nu > nu1) { break; }
+      var nv = nv0;
+      loop {
+        if (nv > nv1) { break; }
+        let du = J.u0 - (nu + 0.5);
+        let dv = J.v0 - (nv + 0.5);
+        // is the disc within reach of the pixel at all
+        let dist = sqrt(du * du + dv * dv);
+        if (dist - DISC_R < 3.5 * sig * gmax + 1e-6) {
+          let a0 = du * du + dv * dv - DISC_R * DISC_R;
+          let g = 2.0 * du * J.gu + 2.0 * dv * J.gv;
+          let H = vec3f(
+            2.0 * (J.gu.x * J.gu.x + J.gv.x * J.gv.x) + 2.0 * du * J.Hu.x + 2.0 * dv * J.Hv.x,
+            2.0 * (J.gu.x * J.gu.y + J.gv.x * J.gv.y) + 2.0 * du * J.Hu.y + 2.0 * dv * J.Hv.y,
+            2.0 * (J.gu.y * J.gu.y + J.gv.y * J.gv.y) + 2.0 * du * J.Hu.z + 2.0 * dv * J.Hv.z);
+          acc += quadCoverage(a0, g, H, S);
+        }
+        nv += 1.0;
+      }
+      nu += 1.0;
+    }
+    return vec2f(acc, 1.0);
+  }
+  // spectral: the disc's series over the reduced lattice, coefficient
+  // (-1)^(k + l) rho J1(2 pi rho |kappa|) / |kappa|, the DC term pi rho^2
+  var b1 = J.gu;
+  var b2 = J.gv;
+  var T = mat2x2f(1.0, 0.0, 0.0, 1.0);
+  for (var it = 0; it < 12; it++) {
+    if (dot(b1, b1) > dot(b2, b2)) {
+      let tb = b1; b1 = b2; b2 = tb;
+      T = mat2x2f(T[1], T[0]);
+    }
+    let m = round(dot(b1, b2) / max(dot(b1, b1), 1e-30));
+    if (m == 0.0) { break; }
+    b2 = b2 - m * b1;
+    T[1] = T[1] - m * T[0];
+  }
+  let fu = sqrt(J.Hu.x * J.Hu.x + 2.0 * J.Hu.y * J.Hu.y + J.Hu.z * J.Hu.z);
+  let fv = sqrt(J.Hv.x * J.Hv.x + 2.0 * J.Hv.y * J.Hv.y + J.Hv.z * J.Hv.z);
+  let lam = TAU * (fu + fv) * 8.0;
+  let R = min(1.6 * sqrt(1.0 + S * S * lam * lam), 12.0);
+  let n1 = length(b1);
+  let perp = sqrt(max(dot(b2, b2) - dot(b1, b2) * dot(b1, b2) / dot(b1, b1), 1e-30));
+  let nMax = floor(R / perp);
+  var acc = 0.0;
+  var count = 0.0;
+  var n = -nMax;
+  loop {
+    if (n > nMax) { break; }
+    let c = n * b2;
+    let mStar = -dot(c, b1) / dot(b1, b1);
+    let hw = sqrt(max(R * R - n * n * perp * perp, 0.0)) / n1;
+    var m = ceil(mStar - hw);
+    let mEnd = floor(mStar + hw);
+    loop {
+      if (m > mEnd) { break; }
+      let kl = T * vec2f(m, n);
+      let k = kl.x;
+      let l = kl.y;
+      let kap = TAU * DISC_R * sqrt(k * k + l * l);
+      // rho J1(2 pi rho kappa)/kappa = TAU rho^2 * (J1(x)/x) with x = 2 pi rho kappa
+      var coef = TAU * DISC_R * DISC_R * j1overx(kap);
+      let parity = k + l - 2.0 * floor(0.5 * (k + l));
+      if (parity > 0.5) { coef = -coef; }
+      let bb = TAU * (k * J.gu + l * J.gv);
+      let qq = TAU * (k * J.Hu + l * J.Hv);
+      let phi0 = TAU * (k * J.u0 + l * J.v0);
+      acc += coef * multRe(phi0, bb, qq, S);
+      count += 1.0;
+      m += 1.0;
+      if (count > 2048.0) { break; }
+    }
+    n += 1.0;
+    if (count > 2048.0) { break; }
+  }
+  return vec2f(acc, 2.0);
+}
 `;

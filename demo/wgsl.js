@@ -301,7 +301,9 @@ ${OURS_KERNEL}
     P = r.x;
     regime = r.y;
   } else {
-    P = pictureAt(scene, g.s, g.t);
+    let r = circlesMean(J, S);
+    P = r.x;
+    regime = r.y;
   }
   let LN = lightingLN();
   var v = LN * P;
