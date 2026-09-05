@@ -109,6 +109,9 @@ const inputsAt = (O, x, y, jets) => {
 };
 
 // their normal_mapping for the plane, 'parallax_normal' displacement
+// FJET_BUMPSCALE scales the normal map's height (ripples and bumps) for the
+// frozen amplitude sweep of the held-out family; 1 is the published shader
+const BUMPSCALE = process.env.FJET_BUMPSCALE ? Number(process.env.FJET_BUMPSCALE) : 1;
 const normalMapping = (O, I, kind) => {
   if (kind === 'none') return { normal: I.normal, s: I.s, t: I.t };
   const u = I.s;
@@ -123,10 +126,10 @@ const normalMapping = (O, I, kind) => {
     const r2 = O.add(O.mul(u, u), O.mul(v, v));
     const r = O.sqrt(r2);
     const theta = O.sub(O.mul(r, f), I.time * velocity);
-    h = O.scale(O.sin(theta), a);
+    h = O.scale(O.sin(theta), a * BUMPSCALE);
     const rinv = O.div(1, r);
-    dhdu = O.mul(O.mul(O.scale(u, a * f), rinv), O.cos(theta));
-    dhdv = O.mul(O.mul(O.scale(v, a * f), rinv), O.cos(theta));
+    dhdu = O.mul(O.mul(O.scale(u, a * f * BUMPSCALE), rinv), O.cos(theta));
+    dhdv = O.mul(O.mul(O.scale(v, a * f * BUMPSCALE), rinv), O.cos(theta));
   } else if (kind === 'spheres') {
     const f = 0.5;
     const fu = O.sub(O.scale(O.fract(O.scale(u, f)), 2), 1);
@@ -140,9 +143,9 @@ const normalMapping = (O, I, kind) => {
   } else if (kind === 'bumps') {
     const fu = u;
     const fv = v;
-    h = O.mul(O.sin(fu), O.sin(fv));
-    dhdu = O.mul(O.cos(fu), O.sin(fv));
-    dhdv = O.mul(O.cos(fv), O.sin(fu));
+    h = O.scale(O.mul(O.sin(fu), O.sin(fv)), BUMPSCALE);
+    dhdu = O.scale(O.mul(O.cos(fu), O.sin(fv)), BUMPSCALE);
+    dhdv = O.scale(O.mul(O.cos(fv), O.sin(fu)), BUMPSCALE);
   } else throw new Error(kind);
   // plane: cross_tangent = (0,0,1); small_t = (-1,0,0); small_b = (0,-1,0)
   const newNormal = [dhdu, dhdv, O.const(1)];
@@ -470,6 +473,11 @@ const oursPixelAt = (cs, x, y, stats, sig) => {
     stats.recipes += px.stats.recipes;
     stats.dfts += px.stats.dfts;
     stats.overflow += px.stats.overflow;
+    stats.thetaAbsMax = Math.max(stats.thetaAbsMax || 0, px.stats.thetaAbsMax || 0);
+    stats.thetaHMax = Math.max(stats.thetaHMax || 0, px.stats.thetaHMax || 0);
+    stats.shiftOrderMax = Math.max(stats.shiftOrderMax || 0, px.stats.shiftOrderMax || 0);
+    stats.shiftGrid = px.shiftNG;
+    stats.shiftWindow = px.shiftKW;
   }
   return vals;
 };
@@ -675,7 +683,8 @@ if (PROBE) {
       const ms = performance.now() - t0;
       const ref = brutePixel(cs, x, y, NBRUTE, 1);
       const pt = cs.eval(NUM, x, y, false)[0];
-      console.log(`  (${x},${y}) ours ${v.toFixed(5)} brute ${ref.toFixed(5)} |err| ${Math.abs(v - ref).toExponential(1)} point ${pt.toFixed(3)}  recipes ${stats.recipes} dfts ${stats.dfts} ${stats.overflow ? 'OVERFLOW' : ''} ${ms.toFixed(1)} ms`);
+      const shiftInfo = stats.thetaAbsMax ? ` shift|theta|max ${stats.thetaAbsMax.toFixed(1)} theta*h ${stats.thetaHMax.toFixed(1)} order ${stats.shiftOrderMax} grid ${stats.shiftGrid} window ${stats.shiftWindow}` : '';
+      console.log(`  (${x},${y}) ours ${v.toFixed(5)} brute ${ref.toFixed(5)} |err| ${Math.abs(v - ref).toExponential(1)} point ${pt.toFixed(3)}  recipes ${stats.recipes} dfts ${stats.dfts} ${stats.overflow ? 'OVERFLOW' : ''} ${ms.toFixed(1)} ms${shiftInfo}`);
     }
   }
   process.exit(0);

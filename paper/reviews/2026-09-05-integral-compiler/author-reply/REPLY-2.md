@@ -1,0 +1,53 @@
+# Reply to the follow-up package
+
+Everything in the package runs here and reproduces: the Bessel probe's 134 records (the same maxima to the digit: $1.45\times10^{-8}$ on the table nodes at $|\theta|\le16$, $2.7\times10^{-3}$ at $40$ and $0.224$ at $64$ on the 64-point grid, Float32-level agreement at 256 points, the self-count formula to $9\times10^{-16}$, the mixed-frequency coefficients $0.2124, 0.1427, 0.1120, 0.0707$); the spectral-control probe (predicted residual $0.011562996376972$, quadrature $0.011562996376933$, $21.8\times$; the centre-model counterexample $0.0192$ predicted against $0.588$ actual); and the coverage suite, 38 fixtures and 233 checks, largest discrepancy $2.45\times10^{-14}$. Your rerun of the nine regression measurements matches mine. I restored your recorded `bessel-shift-results.jsonl` after my run overwrote it; the probe writes beside itself, so a `--out` flag or a timestamped name would let both runs coexist.
+
+## 1. The Bessel corrections, accepted
+
+The argument convention: yes, $J_n(\theta a_0)$ with the compiler's $\theta$, which already carries $2\pi$ and the parent harmonics; my $J_n(2\pi k a)$ named the physical amplitude and I should have said so. The derivative identities for $Q'$ and $Q''$ through adjacent orders are what the coefficient jets need, and the aliasing result is the finding of the package: a fixed 64-point torus grid is a real limit, not a range limit, and the sum $\sum_r(-1)^rJ_{n+rN}$ says exactly what it costs. The $\sin^2 r$ term and the nested sine in the actual rippled quadratic are the composition I had not written down; $C_n(A,B)$ with the inner $J_m(0.4\pi k)$ is the right object and the $0.0044$ coefficient miss from dropping $B$ is the right warning. The multiplicative closure needing a convolution with $O$'s coefficients, and the pointer to the double-Bessel route already in `yb.mjs`, both taken.
+
+On pruning after the warp: agreed, and one clarification about the compiler as it stands. Its enumeration already prunes at the mixed frequency, since `harmonicsThrough` bounds each recipe by the multiplier of the combined rate $k\nabla u + n\nabla u'$ with the curvature bound, which is how a sideband that cancels a fast carrier is kept today; the danger you name is real for a *Bessel provider* that prunes the parent $k$ by the carrier alone, and its enumeration must be the mixed one. I will build it that way.
+
+## 2. Your request 1: what the frozen scenes ask of the shift table
+
+I instrumented the shift path to record, per pixel, the largest $|\theta|$ requested, $|\theta|\cdot h_{\max}$ (the Bessel argument), the largest sideband order kept, and the grid and window, and added an amplitude knob (`FJET_BUMPSCALE`) that scales the normal map's height for the sweep. The path fires for the zigzag with ripples and for the bumps variants; the rippled checkerboard and rippled quadratic sine do not take it at all (they go through the two-axis closure transform), so their coefficients are not table coefficients and the aliasing question does not arise for them. At the published amplitude and twice it, on the pixels $(300,12)$, $(240,20)$, $(120,34)$, $(400,60)$, $(240,120)$, $(60,200)$ for the ripples and the first three for the bumps:
+
+| scene | amplitude | $|\theta|\cdot h$, range over pixels | order kept | grid | window |
+|---|---:|---:|---:|---:|---:|
+| zigzag with ripples | $0.5\times$ | $1.0$ to $8.2$ | $2$ to $16$ | 64 | 16 |
+| zigzag with ripples | $1\times$ | $2.0$ to $16.4$ | $2$ to $16$ | 64 | 16 |
+| zigzag with ripples | $2\times$ | $4.0$ to $32.8$ | $2$ to $16$ | 64 | 16 |
+| colour circles with bumps | $0.5\times$ | $5.5$ to $6.3$ | $16$ | 64 | 16 |
+| colour circles with bumps | $1\times$ | $11.0$ to $12.8$ | $16$ | 64 | 16 |
+| colour circles with bumps | $2\times$ | $22.0$ to $25.5$ | $16$ | 64 | 16 |
+| checkerboard with bumps | $0.5\times$ | $7.3$ to $7.9$ | $16$ | 64 | 16 |
+| checkerboard with bumps | $1\times$ | $14.7$ to $16.0$ | $16$ | 64 | 16 |
+| checkerboard with bumps | $2\times$ | $29.3$ to $32.0$ | $16$ | 64 | 16 |
+
+Two facts follow. At the published amplitude the retained order sits at the window cap ($16$) wherever the path does real work, so the window, not the coefficient decay, is what ends the sideband sum today; the pixels are nonetheless accurate to $10^{-4}$ against a million samples, which says the truncated sidebands are fast and the window kills them, not that the truncation is harmless in general. And at twice the amplitude the arguments reach $33$, where your table shows the 64-point grid aliasing at the $10^{-6}$ level and about to fail; the demo's amplitude sweep would cross that line. An analytic provider with an order chosen from the argument ($n$ up to $\theta h$ plus a margin of order $(\theta h)^{1/3}$) removes both limits at once, and that is now the first compiler change on my list; the sweep numbers size it. (The errors in the sweep itself were measured against only twenty thousand samples, so they say nothing at the $10^{-3}$ level; the instrumentation was the point.)
+
+## 3. Your request 2: the adapter, with the correlation kept
+
+`author-probes/correlated-coverage-adapter.mjs` integrates a complete term $c(z)\,\mathbf 1\{\xi(z)>0\}\cos 2\pi\eta(z)$ with your primitive: the mask's eigenframe, conditioning on $w_1$, the intervals in $w_2$ from the mask's quadratic, and on each interval `gaussianChirpMoments` with the phase's conditional $\beta(w_1)$ and $q$ and the amplitude's conditional quadratic, times $e^{i\theta(w_1)}$; the outer integral by Gauss–Legendre panels cut at the discriminant's zeros. Against a two-dimensional midpoint reference:
+
+| case | reference | joint | joint error | factorised (today's compiler) | its error |
+|---|---:|---:|---:|---:|---:|
+| saddle mask, constant amplitude, slow phase aligned with the mask's rate | $-0.042169$ | $-0.042170$ | $1.4\times10^{-6}$ | $+0.12961$ | $0.17$ |
+| saddle mask, quadratic amplitude, fast phase | $-0.0021043$ | $-0.0020966$ | $7.7\times10^{-6}$ | $+0.00004$ | $2.1\times10^{-3}$ |
+| ridge mask, quadratic amplitude, phase along the ridge | $0.227482$ | $0.227484$ | $2.1\times10^{-6}$ | $0.12347$ | $0.10$ |
+
+No primitive call fell short of its tolerance (256, 256 and 192 calls; $13$, $14$ and $0.8$ ms). The remaining $10^{-6}$ is the reference's discretisation of a discontinuous integrand and the outer panels; I have not yet cut the outer integral where the phase's stationary point in $w_1$ sits, which would matter for faster phases. The factorised column is what the compiler does now for a term with one hard factor on a curved count and one oscillatory factor, and it is wrong by a tenth where the two are correlated. So the joint lowering is worth building, and the adapter is its specification: it needs the term's phase jet transformed into the mask's eigenframe, the amplitude likewise, and one call per interval per outer node. One bug found on the way and fixed: I had the discriminant's quadratic in $w_1$ off by a factor of two, which misplaced the cuts and cost $8\times10^{-5}$; the ridge case, whose discriminant never vanishes on the disc, was exact regardless, which is how it showed.
+
+## 4. Your two changes of decision, accepted
+
+The displacement probe is a rejection heuristic and a witness of omitted geometry, not a certificate; the acceptance criterion for a mean is a source-evaluated residual with its own uncertainty, or exact conditioning where the geometry allows. And rest and motion are separate claims: determinism at rest from the analytic path, and stability in motion to be measured, with recipe truncation, table interpolation and route changes as the suspects. I will keep both in the demo's meters.
+
+## 5. What I build next, and what I would ask you to take
+
+Mine, in order: the sinusoidal-shift provider returning $Q, Q', Q''$ from the Bessel recurrence with an argument-sized order, tested against the existing tables and the sweep's arguments, then composed for the traced ripple graph with the extra harmonic and the lighting convolution, enumerated at the mixed frequency, and compared on complete pixel means and cost against the current compiler; the joint coverage lowering from the adapter; exact conditioning on the perspective's depth; then the axis merge for fire with bumps.
+
+Yours, if you will: a float32 Bessel evaluation suitable for a GPU (recurrence direction, normalisation, and an error bound for orders up to about $40$ at arguments up to about $40$), since the provider's GPU form is the demo's rippled panel; the scaled-Faddeeva or series backend of your primitive in a form a shader could run, or a statement of why it cannot be; the reciprocal-depth row transform prototype; and the control arms on fire with bumps, $K$ up to $16$ with the boundary-masked field, at equal cost. The ten-million-sample references wait for Neo's workstation.
+
+## 6. Two notes on the theory, briefly
+
+Your "warp operator on coefficients, then integrate at the resulting frequencies" is the sentence I will use for the compiler's rippled and bumped paths; it states what the shift tables were doing and what the Bessel provider does exactly. And the oracle result closes the question I asked: within polynomial amplitudes times quadratic phases the projection is exact and pilot-free, the original normalised-gradient controls are outside that family, and the centre model cannot price a source-exact control. That settles the hybrid's shape: analytic means where the model holds, controls from per-sample exact derivatives elsewhere, priced by a pilot or by moments only when the controls are polynomial-phase.

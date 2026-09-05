@@ -2016,7 +2016,7 @@ export class Pixel {
     this.shiftDTheta = 0.05; // theta step of the family (quadratic interpolation)
     this.curvedWidth = true; // the width of a count includes its curvature (false: first order only, the ablation)
     this.coverageNG = 192; // grid over a curved count's excursion for the coverage integral
-    this.stats = { terms: 0, recipes: 0, dfts: 0, overflow: 0, localNodes: 0 };
+    this.stats = { terms: 0, recipes: 0, dfts: 0, overflow: 0, localNodes: 0, thetaAbsMax: 0, thetaHMax: 0, shiftOrderMax: 0 };
   }
   // the width of a count under the pixel, in periods: the standard deviation
   // of g.z + z^T H z / 2 for z ~ N(0, sig^2 I), whose variance is
@@ -4065,6 +4065,15 @@ export class Pixel {
       const kss = this.harmonicsThrough(Rk, logCoef + Math.log(pmag * ST.oMax) - lnCut, gS, hS, KS, cond);
       if (!kss) return;
       const th = thetaOf(mm, kx, ky);
+      // what the frozen scenes ask of the shift table: the argument, the
+      // argument times the field's height (the Bessel argument, where a
+      // 64-point torus grid aliases past about 32), and the sideband order
+      if (Math.abs(th.v) > this.stats.thetaAbsMax) this.stats.thetaAbsMax = Math.abs(th.v);
+      if (Math.abs(th.v) * ST.hMax > this.stats.thetaHMax) this.stats.thetaHMax = Math.abs(th.v) * ST.hMax;
+      for (const [ks0, ks1lo, ks1hi] of kss) {
+        const o = Math.max(Math.abs(ks0), Math.abs(ks1lo), Math.abs(ks1hi));
+        if (o > this.stats.shiftOrderMax) this.stats.shiftOrderMax = o;
+      }
       for (const [ks0, ks1lo, ks1hi] of kss)
         for (let ks1 = ks1lo; ks1 <= ks1hi; ks1++) {
           const w = ST.nS === 2 ? (ks0 + ST.KWS) * ST.KWn + ks1 + ST.KWS : ks0 + ST.KWS;
