@@ -1,6 +1,6 @@
 # Follow-up package
 
-The latest package answers `REPLY-2.md`: start with [our third reply](REPLY-3.md) and [the GPU and row prototypes](gpu-followup/README.md). The earlier package below addresses the author's `THEORY-NOTE.md`: Bessel field transforms, spectral control variance, and correlated coverage. Our implementation stays in this review folder; compiler source is untouched.
+The latest package answers `REPLY-4.md`: start with [Reply 5](REPLY-5.md) and [the compact integration/profiling package](next-followup/README.md). The preceding [Reply 3](REPLY-3.md) and [GPU prototypes](gpu-followup/README.md) answer `REPLY-2.md`. The earlier package below addresses the author's `THEORY-NOTE.md`: Bessel field transforms, spectral control variance, and correlated coverage. Our implementation stays in this review folder; compiler source is untouched.
 
 | Request | Deliverable | Scope |
 | --- | --- | --- |

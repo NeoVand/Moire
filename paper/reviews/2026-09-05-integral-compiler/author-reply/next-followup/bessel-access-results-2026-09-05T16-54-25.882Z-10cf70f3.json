@@ -1,0 +1,57 @@
+{
+  "source": {
+    "fjet.mjs": "6f432c68756e95dd04550babf5d08def9214202a795df86d5b641c1ee4550e8d",
+    "fjet-yb.mjs": "e4a2914e6f37699742a2f700ea30994293469f30548aef01dfc0cdf0ae0537fb"
+  },
+  "rows": [
+    {
+      "scale": 1,
+      "case": "zigzagRipples",
+      "pixel": [
+        400,
+        60
+      ],
+      "value": [
+        0.39702631673681194,
+        0.39702631673681194,
+        0.41373382554530497
+      ],
+      "retainedSidebandOrder": 18,
+      "access": {
+        "calls": 297620,
+        "above42": 0,
+        "maxOrder": 31,
+        "maxArgument": 16.461816761905304,
+        "maxAbove42Value": 0,
+        "worst": null
+      }
+    },
+    {
+      "scale": 2,
+      "case": "zigzagRipples",
+      "pixel": [
+        400,
+        60
+      ],
+      "value": [
+        0.46623118089924365,
+        0.46623118089924365,
+        0.4801364815191781
+      ],
+      "retainedSidebandOrder": 18,
+      "access": {
+        "calls": 815220,
+        "above42": 12814,
+        "maxOrder": 51,
+        "maxArgument": 32.92363352381061,
+        "maxAbove42Value": 0.00042202967337879167,
+        "worst": {
+          "order": 43,
+          "argument": -32.92363352381061,
+          "value": 0.00042202967337879167
+        }
+      }
+    }
+  ],
+  "meaning": "Retained sideband order differs from primitive Bessel order after lighting convolution and adjacent derivative shifts. Raw values above order42 are actually accessed. This is not a bound on their weighted pixel effect: they may be omitted only after that error is budgeted, or supported by extending the kernel."
+}

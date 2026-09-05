@@ -1,0 +1,103 @@
+{
+  "source": {
+    "fjet.mjs": "6f432c68756e95dd04550babf5d08def9214202a795df86d5b641c1ee4550e8d",
+    "fjet-yb.mjs": "e4a2914e6f37699742a2f700ea30994293469f30548aef01dfc0cdf0ae0537fb"
+  },
+  "amplitude": 1,
+  "sigma": 0.5,
+  "depth": false,
+  "cut": 0.0001,
+  "rows": [
+    {
+      "case": "zigzagRipples",
+      "pixel": [
+        400,
+        60
+      ],
+      "value": [
+        0.39702631673681194,
+        0.39702631673681194,
+        0.41373382554530497
+      ],
+      "stats": {
+        "terms": 12,
+        "recipes": 108347,
+        "dfts": 147,
+        "overflow": 0,
+        "thetaAbsMax": 16.461816761905304,
+        "thetaHMax": 16.461816761905304,
+        "shiftOrderMax": 18,
+        "shiftGrid": "analytic",
+        "shiftWindow": 48,
+        "shiftRecipes": 240,
+        "shiftAmp": 0.7785150278726257,
+        "reviewAbsoluteWeights": [
+          1.6885426034153914,
+          0.0010865503801673483,
+          9.095607114894282e-7
+        ]
+      }
+    },
+    {
+      "case": "checkerboardBumps",
+      "pixel": [
+        400,
+        60
+      ],
+      "value": [
+        0.545886416571626,
+        0.545886416571626,
+        0.545886416571626
+      ],
+      "stats": {
+        "terms": 6,
+        "recipes": 17133,
+        "dfts": 1,
+        "overflow": 0,
+        "thetaAbsMax": 15.259156724350223,
+        "thetaHMax": 15.222418219160458,
+        "shiftOrderMax": 16,
+        "shiftGrid": 64,
+        "shiftWindow": 16,
+        "shiftRecipes": 1034,
+        "shiftAmp": 4.297709304588334,
+        "reviewAbsoluteWeights": [
+          27.705423631513227,
+          0.011369265254717681,
+          0.000012979098767044467
+        ]
+      }
+    },
+    {
+      "case": "colorCirclesBumps",
+      "pixel": [
+        120,
+        34
+      ],
+      "value": [
+        0.08403816880788265,
+        0.00042513371716251894,
+        0.02677996183118571
+      ],
+      "stats": {
+        "terms": 11,
+        "recipes": 432963,
+        "dfts": 12015,
+        "overflow": 0,
+        "thetaAbsMax": 13.84331497017399,
+        "thetaHMax": 13.809985297501862,
+        "shiftOrderMax": 15,
+        "shiftGrid": 64,
+        "shiftWindow": 16,
+        "shiftRecipes": 12714,
+        "shiftAmp": 2.711738168895715,
+        "reviewAbsoluteWeights": [
+          10.261769542330757,
+          0.007455828879430197,
+          0.000009179733721856107
+        ]
+      }
+    }
+  ],
+  "meaning": "For fixed surviving recipes, if assembled complex Q derivatives have absolute errors E0,E1,E2, this records weights Wj so |pixel delta| <= sum Wj Ej, before changes to enumeration and other arithmetic. The author statistic sum|contribution| prices a common relative scaling of each complete contribution; it cannot price absolute primitive errors. Raw Bessel errors must first pass through parity/products/lighting convolution and derivative chain rules."
+}

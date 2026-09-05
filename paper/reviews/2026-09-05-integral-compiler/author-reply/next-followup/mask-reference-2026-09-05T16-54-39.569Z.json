@@ -1,0 +1,120 @@
+{
+  "input": "mask-results-2026-09-05T16-54-39.569Z.json",
+  "method": "mpmath1.3.0; original-frame conditional complex erf; split tanh-sinh40/55digits, cutoff12sigma; transform/limit checked75digits",
+  "rows": [
+    {
+      "name": "saddle mask x cos, aligned slow phase",
+      "reference": [
+        "-0.042172038781696069084399813577024734743894968018399",
+        "-0.0056007072745389934349170994989936281084178394303899"
+      ],
+      "precisionAgreement": 3.177675848805315e-43,
+      "outerTailBound": 3.577306226105101e-33,
+      "maximumFullTransformError": 8.865489884531428e-17,
+      "removableLimitError": 1.1091821828062643e-17,
+      "nestedAdapterError": 2.4557251649142512e-06,
+      "runs": [
+        {
+          "T": 64,
+          "absoluteError": 0.0004994518293975569,
+          "tailBound": 0.002028239120410665,
+          "ms": 3.4768749999999997
+        },
+        {
+          "T": 256,
+          "absoluteError": 2.5572416777008794e-05,
+          "tailBound": 0.00012274853116012605,
+          "ms": 5.343666999999996
+        },
+        {
+          "T": 1024,
+          "absoluteError": 1.745456252912548e-06,
+          "tailBound": 7.610413150165474e-06,
+          "ms": 11.817958999999995
+        },
+        {
+          "T": 4096,
+          "absoluteError": 4.585999566157519e-08,
+          "tailBound": 4.746972384843352e-07,
+          "ms": 40.18670900000001
+        }
+      ]
+    },
+    {
+      "name": "saddle mask x quadratic amp x cos, fast phase",
+      "reference": [
+        "-0.0020951855631654452105222462235431836478342285931289",
+        "0.0043833767510349851161856426238249355091824113446572"
+      ],
+      "precisionAgreement": 9.719380302961366e-45,
+      "outerTailBound": 3.713646296955915e-32,
+      "maximumFullTransformError": 2.9499797178516506e-17,
+      "removableLimitError": 3.6337297221208742e-19,
+      "nestedAdapterError": 2.617612010430044e-06,
+      "runs": [
+        {
+          "T": 64,
+          "absoluteError": 0.0003751891015878731,
+          "tailBound": 0.0024820265631465385,
+          "ms": 2.7858339999999657
+        },
+        {
+          "T": 256,
+          "absoluteError": 2.1489649150769407e-05,
+          "tailBound": 0.00010905204850296156,
+          "ms": 3.977458000000013
+        },
+        {
+          "T": 1024,
+          "absoluteError": 1.380442349871228e-06,
+          "tailBound": 6.246234760111486e-06,
+          "ms": 11.711959000000036
+        },
+        {
+          "T": 4096,
+          "absoluteError": 3.710294548194814e-08,
+          "tailBound": 3.81985316215058e-07,
+          "ms": 42.625583000000006
+        }
+      ]
+    },
+    {
+      "name": "ridge mask x amp x cos, phase along the ridge",
+      "reference": [
+        "0.22748396989992144971173341320279322673765716018929",
+        "0.0020778384225834404484647640041331541813605710649554"
+      ],
+      "precisionAgreement": 1.4147366321426907e-42,
+      "outerTailBound": 1.1151495402501565e-32,
+      "maximumFullTransformError": 3.854517060179968e-17,
+      "removableLimitError": 6.817490042787597e-18,
+      "nestedAdapterError": 3.5051924746157594e-08,
+      "runs": [
+        {
+          "T": 64,
+          "absoluteError": 4.2609086287587884e-14,
+          "tailBound": 8.853751074743159e-08,
+          "ms": 3.819458000000054
+        },
+        {
+          "T": 256,
+          "absoluteError": 2.4901104704635916e-16,
+          "tailBound": 4.354373427708517e-14,
+          "ms": 11.068583999999987
+        },
+        {
+          "T": 1024,
+          "absoluteError": 2.488138732487521e-16,
+          "tailBound": 6.843227214716236e-17,
+          "ms": 42.478958000000034
+        },
+        {
+          "T": 4096,
+          "absoluteError": 2.488138732487521e-16,
+          "tailBound": 1.4509296354401256e-18,
+          "ms": 159.34066699999994
+        }
+      ]
+    }
+  ]
+}

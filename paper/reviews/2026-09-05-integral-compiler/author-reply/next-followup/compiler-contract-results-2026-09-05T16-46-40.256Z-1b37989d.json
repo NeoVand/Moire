@@ -1,0 +1,110 @@
+{
+  "dateUTC": "2026-09-05T16:46:40.257Z",
+  "node": "v24.20.0",
+  "cpu": "Apple M4",
+  "scope": "Frozen bounded counterexamples; not a complete compiler or full-image error audit.",
+  "absoluteVersusRelative": {
+    "x": -39.240447998046875,
+    "order": 8,
+    "reference": -3.615583093244122e-10,
+    "computed": -7.450580596923828e-9,
+    "error": 7.089022287599416e-9,
+    "absoluteBound": 3.3945149587667387e-7,
+    "contributionMagnitude": 3.615583093244122e-10,
+    "incorrectlyPredicted": 1.2273150894681288e-16,
+    "ratio": 57760410.08891633,
+    "meaning": "For pixel I=1*J_n(x), sum|contribution|=|J_n(x)|, whereas absolute-error sensitivity is1. Actual float32 mirror error exceeds eps*sum|contribution|. This does not claim the compiler uses this particular coefficient at a benchmark pixel."
+  },
+  "compiler": {
+    "path": "/Users/neo/repos/Moire/paper/tools/exp/fjet.mjs",
+    "sha256": "6f432c68756e95dd04550babf5d08def9214202a795df86d5b641c1ee4550e8d",
+    "privateExports": [
+      "termExpectation",
+      "logMult",
+      "cj"
+    ]
+  },
+  "depthPruning": {
+    "sigma": 0.5,
+    "d0": 6,
+    "b": 9,
+    "source": "S(Y)=0.5+0.5*cos(9W); W=-6Y/(6+Y); Y~N(0,0.5²)",
+    "modelIsExact": "The phase is exactly affine in the compiler depth coordinate W. No omitted Taylor terms.",
+    "reference": [
+      {
+        "N": 32768,
+        "L": 9,
+        "mean": [
+          -0.000857247249166729,
+          0.00043691130557843376
+        ],
+        "mass": 0.99999999999999
+      },
+      {
+        "N": 65536,
+        "L": 9,
+        "mean": [
+          -0.0008572472491661339,
+          0.0004369113055790701
+        ],
+        "mass": 0.9999999999999826
+      }
+    ],
+    "referenceRefinementError": 8.712445334084187e-16,
+    "omittedDepthMassBound": 2.284394127037537e-19,
+    "trueComplexMultiplierMagnitude": 0.0009621664799532933,
+    "sourceMean": 0.49957137637541693,
+    "compiler": [
+      {
+        "nodes": 32,
+        "compilerDepthMean": [
+          -0.0008569734460620845,
+          0.0004366762624901543
+        ],
+        "errorVsUntruncated": 3.6085092965676694e-7,
+        "pruningMultiplier": 0.00004006529739295107
+      },
+      {
+        "nodes": 64,
+        "compilerDepthMean": [
+          -0.0008569734924497559,
+          0.0004366763674608448
+        ],
+        "errorVsUntruncated": 3.6074736195474436e-7,
+        "pruningMultiplier": 0.00004006529739295107
+      },
+      {
+        "nodes": 128,
+        "compilerDepthMean": [
+          -0.0008569734924500316,
+          0.00043667636746083324
+        ],
+        "errorVsUntruncated": 3.6074736175303697e-7,
+        "pruningMultiplier": 0.00004006529739295107
+      },
+      {
+        "nodes": 256,
+        "compilerDepthMean": [
+          -0.0008569734924499276,
+          0.00043667636746084256
+        ],
+        "errorVsUntruncated": 3.607473618258671e-7,
+        "pruningMultiplier": 0.00004006529739295107
+      }
+    ],
+    "pixelMeans": [
+      {
+        "cut": 0.0001,
+        "value": 0.5,
+        "recipes": 0
+      },
+      {
+        "cut": 1e-8,
+        "value": 0.4995715132537323,
+        "recipes": 2
+      }
+    ],
+    "errorAtDefaultCut": 0.0004286236245830688,
+    "meaning": "logMult ignores cond.depth and prices a Gaussian W. termExpectation integrates the non-Gaussian W. The default pruning discards an exactly modeled bounded source whose mean error exceeds the configured cut. Depth quadrature and five-sigma renormalization have separate, much smaller errors in this case."
+  }
+}
