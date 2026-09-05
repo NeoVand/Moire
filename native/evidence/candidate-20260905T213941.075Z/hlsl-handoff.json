@@ -1,0 +1,8 @@
+{
+  "commit": "3b8166188a43171c0e255a87750e9c9b644a51b6",
+  "path": "demo/ours-kernel-next.hlsl",
+  "sha256": "3ffa1bc9d8ea69e87400ee997197352de289cf19ac719d236772ec79c17065ee",
+  "matches_preflight_input": true,
+  "existing_compiler_report": "../compile-20260905T213946.470454Z/report.json",
+  "note": "Message 54 supplied this generated-file commit after the original module-export preflight; byte identity makes the existing compiler result directly applicable."
+}

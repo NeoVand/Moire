@@ -1,0 +1,25 @@
+{
+  "commit": "b05d2272798e106f46ec1f5b84143bc6e9ad86db",
+  "source_path": "demo/ours-kernel-next.wgsl.js",
+  "source_sha256": "3308d1b716922cdf41434637f1cb6439fdb80f44627694cd22274f6eb6efd0ef",
+  "hlsl_sha256": "3ffa1bc9d8ea69e87400ee997197352de289cf19ac719d236772ec79c17065ee",
+  "wgsl_core_sha256": "6efc3bd27e8881e55b1450fa5ee5cfdf35c1eef1b0e173712a285ba054fc19d4",
+  "full_wgsl_sha256": "1f142c65ce77ec85abaf9e0fa1ca268c9c4a0209c2bb21933015d39e4d85f044",
+  "exports": [
+    "HAS_WORK_COUNTER",
+    "OURS_KERNEL",
+    "OURS_KERNEL_CORE",
+    "OURS_KERNEL_HLSL",
+    "RIPPLES_LINE",
+    "RIPPLES_LINE_STUB",
+    "RIPPLES_SPECTRAL",
+    "RIPPLES_SPECTRAL_STUB",
+    "ripplesWith",
+    "toHLSL"
+  ],
+  "stable_source_sha256": "ac855cdb4d478faf8130176d8dda2507b28909218a8d955c6b1e724e6c083cd1",
+  "status": "candidate-extracted-for-gates",
+  "scope": "Exact committed module and its own exported HLSL; checker/circles preflight. New ripple entry is absent from HLSL.",
+  "renderer_started": false,
+  "promoted": false
+}
