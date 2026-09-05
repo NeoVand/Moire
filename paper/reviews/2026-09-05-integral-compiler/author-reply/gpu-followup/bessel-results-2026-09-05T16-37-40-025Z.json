@@ -1,0 +1,202 @@
+{
+  "dateUTC": "2026-09-05T16:37:40.029Z",
+  "cases": 4370,
+  "orders": [
+    -42,
+    42
+  ],
+  "jetOrders": [
+    -40,
+    40
+  ],
+  "reference": {
+    "count": 4370,
+    "orders": [
+      0,
+      42
+    ],
+    "step": 0.02,
+    "rootCount": 54,
+    "generator": "mpmath 1.3.0 direct besselj at70dps; sampled100dps check",
+    "inputContract": "Exact binary32 input promoted exactly to mpmath; references rounded to binary64.",
+    "sha256": "40db373de3aaee1e9bd296619f779d6ed025005e78301a7708b8860443e5b667",
+    "maxPrecisionDifference": "2.163483641450203485276420399486155197391192587515900551221517973609417e-72",
+    "seconds": 15.130654666980263,
+    "createdUTC": "2026-09-05T16:06:49.909216+00:00"
+  },
+  "tableSHA256": "8b9f976023c1b94eec3d7501396498e6fb078e9d59450cbdaeffb854c4cc20fd",
+  "wgslSHA256": "0d93023e3aa1c0965dd34116a25f69495725f0afb7dcd0ba70679bbdc75ba10f",
+  "claims": "Measured maxima are finite-set results, not a uniform GPU/Miller proof. Taylor certificate states separate analytic/roundoff assumptions.",
+  "cpu": {
+    "table": {
+      "maxAbs": [
+        7.600295581777772e-8,
+        4.8275022646038224e-8,
+        5.652612500295362e-8
+      ],
+      "worst": [
+        {
+          "x": 1.1799999475479126,
+          "n": 0,
+          "actual": 0.6810469627380371,
+          "reference": 0.6810468867350813,
+          "tags": [
+            "dense"
+          ]
+        },
+        {
+          "x": 1.8799999952316284,
+          "n": 0,
+          "actual": -0.5815566182136536,
+          "reference": -0.5815565699386309,
+          "tags": [
+            "dense"
+          ]
+        },
+        {
+          "x": 1.8799999952316284,
+          "n": -1,
+          "actual": 0.4085612893104553,
+          "reference": 0.4085612327843303,
+          "tags": [
+            "dense"
+          ]
+        }
+      ],
+      "maxNearZeroAbs": 2.086118993663793e-8,
+      "maxRelativeWhereValueAbove1e_4": 0.00007970450216798994,
+      "nonfinite": 0
+    },
+    "miller": {
+      "maxAbs": [
+        3.239335975547229e-7,
+        3.1289202317638654e-7,
+        3.1026991395566306e-7
+      ],
+      "worst": [
+        {
+          "x": 30.009998321533203,
+          "n": -6,
+          "actual": 0.0034200558438897133,
+          "reference": 0.003420379777487268,
+          "tags": [
+            "turning/segment"
+          ]
+        },
+        {
+          "x": 30.009998321533203,
+          "n": -5,
+          "actual": 0.02733219601213932,
+          "reference": 0.027332508904162497,
+          "tags": [
+            "turning/segment"
+          ]
+        },
+        {
+          "x": 30.009998321533203,
+          "n": -6,
+          "actual": 0.0015218676999211311,
+          "reference": 0.0015215574300071755,
+          "tags": [
+            "turning/segment"
+          ]
+        }
+      ],
+      "maxNearZeroAbs": 2.633645160751319e-7,
+      "maxRelativeWhereValueAbove1e_4": 0.0014174717892666473,
+      "nonfinite": 0
+    },
+    "wallMs": 160.176625
+  },
+  "gpu": {
+    "table": {
+      "maxAbs": [
+        5.434698269191074e-8,
+        4.9422944070620645e-8,
+        6.515917594374088e-8
+      ],
+      "worst": [
+        {
+          "x": 1.010000228881836,
+          "n": 0,
+          "actual": 0.760780930519104,
+          "reference": 0.7607808761721213,
+          "tags": [
+            "turning/segment"
+          ]
+        },
+        {
+          "x": 1.7400000095367432,
+          "n": 0,
+          "actual": -0.5797604918479919,
+          "reference": -0.5797604424250479,
+          "tags": [
+            "dense"
+          ]
+        },
+        {
+          "x": 1.7400000095367432,
+          "n": -1,
+          "actual": 0.4121977686882019,
+          "reference": 0.41219770352902596,
+          "tags": [
+            "dense"
+          ]
+        }
+      ],
+      "maxNearZeroAbs": 1.7104727132770438e-8,
+      "maxRelativeWhereValueAbove1e_4": 0.00004543160995757801,
+      "nonfinite": 0
+    },
+    "miller": {
+      "maxAbs": [
+        3.5654324677045213e-7,
+        3.555679590015043e-7,
+        3.5530630491161647e-7
+      ],
+      "worst": [
+        {
+          "x": -30.5,
+          "n": -2,
+          "actual": 0.009980648756027222,
+          "reference": 0.009980292212780451,
+          "tags": [
+            "negative-parity"
+          ]
+        },
+        {
+          "x": -30.5,
+          "n": -3,
+          "actual": 0.00426228903234005,
+          "reference": 0.004262644600299051,
+          "tags": [
+            "negative-parity"
+          ]
+        },
+        {
+          "x": -30.5,
+          "n": -2,
+          "actual": -0.005211544688791037,
+          "reference": -0.005211189382486125,
+          "tags": [
+            "negative-parity"
+          ]
+        }
+      ],
+      "maxNearZeroAbs": 3.0130266876610617e-7,
+      "maxRelativeWhereValueAbove1e_4": 0.001940662002030263,
+      "nonfinite": 0
+    },
+    "wallMsIncludingReadback": 34.5,
+    "adapter": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "",
+      "description": "",
+      "isFallbackAdapter": false
+    },
+    "timestampQueryAvailable": true,
+    "compilation": []
+  },
+  "gates": "all passed"
+}

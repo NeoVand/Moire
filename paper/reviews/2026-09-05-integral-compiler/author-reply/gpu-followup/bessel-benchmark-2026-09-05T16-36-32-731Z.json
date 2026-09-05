@@ -1,0 +1,73 @@
+{
+  "dateUTC": "2026-09-05T16:36:33.542Z",
+  "scope": "8192 independent random arguments in[0,40], one warmup and five timestamp-query trials per kernel; includes storage writes, excludes compile/upload/readback. No full-frame speed claim.",
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "device": "",
+    "description": "",
+    "isFallbackAdapter": false
+  },
+  "runs": [
+    {
+      "method": "miller",
+      "mode": "single-jet",
+      "arguments": 8192,
+      "jetsPerArgument": 1,
+      "gpuMs": [
+        0.192833,
+        0.190709,
+        0.190583,
+        0.191125,
+        0.192625
+      ],
+      "medianGpuMs": 0.191125,
+      "nanosecondsPerArgument": 23.3306884765625
+    },
+    {
+      "method": "miller",
+      "mode": "full-row",
+      "arguments": 8192,
+      "jetsPerArgument": 41,
+      "gpuMs": [
+        0.943083,
+        0.959667,
+        1.048167,
+        0.954041,
+        1.013125
+      ],
+      "medianGpuMs": 0.959667,
+      "nanosecondsPerArgument": 117.1468505859375
+    },
+    {
+      "method": "table",
+      "mode": "single-jet",
+      "arguments": 8192,
+      "jetsPerArgument": 1,
+      "gpuMs": [
+        0.058042,
+        0.057458,
+        0.058291,
+        0.058208,
+        0.05775
+      ],
+      "medianGpuMs": 0.058042,
+      "nanosecondsPerArgument": 7.085205078125
+    },
+    {
+      "method": "table",
+      "mode": "full-row",
+      "arguments": 8192,
+      "jetsPerArgument": 41,
+      "gpuMs": [
+        1.0265,
+        1.040333,
+        1.035833,
+        1.030958,
+        1.051
+      ],
+      "medianGpuMs": 1.035833,
+      "nanosecondsPerArgument": 126.4444580078125
+    }
+  ]
+}

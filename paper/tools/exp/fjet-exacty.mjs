@@ -1,3 +1,8 @@
+// A collaborator's correction: the outer depth integral should be cut where
+// a disc's vertical support opens or closes and the endpoints cosine-mapped;
+// this 400,000-point midpoint rule sits 5.6e-7 from the cut rule, which is
+// below anything concluded from it. The compiler's own depth mode
+// (FJET_DEPTH, Pixel.setDepth) now reproduces these values to 1e-5.
 // Exact vertical conditioning, measured standalone (a reviewer's proposal for the
 // horizon row): at fixed Y the perspective is affine in X, so for the circles
 // shader the pixel is one outer integral over Y of a sum of erf differences.

@@ -97,12 +97,46 @@ const FJ = {
 // ---------------------------------------------------------------------------
 const LIGHT = [0.22808577638091165, 0.60822873701576452, 0.76028592126970562];
 // inputs for a pixel position: numbers or jets according to the backend
+// FJET_DEPTH=1: trace in (X, W) with W = Y0^2 (1 / (Y0 + Y) - 1 / Y0), which is
+// -Y to first order and makes 1 / d exactly linear, so the plane's s is
+// exactly bilinear and t exactly linear: every count affine in (s, t) has an
+// exact second-order jet (a count quadratic in s or t does not: s^2 is
+// quartic in (X, W), and the harness declines depth mode where a re-trace
+// away from the centre shows the model wrong). X stays the pixel's own
+// coordinate, so at fixed depth it is exactly the pixel's Gaussian, and the
+// compiler's exact conditioning on depth (Pixel.setDepth) integrates the
+// depth nodes. Surface coordinates (p = -s / (50 v0) - X0) were tried and
+// rejected: they hide a count's depth dependence in the measure's
+// node-dependent mean, which the enumeration cannot see, and an off-centre
+// pixel then keeps recipes that oscillate hundreds of times over the depth
+// nodes. The numeric backend is unchanged.
+// on by default for rows within DEPTH_ROWS of the horizon, where the
+// perspective's Taylor remainder is above 1e-4 (FJET_DEPTH=0 disables,
+// FJET_DEPTH=1 forces every row); the witness below declines it per pixel
+// where the (X, W) model is not exact
+const DEPTH = process.env.FJET_DEPTH !== '0';
+const DEPTH_FORCE = process.env.FJET_DEPTH === '1';
+const DEPTH_ROWS = process.env.FJET_DEPTHROWS ? Number(process.env.FJET_DEPTHROWS) : 48;
+const DEPTH_NODES = process.env.FJET_DEPTHN ? Number(process.env.FJET_DEPTHN) : 32;
+let depthOn = false; // per pixel: set below, and the validity probe may switch it off
 const inputsAt = (O, x, y, jets) => {
   const X = jets ? new Jet(x - 240, 1, 0) : x - 240;
-  const Y = jets ? new Jet(y + 1, 0, 1) : y + 1;
+  let Y;
+  let s;
+  let t;
+  if (jets && depthOn) {
+    const Y0 = y + 1;
+    const W = new Jet(0, 0, 1);
+    const v = W.scale(1 / (Y0 * Y0)).add(Jet.c(1 / Y0)); // 1 / d, exactly linear in W
+    s = X.scale(-50).mul(v);
+    t = v.scale(-12000);
+    Y = v.inv(); // d itself, for the lighting only (second order in W)
+  } else {
+    Y = jets ? new Jet(y + 1, 0, 1) : y + 1;
+    s = jets ? X.scale(-50).div(Y) : (-50 * X) / Y;
+    t = jets ? Jet.c(-12000).div(Y) : -12000 / Y;
+  }
   const C = jets ? Jet.c(240) : 240;
-  const s = jets ? X.scale(-50).div(Y) : (-50 * X) / Y;
-  const t = jets ? Jet.c(-12000).div(Y) : -12000 / Y;
   const vn = jets ? X.mul(X).add(C.mul(C)).add(Y.mul(Y)).sqrt() : Math.hypot(X, C, Y);
   const viewer = jets ? [X.div(vn), C.div(vn), Y.div(vn)] : [X / vn, C / vn, Y / vn];
   return { s, t, viewer, normal: [0, 0, 1], light: LIGHT, tangentT: [1, 0, 0], tangentB: [0, 1, 0], time: 0 };
@@ -446,10 +480,71 @@ const oursPixelSplit = (cs, x, y, stats, n, ratio) => {
   return acc;
 };
 const oursPixel = (cs, x, y, stats) => (SPLIT ? oursPixelSplit(cs, x, y, stats, SPLIT, SPLIT_RATIO) : oursPixelAt(cs, x, y, stats, SIG));
+// compare the centre model's counts and coefficients at the far depth nodes
+// with a fresh trace there; returns a reason string when the model is wrong
+const DEPTH_TOL = process.env.FJET_DEPTHTOL ? Number(process.env.FJET_DEPTHTOL) : 1e-4;
+const depthWitness = (cs, x, y, out, px) => {
+  const Y0 = y + 1;
+  let worst = '';
+  let worstErr = 0;
+  // the corners of the reach: a count quadratic in s has its error in the
+  // mixed X W terms, which a probe on the centre line X = 0 cannot see
+  for (const [Xf, Yf] of [[0, -3 * px.sig], [0, 3 * px.sig], [2 * px.sig, 3 * px.sig], [-2 * px.sig, 3 * px.sig], [2 * px.sig, -3 * px.sig], [-2 * px.sig, -3 * px.sig]]) {
+    const Wf = (-Y0 * Yf) / (Y0 + Yf);
+    F.resetAxes();
+    const far = cs.eval(FJ, x + Xf, y + Yf, true);
+    for (let ch = 0; ch < out.length; ch++) {
+      const A = out[ch].axes();
+      const B = far[ch].axes();
+      if (A.length !== B.length) return `axis count differs at Y ${Yf}`;
+      for (let i = 0; i < A.length; i++) {
+        if (A[i].label !== B[i].label || A[i].kind !== B[i].kind) return `axis structure differs at Y ${Yf}`;
+        const model = px.countAt(A[i], [Xf, Wf]);
+        const scale = A[i].kind === 'edge' ? Math.max(1, Math.abs(B[i].count.v)) : 1;
+        const err = Math.abs(model - B[i].count.v) / scale;
+        if (err > worstErr) {
+          worstErr = err;
+          worst = `count ${A[i].label}#${i} off by ${err.toExponential(1)} at Y ${Yf}`;
+        }
+        // a field's coefficients (the parallax scale carries the viewer)
+        if (A[i].field || B[i].field) {
+          if (!A[i].field || !B[i].field || A[i].field.terms.length !== B[i].field.terms.length) return `field structure differs at Y ${Yf}`;
+          for (let k = 0; k < A[i].field.terms.length; k++) {
+            const j = A[i].field.terms[k].c.re;
+            const fm = j.v + j.gx * Xf + j.gy * Wf + 0.5 * (j.hxx * Xf * Xf + 2 * j.hxy * Xf * Wf + j.hyy * Wf * Wf);
+            const fe = B[i].field.terms[k].c.re.v;
+            const ferr = Math.abs(fm - fe) / Math.max(1e-3, Math.abs(fe));
+            if (ferr > worstErr) {
+              worstErr = ferr;
+              worst = `field coefficient of ${A[i].label}#${i} off by ${ferr.toExponential(1)} at Y ${Yf}`;
+            }
+          }
+        }
+      }
+      const T = out[ch].terms;
+      const U = far[ch].terms;
+      if (T.length !== U.length) return `term count differs at Y ${Yf}`;
+      for (let i = 0; i < T.length; i++) {
+        const j = T[i].c.re;
+        const model = j.v + j.gx * Xf + j.gy * Wf + 0.5 * (j.hxx * Xf * Xf + 2 * j.hxy * Xf * Wf + j.hyy * Wf * Wf);
+        const exact = U[i].c.re.v;
+        const err = Math.abs(model - exact) / Math.max(1, Math.abs(exact));
+        if (err > worstErr) {
+          worstErr = err;
+          worst = `coefficient of term ${i} off by ${err.toExponential(1)} at Y ${Yf}`;
+        }
+      }
+    }
+  }
+  F.resetAxes();
+  if (process.env.FJET_DEBUG) console.log(`      depth witness at (${x},${y}): worst ${worst}`);
+  return worstErr > DEPTH_TOL ? worst : '';
+};
 const oursPixelAt = (cs, x, y, stats, sig) => {
   F.resetAxes();
   F.setTraceReach(6 * sig);
-  const px = new Pixel(sig, 1e-4);
+  const px = new Pixel(sig, process.env.FJET_CUT ? Number(process.env.FJET_CUT) : 1e-4);
+  depthOn = DEPTH && (DEPTH_FORCE || y + 1 <= DEPTH_ROWS) && px.setDepth(y + 1, DEPTH_NODES);
   if (process.env.FJET_PANEL) px.localPanel = Number(process.env.FJET_PANEL);
   if (process.env.FJET_PANEL_B) px.localPanelB = Number(process.env.FJET_PANEL_B);
   if (process.env.FJET_LOCALSIG) px.localSigma = Number(process.env.FJET_LOCALSIG);
@@ -460,7 +555,22 @@ const oursPixelAt = (cs, x, y, stats, sig) => {
   if (process.env.FJET_CURV === '0') px.curvedWidth = false;
   if (process.env.FJET_SHIFT) px.shiftMode = process.env.FJET_SHIFT;
   if (process.env.FJET_MAXK) px.maxK = Number(process.env.FJET_MAXK);
-  const out = cs.eval(FJ, x, y, true);
+  let out = cs.eval(FJ, x, y, true);
+  // the depth model is exact for counts affine in the surface coordinates
+  // and not for others (s^2 is quartic in (X, W)); a re-trace at the far
+  // depth nodes is the witness: where the centre model's counts or
+  // coefficients disagree with the re-trace, depth mode is declined for
+  // this pixel and the ordinary (X, Y) trace is used
+  if (depthOn) {
+    const bad = depthWitness(cs, x, y, out, px);
+    if (bad) {
+      if (process.env.FJET_DEBUG) console.log(`      depth mode declined at (${x},${y}): ${bad}`);
+      depthOn = false;
+      px.depth = null;
+      F.resetAxes();
+      out = cs.eval(FJ, x, y, true);
+    }
+  }
   // channels with the same structure (grey shaders build three equal
   // elements) are computed once
   const done = new Map();
@@ -479,6 +589,8 @@ const oursPixelAt = (cs, x, y, stats, sig) => {
     stats.shiftOrderMax = Math.max(stats.shiftOrderMax || 0, px.stats.shiftOrderMax || 0);
     stats.shiftGrid = px.stats.shiftAnalytic ? 'analytic' : px.shiftNG;
     stats.shiftWindow = px.stats.shiftWindow || px.shiftKW;
+    stats.shiftRecipes = (stats.shiftRecipes || 0) + (px.stats.shiftRecipes || 0);
+    stats.shiftAmp = (stats.shiftAmp || 0) + (px.stats.shiftAmp || 0);
   }
   return vals;
 };
@@ -684,7 +796,7 @@ if (PROBE) {
       const ms = performance.now() - t0;
       const ref = brutePixel(cs, x, y, NBRUTE, 1);
       const pt = cs.eval(NUM, x, y, false)[0];
-      const shiftInfo = stats.thetaAbsMax ? ` shift|theta|max ${stats.thetaAbsMax.toFixed(1)} theta*h ${stats.thetaHMax.toFixed(1)} order ${stats.shiftOrderMax} grid ${stats.shiftGrid} window ${stats.shiftWindow}` : '';
+      const shiftInfo = stats.thetaAbsMax ? ` shift|theta|max ${stats.thetaAbsMax.toFixed(1)} theta*h ${stats.thetaHMax.toFixed(1)} order ${stats.shiftOrderMax} grid ${stats.shiftGrid} window ${stats.shiftWindow} recipes ${stats.shiftRecipes} amplification ${stats.shiftAmp.toExponential(2)}` : '';
       console.log(`  (${x},${y}) ours ${v.toFixed(5)} brute ${ref.toFixed(5)} |err| ${Math.abs(v - ref).toExponential(1)} point ${pt.toFixed(3)}  recipes ${stats.recipes} dfts ${stats.dfts} ${stats.overflow ? 'OVERFLOW' : ''} ${ms.toFixed(1)} ms${shiftInfo}`);
     }
   }

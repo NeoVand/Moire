@@ -1991,6 +1991,28 @@ const logMult = (bx, by, q00, q01, q11, cond) => {
 // conditioning on one local axis, or a point (z = m) after two.
 // E[a(z) e^{i(phi0 + b.z + z^T Q z / 2)}] for a complex coefficient jet a.
 const termExpectation = (a, phi0, bx, by, q00, q01, q11, cond) => {
+  if (cond.dim === 2 && cond.depth) {
+    // exact conditioning on depth: the jets were taken in (X, W) with
+    // W = Y0^2 (1 / d - 1 / Y0), in which the plane's state map is exactly
+    // quadratic, so the second-order jets are exact for the geometry; the
+    // pixel's Gaussian in Y becomes a non-Gaussian distribution of W, and
+    // the expectation is the exact Gaussian integral along X at each of a
+    // quadrature's W nodes, summed with the nodes' weights (the horizon
+    // residue, the Taylor remainder of 1 / d across the pixel, is gone)
+    const D = cond.depth;
+    let vr = 0;
+    let vi = 0;
+    const line = { dim: 1, m: [0, 0], e: [1, 0], sig: cond.sig };
+    for (let j = 0; j < D.W.length; j++) {
+      line.m[0] = D.M[j];
+      line.m[1] = D.W[j];
+      line.sig = D.S[j];
+      const v = termExpectation(a, phi0, bx, by, q00, q01, q11, line);
+      vr += D.w[j] * v[0];
+      vi += D.w[j] * v[1];
+    }
+    return [vr, vi];
+  }
   if (cond.dim === 2) {
     const m = phaseMoments(bx, by, q00, q01, q11, cond.sig);
     if (!m) return [0, 0];
@@ -2296,9 +2318,42 @@ export class Pixel {
     this.shiftKW = 16; // window of shift harmonics kept
     this.shiftDTheta = 0.05; // theta step of the family (quadratic interpolation)
     this.shiftMode = 'analytic'; // 'analytic': Bessel coefficients for sinusoidal shifts, tables otherwise; 'table': always the theta grid
+    this.depth = null; // exact conditioning on depth: set by setDepth(Y0, n) when the jets are taken in (X, W)
     this.curvedWidth = true; // the width of a count includes its curvature (false: first order only, the ablation)
     this.coverageNG = 192; // grid over a curved count's excursion for the coverage integral
-    this.stats = { terms: 0, recipes: 0, dfts: 0, overflow: 0, localNodes: 0, thetaAbsMax: 0, thetaHMax: 0, shiftOrderMax: 0 };
+    this.stats = { terms: 0, recipes: 0, dfts: 0, overflow: 0, localNodes: 0, thetaAbsMax: 0, thetaHMax: 0, shiftOrderMax: 0, shiftRecipes: 0, shiftAmp: 0 };
+  }
+  // exact conditioning on the perspective's depth. The harness traces in
+  // (X, W) with W = Y0^2 (1 / (Y0 + Y) - 1 / Y0), which is -Y to first order
+  // and makes the plane's s exactly bilinear and t exactly linear; the
+  // pixel's Gaussian in Y is carried to W at Gauss-Legendre nodes over
+  // [-L sig, L sig], and every spectral term expectation is the exact
+  // integral along X (the pixel's own coordinate, still Gaussian) at each
+  // node. Rows within L sig of the horizon are declined (the reference
+  // samples the plane behind the camera there and W has no meaning).
+  setDepth(Y0, n = 64, L = 5) {
+    if (Y0 <= L * this.sig + 0.5) {
+      this.depth = null;
+      return false;
+    }
+    const gl = gaussLegendre(n);
+    const W = new Float64Array(n);
+    const M = new Float64Array(n);
+    const S = new Float64Array(n);
+    const w = new Float64Array(n);
+    const h = L * this.sig;
+    let total = 0;
+    for (let i = 0; i < n; i++) {
+      const Y = h * gl.x[i];
+      W[i] = (-Y0 * Y) / (Y0 + Y); // the depth coordinate q at this node
+      M[i] = 0; // X is the pixel's own coordinate: no mean shift at fixed depth
+      S[i] = this.sig; // and its width is the pixel's
+      w[i] = h * gl.w[i] * Math.exp(-0.5 * (Y / this.sig) ** 2) / (this.sig * Math.sqrt(TAU));
+      total += w[i];
+    }
+    for (let i = 0; i < n; i++) w[i] /= total; // the truncated tail's mass, 6e-7 at L = 5, renormalised
+    this.depth = { Y0, W, M, S, w };
+    return true;
   }
   // the width of a count under the pixel, in periods: the standard deviation
   // of g.z + z^T H z / 2 for z ~ N(0, sig^2 I), whose variance is
@@ -2973,7 +3028,7 @@ export class Pixel {
       const base = new Map();
       for (const o of frozen) base.set(o.id, this.frozenValue(o));
       let v = 0;
-      for (const tj of ts) v += this.spectral(tj, { dim: 2, sig: this.sig }, base);
+      for (const tj of ts) v += this.spectral(tj, { dim: 2, sig: this.sig, depth: this.depth }, base);
       return v;
     }
     const localIds = new Set(local.map((a) => a.id));
@@ -4385,6 +4440,10 @@ export class Pixel {
           const ph3 = ph2 + this.axisPhase(Sres[0], ks0) + (ST.nS === 2 ? this.axisPhase(Sres[1], ks1) : 0);
           const v = termExpectation(cjScaleC(cjMul(c, coef), cr, ci), ph3, nbx, nby, nq00, nq01, nq11, cond);
           this.stats.recipes++;
+          // the shift path's surviving recipes and the amplification of a
+          // relative coefficient error into the pixel: sum of |contribution|
+          this.stats.shiftRecipes++;
+          this.stats.shiftAmp += Math.hypot(v[0], v[1]);
           acc += v[0];
         }
     };
