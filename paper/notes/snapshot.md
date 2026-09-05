@@ -1,0 +1,224 @@
+# The count-map theory and its anti-aliasing compiler: a complete technical snapshot
+
+Everything below is stated from scratch. Theorems carry proofs or proof sketches; measured numbers are reported with the protocol that produced them; the last section lists every gap, open question, roadblock and limitation known at the time of writing.
+
+---
+
+## Part I. The object
+
+### 1. Families, counts, the state map and the picture
+
+A **family** is a set of numbered members along a line, a plane, a circle or in time: ticks, lines, rings, clicks, frames. Its **count** $\xi(x)$ is the member index at $x$, interpolated between members: $\xi = n$ on member $n$, $\xi = n + \tfrac12$ halfway to member $n+1$. For parallel lines of pitch $T$ at angle $\alpha$, $\xi(x) = (x\cdot(\cos\alpha,\sin\alpha))/T$ and $\nabla\xi = (\cos\alpha,\sin\alpha)/T$; for rings of pitch $s$ about $c$, $\xi = |x-c|/s$ and $\nabla\xi = (x-c)/(s|x-c|)$. The **rate** $\nabla\xi$ is the local spatial frequency; a frequency is a rate averaged over a stretch. The count exists for any family, regular or not, which is why the theory never needs a frequency.
+
+For $K$ families the **state map** is
+$$\Phi(x) = (\xi_1(x),\dots,\xi_K(x)) \bmod 1 \in \mathbb{T}^K,$$
+the fractional parts of every count at once. What the superposition looks like is a **picture** $I:\mathbb{T}^K\to\mathbb{R}$ that knows nothing about $x$, and the superposition is the composite
+$$S = I\circ\Phi .$$
+Everything about *where* (pitches, bends, drifts) is in $\Phi$; everything about *what* (ink, click shape, whether inks multiply or sounds add) is in $I$. Two printed gratings have $I(u_1,u_2) = g_1(u_1)g_2(u_2)$ (inks multiply); two sounds have $I = g_1(u_1)+g_2(u_2)$; a coincidence detector has $I = \mathbf 1\{u_1\approx 0\}\mathbf 1\{u_2\approx 0\}$.
+
+A **recipe** $k\in\mathbb{Z}^K$ names the combined count $k\cdot\xi = \sum_i k_i\xi_i$, itself a count, with rate $\nu_k = \sum_i k_i\nabla\xi_i$. Its fractional part depends only on $\Phi(x)$ since $\{a\xi_A+b\xi_B\} = \{a\{\xi_A\}+b\{\xi_B\}\}$. The picture's Fourier series is one wave per recipe:
+$$I(u) = \sum_{k\in\mathbb{Z}^K}\hat I(k)\,e^{2\pi i k\cdot u},\qquad \hat I(k) = \int_{\mathbb{T}^K} I(u)e^{-2\pi i k\cdot u}\,du,$$
+and everything runs on the one integral $\int_0^1 e^{2\pi i m u}du = \delta_{m0}$.
+
+Structural facts about coefficients used throughout: a product of profiles $g_1(u_1)g_2(u_2)$ has $\hat I(k_1,k_2) = \hat g_1(k_1)\hat g_2(k_2)$ (every cross recipe present); a sum has only $(n,0)$ and $(0,n)$ (no cross recipe); a polynomial of degree $n$ in pure waves carries only recipes of order $\sum|k_i|\le n$; a two-valued profile satisfies $g^2 = g$, so no polynomial front end can manufacture a harmonic it lacks. A pulse of duty $d$ has $\hat g(n) = \sin(n\pi d)/(n\pi)$, zero exactly when $nd\in\mathbb{Z}$; the half-turn antisymmetry $g(u+\tfrac12) = 1-g(u)$ of any fifty-percent train kills all even harmonics and survives any symmetric smoothing.
+
+### 2. Slow and fast
+
+The **heterodyne ratio** of a recipe $(a,b)$ on two families is
+$$\eta_{a,b}(x) = \frac{|a\nabla\xi_1 + b\nabla\xi_2|}{\tfrac12(|a\nabla\xi_1| + |b\nabla\xi_2|)},$$
+the rate of the combination over the mean rate of the harmonics forming it; $1/\eta$ is members per band. The **beat regime** is $\eta < \tfrac14$ (a convention: more than four members per band). Members are the *carrier*, a slow recipe a *beat*.
+
+Near a point, with $J$ the $K\times 2$ Jacobian of $\Phi$ (rows $\nabla\xi_i$) and $\kappa$ a bound on the counts' second derivatives,
+$$\Phi(y) = \Phi(x) + J(y-x) + E(y),\qquad |E(y)|\le\tfrac12\kappa|y-x|^2 .$$
+
+---
+
+## Part II. What pooling sees
+
+### 3. The sharp slide theorem
+
+**Theorem.** For a whole-number slide $w\in\mathbb{Z}^K$ (family $i$ slid through $w_i$ members while averaging),
+$$\mathcal E_w I(\Phi) = \int_0^1 I(\Phi + uw)\,du = \sum_{k\cdot w = 0}\hat I(k)e^{2\pi i k\cdot\Phi}.$$
+*Proof.* Expand; $\int_0^1 e^{2\pi i u (k\cdot w)}du = \delta_{k\cdot w,0}$ because $k\cdot w\in\mathbb{Z}$. Exactly the recipes orthogonal to the slide survive; every other is removed completely. $\square$
+
+Probabilistically $\mathcal E_w I = \mathbb E[I\mid\text{slow}]$, the conditional expectation given the slow combined counts, i.e. the orthogonal projection of $I$ onto the span of the kept waves; projections compose by intersection of kept sets (tower property). Corollaries: for $w = (1,1)$ the average is a function of $D = \xi_1-\xi_2$ alone, $T_I(\Delta) = \int_0^1 I(v,v-\Delta)dv$ (for two strokes of duty $d$ a saturating **tent**: ink $d$ at coincidence, unit slope, saturating at $2d$ once $|D|\ge d$); the diagonal slide $(1,\dots,1)$ keeps all zero-sum recipes; an exposure of one second of families animated at whole-number rates $r$ records $\mathcal E_r I$ (measured: an octave beat kept to $0.09\%$ by the slide $(1,2)$ and removed $14{,}668\times$ by $(1,1)$ or $(2,1)$).
+
+### 4. The window multiplier theorem
+
+For a symmetric window $W$ of unit mass and second moment $m_2$, stretched to width $\rho$, with $\widehat W(\nu) = \int e^{-2\pi i\nu\cdot z}W(z)dz$ its response, and $\nu_k(x)$ the local rate of recipe $k$:
+
+**Theorem.** If $\sum_k|k||\hat I(k)|<\infty$,
+$$(S*W_\rho)(x) = \sum_k\hat I(k)\,\widehat W(\rho\nu_k(x))\,e^{2\pi i k\cdot\Phi(x)} + R(x),\qquad |R(x)|\le\pi\kappa m_2\rho^2\sum_k|k||\hat I(k)|.$$
+*Proof.* $k\cdot\Phi(y) = k\cdot\Phi(x) + \nu_k\cdot(y-x) + k\cdot E(y)$; without $E$ each term is a plane wave the window multiplies by its response; $|e^{2\pi i k\cdot E}-1|\le 2\pi|k||E|$, averaged under the window gives the bound. $\square$
+
+For a Gaussian window of standard deviation $\sigma$ (covariance $\Sigma = \sigma^2 I$), $\widehat W(\rho\nu) = e^{-2\pi^2\sigma^2|\nu|^2}$. A blur sees the picture with each recipe weighted by the window's response at *that recipe's own rate*: in the beat regime the multiplier is $\approx 1$ on slow recipes and $\approx 0$ on fast ones and the blur reports $\mathbb E[I\mid\text{slow}](\Phi(x))$ with explicit leakage. Measured to $9\times10^{-8}$ without curvature; the curvature remainder is accounted for by the second-order term below to within $3\%$ of itself.
+
+### 5. The observer theorem
+
+**Lemma.** For any pointwise front end $N$, $N\circ(I\circ\Phi) = (N\circ I)\circ\Phi$. A front end changes the picture, never the geometry.
+
+**Theorem (universality).** Any observer $O$ = front end $N$, then pooling window $W_\rho$, then anything, reports at every point the picture $N\circ I$ filtered by the multiplier; in the beat regime $O(S)(x) = \mathbb E[N\circ I\mid\text{slow}](\Phi(x))$. The set of slow recipes is the geometry's alone.
+
+**Who sees a beat.** An additive picture has no cross recipe: a linear pooling observer sees no beat in a sum, ever. A multiplicative picture carries every cross recipe with strength $\hat g_1(a)\hat g_2(b)$. A bending front end ($N''\ne0$) mints cross recipes from a sum: squaring $(g_1+g_2)/2$ gives the difference recipe at $\hat g_1(1)\hat g_2(1)/2$. Measured: additive beat under a linear observer $8\times10^{-17}$; printed beat $0.081$; squaring mints $0.040$; saturation $\min(g_1+g_2,1)$ mints $0.080$ because for two-valued profiles $\min(g_1+g_2,1) = g_1+g_2-g_1g_2$, the paint-over picture.
+
+**Hard and soft patterns.** If $I\in\{0,1\}$ then $N\circ I = N(0)+(N(1)-N(0))I$: every observer sees the same recipes at the same relative strengths. If each profile is two-valued, any polynomial front end yields only monomials in the profiles, so a missing harmonic is never manufactured: a duty null survives every front end ($2\times10^{-17}$ measured). If edges are softened symmetrically the even harmonics of a fifty-percent train stay zero under every linear observer, but a front end that squares the *profile* reopens the null linearly in the softening width (measured $3\times10^{-3}, 7\times10^{-3}, 10^{-2}$ at softenings $0.35, 0.70, 1.40$ of a $16.4$ pitch).
+
+The same theorem in a model ear: two pulse trains at $200$ and $405$ Hz (recipe $(2,-1)$, beat at $5$ Hz), duty of the lower swept. A linear ear hears no beat ($4\times10^{-6}$ of a square-law ear); every nonlinear ear loses the beat at duty one half (nulls $10{,}201\times$, $181\times$, $8{,}564\times$ for square, cube, two-stage); with softened pulses the square-law ear keeps the null ($132{,}480\times$) and the cubic ear reopens it (to within $3.3\times$ of neighbours), because the cross term $g_1^2g_2$ carries the square of the lower profile. This predicts that the order of the human ear's front end is audible; the listening test has not been done.
+
+---
+
+## Part III. Selection: which pattern shows
+
+### 6. The priced merit and continued fractions
+
+**Definition.** $\mu_{a,b} = \eta_{a,b}\,|ab|$. The visible recipe minimises $\mu$ and shows as a beat when $\mu<\tfrac14$. Without the price every real ratio has rational approximants of arbitrary quality carried by harmonics no stroke has.
+
+For parallel families of pitch ratio $x = s_1/s_2 > 1$ the recipe $(h,-k)$ has rate $(h-kx)/s_1$: slow exactly when $h/k$ approximates $x$ well. With convergents $h_n/k_n$ and complete quotients $x_{n+1}$ of $x = [a_0;a_1,a_2,\dots]$, and $|k_nx-h_n| = 1/(x_{n+1}k_n + k_{n-1})$:
+
+**Proposition (selection is best approximation).** The recipes that beat every lower-order recipe are exactly the convergents ($207$ of $207$ ratios). In the plane the minimiser is found by Lagrange–Gauss reduction of the rate lattice $\{a\nabla\xi_1+b\nabla\xi_2\}$ (the reduced basis begins with a shortest vector; $99.8\%$ agreement with brute force over $4{,}000$ random pairs); in one dimension the reduction rounds *are* the continued fraction.
+
+**Proposition (stations and deserts).**
+$$\mu_n = \frac{2h_nk_n}{(h_n+k_nx)(x_{n+1}k_n+k_{n-1})},$$
+and the convergent is a **station** ($\mu_n<\tfrac14$) iff $x_{n+1}+k_{n-1}/k_n > 8/(1+k_nx/h_n)$, within a few percent of $4$: a next partial quotient $\ge5$ guarantees a station, $\le2$ forbids one. Limits: golden ratio $\mu_n\to1/\sqrt5 = 0.447$, $\sqrt2$ and the silver ratio $\to1/(2\sqrt2) = 0.354$: **deserts**, ratios that never beat visibly at any order. $\pi = [3;7,15,1,292,\dots]$ beats at $3$, $22/7$, $355/113$. Measured on $8{,}329$ convergents of $500$ ratios. Along an axis between two fans the local ratio sweeps the reals and each station owns a stretch: stations are *places*.
+
+### 7. Duty nulls, the wagon wheel, beats of beats, the invariant
+
+**Theorem (duty nulls).** Coarse pitch $a/b$ times fine, lowest terms: the visible station is $(a,-b)$ with strength $\hat g_c(a)\hat g_f(-b)$, extinguished exactly at coarse duties with $ad\in\mathbb Z$. Measured: the $2{:}1$ null at duty $\tfrac12$ is $6{,}305\times$ deep; the $3{:}1$ nulls at $\tfrac13,\tfrac23$ are $3{,}458\times$ and $2{,}549\times$.
+
+**A strobe is a family.** A sampler at $f$ frames/s is a comb (every harmonic equal, free of price). Spokes at rate $r$: the recipe $(1,-b)$ is slow near $r = bf$ (the wagon-wheel reversal; Nyquist $r<f/2$ is "no station below the beat regime"); $(2,-1)$ near $r = f/2$ shows a still wheel with twice the spokes, killed at spoke duty one half (measured $2\times10^{15}\times$ down).
+
+**Theorem (beats of beats need order four).** Three pure tones with pairwise slow differences at rates $\delta_1\approx\delta_2$: the recipe $(1,-2,1)$ has order four; a polynomial front end of degree $n$ mints from pure tones only recipes of order $\le n$, so square and cube are silent; a square–pool–square cascade reaches it (product-to-sum of the two minted beats); a multiplicative trio carries it at linear order. Measured at $300,330,363$ Hz: square $8\times10^{-5}$, cube $2\times10^{-7}$, cascade $13\%$, multiplicative $50\%$ of a first-order beat.
+
+**Proposition (universal invariant).** With $H$ the group of slides along the fast directions, every linear rule $F$ on pictures invariant under rephasing satisfies $F(I) = F(\mathbb E_H I)$; the third pattern is the quotient by the fast phases, and iterated pooling is a hierarchy of nested quotients (weak emergence made exact). Weyl: a line of irrational slope on the torus equidistributes, so a long slide at incommensurate rates keeps only the mean.
+
+---
+
+## Part IV. When counting fails
+
+**Implicit function theorem.** A family is the solution set of $F(x,c) = 0$ ("$x$ is on member $c$"); where $\partial F/\partial c\ne0$ a smooth local count exists with $\nabla c = -\nabla_xF/(\partial F/\partial c)$.
+
+**Theorem (trichotomy of counts).** A planar family's count is (i) *exact*, one smooth function on the plane (lines, rings, polygons, spirals, waves); (ii) *winding*, defined up to a whole number gained around a puncture (ray fans; the polar angle; a **defect** of charge $q$); (iii) *fold*, multivalued where $\partial F/\partial c = 0$ (two members through one point at the same index), where the nearest member must be found by search. Families in time are always exact.
+
+**Defects.** Adding $q\,\vartheta/2\pi$ to a count makes the difference $D$ gain $q$ around any loop enclosing the point; the bands (level lines of $D$) must end: the signed number of endings inside a loop is $q$ times the enclosed charge (measured exact on $22$ loops, charges to $10$). Near the point $\eta = qs/(2\pi r)$, so the beat is a band only outside the core $r^\star = 2qs/\pi$ (measured to $10^{-4}$). This is the fork grating of singular optics built from a count.
+
+**Fold law.** A walking family of fronts $\{\gamma(x-c\delta) = cs\}$ (gauge $\gamma$ of a convex shape, step $\delta$, pitch $s$) folds iff $\nabla\gamma\cdot\delta = -s$ is attained: for discs iff $|\delta|>s$ (the source outruns its waves: Mach cone); a purely turning $k$-gon folds at radius $s/(\theta\sin(\pi/k))$. Measured onsets within $2.8\%$. A **field** $\phi$ replaces $F(x,c)$ by $F(x,c-\phi(x))$: it shifts the solution and leaves $\partial F/\partial c$ alone, so a field can move or wind a family but never fold it. Beyond a fold the instrument searches with a certificate (an interval of member indices provably containing every member near the pixel).
+
+---
+
+## Part V. The instrument
+
+A web renderer evaluates every layer's count at every pixel (formula for exact and winding rungs, certified search for folds) and looks the picture up there; no layer is ever rasterised and resampled, so zooming cannot invent or destroy a beat.
+
+- **The pooled view** is the slide theorem in closed form: along a slide each layer's coverage is its stroke profile at a distance linear in the slide parameter, a cubic polynomial between corners known from the count; the average is a sum of polynomial integrals (certified to $7\times10^{-5}$ over $480$ scenes against a $65{,}536$-point brute force).
+- **The ratio view** draws the priced merit of the Lagrange–Gauss winner per pixel: dark where a beat must form.
+- **The square-law toggle** squares the drawing before pooling: the observer theorem watchable.
+- **Inverse construction.** A picture of brightness $g$ becomes the field $D = \tfrac12(1-g)$ on a copy of a layer; by the tent the pair in register *is* the picture at half contrast (grey levels included, since the tent is linear in the offset up to one half) and out of register the classical band moiré with the picture riding on it; on any base family. Splitting the shift as $\pm\tfrac14$ across both layers hides most of the picture from each; hiding it entirely requires a quarter-pitch jitter of every cell (visual cryptography in the count's currency).
+- **The pixel as a window.** For one or two two-valued families the drawn value is the exact Gaussian-window expectation: along a family's normal the window is a Gaussian of the same width, along two normals bivariate normal with correlation $\cos$ of the angle between normals; a family inks where its normal displacement is within a half-stroke of a member, so each ink pattern's probability is a sum of error functions (one-dimensional exactly when normals are within $25^\circ$, a six-point Gauss–Legendre integral of the conditional when they cross). Window width $0.35$ px at seven pixels a period, $0.5$ by four, $0.9$ by two (a stripe at the buffer's Nyquist would otherwise beat with the pixel grid). Three and four families use the multiplier sum per Fourier term with the window at each term's true frequency, eight harmonics a layer (a hairline is a wide-spectrum pulse; eight versus three: a quarter percent versus two percent of light).
+- **The envelope as a picture on the quotient.** For two field-free families of constant pitch under a whole-number sweep, the slide average is the tent composed with one character's count; it is tabulated once a frame ($512$ samples a cycle per character, $a\in1..6$, $b\in-6..6$) and read per pixel through the pixel's window along the count (five Gauss–Hermite taps at $0.4$ buffer pixels times the character's gradient). Frame time $90\to47$ ms on $3200\times2000$ against $35$ plain.
+
+---
+
+## Part VI. Anti-aliasing as the same theory
+
+### 8. The pixel theorem
+
+A renderer's image is $S = f\circ Z$ with $Z(x)$ the inputs (texture coordinates on a torus, signed distances on lines, normals on a sphere) and $f$ the shader: the factorisation with the state map landing anywhere. A pixel is a window, here Gaussian with covariance $\Sigma = \sigma^2 I$, $\sigma = \tfrac12$ px. To first order $Z(p+z) = Z(p)+Jz$, so
+
+**Theorem.** $(S*W)(p) = \mathbb E[f(Z^\star)] + R$, $Z^\star\sim\mathcal N(Z(p),J\Sigma J^{T})$, $|R|$ bounded by the multiplier theorem's remainder. Anti-aliasing is a Gaussian expectation in input space.
+
+Every classical technique is this expectation for one structure: periodic $f$ on a torus gives $\sum_k\hat f(k)e^{2\pi ik\cdot Z(p)}e^{-2\pi^2k^TJ\Sigma J^Tk}$ (EWA and mipmapping approximate it on a pyramid); a step of a signed distance gives $\Phi_{\mathcal N}(Z/\sqrt{\nabla Z^T\Sigma\nabla Z})$ (distance-field edges, `fwidth`); a polynomial $f$ of degree $n$ gives Gaussian moments to order $n$ (LEAN at order two); two-valued $f$ is affine in coverage so any pointwise nonlinearity commutes with the filter (alpha coverage); edge times texture is a joint Gaussian in (distance, counts). Non-smooth inputs give the **trichotomy of pixels**: exact (all inputs smooth), winding (a singular point in the window: the expectation is over the whole fibre in the winding coordinate; core radius $2qs/\pi$), fold (a silhouette: the image is $\sum_j\mathbf 1\{x\in R_j\}f_j(Z_j)$ and the surfaces must be *found*; the one irreducible search). Fields never create folds, so texture warps, bump offsets and parallax never do; only geometry.
+
+**Second-order pushforward.** With Hessians $H_c$ of the inputs, each recipe's multiplier is the Gaussian integral of a quadratic phase. For $z\sim\mathcal N(0,\Sigma)$, $b = 2\pi J^Tk$, $Q = 2\pi\sum_c k_cH_c$, $M = \Sigma^{-1}-iQ$:
+$$I_0 = \mathbb E\,e^{i b\cdot z+\frac i2 z^TQz} = \det(I - i\Sigma Q)^{-1/2}\exp\!\big(-\tfrac12 b^TM^{-1}b\big),$$
+$$I_1 = \mathbb E[z\,e^{i(\cdot)}] = iM^{-1}b\,I_0,\qquad I_2 = \mathbb E[zz^Te^{i(\cdot)}] = \big(M^{-1}-(M^{-1}b)(M^{-1}b)^T\big)I_0,$$
+so a coefficient that is a second-order **jet** $a(z) = a_0 + g\cdot z+\tfrac12z^THz$ is integrated as $a_0I_0 + g\cdot I_1+\tfrac12\mathrm{tr}(HI_2)$. Its log-magnitude is exactly
+$$\log|I_0| = -\tfrac12\,\alpha\,b^T(\alpha^2I+Q^2)^{-1}b-\tfrac14\log\!\big(1+\sigma^4\mathrm{tr}(Q^2)+\sigma^8\det(Q)^2\big),\qquad \alpha = \sigma^{-2},$$
+which is the pruning bound: a **fold** (a recipe whose rate vanishes inside the pixel, $b\approx0$, $Q\ne0$) decays algebraically as $(1+\sigma^4\lambda^2)^{-1/4}$ per eigenvalue $\lambda$ of $Q$, not as a Gaussian. Under a line condition $z = m+te$, $t\sim\mathcal N(0,\sigma^2)$: $b_1 = (b+Qm)\cdot e$, $q_1 = e^TQe$, $M_1 = \sigma^{-2}-iq_1$, $I_0 = (1-i\sigma^2q_1)^{-1/2}e^{-b_1^2/(2M_1)}$, $I_1 = ib_1M_1^{-1}I_0$, $I_2 = (M_1^{-1}-b_1^2M_1^{-2})I_0$, with the coefficient jet restricted to the line.
+
+Measured on a textured plane in perspective (texture $\exp(2\cos2\pi u+2\cos2\pi v+1.5\cos2\pi(u-v))/40$), eighteen pixels from $0.008$ to $3.6$ periods a pixel: first-order multiplier worst error $3.0\times10^{-2}$ (under $10^{-4}$ wherever the remainder bound is under $10^{-2}$), second order $4.1\times10^{-3}$ (the floor being third order), point sample up to $5$, isotropic footprint (trilinear mipmapping's model) a third of the signal on average. Off axis at $3.6$ periods a pixel the far ground is not the texture's mean: the recipe $(2,-1)$ is slow along that row and survives at $78\%$ — a beat of the texture with itself through the perspective, which a mipmap blurs or aliases.
+
+**The observer theorem in a shader.** A ridged normal map (height $0.15\cos2\pi u$) under a Blinn–Phong lobe of power $32$: filtering the normal and then shading misses the highlight by a factor $186$ at one period a pixel; the mean of the shading keeps it; the multiplier sum of $N\circ I$ is exact to $10^{-7}$ at every minification. Two added bump fields under a diffuse shader carry no cross recipe (beat contrast $2\times10^{-16}$) and under a specular one must ($1.6\%$).
+
+**The sampling half.** Point sampling on the pixel grid replaces the Gaussian's characteristic function by a comb's, which is one on the grid's dual lattice: aliases are stations of the content against the sampler. At $\sigma$ periods a pixel and $N$ regular samples, harmonic $k$ survives exactly when $k\sigma/N\in\mathbb Z$: predicted exact set for content to harmonic $8$ at two periods a pixel, $N\in\{9,11,13,15,17,18,19,20\}$, measured errors $10^{-16}$ there and $4\times10^{-3}$ to $1$ elsewhere (twenty of twenty classified). Random samples converge as $N^{-1/2}$ (factor $7.7$ for a factor $8$ in $\sqrt N$); the golden Kronecker sequence has no stations (Hurwitz) and converged $65\times$ over the same range: low-discrepancy jitter works because it puts the sampler in the desert.
+
+---
+
+## Part VII. The compiler
+
+### 9. The language, the one rule, the element
+
+A shader is written once in a small expression language (arithmetic; smooth functions $\exp,\log,\sqrt{\cdot},x^{-1},x^n$; $\mathrm{fract},\bmod,\lfloor\cdot\rfloor,\sin,\cos$; $\mathrm{step},\mathrm{sign},|\cdot|,\mathrm{relu}$, comparisons, select, dot, cross, normalize) and evaluated with two backends: plain numbers (brute force) and **Fourier jets**. A jet is $(v,g_x,g_y,h_{xx},h_{xy},h_{yy})$, a value with its gradient and Hessian in pixel coordinates, with the chain rules of second-order automatic differentiation. Camera and geometry (the benchmark's plane in perspective: $s = -50(x-240)/(y+1)$, $t = -12000/(y+1)$; normal, light, view) are jets of the pixel position.
+
+**The one rule.** A non-smooth primitive makes the smooth part of its argument a **count** and everything else composes. Precisely, the traced value is an **element**: a finite sum of terms $c\cdot\prod_j f_j$ where $c$ is a complex-valued jet and each factor is either a **picture** $p(\xi_a + \phi_a)$ on one **axis** $a$ (a periodic function of the axis's count $\xi_a$, a jet in periods, plus its **field** $\phi_a$, an element on other axes), or a **closure** $F(\xi_{a_1},\dots,\xi_{a_r})$ (an arbitrary function of several axes' shifted coordinates, jet-valued, evaluated pointwise). Axes are periodic (period one in the count) or **edges** (a step at zero of a raw count, periodised per pixel at a period $P = \max(20\sigma_a + 4A,\,10^{-6})$ where $\sigma_a$ is the count's pixel-sigma and $A$ the field's amplitude bound $\sum|\text{coefficients}|$, so that the whole argument's excursion across the pixel fits one period). One axis per count: a registry keys axes by the count jet and field signature, and a count that is an integer multiple $r\le64$ of an existing one is the same torus (the picture reads $\mathrm{fract}(ru)$); a coarser count arriving later makes the finer one its alias. Sums of pictures on one axis with constant coefficients fold into one picture; a composition whose coefficients vary across the pixel becomes a jet-valued closure; a picture on a stationary count (rate $<10^{-9}$) is frozen at its value. Products of factors with overlapping direct axes merge into one closure (except steps of sums, below). Closures take **bare** coordinates and add their axes' fields themselves; every point evaluation carries the pixel displacement $z$ in the coordinate map and evaluates fields as jets at $z$, and spectral paths take a field's phase as a jet, because fields' coefficients vary across the pixel (the parallax term $2as\,\delta$ has coefficient zero on the axis $x = 240$ and a gradient there).
+
+### 10. The evaluator
+
+Per pixel, per term (terms sharing an axis structure form a bundle evaluated on one node set), with $\sigma_a = \sigma|\nabla\xi_a|/P_a$ the pixel-sigma of an axis:
+
+**(a) Regimes.** An axis is **local** if $\sigma_a<0.02$, or if $\sigma_a<0.03$ and its rate is within $\arcsin 0.26$ of a faster axis's (along their common direction the spectral sum is an endless station family and quadrature is cheap). With no local axis the term is **spectral** in two dimensions. With one local axis $a$ the pixel is conditioned on the line $z = m(u_a)+te$, $e\perp\nabla\xi_a$, integrated over $u_a$ by adaptive Gauss–Legendre (panels $3\sigma_a$ wide, refined where halving changes the sum, cut at the located jumps); along the line the rest is spectral with the line condition, or **pointwise** (line quadrature with located jumps) when any axis is slow along the line or the fastest runs fewer than $24$ periods across it. With two independent local axes ($|\sin\angle|>0.2$) the point $z(u_a,u_b) = G^{-1}(u-\xi)$ is fixed and the whole term is evaluated pointwise under the joint density $\mathcal N(\cdot,\sigma^2GG^T)$, the second axis's jumps located with the first fixed.
+
+**(b) Jump location.** Pictures' jump levels are found once per picture; along a path the coordinate $u+\phi(u)$ (field at the displacement) is scanned for level crossings and bisected; multi-axis closures are scanned for jumps ($48$ samples, bisection, a steep slope shrinks with the bracket, a jump does not).
+
+**(c) Spectral sum.** Each picture's coefficients are a jump-aware transform (Gauss–Legendre panels between located jumps, $\le3/K$ long, GL8). The harmonic range of each axis is set by the slowest rate its multiples can reach *with the other axes' help* (cancellation-aware: a station between the sawtooth's fifth harmonic and the sine field's first through the perspective needs $K = 5$ where the axis alone would ask for two), then grown once by the curvature factor $\min(2,\sqrt{1+\sigma^4\lambda^2})$ (folds decay algebraically); capped at $512$ per axis, $64$ per axis for a two-axis residual transform, $64$ under a line condition. Recipes are enumerated depth-first with pruning by the relaxed lattice bound (the rate a recipe can still reach with the remaining freedoms) and by $\log|I_0|$ of the completed recipe against the cut $10^{-4}$; the survivors are summed with $I_0,I_1,I_2$.
+
+**(d) Residual closures.** Axes that appear inside closures or as field axes and are not local are **residual**: the closure (times the fields' phase jets $e^{2\pi i k\phi/P}$) is transformed numerically over them. One residual axis: a jet-valued transform with jump detection on node sets sized by the fields' bandwidth (Bessel bound $|J_m|$ of the field's amplitude convolved with the closures' own harmonics, cached per field harmonics). Two residual axes: separable when the fields separate; a **chain** when one axis's field lives on the other (transform in the first by phasor recurrence at the bandwidth cap, then per harmonic $m$ a transform over the second at the harmonics the multiplier admits, with an outward search); otherwise the general two-axis jet transform: inner Gauss–Legendre between the row's located jumps, outer integral cut where the row's jump count changes (a square-root singularity of the row's coefficients) and where the closure jumps along the outer axis, each panel mapped by $u = \tfrac12(1-\cos\pi\tau)$ so square-root ends are regular, GL16, $\le\min(0.25,\,20/(\pi(K_0+K_1/2+2)))$ long; on typed arrays; a probe at range $16$ keeps that range when its outer ring is below $0.1\times$cut relative to the peak.
+
+**(e) Step of a sum.** A non-smooth primitive $g\in\{\mathrm{step},\mathrm{sign},\mathrm{relu},|\cdot|\}$ (linear on each side of zero: $\alpha_\pm+\beta_\pm u$) of
+$$g\big(c + A(x) + \textstyle\sum_j B_j(\varphi_j + G_j(x))\big),$$
+with $A$ an element on counts $X$, $B_j$ constant-coefficient picture sums on counts $\Phi_j$ carrying fields $G_j$ over $X$ ($|X|\le2$, $|\Phi|\le2$, and only where the plain closure would reach three axes or more), is one closure over $X$ and **bare** $\Phi$ axes whose transform factorises:
+$$\widehat{(\cdot)}(k,m) = \int_{\mathbb T^{|X|}} T_m\big(c+A(x)\big)\,e^{2\pi i m\cdot G(x)}\,O(x)\,e^{-2\pi i k\cdot x}\,dx,\qquad T_m(a) = \int_{\mathbb T^{|\Phi|}} g\big(a+B(\varphi)\big)e^{-2\pi i m\cdot\varphi}d\varphi .$$
+$T_m(a)$ is exact: between the roots of $a+B(\varphi) = 0$ (located on a $2048$-sample grid, exact zeros counted as boundaries, the wrap sample the first sample exactly, bisection to $10^{-16}$) and the jumps of $B$, the integrand is $\alpha+\beta(a+B)$, integrated by GL32 on sub-panels $\le\min(0.25,20/(\pi(M+\mathrm{bw}+1)))$; for two $\Phi$ axes the inner transform is exact at each outer value and the outer integral is cut at the critical values (where $a+B_2(\varphi_2)$ meets an extremum or a jump value of $B_1$: square-root singularities) and at $B_2$'s jumps, cosine-mapped. Tabulated on $257$ nodes of $a$ over the range where $T$ is not linear in $a$ (outside it $g$ is linear and two end nodes suffice), $M = 24$ harmonics per $\Phi$ axis ($48$ for one), checked to $10^{-6}$ against brute force. The transform over $X$ is an FFT on a midpoint grid ($256$ per axis, $128$ when local coordinates enter and it is rebuilt per point) with the half-sample phase $e^{-i\pi(k_x+k_y)/N}$, windowed to $|k|\le32$, remembered across the frame when nothing pixel-dependent enters (the sawtooth field's seams make it discontinuous; the seam's part of a coefficient at $k$ is $O(1/k)$ with relative error $O((k/N)^2)$, absolute $\sim10^{-6}$). Any split is handled: a local $\Phi$ axis is a number whose picture joins $a$; local $X$ axes are fixed. Several steps in one term share the grid (their tables multiply; nested $0/1$ steps of one sum reduce to the smaller offset), field pictures contribute their phase, other closures their values. The $X$ harmonics that can pass are enumerated as an ellipse: with $\alpha = \sigma^{-2}$, $\lambda(k)\le\lambda_0+\sum_i\rho_i|k_i|$ (row-sum bounds on the Hessians), $|b(k)|^2\le\tfrac{2\,\text{budget}}{\alpha}(\alpha^2+\lambda(k)^2)$ is solved as a quadratic in $k_y$ for each $k_x$ on each sign of $k_y$.
+
+**(f) The parallax theorem (shift family).** A bump-mapped surface with parallax shifts every count by the height times the view: the closure is $F(x+c_XH(s),\,\varphi+c_\Phi H(s))$ for one function $H$ of the bump counts $s$ and a scalar per field. Then
+$$\widehat F_{\text{shifted}}(k,m,\ell) = \widehat F(k,m)\cdot Q\big(\theta;\ell\big),\qquad Q(\theta;\ell) = \int_{\mathbb T^{|S|}}O_S(s)\,e^{i\theta H(s)}e^{-2\pi i\ell\cdot s}ds,\qquad \theta = 2\pi\big(k\cdot c_X+m\cdot c_\Phi+\textstyle\sum_f k_fc_f\big),$$
+a one-parameter family in $\theta$ tabulated once by FFT on a $64$-per-axis midpoint grid at $\Delta\theta = 0.05$ with $Q'$ and $Q''$ ($iHO e^{i\theta H}$, $-H^2Oe^{i\theta H}$), quadratically interpolated, windowed to $|\ell|\le16$; since $\theta$ is a jet across the pixel (the view varies), the coefficient's jet is $Q(\theta_0)+Q'\,\nabla\theta\cdot z+\tfrac12(Q''\nabla\theta\nabla\theta^T+Q'\nabla^2\theta)$. $\widehat F$ is computed with $H$'s terms dropped (a skip key in the coordinate map). Recognised at trace time (the shift axes are counts entering only through fields, every such field term the same function $H$; a closure remembers the axes its element touches directly, so a count reached only through a field can be a shift axis) and at evaluation for plain pictures with fields. The $X$ harmonics are enumerated by their distance to the shift lattice (relaxed bound over the remaining freedoms), since a shift harmonic completes a rate the $X$ harmonic alone leaves fast: colour circles with bumps has live recipes at the sixteenth harmonic of a cell count against the fifth of a bump ($20/2\pi\approx16/5$). A step of a constant plus a multiple of a two-valued step is affine in it. A shift whose $\Phi$ count is one of the bump counts is self-referential and declined.
+
+### 11. What is measured
+
+Protocol of the public benchmark: $480\times320$ plane in perspective, Gaussian jitter $\sigma = 0.5$ px, truth the mean of $1000$ samples, clamp to $[0,1]$, $8$-bit quantisation, RMS over pixels and channels; **noise floor** = RMS of two independent truths over $\sqrt2$. Unfiltered errors reproduce the published ones to three decimals (circles $0.1474$ vs $0.148$; rippled checkerboard $0.1937$ vs $0.194$; rippled quadratic sine $0.1832$ vs $0.184$).
+
+Hand-derived routes (one shader at a time, before the compiler):
+
+| case | no AA | count-map | noise floor | published best | time vs shader |
+|---|---|---|---|---|---|
+| checkerboard | 0.164 | 0.0060 | 0.0060 | | 72× |
+| quadratic sine | 0.128 | 0.0046 | 0.0045 | | 730× |
+| circles | 0.147 | 0.0057 | 0.0055 | 0.035 at 4× | 410× |
+| checkerboard, ripples | 0.194 | 0.0075 | 0.0074 | 0.071 at 2× | 407× |
+| quadratic sine, ripples | 0.183 | 0.0072 | 0.0072 | 0.045 at 2× | 1051× |
+
+Supersampling needs about $650$ to $750$ Gaussian samples to reach these errors. A hybrid (exact routes where the predicted term count is under a budget, stratified samples elsewhere) is two to seven times better than supersampling at equal time on every case and reaches the published methods' error at five to twenty times their time; there is no point on its curve below about $18\times$ the shader.
+
+Compiler frames, automatic from source, nine worker threads: checkerboard $0.0060$ (floor $0.0060$), circles $0.0055$ ($0.0055$), quadratic sine $0.0045$ ($0.0045$), zigzag $0.0045$ ($0.0045$); fire and the two rippled cases running. Compiler probes, fourteen pixels per shader from near field to horizon against brute force of $10^5$ samples (noise $10^{-3}$) or $10^6$ (noise $3\times10^{-4}$): checkerboard, circles, quadratic sine, zigzag, fire, colour circles, both rippled cases, zigzag with ripples, checkerboard with bumps and colour circles with bumps all within about $2\times10^{-3}$ everywhere and mostly under $5\times10^{-4}$; against a million samples colour circles $(120,34)$ $6\times10^{-6}$, $(400,60)$ $1.2\times10^{-5}$, the circles' horizon $(240,20)$ $2.6\times10^{-4}$, the rippled zigzag's on-axis pixel $3.2\times10^{-4}$ (from $5.5\times10^{-3}$ before fields became jets), the rippled quadratic sine's on-axis pixel $1.4\times10^{-3}$ (from $4.6\times10^{-3}$). Two-axis transform of a step (a disc): the old uniform outer rule of $4K+8$ rows carried $2.8\times10^{-3}$ at the horizon where $K = 1$; the cut-and-mapped rule carries $2.6\times10^{-4}$. Cost: plain shaders $2$ to $40$ ms a pixel on one core; colour circles' far field $0.5$ to $3$ s after a one-time $30$ s of tables and transforms per worker; bumps variants seconds to minutes a pixel where the view enters a transform. The mipmap alternative was measured too: an isotropic ladder read anisotropically needs $108$ taps a pixel (four times the anisotropy ratio, up to $50$ at the horizon) to reach $6.6\times10^{-4}$ RMS on this plane and errs by $5.7\times10^{-2}$ RMS capped at $16$ taps; the exact spectral sum needs $175$ recipes a pixel on average ($939$ at most), so the GPU table should be the spectrum, not the pyramid.
+
+---
+
+## Part VIII. Gaps, unresolved questions, roadblocks, limitations
+
+**Mathematical.**
+1. *Third order.* The pixel model expands counts to second order. Where a count's rate changes by a large fraction across the pixel's reach ($\approx3.7\sigma$) the model is not the shader: on the benchmark's row $y = 5$ the perspective's rates change fourfold and every shader carries $\approx10^{-3}$ there (circles $1.5\times10^{-3}$, colour circles $1.0\times10^{-3}$, fire $1.0\times10^{-3}$ against a million samples); halving $\sigma$ takes it to the noise. Rows $0$–$2$ contain the plane's horizon inside the pixel and are outside the model entirely. The cubic phase has no closed form; the intended remedy (the pixel as a Gauss–Hermite mixture of narrower Gaussians where an oracle sees $|H|\cdot\text{reach}\gtrsim|g|$, or a first-order perturbative cubic correction via third moments of the quadratic-phase Gaussian, which needs third-order jets) is designed, not built.
+2. *Field variation in the shift family and the step tables.* The $X$-grid functions $a(x)$, $G(x)$ and the field pictures' phases are evaluated at the pixel centre's coefficient values; only the shift's $\theta$ carries its jet. A fully jet-valued grid (six FFTs per harmonic) would remove this; its size is unmeasured.
+3. *One remaining probe pixel.* The rippled quadratic sine at $(240,120)$: $1.4\times10^{-3}$, with the traced element and the evaluator agreeing to the noise, so the residue is between the second-order element and the shader; not yet located.
+4. *The $\Phi$ harmonic cut.* Tables stop at $24$ harmonics per $\Phi$ axis. For $\sin(n)$ over the integers this keeps the stations at the convergents $6, 19/3, 25/4, 44/7$ of $2\pi$ (whose recipes pass the multiplier untouched near the horizon) and drops $333/53$ and beyond, at the $10^{-4}$ level: the one truncation priced rather than removed (a two-dimensional step's coefficients decay as $|m|^{-3/2}$, the tail past $M$ costs $O(M^{-1/2})$ times the live pairs).
+5. *Caps and thresholds.* Harmonic caps ($512$; $64$ for two-axis transforms and lines), the recipe cap ($2\times10^5$, an overflow flag), the cut ($10^{-4}$), the local sigma ($0.02$), the parallel rule ($0.03$, $\sin 0.26$), the fold growth ($2$), the line length ($24$ periods), panel widths, the shift window ($16$), the $X$ window ($32$), grid sizes, $\Delta\theta$: each was set by measurement on these shaders. The theory says what each trades, not its value.
+6. *Exactness is per window.* All statements are for the Gaussian pixel. A box or tent pixel changes the multiplier ($\mathrm{sinc}$) and the second-order pushforward is no longer closed form; the near-field quadrature carries over unchanged; nothing is measured.
+7. *The desert-limit claim.* That two-moment propagation is a two-moment approximation of the desert limit (exact when many independent pictures sum, by the central limit theorem; wrong for one, whose pushforward is e.g. the arcsine law; and blind to stations) is a reading, not yet a theorem with a bound.
+8. *Theory-side conjectures.* Stations as Arnold tongues and deserts as KAM tori (priced merit as a Diophantine condition with an amplitude weight; the duty null predicting no even locking tongue for a symmetric pair of coupled oscillators) untested even by a circle-map simulation; iterated conditioning as a renormalisation under the Gauss map $x\mapsto1/x\bmod1$ with the golden ratio a repelling fixed point, open; the ear's front-end order (listening test not done); twisted bilayers and grid cells, unchecked analogies.
+
+**Coverage.**
+9. *Fire with bumps* fails: the pattern's $\sin$ count equals the bump's $u$ count (a self-referential shift) and the palette's field is a second function of the bump counts ($\sin$ of a quadratic in the shifted coordinate, carrying $H$ and $H^2$); it needs a grid over three counts or a two-parameter family $Q(\theta_1,\theta_2)$, neither built. Products of $\mathrm{sign}$-valued steps of one sum (not nested sets) are declined.
+10. *Procedural noise* (Perlin, Gabor, Worley; the benchmark's bricks) is unrun. Noise is a picture on a large torus; the tables' size is the concern.
+11. *Geometry.* One plane, one camera, time zero. Spheres, hyperboloids, animation and the winding and fold pixels (silhouettes, radial centres) are not exercised; visibility supersampling on fold pixels only is a design.
+12. *Breadth of the claim.* Eleven shaders of the twenty-one, probed; four full frames at the floor, three running. The literature sweep covers the procedural band-limiting line (1982, 2015, 2018, 2020, 2022, 2025), neural-field prefiltering (2021, 2025), per-structure closed forms (1982–2019) and the surveys, but not 2024–2026 preprints systematically; "anti-aliasing" at large (supersampling, temporal, learned, vector coverage) is a different problem.
+
+**Cost.**
+13. $100$ to $10{,}000$ times the unfiltered shader against the published methods' $1$ to $4$. The far and mid field pay for sums, the near field for quadrature on every term, and it is JavaScript on a CPU. Where the view direction enters a transform (parallax) nothing keyed by it is remembered across pixels: bumps variants cost seconds to minutes a pixel in the far field; the spec highlight on a bumped plane at the horizon drove the two-axis transform to its $64\times64$ cap at every line node ($36$ minutes a pixel before the probe and typed arrays, $8$ after).
+14. The GPU stage is a design with one measurement (the spectrum as the table): the oracle per pixel (surviving-term count from $J$ and the material's spectrum), spectral textures read at lattice points inside the multiplier's ellipse, closed forms for the near field, tables in the view direction for parallax. None built.
+15. Memory: coefficient caches per worker reach tens of megabytes per structure; the shift tables grow with $\theta$'s range.
+
+**Engineering.**
+16. The benchmark's fire frame has run for hours on a frozen snapshot on a loaded machine; its far field goes through the chain path at seconds a pixel.
+17. Two-valued steps compared by structure, closures' own axes, bare coordinates and the displacement key are recent and tested only on the eleven shaders.
+18. No time dimension (temporal anti-aliasing as a slide in time is a theorem, not a feature).
+
+**Honest limit.** The mathematics is elementary (Fourier's one integral, the implicit function theorem, the arithmetic of convergents, Gaussian integrals of quadratic phases); the depth is the unification, and the demonstration is exact prefiltering of the public benchmark at its noise floor from source. What it does not yet have is speed, a prediction tested outside a simulation, and the last two of the benchmark's structures.
