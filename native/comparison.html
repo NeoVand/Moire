@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Moiré — first Unreal comparison</title>
+  <title>Moiré — Unreal comparison</title>
   <style>
     :root { color-scheme: dark; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #101112; color: #ececea; }
     * { box-sizing: border-box; }
@@ -14,6 +14,10 @@
     p { color: #a4a6a6; font-size: 14px; line-height: 1.6; margin: 0; }
     a { color: inherit; text-underline-offset: 4px; }
     nav { font-size: 13px; white-space: nowrap; color: #bfc2bf; }
+    .views { display: flex; gap: 4px; padding: 4px; width: fit-content; margin-bottom: 26px; border: 1px solid #323735; border-radius: 9px; }
+    .views button { border: 0; border-radius: 5px; padding: 7px 13px; background: transparent; color: #a4a6a6; font: inherit; font-size: 13px; cursor: pointer; }
+    .views button[aria-pressed="true"] { background: #2c3430; color: #e0ebe4; }
+    .views button:hover { color: #ececea; }
     .images { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
     figure { margin: 0; }
     figcaption { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin: 0 0 12px; font-size: 15px; }
@@ -25,7 +29,7 @@
     details { margin-top: 28px; font-size: 13px; color: #a4a6a6; line-height: 1.7; }
     summary { cursor: pointer; color: #c5c8c6; width: fit-content; }
     details p { margin-top: 12px; font-size: 13px; }
-    a:focus-visible, summary:focus-visible { outline: 2px solid #b7d5c2; outline-offset: 5px; }
+    a:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid #b7d5c2; outline-offset: 5px; }
     @media (max-width: 1000px) { .images { grid-template-columns: 1fr; gap: 32px; max-width: 640px; } header { display: block; margin-bottom: 28px; } nav { margin-top: 20px; } }
     @media (max-width: 600px) { body { padding: 28px 18px; } h1 { font-size: 22px; } }
   </style>
@@ -36,30 +40,73 @@
       <div><h1>Moiré / Unreal</h1><p>One scene. One camera. Three ways to render the detail.</p></div>
       <nav><a href="../compare.html">Live browser demo ↗</a></nav>
     </header>
-    <section class="images" aria-label="Matched Unreal captures">
+    <div class="views" role="group" aria-label="Camera view">
+      <button type="button" data-view="rest" aria-pressed="true" aria-controls="comparison-images">At rest</button>
+      <button type="button" data-view="motion" aria-pressed="false" aria-controls="comparison-images">After motion</button>
+    </div>
+    <section id="comparison-images" class="images" aria-label="Matched Unreal game captures at rest">
       <figure>
         <figcaption>No anti-aliasing <span>Point shading</span></figcaption>
-        <a href="evidence/mrq-capture-20260905T203404.322055Z-raw-Glide0/frames/raw_Glide0.0064.png" aria-label="Open no anti-aliasing image at original size"><img src="evidence/mrq-capture-20260905T203404.322055Z-raw-Glide0/frames/raw_Glide0.0064.png" width="640" height="360" alt="An unfiltered checkerboard plane with dense false bands toward the horizon."></a>
+        <a href="evidence/viewport-diagnosis-20260905T212312.706151Z-raw-Glide0/frames/raw_Glide0.0064.png" aria-label="Open no anti-aliasing image at original size"><img src="evidence/viewport-diagnosis-20260905T212312.706151Z-raw-Glide0/frames/raw_Glide0.0064.png" width="640" height="360" alt="At rest: an unfiltered checkerboard plane with dense false bands toward the horizon."></a>
       </figure>
       <figure>
         <figcaption>Unreal TSR <span>Native resolution</span></figcaption>
-        <a href="evidence/mrq-capture-20260905T203440.239836Z-tsr-Glide0/frames/tsr_Glide0.0064.png" aria-label="Open Unreal TSR image at original size"><img src="evidence/mrq-capture-20260905T203440.239836Z-tsr-Glide0/frames/tsr_Glide0.0064.png" width="640" height="360" alt="The same checkerboard rendered with Unreal TSR, with reduced aliasing and residual bands near the horizon."></a>
+        <a href="evidence/viewport-diagnosis-20260905T212352.013770Z-tsr-Glide0/frames/tsr_Glide0.0064.png" aria-label="Open Unreal TSR image at original size"><img src="evidence/viewport-diagnosis-20260905T212352.013770Z-tsr-Glide0/frames/tsr_Glide0.0064.png" width="640" height="360" alt="At rest: the same checkerboard rendered with Unreal TSR."></a>
       </figure>
       <figure>
         <figcaption class="ours">Our method <span>Shared analytic shader</span></figcaption>
-        <a href="evidence/mrq-capture-20260905T203502.965788Z-analytic-Glide0/frames/analytic_Glide0.0064.png" aria-label="Open our method image at original size"><img src="evidence/mrq-capture-20260905T203502.965788Z-analytic-Glide0/frames/analytic_Glide0.0064.png" width="640" height="360" alt="The same checkerboard rendered with the analytic shader, smoothly averaging the finest detail toward the horizon."></a>
+        <a href="evidence/viewport-diagnosis-20260905T212408.788462Z-analytic-Glide0/frames/analytic_Glide0.0064.png" aria-label="Open our method image at original size"><img src="evidence/viewport-diagnosis-20260905T212408.788462Z-analytic-Glide0/frames/analytic_Glide0.0064.png" width="640" height="360" alt="At rest: the same checkerboard rendered with our analytic shader."></a>
       </figure>
     </section>
     <footer>
-      <p>First native still-image comparison · Unreal 5.8.2 · 640 × 360</p>
-      <p>Captured through Movie Render Queue. Motion and game frame rate are the next tests. Open any image to inspect the original pixels.</p>
+      <p>Unreal game renderer · 640 × 360</p>
+      <p id="capture-context" aria-live="polite">Captured at rest. Open any image to inspect the original pixels.</p>
     </footer>
     <details>
       <summary>Capture details and evidence</summary>
-      <p>All three images use the same fixed Glide0 camera, procedural checker source and display settings. Each has one spatial sample, one temporal sample and 64 discarded render warm-ups. TSR uses 100% input/output resolution and a 200% history. Our shader integrates a Gaussian pixel window with standard deviation 0.5 pixel; TSR has a different reconstruction filter.</p>
-      <p>The scene is unlit. Exposure, tone curve, vignette, motion blur and dynamic resolution are disabled. Raw output matches the rounded source palette within one byte. These are actual Metal renders; Movie Render Queue uses an offline view family, so these captures do not establish main-game temporal behavior or performance.</p>
-      <p><a href="evidence/quality-20260905T204627830Z/README.md">Independent image checks</a> · <a href="evidence/mrq-prepare-20260905T203352.265013Z/capture-batch.json">Matched capture manifest</a> · <a href="README.md">Source contract and limits</a> · <a href="tools/capture-mrq.md">Reproduce the captures</a></p>
+      <p>These are captures of Unreal 5.8.2’s ordinary game renderer, with the same procedural checkerboard, camera and display settings. At rest uses 64 warmup ticks. After motion plays the camera to two seconds, then holds it for one readback frame; the recorded camera and sequence time agree before and after capture. These still images do not measure uninterrupted motion quality or game frame rate.</p>
+      <p>TSR uses 100% input/output resolution and a 200% history. Our shader integrates a Gaussian pixel window with standard deviation 0.5 pixel; TSR has a different reconstruction filter. The scene is unlit, and exposure, tone curve, vignette, motion blur and dynamic resolution are disabled. Independent checks verify the source, color transfer and camera registration.</p>
+      <p><a href="evidence/game-quality-20260905T212821544Z/README.md">At-rest evidence</a> · <a href="evidence/game-quality-20260905T212756753Z/README.md">After-motion evidence</a> · <a href="tools/viewport_diagnosis.md">Reproduce the captures</a> · <a href="comparison-mrq.html">Earlier MRQ gallery</a></p>
     </details>
   </main>
+  <script>
+    const views = {
+      rest: {
+        label: 'At rest',
+        context: 'Captured at rest. Open any image to inspect the original pixels.',
+        images: [
+          'evidence/viewport-diagnosis-20260905T212312.706151Z-raw-Glide0/frames/raw_Glide0.0064.png',
+          'evidence/viewport-diagnosis-20260905T212352.013770Z-tsr-Glide0/frames/tsr_Glide0.0064.png',
+          'evidence/viewport-diagnosis-20260905T212408.788462Z-analytic-Glide0/frames/analytic_Glide0.0064.png'
+        ]
+      },
+      motion: {
+        label: 'After motion',
+        context: 'Captured after camera motion, held for one readback frame. Open any image to inspect the original pixels.',
+        images: [
+          'evidence/viewport-diagnosis-20260905T212612.895862Z-raw-Glide0/frames/raw_Glide0.0120.png',
+          'evidence/viewport-diagnosis-20260905T212647.625707Z-tsr-Glide0/frames/tsr_Glide0.0120.png',
+          'evidence/viewport-diagnosis-20260905T212630.590287Z-analytic-Glide0/frames/analytic_Glide0.0120.png'
+        ]
+      }
+    };
+    const buttons = document.querySelectorAll('[data-view]');
+    const links = document.querySelectorAll('.images a');
+    const descriptions = [...links].map(link => link.querySelector('img').alt.replace(/^At rest: /, ''));
+    for (const button of buttons) {
+      button.addEventListener('click', () => {
+        const view = views[button.dataset.view];
+        links.forEach((link, index) => {
+          link.href = view.images[index];
+          const img = link.querySelector('img');
+          img.src = view.images[index];
+          img.alt = `${view.label}: ${descriptions[index]}`;
+        });
+        buttons.forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+        document.querySelector('#comparison-images').setAttribute('aria-label', `Matched Unreal game captures: ${view.label}`);
+        document.querySelector('#capture-context').textContent = view.context;
+      });
+    }
+  </script>
 </body>
 </html>

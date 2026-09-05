@@ -1,0 +1,15 @@
+{
+  "status": "passed",
+  "created_at": "20260905T210714.303134Z",
+  "generator": "viewport-diagnosis-v1",
+  "rendered": false,
+  "engine": "5.8.2-56702186+++UE5+Release-5.8",
+  "asset": "/Game/MoireComparison/ViewportDiagnosis/M_FinalImageCopy.M_FinalImageCopy",
+  "asset_file": "/Users/neo/repos/Moire/native/Unreal/MoireComparison/Content/MoireComparison/ViewportDiagnosis/M_FinalImageCopy.uasset",
+  "asset_sha256": "72b33f194ca4a3aae2832a692f52997b15be3995c30924e8aa64699010247cdc",
+  "connection": "SceneTexture(PostProcessInput0).Color -> EmissiveColor",
+  "domain": "PostProcess",
+  "location": "SceneColorAfterTonemapping",
+  "texture_assets": [],
+  "engine_assets_changed": false
+}

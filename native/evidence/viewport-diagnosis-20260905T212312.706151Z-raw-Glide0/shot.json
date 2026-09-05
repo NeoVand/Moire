@@ -1,0 +1,21 @@
+{
+  "status": "captured",
+  "registered_engine_frame": 0,
+  "capture_route": "ordinary Shot",
+  "requested_engine_frame": 64,
+  "camera_location": [
+    -2800.0,
+    0.0,
+    1200.0
+  ],
+  "camera_rotation": [
+    -0.0,
+    -13.495733261108398,
+    0.0
+  ],
+  "camera_fov": 79.31687927246094,
+  "fixed_camera": true,
+  "high_resolution_screenshot": false,
+  "completed_engine_frame": 65,
+  "png_bytes": 14931
+}

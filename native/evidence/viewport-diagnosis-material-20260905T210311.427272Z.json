@@ -1,0 +1,65 @@
+{
+  "created_at": "20260905T210311.427272Z",
+  "engine": "5.8.2-56702186+++UE5+Release-5.8",
+  "rendered": false,
+  "saved_assets": false,
+  "asset": "/Users/Shared/Epic Games/UE_5.8/Engine/Content/BufferVisualization/FinalImage.uasset",
+  "asset_sha256": "84620ce5de32e7893dd16c565fdccc13b18a5b87d410e0e2b9967d21c60f0ed7",
+  "asset_unchanged": true,
+  "properties": {
+    "material_domain": "<MaterialDomain.MD_POST_PROCESS: 4>",
+    "blendable_location": "<BlendableLocation.BL_SCENE_COLOR_AFTER_TONEMAPPING: 0>",
+    "blendable_priority": "0",
+    "blend_mode": "<BlendMode.BLEND_OPAQUE: 0>"
+  },
+  "capture_defaults": {
+    "post_processing_material": "<Struct 'SoftObjectPath' (0xa042d579c80) {}>",
+    "capture_gamut": "<HDRCaptureGamut.HCGM_REC709: 0>",
+    "capture_frames_in_hdr": "False",
+    "disable_screen_percentage": "True"
+  },
+  "emissive_input": "/Engine/BufferVisualization/FinalImage.FinalImage:MaterialExpressionFeatureLevelSwitch_4",
+  "expressions": [
+    {
+      "path": "/Engine/BufferVisualization/FinalImage.FinalImage:MaterialExpressionFeatureLevelSwitch_4",
+      "class": "MaterialExpressionFeatureLevelSwitch",
+      "inputs": [
+        {
+          "name": "Default",
+          "node": "/Engine/BufferVisualization/FinalImage.FinalImage:MaterialExpressionSceneTexture_0"
+        },
+        {
+          "name": "ES2",
+          "node": "/Engine/BufferVisualization/FinalImage.FinalImage:MaterialExpressionSceneTexture_0"
+        },
+        {
+          "name": "ES3_1",
+          "node": "/Engine/BufferVisualization/FinalImage.FinalImage:MaterialExpressionSceneTexture_0"
+        },
+        {
+          "name": "SM4_REMOVED",
+          "node": "/Engine/BufferVisualization/FinalImage.FinalImage:MaterialExpressionSceneTexture_0"
+        },
+        {
+          "name": "SM5",
+          "node": null
+        },
+        {
+          "name": "SM6",
+          "node": null
+        }
+      ]
+    },
+    {
+      "path": "/Engine/BufferVisualization/FinalImage.FinalImage:MaterialExpressionSceneTexture_0",
+      "class": "MaterialExpressionSceneTexture",
+      "inputs": [
+        {
+          "name": "UVs",
+          "node": null
+        }
+      ],
+      "scene_texture_id": "<SceneTextureId.PPI_POST_PROCESS_INPUT0: 14>"
+    }
+  ]
+}

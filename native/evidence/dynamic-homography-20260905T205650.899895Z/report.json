@@ -1,0 +1,2483 @@
+{
+  "created_at": "2026-09-05T20:56:51.425958+00:00",
+  "status": "cpu-model-passed-native-gpu-validation-required",
+  "utility_sha256": "be4ddbe705f1775894ae064803c2d232901eecb8416a957c12f9399b6b97cc04",
+  "gpu_jobs": 0,
+  "quad_count": 758,
+  "quad_lanes": 4,
+  "tested_offsets_pixels": [
+    [
+      0,
+      0
+    ],
+    [
+      -0.5,
+      -0.5
+    ],
+    [
+      0.5,
+      0.5
+    ],
+    [
+      -2.75,
+      0
+    ],
+    [
+      2.75,
+      0
+    ],
+    [
+      0,
+      -2.75
+    ],
+    [
+      0,
+      2.75
+    ],
+    [
+      -2,
+      2
+    ],
+    [
+      2,
+      -2
+    ],
+    [
+      0,
+      -3
+    ]
+  ],
+  "summary": {
+    "f64_fine": {
+      "cases": 3032,
+      "evaluations": 30320,
+      "nonfinite": 0,
+      "sign_failures": 0,
+      "max_absolute_count_error": 2.830802259268239e-11,
+      "max_relative_count_error": 1.0363931934875836e-13,
+      "max_center_native_count_difference": 0.0,
+      "max_derivative_relative_error": 2.2945491197588355e-12,
+      "worst": {
+        "camera": "LowCamera",
+        "size": [
+          640,
+          360
+        ],
+        "eye": [
+          0,
+          0.5,
+          11
+        ],
+        "target": [
+          0,
+          0,
+          -39
+        ],
+        "jitter": [
+          0.375,
+          -0.3125
+        ],
+        "center": [
+          50.5,
+          204.5
+        ],
+        "offset": [
+          0,
+          -3
+        ],
+        "horizon_distance": 3.7611546337300843,
+        "counts_original": [
+          -349.0945588109584,
+          -477.21620808279744
+        ],
+        "counts_reconstructed": [
+          -349.0945588109783,
+          -477.21620808282574
+        ],
+        "denominator": 4.0064002352382315e-05,
+        "footprint_inside_finite_ground": true
+      }
+    },
+    "f32_fine": {
+      "cases": 3032,
+      "evaluations": 30320,
+      "nonfinite": 0,
+      "sign_failures": 0,
+      "max_absolute_count_error": 0.00014362967243641833,
+      "max_relative_count_error": 8.16672609285012e-07,
+      "max_center_native_count_difference": 7.62939453125e-06,
+      "max_derivative_relative_error": 0.0005688168491377921,
+      "worst": {
+        "camera": "LowCamera",
+        "size": [
+          640,
+          360
+        ],
+        "eye": [
+          0,
+          0.5,
+          11
+        ],
+        "target": [
+          0,
+          0,
+          -39
+        ],
+        "jitter": [
+          0.375,
+          -0.3125
+        ],
+        "center": [
+          50.5,
+          204.5
+        ],
+        "offset": [
+          0,
+          -3
+        ],
+        "horizon_distance": 3.7611546337300843,
+        "counts_original": [
+          -349.0945588109584,
+          -477.21620808279744
+        ],
+        "counts_reconstructed": [
+          -349.09454345703125,
+          -477.216064453125
+        ],
+        "denominator": 4.006401286460459e-05,
+        "footprint_inside_finite_ground": true
+      }
+    },
+    "f32_coarse": {
+      "cases": 3032,
+      "evaluations": 30320,
+      "nonfinite": 0,
+      "sign_failures": 0,
+      "max_absolute_count_error": 0.00016038925258499148,
+      "max_relative_count_error": 7.238234843597575e-07,
+      "max_center_native_count_difference": 7.62939453125e-06,
+      "max_derivative_relative_error": 0.00044897441819573297,
+      "worst": {
+        "camera": "LowCamera",
+        "size": [
+          640,
+          360
+        ],
+        "eye": [
+          0,
+          0.5,
+          11
+        ],
+        "target": [
+          0,
+          0,
+          -39
+        ],
+        "jitter": [
+          0.375,
+          -0.3125
+        ],
+        "center": [
+          51.5,
+          204.5
+        ],
+        "offset": [
+          0,
+          -3
+        ],
+        "horizon_distance": 3.851033182928096,
+        "counts_original": [
+          -311.5910217386905,
+          -425.23401659042446
+        ],
+        "counts_reconstructed": [
+          -311.5909729003906,
+          -425.2338562011719
+        ],
+        "denominator": 4.472056753002107e-05,
+        "footprint_inside_finite_ground": true
+      }
+    }
+  },
+  "stress": [
+    {
+      "translation_world": 0,
+      "first_lane_horizon_distance": 64,
+      "results": {
+        "f64": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 8.526512829121202e-14,
+          "max_relative_count_error": 1.7022831497697598e-15,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 2.2853410845412965e-14,
+          "worst": {
+            "camera": "Horizon64_Origin0",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              0,
+              12,
+              28
+            ],
+            "target": [
+              0,
+              1.4864893740053535,
+              -22
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              110.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -2.75
+            ],
+            "horizon_distance": 63.999999999999986,
+            "counts_original": [
+              -42.51803740432755,
+              -51.59700326401202
+            ],
+            "counts_reconstructed": [
+              -42.5180374043276,
+              -51.5970032640121
+            ],
+            "denominator": 4.313293096750339e-05,
+            "footprint_inside_finite_ground": true
+          }
+        },
+        "f32": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 9.326261903197519e-06,
+          "max_relative_count_error": 2.3380997635887258e-07,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 4.0355857319465045e-07,
+          "worst": {
+            "camera": "Horizon64_Origin0",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              0,
+              12,
+              28
+            ],
+            "target": [
+              0,
+              1.4864893740053535,
+              -22
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              111.5,
+              361.5
+            ],
+            "offset": [
+              2.75,
+              0
+            ],
+            "horizon_distance": 65.0,
+            "counts_original": [
+              -39.88821199349823,
+              -48.1800140004598
+            ],
+            "counts_reconstructed": [
+              -39.88820266723633,
+              -48.180015563964844
+            ],
+            "denominator": 4.5773722376907244e-05,
+            "footprint_inside_finite_ground": true
+          }
+        }
+      }
+    },
+    {
+      "translation_world": 0,
+      "first_lane_horizon_distance": 12,
+      "results": {
+        "f64": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 3.183231456205249e-12,
+          "max_relative_count_error": 8.181620099794746e-15,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 1.5658871432132082e-14,
+          "worst": {
+            "camera": "Horizon12_Origin0",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              0,
+              12,
+              28
+            ],
+            "target": [
+              0,
+              3.7316743947516446,
+              -22
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              110.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -3
+            ],
+            "horizon_distance": 12.000000000000052,
+            "counts_original": [
+              -287.012302846749,
+              -389.07104184476947
+            ],
+            "counts_reconstructed": [
+              -287.0123028467512,
+              -389.07104184477265
+            ],
+            "denominator": 6.389717632466114e-06,
+            "footprint_inside_finite_ground": true
+          }
+        },
+        "f32": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 9.462983990715657e-05,
+          "max_relative_count_error": 2.9510327001660454e-07,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 3.0814560764230086e-07,
+          "worst": {
+            "camera": "Horizon12_Origin0",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              0,
+              12,
+              28
+            ],
+            "target": [
+              0,
+              3.7316743947516446,
+              -22
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              110.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -3
+            ],
+            "horizon_distance": 12.000000000000052,
+            "counts_original": [
+              -287.012302846749,
+              -389.07104184476947
+            ],
+            "counts_reconstructed": [
+              -287.01226806640625,
+              -389.0711364746094
+            ],
+            "denominator": 6.389716872945428e-06,
+            "footprint_inside_finite_ground": true
+          }
+        }
+      }
+    },
+    {
+      "translation_world": 0,
+      "first_lane_horizon_distance": 6,
+      "results": {
+        "f64": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 1.8189894035458565e-12,
+          "max_relative_count_error": 1.7198878301766798e-15,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 6.407414190106075e-15,
+          "worst": {
+            "camera": "Horizon6_Origin0",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              0,
+              12,
+              28
+            ],
+            "target": [
+              0,
+              3.9907342048377537,
+              -22
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              110.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -2.75
+            ],
+            "horizon_distance": 6.000000000000034,
+            "counts_original": [
+              -794.1505583609995,
+              -1088.9023177524712
+            ],
+            "counts_reconstructed": [
+              -794.1505583609985,
+              -1088.9023177524693
+            ],
+            "denominator": 2.309294570061788e-06,
+            "footprint_inside_finite_ground": true
+          }
+        },
+        "f32": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 0.00031172518879429845,
+          "max_relative_count_error": 4.101492748813763e-07,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 4.851107479622683e-07,
+          "worst": {
+            "camera": "Horizon6_Origin0",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              0,
+              12,
+              28
+            ],
+            "target": [
+              0,
+              3.9907342048377537,
+              -22
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              111.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -3
+            ],
+            "horizon_distance": 6.000000000000034,
+            "counts_original": [
+              -859.31702315097,
+              -1180.2675572274838
+            ],
+            "counts_reconstructed": [
+              -859.3167114257812,
+              -1180.267578125
+            ],
+            "denominator": 2.131657765858108e-06,
+            "footprint_inside_finite_ground": true
+          }
+        }
+      }
+    },
+    {
+      "translation_world": 0,
+      "first_lane_horizon_distance": 3.1,
+      "results": {
+        "f64": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 8.731149137020111e-11,
+          "max_relative_count_error": 2.6791445914039467e-15,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 1.0426625848848545e-15,
+          "worst": {
+            "camera": "Horizon3.1_Origin0",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              0,
+              12,
+              28
+            ],
+            "target": [
+              0,
+              4.115946446379374,
+              -22
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              110.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -3
+            ],
+            "horizon_distance": 3.100000000000009,
+            "counts_original": [
+              -25799.875660507332,
+              -35597.31597637171
+            ],
+            "counts_reconstructed": [
+              -25799.8756605074,
+              -35597.3159763718
+            ],
+            "denominator": 7.108280661374794e-08,
+            "footprint_inside_finite_ground": false
+          }
+        },
+        "f32": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 0.05121112828783225,
+          "max_relative_count_error": 1.5641593858360865e-06,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 3.318016421745999e-08,
+          "worst": {
+            "camera": "Horizon3.1_Origin0",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              0,
+              12,
+              28
+            ],
+            "target": [
+              0,
+              4.115946446379374,
+              -22
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              110.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -3
+            ],
+            "horizon_distance": 3.100000000000009,
+            "counts_original": [
+              -25799.875660507332,
+              -35597.31597637171
+            ],
+            "counts_reconstructed": [
+              -25799.916015625,
+              -35597.3671875
+            ],
+            "denominator": 7.108269528544042e-08,
+            "footprint_inside_finite_ground": false
+          }
+        }
+      }
+    },
+    {
+      "translation_world": 0,
+      "first_lane_horizon_distance": 3.01,
+      "results": {
+        "f64": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 2.295768354088068e-06,
+          "max_relative_count_error": 6.448209623142743e-12,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 1.7576102029639133e-14,
+          "worst": {
+            "camera": "Horizon3.01_Origin0",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              0,
+              12,
+              28
+            ],
+            "target": [
+              0,
+              4.119832343530668,
+              -22
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              110.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -3
+            ],
+            "horizon_distance": 3.0099999999999483,
+            "counts_original": [
+              -257995.6723673685,
+              -356031.9047086362
+            ],
+            "counts_reconstructed": [
+              -257995.67236570513,
+              -356031.90470634046
+            ],
+            "denominator": 7.108365638145372e-09,
+            "footprint_inside_finite_ground": false
+          }
+        },
+        "f32": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 12.217208636226133,
+          "max_relative_count_error": 3.431492648453587e-05,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 8.618813975486546e-08,
+          "worst": {
+            "camera": "Horizon3.01_Origin0",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              0,
+              12,
+              28
+            ],
+            "target": [
+              0,
+              4.119832343530668,
+              -22
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              110.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -3
+            ],
+            "horizon_distance": 3.0099999999999483,
+            "counts_original": [
+              -257995.6723673685,
+              -356031.9047086362
+            ],
+            "counts_reconstructed": [
+              -257986.84375,
+              -356019.6875
+            ],
+            "denominator": 7.108610589057207e-09,
+            "footprint_inside_finite_ground": false
+          }
+        }
+      }
+    },
+    {
+      "translation_world": 0,
+      "first_lane_horizon_distance": 3.0001,
+      "results": {
+        "f64": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 0.0004440322518348694,
+          "max_relative_count_error": 1.2471471990179452e-11,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 5.957992855287439e-15,
+          "worst": {
+            "camera": "Horizon3.0001_Origin0",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              0,
+              12,
+              28
+            ],
+            "target": [
+              0,
+              4.1202597922173085,
+              -22
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              110.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -3
+            ],
+            "horizon_distance": 3.0000999999999887,
+            "counts_original": [
+              -25799533.326221038,
+              -35603836.67497458
+            ],
+            "counts_reconstructed": [
+              -25799533.326542787,
+              -35603836.675418615
+            ],
+            "denominator": 7.108374981139008e-11,
+            "footprint_inside_finite_ground": false
+          }
+        },
+        "f32": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 302011.3250254169,
+          "max_relative_count_error": 0.008482550006687798,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 1.984917515750385e-07,
+          "worst": {
+            "camera": "Horizon3.0001_Origin0",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              0,
+              12,
+              28
+            ],
+            "target": [
+              0,
+              4.1202597922173085,
+              -22
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              110.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -3
+            ],
+            "horizon_distance": 3.0000999999999887,
+            "counts_original": [
+              -25799533.326221038,
+              -35603836.67497458
+            ],
+            "counts_reconstructed": [
+              -26018376.0,
+              -35905848.0
+            ],
+            "denominator": 7.048583938740194e-11,
+            "footprint_inside_finite_ground": false
+          }
+        }
+      }
+    },
+    {
+      "translation_world": 0,
+      "first_lane_horizon_distance": 3.000001,
+      "results": {
+        "f64": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 1.4424686431884766,
+          "max_relative_count_error": 4.0514408021436214e-10,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 1.0873336817956149e-14,
+          "worst": {
+            "camera": "Horizon3_Origin0",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              0,
+              12,
+              28
+            ],
+            "target": [
+              0,
+              4.120264066704176,
+              -22
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              110.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -3
+            ],
+            "horizon_distance": 3.0000010000000223,
+            "counts_original": [
+              -2579953325.906261,
+              -3560384351.229481
+            ],
+            "counts_reconstructed": [
+              -2579953324.8610106,
+              -3560384349.7870126
+            ],
+            "denominator": 7.108375002611294e-13,
+            "footprint_inside_finite_ground": false
+          }
+        },
+        "f32": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 7570426016.770519,
+          "max_relative_count_error": 2.126296253910998,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 1.8534551550610823e-07,
+          "worst": {
+            "camera": "Horizon3_Origin0",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              0,
+              12,
+              28
+            ],
+            "target": [
+              0,
+              4.120264066704176,
+              -22
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              110.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -3
+            ],
+            "horizon_distance": 3.0000010000000223,
+            "counts_original": [
+              -2579953325.906261,
+              -3560384351.229481
+            ],
+            "counts_reconstructed": [
+              -8065696768.0,
+              -11130810368.0
+            ],
+            "denominator": 2.2737367544323206e-13,
+            "footprint_inside_finite_ground": false
+          }
+        }
+      }
+    },
+    {
+      "translation_world": 10000,
+      "first_lane_horizon_distance": 64,
+      "results": {
+        "f64": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 1.3642420526593924e-12,
+          "max_relative_count_error": 5.542080304001976e-16,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 2.2853410845412965e-14,
+          "worst": {
+            "camera": "Horizon64_Origin10000",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              10000,
+              12,
+              10028
+            ],
+            "target": [
+              10000,
+              1.4864893740053535,
+              9978
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              111.5,
+              361.5
+            ],
+            "offset": [
+              0,
+              2.75
+            ],
+            "horizon_distance": 65.0,
+            "counts_original": [
+              2461.6064326499627,
+              2454.0853700254374
+            ],
+            "counts_reconstructed": [
+              2461.606432649964,
+              2454.085370025438
+            ],
+            "denominator": 4.771030323344264e-05,
+            "footprint_inside_finite_ground": true
+          }
+        },
+        "f32": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 0.0013667689904650615,
+          "max_relative_count_error": 5.560165069866155e-07,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 4.0355857319465045e-07,
+          "worst": {
+            "camera": "Horizon64_Origin10000",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              10000,
+              12,
+              10028
+            ],
+            "target": [
+              10000,
+              1.4864893740053535,
+              9978
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              111.5,
+              360.5
+            ],
+            "offset": [
+              2,
+              -2
+            ],
+            "horizon_distance": 63.999999999999986,
+            "counts_original": [
+              2458.1446293247595,
+              2449.1194622267326
+            ],
+            "counts_reconstructed": [
+              2458.14599609375,
+              2449.11962890625
+            ],
+            "denominator": 4.366108987596817e-05,
+            "footprint_inside_finite_ground": true
+          }
+        }
+      }
+    },
+    {
+      "translation_world": 10000,
+      "first_lane_horizon_distance": 12,
+      "results": {
+        "f64": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 4.092726157978177e-12,
+          "max_relative_count_error": 1.9388270468158558e-15,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 1.5658871432132082e-14,
+          "worst": {
+            "camera": "Horizon12_Origin10000",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              10000,
+              12,
+              10028
+            ],
+            "target": [
+              10000,
+              3.7316743947516446,
+              9978
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              110.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -3
+            ],
+            "horizon_distance": 12.000000000000052,
+            "counts_original": [
+              2212.9876971532512,
+              2110.9289581552307
+            ],
+            "counts_reconstructed": [
+              2212.987697153248,
+              2110.9289581552266
+            ],
+            "denominator": 6.389717632466114e-06,
+            "footprint_inside_finite_ground": true
+          }
+        },
+        "f32": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 0.0011340756295794563,
+          "max_relative_count_error": 5.106735526363587e-07,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 3.0814560764230086e-07,
+          "worst": {
+            "camera": "Horizon12_Origin10000",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              10000,
+              12,
+              10028
+            ],
+            "target": [
+              10000,
+              3.7316743947516446,
+              9978
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              110.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -2.75
+            ],
+            "horizon_distance": 12.000000000000052,
+            "counts_original": [
+              2220.7447864193796,
+              2121.646989003368
+            ],
+            "counts_reconstructed": [
+              2220.74365234375,
+              2121.647216796875
+            ],
+            "denominator": 6.567209311469924e-06,
+            "footprint_inside_finite_ground": true
+          }
+        }
+      }
+    },
+    {
+      "translation_world": 10000,
+      "first_lane_horizon_distance": 6,
+      "results": {
+        "f64": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 3.410605131648481e-12,
+          "max_relative_count_error": 2.412027887651123e-15,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 6.407414190106075e-15,
+          "worst": {
+            "camera": "Horizon6_Origin10000",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              10000,
+              12,
+              10028
+            ],
+            "target": [
+              10000,
+              3.9907342048377537,
+              9978
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              111.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -3
+            ],
+            "horizon_distance": 6.000000000000034,
+            "counts_original": [
+              1640.68297684903,
+              1319.7324427725162
+            ],
+            "counts_reconstructed": [
+              1640.6829768490334,
+              1319.7324427725193
+            ],
+            "denominator": 2.1316565262108853e-06,
+            "footprint_inside_finite_ground": true
+          }
+        },
+        "f32": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 0.0020127686852902116,
+          "max_relative_count_error": 1.2275448138144318e-06,
+          "max_center_native_count_difference": 0.0001220703125,
+          "max_derivative_relative_error": 4.851107479622683e-07,
+          "worst": {
+            "camera": "Horizon6_Origin10000",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              10000,
+              12,
+              10028
+            ],
+            "target": [
+              10000,
+              3.9907342048377537,
+              9978
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              110.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -3
+            ],
+            "horizon_distance": 6.000000000000034,
+            "counts_original": [
+              1639.6702284422522,
+              1319.7324427725162
+            ],
+            "counts_reconstructed": [
+              1639.6722412109375,
+              1319.732177734375
+            ],
+            "denominator": 2.131657765858108e-06,
+            "footprint_inside_finite_ground": true
+          }
+        }
+      }
+    },
+    {
+      "translation_world": 10000,
+      "first_lane_horizon_distance": 3.1,
+      "results": {
+        "f64": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 1.0913936421275139e-10,
+          "max_relative_count_error": 1.8608430994803872e-14,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 1.0426625848848545e-15,
+          "worst": {
+            "camera": "Horizon3.1_Origin10000",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              10000,
+              12,
+              10028
+            ],
+            "target": [
+              10000,
+              4.115946446379374,
+              9978
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              111.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -3
+            ],
+            "horizon_distance": 3.100000000000009,
+            "counts_original": [
+              -23269.505000518508,
+              -33097.31597637171
+            ],
+            "counts_reconstructed": [
+              -23269.505000518617,
+              -33097.31597637179
+            ],
+            "denominator": 7.108280661374794e-08,
+            "footprint_inside_finite_ground": false
+          }
+        },
+        "f32": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 0.05902362828783225,
+          "max_relative_count_error": 7.994106568853026e-06,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 3.318016421745999e-08,
+          "worst": {
+            "camera": "Horizon3.1_Origin10000",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              10000,
+              12,
+              10028
+            ],
+            "target": [
+              10000,
+              4.115946446379374,
+              9978
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              110.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -3
+            ],
+            "horizon_distance": 3.100000000000009,
+            "counts_original": [
+              -23299.875660507332,
+              -33097.31597637171
+            ],
+            "counts_reconstructed": [
+              -23299.908203125,
+              -33097.375
+            ],
+            "denominator": 7.108269528544042e-08,
+            "footprint_inside_finite_ground": false
+          }
+        }
+      }
+    },
+    {
+      "translation_world": 10000,
+      "first_lane_horizon_distance": 3.01,
+      "results": {
+        "f64": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 2.295651938766241e-06,
+          "max_relative_count_error": 6.512192038183077e-12,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 1.7576102029639133e-14,
+          "worst": {
+            "camera": "Horizon3.01_Origin10000",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              10000,
+              12,
+              10028
+            ],
+            "target": [
+              10000,
+              4.119832343530668,
+              9978
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              110.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -3
+            ],
+            "horizon_distance": 3.0099999999999483,
+            "counts_original": [
+              -255495.6723673685,
+              -353531.9047086362
+            ],
+            "counts_reconstructed": [
+              -255495.67236570467,
+              -353531.9047063406
+            ],
+            "denominator": 7.108365638145372e-09,
+            "footprint_inside_finite_ground": false
+          }
+        },
+        "f32": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 12.217208636226133,
+          "max_relative_count_error": 3.516641704829193e-05,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 8.618813975486546e-08,
+          "worst": {
+            "camera": "Horizon3.01_Origin10000",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              10000,
+              12,
+              10028
+            ],
+            "target": [
+              10000,
+              4.119832343530668,
+              9978
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              110.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -3
+            ],
+            "horizon_distance": 3.0099999999999483,
+            "counts_original": [
+              -255495.6723673685,
+              -353531.9047086362
+            ],
+            "counts_reconstructed": [
+              -255486.6875,
+              -353519.6875
+            ],
+            "denominator": 7.108610589057207e-09,
+            "footprint_inside_finite_ground": false
+          }
+        }
+      }
+    },
+    {
+      "translation_world": 10000,
+      "first_lane_horizon_distance": 3.0001,
+      "results": {
+        "f64": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 0.0004440397024154663,
+          "max_relative_count_error": 1.2472591731987743e-11,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 5.957992855287439e-15,
+          "worst": {
+            "camera": "Horizon3.0001_Origin10000",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              10000,
+              12,
+              10028
+            ],
+            "target": [
+              10000,
+              4.1202597922173085,
+              9978
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              110.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -3
+            ],
+            "horizon_distance": 3.0000999999999887,
+            "counts_original": [
+              -25797033.326221038,
+              -35601336.67497458
+            ],
+            "counts_reconstructed": [
+              -25797033.32654278,
+              -35601336.67541862
+            ],
+            "denominator": 7.108374981139008e-11,
+            "footprint_inside_finite_ground": false
+          }
+        },
+        "f32": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 302019.3250254169,
+          "max_relative_count_error": 0.008483637285397177,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 1.984917515750385e-07,
+          "worst": {
+            "camera": "Horizon3.0001_Origin10000",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              10000,
+              12,
+              10028
+            ],
+            "target": [
+              10000,
+              4.1202597922173085,
+              9978
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              110.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -3
+            ],
+            "horizon_distance": 3.0000999999999887,
+            "counts_original": [
+              -25797033.326221038,
+              -35601336.67497458
+            ],
+            "counts_reconstructed": [
+              -26015886.0,
+              -35903356.0
+            ],
+            "denominator": 7.048583938740194e-11,
+            "footprint_inside_finite_ground": false
+          }
+        }
+      }
+    },
+    {
+      "translation_world": 10000,
+      "first_lane_horizon_distance": 3.000001,
+      "results": {
+        "f64": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 1.4424676895141602,
+          "max_relative_count_error": 4.051440968378274e-10,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 1.0873336817956149e-14,
+          "worst": {
+            "camera": "Horizon3_Origin10000",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              10000,
+              12,
+              10028
+            ],
+            "target": [
+              10000,
+              4.120264066704176,
+              9978
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              110.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -3
+            ],
+            "horizon_distance": 3.0000010000000223,
+            "counts_original": [
+              -2579950825.906261,
+              -3560381851.229481
+            ],
+            "counts_reconstructed": [
+              -2579950824.8610115,
+              -3560381849.7870135
+            ],
+            "denominator": 7.108375002611294e-13,
+            "footprint_inside_finite_ground": false
+          }
+        },
+        "f32": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 7570426468.770519,
+          "max_relative_count_error": 2.1262998829577415,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 1.8534551550610823e-07,
+          "worst": {
+            "camera": "Horizon3_Origin10000",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              10000,
+              12,
+              10028
+            ],
+            "target": [
+              10000,
+              4.120264066704176,
+              9978
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              110.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -3
+            ],
+            "horizon_distance": 3.0000010000000223,
+            "counts_original": [
+              -2579950825.906261,
+              -3560381851.229481
+            ],
+            "counts_reconstructed": [
+              -8065699840.0,
+              -11130808320.0
+            ],
+            "denominator": 2.2737367544323206e-13,
+            "footprint_inside_finite_ground": false
+          }
+        }
+      }
+    },
+    {
+      "translation_world": 10000000,
+      "first_lane_horizon_distance": 64,
+      "results": {
+        "f64": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 1.3969838619232178e-09,
+          "max_relative_count_error": 5.588051320944365e-16,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 2.2853410845412965e-14,
+          "worst": {
+            "camera": "Horizon64_Origin1e+07",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              10000000,
+              12,
+              10000028
+            ],
+            "target": [
+              10000000,
+              1.4864893740053535,
+              9999978
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              110.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -2.75
+            ],
+            "horizon_distance": 63.999999999999986,
+            "counts_original": [
+              2499957.4819625956,
+              2499948.402996736
+            ],
+            "counts_reconstructed": [
+              2499957.4819625965,
+              2499948.4029967347
+            ],
+            "denominator": 4.313293096750339e-05,
+            "footprint_inside_finite_ground": false
+          }
+        },
+        "f32": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 0.34700326388701797,
+          "max_relative_count_error": 1.388041703064985e-07,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 4.0355857319465045e-07,
+          "worst": {
+            "camera": "Horizon64_Origin1e+07",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              10000000,
+              12,
+              10000028
+            ],
+            "target": [
+              10000000,
+              1.4864893740053535,
+              9999978
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              110.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -2.75
+            ],
+            "horizon_distance": 63.999999999999986,
+            "counts_original": [
+              2499957.4819625956,
+              2499948.402996736
+            ],
+            "counts_reconstructed": [
+              2499957.25,
+              2499948.75
+            ],
+            "denominator": 4.3132931750733405e-05,
+            "footprint_inside_finite_ground": false
+          }
+        }
+      }
+    },
+    {
+      "translation_world": 10000000,
+      "first_lane_horizon_distance": 12,
+      "results": {
+        "f64": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 2.3283064365386963e-09,
+          "max_relative_count_error": 9.31429507306611e-16,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 1.5658871432132082e-14,
+          "worst": {
+            "camera": "Horizon12_Origin1e+07",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              10000000,
+              12,
+              10000028
+            ],
+            "target": [
+              10000000,
+              3.7316743947516446,
+              9999978
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              110.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -2.75
+            ],
+            "horizon_distance": 12.000000000000052,
+            "counts_original": [
+              2499720.7447864194,
+              2499621.6469890033
+            ],
+            "counts_reconstructed": [
+              2499720.744786417,
+              2499621.6469890047
+            ],
+            "denominator": 6.567209788923509e-06,
+            "footprint_inside_finite_ground": false
+          }
+        },
+        "f32": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 1.146989003289491,
+          "max_relative_count_error": 4.588650465045908e-07,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 3.0814560764230086e-07,
+          "worst": {
+            "camera": "Horizon12_Origin1e+07",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              10000000,
+              12,
+              10000028
+            ],
+            "target": [
+              10000000,
+              3.7316743947516446,
+              9999978
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              110.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -2.75
+            ],
+            "horizon_distance": 12.000000000000052,
+            "counts_original": [
+              2499720.7447864194,
+              2499621.6469890033
+            ],
+            "counts_reconstructed": [
+              2499721.0,
+              2499620.5
+            ],
+            "denominator": 6.567209311469924e-06,
+            "footprint_inside_finite_ground": false
+          }
+        }
+      }
+    },
+    {
+      "translation_world": 10000000,
+      "first_lane_horizon_distance": 6,
+      "results": {
+        "f64": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 4.6566128730773926e-09,
+          "max_relative_count_error": 1.863524932438894e-15,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 6.407414190106075e-15,
+          "worst": {
+            "camera": "Horizon6_Origin1e+07",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              10000000,
+              12,
+              10000028
+            ],
+            "target": [
+              10000000,
+              3.9907342048377537,
+              9999978
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              110.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -3
+            ],
+            "horizon_distance": 6.000000000000034,
+            "counts_original": [
+              2499139.670228442,
+              2498819.7324427725
+            ],
+            "counts_reconstructed": [
+              2499139.6702284426,
+              2498819.732442768
+            ],
+            "denominator": 2.1316565262108853e-06,
+            "footprint_inside_finite_ground": false
+          }
+        },
+        "f32": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 1.817023151088506,
+          "max_relative_count_error": 7.270591701641064e-07,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 4.851107479622683e-07,
+          "worst": {
+            "camera": "Horizon6_Origin1e+07",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              10000000,
+              12,
+              10000028
+            ],
+            "target": [
+              10000000,
+              3.9907342048377537,
+              9999978
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              111.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -3
+            ],
+            "horizon_distance": 6.000000000000034,
+            "counts_original": [
+              2499140.682976849,
+              2498819.7324427725
+            ],
+            "counts_reconstructed": [
+              2499142.5,
+              2498819.0
+            ],
+            "denominator": 2.131657765858108e-06,
+            "footprint_inside_finite_ground": false
+          }
+        }
+      }
+    },
+    {
+      "translation_world": 10000000,
+      "first_lane_horizon_distance": 3.1,
+      "results": {
+        "f64": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 5.494803190231323e-08,
+          "max_relative_count_error": 2.2208129765341346e-14,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 1.0426625848848545e-15,
+          "worst": {
+            "camera": "Horizon3.1_Origin1e+07",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              10000000,
+              12,
+              10000028
+            ],
+            "target": [
+              10000000,
+              4.115946446379374,
+              9999978
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              111.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -3
+            ],
+            "horizon_distance": 3.100000000000009,
+            "counts_original": [
+              2474230.4949994814,
+              2464402.6840236285
+            ],
+            "counts_reconstructed": [
+              2474230.4949995363,
+              2464402.6840236685
+            ],
+            "denominator": 7.108280661374794e-08,
+            "footprint_inside_finite_ground": false
+          }
+        },
+        "f32": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 13.624339492525905,
+          "max_relative_count_error": 5.506563255938333e-06,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 3.318016421745999e-08,
+          "worst": {
+            "camera": "Horizon3.1_Origin1e+07",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              10000000,
+              12,
+              10000028
+            ],
+            "target": [
+              10000000,
+              4.115946446379374,
+              9999978
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              110.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -3
+            ],
+            "horizon_distance": 3.100000000000009,
+            "counts_original": [
+              2474200.1243394925,
+              2464402.6840236285
+            ],
+            "counts_reconstructed": [
+              2474186.5,
+              2464412.75
+            ],
+            "denominator": 7.108269528544042e-08,
+            "footprint_inside_finite_ground": false
+          }
+        }
+      }
+    },
+    {
+      "translation_world": 10000000,
+      "first_lane_horizon_distance": 3.01,
+      "results": {
+        "f64": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 2.5313347578048706e-06,
+          "max_relative_count_error": 1.1806774379545344e-12,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 1.7576102029639133e-14,
+          "worst": {
+            "camera": "Horizon3.01_Origin1e+07",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              10000000,
+              12,
+              10000028
+            ],
+            "target": [
+              10000000,
+              4.119832343530668,
+              9999978
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              110.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -3
+            ],
+            "horizon_distance": 3.0099999999999483,
+            "counts_original": [
+              2242004.3276326316,
+              2143968.095291364
+            ],
+            "counts_reconstructed": [
+              2242004.3276344305,
+              2143968.0952938953
+            ],
+            "denominator": 7.108365638145372e-09,
+            "footprint_inside_finite_ground": false
+          }
+        },
+        "f32": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 407.4047086359933,
+          "max_relative_count_error": 0.00019002368063720054,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 8.618813975486546e-08,
+          "worst": {
+            "camera": "Horizon3.01_Origin1e+07",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              10000000,
+              12,
+              10000028
+            ],
+            "target": [
+              10000000,
+              4.119832343530668,
+              9999978
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              110.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -3
+            ],
+            "horizon_distance": 3.0099999999999483,
+            "counts_original": [
+              2242004.3276326316,
+              2143968.095291364
+            ],
+            "counts_reconstructed": [
+              2242176.5,
+              2144375.5
+            ],
+            "denominator": 7.108610589057207e-09,
+            "footprint_inside_finite_ground": false
+          }
+        }
+      }
+    },
+    {
+      "translation_world": 10000000,
+      "first_lane_horizon_distance": 3.0001,
+      "results": {
+        "f64": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 0.00048803165555000305,
+          "max_relative_count_error": 1.4742449956531444e-11,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 5.957992855287439e-15,
+          "worst": {
+            "camera": "Horizon3.0001_Origin1e+07",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              10000000,
+              12,
+              10000028
+            ],
+            "target": [
+              10000000,
+              4.1202597922173085,
+              9999978
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              110.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -3
+            ],
+            "horizon_distance": 3.0000999999999887,
+            "counts_original": [
+              -23299533.326221038,
+              -33103836.674974583
+            ],
+            "counts_reconstructed": [
+              -23299533.326475676,
+              -33103836.675462615
+            ],
+            "denominator": 7.108374981139008e-11,
+            "footprint_inside_finite_ground": false
+          }
+        },
+        "f32": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 308529.3250254169,
+          "max_relative_count_error": 0.009990429397612246,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 1.984917515750385e-07,
+          "worst": {
+            "camera": "Horizon3.0001_Origin1e+07",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              10000000,
+              12,
+              10000028
+            ],
+            "target": [
+              10000000,
+              4.1202597922173085,
+              9999978
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              110.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -3
+            ],
+            "horizon_distance": 3.0000999999999887,
+            "counts_original": [
+              -23299533.326221038,
+              -33103836.674974583
+            ],
+            "counts_reconstructed": [
+              -23508398.0,
+              -33412366.0
+            ],
+            "denominator": 7.048583938740194e-11,
+            "footprint_inside_finite_ground": false
+          }
+        }
+      }
+    },
+    {
+      "translation_world": 10000000,
+      "first_lane_horizon_distance": 3.000001,
+      "results": {
+        "f64": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 1.4410157203674316,
+          "max_relative_count_error": 4.0502039361382465e-10,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 1.0873336817956149e-14,
+          "worst": {
+            "camera": "Horizon3_Origin1e+07",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              10000000,
+              12,
+              10000028
+            ],
+            "target": [
+              10000000,
+              4.120264066704176,
+              9999978
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              110.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -3
+            ],
+            "horizon_distance": 3.0000010000000223,
+            "counts_original": [
+              -2577453325.906261,
+              -3557884351.229481
+            ],
+            "counts_reconstructed": [
+              -2577453324.8663406,
+              -3557884349.7884655
+            ],
+            "denominator": 7.108375002611294e-13,
+            "footprint_inside_finite_ground": false
+          }
+        },
+        "f32": {
+          "cases": 4,
+          "evaluations": 40,
+          "nonfinite": 0,
+          "sign_failures": 0,
+          "max_absolute_count_error": 7571701312.770519,
+          "max_relative_count_error": 2.130122149220022,
+          "max_center_native_count_difference": 0.0,
+          "max_derivative_relative_error": 1.8534551550610823e-07,
+          "worst": {
+            "camera": "Horizon3_Origin1e+07",
+            "size": [
+              1920,
+              1080
+            ],
+            "eye": [
+              10000000,
+              12,
+              10000028
+            ],
+            "target": [
+              10000000,
+              4.120264066704176,
+              9999978
+            ],
+            "jitter": [
+              0,
+              0
+            ],
+            "center": [
+              110.5,
+              360.5
+            ],
+            "offset": [
+              0,
+              -3
+            ],
+            "horizon_distance": 3.0000010000000223,
+            "counts_original": [
+              -2577453325.906261,
+              -3557884351.229481
+            ],
+            "counts_reconstructed": [
+              -8067743744.0,
+              -11129585664.0
+            ],
+            "denominator": 2.2737367544323206e-13,
+            "footprint_inside_finite_ground": false
+          }
+        }
+      }
+    }
+  ],
+  "negative_controls": {
+    "euclidean_distance_max_count_error": 0.000350422436310005,
+    "orthographic_wrong_reciprocal_depth_max_count_error": 0.18181818181818166
+  },
+  "engine_source_references": [
+    {
+      "file": "/Users/Shared/Epic Games/UE_5.8/Engine/Shaders/Private/MaterialTemplate.ush",
+      "lines": [
+        1120,
+        1127
+      ],
+      "observation": "Both PixelDepth overloads call GetScreenPositionDepth.",
+      "sha256": "2d237cc8c53a024341a6a3828a251a655fbc9a266c0a2d7ed7e244be90bf292d"
+    },
+    {
+      "file": "/Users/Shared/Epic Games/UE_5.8/Engine/Shaders/Private/Common.ush",
+      "lines": [
+        1396,
+        1403
+      ],
+      "observation": "Perspective returns ScreenPosition.w; orthographic converts device Z.",
+      "sha256": "11184bf6e39a0065e66acd174e2b8407c89791a184a2ad9552a1f1d83669c84b"
+    },
+    {
+      "file": "/Users/Shared/Epic Games/UE_5.8/Engine/Shaders/Private/Common.ush",
+      "lines": [
+        1546,
+        1554
+      ],
+      "observation": "ScreenPosition is NDC position multiplied by SvPosition.w, documented as SceneDepth.",
+      "sha256": "11184bf6e39a0065e66acd174e2b8407c89791a184a2ad9552a1f1d83669c84b"
+    },
+    {
+      "file": "/Users/Shared/Epic Games/UE_5.8/Engine/Source/Runtime/Engine/Private/Materials/HLSLMaterialTranslator.cpp",
+      "lines": [
+        8084,
+        8103
+      ],
+      "observation": "PixelDepth finite code is GetPixelDepth(Parameters); analytic derivative code uses ScreenPosition.w.",
+      "sha256": "6bcb229ab27d1c369ad31ee6861ea8e130e2bb28223454fa4318a317b979daa8"
+    }
+  ],
+  "model": "Original camera rays in binary64. Ordinary float world-position input and PixelDepth rounded to binary32; every arithmetic operation and fine/coarse quad subtraction rounded separately. No fused multiply-add, actual interpolation, or shader optimization simulation.",
+  "interpretation": "Exact projective reconstruction in real arithmetic for a perspective camera and a single plane. CPU float32 errors are measured in source periods, not image radiance; they are not a bound on the shared kernel output.",
+  "limitations": [
+    "No GPU execution: Metal interpolation, helper lanes, FMA, and material input precision remain unverified.",
+    "Main family keeps a 6-sigma rectangle on the finite 100000-world-unit ground plane. Stress includes invalid finite-plane footprints and near-pole extrapolation; inspect each worst-case flag.",
+    "Jitter is a constant screen translation shared by source rays and material derivatives. The material center remains local (0,0), with no extra half-pixel or unjitter correction.",
+    "Unqualified ddx/ddy may be coarse. Both coarse and fine are exact for affine real-valued n and w; their rounded results can differ.",
+    "Use perspective PixelDepth, not Euclidean distance, raw device Z, SceneDepth from another surface, or orthographic view depth.",
+    "No WorldPositionOffset/PixelDepthOffset or nonplanar surface equivalence is claimed. Apply q and depth to the same actually shaded plane.",
+    "Large absolute coordinates lose fractional phase during float world-position demotion; a fixed or uniform high-precision plane anchor is a separate integration decision."
+  ]
+}

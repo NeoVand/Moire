@@ -1,0 +1,10 @@
+{
+  "scope": "Observed native app window, not linear pixel measurement or timing",
+  "window_title": "MoireComparison (64-bit Development SF_METAL_SM6)",
+  "camera_motion_observed": true,
+  "analytic_pattern_visible": true,
+  "export_grunge_overlay_visible": false,
+  "saved_screenshot": "live-window.png",
+  "unsupported_magenta_visible": false,
+  "limitation": "Two window observations showed different camera poses; no per-frame timing or numerical image accuracy measured. Small default-player object visible under GameModeBase; subsequent launcher uses source-verified MoviePipelineGameMode to hide pawn/HUD."
+}

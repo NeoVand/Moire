@@ -1,0 +1,169 @@
+{
+  "createdAt": "2026-09-05T21:28:55.735Z",
+  "utilitySha256": "ccfaa97cca4d880aa8fa8746fb6c8413fd78cfc7f542b3a962fc4104d48263ed",
+  "reports": {
+    "fixed": {
+      "path": "native/evidence/game-quality-20260905T212821544Z/report.json",
+      "sha256": "077f40135ea731333f5c94c7104fa8ab6f0ee7aa2594614981dec5c691d688d5",
+      "captureHistory": "Fixed camera with warmed history; no convergence claim.",
+      "summary": {
+        "raw": {
+          "pixels": 54,
+          "rmseLinearRgb": 0.2677297959309237,
+          "maxAbsLinearRgb": 0.3986511306270037,
+          "rmseAfterDisplayAllowanceLinearRgb": 0.26309776149703085,
+          "maxAbsAfterDisplayAllowanceLinearRgb": 0.3968740824635411
+        },
+        "tsr": {
+          "pixels": 54,
+          "rmseLinearRgb": 0.11336319047727003,
+          "maxAbsLinearRgb": 0.34439488709267935,
+          "rmseAfterDisplayAllowanceLinearRgb": 0.10923933738977146,
+          "maxAbsAfterDisplayAllowanceLinearRgb": 0.3411387845103696
+        },
+        "analytic": {
+          "pixels": 54,
+          "rmseLinearRgb": 0.004138068033572279,
+          "maxAbsLinearRgb": 0.014100092996742308,
+          "rmseAfterDisplayAllowanceLinearRgb": 0.0003054414255651941,
+          "maxAbsAfterDisplayAllowanceLinearRgb": 0.00351080602051701
+        }
+      },
+      "maximumReferenceSequenceDifference": 0.001564865112304692,
+      "analyticResidualChannels": [
+        {
+          "x": 137,
+          "y": 148,
+          "channel": "B",
+          "residualLinear": -0.00351080602051701,
+          "displayCodes": [
+            216,
+            216,
+            215
+          ],
+          "referenceSequenceDifference": 0.00012130737304694161
+        },
+        {
+          "x": 502,
+          "y": 148,
+          "channel": "B",
+          "residualLinear": -0.0003425521778957774,
+          "displayCodes": [
+            105,
+            105,
+            104
+          ],
+          "referenceSequenceDifference": 0.0001334381103515747
+        },
+        {
+          "x": 251,
+          "y": 296,
+          "channel": "B",
+          "residualLinear": -0.0016341977642961858,
+          "displayCodes": [
+            223,
+            223,
+            222
+          ],
+          "referenceSequenceDifference": 0.0001819610595703569
+        }
+      ],
+      "rawDenseRegistration": 885,
+      "rawDenseFailures": 0
+    },
+    "motion": {
+      "path": "native/evidence/game-quality-20260905T212756753Z/report.json",
+      "sha256": "fdf0cf308971bd540055b561f10cf4189c04ea8a233cf64c06a13d5d18897d09",
+      "captureHistory": "Continuous playback to target, then paused for one additional stationary readback frame; not an uninterrupted motion capture.",
+      "summary": {
+        "raw": {
+          "pixels": 54,
+          "rmseLinearRgb": 0.2793302146234276,
+          "maxAbsLinearRgb": 0.49299794001421077,
+          "rmseAfterDisplayAllowanceLinearRgb": 0.27432104237420746,
+          "maxAbsAfterDisplayAllowanceLinearRgb": 0.4912208918507482
+        },
+        "tsr": {
+          "pixels": 54,
+          "rmseLinearRgb": 0.0982149426883878,
+          "maxAbsLinearRgb": 0.23205141736469842,
+          "rmseAfterDisplayAllowanceLinearRgb": 0.09346321887988938,
+          "maxAbsAfterDisplayAllowanceLinearRgb": 0.22893993290220244
+        },
+        "analytic": {
+          "pixels": 54,
+          "rmseLinearRgb": 0.004816582222622233,
+          "maxAbsLinearRgb": 0.014447167884339418,
+          "rmseAfterDisplayAllowanceLinearRgb": 0.0005483139118124432,
+          "maxAbsAfterDisplayAllowanceLinearRgb": 0.004268813961141649
+        }
+      },
+      "maximumReferenceSequenceDifference": 0.002935638427734366,
+      "analyticResidualChannels": [
+        {
+          "x": 41,
+          "y": 120,
+          "channel": "B",
+          "residualLinear": -0.0000887880382441919,
+          "displayCodes": [
+            205,
+            205,
+            204
+          ],
+          "referenceSequenceDifference": 0.00007278442382818717
+        },
+        {
+          "x": 41,
+          "y": 148,
+          "channel": "B",
+          "residualLinear": -0.00074676998651102,
+          "displayCodes": [
+            212,
+            212,
+            211
+          ],
+          "referenceSequenceDifference": 0.00010917663574216974
+        },
+        {
+          "x": 388,
+          "y": 148,
+          "channel": "B",
+          "residualLinear": -0.0034938657878094137,
+          "displayCodes": [
+            190,
+            190,
+            189
+          ],
+          "referenceSequenceDifference": 0.000036392211914093586
+        },
+        {
+          "x": 502,
+          "y": 148,
+          "channel": "B",
+          "residualLinear": -0.004268813961141649,
+          "displayCodes": [
+            209,
+            209,
+            208
+          ],
+          "referenceSequenceDifference": 0.00012130737304694161
+        },
+        {
+          "x": 41,
+          "y": 232,
+          "channel": "B",
+          "residualLinear": -0.0042082751962237985,
+          "displayCodes": [
+            151,
+            151,
+            150
+          ],
+          "referenceSequenceDifference": 0.00002426147460937722
+        }
+      ],
+      "rawDenseRegistration": 879,
+      "rawDenseFailures": 0
+    }
+  },
+  "interpretation": "Measured differences are against a chosen Gaussian target, not a universal AA ranking. Channel-specific residuals can include host color precision and dither; no attribution to one cause is proven."
+}

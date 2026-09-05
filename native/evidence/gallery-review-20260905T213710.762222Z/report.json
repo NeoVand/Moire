@@ -1,0 +1,26 @@
+{
+  "recorded_at": "20260905T213710.762222Z",
+  "kind": "manual browser inspection with DOM and screenshot checks",
+  "source_sha256": {
+    "native/comparison.html": "6fb2cf6706a30587646f04cba2bfb65937d1cae2201ea34a2775ef2dba7077b3",
+    "native/comparison-mrq.html": "2195c2690aef0b866bd712761f264463767267126c4d9666f381fc5c5c25d9de"
+  },
+  "url": "http://localhost:5175/native/comparison.html",
+  "checks": {
+    "all_six_images_loaded_at_640_by_360": true,
+    "all_six_original_links_match_displayed_image": true,
+    "at_rest_after_motion_and_return_controls": true,
+    "pressed_accessibility_state_tracks_selection": true,
+    "motion_footer_discloses_stationary_readback_frame": true,
+    "collapsed_evidence_details_by_default": true,
+    "browser_console_errors": 0,
+    "narrow_viewport_width": 390,
+    "narrow_document_scroll_width": 390,
+    "narrow_image_column_width": 354,
+    "viewport_override_reset": true
+  },
+  "limits": [
+    "Static image gallery verification only; no shader or GPU performance test.",
+    "Browser scaling changes fine image detail; original PNG links remain available."
+  ]
+}

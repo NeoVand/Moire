@@ -1,0 +1,183 @@
+{
+  "started_at": "20260905T211457.738570Z",
+  "argv": [
+    "/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/Mac/UnrealEditor.app/Contents/MacOS/UnrealEditor",
+    "/Users/neo/repos/Moire/native/Unreal/MoireComparison/MoireComparison.uproject",
+    "/Game/MoireComparison/Maps/Glide_LiveAnalytic",
+    "-game",
+    "-windowed",
+    "-ForceRes",
+    "-ResX=640",
+    "-ResY=360",
+    "-NoTextureStreaming",
+    "-unattended",
+    "-nop4",
+    "-nosplash",
+    "-nosound",
+    "-stdout",
+    "-AbsLog=/Users/neo/repos/Moire/native/evidence/live-20260905T211457.738570Z-analytic-glide/unreal.log",
+    "-ExecCmds=r.AntiAliasingMethod 0,sg.AntiAliasingQuality 3,r.ScreenPercentage 100,r.SecondaryScreenPercentage.GameViewport 100,r.DynamicRes.OperationMode 0,r.TSR.History.ScreenPercentage 200,r.Tonemapper.Quality 0,ShowFlag.Tonemapper 0,r.VSync 0,t.MaxFPS 0,r.AntiAliasingMethod,sg.AntiAliasingQuality,r.ScreenPercentage,r.SecondaryScreenPercentage.GameViewport,r.DynamicRes.OperationMode,r.TSR.History.ScreenPercentage,r.Tonemapper.Quality,ShowFlag.Tonemapper,r.VSync,t.MaxFPS"
+  ],
+  "run_requested": true,
+  "route": "ordinary game loop; persistent LevelSequenceActor autoplay; no capture protocol",
+  "fixed_simulation_clock": false,
+  "offline_view_family": false,
+  "arm": "analytic",
+  "path": "glide",
+  "resolution": [
+    640,
+    360
+  ],
+  "prepared_map": {
+    "map": "/Game/MoireComparison/Maps/Glide_LiveAnalytic",
+    "source_map": "/Game/MoireComparison/Maps/Glide0_MotionAnalytic",
+    "sequence": "/Game/MoireComparison/MotionSequences/Glide0_MotionAnalytic",
+    "arm": "analytic",
+    "path": "glide",
+    "detail": 1.0,
+    "initial_camera": {
+      "name": "Glide0",
+      "motion": "glide",
+      "time": 0.0,
+      "detail": 1.0,
+      "three_eye": [
+        0.0,
+        12.0,
+        28.0
+      ],
+      "three_target": [
+        0.0,
+        0.0,
+        -22.0
+      ],
+      "unreal_location_cm": [
+        -2800.0,
+        0.0,
+        1200.0
+      ],
+      "unreal_target_cm": [
+        2200.0,
+        0.0,
+        0.0
+      ],
+      "unreal_rotation_degrees": {
+        "pitch": -13.495733280795811,
+        "yaw": 0.0,
+        "roll": 0.0
+      },
+      "period_world": 4.0,
+      "horizontal_fov_degrees": 79.31687852038162
+    },
+    "verification": {
+      "settings": {
+        "auto_play": true,
+        "loop_count": -1,
+        "play_rate": 1.0,
+        "start_time": 0.0,
+        "random_start_time": false,
+        "pause_at_end": false,
+        "disable_camera_cuts": false
+      },
+      "binding_id": "A251261A4344452F1EEA66BA40227537",
+      "resolved_camera": "/Game/MoireComparison/Maps/Glide_LiveAnalytic.Glide_LiveAnalytic:PersistentLevel.CameraActor_0",
+      "allow_original_asset_binding": false,
+      "runtime_autoplay_verified": false,
+      "runtime_replay_cut_verified": false,
+      "temporal_history_reset_verified": false
+    },
+    "map_sha256": "efbba93391f13a9cdf4e8c3b239b34cd46f6c23602eb8b44086a35bffd2d6c9f",
+    "sequence_sha256": "9405a8d9f4281ff81186ac9326190063995310836c5e11b8c007c4a1b3af5110",
+    "launch_arguments": [
+      "/Users/neo/repos/Moire/native/Unreal/MoireComparison/MoireComparison.uproject",
+      "/Game/MoireComparison/Maps/Glide_LiveAnalytic",
+      "-game",
+      "-windowed"
+    ],
+    "reload_verification": {
+      "settings": {
+        "auto_play": true,
+        "loop_count": -1,
+        "play_rate": 1.0,
+        "start_time": 0.0,
+        "random_start_time": false,
+        "pause_at_end": false,
+        "disable_camera_cuts": false
+      },
+      "binding_id": "A251261A4344452F1EEA66BA40227537",
+      "resolved_camera": "/Game/MoireComparison/Maps/Glide_LiveAnalytic.Glide_LiveAnalytic:PersistentLevel.CameraActor_0",
+      "allow_original_asset_binding": false,
+      "runtime_autoplay_verified": false,
+      "runtime_replay_cut_verified": false,
+      "temporal_history_reset_verified": false
+    }
+  },
+  "preparation_sha256": "885dc314fe4e0da9a88c431098af6c46d7fa30fc8263ac2e747abc5d53ed2d34",
+  "requested_cvars": {
+    "r.AntiAliasingMethod": 0,
+    "sg.AntiAliasingQuality": 3,
+    "r.ScreenPercentage": 100,
+    "r.SecondaryScreenPercentage.GameViewport": 100,
+    "r.DynamicRes.OperationMode": 0,
+    "r.TSR.History.ScreenPercentage": 200,
+    "r.Tonemapper.Quality": 0,
+    "ShowFlag.Tonemapper": 0,
+    "r.VSync": 0,
+    "t.MaxFPS": 0
+  },
+  "profile_frames_requested": 0,
+  "status": "bounded-run-stopped",
+  "performance_verified": false,
+  "limitations": [
+    "Runtime camera activation, replay cuts and history require separate checks.",
+    "Boot CSV includes startup/warm-up. No steady-state timing summary is implied."
+  ],
+  "source_hashes": {
+    "native/Unreal/MoireComparison/Content/MoireComparison/Maps/Glide_LiveAnalytic.umap": "efbba93391f13a9cdf4e8c3b239b34cd46f6c23602eb8b44086a35bffd2d6c9f",
+    "native/Unreal/MoireComparison/Content/MoireComparison/MotionSequences/Glide0_MotionAnalytic.uasset": "9405a8d9f4281ff81186ac9326190063995310836c5e11b8c007c4a1b3af5110",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_Checker_Detail2.uasset": "9e7f9ffe0b638b5c24913330183a08633e0f719115cd05b2f18ea87acacf98ac",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_Analytic_Glide0.uasset": "60529526d4a05b8441a597de9588c008a1c341f55c44ccf28c11f8d5fb97eaa5",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_MotionAnalytic_Detail2.uasset": "e803f0790207c502c38069452ed264a5647156fc9946e5f1d2ef3f4401f3ef4e",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_Analytic_Glide8.uasset": "473b6f2c08ce8d16b49fc3df28dd4409c164dc695ae20576fb3029d14a279b82",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_MotionRegimes_Detail1.uasset": "a18a9d6776a79772d8b0e179021f641a663e55a20306629a54842942d67f3848",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_Checker_Detail1.uasset": "dfc9682c330ecaaac01d4e5bf49fc7c7e1bdd9aeb8cf9835d73e2bceaedc41ac",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_Analytic_Approach4.uasset": "19a7043b8e3a8b152ec11e160d6cd0f5d99df8590ea566517d92fae9c6b3101a",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_Sky.uasset": "2db5c3fc276261d2ab9750054863ed180395957397855d92f0602953ffe628a2",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_MotionRegimes_Detail2.uasset": "d45231aaf26d1f0642c91c4c323dc1d868f4b3213bb3b0eab6925834e8dafeb7",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_MotionAnalytic_Detail1.uasset": "52261a35e5c478df172ffb1a9653e489941287fe3590e84ec632c0024a18f0c8",
+    "native/tools/launch_live.py": "92b504df5831fe105fa3fcdc39e16da412f7263d3eb119e4ef1f0774a80d5f65",
+    "native/Unreal/MoireComparison/Scripts/dynamic_material.py": "9f2a6ece1036161358b28bbdf1c46fc49b3bb833756d951bfb750e69439e1088",
+    "native/Unreal/MoireComparison/Scripts/prepare_live.py": "c63d01190ff27215d94aa8b1df5a5dd6c2aeb3d0bfd67505b9e0ff74cf5e053c",
+    "native/Unreal/MoireComparison/MoireComparison.uproject": "499cf1857cef9b748c80a96b50cfcf867d700c595e7f155a98677c16c793132b",
+    "native/Unreal/MoireComparison/Config/DefaultEngine.ini": "76d6bfd602f35c0e4896f7f492fa5b7ed0aa061a7ae5b3d1044397bc50e286c6",
+    "native/Unreal/MoireComparison/Shaders/Moire/Generated/Kernel.ush": "9fc69877f79ed170e926825b119018623f68ffa887a9ae73d179eb9550a52f26",
+    "native/Unreal/MoireComparison/Shaders/Moire/Generated/source.json": "39c3ead89d0a8fb3d4497b3e42ae70b3ba7e22bfb710b491a33172c902936286"
+  },
+  "owned_pid": 16052,
+  "exit_code": 0,
+  "elapsed_wall_seconds": 60.50105320796138,
+  "source_hashes_after": {
+    "native/Unreal/MoireComparison/Content/MoireComparison/Maps/Glide_LiveAnalytic.umap": "efbba93391f13a9cdf4e8c3b239b34cd46f6c23602eb8b44086a35bffd2d6c9f",
+    "native/Unreal/MoireComparison/Content/MoireComparison/MotionSequences/Glide0_MotionAnalytic.uasset": "9405a8d9f4281ff81186ac9326190063995310836c5e11b8c007c4a1b3af5110",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_Checker_Detail2.uasset": "9e7f9ffe0b638b5c24913330183a08633e0f719115cd05b2f18ea87acacf98ac",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_Analytic_Glide0.uasset": "60529526d4a05b8441a597de9588c008a1c341f55c44ccf28c11f8d5fb97eaa5",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_MotionAnalytic_Detail2.uasset": "e803f0790207c502c38069452ed264a5647156fc9946e5f1d2ef3f4401f3ef4e",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_Analytic_Glide8.uasset": "473b6f2c08ce8d16b49fc3df28dd4409c164dc695ae20576fb3029d14a279b82",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_MotionRegimes_Detail1.uasset": "a18a9d6776a79772d8b0e179021f641a663e55a20306629a54842942d67f3848",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_Checker_Detail1.uasset": "dfc9682c330ecaaac01d4e5bf49fc7c7e1bdd9aeb8cf9835d73e2bceaedc41ac",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_Analytic_Approach4.uasset": "19a7043b8e3a8b152ec11e160d6cd0f5d99df8590ea566517d92fae9c6b3101a",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_Sky.uasset": "2db5c3fc276261d2ab9750054863ed180395957397855d92f0602953ffe628a2",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_MotionRegimes_Detail2.uasset": "d45231aaf26d1f0642c91c4c323dc1d868f4b3213bb3b0eab6925834e8dafeb7",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_MotionAnalytic_Detail1.uasset": "52261a35e5c478df172ffb1a9653e489941287fe3590e84ec632c0024a18f0c8",
+    "native/tools/launch_live.py": "92b504df5831fe105fa3fcdc39e16da412f7263d3eb119e4ef1f0774a80d5f65",
+    "native/Unreal/MoireComparison/Scripts/dynamic_material.py": "9f2a6ece1036161358b28bbdf1c46fc49b3bb833756d951bfb750e69439e1088",
+    "native/Unreal/MoireComparison/Scripts/prepare_live.py": "c63d01190ff27215d94aa8b1df5a5dd6c2aeb3d0bfd67505b9e0ff74cf5e053c",
+    "native/Unreal/MoireComparison/MoireComparison.uproject": "499cf1857cef9b748c80a96b50cfcf867d700c595e7f155a98677c16c793132b",
+    "native/Unreal/MoireComparison/Config/DefaultEngine.ini": "76d6bfd602f35c0e4896f7f492fa5b7ed0aa061a7ae5b3d1044397bc50e286c6",
+    "native/Unreal/MoireComparison/Shaders/Moire/Generated/Kernel.ush": "9fc69877f79ed170e926825b119018623f68ffa887a9ae73d179eb9550a52f26",
+    "native/Unreal/MoireComparison/Shaders/Moire/Generated/source.json": "39c3ead89d0a8fb3d4497b3e42ae70b3ba7e22bfb710b491a33172c902936286"
+  },
+  "source_hashes_stable": true,
+  "csv_artifacts": [],
+  "failures": [],
+  "console_setting_lines": []
+}

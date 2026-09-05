@@ -1,0 +1,135 @@
+{
+  "createdAt": "2026-09-05T21:14:46.815Z",
+  "status": "negative-controls-pass-corrected-native-triplet-pending",
+  "utilitySha256": "b71a26e5d36e9bcc385c5f54606941346e50d6deb3defee17fdd6df3fe53ee1e",
+  "knownContaminatedRaw": {
+    "report": "native/evidence/viewport-diagnosis-20260905T211116.680566Z-raw-Glide0/report.json",
+    "sha256": "3f410cab165b7f192c93e9a0ba145c7286c8d83230af1bf8fffa8e9630223b4b",
+    "pngBitDepth": 16,
+    "documentedTransfer": "documented-power-gamma-2.2",
+    "calibration": {
+      "passed": false,
+      "method": "documented-power-gamma-2.2; each raw pixel must be within one integer code of a rounded source-palette color on the normalized 0–255 display scale. Native sample precision is retained when supplied. No transfer curve or parameter is fitted.",
+      "pixels": 230400,
+      "pixelsOutsideOneCodeOfRoundedPalette": 158014,
+      "worstRoundedByteError": 83.43968871595331,
+      "worstUnroundedByteError": 83.44437659391954,
+      "nearestPaletteClassCounts": {
+        "dark": 108985,
+        "light": 57136,
+        "sky": 64279
+      },
+      "expectedUnroundedDisplayBytes": [
+        [
+          47.67943424047372,
+          47.67943424047372,
+          47.67943424047372
+        ],
+        [
+          233.00468787796623,
+          233.00468787796623,
+          233.00468787796623
+        ],
+        [
+          91.54322863228488,
+          100.87583874810366,
+          110.86042423273335
+        ]
+      ],
+      "firstFailures": [
+        {
+          "x": 0,
+          "y": 0,
+          "displayCodes": [
+            65.55642023346303,
+            49.60311284046693,
+            31.90661478599222
+          ],
+          "roundedByteError": 17.55642023346303
+        },
+        {
+          "x": 1,
+          "y": 0,
+          "displayCodes": [
+            67.3035019455253,
+            51.1011673151751,
+            33.15175097276265
+          ],
+          "roundedByteError": 19.303501945525298
+        },
+        {
+          "x": 2,
+          "y": 0,
+          "displayCodes": [
+            71.7898832684825,
+            55.83657587548638,
+            37.14007782101167
+          ],
+          "roundedByteError": 23.789883268482498
+        },
+        {
+          "x": 3,
+          "y": 0,
+          "displayCodes": [
+            81.01167315175097,
+            65.55642023346303,
+            45.36575875486381
+          ],
+          "roundedByteError": 33.01167315175097
+        },
+        {
+          "x": 4,
+          "y": 0,
+          "displayCodes": [
+            84.25291828793775,
+            68.7976653696498,
+            48.10894941634241
+          ],
+          "roundedByteError": 36.252918287937746
+        },
+        {
+          "x": 5,
+          "y": 0,
+          "displayCodes": [
+            87.24513618677042,
+            70.7898832684825,
+            47.11284046692607
+          ],
+          "roundedByteError": 39.245136186770424
+        },
+        {
+          "x": 6,
+          "y": 0,
+          "displayCodes": [
+            89.23735408560312,
+            72.03891050583658,
+            48.10894941634241
+          ],
+          "roundedByteError": 41.237354085603116
+        },
+        {
+          "x": 7,
+          "y": 0,
+          "displayCodes": [
+            88.98832684824903,
+            72.28793774319067,
+            47.36186770428016
+          ],
+          "roundedByteError": 40.98832684824903
+        }
+      ]
+    }
+  },
+  "mainScorerNegativeControl": {
+    "syntheticMetadataOnly": true,
+    "fixtureDirectory": "/tmp/moire-game-scorer-negative-j3GlZ3",
+    "summary": null,
+    "status": "quantitative-scores-withheld",
+    "noMeasuredLinearFields": true
+  },
+  "missingGammaCommandRejected": true,
+  "wrongReadbackStageRejected": true,
+  "invalidGammaMetadataRejected": true,
+  "correctedNativeTripletScored": false,
+  "gpuJobs": 0
+}

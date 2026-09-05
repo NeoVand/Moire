@@ -1,0 +1,45 @@
+{
+  "createdAt": "2026-09-05T21:23:16.414Z",
+  "status": "scorer-ready-clean-triplets-pending",
+  "utilitySha256": "48bea4812cad1988b8763a23df214afccec85c95bb1d26b9983d74a031c6f6cd",
+  "realWindowTransferRecognized": "documented-power-gamma-2.2",
+  "realWindowAttempt": {
+    "report": "native/evidence/viewport-diagnosis-20260905T211825.669833Z-raw-Glide0/report.json",
+    "status": "timed-out",
+    "accepted": false
+  },
+  "knownFixedRawRegistration": {
+    "image": "native/evidence/mrq-capture-20260905T203404.322055Z-raw-Glide0/frames/raw_Glide0.0064.png",
+    "sha256": "7ac1857bf1203056c7abe5a4bd77e22dac071e6083cc9e8825b3b5ce3158eaf3",
+    "checked": 885,
+    "failures": 0
+  },
+  "pureSourceMotionTimingControl": {
+    "sourceTimes": [
+      2,
+      2.0166666666666666
+    ],
+    "stableGridPoints": 879,
+    "pointsWithChangedParity": [
+      [
+        98,
+        93
+      ],
+      [
+        472,
+        93
+      ],
+      [
+        217,
+        214
+      ],
+      [
+        149,
+        258
+      ]
+    ],
+    "notACapturedMotionComparison": true
+  },
+  "gpuJobs": 0,
+  "nativeGameQualityScores": null
+}

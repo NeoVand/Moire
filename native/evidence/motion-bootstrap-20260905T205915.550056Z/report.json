@@ -1,0 +1,158 @@
+{
+  "started_at": "20260905T205915.550056Z",
+  "argv": [
+    "/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/Mac/UnrealEditor-Cmd",
+    "/Users/neo/repos/Moire/native/Unreal/MoireComparison/MoireComparison.uproject",
+    "-run=pythonscript",
+    "-script=/Users/neo/repos/Moire/native/Unreal/MoireComparison/Scripts/bootstrap_motion.py",
+    "-nullrhi",
+    "-unattended",
+    "-nop4",
+    "-nosplash",
+    "-stdout",
+    "-AbsLog=/Users/neo/repos/Moire/native/evidence/motion-bootstrap-20260905T205915.550056Z/unreal.log"
+  ],
+  "rendered": false,
+  "status": "passed",
+  "exit_code": 0,
+  "bootstrap": {
+    "created_at": "20260905T205925.539117Z",
+    "status": "passed",
+    "generator": "native-motion-v1",
+    "rendered": false,
+    "kernel": {
+      "createdAt": "2026-09-05T20:17:45.210Z",
+      "source": "demo/ours-kernel.hlsl",
+      "sourceSha256": "85c87f01b4d16a18dbad1fa8a34dc2e793eeb0769377569fb3432ebf7a5595bc",
+      "generator": "demo/ours-kernel.wgsl.js",
+      "generatorSha256": "ac855cdb4d478faf8130176d8dda2507b28909218a8d955c6b1e724e6c083cd1",
+      "adapter": "native/Unreal/MoireComparison/Scripts/stage_kernel.mjs",
+      "adapterSha256": "528620a27681ad56ce70e3615a076f82fe139e2183eb055a618054ab9d75227d",
+      "output": "Shaders/Moire/Generated/Kernel.ush",
+      "outputSha256": "9fc69877f79ed170e926825b119018623f68ffa887a9ae73d179eb9550a52f26",
+      "transformation": "Namespace MoireKernel; PI and TAU constant tokens renamed. No numerical or control-flow changes."
+    },
+    "controls_before": {
+      "Content/MoireComparison/Materials/M_Analytic_Approach4.uasset": "19a7043b8e3a8b152ec11e160d6cd0f5d99df8590ea566517d92fae9c6b3101a",
+      "Content/MoireComparison/Materials/M_Analytic_Glide0.uasset": "60529526d4a05b8441a597de9588c008a1c341f55c44ccf28c11f8d5fb97eaa5",
+      "Content/MoireComparison/Materials/M_Analytic_Glide8.uasset": "473b6f2c08ce8d16b49fc3df28dd4409c164dc695ae20576fb3029d14a279b82",
+      "Content/MoireComparison/Materials/M_Checker_Detail1.uasset": "dfc9682c330ecaaac01d4e5bf49fc7c7e1bdd9aeb8cf9835d73e2bceaedc41ac",
+      "Content/MoireComparison/Materials/M_Checker_Detail2.uasset": "9e7f9ffe0b638b5c24913330183a08633e0f719115cd05b2f18ea87acacf98ac",
+      "Content/MoireComparison/Materials/M_Sky.uasset": "2db5c3fc276261d2ab9750054863ed180395957397855d92f0602953ffe628a2",
+      "Content/MoireComparison/Maps/Approach4.umap": "1e4749845d18cac2f30e1b7de23a852de9b97cfd3ea7d07e29e70079a74bb40d",
+      "Content/MoireComparison/Maps/Approach4_Analytic.umap": "c0b3f2cd227659e59a51f7071e56ae60e9a078e5622160703b59e5232c21f4c6",
+      "Content/MoireComparison/Maps/Glide0.umap": "3117a9f6f6b86983b0c03dc9dc92dae73b6c67b5453f9cc486002484485dd85d",
+      "Content/MoireComparison/Maps/Glide0_Analytic.umap": "769128a884f95fc5075e2d337b0e2c03d7a811d8ac6cf0f1fe3e489dbd17a1d4",
+      "Content/MoireComparison/Maps/Glide8.umap": "ace6dde5113fb7681fb2382ec6c45bf674c913b1866672ac04a5c8395c2971f7",
+      "Content/MoireComparison/Maps/Glide8_Analytic.umap": "fa2a63066100fea559b113468fd44a7785c24adff6ca3abda62baf155011c7ff"
+    },
+    "maps": [
+      {
+        "map": "/Game/MoireComparison/Maps/Glide0_MotionAnalytic",
+        "pose": {
+          "name": "Glide0",
+          "motion": "glide",
+          "time": 0.0,
+          "detail": 1.0,
+          "three_eye": [
+            0.0,
+            12.0,
+            28.0
+          ],
+          "three_target": [
+            0.0,
+            0.0,
+            -22.0
+          ],
+          "unreal_location_cm": [
+            -2800.0,
+            0.0,
+            1200.0
+          ],
+          "unreal_target_cm": [
+            2200.0,
+            0.0,
+            0.0
+          ],
+          "unreal_rotation_degrees": {
+            "pitch": -13.495733280795811,
+            "yaw": 0.0,
+            "roll": 0.0
+          },
+          "period_world": 4.0,
+          "horizontal_fov_degrees": 79.31687852038162
+        },
+        "material": "/Game/MoireComparison/Materials/M_MotionAnalytic_Detail1.M_MotionAnalytic_Detail1",
+        "map_sha256": "edbd0c5d86cf1db0ecf8a5609f6a405ec85d1848748a29661475dea4579ab216"
+      },
+      {
+        "map": "/Game/MoireComparison/Maps/Approach4_MotionAnalytic",
+        "pose": {
+          "name": "Approach4",
+          "motion": "approach",
+          "time": 4.0,
+          "detail": 2.0,
+          "three_eye": [
+            0.0,
+            12.0,
+            18.75113345321237
+          ],
+          "three_target": [
+            0.0,
+            0.0,
+            -31.24886654678763
+          ],
+          "unreal_location_cm": [
+            -1875.113345321237,
+            0.0,
+            1200.0
+          ],
+          "unreal_target_cm": [
+            3124.886654678763,
+            0.0,
+            0.0
+          ],
+          "unreal_rotation_degrees": {
+            "pitch": -13.495733280795811,
+            "yaw": 0.0,
+            "roll": 0.0
+          },
+          "period_world": 2.0,
+          "horizontal_fov_degrees": 79.31687852038162
+        },
+        "material": "/Game/MoireComparison/Materials/M_MotionAnalytic_Detail2.M_MotionAnalytic_Detail2",
+        "map_sha256": "0f5222b9a177312fffef2c59b773dcc33cbf82f05bc58bbf43cc390dbb2f4d88"
+      }
+    ],
+    "projection": "perspective only",
+    "unsupported_color": [
+      1,
+      0,
+      1
+    ],
+    "invalid_inputs_color": [
+      1,
+      0,
+      0
+    ],
+    "controls_after": {
+      "Content/MoireComparison/Materials/M_Analytic_Approach4.uasset": "19a7043b8e3a8b152ec11e160d6cd0f5d99df8590ea566517d92fae9c6b3101a",
+      "Content/MoireComparison/Materials/M_Analytic_Glide0.uasset": "60529526d4a05b8441a597de9588c008a1c341f55c44ccf28c11f8d5fb97eaa5",
+      "Content/MoireComparison/Materials/M_Analytic_Glide8.uasset": "473b6f2c08ce8d16b49fc3df28dd4409c164dc695ae20576fb3029d14a279b82",
+      "Content/MoireComparison/Materials/M_Checker_Detail1.uasset": "dfc9682c330ecaaac01d4e5bf49fc7c7e1bdd9aeb8cf9835d73e2bceaedc41ac",
+      "Content/MoireComparison/Materials/M_Checker_Detail2.uasset": "9e7f9ffe0b638b5c24913330183a08633e0f719115cd05b2f18ea87acacf98ac",
+      "Content/MoireComparison/Materials/M_Sky.uasset": "2db5c3fc276261d2ab9750054863ed180395957397855d92f0602953ffe628a2",
+      "Content/MoireComparison/Maps/Approach4.umap": "1e4749845d18cac2f30e1b7de23a852de9b97cfd3ea7d07e29e70079a74bb40d",
+      "Content/MoireComparison/Maps/Approach4_Analytic.umap": "c0b3f2cd227659e59a51f7071e56ae60e9a078e5622160703b59e5232c21f4c6",
+      "Content/MoireComparison/Maps/Glide0.umap": "3117a9f6f6b86983b0c03dc9dc92dae73b6c67b5453f9cc486002484485dd85d",
+      "Content/MoireComparison/Maps/Glide0_Analytic.umap": "769128a884f95fc5075e2d337b0e2c03d7a811d8ac6cf0f1fe3e489dbd17a1d4",
+      "Content/MoireComparison/Maps/Glide8.umap": "ace6dde5113fb7681fb2382ec6c45bf674c913b1866672ac04a5c8395c2971f7",
+      "Content/MoireComparison/Maps/Glide8_Analytic.umap": "fa2a63066100fea559b113468fd44a7785c24adff6ca3abda62baf155011c7ff"
+    },
+    "script_hashes": {
+      "bootstrap_motion.py": "1a4b5b52d2d62a8bb850ff1f5d3428aa3265e0105bf53ab821e930725b739273",
+      "dynamic_material.py": "9f2a6ece1036161358b28bbdf1c46fc49b3bb833756d951bfb750e69439e1088"
+    }
+  },
+  "bootstrap_report": "/Users/neo/repos/Moire/native/Unreal/MoireComparison/Saved/MoireComparison/bootstrap-motion-20260905T205925.539117Z.json"
+}

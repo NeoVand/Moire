@@ -1,0 +1,52 @@
+{
+  "status": "captured",
+  "registered_engine_frame": 0,
+  "capture_route": "ordinary Shot",
+  "sequence_start_frame": 55,
+  "initial_seek_only": true,
+  "continuous_playback_between_start_and_target": true,
+  "sequence_at_request": {
+    "frame": 120,
+    "sub_frame": 2.384185791015625e-07,
+    "rate_numerator": 60,
+    "rate_denominator": 1
+  },
+  "paused_for_shot": true,
+  "history_reset_during_final_seek": false,
+  "extra_stationary_readback_frame": true,
+  "requested_engine_frame": 66,
+  "camera_location": [
+    -2800.0,
+    318.71171931730436,
+    1200.0
+  ],
+  "camera_rotation": [
+    -0.0,
+    -13.487750057445224,
+    -2.0078696600013473
+  ],
+  "camera_fov": 79.31687927246094,
+  "fixed_camera": false,
+  "high_resolution_screenshot": false,
+  "completed_engine_frame": 67,
+  "png_bytes": 281117,
+  "camera_at_completion": {
+    "camera_location": [
+      -2800.0,
+      318.71171931730436,
+      1200.0
+    ],
+    "camera_rotation": [
+      -0.0,
+      -13.487750057445224,
+      -2.0078696600013473
+    ],
+    "camera_fov": 79.31687927246094
+  },
+  "sequence_at_completion": {
+    "frame": 120,
+    "sub_frame": 2.384185791015625e-07,
+    "rate_numerator": 60,
+    "rate_denominator": 1
+  }
+}

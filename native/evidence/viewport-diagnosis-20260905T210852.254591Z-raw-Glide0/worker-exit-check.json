@@ -1,0 +1,8 @@
+{
+  "checked_at": "2026-09-05T21:14:51.427314+00:00",
+  "parent_pid_observed_during_run": 14574,
+  "owned_shader_directory_fragment": "A056D706CF455C012A8E188B70CEFA16",
+  "matching_shader_workers": [],
+  "all_owned_workers_exited": true,
+  "unrelated_processes_touched": false
+}

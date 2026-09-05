@@ -1,0 +1,8 @@
+{
+  "output": "/Users/neo/repos/Moire/native/evidence/viewport-diagnosis-20260905T212647.625707Z-tsr-Glide0/frames/tsr_Glide0.0120.png",
+  "record": "/Users/neo/repos/Moire/native/evidence/viewport-diagnosis-20260905T212647.625707Z-tsr-Glide0/shot.json",
+  "world": "/Game/MoireComparison/Maps/Glide0.Glide0",
+  "warmup_frames": 64,
+  "motion_sequence": "/Game/MoireComparison/MotionSequences/Glide0",
+  "target_sequence_frame": 120
+}

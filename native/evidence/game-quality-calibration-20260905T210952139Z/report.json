@@ -1,0 +1,159 @@
+{
+  "createdAt": "2026-09-05T21:09:52.140Z",
+  "status": "helper-controls-passed-triplet-awaits-corrected-captures",
+  "utilitySha256": "feeeda0a59ae4505d552fa91ee0c313b09fc62a43172359664f98ca1fa0c4aef",
+  "negative": {
+    "image": "native/evidence/viewport-diagnosis-20260905T210327.764543Z-raw-Glide0/frames/raw_Glide0.FinalImage.0064.png",
+    "sha256": "3f410cab165b7f192c93e9a0ba145c7286c8d83230af1bf8fffa8e9630223b4b",
+    "calibration": {
+      "passed": false,
+      "method": "Standard sRGB only; each raw pixel must be within one integer code of a rounded source-palette color. No transfer curve is fitted.",
+      "pixels": 230400,
+      "pixelsOutsideOneCodeOfRoundedPalette": 230400,
+      "worstRoundedByteError": 84,
+      "worstUnroundedByteError": 83.64975680616183,
+      "nearestPaletteClassCounts": {
+        "dark": 104978,
+        "light": 57196,
+        "sky": 68226
+      },
+      "expectedUnroundedSrgbBytes": [
+        [
+          43.82024218160285,
+          43.82024218160285,
+          43.82024218160285
+        ],
+        [
+          233.64975680616183,
+          233.64975680616183,
+          233.64975680616183
+        ],
+        [
+          91.16025109339552,
+          100.94972253972188,
+          111.33990219128421
+        ]
+      ],
+      "firstFailures": [
+        {
+          "x": 0,
+          "y": 0,
+          "bytes": [
+            66,
+            50,
+            32
+          ],
+          "roundedByteError": 22
+        },
+        {
+          "x": 1,
+          "y": 0,
+          "bytes": [
+            67,
+            51,
+            33
+          ],
+          "roundedByteError": 23
+        },
+        {
+          "x": 2,
+          "y": 0,
+          "bytes": [
+            72,
+            56,
+            37
+          ],
+          "roundedByteError": 28
+        },
+        {
+          "x": 3,
+          "y": 0,
+          "bytes": [
+            81,
+            66,
+            45
+          ],
+          "roundedByteError": 37
+        },
+        {
+          "x": 4,
+          "y": 0,
+          "bytes": [
+            84,
+            69,
+            48
+          ],
+          "roundedByteError": 40
+        },
+        {
+          "x": 5,
+          "y": 0,
+          "bytes": [
+            87,
+            71,
+            47
+          ],
+          "roundedByteError": 43
+        },
+        {
+          "x": 6,
+          "y": 0,
+          "bytes": [
+            89,
+            72,
+            48
+          ],
+          "roundedByteError": 45
+        },
+        {
+          "x": 7,
+          "y": 0,
+          "bytes": [
+            89,
+            72,
+            47
+          ],
+          "roundedByteError": 45
+        }
+      ]
+    }
+  },
+  "positive": {
+    "image": "native/evidence/mrq-capture-20260905T203404.322055Z-raw-Glide0/frames/raw_Glide0.0064.png",
+    "sha256": "7ac1857bf1203056c7abe5a4bd77e22dac071e6083cc9e8825b3b5ce3158eaf3",
+    "calibration": {
+      "passed": true,
+      "method": "Standard sRGB only; each raw pixel must be within one integer code of a rounded source-palette color. No transfer curve is fitted.",
+      "pixels": 230400,
+      "pixelsOutsideOneCodeOfRoundedPalette": 0,
+      "worstRoundedByteError": 1,
+      "worstUnroundedByteError": 1.0502774602781244,
+      "nearestPaletteClassCounts": {
+        "dark": 87331,
+        "light": 87389,
+        "sky": 55680
+      },
+      "expectedUnroundedSrgbBytes": [
+        [
+          43.82024218160285,
+          43.82024218160285,
+          43.82024218160285
+        ],
+        [
+          233.64975680616183,
+          233.64975680616183,
+          233.64975680616183
+        ],
+        [
+          91.16025109339552,
+          100.94972253972188,
+          111.33990219128421
+        ]
+      ],
+      "firstFailures": []
+    }
+  },
+  "knownIndependentPointFixtures": 54,
+  "gpuJobs": 0,
+  "linearGameScores": null
+}

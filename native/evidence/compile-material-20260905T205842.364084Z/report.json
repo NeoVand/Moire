@@ -1,0 +1,306 @@
+{
+  "started_at": "20260905T205842.364084Z",
+  "status": "passed",
+  "stage": {
+    "createdAt": "2026-09-05T20:17:45.210Z",
+    "source": "demo/ours-kernel.hlsl",
+    "sourceSha256": "85c87f01b4d16a18dbad1fa8a34dc2e793eeb0769377569fb3432ebf7a5595bc",
+    "generator": "demo/ours-kernel.wgsl.js",
+    "generatorSha256": "ac855cdb4d478faf8130176d8dda2507b28909218a8d955c6b1e724e6c083cd1",
+    "adapter": "native/Unreal/MoireComparison/Scripts/stage_kernel.mjs",
+    "adapterSha256": "528620a27681ad56ce70e3615a076f82fe139e2183eb055a618054ab9d75227d",
+    "output": "Shaders/Moire/Generated/Kernel.ush",
+    "outputSha256": "9fc69877f79ed170e926825b119018623f68ffa887a9ae73d179eb9550a52f26",
+    "transformation": "Namespace MoireKernel; PI and TAU constant tokens renamed. No numerical or control-flow changes."
+  },
+  "source_hashes": {
+    "native/Unreal/MoireComparison/Shaders/Moire/Generated/Kernel.ush": "9fc69877f79ed170e926825b119018623f68ffa887a9ae73d179eb9550a52f26",
+    "native/Unreal/MoireComparison/Scripts/analytic_material.py": "e14cf5faf5a7570699ec0c7fa1f6d3cc5502edd8c6a81dcd878410f94027f169",
+    "native/Unreal/MoireComparison/Scripts/scene_contract.py": "dfd8ac7def736ae7146286add5109cc059c51dd377e2615de9b8933516ec7a6d",
+    "native/Unreal/MoireComparison/Scripts/stage_kernel.mjs": "528620a27681ad56ce70e3615a076f82fe139e2183eb055a618054ab9d75227d",
+    "demo/ours-kernel.hlsl": "85c87f01b4d16a18dbad1fa8a34dc2e793eeb0769377569fb3432ebf7a5595bc",
+    "demo/ours-kernel.wgsl.js": "ac855cdb4d478faf8130176d8dda2507b28909218a8d955c6b1e724e6c083cd1",
+    "native/Unreal/MoireComparison/Scripts/dynamic_material.py": "9f2a6ece1036161358b28bbdf1c46fc49b3bb833756d951bfb750e69439e1088"
+  },
+  "jobs": [
+    {
+      "argv": [
+        "/Users/neo/repos/Moire/native/tools/build/dxc_compile",
+        "/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/ThirdParty/ShaderConductor/Mac/libdxcompiler.dylib",
+        "/Users/neo/repos/Moire/native/evidence/compile-material-20260905T205842.364084Z/MotionDetail1.hlsl",
+        "Main",
+        "ps_6_0",
+        "/Users/neo/repos/Moire/native/tools/build/compile-material-20260905T205842.364084Z/MotionDetail1.dxil",
+        "-HV",
+        "2021",
+        "-O3"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.43127129203639925,
+      "stdout": "DXC_VERSION 1.8 FLAGS 0\nCOMPILE_PASSED BYTES 12924 ELAPSED_MS 34.2377\n",
+      "diagnostics": "warning: DXIL signing library (dxil.dll,libdxil.so) not found.  Resulting DXIL will not be signed for use in release environments.\n\n",
+      "pose": {
+        "detail": 1,
+        "diagnostic": false,
+        "dynamic_camera": true
+      },
+      "backend": "dxil",
+      "wrapper_sha256": "7b37682ad50062f76c75607f7bc5de0266aaf7405b1326b16ff7bd229a334cdd",
+      "material_body": "float2 q = float2(WorldPosition.y, -WorldPosition.x) / 400;\nfloat w = rcp(max(LinearDepth, 0.001));\nfloat2 n = q * w;\nfloat3 hu = float3(ddx(n.x) / w, ddy(n.x) / w, q.x);\nfloat3 hv = float3(ddx(n.y) / w, ddy(n.y) / w, q.y);\nfloat3 hd = float3(ddx(w) / w, ddy(w) / w, 1.0);\nbool valid = LinearDepth > 0.0 && all(isfinite(hu)) && all(isfinite(hv)) && all(isfinite(hd));\nif (!valid) return float3(1.0, 0.0, 0.0);\nfloat2 result = MoireKernel::checkerMeanH(hu, hv, hd, 0.0, 0.0, 1.0, 0.25);\nif (result.y > 3.5) return float3(1.0, 0.0, 1.0);\nfloat value = 0.025000000000000001 + 0.79499999999999993 * result.x;\nreturn float3(value, value, value);",
+      "object_bytes": 12924,
+      "object_sha256": "69aa770404028e2296ef9b09b43fadf35d4267a2089f5ebc6f9d209aed6975b6",
+      "object_path": "/Users/neo/repos/Moire/native/tools/build/compile-material-20260905T205842.364084Z/MotionDetail1.dxil",
+      "object_magic_valid": true
+    },
+    {
+      "argv": [
+        "/Users/neo/repos/Moire/native/tools/build/dxc_compile",
+        "/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/ThirdParty/ShaderConductor/Mac/libdxcompiler.dylib",
+        "/Users/neo/repos/Moire/native/evidence/compile-material-20260905T205842.364084Z/MotionDetail1.hlsl",
+        "Main",
+        "ps_6_0",
+        "/Users/neo/repos/Moire/native/tools/build/compile-material-20260905T205842.364084Z/MotionDetail1.spv",
+        "-HV",
+        "2021",
+        "-O3",
+        "-spirv",
+        "-fspv-target-env=vulkan1.1",
+        "-fvk-use-dx-layout"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.060545041982550174,
+      "stdout": "DXC_VERSION 1.8 FLAGS 0\nCOMPILE_PASSED BYTES 36504 ELAPSED_MS 54.7708\n",
+      "diagnostics": "",
+      "pose": {
+        "detail": 1,
+        "diagnostic": false,
+        "dynamic_camera": true
+      },
+      "backend": "spirv",
+      "wrapper_sha256": "7b37682ad50062f76c75607f7bc5de0266aaf7405b1326b16ff7bd229a334cdd",
+      "material_body": "float2 q = float2(WorldPosition.y, -WorldPosition.x) / 400;\nfloat w = rcp(max(LinearDepth, 0.001));\nfloat2 n = q * w;\nfloat3 hu = float3(ddx(n.x) / w, ddy(n.x) / w, q.x);\nfloat3 hv = float3(ddx(n.y) / w, ddy(n.y) / w, q.y);\nfloat3 hd = float3(ddx(w) / w, ddy(w) / w, 1.0);\nbool valid = LinearDepth > 0.0 && all(isfinite(hu)) && all(isfinite(hv)) && all(isfinite(hd));\nif (!valid) return float3(1.0, 0.0, 0.0);\nfloat2 result = MoireKernel::checkerMeanH(hu, hv, hd, 0.0, 0.0, 1.0, 0.25);\nif (result.y > 3.5) return float3(1.0, 0.0, 1.0);\nfloat value = 0.025000000000000001 + 0.79499999999999993 * result.x;\nreturn float3(value, value, value);",
+      "object_bytes": 36504,
+      "object_sha256": "7722d9ce9df0e1d6e24b51696dc6cee503ab174310d8a29f9d91efcba92bf631",
+      "object_path": "/Users/neo/repos/Moire/native/tools/build/compile-material-20260905T205842.364084Z/MotionDetail1.spv",
+      "object_magic_valid": true
+    },
+    {
+      "argv": [
+        "/Users/neo/repos/Moire/native/tools/build/dxc_compile",
+        "/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/ThirdParty/ShaderConductor/Mac/libdxcompiler.dylib",
+        "/Users/neo/repos/Moire/native/evidence/compile-material-20260905T205842.364084Z/MotionDetail1Regimes.hlsl",
+        "Main",
+        "ps_6_0",
+        "/Users/neo/repos/Moire/native/tools/build/compile-material-20260905T205842.364084Z/MotionDetail1Regimes.dxil",
+        "-HV",
+        "2021",
+        "-O3"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.027589333010837436,
+      "stdout": "DXC_VERSION 1.8 FLAGS 0\nCOMPILE_PASSED BYTES 5940 ELAPSED_MS 22.4218\n",
+      "diagnostics": "warning: DXIL signing library (dxil.dll,libdxil.so) not found.  Resulting DXIL will not be signed for use in release environments.\n\n",
+      "pose": {
+        "detail": 1,
+        "diagnostic": true,
+        "dynamic_camera": true
+      },
+      "backend": "dxil",
+      "wrapper_sha256": "7d199b8449a37f43e68f56120280da8dd0c34049abdd53b74eda0c6796d1670d",
+      "material_body": "float2 q = float2(WorldPosition.y, -WorldPosition.x) / 400;\nfloat w = rcp(max(LinearDepth, 0.001));\nfloat2 n = q * w;\nfloat3 hu = float3(ddx(n.x) / w, ddy(n.x) / w, q.x);\nfloat3 hv = float3(ddx(n.y) / w, ddy(n.y) / w, q.y);\nfloat3 hd = float3(ddx(w) / w, ddy(w) / w, 1.0);\nbool valid = LinearDepth > 0.0 && all(isfinite(hu)) && all(isfinite(hv)) && all(isfinite(hd));\nif (!valid) return float3(1.0, 0.0, 0.0);\nfloat2 result = MoireKernel::checkerMeanH(hu, hv, hd, 0.0, 0.0, 1.0, 0.25);\nif (result.y > 3.5) return float3(1.0, 0.0, 1.0);\nreturn result.y < 1.5 ? float3(0.1, 0.8, 0.3) : float3(0.1, 0.3, 0.9);",
+      "object_bytes": 5940,
+      "object_sha256": "316d8054915ec636e0ed2b42e2e4faf54760404f56897a7db0f66017bb6eeca2",
+      "object_path": "/Users/neo/repos/Moire/native/tools/build/compile-material-20260905T205842.364084Z/MotionDetail1Regimes.dxil",
+      "object_magic_valid": true
+    },
+    {
+      "argv": [
+        "/Users/neo/repos/Moire/native/tools/build/dxc_compile",
+        "/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/ThirdParty/ShaderConductor/Mac/libdxcompiler.dylib",
+        "/Users/neo/repos/Moire/native/evidence/compile-material-20260905T205842.364084Z/MotionDetail1Regimes.hlsl",
+        "Main",
+        "ps_6_0",
+        "/Users/neo/repos/Moire/native/tools/build/compile-material-20260905T205842.364084Z/MotionDetail1Regimes.spv",
+        "-HV",
+        "2021",
+        "-O3",
+        "-spirv",
+        "-fspv-target-env=vulkan1.1",
+        "-fvk-use-dx-layout"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.055110333021730185,
+      "stdout": "DXC_VERSION 1.8 FLAGS 0\nCOMPILE_PASSED BYTES 12188 ELAPSED_MS 48.835\n",
+      "diagnostics": "",
+      "pose": {
+        "detail": 1,
+        "diagnostic": true,
+        "dynamic_camera": true
+      },
+      "backend": "spirv",
+      "wrapper_sha256": "7d199b8449a37f43e68f56120280da8dd0c34049abdd53b74eda0c6796d1670d",
+      "material_body": "float2 q = float2(WorldPosition.y, -WorldPosition.x) / 400;\nfloat w = rcp(max(LinearDepth, 0.001));\nfloat2 n = q * w;\nfloat3 hu = float3(ddx(n.x) / w, ddy(n.x) / w, q.x);\nfloat3 hv = float3(ddx(n.y) / w, ddy(n.y) / w, q.y);\nfloat3 hd = float3(ddx(w) / w, ddy(w) / w, 1.0);\nbool valid = LinearDepth > 0.0 && all(isfinite(hu)) && all(isfinite(hv)) && all(isfinite(hd));\nif (!valid) return float3(1.0, 0.0, 0.0);\nfloat2 result = MoireKernel::checkerMeanH(hu, hv, hd, 0.0, 0.0, 1.0, 0.25);\nif (result.y > 3.5) return float3(1.0, 0.0, 1.0);\nreturn result.y < 1.5 ? float3(0.1, 0.8, 0.3) : float3(0.1, 0.3, 0.9);",
+      "object_bytes": 12188,
+      "object_sha256": "2ffdf5f465f060c59645fbbdf33593e75a58263d957015a007939a1713fe8791",
+      "object_path": "/Users/neo/repos/Moire/native/tools/build/compile-material-20260905T205842.364084Z/MotionDetail1Regimes.spv",
+      "object_magic_valid": true
+    },
+    {
+      "argv": [
+        "/Users/neo/repos/Moire/native/tools/build/dxc_compile",
+        "/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/ThirdParty/ShaderConductor/Mac/libdxcompiler.dylib",
+        "/Users/neo/repos/Moire/native/evidence/compile-material-20260905T205842.364084Z/MotionDetail2.hlsl",
+        "Main",
+        "ps_6_0",
+        "/Users/neo/repos/Moire/native/tools/build/compile-material-20260905T205842.364084Z/MotionDetail2.dxil",
+        "-HV",
+        "2021",
+        "-O3"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.027084375033155084,
+      "stdout": "DXC_VERSION 1.8 FLAGS 0\nCOMPILE_PASSED BYTES 12924 ELAPSED_MS 22.6082\n",
+      "diagnostics": "warning: DXIL signing library (dxil.dll,libdxil.so) not found.  Resulting DXIL will not be signed for use in release environments.\n\n",
+      "pose": {
+        "detail": 2,
+        "diagnostic": false,
+        "dynamic_camera": true
+      },
+      "backend": "dxil",
+      "wrapper_sha256": "665a9048e21367010e601d0bec530bb349535e1205d6f1ad7a481425ded49bf7",
+      "material_body": "float2 q = float2(WorldPosition.y, -WorldPosition.x) / 200;\nfloat w = rcp(max(LinearDepth, 0.001));\nfloat2 n = q * w;\nfloat3 hu = float3(ddx(n.x) / w, ddy(n.x) / w, q.x);\nfloat3 hv = float3(ddx(n.y) / w, ddy(n.y) / w, q.y);\nfloat3 hd = float3(ddx(w) / w, ddy(w) / w, 1.0);\nbool valid = LinearDepth > 0.0 && all(isfinite(hu)) && all(isfinite(hv)) && all(isfinite(hd));\nif (!valid) return float3(1.0, 0.0, 0.0);\nfloat2 result = MoireKernel::checkerMeanH(hu, hv, hd, 0.0, 0.0, 1.0, 0.25);\nif (result.y > 3.5) return float3(1.0, 0.0, 1.0);\nfloat value = 0.025000000000000001 + 0.79499999999999993 * result.x;\nreturn float3(value, value, value);",
+      "object_bytes": 12924,
+      "object_sha256": "df3b15f1668304e26332cab58b136603ca4b5b5ea0ae545079a74b7d9cd12ab0",
+      "object_path": "/Users/neo/repos/Moire/native/tools/build/compile-material-20260905T205842.364084Z/MotionDetail2.dxil",
+      "object_magic_valid": true
+    },
+    {
+      "argv": [
+        "/Users/neo/repos/Moire/native/tools/build/dxc_compile",
+        "/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/ThirdParty/ShaderConductor/Mac/libdxcompiler.dylib",
+        "/Users/neo/repos/Moire/native/evidence/compile-material-20260905T205842.364084Z/MotionDetail2.hlsl",
+        "Main",
+        "ps_6_0",
+        "/Users/neo/repos/Moire/native/tools/build/compile-material-20260905T205842.364084Z/MotionDetail2.spv",
+        "-HV",
+        "2021",
+        "-O3",
+        "-spirv",
+        "-fspv-target-env=vulkan1.1",
+        "-fvk-use-dx-layout"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.04954316595103592,
+      "stdout": "DXC_VERSION 1.8 FLAGS 0\nCOMPILE_PASSED BYTES 36504 ELAPSED_MS 44.3321\n",
+      "diagnostics": "",
+      "pose": {
+        "detail": 2,
+        "diagnostic": false,
+        "dynamic_camera": true
+      },
+      "backend": "spirv",
+      "wrapper_sha256": "665a9048e21367010e601d0bec530bb349535e1205d6f1ad7a481425ded49bf7",
+      "material_body": "float2 q = float2(WorldPosition.y, -WorldPosition.x) / 200;\nfloat w = rcp(max(LinearDepth, 0.001));\nfloat2 n = q * w;\nfloat3 hu = float3(ddx(n.x) / w, ddy(n.x) / w, q.x);\nfloat3 hv = float3(ddx(n.y) / w, ddy(n.y) / w, q.y);\nfloat3 hd = float3(ddx(w) / w, ddy(w) / w, 1.0);\nbool valid = LinearDepth > 0.0 && all(isfinite(hu)) && all(isfinite(hv)) && all(isfinite(hd));\nif (!valid) return float3(1.0, 0.0, 0.0);\nfloat2 result = MoireKernel::checkerMeanH(hu, hv, hd, 0.0, 0.0, 1.0, 0.25);\nif (result.y > 3.5) return float3(1.0, 0.0, 1.0);\nfloat value = 0.025000000000000001 + 0.79499999999999993 * result.x;\nreturn float3(value, value, value);",
+      "object_bytes": 36504,
+      "object_sha256": "f80faf513804fca4bf71c521d9e4d95c2b0ce492ee28ebab3fb3697c25987637",
+      "object_path": "/Users/neo/repos/Moire/native/tools/build/compile-material-20260905T205842.364084Z/MotionDetail2.spv",
+      "object_magic_valid": true
+    },
+    {
+      "argv": [
+        "/Users/neo/repos/Moire/native/tools/build/dxc_compile",
+        "/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/ThirdParty/ShaderConductor/Mac/libdxcompiler.dylib",
+        "/Users/neo/repos/Moire/native/evidence/compile-material-20260905T205842.364084Z/MotionDetail2Regimes.hlsl",
+        "Main",
+        "ps_6_0",
+        "/Users/neo/repos/Moire/native/tools/build/compile-material-20260905T205842.364084Z/MotionDetail2Regimes.dxil",
+        "-HV",
+        "2021",
+        "-O3"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.02693562494823709,
+      "stdout": "DXC_VERSION 1.8 FLAGS 0\nCOMPILE_PASSED BYTES 5940 ELAPSED_MS 21.3888\n",
+      "diagnostics": "warning: DXIL signing library (dxil.dll,libdxil.so) not found.  Resulting DXIL will not be signed for use in release environments.\n\n",
+      "pose": {
+        "detail": 2,
+        "diagnostic": true,
+        "dynamic_camera": true
+      },
+      "backend": "dxil",
+      "wrapper_sha256": "d5c5788631caa17b4f9a2c90a0db81b752ad04e346e53a9e47002ea289133580",
+      "material_body": "float2 q = float2(WorldPosition.y, -WorldPosition.x) / 200;\nfloat w = rcp(max(LinearDepth, 0.001));\nfloat2 n = q * w;\nfloat3 hu = float3(ddx(n.x) / w, ddy(n.x) / w, q.x);\nfloat3 hv = float3(ddx(n.y) / w, ddy(n.y) / w, q.y);\nfloat3 hd = float3(ddx(w) / w, ddy(w) / w, 1.0);\nbool valid = LinearDepth > 0.0 && all(isfinite(hu)) && all(isfinite(hv)) && all(isfinite(hd));\nif (!valid) return float3(1.0, 0.0, 0.0);\nfloat2 result = MoireKernel::checkerMeanH(hu, hv, hd, 0.0, 0.0, 1.0, 0.25);\nif (result.y > 3.5) return float3(1.0, 0.0, 1.0);\nreturn result.y < 1.5 ? float3(0.1, 0.8, 0.3) : float3(0.1, 0.3, 0.9);",
+      "object_bytes": 5940,
+      "object_sha256": "41e352f2bce9a1cabf7b38327fd8cd30d76c5fcd0fa349caa8b796c87fa4756a",
+      "object_path": "/Users/neo/repos/Moire/native/tools/build/compile-material-20260905T205842.364084Z/MotionDetail2Regimes.dxil",
+      "object_magic_valid": true
+    },
+    {
+      "argv": [
+        "/Users/neo/repos/Moire/native/tools/build/dxc_compile",
+        "/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/ThirdParty/ShaderConductor/Mac/libdxcompiler.dylib",
+        "/Users/neo/repos/Moire/native/evidence/compile-material-20260905T205842.364084Z/MotionDetail2Regimes.hlsl",
+        "Main",
+        "ps_6_0",
+        "/Users/neo/repos/Moire/native/tools/build/compile-material-20260905T205842.364084Z/MotionDetail2Regimes.spv",
+        "-HV",
+        "2021",
+        "-O3",
+        "-spirv",
+        "-fspv-target-env=vulkan1.1",
+        "-fvk-use-dx-layout"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.05380995897576213,
+      "stdout": "DXC_VERSION 1.8 FLAGS 0\nCOMPILE_PASSED BYTES 12188 ELAPSED_MS 48.6106\n",
+      "diagnostics": "",
+      "pose": {
+        "detail": 2,
+        "diagnostic": true,
+        "dynamic_camera": true
+      },
+      "backend": "spirv",
+      "wrapper_sha256": "d5c5788631caa17b4f9a2c90a0db81b752ad04e346e53a9e47002ea289133580",
+      "material_body": "float2 q = float2(WorldPosition.y, -WorldPosition.x) / 200;\nfloat w = rcp(max(LinearDepth, 0.001));\nfloat2 n = q * w;\nfloat3 hu = float3(ddx(n.x) / w, ddy(n.x) / w, q.x);\nfloat3 hv = float3(ddx(n.y) / w, ddy(n.y) / w, q.y);\nfloat3 hd = float3(ddx(w) / w, ddy(w) / w, 1.0);\nbool valid = LinearDepth > 0.0 && all(isfinite(hu)) && all(isfinite(hv)) && all(isfinite(hd));\nif (!valid) return float3(1.0, 0.0, 0.0);\nfloat2 result = MoireKernel::checkerMeanH(hu, hv, hd, 0.0, 0.0, 1.0, 0.25);\nif (result.y > 3.5) return float3(1.0, 0.0, 1.0);\nreturn result.y < 1.5 ? float3(0.1, 0.8, 0.3) : float3(0.1, 0.3, 0.9);",
+      "object_bytes": 12188,
+      "object_sha256": "bb0c8aa6a8aeaccad9195cdbc420b3cbce5a199743b845e74306d0e37a910429",
+      "object_path": "/Users/neo/repos/Moire/native/tools/build/compile-material-20260905T205842.364084Z/MotionDetail2Regimes.spv",
+      "object_magic_valid": true
+    }
+  ],
+  "renderer_or_gpu_started": false,
+  "dxc_library_sha256": "298628808d849fea036fb92302d84a07124fec619d2d7b6f80db23462e7d03d0",
+  "driver_source_sha256": "27ab0f412f3ebddc6e6caef27223c16bc1358e138081758da6a6e2483da8083a",
+  "runner_source_sha256": "3121d6911f71e72ac952fd2a6533268ca91bc746f6192a70d00ebf892cd8c276",
+  "environment": "Standalone DXC with PI/TAU macros and a duplicate include; actual staged namespace and Python-generated material body",
+  "limitations": [
+    "Not Unreal-generated Material.ush or a complete engine material permutation.",
+    "No Metal/MSL device compilation or pixel execution.",
+    "Uniform viewport size and varying UV stay symbolic during compilation."
+  ],
+  "driver_build": {
+    "argv": [
+      "xcrun",
+      "clang++",
+      "-std=c++14",
+      "-O2",
+      "-I/Users/Shared/Epic Games/UE_5.8/Engine/Source/ThirdParty/ShaderConductor/ShaderConductor/External/DirectXShaderCompiler/include",
+      "/Users/neo/repos/Moire/native/tools/dxc_compile.cpp",
+      "-o",
+      "/Users/neo/repos/Moire/native/tools/build/dxc_compile"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 0.5436541669769213,
+    "stdout": "",
+    "diagnostics": ""
+  },
+  "source_hashes_after": {
+    "native/Unreal/MoireComparison/Shaders/Moire/Generated/Kernel.ush": "9fc69877f79ed170e926825b119018623f68ffa887a9ae73d179eb9550a52f26",
+    "native/Unreal/MoireComparison/Scripts/analytic_material.py": "e14cf5faf5a7570699ec0c7fa1f6d3cc5502edd8c6a81dcd878410f94027f169",
+    "native/Unreal/MoireComparison/Scripts/scene_contract.py": "dfd8ac7def736ae7146286add5109cc059c51dd377e2615de9b8933516ec7a6d",
+    "native/Unreal/MoireComparison/Scripts/stage_kernel.mjs": "528620a27681ad56ce70e3615a076f82fe139e2183eb055a618054ab9d75227d",
+    "demo/ours-kernel.hlsl": "85c87f01b4d16a18dbad1fa8a34dc2e793eeb0769377569fb3432ebf7a5595bc",
+    "demo/ours-kernel.wgsl.js": "ac855cdb4d478faf8130176d8dda2507b28909218a8d955c6b1e724e6c083cd1",
+    "native/Unreal/MoireComparison/Scripts/dynamic_material.py": "9f2a6ece1036161358b28bbdf1c46fc49b3bb833756d951bfb750e69439e1088"
+  }
+}
