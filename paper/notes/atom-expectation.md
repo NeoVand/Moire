@@ -1,6 +1,6 @@
 # A1. The expectation of a Gaussian atom under the pixel window
 
-Claim A1 of [theory-program.md](theory-program.md), derived 2026-09-05. Status: derived, awaiting the collaborator's review.
+Claim A1 of [theory-program.md](theory-program.md), derived 2026-09-05. Status after the collaborator's review (bridge #75): exact for an affine pullback; for a curved pullback the formula below is an approximation of the log-envelope by its quadratic part, valid only with the positivity witness and the remainder bound of the last section, since the exact pullback of a Gaussian envelope through a quadratic map is a quartic log-envelope (one dimension: u = x^2 and exp(-u^2 / 2) pull back to exp(-x^4 / 2)). Where the witnesses fail the exact route is a one-dimensional quadrature along the curvature's direction, as the depth conditioning does for phases.
 
 ## Setting
 
@@ -35,13 +35,21 @@ A is a complex symmetric 2x2 matrix; its determinant and inverse are closed form
 
 One complex 2x2 determinant, one complex 2x2 solve, one complex exponential and one complex square root: about the cost of multC plus a 2x2 solve, forty to sixty flops.
 
-## Validity witness
+## Validity: what the formula requires through a curved map
 
-Two terms were dropped. The cubic terms of the phase along X, with the same witness as the depth conditioning (the third derivative of u along the depth direction times 2.5 sigma cubed, times 2 pi |kappa|). The cubic terms of the envelope's exponent, delta . H[X, X] X-type and |H[X,X]|^2 / 4, bounded over the ball of radius 2.5 sigma by
+Through an affine map (H = 0) nothing is dropped and the formula is exact. Through a curved map three things are needed, and without them the formula is not a closure, as the collaborator pointed out with u = x^2.
 
-    (|delta| |H| (2.5 sigma)^3 + |G| |H| (2.5 sigma)^3 + |H|^2 (2.5 sigma)^4 / 4) / (2 w^2),
+1. Positivity. The truncated precision matrix must have a positive definite real part, I / S + M / w^2 with M = G^T G + sum_j delta_j H_j, over the footprint; delta_j H_j can be indefinite when the atom's centre is far from the pixel's count, and then the truncated integral is not the integral of anything. The witness is the smallest eigenvalue of I / S + M / w^2, required positive with a margin.
 
-which is small when the atom is wide compared with the jet's curvature over the footprint, the regime the atoms are for: an atom narrower than that is an edge-scale feature and belongs to the coverage branch (Track A2 decides the split). Both witnesses are computable per pixel from the jet and the atom's parameters.
+2. The envelope's remainder. The exact log-envelope is -|delta + G X + (1/2) H[X, X]|^2 / (2 w^2), whose cubic term (G X) . H[X, X] / w^2 and quartic term |H[X, X]|^2 / (4 w^2), together with delta's own cubic coupling, are bounded over the ball of radius 2.5 sigma by
+
+    (|G| |H| (2.5 sigma)^3 + |delta| |H| (2.5 sigma)^3 + |H|^2 (2.5 sigma)^4 / 4) / (2 w^2),
+
+and the value's error is bounded by that number times the atom's mass under the window, plus the window's mass outside the ball. This is small when the atom is wide compared with the jet's curvature over the footprint, the regime the atoms are for; an atom narrower than that is an edge-scale feature and belongs to the coverage branch, and Track A2's split must respect this.
+
+3. The phase's remainder. The cubic term of the phase along X, with the same witness as the depth conditioning: the third derivative of u along the depth direction times (2.5 sigma)^3 times 2 pi |kappa|.
+
+Where 1 or 2 fails the exact alternative is a one-dimensional quadrature along the direction in which the map is curved (for a plane in perspective, the depth direction), with the exact envelope and phase on each line and a closed-form Gaussian integral across, the same construction as the depth conditioning of phases. All three witnesses are computable per pixel from the jet and the atom's parameters, and the collaborator's enclosure idea applies: evaluate the atom with the bound added and subtracted to carry an interval instead of a value.
 
 ## What this gives Track A
 
