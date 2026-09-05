@@ -1,0 +1,11 @@
+**/Binaries/
+**/DerivedDataCache/
+**/Intermediate/
+**/Saved/
+**/__pycache__/
+**/*.pyc
+**/.DS_Store
+**/.vs/
+**/*.xcodeproj/
+**/*.xcworkspace/
+/Unreal/MoireComparison/Content/MoireComparison/

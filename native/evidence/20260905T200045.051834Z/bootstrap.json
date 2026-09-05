@@ -1,0 +1,127 @@
+{
+  "created_at": "20260905T200051.596832Z",
+  "engine": "5.8.2-56702186+++UE5+Release-5.8",
+  "project": "/Users/neo/repos/Moire/native/Unreal/MoireComparison",
+  "generator": "native-scene-v1",
+  "status": "assets-generated; native rendering and camera activation not yet verified",
+  "rendered": false,
+  "width": 1920,
+  "height": 1080,
+  "vertical_fov_degrees": 50.0,
+  "horizontal_fov_degrees": 79.31687852038162,
+  "plane_width_cm": 10000000.0,
+  "engine_plane_bounds_cm": [
+    100.0,
+    100.0,
+    1.6081227129549798e-14
+  ],
+  "source": "equal half-cell parity; unfiltered procedural checker",
+  "poses": [
+    {
+      "name": "Glide0",
+      "motion": "glide",
+      "time": 0.0,
+      "detail": 1.0,
+      "three_eye": [
+        0.0,
+        12.0,
+        28.0
+      ],
+      "three_target": [
+        0.0,
+        0.0,
+        -22.0
+      ],
+      "unreal_location_cm": [
+        -2800.0,
+        0.0,
+        1200.0
+      ],
+      "unreal_target_cm": [
+        2200.0,
+        0.0,
+        0.0
+      ],
+      "unreal_rotation_degrees": {
+        "pitch": -13.495733280795811,
+        "yaw": 0.0,
+        "roll": 0.0
+      },
+      "period_world": 4.0,
+      "horizontal_fov_degrees": 79.31687852038162,
+      "map": "/Game/MoireComparison/Maps/Glide0"
+    },
+    {
+      "name": "Glide8",
+      "motion": "glide",
+      "time": 8.0,
+      "detail": 1.0,
+      "three_eye": [
+        4.705895550506519,
+        12.0,
+        28.0
+      ],
+      "three_target": [
+        2.1176529977279337,
+        0.0,
+        -22.0
+      ],
+      "unreal_location_cm": [
+        -2800.0,
+        470.58955505065194,
+        1200.0
+      ],
+      "unreal_target_cm": [
+        2200.0,
+        211.76529977279336,
+        0.0
+      ],
+      "unreal_rotation_degrees": {
+        "pitch": -13.478346777114242,
+        "yaw": -2.9632625952875062,
+        "roll": 0.0
+      },
+      "period_world": 4.0,
+      "horizontal_fov_degrees": 79.31687852038162,
+      "map": "/Game/MoireComparison/Maps/Glide8"
+    },
+    {
+      "name": "Approach4",
+      "motion": "approach",
+      "time": 4.0,
+      "detail": 2.0,
+      "three_eye": [
+        0.0,
+        12.0,
+        18.75113345321237
+      ],
+      "three_target": [
+        0.0,
+        0.0,
+        -31.24886654678763
+      ],
+      "unreal_location_cm": [
+        -1875.113345321237,
+        0.0,
+        1200.0
+      ],
+      "unreal_target_cm": [
+        3124.886654678763,
+        0.0,
+        0.0
+      ],
+      "unreal_rotation_degrees": {
+        "pitch": -13.495733280795811,
+        "yaw": 0.0,
+        "roll": 0.0
+      },
+      "period_world": 2.0,
+      "horizontal_fov_degrees": 79.31687852038162,
+      "map": "/Game/MoireComparison/Maps/Approach4"
+    }
+  ],
+  "hashes": {
+    "bootstrap.py": "e0931cf731c581ad1d67303b92a1dc21f9b7c0d4a53a5d1114abcf4e59c59e45",
+    "scene_contract.py": "2c76afad22a3a16478bf3726e69b69fe1cc4fc0d25a764b78f203b6a7f177e5c"
+  }
+}

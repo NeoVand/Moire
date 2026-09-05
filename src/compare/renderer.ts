@@ -139,7 +139,7 @@ export class ComparisonRenderer {
     this.resetTaa(); this.draw();
   };
   setKernel = async (kernel: Kernel) => {
-    if (kernel !== 'projective' && kernel !== 'lattice') throw new Error('Unknown integration kernel.');
+    if (kernel !== 'projective' && kernel !== 'lattice' && kernel !== 'homography') throw new Error('Unknown integration kernel.');
     if (kernel === this.state.kernel || !this.info().ready) return;
     this.preparing = true;
     cancelAnimationFrame(this.loop);

@@ -5,10 +5,10 @@ import {
 } from 'three/webgpu';
 import { dot, float, mix, positionWorld, screenCoordinate, sign, sin, texture, uniform, vec3 } from 'three/tsl';
 import { projectiveChecker } from './spectral';
-import { authorChecker } from './authorKernel';
+import { authorChecker, authorHomographyChecker } from './authorKernel';
 
 export type Method = 'raw' | 'temporal' | 'spectral';
-export type Kernel = 'projective' | 'lattice';
+export type Kernel = 'projective' | 'lattice' | 'homography';
 export const METHODS: Method[] = ['raw', 'temporal', 'spectral'];
 export const PERIOD = 4;
 export const DARK = 0.025;
@@ -86,6 +86,8 @@ export function createBenchmarkScene(method: Method, kernel: Kernel = 'projectiv
     ink = texture(tile, uv).r;
   } else if (method === 'raw') {
     ink = sin(uv.x.mul(Math.PI * 2)).sign().mul(sign(sin(uv.y.mul(Math.PI * 2)))).mul(0.5).add(0.5);
+  } else if (kernel === 'homography') {
+    ink = authorHomographyChecker(a, b, d, screenCoordinate.xy, float(SIGMA));
   } else {
     const p = vec3(screenCoordinate.xy, 1);
     const den = dot(d, p);

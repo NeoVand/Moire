@@ -42,3 +42,27 @@ ${OURS_KERNEL}`;
 // wrapper first lets it infer built-in input types while preserving every
 // later constant, struct, and helper in the emitted WGSL module.
 export const authorChecker = wgslFn(authorCheckerWGSL);
+
+/**
+ * Homography adapter for the author's guarded screen-space edge integration.
+ * hu/hv are already in checker periods, so the shared entry receives period
+ * 1. The caller supplies its pixel center without an implicit half-pixel shift
+ * and continues to handle the ground/sky boundary. sigma must be positive.
+ *
+ * This returns the shared result unchanged, including out-of-range values or
+ * numerical failures that validation needs to expose. Select either this
+ * node or authorChecker in a material: each assembles the shared module once,
+ * and their helper declarations must not coexist in the same shader.
+ */
+export const authorHomographyCheckerWGSL = /* wgsl */ `
+fn comparisonAuthorHomographyChecker(hu: vec3f, hv: vec3f, hd: vec3f,
+  point: vec2f, sigma: f32) -> f32 {
+  return checkerMeanH(hu, hv, hd, point.x, point.y, 1.0, sigma * sigma).x;
+}
+
+const PI: f32 = 3.141592653589793;
+const TAU: f32 = 6.283185307179586;
+
+${OURS_KERNEL}`;
+
+export const authorHomographyChecker = wgslFn(authorHomographyCheckerWGSL);

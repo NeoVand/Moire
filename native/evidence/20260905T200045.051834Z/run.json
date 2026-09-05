@@ -1,0 +1,79 @@
+{
+  "status": "passed-asset-preparation-only",
+  "started_at": "20260905T200045.051834Z",
+  "exit_code": 0,
+  "engine": {
+    "MajorVersion": 5,
+    "MinorVersion": 8,
+    "PatchVersion": 2,
+    "Changelist": 56702186,
+    "CompatibleChangelist": 55116800,
+    "IsLicenseeVersion": 0,
+    "IsPromotedBuild": 1,
+    "BranchName": "++UE5+Release-5.8"
+  },
+  "rhi": "Null",
+  "gpu_rendering": false,
+  "gui_editor_launched": false,
+  "summary": "Python script executed successfully; 0 errors and 0 warnings. Existing generated assets were regenerated successfully.",
+  "command_argv": [
+    "/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/Mac/UnrealEditor-Cmd",
+    "/Users/neo/repos/Moire/native/Unreal/MoireComparison/MoireComparison.uproject",
+    "-run=pythonscript",
+    "-script=/Users/neo/repos/Moire/native/Unreal/MoireComparison/Scripts/bootstrap.py",
+    "-unattended",
+    "-nop4",
+    "-nosplash",
+    "-nullrhi",
+    "-nosound",
+    "-stdout",
+    "-FullStdOutLogOutput",
+    "-abslog=/Users/neo/repos/Moire/native/Unreal/MoireComparison/Saved/Logs/bootstrap-nullrhi-20260905T200045.051834Z.engine.log"
+  ],
+  "config_unchanged_during_run": true,
+  "project_unchanged_during_run": true,
+  "configuration_hashes": {
+    "Config/DefaultGame.ini": "f93a248bb1340490b08a649c16a38a93afdf840852ee54575dec76ab9509f3f1",
+    "Config/DefaultEngine.ini": "76d6bfd602f35c0e4896f7f492fa5b7ed0aa061a7ae5b3d1044397bc50e286c6"
+  },
+  "project_sha256": "3e87cb7e46d2b1d325a83288164418dded7478c8e210c7ddfeeb9ed09137e9a1",
+  "stdout_log_sha256": "5a93f262aed7d13a845c6a9033905f1858c5e8e5233934861507287819b392da",
+  "full_log_is_local_only": true,
+  "assets": [
+    {
+      "path": "Content/MoireComparison/Maps/Approach4.umap",
+      "bytes": 15398,
+      "sha256": "40384ca5dc5a23e8db503f884e621a92c5d871c3554a3daa36e331861a8b9909"
+    },
+    {
+      "path": "Content/MoireComparison/Maps/Glide0.umap",
+      "bytes": 15161,
+      "sha256": "bee7a5526b2c701779152439774f215a2b3590759447ddc46c545efad36d9e71"
+    },
+    {
+      "path": "Content/MoireComparison/Maps/Glide8.umap",
+      "bytes": 15365,
+      "sha256": "26d5c164b4c1c30f014b593ca51684c834eeb52ea5994b9eed0c71fadc009285"
+    },
+    {
+      "path": "Content/MoireComparison/Materials/M_Checker_Detail1.uasset",
+      "bytes": 6264,
+      "sha256": "c02ac0ad0c0f434cd77369057b7a04e8638a2a8ae11a4544f8a5f66b588f4527"
+    },
+    {
+      "path": "Content/MoireComparison/Materials/M_Checker_Detail2.uasset",
+      "bytes": 6264,
+      "sha256": "15e766059ad57fb426da78967a384a11b186b43026bb736403f42f414ae25fcd"
+    },
+    {
+      "path": "Content/MoireComparison/Materials/M_Sky.uasset",
+      "bytes": 5273,
+      "sha256": "5f6c8dc2a1f5481b52581c8c448d239e83424756ec1118cef0a40eed406d819d"
+    }
+  ],
+  "limitations": [
+    "No native image was rendered.",
+    "No Metal material shader validation under a rendering RHI.",
+    "Camera runtime activation, actual viewport/color transfer, temporal history and performance remain unchecked."
+  ]
+}

@@ -99,23 +99,27 @@ try {
     const before = { raw: hash('raw'), spectral: hash('spectral'), state: app.info() };
     await app.setKernel('lattice');
     const lattice = { raw: hash('raw'), spectral: hash('spectral'), state: app.info() };
+    await app.setKernel('homography');
+    const homography = { raw: hash('raw'), spectral: hash('spectral'), state: app.info() };
     await app.setKernel('projective');
     const restored = { raw: hash('raw'), spectral: hash('spectral'), state: app.info() };
-    return { before, lattice, restored };
+    return { before, lattice, homography, restored };
   });
-  assert.equal(kernelSwitch.lattice.state.kernel, 'lattice');
-  assert.equal(kernelSwitch.lattice.state.ready, true);
-  assert.equal(kernelSwitch.lattice.state.time, kernelSwitch.before.state.time);
-  assert.deepEqual(kernelSwitch.lattice.state.homography, kernelSwitch.before.state.homography);
-  assert.equal(kernelSwitch.lattice.raw, kernelSwitch.before.raw, 'Kernel switch changed the source view.');
+  for (const kernel of ['lattice', 'homography']) {
+    assert.equal(kernelSwitch[kernel].state.kernel, kernel);
+    assert.equal(kernelSwitch[kernel].state.ready, true);
+    assert.equal(kernelSwitch[kernel].state.time, kernelSwitch.before.state.time);
+    assert.deepEqual(kernelSwitch[kernel].state.homography, kernelSwitch.before.state.homography);
+    assert.equal(kernelSwitch[kernel].raw, kernelSwitch.before.raw, 'Kernel switch changed the source view.');
+  }
   assert.equal(kernelSwitch.restored.spectral, kernelSwitch.before.spectral, 'Returning to the original kernel changed its output.');
   await page.click('button[aria-expanded]');
   await page.waitForSelector('[role="dialog"]');
   assert.match(await page.$eval('[role="dialog"]', el => el.textContent), /DLAA/);
   await page.click('button[aria-label="Close"]');
   await page.waitForSelector('[role="dialog"]', { hidden: true });
-  await page.select('select[aria-label="Integration kernel"]', 'lattice');
-  await page.waitForFunction(() => window.__compare.info().ready && window.__compare.info().kernel === 'lattice');
+  await page.select('select[aria-label="Integration kernel"]', 'homography');
+  await page.waitForFunction(() => window.__compare.info().ready && window.__compare.info().kernel === 'homography');
   // Return to native panel dimensions before translating a real UI click into
   // a device-pixel coordinate. The bridge's earlier small buffers were tests.
   await page.evaluate(async () => {

@@ -78,7 +78,7 @@ export function Comparison() {
         {method === 'spectral' ? <div className="compare-method-label"><select className="compare-kernel" aria-label="Integration kernel" disabled={!info?.ready} value={info?.kernel ?? 'projective'} onChange={e => {
           setInspection(undefined); setError('');
           void engine.current?.setKernel(e.target.value as Kernel).catch(e => setError(e instanceof Error ? e.message : String(e)));
-        }}><option value="projective">Projected edges + spectral</option><option value="lattice">Shared lattice kernel</option></select></div>
+        }}><option value="projective">Projected edges + spectral</option><option value="homography">Shared projected coverage</option><option value="lattice">Shared lattice kernel</option></select></div>
         : <p className="compare-method-label">{labels[method].subtitle}</p>}
       </article>)}
     </section>
@@ -109,7 +109,7 @@ export function Comparison() {
       <h2>Judge it in motion.</h2>
       <p>A grazing plane makes texture detail, false patterns, blur and motion shimmer easy to compare. This scene follows the procedural-material benchmark used by <a href="https://yyuting.github.io/docs/eg_2018.html" target="_blank" rel="noreferrer">Yang and Barnes</a>, with an interactive camera.</p>
       <p>The middle view uses the official Three.js temporal AA implementation with a mipmapped checker texture and 16× anisotropic filtering. It is a practical browser baseline. Unreal TSR, DLAA and FSR require a separate native comparison.</p>
-      <p>Our view can use either of two GPU implementations of the Fourier integration method, under the same Gaussian pixel footprint. The first uses exact projected edge geometry nearby and a finite spectral sum farther away. The shared kernel uses correlated coverage and a reduced lattice of spectral terms. Both approximate perspective away from the coverage path; exact horizon conditioning and bumped materials are still to be connected.</p>
+      <p>Our view offers three integrations under the same Gaussian pixel footprint. Projected edges uses exact nearby boundaries and a finite spectral sum farther away. Shared projected coverage handles several exact boundaries together, with the shared lattice kernel as its fallback. Shared lattice alone keeps the earlier count approximation for comparison. Perspective remains approximate in the spectral paths; exact horizon conditioning and bumped materials are still to be connected.</p>
       <p>Pause to compare settled images; play to expose shimmer. The frame rate counts completed batches of all three views. The GPU meter sums pass durations, whose timestamp intervals can overlap; it is not elapsed frame time. Different reconstruction filters can trade sharpness for smoothness; this demo does not declare a winner from appearance alone.</p>
     </section></div>}
   </main>;

@@ -39,13 +39,13 @@ Codex owns the demo shell and method adapters under `src/compare/`, this documen
 
 The author's GPU emitter should enter through the same per-pixel scene inputs used by the existing comparison method. Its adapter must specify supported materials, pixel measure, output color space, and any fallback. Changing the camera mapping or silently substituting a filtered texture would invalidate the comparison. The first integration target is one full checkerboard frame, including the near field and horizon, followed by the fixed camera sweep. Preserve the independent no-AA source and reference as gates while swapping in the emitter.
 
-### Coordination proposal for the author
+### Agreed coordination
 
 The author's `demo/` appeared while this harness was being built. It is a separate work area and has not been edited here. It already exposes useful additional arms and diagnostics; no one should delete or overwrite it to resolve the duplication.
 
-Use one shared presentation harness and one source/reference contract for the next checkpoint. The proposed presentation surface is `/compare.html`, retaining its official TRAA baseline and inspector. The author owns the shader implementation in `demo/wgsl.js` and the general compiler; Codex owns the adapter in `src/compare/scene.ts`, the application controls, and `tests/compare/`. First compare the two camera mappings, material phase, lighting, color conversion, and pixel measure explicitly. Scores from the original Yang–Barnes camera and this interactive adaptation are not interchangeable.
+Use `/compare.html` as the common presentation harness, retaining its official TRAA baseline and inspector. The author owns the shared implementation in `demo/ours-kernel.wgsl.js`, its native HLSL port, and the general compiler; Codex owns the adapter in `src/compare/scene.ts`, the application controls, `tests/compare/`, and the isolated `native/` host. The shared adapters now preserve this harness's camera, phase, lighting, color conversion, and pixel measure. Scores from the original Yang–Barnes camera and this interactive adaptation are not interchangeable.
 
-The concrete next handoff is an emitted checkerboard entry point plus its required uniforms and supported domain. Route that provider through the existing integration adapter, then run the independent source-pixel checks and isolated timing harness unchanged. Add circles through that same interface once the checkerboard gate passes. Port the author's supersampling, whole-image reference, error, and regime diagnostics as optional diagnostics in the shared harness. Keep algorithm development in one owned module so the two demos do not acquire separately corrected copies of the method.
+The checkerboard's shared lattice and homography entries are connected and validated below. Next, connect the generated HLSL to the native host and add circles through the shared material interface. Port the author's supersampling, whole-image reference, error, and regime diagnostics as optional diagnostics in the shared harness. Keep algorithm development in one owned module so the two demos do not acquire separately corrected copies of the method.
 
 ## Running and extending the demo
 
@@ -63,6 +63,7 @@ Run:
 
 ```sh
 node --test tests/compare/reference.test.mjs
+node tests/compare/homography.mjs
 node tests/compare/materials.mjs
 node tests/compare/run.mjs
 node tests/compare/performance.mjs
@@ -97,9 +98,9 @@ Still outstanding: a converged whole-image reference and error view in this harn
 
 ## Shared kernel integration gate
 
-The third pane now switches between **Projected edges + spectral** and **Shared lattice kernel**. The latter directly imports Claude's `OURS_KERNEL` from `demo/ours-kernel.wgsl.js`; there is one shared implementation, not a copied shader. The adapter packs the exact period-normalized gradients/Hessians into `Jets` and passes variance `0.25`. Both paths keep the same center `(i + 0.5, j + 0.5)`, equal-parity checker, homography, linear intensities, camera, and Gaussian reference. Switching compiles the selected material, preserves the pose, clears its old timing samples, and leaves the temporal baseline intact. The current default remains the projected-edge path.
+The third pane switches between **Projected edges + spectral**, **Shared projected coverage**, and **Shared lattice kernel**. Both shared choices directly import Claude's `OURS_KERNEL` from `demo/ours-kernel.wgsl.js`. The legacy adapter packs the exact period-normalized gradients/Hessians into `Jets`; the homography adapter passes the three normalized rows directly to `checkerMeanH`, period `1`, and variance `0.25`. Every path keeps the same center `(i + 0.5, j + 0.5)`, equal-parity checker, homography, linear intensities, camera, and Gaussian reference. Switching compiles the selected material, preserves the pose, clears its old timing samples, and leaves the temporal baseline intact. The default remains the original projected-edge path pending the equal-cost gate.
 
-The shared kernel uses a joint Gaussian approximation of the counts for coverage and reduced-lattice enumeration for spectral terms. Its coverage model is not the exact projective edge geometry used by the existing foreground path. Its enumeration is capped and its curvature model is local; neither path includes exact depth conditioning or geometric silhouettes. These are two implementations to measure, not interchangeable certified integrals.
+The legacy shared entry uses a joint Gaussian approximation of the counts for coverage and reduced-lattice enumeration for spectral terms. The new homography entry integrates the actual screen-space boundaries together within a guarded reach, then falls back to the lattice entry. Spectral enumeration is capped and its curvature model is local; these paths do not include exact depth conditioning or geometric silhouettes. The following older results describe the legacy entry; the newer float results below distinguish all three.
 
 On the unchanged 120 reference probes, both rendered correctly and the shared kernel's separate float16 readback was finite and in range. The measured linear RMS values are:
 
@@ -127,3 +128,23 @@ Desktop contention and scheduling are substantial in this run: even the 1080p ra
 The timing audit now resolves each query set **once** through Three, then copies those same already-resolved bytes to compute the diagnostic intervals and elapsed span. The earlier double-resolution consistency assertion failed on one run; it did not identify a rendering failure or establish a driver cause. The revised 240 samples all pass the same-byte sum and enclosing-wall checks. Each case is saved before validation, including raw timestamp pairs and discrepancy fields, so future failures retain evidence instead of discarding the run. The application still labels its public accumulator **GPU pass sum**.
 
 The measured shared source included Claude's then-uncommitted coverage/spectral timing entry points. Its exact [source snapshot](compare-evidence/shared-kernel-ddf4253d909f1a1a80696f21f440d9185b313f01f3dac91098c85a9da0d552cc.txt) is archived as inert text with the matching SHA-256, so subsequent kernel edits cannot erase the version behind these measurements. It is evidence only; the application imports the live shared module in `demo/`.
+
+## Homography coverage and full-precision capture
+
+The shared homography entry from `64f51cd` passes both the common scene adapter and a separate direct-GPU geometry gate. The material capture now reads all three filtered arms through an **RGBA32Float** linear render target, while retaining every older RGBA8 column. It probes render/copy support and records an explicit RGBA16Float fallback if needed; this machine used RGBA32Float throughout. Float captures are checked for finite values, range, and alpha before the error summaries.
+
+On the unchanged 120 pixels and unchanged independent source references, the float linear RMS errors are:
+
+| Camera and detail | Projected edges + spectral | Shared lattice | Shared projected coverage |
+|---|---:|---:|---:|
+| Glide, t = 0, detail 1 | 0.000456425 | 0.001214472 | 0.000453654 |
+| Glide, t = 8, detail 1 | 0.000247171 | 0.001341799 | 0.000247884 |
+| Approach, t = 4, detail 2 | 0.000517341 | 0.001189048 | 0.000517277 |
+
+The new path removes the visible legacy coverage loss and agrees closely with the original projected-edge implementation. At the earlier failure `(143,64)`, its float output is `0.159694850`, versus `0.163028076` for legacy lattice and reference `0.159754295`. Full precision removes the byte readback floor; it does **not** improve the reference, whose sequence disagreement remains 0.00069–0.00122 RMS. The small aggregate differences between the two projected-geometry paths are not evidence of a winner. No new performance comparison was run while the user's Unreal editor was active.
+
+The separate direct-GPU gate writes Float32 storage buffers, bypassing Three materials and render-target conversion. All **100 cases** pass: checker quadrants, translations by ±64 periods, normal-CDF single edges, correlated corners through `|rho| = 0.99995`, and global homography sign/scale invariance for checker and circle footprints. Perspective-only fixtures test invariance, not exact source accuracy. The circle regression independently integrates conditional intervals of the repeated-disc source. It catches the old 3-sigma cell omission (about `1.09e-5` missing coverage), requires the coverage regime, and now measures `0.8579739332` against `0.8579739017`, within its `3e-6` tolerance. The reference uses an approximate CDF; its very small Simpson refinement delta does not certify that CDF approximation.
+
+Evidence: [direct GPU fixtures](compare-evidence/homography-2026-09-05T19-58-05.274Z.json), [float material errors](compare-evidence/homography-materials-2026-09-05T19-58-06.001Z.json), and [live switching and inspector](compare-evidence/homography-live-2026-09-05T19-58-08.655Z.json) with [capture](compare-evidence/homography-live-2026-09-05T19-58-08.655Z.png). Material and fixture runs verified unchanged hashes. The tested [shared source](compare-evidence/shared-kernel-8bfc894a3641890459d5dd64069acdccfc3470de47799cade39dc5972220d6b6.txt) is archived as inert evidence; live rendering still imports the author-owned module.
+
+The isolated [Unreal project](../native/README.md) now supplies the matched source and three fixed camera poses for raw AA and actual TSR. Its asset generation is separate from rendering validation. Native shader compilation, linear output agreement, controlled temporal history and motion, and completed-frame performance remain required before presenting it as the requested gaming comparison. Claude owns the HLSL port from the shared generator; Codex owns its host and independent gates.
