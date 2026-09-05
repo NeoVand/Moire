@@ -591,6 +591,12 @@ const oursPixelAt = (cs, x, y, stats, sig) => {
     stats.shiftWindow = px.stats.shiftWindow || px.shiftKW;
     stats.shiftRecipes = (stats.shiftRecipes || 0) + (px.stats.shiftRecipes || 0);
     stats.shiftAmp = (stats.shiftAmp || 0) + (px.stats.shiftAmp || 0);
+    if (px.depth) {
+      stats.depthTerms = (stats.depthTerms || 0) + px.depth.terms;
+      stats.depthLines = (stats.depthLines || 0) + px.depth.lines;
+      stats.depthUnresolved = (stats.depthUnresolved || 0) + px.depth.unresolved;
+      stats.depthCharge = (stats.depthCharge || 0) + px.depth.charge;
+    }
   }
   return vals;
 };
@@ -797,7 +803,8 @@ if (PROBE) {
       const ref = brutePixel(cs, x, y, NBRUTE, 1);
       const pt = cs.eval(NUM, x, y, false)[0];
       const shiftInfo = stats.thetaAbsMax ? ` shift|theta|max ${stats.thetaAbsMax.toFixed(1)} theta*h ${stats.thetaHMax.toFixed(1)} order ${stats.shiftOrderMax} grid ${stats.shiftGrid} window ${stats.shiftWindow} recipes ${stats.shiftRecipes} amplification ${stats.shiftAmp.toExponential(2)}` : '';
-      console.log(`  (${x},${y}) ours ${v.toFixed(5)} brute ${ref.toFixed(5)} |err| ${Math.abs(v - ref).toExponential(1)} point ${pt.toFixed(3)}  recipes ${stats.recipes} dfts ${stats.dfts} ${stats.overflow ? 'OVERFLOW' : ''} ${ms.toFixed(1)} ms${shiftInfo}`);
+      const depthInfo = stats.depthTerms ? ` depth|terms ${stats.depthTerms} lines ${stats.depthLines} unresolved ${stats.depthUnresolved} charge ${stats.depthCharge.toExponential(1)}` : '';
+      console.log(`  (${x},${y}) ours ${v.toFixed(5)} brute ${ref.toFixed(5)} |err| ${Math.abs(v - ref).toExponential(1)} point ${pt.toFixed(3)}  recipes ${stats.recipes} dfts ${stats.dfts} ${stats.overflow ? 'OVERFLOW' : ''} ${ms.toFixed(1)} ms${shiftInfo}${depthInfo}`);
     }
   }
   process.exit(0);

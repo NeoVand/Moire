@@ -1221,6 +1221,8 @@ const erf = (x) => {
 // standard normal distribution function
 const normalCdf = (x) => 0.5 * (1 + erf(x / Math.SQRT2));
 
+const depthCache = new Map();
+export const depthLog = [];
 const gaussLegendre = (n) => {
   const hit = glCache.get(n);
   if (hit) return hit;
@@ -1963,6 +1965,22 @@ const phaseMoments = (bx, by, q00, q01, q11, sig) => {
 const logMult = (bx, by, q00, q01, q11, cond) => {
   const r2 = cond.sig * cond.sig;
   const a = 1 / r2;
+  if (cond.dim === 2 && cond.depth) {
+    // the depth measure is not Gaussian in W: at Y0 = 6 its characteristic
+    // function at frequency 9 is 24 times the Gaussian's (a collaborator's
+    // counterexample, where the Gaussian estimate pruned a visible recipe).
+    // The estimate that belongs to the measure is the phase pushed forward
+    // to the pixel's own Gaussian in Y through W = -Y + Y^2/Y0, the
+    // quadratic Taylor polynomial of the perspective: a quadratic phase in
+    // (X, Y), whose Gaussian expectation is the formula below with the
+    // depth rate's sign flipped and 2 b_W / Y0 added to the YY curvature.
+    // It is not a proof: the cubic term of the perspective is outside it,
+    // so the row's calibration factor, the largest ratio of the measure's
+    // true characteristic function to this model over a sample of depth
+    // frequencies, is added (setDepth)
+    const D = cond.depth;
+    return logMult(bx, -by, q00, -q01, q11 + (2 * by) / D.Y0, { dim: 2, sig: cond.sig }) + D.logC;
+  }
   if (cond.dim === 2) {
     // Q^2
     const s00 = q00 * q00 + q01 * q01;
@@ -2000,16 +2018,39 @@ const termExpectation = (a, phi0, bx, by, q00, q01, q11, cond) => {
     // quadrature's W nodes, summed with the nodes' weights (the horizon
     // residue, the Taylor remainder of 1 / d across the pixel, is gone)
     const D = cond.depth;
+    // the node set must resolve the recipe's oscillation in depth: with
+    // frequency omega = |by| + |q11| h over the half-width h, about
+    // 0.8 omega h nodes; beyond the cap the recipe is charged to the
+    // envelope TV(f') / omega^2 and dropped
+    const omega = Math.abs(by) + Math.abs(q11) * D.hW;
+    const need = Math.ceil(0.5 * omega * (D.Whi - D.Wlo)) + 16;
+    let n = D.base;
+    while (n < need) n *= 2; // a ladder of node sets, so the rules are built once
+    if (n > D.cap) {
+      // beyond the ladder: charged to the model's envelope and dropped
+      const env = Math.exp(Math.min(0, logMult(bx, by, q00, q01, q11, cond)));
+      const amp = Math.hypot(a.re.v, a.im.v) + Math.abs(a.re.gx) + Math.abs(a.re.gy);
+      D.unresolved += 1;
+      D.charge += amp * env;
+      return [0, 0];
+    }
+    const N = D.nodes(n);
+    D.terms += 1;
+    D.lines += n;
     let vr = 0;
     let vi = 0;
     const line = { dim: 1, m: [0, 0], e: [1, 0], sig: cond.sig };
-    for (let j = 0; j < D.W.length; j++) {
-      line.m[0] = D.M[j];
-      line.m[1] = D.W[j];
-      line.sig = D.S[j];
+    for (let j = 0; j < N.W.length; j++) {
+      line.m[1] = N.W[j];
       const v = termExpectation(a, phi0, bx, by, q00, q01, q11, line);
-      vr += D.w[j] * v[0];
-      vi += D.w[j] * v[1];
+      vr += N.w[j] * v[0];
+      vi += N.w[j] * v[1];
+    }
+    if (process.env.FJET_DEPTHLOG) {
+      // diagnostic: the recipe, its exact value, the model's estimate
+      const amp = Math.hypot(a.re.v, a.im.v);
+      const est = Math.exp(logMult(bx, by, q00, q01, q11, cond) - D.logC);
+      depthLog.push([bx, by, q00, q01, q11, amp, Math.hypot(vr, vi), amp * est, n]);
     }
     return [vr, vi];
   }
@@ -2331,28 +2372,66 @@ export class Pixel {
   // integral along X (the pixel's own coordinate, still Gaussian) at each
   // node. Rows within L sig of the horizon are declined (the reference
   // samples the plane behind the camera there and W has no meaning).
-  setDepth(Y0, n = 64, L = 5) {
+  setDepth(Y0, n = 32, L = 6.5) {
     if (Y0 <= L * this.sig + 0.5) {
       this.depth = null;
       return false;
     }
-    const gl = gaussLegendre(n);
-    const W = new Float64Array(n);
-    const M = new Float64Array(n);
-    const S = new Float64Array(n);
-    const w = new Float64Array(n);
-    const h = L * this.sig;
-    let total = 0;
-    for (let i = 0; i < n; i++) {
-      const Y = h * gl.x[i];
-      W[i] = (-Y0 * Y) / (Y0 + Y); // the depth coordinate q at this node
-      M[i] = 0; // X is the pixel's own coordinate: no mean shift at fixed depth
-      S[i] = this.sig; // and its width is the pixel's
-      w[i] = h * gl.w[i] * Math.exp(-0.5 * (Y / this.sig) ** 2) / (this.sig * Math.sqrt(TAU));
-      total += w[i];
+    const key = `${Y0}|${this.sig}|${n}|${L}`;
+    let D = depthCache.get(key);
+    if (!D) {
+      const sig = this.sig;
+      const h = L * sig;
+      const cache = new Map();
+      // Gauss-Legendre nodes in Y over [-h, h] carried to W, with the
+      // Gaussian weights renormalised (the truncated tail is 8e-11 at
+      // L = 6.5, and the density's own jump there, 5e-10, is what the
+      // measure's characteristic function decays to)
+      const nodes = (m) => {
+        let N = cache.get(m);
+        if (N) return N;
+        const gl = gaussLegendre(m);
+        const W = new Float64Array(m);
+        const w = new Float64Array(m);
+        let total = 0;
+        for (let i = 0; i < m; i++) {
+          const Y = h * gl.x[i];
+          W[i] = (-Y0 * Y) / (Y0 + Y);
+          w[i] = (h * gl.w[i] * Math.exp(-0.5 * (Y / sig) ** 2)) / (sig * Math.sqrt(TAU));
+          total += w[i];
+        }
+        for (let i = 0; i < m; i++) w[i] /= total;
+        N = { W, w };
+        cache.set(m, N);
+        return N;
+      };
+      const base = nodes(n);
+      const Wlo = (-Y0 * h) / (Y0 + h);
+      const Whi = (Y0 * h) / (Y0 - h);
+      // the calibration of the pushforward model (logMult): the largest
+      // ratio of the measure's characteristic function, from the finest
+      // rung, to the model over depth frequencies where the model is above
+      // 1e-10, with a quarter's margin
+      const fine = nodes(4096);
+      const a = 1 / (sig * sig);
+      let C = 1;
+      for (let omega = 0.5; omega <= 200; omega *= 1.06) {
+        const q = (2 * omega) / Y0;
+        const M = Math.exp((-0.5 * omega * omega * a) / (a * a + q * q)) * Math.pow(1 + sig ** 4 * q * q, -0.25);
+        if (M < 1e-10) break;
+        let re = 0;
+        let im = 0;
+        for (let i = 0; i < fine.W.length; i++) {
+          re += fine.w[i] * Math.cos(omega * fine.W[i]);
+          im += fine.w[i] * Math.sin(omega * fine.W[i]);
+        }
+        C = Math.max(C, Math.hypot(re, im) / M);
+      }
+      if (process.env.FJET_DEPTHC) C = Number(process.env.FJET_DEPTHC); // diagnostic: override the calibration
+      D = { Y0, h, Wlo, Whi, hW: Math.max(-Wlo, Whi), base: n, cap: 4096, nodes, logC: Math.log(1.25 * C), C };
+      depthCache.set(key, D);
     }
-    for (let i = 0; i < n; i++) w[i] /= total; // the truncated tail's mass, 6e-7 at L = 5, renormalised
-    this.depth = { Y0, W, M, S, w };
+    this.depth = { ...D, W: D.nodes(n).W, w: D.nodes(n).w, M: new Float64Array(n), S: new Float64Array(n).fill(this.sig), unresolved: 0, charge: 0, terms: 0, lines: 0 };
     return true;
   }
   // the width of a count under the pixel, in periods: the standard deviation
@@ -2770,7 +2849,13 @@ export class Pixel {
   // spectral norm of an axis's count Hessian (periods per pixel squared);
   // under a line condition the curvature along the line
   hessNorm(axis, cond) {
-    const h = this.axisHess(axis);
+    let h = this.axisHess(axis);
+    if (cond && cond.dim === 2 && cond.depth) {
+      // the count's Hessian in (X, Y) through the perspective's quadratic
+      // term: the depth rate adds 2 g_W / Y0 to the YY curvature
+      const g = this.axisRate(axis);
+      h = [h[0], -h[1], h[2] + (2 * g[1]) / cond.depth.Y0];
+    }
     if (cond && cond.dim === 1) return Math.abs(h[0] * cond.e[0] * cond.e[0] + 2 * h[1] * cond.e[0] * cond.e[1] + h[2] * cond.e[1] * cond.e[1]);
     const tr = h[0] + h[2];
     const det = h[0] * h[2] - h[1] * h[1];
@@ -3480,6 +3565,7 @@ export class Pixel {
       [...grads, ...resGrads].map(proj),
       [...pics.map((p) => this.hessNorm(p.axis, cond)), ...residual.map((a) => this.hessNorm(a, cond))],
     ).map((K) => (cond.dim === 1 ? Math.min(K, this.maxKline) : K));
+    if (process.env.FJET_DEBUGK) console.log('      Ks', Ks.join(','), 'grads', [...grads, ...resGrads].map((g) => `(${g[0].toFixed(3)},${g[1].toFixed(3)})`).join(' '), 'pics', pics.length, 'residual', residual.length, 'clos', clos.length, 'depth', !!(cond.depth));
     const picCoef = pics.map((p, i) => {
       const K = roundK(Ks[i]);
       const axis = p.axis;
@@ -3498,7 +3584,7 @@ export class Pixel {
     // ones (a station through a two-axis closure is not yet followed)
     const resK = residual.map((a, j) => (residual.length === 2 ? Math.min(this.maxK2, Ks[n + j]) : Ks[n + j]));
     const S = this.sig * this.sig;
-    const lnCut = Math.log(this.cut);
+    const lnCut = Math.log(this.cut) - (cond.dim === 2 && cond.depth ? cond.depth.logC : 0);
     const freedom = [];
     for (let i = 0; i < n; i++) freedom.push({ g: proj(grads[i]).map((v) => TAU * v), K: picCoef[i].K, hn: TAU * this.hessNorm(pics[i].axis, cond) });
     for (let j = 0; j < residual.length; j++) freedom.push({ g: proj(resGrads[j]).map((v) => TAU * v), K: resK[j], hn: TAU * this.hessNorm(residual[j], cond) });
@@ -3829,7 +3915,7 @@ export class Pixel {
   // transform over Y of the Y-part times X's field at harmonic m and the
   // closures. Returns null when the structure is not this.
   chainResidual(c, cr, ci, phi0, bx, by, q00, q01, q11, logCoef, residual, resGrads, resHess, resK, fields, clos, cond, localCoords) {
-    const lnCut = Math.log(this.cut);
+    const lnCut = Math.log(this.cut) - (cond.dim === 2 && cond.depth ? cond.depth.logC : 0);
     let ix = -1;
     for (let i = 0; i < 2; i++) {
       const a = residual[i];
@@ -4022,6 +4108,16 @@ export class Pixel {
   // is a quadratic inequality in the last harmonic for each value of the
   // first, solved on each sign. Returns [[k0, k1lo, k1hi], ...] or null.
   harmonicsThrough(R, budget, gA, hA, KA, cond) {
+    if (cond.dim === 2 && cond.depth) {
+      // under the depth measure the candidates are those of the phase
+      // pushed forward to the Gaussian in Y (see logMult), with the row's
+      // calibration added to the budget
+      const D = cond.depth;
+      const RP = { ...R, mby: -R.mby, mq01: -R.mq01, mq11: R.mq11 + (2 * R.mby) / D.Y0 };
+      const gP = gA.map((g) => [g[0], -g[1]]);
+      const hP = hA.map((h, i) => [h[0], -h[1], h[2] + (2 * gA[i][1]) / D.Y0]);
+      return this.harmonicsThrough(RP, budget + D.logC, gP, hP, KA, { dim: 2, sig: cond.sig });
+    }
     if (budget <= 0) return null;
     const nA = gA.length;
     const aS = 1 / (cond.sig * cond.sig);
@@ -4111,6 +4207,14 @@ export class Pixel {
   // lattice (the relaxed bound over the remaining freedoms), as explicit
   // pairs [kx, ky, ky]; the exact test is made per shift harmonic later.
   shiftHarmonics(R, budget, gX, hX, KX, gS, hS, KS, cond) {
+    if (cond.dim === 2 && cond.depth) {
+      const D = cond.depth;
+      const push = (gA, hA) => [gA.map((g) => [g[0], -g[1]]), hA.map((h, i) => [h[0], -h[1], h[2] + (2 * gA[i][1]) / D.Y0])];
+      const RP = { ...R, mby: -R.mby, mq01: -R.mq01, mq11: R.mq11 + (2 * R.mby) / D.Y0 };
+      const [gXP, hXP] = push(gX, hX);
+      const [gSP, hSP] = push(gS, hS);
+      return this.shiftHarmonics(RP, budget + D.logC, gXP, hXP, KX, gSP, hSP, KS, { dim: 2, sig: cond.sig });
+    }
     if (budget <= 0) return null;
     const aS = 1 / (cond.sig * cond.sig);
     const rowNorm = (h) => Math.max(Math.abs(h[0]) + Math.abs(h[1]), Math.abs(h[1]) + Math.abs(h[2]));
@@ -4163,7 +4267,7 @@ export class Pixel {
   stepsumSum(c, cr, ci, phi0, bx, by, q00, q01, q11, logCoef, residual, resGrads, resHess, resK, clos, fields, cond, localCoords) {
     const steps = clos.filter((cl) => cl.stepsum);
     const others = clos.filter((cl) => !cl.stepsum);
-    const lnCut = Math.log(this.cut);
+    const lnCut = Math.log(this.cut) - (cond.dim === 2 && cond.depth ? cond.depth.logC : 0);
     const resIds = new Set(residual.map((a) => a.id));
     const bareOwner = new Map();
     for (const cl of steps)
@@ -4665,7 +4769,7 @@ export class Pixel {
   }
   residualSum(c, picCoef, ks, bx, by, logCoef, residual, resGrads, resHess, resK, clos, cond, localCoords) {
     const S = this.sig * this.sig;
-    const lnCut = Math.log(this.cut);
+    const lnCut = Math.log(this.cut) - (cond.dim === 2 && cond.depth ? cond.depth.logC : 0);
     let cr = 1;
     let ci = 0;
     let phi0 = 0;

@@ -78,15 +78,18 @@ try{
   means.push({cut:threshold,value:px.expect(model),recipes:px.stats.recipes});
  }
  const sourceMean=.5+.5*truth[0];
- assert(Math.abs(means[0].value-.5)<1e-12);
- assert(Math.abs(means[0].value-sourceMean)>4*cut);
+ // Expected-failure assertions revised by the author after the repair of
+ // 2026-09-05 (the pruning bounds now carry the depth measure through the
+ // pushforward model, see REPLY-6.md): the default cut must keep the recipe.
+ assert(Math.abs(means[0].value-sourceMean)<1e-6);
  assert(Math.abs(means[1].value-sourceMean)<1e-6);
+ for(const m of modes)assert(m.pruningMultiplier>=Math.hypot(...truth)*(1-1e-9));
  result.depthPruning={sigma,d0,b,source:'S(Y)=0.5+0.5*cos(9W); W=-6Y/(6+Y); Y~N(0,0.5²)',
   modelIsExact:'The phase is exactly affine in the compiler depth coordinate W. No omitted Taylor terms.',
   reference:refs,referenceRefinementError:refDelta,omittedDepthMassBound,
   trueComplexMultiplierMagnitude:Math.hypot(...truth),sourceMean,compiler:modes,pixelMeans:means,
   errorAtDefaultCut:Math.abs(means[0].value-sourceMean),
-  meaning:'logMult ignores cond.depth and prices a Gaussian W. termExpectation integrates the non-Gaussian W. The default pruning discards an exactly modeled bounded source whose mean error exceeds the configured cut. Depth quadrature and five-sigma renormalization have separate, much smaller errors in this case.'};
+  meaning:'Repaired 2026-09-05: logMult prices the depth measure through the quadratic pushforward of the phase to the Gaussian in Y, calibrated per row against the measure\'s characteristic function, and termExpectation integrates the actual W measure on a node ladder. The default cut keeps the recipe. Before the repair logMult priced a Gaussian W and the default pruning discarded this exactly modeled source.'};
 }finally{rmSync(temp,{recursive:true,force:true});}
 mkdirSync(dirname(output),{recursive:true});writeFileSync(output,JSON.stringify(result,null,2)+'\n',{flag:'wx'});
 console.log(JSON.stringify({output,absoluteRelativeRatio:result.absoluteVersusRelative.ratio,depthError:result.depthPruning.errorAtDefaultCut,reference:result.depthPruning.sourceMean}));
