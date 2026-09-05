@@ -1,0 +1,94 @@
+{
+  "protocol": {
+    "distribution": "standard normal",
+    "exactSource": "finite sum of polynomial amplitudes and quadratic phases",
+    "controls": 7,
+    "seeds": [
+      173,
+      917
+    ],
+    "samplesPerSeed": 300000,
+    "quadraturePanels": [
+      80000,
+      160000
+    ],
+    "cutoff": [
+      -10,
+      10
+    ],
+    "caveat": "Quadrature is a convergence check, not a certified error bound; finite Gaussian tails omitted."
+  },
+  "polynomialPhase": {
+    "mean": 0.28854110279692774,
+    "sourceVariance": 0.25201858043328923,
+    "rank": 6,
+    "controls": 7,
+    "eigenvalues": [
+      -1.298955865601981e-16,
+      0.005091249147404228,
+      0.006908866828622925,
+      0.5455739934483653,
+      0.5488338092521693,
+      1.1293720742858941,
+      1.6546243313467923
+    ],
+    "maxAbsControlMean": 2.5667765158063767e-18,
+    "beta": [
+      0.4389734393028454,
+      -0.457977832296244,
+      0.03342137465580502,
+      0.18677242493144924,
+      -0.20742104292373342,
+      0.4735101121367151,
+      0.43897343933629085
+    ],
+    "predictedResidualVariance": 0.011562996376972001,
+    "quadratureResidualVariance": 0.011562996376932755,
+    "varianceReduction": 21.795265882396244,
+    "mc": [
+      {
+        "seed": 173,
+        "count": 300000,
+        "mean": 0.2883612124455404,
+        "variance": 0.011607597720174417,
+        "meanSe": 0.00019670280221842644,
+        "varianceSe": 0.00003829128301715602,
+        "rawVariance": 0.2521227990384226
+      },
+      {
+        "seed": 917,
+        "count": 300000,
+        "mean": 0.2885597306649936,
+        "variance": 0.011587124503094917,
+        "meanSe": 0.00019652925569403076,
+        "varianceSe": 0.00003819831542885075,
+        "rawVariance": 0.2520764869503539
+      }
+    ],
+    "ridge": 0.0016546243313467924,
+    "ridgePredictedResidualVariance": 0.011772922146283699,
+    "ridgeQuadratureResidualVariance": 0.011772922146245868
+  },
+  "centreModelMismatch": {
+    "model": "cos(5z)",
+    "source": "cos(5z+4z^3)",
+    "sameCentreTwoJet": true,
+    "coefficient": 0.9615384615384615,
+    "predictedModelResidualVariance": 0.019230769216881327,
+    "sourceMean": 0.034936362087965016,
+    "sourceVariance": 0.5002438935671553,
+    "actualResidualVariance": 0.5882336860024182,
+    "actualVarianceReduction": 0.8504169439305093,
+    "mc": {
+      "seed": 2026,
+      "count": 300000,
+      "mean": 0.03432285642964769,
+      "variance": 0.5871380848078256,
+      "meanSe": 0.0013989735341883415,
+      "varianceSe": 0.0016404055584326549,
+      "rawVariance": 0.5003224404050166
+    },
+    "conclusion": "The model coefficient remains unbiased as a source-exact Stein correction; its model variance prediction is wrong."
+  },
+  "gates": "all passed"
+}

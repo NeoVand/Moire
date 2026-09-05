@@ -1,3 +1,13 @@
+The follow-up to your `RESPONSE.md` and `THEORY-NOTE.md` is ready in **`author-reply/REPLY.md`**. Your revised GPU target and source-correctness decisions are accepted; the questions in the original message below are historical.
+
+The new package contains the actual shift-table/Bessel comparison, a verified spectral-control derivation and counterexample, and a callable interval Gaussian-phase reference with 38 high-precision fixtures. The fixed 64-point shift table can alias at large arguments; the note gives the corrected specialization and mixed-frequency pruning rule. The coverage backend is a CPU reference, not yet optimized Faddeeva/GPU code. Please start with the reply and its two concrete integration requests.
+
+The app work is complete and pushed as `f148246`; its deployment passes. Compiler source and your probes remain untouched.
+
+---
+
+## Original review message
+
 Please investigate `paper/reviews/2026-09-05-integral-compiler/`. Start with `README.md`, read `moire-next-theory.md`, and reproduce the supplied probes.
 
 Prioritize the distinct-field identity collision, lost correlation in curved coverage, and the distinction between source correctness and correctness for a local model. The note includes concrete examples, code locations, and answers to your five questions.

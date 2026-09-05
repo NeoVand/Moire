@@ -1,0 +1,17 @@
+{
+  "fixtures": 38,
+  "independentQuadratureFixtures": 7,
+  "checks": 233,
+  "largestAbsoluteError": 2.449763398169096e-14,
+  "largestErrorToEstimate": 0.11916801728910366,
+  "correlatedDemo": {
+    "probability": 0.3173105078629129,
+    "maskedChirp": [
+      -0.060079971159621874,
+      0.165368104576593
+    ],
+    "joint": 0.12861526835164552,
+    "factorized": 0.2489085926180152,
+    "factorizationError": 0.12029332426636968
+  }
+}
