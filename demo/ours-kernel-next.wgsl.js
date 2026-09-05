@@ -1430,37 +1430,97 @@ fn maskField(s: f32, t: f32) -> f32 {
   let st: vec2f = vec2f(s, t);
   return MASK_A.x * sin(dot(MASK_K1, st) + MASK_PH.x) + MASK_A.y * sin(dot(MASK_K2, st) + MASK_PH.y) + MASK_A.z * sin(dot(MASK_K3, st) + MASK_PH.z);
 }
-// the field at a footprint point X (pixels from the centre) by the exact
-// rational-linear pullback: s = period (u0 + (gu + u0 r) . X) / (1 + r . X)
-fn maskAt(J: Jets, rr: vec2f, period: f32, X: vec2f) -> f32 {
+// the field and its derivative along a direction e at a footprint point X (pixels
+// from the centre), by the exact rational-linear pullback s = period (u0 + (gu + u0 r) . X) / (1 + r . X)
+struct FieldD { f: f32, d: f32 };
+fn maskAtD(J: Jets, rr: vec2f, period: f32, X: vec2f, e: vec2f) -> FieldD {
   WORK += 1.0;
   let den: f32 = 1.0 + dot(rr, X);
-  let s: f32 = period * (J.u0 + dot(J.gu + J.u0 * rr, X)) / den;
-  let t: f32 = period * (J.v0 + dot(J.gv + J.v0 * rr, X)) / den;
-  return maskField(s, t);
+  let gs: vec2f = J.gu + J.u0 * rr;
+  let gt: vec2f = J.gv + J.v0 * rr;
+  let ns: f32 = J.u0 + dot(gs, X);
+  let nt: f32 = J.v0 + dot(gt, X);
+  let s: f32 = period * ns / den;
+  let t: f32 = period * nt / den;
+  let re: f32 = dot(rr, e);
+  let dsd: f32 = period * (dot(gs, e) * den - ns * re) / (den * den);
+  let dtd: f32 = period * (dot(gt, e) * den - nt * re) / (den * den);
+  let st: vec2f = vec2f(s, t);
+  let t1: f32 = dot(MASK_K1, st) + MASK_PH.x;
+  let t2: f32 = dot(MASK_K2, st) + MASK_PH.y;
+  let t3: f32 = dot(MASK_K3, st) + MASK_PH.z;
+  var o: FieldD;
+  o.f = MASK_A.x * sin(t1) + MASK_A.y * sin(t2) + MASK_A.z * sin(t3) - MASK_T0;
+  o.d = MASK_A.x * cos(t1) * (MASK_K1.x * dsd + MASK_K1.y * dtd) + MASK_A.y * cos(t2) * (MASK_K2.x * dsd + MASK_K2.y * dtd) + MASK_A.z * cos(t3) * (MASK_K3.x * dsd + MASK_K3.y * dtd);
+  return o;
 }
-// the Gaussian measure along the line X = p ePerp + tau e of {F > t0}: sign
-// changes on a scan of step h, six bisections each, the intervals summed exactly
+fn maskAt(J: Jets, rr: vec2f, period: f32, X: vec2f) -> f32 {
+  return maskAtD(J, rr, period, X, vec2f(1.0, 0.0)).f + MASK_T0;
+}
+// the Gaussian measure along the line X = p ePerp + tau e of {F > t0}. On each
+// scan cell the cubic Hermite model of F - t0 from the values and derivatives at
+// its ends locates an interior extremum; a cell whose ends share a sign but
+// whose extremum crosses zero holds an island narrower than the step, which a
+// scan of values alone misses (0.1 of coverage lost at one pixel). Each crossing
+// is bracketed and bisected six times; the intervals are summed exactly
 fn maskLine(J: Jets, rr: vec2f, period: f32, sig: f32, e: vec2f, ePerp: vec2f, p: f32, h: f32) -> f32 {
   let Lt: f32 = 4.0 * sig;
   let ns: i32 = clamp(i32(ceil(2.0 * Lt / h)), 4, 64);
   let dg: f32 = 2.0 * Lt / f32(ns);
   var ta: f32 = -Lt;
-  var fa: f32 = maskAt(J, rr, period, p * ePerp + ta * e) - MASK_T0;
-  var inside: bool = fa > 0.0;
+  var fa: FieldD = maskAtD(J, rr, period, p * ePerp + ta * e, e);
+  var inside: bool = fa.f > 0.0;
   var lo: f32 = -Lt;
   var acc: f32 = 0.0;
   for (var i: i32 = 1; i <= ns; i++) {
     let tb: f32 = -Lt + f32(i) * dg;
-    let fb: f32 = maskAt(J, rr, period, p * ePerp + tb * e) - MASK_T0;
-    if ((fa > 0.0) != (fb > 0.0)) {
-      var a: f32 = ta;
-      var b: f32 = tb;
-      var fav: f32 = fa;
+    let fb: FieldD = maskAtD(J, rr, period, p * ePerp + tb * e, e);
+    // up to two brackets in the cell: a sign change, or an interior extremum of
+    // the Hermite cubic that crosses zero between ends of one sign
+    var nb: i32 = 0;
+    var b0a: f32 = ta; var b0b: f32 = tb; var b1a: f32 = ta; var b1b: f32 = tb;
+    if ((fa.f < 0.0) != (fb.f < 0.0)) {
+      nb = 1;
+    } else {
+      // Hermite on [0, 1]: f(x) = h00 fa + h10 dg da + h01 fb + h11 dg db; its derivative is a quadratic
+      let da: f32 = fa.d * dg;
+      let db: f32 = fb.d * dg;
+      let c2: f32 = 3.0 * (fb.f - fa.f) - 2.0 * da - db; // f'(x) = da + 2 c2 x + 3 c3 x^2 ... via the cubic's coefficients
+      let c3: f32 = 2.0 * (fa.f - fb.f) + da + db;
+      // f(x) = fa + da x + c2 x^2 + c3 x^3; f'(x) = da + 2 c2 x + 3 c3 x^2
+      let qa: f32 = 3.0 * c3;
+      let qb: f32 = 2.0 * c2;
+      let qc: f32 = da;
+      var xe: f32 = -1.0;
+      if (abs(qa) < 1e-12) {
+        if (abs(qb) > 1e-12) { xe = -qc / qb; }
+      } else {
+        let disc: f32 = qb * qb - 4.0 * qa * qc;
+        if (disc >= 0.0) {
+          let sq: f32 = sqrt(disc);
+          let x1: f32 = (-qb - sq) / (2.0 * qa);
+          let x2: f32 = (-qb + sq) / (2.0 * qa);
+          // the extremum that opposes the ends' sign: a maximum when the ends are below zero
+          let fx1: f32 = fa.f + x1 * (da + x1 * (c2 + x1 * c3));
+          let fx2: f32 = fa.f + x2 * (da + x2 * (c2 + x2 * c3));
+          if (x1 > 0.0 && x1 < 1.0 && (fx1 < 0.0) != (fa.f < 0.0)) { xe = x1; }
+          if (x2 > 0.0 && x2 < 1.0 && (fx2 < 0.0) != (fa.f < 0.0)) { xe = x2; }
+        }
+      }
+      if (xe > 0.0 && xe < 1.0) {
+        let tm: f32 = ta + xe * dg;
+        let fm: FieldD = maskAtD(J, rr, period, p * ePerp + tm * e, e);
+        if ((fm.f < 0.0) != (fa.f < 0.0)) { nb = 2; b0b = tm; b1a = tm; }
+      }
+    }
+    for (var ib: i32 = 0; ib < nb; ib++) {
+      var a: f32 = select(b1a, b0a, ib == 0);
+      var b: f32 = select(b1b, b0b, ib == 0);
+      var fav: f32 = maskAtD(J, rr, period, p * ePerp + a * e, e).f;
       for (var it: i32 = 0; it < 6; it++) {
         let m: f32 = 0.5 * (a + b);
-        let fm: f32 = maskAt(J, rr, period, p * ePerp + m * e) - MASK_T0;
-        if ((fm > 0.0) == (fav > 0.0)) { a = m; fav = fm; } else { b = m; }
+        let fm: f32 = maskAtD(J, rr, period, p * ePerp + m * e, e).f;
+        if ((fm < 0.0) == (fav < 0.0)) { a = m; fav = fm; } else { b = m; }
       }
       let root: f32 = 0.5 * (a + b);
       if (inside) { acc += Phi(root / sig) - Phi(lo / sig); inside = false; }
@@ -1596,6 +1656,7 @@ fn maskMeanHMode(hu: vec3f, hv: vec3f, hd: vec3f, x: f32, y: f32, period: f32, S
   var gF: vec2f = vec2f(0.0);
   var HF: vec3f = vec3f(0.0);
   var kmax: f32 = 0.0;
+  var gk: vec2f = vec2f(1.0, 0.0); // the fastest component's rate: the line direction of the mid regime
   var th0: vec3f = vec3f(0.0);
   var thk: vec3f = vec3f(0.0); // the phases without their offsets: the rational form's numerator
   var g1: vec2f = vec2f(0.0); var g2: vec2f = vec2f(0.0); var g3: vec2f = vec2f(0.0);
@@ -1614,7 +1675,7 @@ fn maskMeanHMode(hu: vec3f, hv: vec3f, hd: vec3f, x: f32, y: f32, period: f32, S
     F0 += a * sn;
     gF += a * cs * gth;
     HF += a * (cs * Hth - sn * vec3f(gth.x * gth.x, gth.x * gth.y, gth.y * gth.y));
-    kmax = max(kmax, length(gth));
+    if (length(gth) > kmax) { kmax = length(gth); gk = gth; }
   }
   let ks: f32 = kmax * sig;
   if (mode == 8u) { return maskSpectral(th0, thk, rr, g1, g2, g3, H1, H2, H3, S); }
@@ -1623,9 +1684,10 @@ fn maskMeanHMode(hu: vec3f, hv: vec3f, hd: vec3f, x: f32, y: f32, period: f32, S
     return vec2f(quadRegion(MASK_T0 - F0, -gF, -HF, S), 1.0);
   }
   if (ks < 1.5 || mode == 7u) {
-    let gn: f32 = length(gF);
-    var e: vec2f = vec2f(1.0, 0.0);
-    if (gn > 1e-12) { e = gF / gn; }
+    // the lines run along the fastest component, so the scan step set by its
+    // wavelength resolves the roots (lines along the field's gradient missed
+    // narrow islands where the gradient is small: 0.1 lost at one pixel)
+    let e: vec2f = gk / max(kmax, 1e-12);
     let ePerp: vec2f = vec2f(-e.y, e.x);
     // the scan step: an eighth of the shortest wavelength (a quarter missed islands
     // narrower than the step near the spectral boundary: 0.2 lost at one pixel)
