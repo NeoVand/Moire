@@ -290,11 +290,39 @@ const resolveFactor = (f) => {
 
 // evaluate an element at torus coordinates (Map axisId -> u in periods) as a
 // Jet; the last evaluation is remembered by the coordinates of its axes
+// a term's factor structure as a key: the axes (aliases resolved) and the
+// factors' signatures; equal keys are the same function of the same axes
+const rootId = (a) => (a.alias ? rootId(a.alias.axis) : a.id);
+const factorKey = (fs) => fs.map((f) => (f.kind === 'pic' ? `p${rootId(f.axis)}:${f.sig}` : `c${f.axes.map(rootId).join('.')}:${f.sig}`)).sort().join('|');
+const termKey = (t) => {
+  if (!t._fkey) t._fkey = factorKey(t.f);
+  return t._fkey;
+};
+// the axes a factor list reaches, fields included
+const deepAxesOf = (fs) => {
+  const set = new Map();
+  for (const f of fs) {
+    if (f.kind === 'pic') collectAxis(f.axis, set);
+    else for (const a of f.axes) collectAxis(a, set);
+  }
+  return [...set.values()];
+};
+// the product of a factor list at coordinates (a number)
+const factorsAt = (fs, coords) => {
+  let v = 1;
+  for (const f of fs) {
+    if (f.kind === 'pic') v *= f.fn(axisCoordinate(f.axis, coords));
+    else v *= f.fn(f.axes.map((a) => bareCoordinate(a, coords)), coords).v;
+  }
+  return v;
+};
 const evalElement = (el, coords) => {
   if (!el._axes) el._axes = el.axes();
   const key = el._axes.map((a) => coords.get(a.id));
   const m = coords.get(-1);
   if (m) key.push(m[0], m[1]);
+  const skip = coords.get(-2);
+  if (skip) key.push(skip);
   if (el._lastKey && sameCoords(key, el._lastKey)) return el._lastVal;
   const v = evalElementRaw(el, coords);
   el._lastKey = key;
@@ -303,7 +331,10 @@ const evalElement = (el, coords) => {
 };
 const evalElementRaw = (el, coords) => {
   let acc = J0;
+  // terms of the shift's function H are dropped when its family carries them
+  const skip = coords.get(-2);
   for (const t of el.terms) {
+    if (skip && t.f.length && termKey(t) === skip) continue;
     let v = t.c.re;
     let ok = true;
     for (const f of t.f) {
@@ -418,6 +449,20 @@ const mulFactors = (fa, fb) => {
     // evaluator folds those into the residual closure of the field's axes
     const gAxes = directFactorAxes(g);
     let merged = false;
+    // two steps (0/1) of the same sum are nested sets: their product is the
+    // one with the smaller offset
+    if (g.stepsum && g.stepsum.gp === STEP_PIECES.step) {
+      const same = (a, b) => a.gp === b.gp && elementSig(a.A) === elementSig(b.A) && a.phis.length === b.phis.length && a.phis.every((q, i) => q.axis === b.phis[i].axis && q.parts.length === b.phis[i].parts.length && q.parts.every((pp, j) => pp.beta === b.phis[i].parts[j].beta && pp.sig === b.phis[i].parts[j].sig));
+      for (let i = 0; i < out.length; i++) {
+        const f = out[i];
+        if (f.stepsum && f.stepsum.gp === STEP_PIECES.step && same(f.stepsum, g.stepsum)) {
+          if (g.stepsum.c < f.stepsum.c) out[i] = g;
+          merged = true;
+          break;
+        }
+      }
+      if (merged) continue;
+    }
     // a step of a sum keeps its structure: it is never merged into a
     // product closure (the evaluator multiplies the factors itself)
     for (let i = 0; i < out.length && !g.stepsum; i++) {
@@ -529,39 +574,210 @@ const stepOfSum = (P, c, g, name) => {
   if (phis.size > 2) return null;
   for (const { axis } of phis.values()) if (xSet.has(axis.id)) return null;
   const X = [...xSet.values()];
-  if (X.length === 0 || X.length > 2) return null;
-  // with one Phi axis over one X axis the plain closure (one axis, its
-  // field over the other) is transformed exactly by the residual paths and
-  // has been measured; the rule is for the structures those cannot reach
-  if (X.length + phis.size < 3) return null;
+  if (X.length === 0) return null;
+  // The shift group of a step of a sum. Axes of X that enter the closure
+  // only through fields, every such field term being one function H of
+  // them times a scalar (a parallax: every count shifted by the height
+  // times the view), are the shift axes S. The closure is then F(x + c_X H,
+  // phi + c_phi H) for the closure F over X and Phi without the shift, and
+  // its transform over (X, Phi, S) is F's transform at (k, m) times the
+  // transform over S of e^{2 pi i (k.c_X + m.c_phi) H}, a one-parameter
+  // family in theta = 2 pi (k.c_X + m.c_phi) tabulated once.
+  const aDirect = new Set();
+  for (const t of A.terms) for (const f of t.f) for (const a of f.kind === 'pic' ? [f.axis] : f.ownAxes || f.axes) aDirect.add(rootId(a));
+  const S0 = new Set(X.filter((a) => !a.field && !aDirect.has(rootId(a))).map((a) => rootId(a)));
+  let hKey = null;
+  let hFactors = null;
+  let shiftOk = S0.size > 0;
+  const hCoef = (el) => {
+    // the sum of the H-terms' coefficient jets of a field, or null
+    if (!el) return null;
+    let sum = null;
+    for (const t of el.terms) {
+      // the direct axes of the term's factors: reaching S through an X
+      // axis's own field is the shift itself, not a term of H
+      const direct = t.f.flatMap((f) => (f.kind === 'pic' ? [f.axis] : f.axes)).map(rootId);
+      const inS = direct.filter((id) => S0.has(id)).length;
+      if (inS === 0) continue;
+      if (inS !== direct.length || t.f.length === 0) {
+        shiftOk = false;
+        return null;
+      }
+      const key = termKey(t);
+      if (hKey === null) {
+        hKey = key;
+        hFactors = t.f;
+      } else if (key !== hKey) {
+        shiftOk = false;
+        return null;
+      }
+      sum = sum ? sum.add(t.c.re) : t.c.re;
+    }
+    return sum;
+  };
+  const cX = new Map();
+  for (const a of X) if (!S0.has(rootId(a))) cX.set(a.id, hCoef(a.field));
+  const cPhi = new Map();
+  for (const q of phis.values()) cPhi.set(q.axis.id, hCoef(q.axis.field));
+  const shiftAxes = shiftOk && hKey !== null ? deepAxesOf(hFactors) : [];
+  const shiftIds = new Set(shiftAxes.map((a) => a.id));
+  const Xtrue = shiftAxes.length ? X.filter((a) => !shiftIds.has(a.id)) : X;
+  const Sax = shiftAxes.length ? X.filter((a) => shiftIds.has(a.id)) : [];
+  const H = shiftAxes.length ? { key: hKey, factors: hFactors, sig: hFactors.map((f) => f.sig).join('*') } : null;
+  if (Xtrue.length > 2 || Sax.length > 2) return null;
+  // with one Phi axis over one X axis and no shift the plain closure (one
+  // axis, its field over the other) is transformed exactly by the residual
+  // paths and has been measured; the rule is for the structures those
+  // cannot reach
+  if (Xtrue.length + Sax.length + phis.size < 3) return null;
   const phiList = [...phis.values()].map((q) => ({
     axis: q.axis,
     parts: q.parts,
     bare: q.axis.field ? makeAxis(q.axis.count, null, 'periodic', `${q.axis.label}°`).axis : q.axis,
     B: makeB(q.parts),
+    cH: cPhi.get(q.axis.id) || null,
   }));
-  const axes = [...X, ...phiList.map((q) => q.bare)];
-  const nX = X.length;
+  const XS = [...Xtrue, ...Sax];
+  // a bare Phi axis that is one of the closure's own counts (a pattern whose
+  // period is the bump's) is not a shift structure; the closure would be
+  // self-referential
+  for (const q of phiList) if (XS.some((a) => rootId(a) === rootId(q.bare))) return null;
+  const axes = [...XS, ...phiList.map((q) => q.bare)];
+  const nXS = XS.length;
   const fn = (cs, coords) => {
     const m = new Map();
     const disp = coords ? coords.get(-1) : undefined;
     if (disp) m.set(-1, disp);
-    X.forEach((a, i) => m.set(a.id, cs[i]));
+    XS.forEach((a, i) => m.set(a.id, cs[i]));
     const at = (el) => {
       const j = evalElement(el, m);
       return disp ? jetAt(j, disp) : j.v;
     };
     let total = c + (A.terms.length ? at(A) : 0);
     phiList.forEach((q, j) => {
-      const phi = cs[nX + j] + (q.axis.field ? at(q.axis.field) : 0);
+      const phi = cs[nXS + j] + (q.axis.field ? at(q.axis.field) : 0);
       for (const { beta, fn: pf } of q.parts) total += beta * pf(phi);
     });
     return Jet.c(g(total));
   };
   const sig = `${name}⊕(${c.toPrecision(7)}+${elementSig(A)}|${phiList.map((q) => `${q.axis.label}${q.axis.id}:${q.axis.field ? elementSig(q.axis.field) : ''}:${q.parts.map((pp) => `${pp.beta.toPrecision(6)}*${pp.sig}`).join('+')}`).join(';')})`;
   const clo = cloFactor(axes, fn, sig);
-  clo.stepsum = { g, gp, c, A, X, phis: phiList, sig };
+  clo.stepsum = { g, gp, c, A, X: Xtrue, S: Sax, H, cX, phis: phiList, sig };
   return new Element([{ c: cj(J1, J0), f: [clo] }]);
+};
+
+// The family of transforms over the shift torus: Q(theta; k) = the
+// transform of O(s) e^{i theta H(s)} for the other closures O on S, with
+// its first two theta derivatives (for the coefficient's jet: theta varies
+// across the pixel with the view). Tabulated on a grid of theta by FFT on
+// a midpoint grid of S, remembered by the structure (nothing in it depends
+// on the pixel); a request past the range rebuilds it wider.
+const shiftCache = new Map();
+// grids of terms without tables (a shift or field pictures alone)
+const plainGridHome = { xGrids: new Map() };
+const shiftTables = (H, Saxes, OS, NGS, KWS, thetaMax, dTheta) => {
+  const key = `${H.key}|${Saxes.map((a) => a.id).join(',')}|${OS.map((o) => o.sig).join('*')}|${NGS}|${KWS}|${dTheta}`;
+  let T = shiftCache.get(key);
+  if (T && T.thetaMax >= thetaMax) return T;
+  const Theta = Math.max(thetaMax * 1.5, 1);
+  const NT = Math.ceil(Theta / dTheta);
+  const nS = Saxes.length;
+  const n = nS === 1 ? NGS : NGS * NGS;
+  // H and O on the grid
+  const Hg = new Float64Array(n);
+  const Og = new Float64Array(n);
+  const coords = new Map();
+  let hMax = 0;
+  let oMax = 0;
+  for (let i = 0; i < NGS; i++)
+    for (let j = 0; j < (nS === 2 ? NGS : 1); j++) {
+      coords.set(Saxes[0].id, (i + 0.5) / NGS);
+      if (nS === 2) coords.set(Saxes[1].id, (j + 0.5) / NGS);
+      const idx = nS === 2 ? i * NGS + j : i;
+      Hg[idx] = factorsAt(H.factors, coords);
+      let o = 1;
+      for (const cl of OS) o *= cl.fn(cl.axes.map((a) => bareCoordinate(a, coords)), coords).v;
+      Og[idx] = o;
+      hMax = Math.max(hMax, Math.abs(Hg[idx]));
+      oMax = Math.max(oMax, Math.abs(o));
+    }
+  const KWn = 2 * KWS + 1;
+  const wn = nS === 1 ? KWn : KWn * KWn;
+  const nodes = 2 * NT + 1;
+  const Q = [new Float32Array(nodes * wn), new Float32Array(nodes * wn)];
+  const Q1 = [new Float32Array(nodes * wn), new Float32Array(nodes * wn)];
+  const Q2 = [new Float32Array(nodes * wn), new Float32Array(nodes * wn)];
+  const re = new Float64Array(n);
+  const im = new Float64Array(n);
+  const t0 = DEBUG ? performance.now() : 0;
+  const window = (dst, node) => {
+    for (let kx = -KWS; kx <= KWS; kx++)
+      for (let ky = -(nS === 2 ? KWS : 0); ky <= (nS === 2 ? KWS : 0); ky++) {
+        const ix = ((kx % NGS) + NGS) % NGS;
+        const iy = ((ky % NGS) + NGS) % NGS;
+        const idx = nS === 2 ? ix * NGS + iy : ix;
+        const ang = (-Math.PI * (kx + ky)) / NGS;
+        const ca = Math.cos(ang);
+        const sa = Math.sin(ang);
+        const r0 = re[idx] / n;
+        const i0 = im[idx] / n;
+        const w = node * wn + (nS === 2 ? (kx + KWS) * KWn + ky + KWS : kx + KWS);
+        dst[0][w] = r0 * ca - i0 * sa;
+        dst[1][w] = r0 * sa + i0 * ca;
+      }
+  };
+  for (let node = 0; node < nodes; node++) {
+    const theta = (node - NT) * dTheta;
+    // Q: O e^{i theta H}; Q': i H O e^{i theta H}; Q'': -H^2 O e^{i theta H}
+    for (let pass = 0; pass < 3; pass++) {
+      for (let idx = 0; idx < n; idx++) {
+        const ph = theta * Hg[idx];
+        const cph = Math.cos(ph);
+        const sph = Math.sin(ph);
+        const o = Og[idx];
+        const h = Hg[idx];
+        if (pass === 0) {
+          re[idx] = o * cph;
+          im[idx] = o * sph;
+        } else if (pass === 1) {
+          re[idx] = -o * h * sph;
+          im[idx] = o * h * cph;
+        } else {
+          re[idx] = -o * h * h * cph;
+          im[idx] = -o * h * h * sph;
+        }
+      }
+      if (nS === 1) fftInPlace(re, im);
+      else fft2InPlace(re, im, NGS);
+      window(pass === 0 ? Q : pass === 1 ? Q1 : Q2, node);
+    }
+  }
+  if (DEBUG) console.log(`      shift tables H=${H.sig} S=[${Saxes.map((a) => a.label + '#' + a.id)}] O=[${OS.map((o) => o.sig.slice(0, 20))}] theta ${Theta.toFixed(1)} nodes ${nodes} ${(performance.now() - t0).toFixed(0)} ms`);
+  T = { NT, dTheta, thetaMax: Theta, wn, KWn, KWS, nS, Q, Q1, Q2, hMax, oMax };
+  if (shiftCache.size > 64) shiftCache.clear();
+  shiftCache.set(key, T);
+  return T;
+};
+// Q, Q', Q'' at theta for the window index w, by quadratic interpolation
+// on the three nearest nodes: [re, im] each
+const shiftAt = (T, theta, w, out) => {
+  const { NT, dTheta, wn } = T;
+  let x = theta / dTheta + NT;
+  if (x < 1) x = 1;
+  if (x > 2 * NT - 1) x = 2 * NT - 1;
+  const i = Math.round(x);
+  const f = x - i;
+  const w0 = 0.5 * f * (f - 1);
+  const w1 = 1 - f * f;
+  const w2 = 0.5 * f * (f + 1);
+  const a = (i - 1) * wn + w;
+  const b = i * wn + w;
+  const cc = (i + 1) * wn + w;
+  for (let q = 0; q < 3; q++) {
+    const A = q === 0 ? T.Q : q === 1 ? T.Q1 : T.Q2;
+    out[2 * q] = w0 * A[0][a] + w1 * A[0][b] + w2 * A[0][cc];
+    out[2 * q + 1] = w0 * A[1][a] + w1 * A[1][b] + w2 * A[1][cc];
+  }
 };
 
 // a picture sum B(phi) = sum beta_i p_i(phi) on one axis: its values on a
@@ -857,11 +1073,15 @@ const stepsumTables = (S, mask, M0, NA) => {
   // the range of a = c + A(x) over the X torus
   let amin = Infinity;
   let amax = -Infinity;
-  const NS = nX === 1 ? 1024 : 96;
+  const NS = nX === 0 ? 1 : nX === 1 ? 1024 : 96;
   for (let i = 0; i < NS; i++)
     for (let j = 0; j < (nX === 2 ? NS : 1); j++) {
       const m = new Map();
-      m.set(S.X[0].id, (i + 0.5) / NS);
+      if (S.H) {
+        m.set(-2, S.H.key); // the shift's terms are the family's, not the table's
+        for (const a of S.S) m.set(a.id, 0);
+      }
+      if (nX >= 1) m.set(S.X[0].id, (i + 0.5) / NS);
       if (nX === 2) m.set(S.X[1].id, (j + 0.5) / NS);
       const a = S.c + (S.A.terms.length ? evalElement(S.A, m).v : 0);
       if (Number.isFinite(a)) {
@@ -1058,12 +1278,22 @@ const collapseWith = (el, jetFn, name) => {
   // otherwise a closure over all axes the element touches directly (fields
   // are evaluated inside)
   const direct = directAxes(el);
-  const fn = (cs) => {
+  const fn = (cs, coords) => {
     const m = new Map();
     direct.forEach((a, i) => m.set(a.id, cs[i]));
+    if (coords) {
+      if (coords.has(-1)) m.set(-1, coords.get(-1));
+      if (coords.has(-2)) m.set(-2, coords.get(-2));
+    }
     return jetFn(evalElement(el, m));
   };
-  return new Element([{ c: cj(J1, J0), f: [cloFactor(direct, fn, `${name}(${elementSig(el)})`)] }]);
+  const clo = cloFactor(direct, fn, `${name}(${elementSig(el)})`);
+  // the axes of the element's own factors, without the fields' axes: what a
+  // shift (a parallax) may not include
+  const own = new Map();
+  for (const t of el.terms) for (const f of t.f) for (const a of f.kind === 'pic' ? [f.axis] : f.axes) own.set(a.id, a);
+  clo.ownAxes = [...own.values()];
+  return new Element([{ c: cj(J1, J0), f: [clo] }]);
 };
 // a structural signature: coefficient values and factor signatures; the same
 // string across pixels exactly when the closure is the same function
@@ -1135,6 +1365,8 @@ export const step = (x) => {
   const P = el.pictured();
   if (s.gradNorm() < 1e-12 && P.terms.length > 0) {
     const c = s.v;
+    const aff = affineOfTwoValued(P, c, (u) => (u >= 0 ? 1 : 0));
+    if (aff) return aff;
     const sos = stepOfSum(P, c, (u) => (u >= 0 ? 1 : 0), 'step');
     if (sos) return sos;
     return collapseWith(P, (j) => Jet.c(j.v + c >= 0 ? 1 : 0), 'step∘');
@@ -1147,12 +1379,29 @@ export const step = (x) => {
 };
 // a non-smooth function of the raw count on an edge axis, or composed on a
 // picture; g is the function of the raw value
+// g(c + beta h) for a two-valued closure h (a sign or a step of a sum): an
+// affine function of h, since h takes the values v1, v2 only
+const affineOfTwoValued = (P, c, g) => {
+  if (P.terms.length !== 1) return null;
+  const t = P.terms[0];
+  if (t.f.length !== 1 || t.f[0].kind !== 'clo' || !t.f[0].stepsum || !jetIsConst(t.c.re) || !jetIsZero(t.c.im)) return null;
+  const gp = t.f[0].stepsum.gp;
+  if (gp.bm !== 0 || gp.bp !== 0) return null;
+  const beta = t.c.re.v;
+  const v1 = g(c + beta * gp.am);
+  const v2 = g(c + beta * gp.ap);
+  const a1 = (v1 + v2) / 2 - ((v2 - v1) / 2) * ((gp.ap + gp.am) / (gp.ap - gp.am));
+  const a2 = (v2 - v1) / (gp.ap - gp.am);
+  return new Element([{ c: cj(Jet.c(a1), J0), f: [] }, { c: cj(Jet.c(a2), J0), f: [t.f[0]] }]);
+};
 const edgePrimitive = (name, g) => (x) => {
   const el = lift(x);
   const s = el.smoothPart();
   const P = el.pictured();
   if (s.gradNorm() < 1e-12 && P.terms.length > 0) {
     const c = s.v;
+    const aff = affineOfTwoValued(P, c, g);
+    if (aff) return aff;
     const sos = stepOfSum(P, c, g, name);
     if (sos) return sos;
     return collapseWith(P, (j) => Jet.c(g(j.v + c)), name + '∘');
@@ -1689,6 +1938,9 @@ export class Pixel {
     this.stepsumKW = 32; // window of X harmonics kept from the transform over X
     this.stepsumNG = 256; // grid per residual X axis for that transform (remembered across pixels)
     this.stepsumNGlocal = 128; // the same when local coordinates enter it (rebuilt per point)
+    this.shiftNG = 64; // grid per shift axis for the family over the shift torus
+    this.shiftKW = 16; // window of shift harmonics kept
+    this.shiftDTheta = 0.05; // theta step of the family (quadratic interpolation)
     this.stats = { terms: 0, recipes: 0, dfts: 0, overflow: 0, localNodes: 0 };
   }
   axisSigma(axis) {
@@ -2276,7 +2528,15 @@ export class Pixel {
     let jumps = [];
     if (levels.size) {
       const field = axis.field;
-      const coord = field && coordsAt ? (u) => u + evalElement(field, coordsAt(u)).v : (u) => u;
+      const coord =
+        field && coordsAt
+          ? (u) => {
+              const cm = coordsAt(u);
+              const j = evalElement(field, cm);
+              const d = cm.get(-1);
+              return u + (d ? jetAt(j, d) : j.v);
+            }
+          : (u) => u;
       // sampling follows the field's variation along the axis
       let samples = 12;
       if (field && coordsAt) samples = 24;
@@ -2284,11 +2544,12 @@ export class Pixel {
     }
     if (multi.length) {
       const at = (u) => {
+        const cm = coordsAt(u);
         let v = 1;
-        for (const f of multi) v *= f.fn(f.axes.map((x) => axisCoordinate(x, coordsAt(u)))).v;
+        for (const f of multi) v *= f.fn(f.axes.map((x) => bareCoordinate(x, cm)), cm).v;
         return v;
       };
-      jumps = jumps.concat(scanJumps(at, lo, hi));
+      jumps = jumps.concat(scanJumps(at, lo, hi, 48));
     }
     this._lastJumps = jumps;
     const cuts = [lo, ...jumps, ...extraCuts.filter((u) => u > lo && u < hi), hi].sort((p, q) => p - q);
@@ -2920,16 +3181,151 @@ export class Pixel {
     if (DEBUG) console.log(`      stepsum declined: ${why}`);
     return null;
   }
+  // The harmonics of a set of axes that can pass the cut with a recipe of
+  // rate R: the second-order magnitude is at most exp(-a |b|^2 / (2 (a^2 +
+  // lam^2))) for a = 1 / sig^2, b the first-order rate and lam the
+  // curvature, which grows with |k| as lam0 + sum rho_i |k_i|, so the bound
+  // is a quadratic inequality in the last harmonic for each value of the
+  // first, solved on each sign. Returns [[k0, k1lo, k1hi], ...] or null.
+  harmonicsThrough(R, budget, gA, hA, KA, cond) {
+    if (budget <= 0) return null;
+    const nA = gA.length;
+    const aS = 1 / (cond.sig * cond.sig);
+    const rowNorm = (h) => Math.max(Math.abs(h[0]) + Math.abs(h[1]), Math.abs(h[1]) + Math.abs(h[2]));
+    const lam0 = rowNorm([R.mq00, R.mq01, R.mq11]);
+    const rho = hA.map((h) => TAU * rowNorm(h));
+    const s2 = (2 * budget) / aS;
+    let b0x;
+    let b0y;
+    let cxx;
+    let cxy;
+    let cyx;
+    let cyy;
+    if (cond.dim === 2) {
+      b0x = R.mbx;
+      b0y = R.mby;
+      cxx = TAU * gA[0][0];
+      cxy = TAU * gA[0][1];
+      cyx = nA === 2 ? TAU * gA[1][0] : 0;
+      cyy = nA === 2 ? TAU * gA[1][1] : 0;
+    } else {
+      const ex = cond.e[0];
+      const ey = cond.e[1];
+      const mx = cond.m[0];
+      const my = cond.m[1];
+      b0x = (R.mbx + R.mq00 * mx + R.mq01 * my) * ex + (R.mby + R.mq01 * mx + R.mq11 * my) * ey;
+      b0y = 0;
+      const along = (g, h) => TAU * (g[0] * ex + g[1] * ey + (h[0] * mx + h[1] * my) * ex + (h[1] * mx + h[2] * my) * ey);
+      cxx = along(gA[0], hA[0]);
+      cxy = 0;
+      cyx = nA === 2 ? along(gA[1], hA[1]) : 0;
+      cyy = 0;
+    }
+    const KY = nA === 2 ? KA[1] : 0;
+    const solve = (A, B, C, sgn) => {
+      let lo = sgn > 0 ? 0 : -KY;
+      let hi = sgn > 0 ? KY : 0;
+      if (Math.abs(A) < 1e-18) {
+        if (Math.abs(B) < 1e-18) return C <= 0 ? [lo, hi] : [1, 0];
+        const r = -C / B;
+        if (B > 0) hi = Math.min(hi, Math.floor(r + 1e-9));
+        else lo = Math.max(lo, Math.ceil(r - 1e-9));
+        return [lo, hi];
+      }
+      const disc = B * B - 4 * A * C;
+      if (A > 0) {
+        if (disc < 0) return [1, 0];
+        const sq = Math.sqrt(disc);
+        return [Math.max(lo, Math.ceil((-B - sq) / (2 * A) - 1e-9)), Math.min(hi, Math.floor((-B + sq) / (2 * A) + 1e-9))];
+      }
+      if (disc < 0) return [lo, hi];
+      const sq = Math.sqrt(disc);
+      const r1 = (-B + sq) / (2 * A);
+      const r2 = (-B - sq) / (2 * A);
+      const left = [lo, Math.min(hi, Math.floor(Math.min(r1, r2) + 1e-9))];
+      const right = [Math.max(lo, Math.ceil(Math.max(r1, r2) - 1e-9)), hi];
+      const ok1 = left[0] <= left[1];
+      const ok2 = right[0] <= right[1];
+      if (ok1 && ok2) return [left[0], right[1]];
+      if (ok1) return left;
+      if (ok2) return right;
+      return [1, 0];
+    };
+    const out = [];
+    for (let kx = -KA[0]; kx <= KA[0]; kx++) {
+      const px = b0x + cxx * kx;
+      const py = b0y + cxy * kx;
+      const L = lam0 + rho[0] * Math.abs(kx);
+      if (nA === 1) {
+        if (px * px + py * py <= s2 * (aS * aS + L * L)) out.push([kx, 0, 0]);
+        continue;
+      }
+      const r1 = rho[1];
+      const A0 = cyx * cyx + cyy * cyy - s2 * r1 * r1;
+      const B0 = 2 * (px * cyx + py * cyy);
+      const C0 = px * px + py * py - s2 * (aS * aS + L * L);
+      const up = solve(A0, B0 - 2 * s2 * L * r1, C0, 1);
+      const dn = solve(A0, B0 + 2 * s2 * L * r1, C0, -1);
+      const lo = Math.min(up[0] <= up[1] ? up[0] : Infinity, dn[0] <= dn[1] ? dn[0] : Infinity);
+      const hi = Math.max(up[0] <= up[1] ? up[1] : -Infinity, dn[0] <= dn[1] ? dn[1] : -Infinity);
+      if (lo <= hi) out.push([kx, lo, hi]);
+    }
+    return out.length ? out : null;
+  }
+  // The X harmonics of a recipe when shift harmonics can complete their
+  // rate: each is kept when the rate it leaves is within reach of the shift
+  // lattice (the relaxed bound over the remaining freedoms), as explicit
+  // pairs [kx, ky, ky]; the exact test is made per shift harmonic later.
+  shiftHarmonics(R, budget, gX, hX, KX, gS, hS, KS, cond) {
+    if (budget <= 0) return null;
+    const aS = 1 / (cond.sig * cond.sig);
+    const rowNorm = (h) => Math.max(Math.abs(h[0]) + Math.abs(h[1]), Math.abs(h[1]) + Math.abs(h[2]));
+    const lam0 = rowNorm([R.mq00, R.mq01, R.mq11]);
+    const proj = (g) => (cond.dim === 1 ? [g[0] * cond.e[0] + g[1] * cond.e[1], 0] : g);
+    let base;
+    if (cond.dim === 2) base = [R.mbx, R.mby];
+    else {
+      const ex = cond.e[0];
+      const ey = cond.e[1];
+      const mx = cond.m[0];
+      const my = cond.m[1];
+      base = [(R.mbx + R.mq00 * mx + R.mq01 * my) * ex + (R.mby + R.mq01 * mx + R.mq11 * my) * ey, 0];
+    }
+    const Xf = gX.map((g, i) => ({ g: proj([TAU * g[0], TAU * g[1]]), K: KX[i], hn: TAU * rowNorm(hX[i]) }));
+    const Sf = gS.map((g, i) => ({ g: proj([TAU * g[0], TAU * g[1]]), K: KS[i], hn: TAU * rowNorm(hS[i]) }));
+    const ok = (rate2, lam) => (-0.5 * aS * rate2) / (aS * aS + lam * lam) + budget >= 0;
+    if (!ok(pruneRate2(base, [...Xf, ...Sf]), lam0)) return null;
+    const out = [];
+    const nX = gX.length;
+    for (let kx = -KX[0]; kx <= KX[0]; kx++) {
+      const bx = [base[0] + kx * Xf[0].g[0], base[1] + kx * Xf[0].g[1]];
+      const lamx = lam0 + Math.abs(kx) * Xf[0].hn;
+      if (nX === 1) {
+        if (ok(pruneRate2(bx, Sf), lamx)) out.push([kx, 0, 0]);
+        continue;
+      }
+      if (!ok(pruneRate2(bx, [Xf[1], ...Sf]), lamx)) continue;
+      for (let ky = -KX[1]; ky <= KX[1]; ky++) {
+        const by = [bx[0] + ky * Xf[1].g[0], bx[1] + ky * Xf[1].g[1]];
+        if (ok(pruneRate2(by, Sf), lamx + Math.abs(ky) * Xf[1].hn)) out.push([kx, ky, ky]);
+      }
+    }
+    return out.length ? out : null;
+  }
   // The sum for a term whose closures include steps of sums, under any
-  // split of the axes. The residual axes are the steps' bare Phi axes and
-  // the rest, X (at most two). For each recipe of the Phi harmonics the
-  // steps contribute their tables T_m(a_i(x)) e^{2 pi i m.G_i(x)}, the
-  // pictures with fields their phase e^{2 pi i k G(x)} and the other
-  // closures their values, all functions on the X torus whose transform
-  // is taken by FFT (remembered across pixels when nothing local enters
-  // it) or, with no residual X, read at the fixed coordinates. A local Phi
-  // axis is a number and its picture joins its step's a. Returns null for
-  // a structure outside this.
+  // split of the axes. The residual axes are the steps' bare Phi axes, the
+  // shift axes S (a parallax: every count shifted by scalar multiples of
+  // one function H of them) and the rest, X (at most two). For each recipe
+  // of the Phi harmonics the steps contribute their tables T_m(a_i(x))
+  // e^{2 pi i m.G_i(x)}, the pictures with fields their phase and the other
+  // closures on X their values, all functions on the X torus with the shift
+  // removed, transformed by FFT (remembered across pixels when nothing
+  // local enters) or, with no residual X, read at the fixed coordinates;
+  // and for each X harmonic the transform over S of O_S e^{i theta H} at
+  // theta = 2 pi (m.c_phi + k.c_X + k_f.c_f), a family tabulated once, whose
+  // theta derivatives carry the view's variation across the pixel as the
+  // coefficient's jet. A local Phi axis is a number and its picture joins
+  // its step's a. Returns null for a structure outside this.
   stepsumSum(c, cr, ci, phi0, bx, by, q00, q01, q11, logCoef, residual, resGrads, resHess, resK, clos, fields, cond, localCoords) {
     const steps = clos.filter((cl) => cl.stepsum);
     const others = clos.filter((cl) => !cl.stepsum);
@@ -2941,14 +3337,78 @@ export class Pixel {
         if (bareOwner.has(q.bare.id) && bareOwner.get(q.bare.id) !== cl) return this.stepsumNo(`two steps share the Phi axis ${q.bare.label}#${q.bare.id}`);
         bareOwner.set(q.bare.id, cl);
       }
-    const X = residual.filter((a) => !bareOwner.has(a.id));
+    // the shift group: one H for every step that has one
+    let H = null;
+    const sIds = new Set();
+    for (const cl of steps) {
+      const S = cl.stepsum;
+      if (!S.H) continue;
+      if (H && H.key !== S.H.key) return this.stepsumNo('two shift functions');
+      H = S.H;
+      for (const a of S.S) sIds.add(a.id);
+    }
+    // no step with a shift: the field pictures may still carry one (a
+    // picture whose field is a scalar times one function H of counts that
+    // enter nothing else directly)
+    if (!H && fields.length) {
+      const cand = new Set(residual.filter((a) => !a.field && !bareOwner.has(a.id)).map((a) => rootId(a)));
+      outer: for (const f of fields)
+        for (const t of f.axis.field.terms) {
+          const direct = t.f.flatMap((ff) => (ff.kind === 'pic' ? [ff.axis] : ff.axes));
+          if (direct.length && direct.every((a) => cand.has(rootId(a)))) {
+            H = { key: termKey(t), factors: t.f, sig: t.f.map((ff) => ff.sig).join('*') };
+            for (const a of direct) sIds.add(rootId(a));
+            break outer;
+          }
+        }
+    }
+    const Sres = residual.filter((a) => sIds.has(a.id));
+    const Sloc = [...sIds].filter((id) => !resIds.has(id));
+    if (Sres.length && Sloc.length) return this.stepsumNo('shift axes both residual and local');
+    for (const id of Sloc) if (!localCoords.has(id)) return this.stepsumNo('a shift axis neither residual nor local');
+    const shift = Sres.length > 0; // the family is used; otherwise H is a number in the fields
+    const X = residual.filter((a) => !bareOwner.has(a.id) && !sIds.has(a.id));
     if (X.length > 2) return this.stepsumNo(`${X.length} X axes`);
     const xIds = new Set(X.map((a) => a.id));
     const known = (a) => xIds.has(a.id) || localCoords.has(a.id);
     for (const cl of steps) for (const a of cl.stepsum.X) if (!known(a)) return this.stepsumNo(`X axis ${a.label}#${a.id} of a step neither residual nor local`);
     for (const cl of steps) for (const q of cl.stepsum.phis) if (!resIds.has(q.bare.id) && !localCoords.has(q.bare.id)) return this.stepsumNo('a Phi axis neither residual nor local');
-    for (const o of others) for (const a of o.axes) if (!known(a)) return this.stepsumNo(`closure ${o.sig.slice(0, 40)} reaches ${a.label}#${a.id}`);
-    for (const f of fields) for (const a of f.axis.field.axes()) if (!known(a)) return this.stepsumNo(`field of ${f.axis.label}#${f.axis.id} reaches ${a.label}#${a.id}`);
+    // the other closures: on X (and local axes) or on S
+    const OX = [];
+    const OS = [];
+    for (const o of others) {
+      const onS = o.axes.every((a) => sIds.has(a.id));
+      const onX = o.axes.every((a) => known(a));
+      if (shift && onS) OS.push(o);
+      else if (onX) OX.push(o);
+      else return this.stepsumNo(`closure ${o.sig.slice(0, 40)} reaches ${o.axes.map((a) => a.label + '#' + a.id).join(',')}`);
+    }
+    // the H part of a field element (the sum of its H terms' coefficient
+    // jets, or null), declining when a term reaches S outside H
+    let hBad = null;
+    const hPart = (el, what) => {
+      if (!shift || !el) return null;
+      let sum = null;
+      for (const t of el.terms) {
+        const direct = t.f.flatMap((ff) => (ff.kind === 'pic' ? [ff.axis] : ff.axes));
+        if (!direct.some((a) => sIds.has(rootId(a)))) continue;
+        if (termKey(t) !== H.key || !direct.every((a) => sIds.has(rootId(a)))) {
+          hBad = `${what} reaches S outside H`;
+          return null;
+        }
+        sum = sum ? sum.add(t.c.re) : t.c.re;
+      }
+      return sum;
+    };
+    // the field pictures: their H part joins theta, the rest the grid
+    const fieldH = [];
+    for (const f of fields) {
+      for (const a of f.axis.field.axes()) if (!known(a) && !sIds.has(a.id)) return this.stepsumNo(`field of ${f.axis.label}#${f.axis.id} reaches ${a.label}#${a.id}`);
+      const sum = hPart(f.axis.field, `field of ${f.axis.label}#${f.axis.id}`);
+      if (hBad) return this.stepsumNo(hBad);
+      const per = f.axis.kind === 'edge' ? f.axis.edgePeriod : 1;
+      fieldH.push(sum ? sum.scale((TAU * f.k) / per) : null);
+    }
     // each step: its residual and local Phi axes and its tables
     const parts = steps.map((cl) => {
       const S = cl.stepsum;
@@ -2959,24 +3419,56 @@ export class Pixel {
       const tables = phiR.length ? stepsumTables(S, mask, this.stepsumM, this.stepsumNA) : null;
       return { S, phiR, phiL, mask, tables };
     });
-    // the residual Phi axes in order, the last one innermost
     const idxOf = (id) => residual.findIndex((a) => a.id === id);
     const phis = [];
     parts.forEach((P, pi) => {
       P.phiR.forEach((j, r) => {
-        const bare = P.S.phis[j].bare;
-        const idx = idxOf(bare.id);
-        phis.push({ pi, j, r, bare, g: resGrads[idx], h: resHess[idx], K: Math.min(resK[idx], P.tables.Ms[r]) });
+        const q = P.S.phis[j];
+        const idx = idxOf(q.bare.id);
+        phis.push({ pi, j, r, bare: q.bare, g: resGrads[idx], h: resHess[idx], K: Math.min(resK[idx], P.tables.Ms[r]), cH: null, q });
       });
     });
     const nPhi = phis.length;
-    if (nPhi === 0) return this.stepsumNo('no residual Phi axis');
+    if (nPhi === 0 && !shift && fields.length === 0) return this.stepsumNo('no residual Phi axis');
     const gX = X.map((a) => resGrads[idxOf(a.id)]);
     const hX = X.map((a) => resHess[idxOf(a.id)]);
     const KW = this.stepsumKW;
     const KX = X.map((a) => Math.min(resK[idxOf(a.id)], KW));
     const nXR = X.length;
-    // a of a step at full X coordinates: the local Phi pictures join it
+    // the H coefficient of each X axis (its field's shift), a jet or null
+    const cXof = X.map((a) => {
+      if (!shift) return null;
+      for (const cl of steps) if (cl.stepsum.cX.has(a.id)) return cl.stepsum.cX.get(a.id);
+      const j = hPart(a.field, `field of X axis ${a.label}#${a.id}`);
+      return j;
+    });
+    if (hBad) return this.stepsumNo(hBad);
+    // the shift tables and the S harmonics' rates
+    let ST = null;
+    let gS = null;
+    let hS = null;
+    let KS = null;
+    let thetaMax = 0;
+    if (shift) {
+      for (const ph of phis) ph.cH = hPart(ph.q.axis.field, `field of Phi axis ${ph.q.axis.label}#${ph.q.axis.id}`);
+      if (hBad) return this.stepsumNo(hBad);
+      const absv = (j) => (j ? Math.abs(j.v) : 0);
+      for (const ph of phis) thetaMax += ph.K * absv(ph.cH);
+      X.forEach((a, i) => (thetaMax += KX[i] * absv(cXof[i])));
+      fieldH.forEach((j) => (thetaMax += absv(j) / TAU));
+      thetaMax *= TAU;
+      ST = shiftTables(H, Sres, OS, this.shiftNG, this.shiftKW, thetaMax, this.shiftDTheta);
+      gS = Sres.map((a) => resGrads[idxOf(a.id)]);
+      hS = Sres.map((a) => resHess[idxOf(a.id)]);
+      KS = Sres.map((a) => Math.min(resK[idxOf(a.id)], this.shiftKW));
+    }
+    // coordinates with the shift's H terms dropped (when the family is used)
+    const withSkip = (coords) => {
+      if (!shift) return coords;
+      const m = new Map(coords);
+      m.set(-2, H.key);
+      return m;
+    };
     const aAt = (P, coords) => {
       const S = P.S;
       let a = S.c + (S.A.terms.length ? evalElement(S.A, coords).v : 0);
@@ -3001,16 +3493,15 @@ export class Pixel {
     };
     const othersAt = (coords) => {
       let v = 1;
-      for (const o of others) v *= o.fn(o.axes.map((a) => coords.get(a.id))).v;
+      for (const o of OX) v *= o.fn(o.axes.map((a) => bareCoordinate(a, coords)), coords).v;
       return v;
     };
-    // the table index of a part at a Phi recipe
-    const qOf = (P, m) => {
+    const qOf = (P, pi, m) => {
       const Ms = P.tables.Ms;
       let m0 = 0;
       let m1 = 0;
       phis.forEach((ph, i) => {
-        if (ph.pi !== parts.indexOf(P)) return;
+        if (ph.pi !== pi) return;
         if (ph.r === 0) m0 = m[i];
         else m1 = m[i];
       });
@@ -3034,7 +3525,19 @@ export class Pixel {
       }
       return { mbx, mby, mq00, mq01, mq11, phase };
     };
-    // the recipes of the Phi harmonics, the last axis innermost
+    // theta as a jet for a Phi recipe and an X harmonic
+    let thetaBase = null;
+    if (shift) {
+      thetaBase = J0;
+      for (const j of fieldH) if (j) thetaBase = thetaBase.add(j);
+    }
+    const thetaOf = (m, kx, ky) => {
+      let th = thetaBase;
+      for (let i = 0; i < nPhi; i++) if (phis[i].cH && m[i]) th = th.add(phis[i].cH.scale(TAU * m[i]));
+      if (cXof[0] && kx) th = th.add(cXof[0].scale(TAU * kx));
+      if (nXR === 2 && cXof[1] && ky) th = th.add(cXof[1].scale(TAU * ky));
+      return th;
+    };
     const ms = [];
     const m = new Array(nPhi).fill(0);
     const rec = (i) => {
@@ -3049,18 +3552,65 @@ export class Pixel {
     };
     rec(0);
     let acc = 0;
+    const qbuf = new Float64Array(6);
+    // the contribution of one (m, k) with coefficient P (complex number),
+    // rates r and phase ph2: through the shift family or directly
+    const addRecipe = (mm, kx, ky, Pr, Pi, r, ph2) => {
+      if (!shift) {
+        if (logMult(r[0], r[1], r[2], r[3], r[4], cond) + logCoef + Math.log(Math.hypot(Pr, Pi)) < lnCut) return;
+        const v = termExpectation(cjScaleC(cjScaleC(c, Pr, Pi), cr, ci), ph2, r[0], r[1], r[2], r[3], r[4], cond);
+        this.stats.recipes++;
+        acc += v[0];
+        return;
+      }
+      const Rk = { mbx: r[0], mby: r[1], mq00: r[2], mq01: r[3], mq11: r[4] };
+      const pmag = Math.hypot(Pr, Pi);
+      const kss = this.harmonicsThrough(Rk, logCoef + Math.log(pmag * ST.oMax) - lnCut, gS, hS, KS, cond);
+      if (!kss) return;
+      const th = thetaOf(mm, kx, ky);
+      for (const [ks0, ks1lo, ks1hi] of kss)
+        for (let ks1 = ks1lo; ks1 <= ks1hi; ks1++) {
+          const w = ST.nS === 2 ? (ks0 + ST.KWS) * ST.KWn + ks1 + ST.KWS : ks0 + ST.KWS;
+          shiftAt(ST, th.v, w, qbuf);
+          // the coefficient jet: P (Q + Q' dtheta + Q'' dtheta^2 / 2)
+          const Qr = qbuf[0];
+          const Qi = qbuf[1];
+          if (Math.hypot(Qr, Qi) * pmag < 1e-13) continue;
+          const nbx = r[0] + TAU * (ks0 * gS[0][0] + (ST.nS === 2 ? ks1 * gS[1][0] : 0));
+          const nby = r[1] + TAU * (ks0 * gS[0][1] + (ST.nS === 2 ? ks1 * gS[1][1] : 0));
+          const nq00 = r[2] + TAU * (ks0 * hS[0][0] + (ST.nS === 2 ? ks1 * hS[1][0] : 0));
+          const nq01 = r[3] + TAU * (ks0 * hS[0][1] + (ST.nS === 2 ? ks1 * hS[1][1] : 0));
+          const nq11 = r[4] + TAU * (ks0 * hS[0][2] + (ST.nS === 2 ? ks1 * hS[1][2] : 0));
+          if (logMult(nbx, nby, nq00, nq01, nq11, cond) + logCoef + Math.log(Math.hypot(Qr, Qi) * pmag) < lnCut) continue;
+          const Q1r = qbuf[2];
+          const Q1i = qbuf[3];
+          const Q2r = qbuf[4];
+          const Q2i = qbuf[5];
+          // the jet of Q(theta(z)) with theta a jet: value, gradient Q' theta_g, Hessian Q'' theta_g theta_g + Q' theta_h
+          const jetOf = (v, d1, d2) => new Jet(v, d1 * th.gx, d1 * th.gy, d2 * th.gx * th.gx + d1 * th.hxx, d2 * th.gx * th.gy + d1 * th.hxy, d2 * th.gy * th.gy + d1 * th.hyy);
+          const Qjr = jetOf(Qr, Q1r, Q2r);
+          const Qji = jetOf(Qi, Q1i, Q2i);
+          const coef = cjMul(cj(Qjr, Qji), cj(Jet.c(Pr), Jet.c(Pi)));
+          const ph3 = ph2 + this.axisPhase(Sres[0], ks0) + (ST.nS === 2 ? this.axisPhase(Sres[1], ks1) : 0);
+          const v = termExpectation(cjScaleC(cjMul(c, coef), cr, ci), ph3, nbx, nby, nq00, nq01, nq11, cond);
+          this.stats.recipes++;
+          acc += v[0];
+        }
+    };
     if (nXR === 0) {
-      const as = parts.map((P) => aAt(P, localCoords));
-      const G = GAt(localCoords);
-      const ov = othersAt(localCoords);
-      const fph = fieldPhaseAt(localCoords);
+      const lc = withSkip(localCoords);
+      if (shift) for (const a of Sres) if (!lc.has(a.id)) lc.set(a.id, 0);
+      const as = parts.map((P) => aAt(P, lc));
+      const G = GAt(lc);
+      const ov = othersAt(lc);
+      const fph = fieldPhaseAt(lc);
       if (Math.abs(ov) < 1e-15) return 0;
       for (const mm of ms) {
         let tr = ov;
         let ti = 0;
         parts.forEach((P, pi) => {
           if (!P.tables) return;
-          const [r, i] = stepsumT(P.tables, qOf(P, mm), as[pi]);
+          const [r, i] = stepsumT(P.tables, qOf(P, pi, mm), as[pi]);
           const nr = tr * r - ti * i;
           ti = tr * i + ti * r;
           tr = nr;
@@ -3071,23 +3621,20 @@ export class Pixel {
         const sph = Math.sin(ph);
         const coefR = tr * cph - ti * sph;
         const coefI = tr * sph + ti * cph;
-        const mag = Math.hypot(coefR, coefI);
-        if (mag < 1e-13) continue;
+        if (Math.hypot(coefR, coefI) < 1e-13) continue;
         const R = recipe(mm);
-        if (logMult(R.mbx, R.mby, R.mq00, R.mq01, R.mq11, cond) + logCoef + Math.log(mag) < lnCut) continue;
-        const v = termExpectation(cjScaleC(cjScaleC(c, coefR, coefI), cr, ci), R.phase, R.mbx, R.mby, R.mq00, R.mq01, R.mq11, cond);
-        this.stats.recipes++;
-        acc += v[0];
+        addRecipe(mm, 0, 0, coefR, coefI, [R.mbx, R.mby, R.mq00, R.mq01, R.mq11], R.phase);
       }
       return acc;
     }
     // X residual: the factors on a midpoint grid of the residual X torus;
     // the grid is remembered on the first step's tables when nothing local
     // enters it
-    const cacheable = localCoords.size === 0 || [...localCoords.keys()].every((id) => !steps.some((cl) => cl.axes.some((a) => a.id === id)) && !others.some((o) => o.axes.some((a) => a.id === id)) && !fields.some((f) => f.axis.field.axes().some((a) => a.id === id)));
+    const cacheable = localCoords.size === 0 || [...localCoords.keys()].every((id) => id < 0 || (!steps.some((cl) => cl.axes.some((a) => a.id === id)) && !others.some((o) => o.axes.some((a) => a.id === id)) && !fields.some((f) => f.axis.field.axes().some((a) => a.id === id))));
     const NG = cacheable ? this.stepsumNG : this.stepsumNGlocal;
-    const home = parts.find((P) => P.tables).tables;
-    const gridKey = `${X.map((a) => a.id).join(',')}|${NG}|${steps.map((cl) => cl.stepsum.sig + ':' + parts[steps.indexOf(cl)].mask).join('*')}|${others.map((o) => o.sig).join('*')}`;
+    const withTables = parts.find((P) => P.tables);
+    const home = withTables ? withTables.tables : plainGridHome;
+    const gridKey = `${X.map((a) => a.id).join(',')}|${NG}|${shift ? H.key : ''}|${steps.map((cl) => cl.stepsum.sig + ':' + parts[steps.indexOf(cl)].mask).join('*')}|${OX.map((o) => o.sig).join('*')}`;
     let grid = cacheable ? home.xGrids.get(gridKey) : null;
     if (!grid) {
       const n = nXR === 1 ? NG : NG * NG;
@@ -3096,7 +3643,8 @@ export class Pixel {
       const los = parts.map((P) => (P.tables ? new Int32Array(n) : null));
       const frs = parts.map((P) => (P.tables ? new Float64Array(n) : null));
       let oMax = 0;
-      const coords = new Map(localCoords);
+      const coords = withSkip(new Map(localCoords));
+      if (shift) for (const a of Sres) coords.set(a.id, 0);
       for (let i = 0; i < NG; i++)
         for (let j = 0; j < (nXR === 2 ? NG : 1); j++) {
           coords.set(X[0].id, (i + 0.5) / NG);
@@ -3136,7 +3684,6 @@ export class Pixel {
       if (cacheable) home.xGrids.set(gridKey, grid);
     }
     if (grid.oMax < 1e-15) return 0;
-    // the field pictures' phase on the grid, by their harmonics
     const fkey = fields.map((f) => `${f.axis.id}:${f.k}`).join(',');
     let fph = grid.fieldPhases.get(fkey);
     if (!fph) {
@@ -3145,7 +3692,8 @@ export class Pixel {
       const pi2 = new Float64Array(n);
       if (fields.length === 0) pr.fill(1);
       else {
-        const coords = new Map(localCoords);
+        const coords = withSkip(new Map(localCoords));
+        if (shift) for (const a of Sres) coords.set(a.id, 0);
         for (let i = 0; i < NG; i++)
           for (let j = 0; j < (nXR === 2 ? NG : 1); j++) {
             coords.set(X[0].id, (i + 0.5) / NG);
@@ -3168,114 +3716,23 @@ export class Pixel {
       R.mq01 + TAU * (kx * hX[0][1] + (nXR === 2 ? ky * hX[1][1] : 0)),
       R.mq11 + TAU * (kx * hX[0][2] + (nXR === 2 ? ky * hX[1][2] : 0)),
     ];
-    const KY = nXR === 2 ? KX[1] : 0;
-    const aS = 1 / (cond.sig * cond.sig);
-    const rowNorm = (h) => Math.max(Math.abs(h[0]) + Math.abs(h[1]), Math.abs(h[1]) + Math.abs(h[2]));
-    const kList = (R, budget) => {
-      if (budget <= 0) return null;
-      // the curvature of a recipe grows with |k|: lam(k) <= lam0 + sum_i
-      // rho_i |k_i|, so the bound |b(k)|^2 <= s2 (a^2 + lam(k)^2) is a
-      // quadratic inequality in ky for each kx, solved on each sign of ky
-      const lam0 = rowNorm([R.mq00, R.mq01, R.mq11]);
-      const rho = hX.map((h) => TAU * rowNorm(h));
-      const s2 = (2 * budget) / aS;
-      // b(k) = b0 + cx kx + cy ky as vectors (dim 2) or scalars along e (dim 1)
-      let b0x;
-      let b0y;
-      let cxx;
-      let cxy;
-      let cyx;
-      let cyy;
-      if (cond.dim === 2) {
-        b0x = R.mbx;
-        b0y = R.mby;
-        cxx = TAU * gX[0][0];
-        cxy = TAU * gX[0][1];
-        cyx = nXR === 2 ? TAU * gX[1][0] : 0;
-        cyy = nXR === 2 ? TAU * gX[1][1] : 0;
-      } else {
-        const ex = cond.e[0];
-        const ey = cond.e[1];
-        const mx = cond.m[0];
-        const my = cond.m[1];
-        b0x = (R.mbx + R.mq00 * mx + R.mq01 * my) * ex + (R.mby + R.mq01 * mx + R.mq11 * my) * ey;
-        b0y = 0;
-        const along = (g, h) => TAU * (g[0] * ex + g[1] * ey + (h[0] * mx + h[1] * my) * ex + (h[1] * mx + h[2] * my) * ey);
-        cxx = along(gX[0], hX[0]);
-        cxy = 0;
-        cyx = nXR === 2 ? along(gX[1], hX[1]) : 0;
-        cyy = 0;
-      }
-      // the set {y : A y^2 + B y + C <= 0} restricted to sgn y >= 0 and
-      // [-KY, KY], as [lo, hi] (empty when lo > hi)
-      const solve = (A, B, C, sgn) => {
-        let lo = sgn > 0 ? 0 : -KY;
-        let hi = sgn > 0 ? KY : 0;
-        if (Math.abs(A) < 1e-18) {
-          if (Math.abs(B) < 1e-18) return C <= 0 ? [lo, hi] : [1, 0];
-          const r = -C / B;
-          if (B > 0) hi = Math.min(hi, Math.floor(r + 1e-9));
-          else lo = Math.max(lo, Math.ceil(r - 1e-9));
-          return [lo, hi];
-        }
-        const disc = B * B - 4 * A * C;
-        if (A > 0) {
-          if (disc < 0) return [1, 0];
-          const sq = Math.sqrt(disc);
-          return [Math.max(lo, Math.ceil((-B - sq) / (2 * A) - 1e-9)), Math.min(hi, Math.floor((-B + sq) / (2 * A) + 1e-9))];
-        }
-        // A < 0: the set is everything outside the roots (or everything)
-        if (disc < 0) return [lo, hi];
-        const sq = Math.sqrt(disc);
-        const r1 = (-B + sq) / (2 * A);
-        const r2 = (-B - sq) / (2 * A);
-        const left = [lo, Math.min(hi, Math.floor(Math.min(r1, r2) + 1e-9))];
-        const right = [Math.max(lo, Math.ceil(Math.max(r1, r2) - 1e-9)), hi];
-        const ok1 = left[0] <= left[1];
-        const ok2 = right[0] <= right[1];
-        if (ok1 && ok2) return [left[0], right[1]];
-        if (ok1) return left;
-        if (ok2) return right;
-        return [1, 0];
-      };
-      const out = [];
-      for (let kx = -KX[0]; kx <= KX[0]; kx++) {
-        const px = b0x + cxx * kx;
-        const py = b0y + cxy * kx;
-        const L = lam0 + rho[0] * Math.abs(kx);
-        if (nXR === 1) {
-          if (px * px + py * py <= s2 * (aS * aS + L * L)) out.push([kx, 0, 0]);
-          continue;
-        }
-        const r1 = rho[1];
-        const A0 = cyx * cyx + cyy * cyy - s2 * r1 * r1;
-        const B0 = 2 * (px * cyx + py * cyy);
-        const C0 = px * px + py * py - s2 * (aS * aS + L * L);
-        const up = solve(A0, B0 - 2 * s2 * L * r1, C0, 1);
-        const dn = solve(A0, B0 + 2 * s2 * L * r1, C0, -1);
-        const lo = Math.min(up[0] <= up[1] ? up[0] : Infinity, dn[0] <= dn[1] ? dn[0] : Infinity);
-        const hi = Math.max(up[0] <= up[1] ? up[1] : -Infinity, dn[0] <= dn[1] ? dn[1] : -Infinity);
-        if (lo <= hi) out.push([kx, lo, hi]);
-      }
-      return out.length ? out : null;
-    };
     for (const mm of ms) {
-      let tm = grid.oMax;
-      const qs = parts.map((P) => (P.tables ? qOf(P, mm) : -1));
+      let tm = grid.oMax * (shift ? ST.oMax : 1);
+      const qs = parts.map((P, pi) => (P.tables ? qOf(P, pi, mm) : -1));
       parts.forEach((P, pi) => {
         if (P.tables) tm *= P.tables.tmax[qs[pi]];
       });
       if (tm < 1e-13) continue;
       const R = recipe(mm);
-      const ks = kList(R, logCoef + Math.log(tm) - lnCut);
+      // with a shift the X harmonics' own rate need not be slow: the shift
+      // harmonics complete it, so the X range is bounded only by the window
+      const ks = shift ? this.shiftHarmonics(R, logCoef + Math.log(tm) - lnCut, gX, hX, KX, gS, hS, KS, cond) : this.harmonicsThrough(R, logCoef + Math.log(tm) - lnCut, gX, hX, KX, cond);
       if (!ks) continue;
       const ckey = `${mm.join(',')}|${fkey}`;
       let F = grid.coefs.get(ckey);
       if (!F) {
         const n = grid.n;
         const { zr, zi, re, im, Og } = grid;
-        // e^{2 pi i m.G(x)} on the grid, advanced by one step of the last
-        // Phi harmonic from the previous recipe when they differ by that
         const last = grid.zm;
         const rl = nPhi - 1;
         let step = !!last && grid.zf === fkey && mm[rl] === last[rl] + 1;
@@ -3295,14 +3752,12 @@ export class Pixel {
             for (let r = 0; r < nPhi; r++) ph += TAU * mm[r] * grid.Gg[r][idx];
             const cph = Math.cos(ph);
             const sph = Math.sin(ph);
-            // times the field pictures' phase
             zr[idx] = cph * fph.re[idx] - sph * fph.im[idx];
             zi[idx] = cph * fph.im[idx] + sph * fph.re[idx];
           }
         }
         grid.zm = mm.slice();
         grid.zf = fkey;
-        // the product of the tables at a_i(x), times the other closures
         for (let idx = 0; idx < n; idx++) {
           let tr = Og[idx];
           let ti = 0;
@@ -3348,16 +3803,12 @@ export class Pixel {
       for (const [kx, kyLo, kyHi] of ks)
         for (let ky = kyLo; ky <= kyHi; ky++) {
           const w = nXR === 2 ? (kx + KW) * KWn + ky + KW : kx + KW;
-          const coefR = F.re[w];
-          const coefI = F.im[w];
-          const mag = Math.hypot(coefR, coefI);
-          if (mag < 1e-13) continue;
+          const Pr = F.re[w];
+          const Pi = F.im[w];
+          if (Math.hypot(Pr, Pi) < 1e-13) continue;
           const r = kRates(R, kx, ky);
-          if (logMult(r[0], r[1], r[2], r[3], r[4], cond) + logCoef + Math.log(mag) < lnCut) continue;
           const ph2 = R.phase + this.axisPhase(X[0], kx) + (nXR === 2 ? this.axisPhase(X[1], ky) : 0);
-          const v = termExpectation(cjScaleC(cjScaleC(c, coefR, coefI), cr, ci), ph2, r[0], r[1], r[2], r[3], r[4], cond);
-          this.stats.recipes++;
-          acc += v[0];
+          addRecipe(mm, kx, ky, Pr, Pi, r, ph2);
         }
     }
     return acc;
@@ -3414,7 +3865,7 @@ export class Pixel {
       }
       return { re, im };
     };
-    if (clos.some((cl) => cl.stepsum)) {
+    if (clos.some((cl) => cl.stepsum) || (fields.length > 0 && residual.length > 2)) {
       const v = this.stepsumSum(c, cr, ci, phi0, bx, by, q00, q01, q11, logCoef, residual, resGrads, resHess, resK, clos, fields, cond, localCoords);
       if (v !== null) return v;
     }
@@ -3537,11 +3988,33 @@ export class Pixel {
         }
         return acc;
       }
-      const K0 = resK[0];
-      const K1 = resK[1];
+      let K0 = resK[0];
+      let K1 = resK[1];
+      // a smooth closure's coefficients decay: probe a modest range first
+      // and keep it when its outer ring is already below the cut
+      if (K0 > 12 || K1 > 12) {
+        const Kp0 = Math.min(K0, 12);
+        const Kp1 = Math.min(K1, 12);
+        const probe = fourierJet2(resFn, Kp0, Kp1, residual);
+        let ring = 0;
+        let peak = 0;
+        for (let m0 = -probe.K0; m0 <= probe.K0; m0++)
+          for (let m1 = -probe.K1; m1 <= probe.K1; m1++) {
+            const idx = (m0 + probe.K0) * (2 * probe.K1 + 1) + (m1 + probe.K1);
+            const mag = Math.hypot(probe.re[idx].v, probe.im[idx].v);
+            peak = Math.max(peak, mag);
+            if (Math.abs(m0) === probe.K0 || Math.abs(m1) === probe.K1) ring = Math.max(ring, mag);
+          }
+        if (ring < 1e-3 * this.cut * Math.max(peak, 1e-300) || ring < 1e-12) {
+          K0 = Kp0;
+          K1 = Kp1;
+          this._probeJet2 = probe;
+        } else this._probeJet2 = null;
+      } else this._probeJet2 = null;
       const cacheable = fields.length === 0 && residual.every((a) => a.kind !== 'edge') && localCoords.size === 0;
       const key = cacheable ? `${clos.map((cl) => cl.sig).join('*')}|${residual.map((a) => a.id).join(',')}|${roundK(K0)}|${roundK(K1)}` : null;
       let coef = key ? jet2Cache.get(key) : null;
+      if (!coef && this._probeJet2 && this._probeJet2.K0 === roundK(K0) && this._probeJet2.K1 === roundK(K1)) coef = this._probeJet2;
       if (!coef) {
         coef = fourierJet2(resFn, K0, K1, residual);
         if (key) {
@@ -3616,6 +4089,7 @@ const roundK = (K) => {
 const fourierJet2 = (fn, K0in, K1in, axes) => {
   const K0 = roundK(K0in);
   const K1 = roundK(K1in);
+  if (DEBUG) console.log(`      jet2 transform K0 ${K0} K1 ${K1} axes ${axes.map((a) => a.label + '#' + a.id + (a.kind === 'edge' ? 'E' : '')).join(',')}`);
   const wrap = (a) => (a.kind === 'edge' ? (u) => a.center + (u - Math.round(u)) * a.edgePeriod : (u) => u);
   const w0 = wrap(axes[0]);
   const w1 = wrap(axes[1]);
@@ -3645,14 +4119,18 @@ const fourierJet2 = (fn, K0in, K1in, axes) => {
           if (Math.abs(g(xm) - f0) > d / 2) b = xm;
           else a = xm;
         }
-        // a steep slope shrinks with the bracket, a jump does not
         if (Math.abs(g(b) - g(a)) < 0.5 * d) continue;
         jumps.push((a + b) / 2);
       }
     }
     return jumps;
   };
-  // the row's coefficients in m1 (jets), by Gauss-Legendre between its jumps
+  // the row's coefficients in m1 as jets on typed arrays: six components
+  // (v, gx, gy, hxx, hxy, hyy) per harmonic, real and imaginary parts
+  const rowR = new Float64Array(n1 * 6);
+  const rowI = new Float64Array(n1 * 6);
+  const rr = new Float64Array(6);
+  const mm = new Float64Array(6);
   const rowCoefs = (u0) => {
     const x0 = w0(u0);
     const g = (u1) => fn([x0, w1(u1)]);
@@ -3677,37 +4155,48 @@ const fourierJet2 = (fn, K0in, K1in, axes) => {
         }
       }
     }
-    const rowR = new Array(n1).fill(J0);
-    const rowI = new Array(n1).fill(J0);
+    rowR.fill(0);
+    rowI.fill(0);
     for (const [u1, wt] of nodes) {
       const { re, im } = g(u1);
-      const r = re.scale(wt);
-      const m = im.scale(wt);
+      rr[0] = re.v * wt;
+      rr[1] = re.gx * wt;
+      rr[2] = re.gy * wt;
+      rr[3] = re.hxx * wt;
+      rr[4] = re.hxy * wt;
+      rr[5] = re.hyy * wt;
+      mm[0] = im.v * wt;
+      mm[1] = im.gx * wt;
+      mm[2] = im.gy * wt;
+      mm[3] = im.hxx * wt;
+      mm[4] = im.hxy * wt;
+      mm[5] = im.hyy * wt;
       let cr = 1;
       let ci = 0;
       const c0 = Math.cos(-TAU * u1);
       const s0 = Math.sin(-TAU * u1);
       // m1 from 0 upward and downward by conjugation of the phasor
       for (let m1 = 0; m1 <= K1; m1++) {
-        rowR[m1 + K1] = rowR[m1 + K1].add(r.scale(cr).sub(m.scale(ci)));
-        rowI[m1 + K1] = rowI[m1 + K1].add(r.scale(ci).add(m.scale(cr)));
-        if (m1 > 0) {
-          rowR[K1 - m1] = rowR[K1 - m1].add(r.scale(cr).add(m.scale(ci)));
-          rowI[K1 - m1] = rowI[K1 - m1].add(m.scale(cr).sub(r.scale(ci)));
+        const op = (m1 + K1) * 6;
+        const on = (K1 - m1) * 6;
+        for (let q = 0; q < 6; q++) {
+          rowR[op + q] += rr[q] * cr - mm[q] * ci;
+          rowI[op + q] += rr[q] * ci + mm[q] * cr;
+          if (m1 > 0) {
+            rowR[on + q] += rr[q] * cr + mm[q] * ci;
+            rowI[on + q] += mm[q] * cr - rr[q] * ci;
+          }
         }
         const nr = cr * c0 - ci * s0;
         ci = cr * s0 + ci * c0;
         cr = nr;
       }
     }
-    return { rowR, rowI, jumps: jumps.length };
   };
-  // The outer direction. Where the number of jumps on a row changes, a
-  // jump curve is tangent to the rows and the row's coefficients have a
-  // square-root singularity in u0; where the closure jumps along u0 they
-  // jump. Both are located and the circle of u0 is cut there; each piece is
-  // integrated on cosine-mapped Gauss-Legendre sub-panels, which are exact
-  // at square-root ends.
+  // The outer direction, cut where the number of jumps on a row changes
+  // (a square-root singularity of the row's coefficients) and where the
+  // closure jumps along u0, integrated on cosine-mapped Gauss-Legendre
+  // sub-panels between.
   const MS0 = 64;
   const counts = new Int32Array(MS0 + 1);
   for (let i = 0; i <= MS0; i++) counts[i] = rowJumps(i / MS0).length;
@@ -3734,8 +4223,8 @@ const fourierJet2 = (fn, K0in, K1in, axes) => {
   const gl = gaussLegendre(16);
   const hmax = Math.min(0.25, 20 / (Math.PI * (K0 + K1 / 2 + 2)));
   const n0 = 2 * K0 + 1;
-  const re = new Array(n0 * n1).fill(J0);
-  const im = new Array(n0 * n1).fill(J0);
+  const accR = new Float64Array(n0 * n1 * 6);
+  const accI = new Float64Array(n0 * n1 * 6);
   for (const [p, q] of pieces) {
     if (q - p < 1e-12) continue;
     const nsub = Math.max(1, Math.ceil((q - p) / hmax));
@@ -3747,21 +4236,26 @@ const fourierJet2 = (fn, K0in, K1in, axes) => {
         const u0 = lo + (h * (1 - Math.cos(Math.PI * tau))) / 2;
         const w = 0.5 * gl.w[i] * ((h * Math.PI) / 2) * Math.sin(Math.PI * tau);
         if (w < 1e-18) continue;
-        const { rowR, rowI } = rowCoefs(u0 - Math.floor(u0));
+        rowCoefs(u0 - Math.floor(u0));
         for (let m0 = -K0; m0 <= K0; m0++) {
           const ang = -TAU * m0 * u0;
           const c = w * Math.cos(ang);
           const sn = w * Math.sin(ang);
-          const base = (m0 + K0) * n1;
-          for (let m1 = 0; m1 < n1; m1++) {
-            const r = rowR[m1];
-            const m = rowI[m1];
-            re[base + m1] = re[base + m1].add(r.scale(c).sub(m.scale(sn)));
-            im[base + m1] = im[base + m1].add(r.scale(sn).add(m.scale(c)));
+          const base = (m0 + K0) * n1 * 6;
+          for (let t = 0; t < n1 * 6; t++) {
+            accR[base + t] += rowR[t] * c - rowI[t] * sn;
+            accI[base + t] += rowR[t] * sn + rowI[t] * c;
           }
         }
       }
     }
+  }
+  const re = new Array(n0 * n1);
+  const im = new Array(n0 * n1);
+  for (let idx = 0; idx < n0 * n1; idx++) {
+    const o = idx * 6;
+    re[idx] = new Jet(accR[o], accR[o + 1], accR[o + 2], accR[o + 3], accR[o + 4], accR[o + 5]);
+    im[idx] = new Jet(accI[o], accI[o + 1], accI[o + 2], accI[o + 3], accI[o + 4], accI[o + 5]);
   }
   return { re, im, K0, K1 };
 };
