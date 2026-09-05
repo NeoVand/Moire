@@ -1,0 +1,96 @@
+# Real-time anti-aliasing comparison
+
+The immediate deliverable is a live, synchronized comparison of the same procedural material through three rendering paths: one sample with no anti-aliasing, a temporal anti-aliasing baseline, and our integration method. The first scene adapts the grazing checkerboard plane used by the Yang–Barnes procedural shader benchmark. The demo is a focused material test; it is not yet evidence that the method handles every part of a game renderer.
+
+## Why this scene
+
+Yang and Barnes' [Eurographics 2018 project](https://yyuting.github.io/docs/eg_2018.html) provides an existing publication, a reference protocol, and [public MIT-licensed source](https://github.com/yyuting/approximate_program_smoothing). A grazing periodic surface exposes the particular failure under study: resolved checks near the camera, false bands in the middle, and unresolved detail near the horizon. This is more diagnostic for procedural material filtering than putting a smooth material on a familiar mesh.
+
+The repository's original reproduction is [yb.mjs](../paper/tools/exp/yb.mjs). At 480 × 320 its camera maps integer pixel `(x, y)` to surface coordinates `s = −50(x−240)/(y+1)`, `t = −12000/(y+1)`. The checker has period 20 in both coordinates. The published reference uses a Gaussian pixel window with standard deviation 0.5 pixel. Any changes to lighting, camera animation, footprint, or display conversion in the interactive scene must be stated; similarity of appearance alone does not make a new capture a reproduction of a published score.
+
+The interactive adaptation currently uses a ground plane, a camera 12 units above it with a 50-degree vertical field of view, a checker period of 4 world units, and unlit linear intensities 0.025 and 0.82. The ground has a sky background and glide/approach camera paths. It retains the half-pixel Gaussian target for the spectral method and numerical reference. These choices make a usable moving demonstration; its images and errors are not the published benchmark's scores.
+
+The next scene should add actual geometric silhouettes and disocclusions, using the same procedural materials on a floor, a sphere, and thin moving geometry. That tests whether a material improvement survives integration into the broader rendering pipeline. Ripple and bump materials remain separate extensions until their actual GPU paths exist.
+
+## What the baseline means
+
+Temporal anti-aliasing is a practical gaming baseline. The [2020 TAA survey](https://research.nvidia.com/labs/rtr/publication/yang2020survey/) separates its two core operations: accumulating samples and deciding which history remains valid. Our baseline must implement both, reproject the same scene under motion, and reset history on a camera cut or resolution change.
+
+The current browser baseline must be called **TAA**, with its implementation details, rather than simply **state of the art**. A result against it is not a result against a vendor's native implementation. [NVIDIA DLAA](https://developer.nvidia.com/rtx/dlss) uses a neural reconstruction model at native resolution; [Epic TSR](https://dev.epicgames.com/documentation/en-us/unreal-engine/temporal-super-resolution-in-unreal-engine) is an engine reconstruction system with additional history and rejection machinery. A native-engine comparison with those systems is an outstanding milestone. Their names must not be attached to a substitute shader.
+
+The implemented baseline uses Three.js r185's official [TRAA node](https://threejs.org/docs/pages/TRAANode.html), with its own jittered camera, motion-vector and depth inputs, history rejection, and neighborhood clipping. Its checker material uses a 512 × 512 repeating texture, generated mipmaps, trilinear filtering, and requested 16× anisotropy. Those material filtering steps are part of the baseline's quality and cost. MSAA is off. This is a practical texture-and-TAA pipeline; the spectral path integrates the corresponding analytic checker source.
+
+Plain MSAA is an optional geometric diagnostic, not a sufficient sole baseline for this experiment. The [Direct3D specification](https://microsoft.github.io/DirectX-Specs/d3d/archive/D3D11_3_FunctionalSpec.htm) distinguishes sampling coverage from executing the pixel shader: ordinary MSAA can shade only once per covered pixel. It therefore leaves high-frequency procedural shading inside a triangle undersampled. Evaluating the entire shader four times is **4-sample supersampling**, not ordinary MSAA.
+
+## Comparison contract
+
+- All panels use the same camera pose, scene time, material, render dimensions, tone mapping, and display conversion. No hidden resolution reduction or sharpening advantage.
+- State the target pixel footprint. The numerical reference integrates that same footprint and the same source shader. A Gaussian integral and a box-filtered reference measure different targets.
+- Show both still and moving views. Pause does not silently replace one method with an offline render. TAA remains a temporal method and its history age matters.
+- Keep the expensive reference outside the live timing. Compare still captures against a converged independent reference; report its estimated residual error. A noisy sampled reference is not exact ground truth.
+- Report warm GPU timing per method where timestamp queries are available, as well as total three-panel cadence. Three's public accumulator **sums** render-pass durations. We measured overlapping intervals on this GPU, so this sum can exceed elapsed GPU time. It includes temporal beauty, resolve, and output passes but excludes history texture copies, uploads, CPU submission, queue gaps, and presentation. Label it **GPU pass sum**, never convert it to a frame rate. The isolated benchmark additionally measures the earliest-begin/latest-end GPU span and CPU-start-to-queue-completion wall time. Exclude initialization and compilation from warm numbers, but report startup and rebuild costs separately.
+- Record device, backend, browser, dimensions, settings, and history state with results. Compare equal output resolution first; a later fixed-time comparison must include each method's full work.
+- Inspect error by distance as well as over the full image. A constant gray output can remove shimmer while also removing real detail. For motion, compare error against the corresponding reference frame rather than raw frame-to-frame changes, which also include intended motion.
+- No success threshold may be chosen after looking at the results. Record failures, unsupported regions, and fallback work with the images.
+
+## Ownership and handoff
+
+Codex owns the demo shell and method adapters under `src/compare/`, this document, and `tests/compare/`. The author continues to own the compiler and its research files under `paper/tools/exp/` and `paper/notes/`. No live demo change requires replacing those compiler files.
+
+The author's GPU emitter should enter through the same per-pixel scene inputs used by the existing comparison method. Its adapter must specify supported materials, pixel measure, output color space, and any fallback. Changing the camera mapping or silently substituting a filtered texture would invalidate the comparison. The first integration target is one full checkerboard frame, including the near field and horizon, followed by the fixed camera sweep. Preserve the independent no-AA source and reference as gates while swapping in the emitter.
+
+### Coordination proposal for the author
+
+The author's `demo/` appeared while this harness was being built. It is a separate work area and has not been edited here. It already exposes useful additional arms and diagnostics; no one should delete or overwrite it to resolve the duplication.
+
+Use one shared presentation harness and one source/reference contract for the next checkpoint. The proposed presentation surface is `/compare.html`, retaining its official TRAA baseline and inspector. The author owns the shader implementation in `demo/wgsl.js` and the general compiler; Codex owns the adapter in `src/compare/scene.ts`, the application controls, and `tests/compare/`. First compare the two camera mappings, material phase, lighting, color conversion, and pixel measure explicitly. Scores from the original Yang–Barnes camera and this interactive adaptation are not interchangeable.
+
+The concrete next handoff is an emitted checkerboard entry point plus its required uniforms and supported domain. Route that provider through the existing integration adapter, then run the independent source-pixel checks and isolated timing harness unchanged. Add circles through that same interface once the checkerboard gate passes. Port the author's supersampling, whole-image reference, error, and regime diagnostics as optional diagnostics in the shared harness. Keep algorithm development in one owned module so the two demos do not acquire separately corrected copies of the method.
+
+## Running and extending the demo
+
+Start the existing Vite development server with `npm run dev`, then open `/compare.html`. The studio remains at `/`. All three panels run on WebGPU at identical native buffer sizes. Pause holds the camera still while allowing temporal history to accumulate. Camera cuts, density changes, and resizes clear temporal history. Neither pause nor motion switches the integration method or lowers the buffer resolution.
+
+Click a ground pixel to pause and inspect that location in all three panels. The inspector shows captured colors, errors in linear light against a 131,072-sample Gaussian reference, and disagreement between the two reference sequences. It states that TAA uses a different reconstruction filter. The sampled reference evaluates the original rational source; it does not call the integration shader. Horizon and outer plane-edge pixels are refused because they also need geometric coverage filtering. The selected swatches describe the capture at selection; temporal history may continue refining the displayed panel afterward.
+
+The integration adapter currently calls `projectiveChecker` in [spectral.ts](../src/compare/spectral.ts). Where at most one checker boundary per axis intersects a six-sigma pixel disk, it integrates the actual projected straight boundaries jointly. Elsewhere it evaluates paired sum/difference Fourier characters using a quadratic phase model with 16 odd harmonics per checker axis. The exact depth-conditioned compiler path is not connected. The finite Fourier tail and local projective approximation are not certified whole-image error bounds.
+
+The actual shared projection and material are in [scene.ts](../src/compare/scene.ts); `Homography` carries three affine screen-space numerators `(u, v, d)` so the exact source counts are `(u/d, v/d)`. GPU derivatives are in device-pixel units. The temporal material uses the same checker phase and intensities through a sampled texture. The renderer displays sRGB after linear shading. The author's emitter should replace the integration adapter while keeping this source, camera, and baseline fixed.
+
+The `window.__compare` development bridge exposes `info()`, `pause()`, `setTime()`, `setMotion()`, `setDetail()`, `resize()`, `step()`, and `pixels(method)`. `step()` advances history at a fixed scene time. The byte capture is sRGB; tests wait two animation frames after initialization or resizing so the new temporal targets have been rendered. Reference tests use a separate linear offscreen render target to avoid folding display gamma into the integral.
+
+Run:
+
+```sh
+node --test tests/compare/reference.test.mjs
+node tests/compare/materials.mjs
+node tests/compare/run.mjs
+node tests/compare/performance.mjs
+```
+
+The browser tests start their own Vite server and a fresh headless Chrome profile, enable WebGPU, and require an actual WebGPU backend. `CHROME_PATH` can override the default macOS Chrome executable. Each run writes a timestamped report to the temporary directory; `--out=/absolute/path/report.json` selects a new destination and refuses to overwrite it. The live test also saves a screenshot. Close other live GPU demos before the performance test: pausing the camera still runs the renderer.
+
+## Evidence and remaining scope
+
+The material test compares actual GPU output with independent integration of the original rational ray/plane shader. It uses 40 fixed pixels at three camera/density settings, including off-axis positions and rows within a few pixels of the horizon. Each reference pixel uses two independently shifted 65,536-sample Gaussian low-discrepancy sequences. Their disagreement is a convergence diagnostic, not a rigorous error bound.
+
+On this test at 192 × 128, raw point shading has RMS errors 0.286, 0.316, and 0.333 in linear intensity. The integration path has RMS errors 0.00119, 0.000971, and 0.00120. These are selected-pixel measurements, not whole-image scores; 8-bit capture quantization and reference sequence differences of 0.00069–0.00122 RMS limit finer conclusions. Pixels whose source is sensitive to a 0.002-pixel shift stay in the quality measurement but are excluded from exact raw point-parity assertions, because the large mesh's float32 interpolation can move a binary boundary across the sample.
+
+The live browser test checks synchronized source dimensions, nonblank images, repeatable raw and integration images at the same camera pose, camera/density changes, TAA accumulation while paused, history resets, and resize behavior. It also checks that resolved interiors of the baseline texture agree with the original checker's phase and colors, and exercises the pixel inspector through an actual canvas click, then closes it and resumes playback. These are integration gates; they do not claim that our method beats TAA on every pixel or motion.
+
+The isolated performance test on Apple M4 / Chrome / Metal ran one method at a time, five warm frames and 15 measured frames at each fixed glide pose. Source hashes are recorded and checked unchanged. The following cells show **median GPU span / completed wall time**, in milliseconds, from the run that recorded every pass interval:
+
+| Resolution and pose | No AA | Texture + TRAA | Integration |
+|---|---:|---:|---:|
+| 640 × 360, t = 0 | 0.95 / 1.80 | 0.40 / 2.50 | 4.10 / 5.40 |
+| 640 × 360, t = 8 | 1.31 / 4.10 | 1.91 / 3.70 | 3.60 / 4.30 |
+| 1920 × 1080, t = 0 | 0.81 / 2.00 | 1.83 / 3.40 | 7.14 / 8.00 |
+| 1920 × 1080, t = 8 | 0.35 / 1.50 | 3.10 / 4.30 | 12.43 / 13.40 |
+
+These short desktop measurements vary with scheduling and load; the raw timing's variation is itself visible in the table. The longest measured integration wall interval was 22.1 ms. This is a single-material frame cost, including its sky region, and leaves the rest of a game unpriced. It does not establish a sustained 60-fps game budget. Five warm frames also do not establish fully converged temporal image quality.
+
+The timestamp distinction is measured, not hypothetical: one 1080p integration frame had pass intervals `[0, 6.899144]` and `[0.012709, 7.136466]` ms. Their sum is 14.022901 ms, while their elapsed GPU span is 7.136466 ms and the completed wall interval is 9.3 ms. All 180 measured GPU spans fit within their enclosing wall intervals. The benchmark reads the pinned Three r185 query pool only for this diagnostic; it neither edits the library nor changes the rendered method.
+
+The captured reports are preserved byte-for-byte: [material accuracy](compare-evidence/materials-2026-09-05T18-34-02.950Z.json), [live UI and inspector](compare-evidence/live-2026-09-05T18-33-54.375Z.json), and [GPU intervals and completed timings](compare-evidence/performance-2026-09-05T18-35-43.958Z.json). The performance record includes the source hashes and all individual timestamp intervals. The material run followed the final character/box-pruning changes and exercised the same shader hash subsequently timed.
+
+Still outstanding: a converged whole-image reference and error view in this harness, temporal error against per-frame references, explicit disocclusion/silhouette tests, sustained-frame and native game-engine timing, other materials, the general compiler emitter, and a native-engine comparison with current reconstruction systems. The immediate result is a working comparison surface on which those claims can now be tested visibly.

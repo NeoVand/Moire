@@ -1,0 +1,4902 @@
+{
+  "createdAt": "2026-09-05T18:35:43.958Z",
+  "commit": "d5e0f32b83a64010bab7ff0417e1035c37898237",
+  "sourceHashes": {
+    "src/compare/scene.ts": "626e29cba997a605f17c11232f8ab85712d708f2e5701f4e3ba3420b227cc344",
+    "src/compare/spectral.ts": "0cc609d922870d49e504c355783d313c402aecc1451b6f055dcf7203bbc0d9d4",
+    "src/compare/temporal.ts": "694ee41c5936205dd5acf323542ce38dd3dccce67cd40359cf44334f345e7174",
+    "tests/compare/performance-entry.mjs": "5ff09d5cecfdcc9c2d98429216704f5b30e0e72f01c6e973d00dcb8f36282ebc"
+  },
+  "host": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpu": "Apple M4"
+  },
+  "browser": "Chrome/152.0.7977.76",
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "device": "",
+    "description": ""
+  },
+  "measurement": {
+    "isolated": "One renderer/method active in this test at a time. Other applications may still contend; stop visible comparison playback before running.",
+    "gpu": "Sum of GPU render passes, excluding texture copies, uploads, CPU and presentation.",
+    "wall": "CPU scene update/render start through queue.onSubmittedWorkDone; includes submission and completed queue work, excludes display presentation and timestamp readback.",
+    "scene": "Grazing checkerboard, detail1, fixed glide poses t0 and t8. These are microbenchmark frame costs, not a whole-game budget or temporal-quality score."
+  },
+  "results": [
+    {
+      "method": "raw",
+      "width": 640,
+      "height": 360,
+      "time": 0,
+      "motion": "glide",
+      "detail": 1,
+      "poseHeldFixed": true,
+      "warmFrames": 5,
+      "frames": 15,
+      "historyFrames": null,
+      "gpuMedianMs": 0.914748,
+      "gpuMinMs": 0.059663,
+      "gpuMaxMs": 4.254503,
+      "gpuSpanMedianMs": 0.949859,
+      "completedWallMedianMs": 1.800000011920929,
+      "completedWallMinMs": 0.699999988079071,
+      "completedWallMaxMs": 5.800000011920929,
+      "samples": [
+        {
+          "frame": 0,
+          "gpuRenderMs": 3.6316129999999998,
+          "gpuSpanMs": 3.637445,
+          "completedWallMs": 5.700000047683716,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 3.637445,
+            "sumMs": 3.6316129999999998,
+            "overlapMs": -0.005832000000000281,
+            "passes": [
+              {
+                "context": "r:1:0:f14",
+                "beginMs": 0,
+                "endMs": 1.725441
+              },
+              {
+                "context": "r:2:1:f14",
+                "beginMs": 1.731273,
+                "endMs": 3.637445
+              }
+            ]
+          }
+        },
+        {
+          "frame": 1,
+          "gpuRenderMs": 4.254503,
+          "gpuSpanMs": 2.993138,
+          "completedWallMs": 5.800000011920929,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 2.993138,
+            "sumMs": 4.254503000000001,
+            "overlapMs": 1.2613650000000005,
+            "passes": [
+              {
+                "context": "r:1:0:f15",
+                "beginMs": 0,
+                "endMs": 1.380518
+              },
+              {
+                "context": "r:2:1:f15",
+                "beginMs": 0.119153,
+                "endMs": 2.993138
+              }
+            ]
+          }
+        },
+        {
+          "frame": 2,
+          "gpuRenderMs": 3.1337260000000002,
+          "gpuSpanMs": 1.876303,
+          "completedWallMs": 2.700000047683716,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 1.876303,
+            "sumMs": 3.1337260000000002,
+            "overlapMs": 1.2574230000000002,
+            "passes": [
+              {
+                "context": "r:1:0:f16",
+                "beginMs": 0,
+                "endMs": 1.394165
+              },
+              {
+                "context": "r:2:1:f16",
+                "beginMs": 0.136742,
+                "endMs": 1.876303
+              }
+            ]
+          }
+        },
+        {
+          "frame": 3,
+          "gpuRenderMs": 0.455137,
+          "gpuSpanMs": 1.938797,
+          "completedWallMs": 2.899999976158142,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 1.938797,
+            "sumMs": 0.4551370000000001,
+            "overlapMs": -1.48366,
+            "passes": [
+              {
+                "context": "r:1:0:f17",
+                "beginMs": 0,
+                "endMs": 0.273441
+              },
+              {
+                "context": "r:2:1:f17",
+                "beginMs": 1.757101,
+                "endMs": 1.938797
+              }
+            ]
+          }
+        },
+        {
+          "frame": 4,
+          "gpuRenderMs": 1.4173719999999999,
+          "gpuSpanMs": 0.949859,
+          "completedWallMs": 1.600000023841858,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 0.949859,
+            "sumMs": 1.4173719999999999,
+            "overlapMs": 0.46751299999999985,
+            "passes": [
+              {
+                "context": "r:1:0:f18",
+                "beginMs": 0,
+                "endMs": 0.921152
+              },
+              {
+                "context": "r:2:1:f18",
+                "beginMs": 0.453639,
+                "endMs": 0.949859
+              }
+            ]
+          }
+        },
+        {
+          "frame": 5,
+          "gpuRenderMs": 2.126497,
+          "gpuSpanMs": 1.659816,
+          "completedWallMs": 2.399999976158142,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 1.659816,
+            "sumMs": 2.1264969999999996,
+            "overlapMs": 0.4666809999999997,
+            "passes": [
+              {
+                "context": "r:1:0:f19",
+                "beginMs": 0,
+                "endMs": 1.627735
+              },
+              {
+                "context": "r:2:1:f19",
+                "beginMs": 1.161054,
+                "endMs": 1.659816
+              }
+            ]
+          }
+        },
+        {
+          "frame": 6,
+          "gpuRenderMs": 0.063245,
+          "gpuSpanMs": 0.137658,
+          "completedWallMs": 0.699999988079071,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 0.137658,
+            "sumMs": 0.063245,
+            "overlapMs": -0.074413,
+            "passes": [
+              {
+                "context": "r:1:0:f20",
+                "beginMs": 0,
+                "endMs": 0.025164
+              },
+              {
+                "context": "r:2:1:f20",
+                "beginMs": 0.099577,
+                "endMs": 0.137658
+              }
+            ]
+          }
+        },
+        {
+          "frame": 7,
+          "gpuRenderMs": 0.462638,
+          "gpuSpanMs": 0.267233,
+          "completedWallMs": 1.800000011920929,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 0.267233,
+            "sumMs": 0.46263800000000005,
+            "overlapMs": 0.19540500000000005,
+            "passes": [
+              {
+                "context": "r:1:0:f21",
+                "beginMs": 0,
+                "endMs": 0.217444
+              },
+              {
+                "context": "r:2:1:f21",
+                "beginMs": 0.022039,
+                "endMs": 0.267233
+              }
+            ]
+          }
+        },
+        {
+          "frame": 8,
+          "gpuRenderMs": 0.902167,
+          "gpuSpanMs": 0.886071,
+          "completedWallMs": 1.600000023841858,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 0.886071,
+            "sumMs": 0.9021530000000001,
+            "overlapMs": 0.01608200000000004,
+            "passes": [
+              {
+                "context": "r:1:0:f22",
+                "beginMs": 0,
+                "endMs": 0.85749
+              },
+              {
+                "context": "r:2:1:f22",
+                "beginMs": 0.841408,
+                "endMs": 0.886071
+              }
+            ]
+          }
+        },
+        {
+          "frame": 9,
+          "gpuRenderMs": 0.49010200000000004,
+          "gpuSpanMs": 0.313944,
+          "completedWallMs": 1.399999976158142,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 0.313944,
+            "sumMs": 0.49010200000000004,
+            "overlapMs": 0.17615800000000004,
+            "passes": [
+              {
+                "context": "r:1:0:f23",
+                "beginMs": 0,
+                "endMs": 0.20999
+              },
+              {
+                "context": "r:2:1:f23",
+                "beginMs": 0.033832,
+                "endMs": 0.313944
+              }
+            ]
+          }
+        },
+        {
+          "frame": 10,
+          "gpuRenderMs": 0.914748,
+          "gpuSpanMs": 0.898458,
+          "completedWallMs": 1.5,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 0.898458,
+            "sumMs": 0.9147480000000001,
+            "overlapMs": 0.016290000000000138,
+            "passes": [
+              {
+                "context": "r:1:0:f24",
+                "beginMs": 0,
+                "endMs": 0.869376
+              },
+              {
+                "context": "r:2:1:f24",
+                "beginMs": 0.853086,
+                "endMs": 0.898458
+              }
+            ]
+          }
+        },
+        {
+          "frame": 11,
+          "gpuRenderMs": 2.945365,
+          "gpuSpanMs": 2.17515,
+          "completedWallMs": 2.800000011920929,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 2.17515,
+            "sumMs": 2.945365,
+            "overlapMs": 0.7702149999999999,
+            "passes": [
+              {
+                "context": "r:1:0:f25",
+                "beginMs": 0,
+                "endMs": 1.281232
+              },
+              {
+                "context": "r:2:1:f25",
+                "beginMs": 0.511017,
+                "endMs": 2.17515
+              }
+            ]
+          }
+        },
+        {
+          "frame": 12,
+          "gpuRenderMs": 0.134328,
+          "gpuSpanMs": 0.265572,
+          "completedWallMs": 1.2000000476837158,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 0.265572,
+            "sumMs": 0.134328,
+            "overlapMs": -0.13124399999999997,
+            "passes": [
+              {
+                "context": "r:1:0:f26",
+                "beginMs": 0,
+                "endMs": 0.099538
+              },
+              {
+                "context": "r:2:1:f26",
+                "beginMs": 0.230782,
+                "endMs": 0.265572
+              }
+            ]
+          }
+        },
+        {
+          "frame": 13,
+          "gpuRenderMs": 0.059663,
+          "gpuSpanMs": 0.210615,
+          "completedWallMs": 1,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 0.210615,
+            "sumMs": 0.059662999999999994,
+            "overlapMs": -0.150952,
+            "passes": [
+              {
+                "context": "r:1:0:f27",
+                "beginMs": 0,
+                "endMs": 0.024915
+              },
+              {
+                "context": "r:2:1:f27",
+                "beginMs": 0.175867,
+                "endMs": 0.210615
+              }
+            ]
+          }
+        },
+        {
+          "frame": 14,
+          "gpuRenderMs": 3.050907,
+          "gpuSpanMs": 2.257056,
+          "completedWallMs": 3.600000023841858,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 2.257056,
+            "sumMs": 3.0509069999999996,
+            "overlapMs": 0.7938509999999996,
+            "passes": [
+              {
+                "context": "r:1:0:f28",
+                "beginMs": 0,
+                "endMs": 2.22539
+              },
+              {
+                "context": "r:2:1:f28",
+                "beginMs": 1.431539,
+                "endMs": 2.257056
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "method": "temporal",
+      "width": 640,
+      "height": 360,
+      "time": 0,
+      "motion": "glide",
+      "detail": 1,
+      "poseHeldFixed": true,
+      "warmFrames": 5,
+      "frames": 15,
+      "historyFrames": 20,
+      "gpuMedianMs": 0.47765599999999997,
+      "gpuMinMs": 0.231069,
+      "gpuMaxMs": 5.885997,
+      "gpuSpanMedianMs": 0.398267,
+      "completedWallMedianMs": 2.5,
+      "completedWallMinMs": 1.699999988079071,
+      "completedWallMaxMs": 4.900000035762787,
+      "samples": [
+        {
+          "frame": 0,
+          "gpuRenderMs": 3.0972530000000003,
+          "gpuSpanMs": 1.38452,
+          "completedWallMs": 3,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 1.38452,
+            "sumMs": 3.097253,
+            "overlapMs": 1.7127329999999998,
+            "passes": [
+              {
+                "context": "r:1:3:f10",
+                "beginMs": 0.241975,
+                "endMs": 1.38452
+              },
+              {
+                "context": "r:2:4:f10",
+                "beginMs": 0.231518,
+                "endMs": 1.246826
+              },
+              {
+                "context": "r:3:5:f10",
+                "beginMs": 0,
+                "endMs": 0.9394
+              }
+            ]
+          }
+        },
+        {
+          "frame": 1,
+          "gpuRenderMs": 5.885997,
+          "gpuSpanMs": 2.184434,
+          "completedWallMs": 3.899999976158142,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 2.184434,
+            "sumMs": 5.885997,
+            "overlapMs": 3.7015629999999997,
+            "passes": [
+              {
+                "context": "r:1:3:f11",
+                "beginMs": 0.021915,
+                "endMs": 2.184434
+              },
+              {
+                "context": "r:2:4:f11",
+                "beginMs": 0.011208,
+                "endMs": 2.139856
+              },
+              {
+                "context": "r:3:5:f11",
+                "beginMs": 0,
+                "endMs": 1.59483
+              }
+            ]
+          }
+        },
+        {
+          "frame": 2,
+          "gpuRenderMs": 0.47765599999999997,
+          "gpuSpanMs": 0.361711,
+          "completedWallMs": 2.100000023841858,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 0.361711,
+            "sumMs": 0.47765599999999997,
+            "overlapMs": 0.11594499999999996,
+            "passes": [
+              {
+                "context": "r:1:3:f12",
+                "beginMs": 0.170024,
+                "endMs": 0.361711
+              },
+              {
+                "context": "r:2:4:f12",
+                "beginMs": 0.16115,
+                "endMs": 0.308509
+              },
+              {
+                "context": "r:3:5:f12",
+                "beginMs": 0,
+                "endMs": 0.13861
+              }
+            ]
+          }
+        },
+        {
+          "frame": 3,
+          "gpuRenderMs": 0.27693,
+          "gpuSpanMs": 0.267931,
+          "completedWallMs": 1.699999988079071,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 0.267931,
+            "sumMs": 0.27692999999999995,
+            "overlapMs": 0.00899899999999998,
+            "passes": [
+              {
+                "context": "r:1:3:f13",
+                "beginMs": 0.197438,
+                "endMs": 0.267931
+              },
+              {
+                "context": "r:2:4:f13",
+                "beginMs": 0.099615,
+                "endMs": 0.225643
+              },
+              {
+                "context": "r:3:5:f13",
+                "beginMs": 0,
+                "endMs": 0.080409
+              }
+            ]
+          }
+        },
+        {
+          "frame": 4,
+          "gpuRenderMs": 0.264027,
+          "gpuSpanMs": 0.253777,
+          "completedWallMs": 1.9000000357627869,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 0.253777,
+            "sumMs": 0.26402699999999996,
+            "overlapMs": 0.010249999999999981,
+            "passes": [
+              {
+                "context": "r:1:3:f14",
+                "beginMs": 0.222029,
+                "endMs": 0.253777
+              },
+              {
+                "context": "r:2:4:f14",
+                "beginMs": 0.070079,
+                "endMs": 0.210071
+              },
+              {
+                "context": "r:3:5:f14",
+                "beginMs": 0,
+                "endMs": 0.092287
+              }
+            ]
+          }
+        },
+        {
+          "frame": 5,
+          "gpuRenderMs": 0.38976700000000003,
+          "gpuSpanMs": 0.254193,
+          "completedWallMs": 1.699999988079071,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 0.254193,
+            "sumMs": 0.38976700000000003,
+            "overlapMs": 0.13557400000000003,
+            "passes": [
+              {
+                "context": "r:1:3:f15",
+                "beginMs": 0.1427,
+                "endMs": 0.254193
+              },
+              {
+                "context": "r:2:4:f15",
+                "beginMs": 0.027957,
+                "endMs": 0.212278
+              },
+              {
+                "context": "r:3:5:f15",
+                "beginMs": 0,
+                "endMs": 0.093953
+              }
+            ]
+          }
+        },
+        {
+          "frame": 6,
+          "gpuRenderMs": 0.318314,
+          "gpuSpanMs": 0.654085,
+          "completedWallMs": 2.099999964237213,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 0.654085,
+            "sumMs": 0.31831400000000004,
+            "overlapMs": -0.335771,
+            "passes": [
+              {
+                "context": "r:1:3:f16",
+                "beginMs": 0.603463,
+                "endMs": 0.654085
+              },
+              {
+                "context": "r:2:4:f16",
+                "beginMs": 0.326688,
+                "endMs": 0.478304
+              },
+              {
+                "context": "r:3:5:f16",
+                "beginMs": 0,
+                "endMs": 0.116076
+              }
+            ]
+          }
+        },
+        {
+          "frame": 7,
+          "gpuRenderMs": 0.231069,
+          "gpuSpanMs": 0.398267,
+          "completedWallMs": 1.899999976158142,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 0.398267,
+            "sumMs": 0.23106900000000002,
+            "overlapMs": -0.16719799999999996,
+            "passes": [
+              {
+                "context": "r:1:3:f17",
+                "beginMs": 0.371685,
+                "endMs": 0.398267
+              },
+              {
+                "context": "r:2:4:f17",
+                "beginMs": 0.102035,
+                "endMs": 0.227569
+              },
+              {
+                "context": "r:3:5:f17",
+                "beginMs": 0,
+                "endMs": 0.078953
+              }
+            ]
+          }
+        },
+        {
+          "frame": 8,
+          "gpuRenderMs": 0.608465,
+          "gpuSpanMs": 0.301607,
+          "completedWallMs": 2.5,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 0.301607,
+            "sumMs": 0.608465,
+            "overlapMs": 0.306858,
+            "passes": [
+              {
+                "context": "r:1:3:f18",
+                "beginMs": 0.033748,
+                "endMs": 0.301607
+              },
+              {
+                "context": "r:2:4:f18",
+                "beginMs": 0.017916,
+                "endMs": 0.250319
+              },
+              {
+                "context": "r:3:5:f18",
+                "beginMs": 0,
+                "endMs": 0.108203
+              }
+            ]
+          }
+        },
+        {
+          "frame": 9,
+          "gpuRenderMs": 0.315189,
+          "gpuSpanMs": 0.290732,
+          "completedWallMs": 2.699999988079071,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 0.290732,
+            "sumMs": 0.315189,
+            "overlapMs": 0.024457000000000007,
+            "passes": [
+              {
+                "context": "r:1:3:f19",
+                "beginMs": 0.245818,
+                "endMs": 0.290732
+              },
+              {
+                "context": "r:2:4:f19",
+                "beginMs": 0.042664,
+                "endMs": 0.216987
+              },
+              {
+                "context": "r:3:5:f19",
+                "beginMs": 0,
+                "endMs": 0.095952
+              }
+            ]
+          }
+        },
+        {
+          "frame": 10,
+          "gpuRenderMs": 0.541809,
+          "gpuSpanMs": 0.430973,
+          "completedWallMs": 3.199999988079071,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 0.430973,
+            "sumMs": 0.5418000000000001,
+            "overlapMs": 0.11082700000000006,
+            "passes": [
+              {
+                "context": "r:1:3:f20",
+                "beginMs": 0.128158,
+                "endMs": 0.430973
+              },
+              {
+                "context": "r:2:4:f20",
+                "beginMs": 0.088035,
+                "endMs": 0.237235
+              },
+              {
+                "context": "r:3:5:f20",
+                "beginMs": 0,
+                "endMs": 0.089785
+              }
+            ]
+          }
+        },
+        {
+          "frame": 11,
+          "gpuRenderMs": 0.276654,
+          "gpuSpanMs": 0.307902,
+          "completedWallMs": 1.899999976158142,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 0.307902,
+            "sumMs": 0.276654,
+            "overlapMs": -0.031247999999999998,
+            "passes": [
+              {
+                "context": "r:1:3:f21",
+                "beginMs": 0.281528,
+                "endMs": 0.307902
+              },
+              {
+                "context": "r:2:4:f21",
+                "beginMs": 0.027706,
+                "endMs": 0.197699
+              },
+              {
+                "context": "r:3:5:f21",
+                "beginMs": 0,
+                "endMs": 0.080287
+              }
+            ]
+          }
+        },
+        {
+          "frame": 12,
+          "gpuRenderMs": 4.787447,
+          "gpuSpanMs": 3.286517,
+          "completedWallMs": 4.900000035762787,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 3.286517,
+            "sumMs": 4.787447,
+            "overlapMs": 1.5009300000000003,
+            "passes": [
+              {
+                "context": "r:1:3:f22",
+                "beginMs": 2.677462,
+                "endMs": 3.286517
+              },
+              {
+                "context": "r:2:4:f22",
+                "beginMs": 1.339148,
+                "endMs": 3.244394
+              },
+              {
+                "context": "r:3:5:f22",
+                "beginMs": 0,
+                "endMs": 2.273146
+              }
+            ]
+          }
+        },
+        {
+          "frame": 13,
+          "gpuRenderMs": 0.94583,
+          "gpuSpanMs": 0.662928,
+          "completedWallMs": 3.299999952316284,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 0.662928,
+            "sumMs": 0.94583,
+            "overlapMs": 0.282902,
+            "passes": [
+              {
+                "context": "r:1:3:f23",
+                "beginMs": 0.576849,
+                "endMs": 0.662928
+              },
+              {
+                "context": "r:2:4:f23",
+                "beginMs": 0.091746,
+                "endMs": 0.538933
+              },
+              {
+                "context": "r:3:5:f23",
+                "beginMs": 0,
+                "endMs": 0.412564
+              }
+            ]
+          }
+        },
+        {
+          "frame": 14,
+          "gpuRenderMs": 5.753278,
+          "gpuSpanMs": 2.045532,
+          "completedWallMs": 4.199999988079071,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 2.045532,
+            "sumMs": 5.753278,
+            "overlapMs": 3.7077459999999998,
+            "passes": [
+              {
+                "context": "r:1:3:f24",
+                "beginMs": 0.039416,
+                "endMs": 2.045532
+              },
+              {
+                "context": "r:2:4:f24",
+                "beginMs": 0.01725,
+                "endMs": 2.003034
+              },
+              {
+                "context": "r:3:5:f24",
+                "beginMs": 0,
+                "endMs": 1.761378
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "method": "spectral",
+      "width": 640,
+      "height": 360,
+      "time": 0,
+      "motion": "glide",
+      "detail": 1,
+      "poseHeldFixed": true,
+      "warmFrames": 5,
+      "frames": 15,
+      "historyFrames": null,
+      "gpuMedianMs": 7.631577,
+      "gpuMinMs": 6.131418,
+      "gpuMaxMs": 10.815427,
+      "gpuSpanMedianMs": 4.100604,
+      "completedWallMedianMs": 5.399999976158142,
+      "completedWallMinMs": 4.5,
+      "completedWallMaxMs": 6.400000035762787,
+      "samples": [
+        {
+          "frame": 0,
+          "gpuRenderMs": 10.815427,
+          "gpuSpanMs": 5.546699,
+          "completedWallMs": 6.100000023841858,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 5.546699,
+            "sumMs": 10.815427000000001,
+            "overlapMs": 5.268728000000001,
+            "passes": [
+              {
+                "context": "r:1:7:f9",
+                "beginMs": 0,
+                "endMs": 5.410547
+              },
+              {
+                "context": "r:2:8:f9",
+                "beginMs": 0.141819,
+                "endMs": 5.546699
+              }
+            ]
+          }
+        },
+        {
+          "frame": 1,
+          "gpuRenderMs": 7.426624,
+          "gpuSpanMs": 4.100604,
+          "completedWallMs": 5.300000011920929,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 4.100604,
+            "sumMs": 7.426624,
+            "overlapMs": 3.3260200000000006,
+            "passes": [
+              {
+                "context": "r:1:7:f10",
+                "beginMs": 0,
+                "endMs": 3.562161
+              },
+              {
+                "context": "r:2:8:f10",
+                "beginMs": 0.236141,
+                "endMs": 4.100604
+              }
+            ]
+          }
+        },
+        {
+          "frame": 2,
+          "gpuRenderMs": 7.685219999999999,
+          "gpuSpanMs": 4.641545,
+          "completedWallMs": 5.600000023841858,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 4.641545,
+            "sumMs": 7.68522,
+            "overlapMs": 3.0436750000000004,
+            "passes": [
+              {
+                "context": "r:1:7:f11",
+                "beginMs": 0,
+                "endMs": 3.123707
+              },
+              {
+                "context": "r:2:8:f11",
+                "beginMs": 0.080032,
+                "endMs": 4.641545
+              }
+            ]
+          }
+        },
+        {
+          "frame": 3,
+          "gpuRenderMs": 8.201832,
+          "gpuSpanMs": 4.80782,
+          "completedWallMs": 5.599999964237213,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 4.80782,
+            "sumMs": 8.201832,
+            "overlapMs": 3.394011999999999,
+            "passes": [
+              {
+                "context": "r:1:7:f12",
+                "beginMs": 0,
+                "endMs": 3.470879
+              },
+              {
+                "context": "r:2:8:f12",
+                "beginMs": 0.076867,
+                "endMs": 4.80782
+              }
+            ]
+          }
+        },
+        {
+          "frame": 4,
+          "gpuRenderMs": 9.480779,
+          "gpuSpanMs": 5.505246,
+          "completedWallMs": 6.400000035762787,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 5.505246,
+            "sumMs": 9.480779,
+            "overlapMs": 3.9755330000000004,
+            "passes": [
+              {
+                "context": "r:1:7:f13",
+                "beginMs": 0,
+                "endMs": 3.989991
+              },
+              {
+                "context": "r:2:8:f13",
+                "beginMs": 0.014458,
+                "endMs": 5.505246
+              }
+            ]
+          }
+        },
+        {
+          "frame": 5,
+          "gpuRenderMs": 6.785568,
+          "gpuSpanMs": 3.488378,
+          "completedWallMs": 4.5,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 3.488378,
+            "sumMs": 6.785568,
+            "overlapMs": 3.2971899999999996,
+            "passes": [
+              {
+                "context": "r:1:7:f14",
+                "beginMs": 0,
+                "endMs": 3.457506
+              },
+              {
+                "context": "r:2:8:f14",
+                "beginMs": 0.160316,
+                "endMs": 3.488378
+              }
+            ]
+          }
+        },
+        {
+          "frame": 6,
+          "gpuRenderMs": 7.07286,
+          "gpuSpanMs": 3.744813,
+          "completedWallMs": 4.800000011920929,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 3.744813,
+            "sumMs": 7.07286,
+            "overlapMs": 3.328047,
+            "passes": [
+              {
+                "context": "r:1:7:f15",
+                "beginMs": 0,
+                "endMs": 3.551867
+              },
+              {
+                "context": "r:2:8:f15",
+                "beginMs": 0.22382,
+                "endMs": 3.744813
+              }
+            ]
+          }
+        },
+        {
+          "frame": 7,
+          "gpuRenderMs": 7.339428,
+          "gpuSpanMs": 3.72294,
+          "completedWallMs": 4.800000011920929,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 3.72294,
+            "sumMs": 7.339428,
+            "overlapMs": 3.616488,
+            "passes": [
+              {
+                "context": "r:1:7:f16",
+                "beginMs": 0,
+                "endMs": 3.694359
+              },
+              {
+                "context": "r:2:8:f16",
+                "beginMs": 0.077871,
+                "endMs": 3.72294
+              }
+            ]
+          }
+        },
+        {
+          "frame": 8,
+          "gpuRenderMs": 6.131418,
+          "gpuSpanMs": 3.178681,
+          "completedWallMs": 4.899999976158142,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 3.178681,
+            "sumMs": 6.131418,
+            "overlapMs": 2.952737,
+            "passes": [
+              {
+                "context": "r:1:7:f17",
+                "beginMs": 0,
+                "endMs": 3.146308
+              },
+              {
+                "context": "r:2:8:f17",
+                "beginMs": 0.193571,
+                "endMs": 3.178681
+              }
+            ]
+          }
+        },
+        {
+          "frame": 9,
+          "gpuRenderMs": 8.0383,
+          "gpuSpanMs": 4.337776,
+          "completedWallMs": 6.300000011920929,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 4.337776,
+            "sumMs": 8.038300000000001,
+            "overlapMs": 3.7005240000000015,
+            "passes": [
+              {
+                "context": "r:1:7:f18",
+                "beginMs": 0,
+                "endMs": 4.290363
+              },
+              {
+                "context": "r:2:8:f18",
+                "beginMs": 0.589839,
+                "endMs": 4.337776
+              }
+            ]
+          }
+        },
+        {
+          "frame": 10,
+          "gpuRenderMs": 7.631577,
+          "gpuSpanMs": 3.940385,
+          "completedWallMs": 5.399999976158142,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 3.940385,
+            "sumMs": 7.631577,
+            "overlapMs": 3.691192,
+            "passes": [
+              {
+                "context": "r:1:7:f19",
+                "beginMs": 0,
+                "endMs": 3.909054
+              },
+              {
+                "context": "r:2:8:f19",
+                "beginMs": 0.217862,
+                "endMs": 3.940385
+              }
+            ]
+          }
+        },
+        {
+          "frame": 11,
+          "gpuRenderMs": 8.57606,
+          "gpuSpanMs": 4.674089,
+          "completedWallMs": 5.699999988079071,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 4.674089,
+            "sumMs": 8.57606,
+            "overlapMs": 3.9019709999999996,
+            "passes": [
+              {
+                "context": "r:1:7:f20",
+                "beginMs": 0,
+                "endMs": 4.640467
+              },
+              {
+                "context": "r:2:8:f20",
+                "beginMs": 0.738496,
+                "endMs": 4.674089
+              }
+            ]
+          }
+        },
+        {
+          "frame": 12,
+          "gpuRenderMs": 7.119717,
+          "gpuSpanMs": 3.658291,
+          "completedWallMs": 5.099999964237213,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 3.658291,
+            "sumMs": 7.1197170000000005,
+            "overlapMs": 3.4614260000000003,
+            "passes": [
+              {
+                "context": "r:1:7:f21",
+                "beginMs": 0,
+                "endMs": 3.61721
+              },
+              {
+                "context": "r:2:8:f21",
+                "beginMs": 0.155784,
+                "endMs": 3.658291
+              }
+            ]
+          }
+        },
+        {
+          "frame": 13,
+          "gpuRenderMs": 6.838187,
+          "gpuSpanMs": 3.59017,
+          "completedWallMs": 5.100000023841858,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 3.59017,
+            "sumMs": 6.838187,
+            "overlapMs": 3.2480169999999995,
+            "passes": [
+              {
+                "context": "r:1:7:f22",
+                "beginMs": 0,
+                "endMs": 3.561587
+              },
+              {
+                "context": "r:2:8:f22",
+                "beginMs": 0.31357,
+                "endMs": 3.59017
+              }
+            ]
+          }
+        },
+        {
+          "frame": 14,
+          "gpuRenderMs": 8.073212999999999,
+          "gpuSpanMs": 4.184308,
+          "completedWallMs": 6.399999976158142,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 4.184308,
+            "sumMs": 8.073213,
+            "overlapMs": 3.888905000000001,
+            "passes": [
+              {
+                "context": "r:1:7:f23",
+                "beginMs": 0,
+                "endMs": 4.152976
+              },
+              {
+                "context": "r:2:8:f23",
+                "beginMs": 0.264071,
+                "endMs": 4.184308
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "method": "raw",
+      "width": 640,
+      "height": 360,
+      "time": 8,
+      "motion": "glide",
+      "detail": 1,
+      "poseHeldFixed": true,
+      "warmFrames": 5,
+      "frames": 15,
+      "historyFrames": null,
+      "gpuMedianMs": 2.182367,
+      "gpuMinMs": 0.06307600000000001,
+      "gpuMaxMs": 5.495958,
+      "gpuSpanMedianMs": 1.305485,
+      "completedWallMedianMs": 4.099999964237213,
+      "completedWallMinMs": 1.300000011920929,
+      "completedWallMaxMs": 6.5,
+      "samples": [
+        {
+          "frame": 0,
+          "gpuRenderMs": 0.06307600000000001,
+          "gpuSpanMs": 0.2765,
+          "completedWallMs": 1.300000011920929,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 0.2765,
+            "sumMs": 0.06308300000000003,
+            "overlapMs": -0.213417,
+            "passes": [
+              {
+                "context": "r:1:9:f8",
+                "beginMs": 0,
+                "endMs": 0.02475
+              },
+              {
+                "context": "r:2:10:f8",
+                "beginMs": 0.238167,
+                "endMs": 0.2765
+              }
+            ]
+          }
+        },
+        {
+          "frame": 1,
+          "gpuRenderMs": 0.074368,
+          "gpuSpanMs": 0.51053,
+          "completedWallMs": 2,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 0.51053,
+            "sumMs": 0.07436800000000005,
+            "overlapMs": -0.436162,
+            "passes": [
+              {
+                "context": "r:1:9:f9",
+                "beginMs": 0,
+                "endMs": 0.028664
+              },
+              {
+                "context": "r:2:10:f9",
+                "beginMs": 0.464826,
+                "endMs": 0.51053
+              }
+            ]
+          }
+        },
+        {
+          "frame": 2,
+          "gpuRenderMs": 0.225767,
+          "gpuSpanMs": 0.459784,
+          "completedWallMs": 1.7000000476837158,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 0.459784,
+            "sumMs": 0.22576700000000005,
+            "overlapMs": -0.23401699999999998,
+            "passes": [
+              {
+                "context": "r:1:9:f10",
+                "beginMs": 0,
+                "endMs": 0.098405
+              },
+              {
+                "context": "r:2:10:f10",
+                "beginMs": 0.332422,
+                "endMs": 0.459784
+              }
+            ]
+          }
+        },
+        {
+          "frame": 3,
+          "gpuRenderMs": 1.762144,
+          "gpuSpanMs": 1.305485,
+          "completedWallMs": 2.5,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 1.305485,
+            "sumMs": 1.7621439999999997,
+            "overlapMs": 0.4566589999999997,
+            "passes": [
+              {
+                "context": "r:1:9:f11",
+                "beginMs": 0,
+                "endMs": 1.276946
+              },
+              {
+                "context": "r:2:10:f11",
+                "beginMs": 0.820287,
+                "endMs": 1.305485
+              }
+            ]
+          }
+        },
+        {
+          "frame": 4,
+          "gpuRenderMs": 0.36167000000000005,
+          "gpuSpanMs": 0.283137,
+          "completedWallMs": 4.099999964237213,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 0.283137,
+            "sumMs": 0.36167000000000005,
+            "overlapMs": 0.07853300000000002,
+            "passes": [
+              {
+                "context": "r:1:9:f12",
+                "beginMs": 0,
+                "endMs": 0.094865
+              },
+              {
+                "context": "r:2:10:f12",
+                "beginMs": 0.016332,
+                "endMs": 0.283137
+              }
+            ]
+          }
+        },
+        {
+          "frame": 5,
+          "gpuRenderMs": 2.958225,
+          "gpuSpanMs": 2.505732,
+          "completedWallMs": 4.899999976158142,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 2.505732,
+            "sumMs": 2.958225,
+            "overlapMs": 0.45249300000000003,
+            "passes": [
+              {
+                "context": "r:1:9:f13",
+                "beginMs": 0,
+                "endMs": 1.853885
+              },
+              {
+                "context": "r:2:10:f13",
+                "beginMs": 1.401392,
+                "endMs": 2.505732
+              }
+            ]
+          }
+        },
+        {
+          "frame": 6,
+          "gpuRenderMs": 1.711771,
+          "gpuSpanMs": 0.890154,
+          "completedWallMs": 4,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 0.890154,
+            "sumMs": 1.711771,
+            "overlapMs": 0.8216169999999999,
+            "passes": [
+              {
+                "context": "r:1:9:f14",
+                "beginMs": 0,
+                "endMs": 0.838949
+              },
+              {
+                "context": "r:2:10:f14",
+                "beginMs": 0.017332,
+                "endMs": 0.890154
+              }
+            ]
+          }
+        },
+        {
+          "frame": 7,
+          "gpuRenderMs": 3.114852,
+          "gpuSpanMs": 2.505139,
+          "completedWallMs": 4.200000047683716,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 2.505139,
+            "sumMs": 3.114852,
+            "overlapMs": 0.6097130000000002,
+            "passes": [
+              {
+                "context": "r:1:9:f15",
+                "beginMs": 0,
+                "endMs": 2.470891
+              },
+              {
+                "context": "r:2:10:f15",
+                "beginMs": 1.861178,
+                "endMs": 2.505139
+              }
+            ]
+          }
+        },
+        {
+          "frame": 8,
+          "gpuRenderMs": 2.182367,
+          "gpuSpanMs": 1.251548,
+          "completedWallMs": 2.699999988079071,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 1.251548,
+            "sumMs": 2.1823669999999997,
+            "overlapMs": 0.9308189999999996,
+            "passes": [
+              {
+                "context": "r:1:9:f16",
+                "beginMs": 0,
+                "endMs": 1.215384
+              },
+              {
+                "context": "r:2:10:f16",
+                "beginMs": 0.284565,
+                "endMs": 1.251548
+              }
+            ]
+          }
+        },
+        {
+          "frame": 9,
+          "gpuRenderMs": 4.875911,
+          "gpuSpanMs": 3.239469,
+          "completedWallMs": 4.400000035762787,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 3.239469,
+            "sumMs": 4.875911,
+            "overlapMs": 1.6364420000000002,
+            "passes": [
+              {
+                "context": "r:1:9:f17",
+                "beginMs": 0,
+                "endMs": 3.20668
+              },
+              {
+                "context": "r:2:10:f17",
+                "beginMs": 1.570238,
+                "endMs": 3.239469
+              }
+            ]
+          }
+        },
+        {
+          "frame": 10,
+          "gpuRenderMs": 2.040333,
+          "gpuSpanMs": 1.071309,
+          "completedWallMs": 3.099999964237213,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 1.071309,
+            "sumMs": 2.040333,
+            "overlapMs": 0.9690239999999999,
+            "passes": [
+              {
+                "context": "r:1:9:f18",
+                "beginMs": 0,
+                "endMs": 0.982648
+              },
+              {
+                "context": "r:2:10:f18",
+                "beginMs": 0.013624,
+                "endMs": 1.071309
+              }
+            ]
+          }
+        },
+        {
+          "frame": 11,
+          "gpuRenderMs": 3.521245,
+          "gpuSpanMs": 2.123371,
+          "completedWallMs": 4.899999976158142,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 2.123371,
+            "sumMs": 3.521245,
+            "overlapMs": 1.3978739999999998,
+            "passes": [
+              {
+                "context": "r:1:9:f19",
+                "beginMs": 0,
+                "endMs": 1.903926
+              },
+              {
+                "context": "r:2:10:f19",
+                "beginMs": 0.506052,
+                "endMs": 2.123371
+              }
+            ]
+          }
+        },
+        {
+          "frame": 12,
+          "gpuRenderMs": 3.189187,
+          "gpuSpanMs": 1.687313,
+          "completedWallMs": 4.100000023841858,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 1.687313,
+            "sumMs": 3.189139,
+            "overlapMs": 1.5018259999999999,
+            "passes": [
+              {
+                "context": "r:1:9:f20",
+                "beginMs": 0,
+                "endMs": 1.591528
+              },
+              {
+                "context": "r:2:10:f20",
+                "beginMs": 0.089702,
+                "endMs": 1.687313
+              }
+            ]
+          }
+        },
+        {
+          "frame": 13,
+          "gpuRenderMs": 5.495958,
+          "gpuSpanMs": 3.842158,
+          "completedWallMs": 5,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 3.842158,
+            "sumMs": 5.495958,
+            "overlapMs": 1.6538,
+            "passes": [
+              {
+                "context": "r:1:9:f21",
+                "beginMs": 0,
+                "endMs": 3.716955
+              },
+              {
+                "context": "r:2:10:f21",
+                "beginMs": 2.063155,
+                "endMs": 3.842158
+              }
+            ]
+          }
+        },
+        {
+          "frame": 14,
+          "gpuRenderMs": 3.358054,
+          "gpuSpanMs": 1.864331,
+          "completedWallMs": 6.5,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 1.864331,
+            "sumMs": 3.358054,
+            "overlapMs": 1.4937230000000001,
+            "passes": [
+              {
+                "context": "r:1:9:f22",
+                "beginMs": 0,
+                "endMs": 1.517264
+              },
+              {
+                "context": "r:2:10:f22",
+                "beginMs": 0.023541,
+                "endMs": 1.864331
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "method": "temporal",
+      "width": 640,
+      "height": 360,
+      "time": 8,
+      "motion": "glide",
+      "detail": 1,
+      "poseHeldFixed": true,
+      "warmFrames": 5,
+      "frames": 15,
+      "historyFrames": 20,
+      "gpuMedianMs": 3.005317,
+      "gpuMinMs": 0.343295,
+      "gpuMaxMs": 8.752016000000001,
+      "gpuSpanMedianMs": 1.912163,
+      "completedWallMedianMs": 3.699999988079071,
+      "completedWallMinMs": 1.300000011920929,
+      "completedWallMaxMs": 6.699999988079071,
+      "samples": [
+        {
+          "frame": 0,
+          "gpuRenderMs": 0.44561800000000007,
+          "gpuSpanMs": 0.298718,
+          "completedWallMs": 1.699999988079071,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 0.298718,
+            "sumMs": 0.44561799999999996,
+            "overlapMs": 0.14689999999999998,
+            "passes": [
+              {
+                "context": "r:1:12:f10",
+                "beginMs": 0.112488,
+                "endMs": 0.298718
+              },
+              {
+                "context": "r:2:13:f10",
+                "beginMs": 0.100949,
+                "endMs": 0.251598
+              },
+              {
+                "context": "r:3:14:f10",
+                "beginMs": 0,
+                "endMs": 0.108739
+              }
+            ]
+          }
+        },
+        {
+          "frame": 1,
+          "gpuRenderMs": 0.983102,
+          "gpuSpanMs": 0.704217,
+          "completedWallMs": 1.7000000476837158,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 0.704217,
+            "sumMs": 0.983102,
+            "overlapMs": 0.27888500000000005,
+            "passes": [
+              {
+                "context": "r:1:12:f11",
+                "beginMs": 0.490782,
+                "endMs": 0.704217
+              },
+              {
+                "context": "r:2:13:f11",
+                "beginMs": 0.482533,
+                "endMs": 0.685052
+              },
+              {
+                "context": "r:3:14:f11",
+                "beginMs": 0,
+                "endMs": 0.567148
+              }
+            ]
+          }
+        },
+        {
+          "frame": 2,
+          "gpuRenderMs": 1.3975179999999998,
+          "gpuSpanMs": 1.124297,
+          "completedWallMs": 2.699999988079071,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 1.124297,
+            "sumMs": 1.3975179999999998,
+            "overlapMs": 0.2732209999999997,
+            "passes": [
+              {
+                "context": "r:1:12:f12",
+                "beginMs": 0.890864,
+                "endMs": 1.124297
+              },
+              {
+                "context": "r:2:13:f12",
+                "beginMs": 0.882156,
+                "endMs": 1.082635
+              },
+              {
+                "context": "r:3:14:f12",
+                "beginMs": 0,
+                "endMs": 0.963606
+              }
+            ]
+          }
+        },
+        {
+          "frame": 3,
+          "gpuRenderMs": 0.343295,
+          "gpuSpanMs": 0.262763,
+          "completedWallMs": 1.300000011920929,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 0.262763,
+            "sumMs": 0.3432950000000001,
+            "overlapMs": 0.08053200000000005,
+            "passes": [
+              {
+                "context": "r:1:12:f13",
+                "beginMs": 0.127987,
+                "endMs": 0.262763
+              },
+              {
+                "context": "r:2:13:f13",
+                "beginMs": 0.118154,
+                "endMs": 0.242932
+              },
+              {
+                "context": "r:3:14:f13",
+                "beginMs": 0,
+                "endMs": 0.083741
+              }
+            ]
+          }
+        },
+        {
+          "frame": 4,
+          "gpuRenderMs": 2.081151,
+          "gpuSpanMs": 0.771584,
+          "completedWallMs": 2.699999988079071,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 0.771584,
+            "sumMs": 2.0811509999999998,
+            "overlapMs": 1.3095669999999997,
+            "passes": [
+              {
+                "context": "r:1:12:f14",
+                "beginMs": 0.020498,
+                "endMs": 0.771584
+              },
+              {
+                "context": "r:2:13:f14",
+                "beginMs": 0.010499,
+                "endMs": 0.729463
+              },
+              {
+                "context": "r:3:14:f14",
+                "beginMs": 0,
+                "endMs": 0.611101
+              }
+            ]
+          }
+        },
+        {
+          "frame": 5,
+          "gpuRenderMs": 0.5757570000000001,
+          "gpuSpanMs": 0.269776,
+          "completedWallMs": 1.800000011920929,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 0.269776,
+            "sumMs": 0.5757570000000001,
+            "overlapMs": 0.30598100000000006,
+            "passes": [
+              {
+                "context": "r:1:12:f15",
+                "beginMs": 0.018833,
+                "endMs": 0.269776
+              },
+              {
+                "context": "r:2:13:f15",
+                "beginMs": 0.009834,
+                "endMs": 0.226945
+              },
+              {
+                "context": "r:3:14:f15",
+                "beginMs": 0,
+                "endMs": 0.107703
+              }
+            ]
+          }
+        },
+        {
+          "frame": 6,
+          "gpuRenderMs": 0.37601699999999993,
+          "gpuSpanMs": 0.224486,
+          "completedWallMs": 1.800000011920929,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 0.224486,
+            "sumMs": 0.37601700000000005,
+            "overlapMs": 0.15153100000000005,
+            "passes": [
+              {
+                "context": "r:1:12:f16",
+                "beginMs": 0.126242,
+                "endMs": 0.224486
+              },
+              {
+                "context": "r:2:13:f16",
+                "beginMs": 0.014416,
+                "endMs": 0.204737
+              },
+              {
+                "context": "r:3:14:f16",
+                "beginMs": 0,
+                "endMs": 0.087452
+              }
+            ]
+          }
+        },
+        {
+          "frame": 7,
+          "gpuRenderMs": 3.005317,
+          "gpuSpanMs": 1.990962,
+          "completedWallMs": 4.199999988079071,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 1.990962,
+            "sumMs": 3.005317,
+            "overlapMs": 1.014355,
+            "passes": [
+              {
+                "context": "r:1:12:f17",
+                "beginMs": 0.951567,
+                "endMs": 1.990962
+              },
+              {
+                "context": "r:2:13:f17",
+                "beginMs": 0.942776,
+                "endMs": 1.810098
+              },
+              {
+                "context": "r:3:14:f17",
+                "beginMs": 0,
+                "endMs": 1.0986
+              }
+            ]
+          }
+        },
+        {
+          "frame": 8,
+          "gpuRenderMs": 5.749648,
+          "gpuSpanMs": 3.564532,
+          "completedWallMs": 5.199999988079071,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 3.564532,
+            "sumMs": 5.749648,
+            "overlapMs": 2.185116,
+            "passes": [
+              {
+                "context": "r:1:12:f18",
+                "beginMs": 1.691521,
+                "endMs": 3.564532
+              },
+              {
+                "context": "r:2:13:f18",
+                "beginMs": 0.048164,
+                "endMs": 3.07977
+              },
+              {
+                "context": "r:3:14:f18",
+                "beginMs": 0,
+                "endMs": 0.845031
+              }
+            ]
+          }
+        },
+        {
+          "frame": 9,
+          "gpuRenderMs": 5.271011,
+          "gpuSpanMs": 2.275027,
+          "completedWallMs": 3.800000011920929,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 2.275027,
+            "sumMs": 5.271011,
+            "overlapMs": 2.9959839999999995,
+            "passes": [
+              {
+                "context": "r:1:12:f19",
+                "beginMs": 0.378101,
+                "endMs": 2.275027
+              },
+              {
+                "context": "r:2:13:f19",
+                "beginMs": 0.212695,
+                "endMs": 2.098496
+              },
+              {
+                "context": "r:3:14:f19",
+                "beginMs": 0,
+                "endMs": 1.488284
+              }
+            ]
+          }
+        },
+        {
+          "frame": 10,
+          "gpuRenderMs": 7.266387999999999,
+          "gpuSpanMs": 3.974382,
+          "completedWallMs": 6.399999976158142,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 3.974382,
+            "sumMs": 7.266388,
+            "overlapMs": 3.292006,
+            "passes": [
+              {
+                "context": "r:1:12:f20",
+                "beginMs": 1.080934,
+                "endMs": 3.974382
+              },
+              {
+                "context": "r:2:13:f20",
+                "beginMs": 0.754371,
+                "endMs": 3.533326
+              },
+              {
+                "context": "r:3:14:f20",
+                "beginMs": 0,
+                "endMs": 1.593985
+              }
+            ]
+          }
+        },
+        {
+          "frame": 11,
+          "gpuRenderMs": 7.430951,
+          "gpuSpanMs": 2.828871,
+          "completedWallMs": 3.699999988079071,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 2.828871,
+            "sumMs": 7.430951,
+            "overlapMs": 4.602080000000001,
+            "passes": [
+              {
+                "context": "r:1:12:f21",
+                "beginMs": 0.1757,
+                "endMs": 2.828871
+              },
+              {
+                "context": "r:2:13:f21",
+                "beginMs": 0.162243,
+                "endMs": 2.725208
+              },
+              {
+                "context": "r:3:14:f21",
+                "beginMs": 0,
+                "endMs": 2.214815
+              }
+            ]
+          }
+        },
+        {
+          "frame": 12,
+          "gpuRenderMs": 8.752016000000001,
+          "gpuSpanMs": 5.418335,
+          "completedWallMs": 6.699999988079071,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 5.418335,
+            "sumMs": 8.752016000000001,
+            "overlapMs": 3.3336810000000012,
+            "passes": [
+              {
+                "context": "r:1:12:f22",
+                "beginMs": 3.72912,
+                "endMs": 5.418335
+              },
+              {
+                "context": "r:2:13:f22",
+                "beginMs": 2.674502,
+                "endMs": 5.228885
+              },
+              {
+                "context": "r:3:14:f22",
+                "beginMs": 0,
+                "endMs": 4.508418
+              }
+            ]
+          }
+        },
+        {
+          "frame": 13,
+          "gpuRenderMs": 6.5576159999999994,
+          "gpuSpanMs": 2.751208,
+          "completedWallMs": 4.399999976158142,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 2.751208,
+            "sumMs": 6.557616000000001,
+            "overlapMs": 3.806408000000001,
+            "passes": [
+              {
+                "context": "r:1:12:f23",
+                "beginMs": 0.053206,
+                "endMs": 2.751208
+              },
+              {
+                "context": "r:2:13:f23",
+                "beginMs": 0.039374,
+                "endMs": 2.063489
+              },
+              {
+                "context": "r:3:14:f23",
+                "beginMs": 0,
+                "endMs": 1.835499
+              }
+            ]
+          }
+        },
+        {
+          "frame": 14,
+          "gpuRenderMs": 3.489382,
+          "gpuSpanMs": 1.912163,
+          "completedWallMs": 4.699999988079071,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 1.912163,
+            "sumMs": 3.489382,
+            "overlapMs": 1.577219,
+            "passes": [
+              {
+                "context": "r:1:12:f24",
+                "beginMs": 0.158076,
+                "endMs": 1.912163
+              },
+              {
+                "context": "r:2:13:f24",
+                "beginMs": 0.026374,
+                "endMs": 1.541346
+              },
+              {
+                "context": "r:3:14:f24",
+                "beginMs": 0,
+                "endMs": 0.220323
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "method": "spectral",
+      "width": 640,
+      "height": 360,
+      "time": 8,
+      "motion": "glide",
+      "detail": 1,
+      "poseHeldFixed": true,
+      "warmFrames": 5,
+      "frames": 15,
+      "historyFrames": null,
+      "gpuMedianMs": 7.090241000000001,
+      "gpuMinMs": 5.797147,
+      "gpuMaxMs": 8.826804,
+      "gpuSpanMedianMs": 3.599323,
+      "completedWallMedianMs": 4.300000011920929,
+      "completedWallMinMs": 3.699999988079071,
+      "completedWallMaxMs": 6.399999976158142,
+      "samples": [
+        {
+          "frame": 0,
+          "gpuRenderMs": 7.296583,
+          "gpuSpanMs": 3.70425,
+          "completedWallMs": 4.399999976158142,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 3.70425,
+            "sumMs": 7.296582999999999,
+            "overlapMs": 3.592332999999999,
+            "passes": [
+              {
+                "context": "r:1:16:f8",
+                "beginMs": 0,
+                "endMs": 3.672417
+              },
+              {
+                "context": "r:2:17:f8",
+                "beginMs": 0.080084,
+                "endMs": 3.70425
+              }
+            ]
+          }
+        },
+        {
+          "frame": 1,
+          "gpuRenderMs": 6.770232999999999,
+          "gpuSpanMs": 3.51429,
+          "completedWallMs": 4.099999964237213,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 3.51429,
+            "sumMs": 6.770233,
+            "overlapMs": 3.2559430000000003,
+            "passes": [
+              {
+                "context": "r:1:16:f9",
+                "beginMs": 0,
+                "endMs": 3.331435
+              },
+              {
+                "context": "r:2:17:f9",
+                "beginMs": 0.075492,
+                "endMs": 3.51429
+              }
+            ]
+          }
+        },
+        {
+          "frame": 2,
+          "gpuRenderMs": 7.06112,
+          "gpuSpanMs": 3.584325,
+          "completedWallMs": 4.199999988079071,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 3.584325,
+            "sumMs": 7.06112,
+            "overlapMs": 3.4767949999999996,
+            "passes": [
+              {
+                "context": "r:1:16:f10",
+                "beginMs": 0,
+                "endMs": 3.554411
+              },
+              {
+                "context": "r:2:17:f10",
+                "beginMs": 0.077616,
+                "endMs": 3.584325
+              }
+            ]
+          }
+        },
+        {
+          "frame": 3,
+          "gpuRenderMs": 8.651701,
+          "gpuSpanMs": 4.385156,
+          "completedWallMs": 5.5,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 4.385156,
+            "sumMs": 8.651701000000001,
+            "overlapMs": 4.266545000000001,
+            "passes": [
+              {
+                "context": "r:1:16:f11",
+                "beginMs": 0,
+                "endMs": 4.342952
+              },
+              {
+                "context": "r:2:17:f11",
+                "beginMs": 0.076407,
+                "endMs": 4.385156
+              }
+            ]
+          }
+        },
+        {
+          "frame": 4,
+          "gpuRenderMs": 7.536111999999999,
+          "gpuSpanMs": 3.787887,
+          "completedWallMs": 4.5,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 3.787887,
+            "sumMs": 7.536112,
+            "overlapMs": 3.748225,
+            "passes": [
+              {
+                "context": "r:1:16:f12",
+                "beginMs": 0,
+                "endMs": 3.763181
+              },
+              {
+                "context": "r:2:17:f12",
+                "beginMs": 0.014956,
+                "endMs": 3.787887
+              }
+            ]
+          }
+        },
+        {
+          "frame": 5,
+          "gpuRenderMs": 7.090241000000001,
+          "gpuSpanMs": 3.599323,
+          "completedWallMs": 4.600000023841858,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 3.599323,
+            "sumMs": 7.090241,
+            "overlapMs": 3.4909179999999997,
+            "passes": [
+              {
+                "context": "r:1:16:f13",
+                "beginMs": 0,
+                "endMs": 3.568785
+              },
+              {
+                "context": "r:2:17:f13",
+                "beginMs": 0.077867,
+                "endMs": 3.599323
+              }
+            ]
+          }
+        },
+        {
+          "frame": 6,
+          "gpuRenderMs": 7.906323,
+          "gpuSpanMs": 4.005032,
+          "completedWallMs": 4.700000047683716,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 4.005032,
+            "sumMs": 7.906323,
+            "overlapMs": 3.9012910000000005,
+            "passes": [
+              {
+                "context": "r:1:16:f14",
+                "beginMs": 0,
+                "endMs": 3.979992
+              },
+              {
+                "context": "r:2:17:f14",
+                "beginMs": 0.078701,
+                "endMs": 4.005032
+              }
+            ]
+          }
+        },
+        {
+          "frame": 7,
+          "gpuRenderMs": 6.651261,
+          "gpuSpanMs": 3.376836,
+          "completedWallMs": 3.899999976158142,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 3.376836,
+            "sumMs": 6.651261,
+            "overlapMs": 3.274425,
+            "passes": [
+              {
+                "context": "r:1:16:f15",
+                "beginMs": 0,
+                "endMs": 3.351796
+              },
+              {
+                "context": "r:2:17:f15",
+                "beginMs": 0.077371,
+                "endMs": 3.376836
+              }
+            ]
+          }
+        },
+        {
+          "frame": 8,
+          "gpuRenderMs": 5.919389,
+          "gpuSpanMs": 3.09752,
+          "completedWallMs": 4.300000011920929,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 3.09752,
+            "sumMs": 5.919388999999999,
+            "overlapMs": 2.821868999999999,
+            "passes": [
+              {
+                "context": "r:1:16:f16",
+                "beginMs": 0,
+                "endMs": 2.978693
+              },
+              {
+                "context": "r:2:17:f16",
+                "beginMs": 0.156824,
+                "endMs": 3.09752
+              }
+            ]
+          }
+        },
+        {
+          "frame": 9,
+          "gpuRenderMs": 5.797147,
+          "gpuSpanMs": 2.952403,
+          "completedWallMs": 3.699999988079071,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 2.952403,
+            "sumMs": 5.797147,
+            "overlapMs": 2.844744,
+            "passes": [
+              {
+                "context": "r:1:16:f17",
+                "beginMs": 0,
+                "endMs": 2.919822
+              },
+              {
+                "context": "r:2:17:f17",
+                "beginMs": 0.075078,
+                "endMs": 2.952403
+              }
+            ]
+          }
+        },
+        {
+          "frame": 10,
+          "gpuRenderMs": 6.2504100000000005,
+          "gpuSpanMs": 3.203013,
+          "completedWallMs": 4.100000023841858,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 3.203013,
+            "sumMs": 6.25041,
+            "overlapMs": 3.0473969999999997,
+            "passes": [
+              {
+                "context": "r:1:16:f18",
+                "beginMs": 0,
+                "endMs": 3.177639
+              },
+              {
+                "context": "r:2:17:f18",
+                "beginMs": 0.130242,
+                "endMs": 3.203013
+              }
+            ]
+          }
+        },
+        {
+          "frame": 11,
+          "gpuRenderMs": 7.2381,
+          "gpuSpanMs": 3.710149,
+          "completedWallMs": 4.299999952316284,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 3.710149,
+            "sumMs": 7.2381,
+            "overlapMs": 3.5279510000000003,
+            "passes": [
+              {
+                "context": "r:1:16:f19",
+                "beginMs": 0,
+                "endMs": 3.615196
+              },
+              {
+                "context": "r:2:17:f19",
+                "beginMs": 0.087245,
+                "endMs": 3.710149
+              }
+            ]
+          }
+        },
+        {
+          "frame": 12,
+          "gpuRenderMs": 5.87335,
+          "gpuSpanMs": 3.039898,
+          "completedWallMs": 3.800000011920929,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 3.039898,
+            "sumMs": 5.873349999999999,
+            "overlapMs": 2.8334519999999994,
+            "passes": [
+              {
+                "context": "r:1:16:f20",
+                "beginMs": 0,
+                "endMs": 2.932987
+              },
+              {
+                "context": "r:2:17:f20",
+                "beginMs": 0.099535,
+                "endMs": 3.039898
+              }
+            ]
+          }
+        },
+        {
+          "frame": 13,
+          "gpuRenderMs": 8.383075999999999,
+          "gpuSpanMs": 4.26443,
+          "completedWallMs": 5.099999964237213,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 4.26443,
+            "sumMs": 8.383075999999999,
+            "overlapMs": 4.118645999999999,
+            "passes": [
+              {
+                "context": "r:1:16:f21",
+                "beginMs": 0,
+                "endMs": 4.233057
+              },
+              {
+                "context": "r:2:17:f21",
+                "beginMs": 0.114411,
+                "endMs": 4.26443
+              }
+            ]
+          }
+        },
+        {
+          "frame": 14,
+          "gpuRenderMs": 8.826804,
+          "gpuSpanMs": 5.743278,
+          "completedWallMs": 6.399999976158142,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 5.743278,
+            "sumMs": 8.826804000000001,
+            "overlapMs": 3.083526000000001,
+            "passes": [
+              {
+                "context": "r:1:16:f22",
+                "beginMs": 0,
+                "endMs": 4.417798
+              },
+              {
+                "context": "r:2:17:f22",
+                "beginMs": 1.334272,
+                "endMs": 5.743278
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "method": "raw",
+      "width": 1920,
+      "height": 1080,
+      "time": 0,
+      "motion": "glide",
+      "detail": 1,
+      "poseHeldFixed": true,
+      "warmFrames": 5,
+      "frames": 15,
+      "historyFrames": null,
+      "gpuMedianMs": 0.38016799999999995,
+      "gpuMinMs": 0.345005,
+      "gpuMaxMs": 7.5056650000000005,
+      "gpuSpanMedianMs": 0.812621,
+      "completedWallMedianMs": 2,
+      "completedWallMinMs": 0.8999999761581421,
+      "completedWallMaxMs": 5.300000011920929,
+      "samples": [
+        {
+          "frame": 0,
+          "gpuRenderMs": 0.36070800000000003,
+          "gpuSpanMs": 0.341625,
+          "completedWallMs": 0.8999999761581421,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 0.341625,
+            "sumMs": 0.36070800000000003,
+            "overlapMs": 0.019083000000000017,
+            "passes": [
+              {
+                "context": "r:1:18:f8",
+                "beginMs": 0,
+                "endMs": 0.105333
+              },
+              {
+                "context": "r:2:19:f8",
+                "beginMs": 0.08625,
+                "endMs": 0.341625
+              }
+            ]
+          }
+        },
+        {
+          "frame": 1,
+          "gpuRenderMs": 0.34992100000000004,
+          "gpuSpanMs": 0.631433,
+          "completedWallMs": 1.600000023841858,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 0.631433,
+            "sumMs": 0.34992100000000004,
+            "overlapMs": -0.281512,
+            "passes": [
+              {
+                "context": "r:1:18:f9",
+                "beginMs": 0,
+                "endMs": 0.105739
+              },
+              {
+                "context": "r:2:19:f9",
+                "beginMs": 0.387251,
+                "endMs": 0.631433
+              }
+            ]
+          }
+        },
+        {
+          "frame": 2,
+          "gpuRenderMs": 0.38016799999999995,
+          "gpuSpanMs": 0.812621,
+          "completedWallMs": 2.100000023841858,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 0.812621,
+            "sumMs": 0.38016800000000006,
+            "overlapMs": -0.432453,
+            "passes": [
+              {
+                "context": "r:1:18:f10",
+                "beginMs": 0,
+                "endMs": 0.108239
+              },
+              {
+                "context": "r:2:19:f10",
+                "beginMs": 0.540692,
+                "endMs": 0.812621
+              }
+            ]
+          }
+        },
+        {
+          "frame": 3,
+          "gpuRenderMs": 0.368418,
+          "gpuSpanMs": 0.686676,
+          "completedWallMs": 2,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 0.686676,
+            "sumMs": 0.3684179999999999,
+            "overlapMs": -0.31825800000000004,
+            "passes": [
+              {
+                "context": "r:1:18:f11",
+                "beginMs": 0,
+                "endMs": 0.128902
+              },
+              {
+                "context": "r:2:19:f11",
+                "beginMs": 0.44716,
+                "endMs": 0.686676
+              }
+            ]
+          }
+        },
+        {
+          "frame": 4,
+          "gpuRenderMs": 0.35596300000000003,
+          "gpuSpanMs": 0.40704,
+          "completedWallMs": 1.5,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 0.40704,
+            "sumMs": 0.355963,
+            "overlapMs": -0.05107700000000004,
+            "passes": [
+              {
+                "context": "r:1:18:f12",
+                "beginMs": 0,
+                "endMs": 0.109364
+              },
+              {
+                "context": "r:2:19:f12",
+                "beginMs": 0.160441,
+                "endMs": 0.40704
+              }
+            ]
+          }
+        },
+        {
+          "frame": 5,
+          "gpuRenderMs": 0.345005,
+          "gpuSpanMs": 0.614101,
+          "completedWallMs": 1.600000023841858,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 0.614101,
+            "sumMs": 0.34500500000000006,
+            "overlapMs": -0.26909599999999995,
+            "passes": [
+              {
+                "context": "r:1:18:f13",
+                "beginMs": 0,
+                "endMs": 0.106905
+              },
+              {
+                "context": "r:2:19:f13",
+                "beginMs": 0.376001,
+                "endMs": 0.614101
+              }
+            ]
+          }
+        },
+        {
+          "frame": 6,
+          "gpuRenderMs": 0.345838,
+          "gpuSpanMs": 0.572689,
+          "completedWallMs": 1.300000011920929,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 0.572689,
+            "sumMs": 0.345838,
+            "overlapMs": -0.22685100000000002,
+            "passes": [
+              {
+                "context": "r:1:18:f14",
+                "beginMs": 0,
+                "endMs": 0.10578
+              },
+              {
+                "context": "r:2:19:f14",
+                "beginMs": 0.332631,
+                "endMs": 0.572689
+              }
+            ]
+          }
+        },
+        {
+          "frame": 7,
+          "gpuRenderMs": 0.35143800000000003,
+          "gpuSpanMs": 0.650805,
+          "completedWallMs": 1.5,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 0.650805,
+            "sumMs": 0.35142099999999993,
+            "overlapMs": -0.29938400000000004,
+            "passes": [
+              {
+                "context": "r:1:18:f15",
+                "beginMs": 0,
+                "endMs": 0.106448
+              },
+              {
+                "context": "r:2:19:f15",
+                "beginMs": 0.405832,
+                "endMs": 0.650805
+              }
+            ]
+          }
+        },
+        {
+          "frame": 8,
+          "gpuRenderMs": 3.229344,
+          "gpuSpanMs": 2.081289,
+          "completedWallMs": 3,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 2.081289,
+            "sumMs": 3.229344,
+            "overlapMs": 1.1480550000000003,
+            "passes": [
+              {
+                "context": "r:1:18:f16",
+                "beginMs": 0,
+                "endMs": 1.845137
+              },
+              {
+                "context": "r:2:19:f16",
+                "beginMs": 0.697082,
+                "endMs": 2.081289
+              }
+            ]
+          }
+        },
+        {
+          "frame": 9,
+          "gpuRenderMs": 1.434037,
+          "gpuSpanMs": 0.953983,
+          "completedWallMs": 1.600000023841858,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 0.953983,
+            "sumMs": 1.434037,
+            "overlapMs": 0.480054,
+            "passes": [
+              {
+                "context": "r:1:18:f17",
+                "beginMs": 0,
+                "endMs": 0.668209
+              },
+              {
+                "context": "r:2:19:f17",
+                "beginMs": 0.188155,
+                "endMs": 0.953983
+              }
+            ]
+          }
+        },
+        {
+          "frame": 10,
+          "gpuRenderMs": 6.290865999999999,
+          "gpuSpanMs": 3.870514,
+          "completedWallMs": 4.399999976158142,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 3.870514,
+            "sumMs": 6.290866,
+            "overlapMs": 2.4203520000000003,
+            "passes": [
+              {
+                "context": "r:1:18:f18",
+                "beginMs": 0,
+                "endMs": 3.642112
+              },
+              {
+                "context": "r:2:19:f18",
+                "beginMs": 1.22176,
+                "endMs": 3.870514
+              }
+            ]
+          }
+        },
+        {
+          "frame": 11,
+          "gpuRenderMs": 1.8724690000000002,
+          "gpuSpanMs": 1.203927,
+          "completedWallMs": 2,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 1.203927,
+            "sumMs": 1.872469,
+            "overlapMs": 0.668542,
+            "passes": [
+              {
+                "context": "r:1:18:f19",
+                "beginMs": 0,
+                "endMs": 0.871322
+              },
+              {
+                "context": "r:2:19:f19",
+                "beginMs": 0.20278,
+                "endMs": 1.203927
+              }
+            ]
+          }
+        },
+        {
+          "frame": 12,
+          "gpuRenderMs": 7.5056650000000005,
+          "gpuSpanMs": 4.777874,
+          "completedWallMs": 5.300000011920929,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 4.777874,
+            "sumMs": 7.505664999999999,
+            "overlapMs": 2.727790999999999,
+            "passes": [
+              {
+                "context": "r:1:18:f20",
+                "beginMs": 0,
+                "endMs": 4.073292
+              },
+              {
+                "context": "r:2:19:f20",
+                "beginMs": 1.345501,
+                "endMs": 4.777874
+              }
+            ]
+          }
+        },
+        {
+          "frame": 13,
+          "gpuRenderMs": 4.2223489999999995,
+          "gpuSpanMs": 2.761499,
+          "completedWallMs": 3.799999952316284,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 2.761499,
+            "sumMs": 4.2223489999999995,
+            "overlapMs": 1.4608499999999993,
+            "passes": [
+              {
+                "context": "r:1:18:f21",
+                "beginMs": 0,
+                "endMs": 2.306686
+              },
+              {
+                "context": "r:2:19:f21",
+                "beginMs": 0.845836,
+                "endMs": 2.761499
+              }
+            ]
+          }
+        },
+        {
+          "frame": 14,
+          "gpuRenderMs": 3.705999,
+          "gpuSpanMs": 2.541593,
+          "completedWallMs": 4.800000011920929,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 2.541593,
+            "sumMs": 3.705999,
+            "overlapMs": 1.1644059999999996,
+            "passes": [
+              {
+                "context": "r:1:18:f22",
+                "beginMs": 0,
+                "endMs": 1.931871
+              },
+              {
+                "context": "r:2:19:f22",
+                "beginMs": 0.767465,
+                "endMs": 2.541593
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "method": "temporal",
+      "width": 1920,
+      "height": 1080,
+      "time": 0,
+      "motion": "glide",
+      "detail": 1,
+      "poseHeldFixed": true,
+      "warmFrames": 5,
+      "frames": 15,
+      "historyFrames": 20,
+      "gpuMedianMs": 3.416844,
+      "gpuMinMs": 2.780994,
+      "gpuMaxMs": 7.389827,
+      "gpuSpanMedianMs": 1.832722,
+      "completedWallMedianMs": 3.399999976158142,
+      "completedWallMinMs": 2.800000011920929,
+      "completedWallMaxMs": 5.100000023841858,
+      "samples": [
+        {
+          "frame": 0,
+          "gpuRenderMs": 3.416844,
+          "gpuSpanMs": 1.735856,
+          "completedWallMs": 2.800000011920929,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 1.735856,
+            "sumMs": 3.4168439999999998,
+            "overlapMs": 1.6809879999999997,
+            "passes": [
+              {
+                "context": "r:1:21:f9",
+                "beginMs": 0.128819,
+                "endMs": 1.735856
+              },
+              {
+                "context": "r:2:22:f9",
+                "beginMs": 0.11757,
+                "endMs": 1.423431
+              },
+              {
+                "context": "r:3:23:f9",
+                "beginMs": 0,
+                "endMs": 0.503946
+              }
+            ]
+          }
+        },
+        {
+          "frame": 1,
+          "gpuRenderMs": 3.554664,
+          "gpuSpanMs": 1.846137,
+          "completedWallMs": 2.899999976158142,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 1.846137,
+            "sumMs": 3.554664,
+            "overlapMs": 1.708527,
+            "passes": [
+              {
+                "context": "r:1:21:f10",
+                "beginMs": 0.212102,
+                "endMs": 1.846137
+              },
+              {
+                "context": "r:2:22:f10",
+                "beginMs": 0.094365,
+                "endMs": 1.498715
+              },
+              {
+                "context": "r:3:23:f10",
+                "beginMs": 0,
+                "endMs": 0.516279
+              }
+            ]
+          }
+        },
+        {
+          "frame": 2,
+          "gpuRenderMs": 3.3203970000000003,
+          "gpuSpanMs": 1.832722,
+          "completedWallMs": 3.199999988079071,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 1.832722,
+            "sumMs": 3.320397,
+            "overlapMs": 1.4876749999999999,
+            "passes": [
+              {
+                "context": "r:1:21:f11",
+                "beginMs": 0.337422,
+                "endMs": 1.832722
+              },
+              {
+                "context": "r:2:22:f11",
+                "beginMs": 0.100365,
+                "endMs": 1.425598
+              },
+              {
+                "context": "r:3:23:f11",
+                "beginMs": 0,
+                "endMs": 0.499864
+              }
+            ]
+          }
+        },
+        {
+          "frame": 3,
+          "gpuRenderMs": 2.780994,
+          "gpuSpanMs": 1.766852,
+          "completedWallMs": 3.300000011920929,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 1.766852,
+            "sumMs": 2.780994,
+            "overlapMs": 1.014142,
+            "passes": [
+              {
+                "context": "r:1:21:f12",
+                "beginMs": 0.464116,
+                "endMs": 1.766852
+              },
+              {
+                "context": "r:2:22:f12",
+                "beginMs": 0.453367,
+                "endMs": 1.425763
+              },
+              {
+                "context": "r:3:23:f12",
+                "beginMs": 0,
+                "endMs": 0.505862
+              }
+            ]
+          }
+        },
+        {
+          "frame": 4,
+          "gpuRenderMs": 3.1781180000000004,
+          "gpuSpanMs": 1.741855,
+          "completedWallMs": 3.300000011920929,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 1.741855,
+            "sumMs": 3.178118,
+            "overlapMs": 1.436263,
+            "passes": [
+              {
+                "context": "r:1:21:f13",
+                "beginMs": 0.381376,
+                "endMs": 1.741855
+              },
+              {
+                "context": "r:2:22:f13",
+                "beginMs": 0.117738,
+                "endMs": 1.428723
+              },
+              {
+                "context": "r:3:23:f13",
+                "beginMs": 0,
+                "endMs": 0.506654
+              }
+            ]
+          }
+        },
+        {
+          "frame": 5,
+          "gpuRenderMs": 3.7272269999999996,
+          "gpuSpanMs": 2.072779,
+          "completedWallMs": 3.900000035762787,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 2.072779,
+            "sumMs": 3.727227,
+            "overlapMs": 1.654448,
+            "passes": [
+              {
+                "context": "r:1:21:f14",
+                "beginMs": 0.484365,
+                "endMs": 2.072779
+              },
+              {
+                "context": "r:2:22:f14",
+                "beginMs": 0.095074,
+                "endMs": 1.603204
+              },
+              {
+                "context": "r:3:23:f14",
+                "beginMs": 0,
+                "endMs": 0.630683
+              }
+            ]
+          }
+        },
+        {
+          "frame": 6,
+          "gpuRenderMs": 3.1020619999999997,
+          "gpuSpanMs": 1.728895,
+          "completedWallMs": 3.399999976158142,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 1.728895,
+            "sumMs": 3.102062,
+            "overlapMs": 1.373167,
+            "passes": [
+              {
+                "context": "r:1:21:f15",
+                "beginMs": 0.421849,
+                "endMs": 1.728895
+              },
+              {
+                "context": "r:2:22:f15",
+                "beginMs": 0.118701,
+                "endMs": 1.416872
+              },
+              {
+                "context": "r:3:23:f15",
+                "beginMs": 0,
+                "endMs": 0.496845
+              }
+            ]
+          }
+        },
+        {
+          "frame": 7,
+          "gpuRenderMs": 3.407417,
+          "gpuSpanMs": 1.661316,
+          "completedWallMs": 3.200000047683716,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 1.661316,
+            "sumMs": 3.4074169999999997,
+            "overlapMs": 1.7461009999999997,
+            "passes": [
+              {
+                "context": "r:1:21:f16",
+                "beginMs": 0.183572,
+                "endMs": 1.661316
+              },
+              {
+                "context": "r:2:22:f16",
+                "beginMs": 0.015874,
+                "endMs": 1.43987
+              },
+              {
+                "context": "r:3:23:f16",
+                "beginMs": 0,
+                "endMs": 0.505677
+              }
+            ]
+          }
+        },
+        {
+          "frame": 8,
+          "gpuRenderMs": 3.2438860000000003,
+          "gpuSpanMs": 1.769642,
+          "completedWallMs": 3.899999976158142,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 1.769642,
+            "sumMs": 3.2438860000000003,
+            "overlapMs": 1.4742440000000003,
+            "passes": [
+              {
+                "context": "r:1:21:f17",
+                "beginMs": 0.327563,
+                "endMs": 1.769642
+              },
+              {
+                "context": "r:2:22:f17",
+                "beginMs": 0.118033,
+                "endMs": 1.419496
+              },
+              {
+                "context": "r:3:23:f17",
+                "beginMs": 0,
+                "endMs": 0.500344
+              }
+            ]
+          }
+        },
+        {
+          "frame": 9,
+          "gpuRenderMs": 3.621238,
+          "gpuSpanMs": 1.791933,
+          "completedWallMs": 4.200000047683716,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 1.791933,
+            "sumMs": 3.621238,
+            "overlapMs": 1.829305,
+            "passes": [
+              {
+                "context": "r:1:21:f18",
+                "beginMs": 0.125993,
+                "endMs": 1.791933
+              },
+              {
+                "context": "r:2:22:f18",
+                "beginMs": 0.011875,
+                "endMs": 1.444954
+              },
+              {
+                "context": "r:3:23:f18",
+                "beginMs": 0,
+                "endMs": 0.522219
+              }
+            ]
+          }
+        },
+        {
+          "frame": 10,
+          "gpuRenderMs": 3.7569360000000005,
+          "gpuSpanMs": 1.97842,
+          "completedWallMs": 3.300000011920929,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 1.97842,
+            "sumMs": 3.7569359999999996,
+            "overlapMs": 1.7785159999999995,
+            "passes": [
+              {
+                "context": "r:1:21:f19",
+                "beginMs": 0.468304,
+                "endMs": 1.97842
+              },
+              {
+                "context": "r:2:22:f19",
+                "beginMs": 0.102452,
+                "endMs": 1.634358
+              },
+              {
+                "context": "r:3:23:f19",
+                "beginMs": 0,
+                "endMs": 0.714914
+              }
+            ]
+          }
+        },
+        {
+          "frame": 11,
+          "gpuRenderMs": 3.269468,
+          "gpuSpanMs": 2.475516,
+          "completedWallMs": 4.199999988079071,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 2.475516,
+            "sumMs": 3.269468,
+            "overlapMs": 0.793952,
+            "passes": [
+              {
+                "context": "r:1:21:f20",
+                "beginMs": 1.045812,
+                "endMs": 2.475516
+              },
+              {
+                "context": "r:2:22:f20",
+                "beginMs": 1.031396,
+                "endMs": 2.073249
+              },
+              {
+                "context": "r:3:23:f20",
+                "beginMs": 0,
+                "endMs": 0.797911
+              }
+            ]
+          }
+        },
+        {
+          "frame": 12,
+          "gpuRenderMs": 7.389827,
+          "gpuSpanMs": 3.366596,
+          "completedWallMs": 4.800000011920929,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 3.366596,
+            "sumMs": 7.3898269999999995,
+            "overlapMs": 4.023230999999999,
+            "passes": [
+              {
+                "context": "r:1:21:f21",
+                "beginMs": 0.403524,
+                "endMs": 3.366596
+              },
+              {
+                "context": "r:2:22:f21",
+                "beginMs": 0.235324,
+                "endMs": 3.005363
+              },
+              {
+                "context": "r:3:23:f21",
+                "beginMs": 0,
+                "endMs": 1.656716
+              }
+            ]
+          }
+        },
+        {
+          "frame": 13,
+          "gpuRenderMs": 4.977438,
+          "gpuSpanMs": 2.679044,
+          "completedWallMs": 4.699999988079071,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 2.679044,
+            "sumMs": 4.977438,
+            "overlapMs": 2.298394,
+            "passes": [
+              {
+                "context": "r:1:21:f22",
+                "beginMs": 0.569807,
+                "endMs": 2.679044
+              },
+              {
+                "context": "r:2:22:f22",
+                "beginMs": 0.147243,
+                "endMs": 2.103653
+              },
+              {
+                "context": "r:3:23:f22",
+                "beginMs": 0,
+                "endMs": 0.911791
+              }
+            ]
+          }
+        },
+        {
+          "frame": 14,
+          "gpuRenderMs": 6.694279,
+          "gpuSpanMs": 3.247644,
+          "completedWallMs": 5.100000023841858,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 3.247644,
+            "sumMs": 6.694279000000001,
+            "overlapMs": 3.4466350000000006,
+            "passes": [
+              {
+                "context": "r:1:21:f23",
+                "beginMs": 0.752383,
+                "endMs": 3.247644
+              },
+              {
+                "context": "r:2:22:f23",
+                "beginMs": 0.111787,
+                "endMs": 2.856287
+              },
+              {
+                "context": "r:3:23:f23",
+                "beginMs": 0,
+                "endMs": 1.454518
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "method": "spectral",
+      "width": 1920,
+      "height": 1080,
+      "time": 0,
+      "motion": "glide",
+      "detail": 1,
+      "poseHeldFixed": true,
+      "warmFrames": 5,
+      "frames": 15,
+      "historyFrames": null,
+      "gpuMedianMs": 13.735413,
+      "gpuMinMs": 9.095445,
+      "gpuMaxMs": 16.990504,
+      "gpuSpanMedianMs": 7.136466,
+      "completedWallMedianMs": 8,
+      "completedWallMinMs": 6.299999952316284,
+      "completedWallMaxMs": 11.199999988079071,
+      "samples": [
+        {
+          "frame": 0,
+          "gpuRenderMs": 9.095445,
+          "gpuSpanMs": 9.141108,
+          "completedWallMs": 11.199999988079071,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 9.141108,
+            "sumMs": 9.095444999999998,
+            "overlapMs": -0.04566300000000112,
+            "passes": [
+              {
+                "context": "r:1:25:f14",
+                "beginMs": 0,
+                "endMs": 7.543944
+              },
+              {
+                "context": "r:2:26:f14",
+                "beginMs": 7.589607,
+                "endMs": 9.141108
+              }
+            ]
+          }
+        },
+        {
+          "frame": 1,
+          "gpuRenderMs": 14.825969,
+          "gpuSpanMs": 7.657157,
+          "completedWallMs": 8.799999952316284,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 7.657157,
+            "sumMs": 14.825969,
+            "overlapMs": 7.168812000000001,
+            "passes": [
+              {
+                "context": "r:1:25:f16",
+                "beginMs": 0,
+                "endMs": 7.303054
+              },
+              {
+                "context": "r:2:26:f16",
+                "beginMs": 0.134242,
+                "endMs": 7.657157
+              }
+            ]
+          }
+        },
+        {
+          "frame": 2,
+          "gpuRenderMs": 11.387139000000001,
+          "gpuSpanMs": 5.820561,
+          "completedWallMs": 6.800000011920929,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 5.820561,
+            "sumMs": 11.387139,
+            "overlapMs": 5.566578,
+            "passes": [
+              {
+                "context": "r:1:25:f17",
+                "beginMs": 0,
+                "endMs": 5.653614
+              },
+              {
+                "context": "r:2:26:f17",
+                "beginMs": 0.087036,
+                "endMs": 5.820561
+              }
+            ]
+          }
+        },
+        {
+          "frame": 3,
+          "gpuRenderMs": 16.538033,
+          "gpuSpanMs": 8.394571,
+          "completedWallMs": 10.300000011920929,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 8.394571,
+            "sumMs": 16.538033,
+            "overlapMs": 8.143462,
+            "passes": [
+              {
+                "context": "r:1:25:f18",
+                "beginMs": 0,
+                "endMs": 8.156002
+              },
+              {
+                "context": "r:2:26:f18",
+                "beginMs": 0.01254,
+                "endMs": 8.394571
+              }
+            ]
+          }
+        },
+        {
+          "frame": 4,
+          "gpuRenderMs": 11.402637,
+          "gpuSpanMs": 5.823769,
+          "completedWallMs": 6.600000023841858,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 5.823769,
+            "sumMs": 11.402637,
+            "overlapMs": 5.578868,
+            "passes": [
+              {
+                "context": "r:1:25:f19",
+                "beginMs": 0,
+                "endMs": 5.65428
+              },
+              {
+                "context": "r:2:26:f19",
+                "beginMs": 0.075412,
+                "endMs": 5.823769
+              }
+            ]
+          }
+        },
+        {
+          "frame": 5,
+          "gpuRenderMs": 16.990504,
+          "gpuSpanMs": 8.861251,
+          "completedWallMs": 10.699999988079071,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 8.861251,
+            "sumMs": 16.990503999999998,
+            "overlapMs": 8.129252999999999,
+            "passes": [
+              {
+                "context": "r:1:25:f20",
+                "beginMs": 0,
+                "endMs": 8.142336
+              },
+              {
+                "context": "r:2:26:f20",
+                "beginMs": 0.013083,
+                "endMs": 8.861251
+              }
+            ]
+          }
+        },
+        {
+          "frame": 6,
+          "gpuRenderMs": 13.735413,
+          "gpuSpanMs": 7.065968,
+          "completedWallMs": 7.900000035762787,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 7.065968,
+            "sumMs": 13.735413,
+            "overlapMs": 6.669445,
+            "passes": [
+              {
+                "context": "r:1:25:f21",
+                "beginMs": 0,
+                "endMs": 6.897059
+              },
+              {
+                "context": "r:2:26:f21",
+                "beginMs": 0.227614,
+                "endMs": 7.065968
+              }
+            ]
+          }
+        },
+        {
+          "frame": 7,
+          "gpuRenderMs": 16.357959,
+          "gpuSpanMs": 8.317411,
+          "completedWallMs": 10,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 8.317411,
+            "sumMs": 16.357959,
+            "overlapMs": 8.040548000000001,
+            "passes": [
+              {
+                "context": "r:1:25:f22",
+                "beginMs": 0,
+                "endMs": 8.054048
+              },
+              {
+                "context": "r:2:26:f22",
+                "beginMs": 0.0135,
+                "endMs": 8.317411
+              }
+            ]
+          }
+        },
+        {
+          "frame": 8,
+          "gpuRenderMs": 13.881948,
+          "gpuSpanMs": 7.164755,
+          "completedWallMs": 8,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 7.164755,
+            "sumMs": 13.881948000000001,
+            "overlapMs": 6.717193000000001,
+            "passes": [
+              {
+                "context": "r:1:25:f23",
+                "beginMs": 0,
+                "endMs": 7.005013
+              },
+              {
+                "context": "r:2:26:f23",
+                "beginMs": 0.28782,
+                "endMs": 7.164755
+              }
+            ]
+          }
+        },
+        {
+          "frame": 9,
+          "gpuRenderMs": 14.659538,
+          "gpuSpanMs": 7.451909,
+          "completedWallMs": 8.400000035762787,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 7.451909,
+            "sumMs": 14.659538,
+            "overlapMs": 7.207629,
+            "passes": [
+              {
+                "context": "r:1:25:f24",
+                "beginMs": 0,
+                "endMs": 7.220586
+              },
+              {
+                "context": "r:2:26:f24",
+                "beginMs": 0.012957,
+                "endMs": 7.451909
+              }
+            ]
+          }
+        },
+        {
+          "frame": 10,
+          "gpuRenderMs": 10.824003000000001,
+          "gpuSpanMs": 5.500456,
+          "completedWallMs": 6.299999952316284,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 5.500456,
+            "sumMs": 10.824003000000001,
+            "overlapMs": 5.323547000000001,
+            "passes": [
+              {
+                "context": "r:1:25:f25",
+                "beginMs": 0,
+                "endMs": 5.336213
+              },
+              {
+                "context": "r:2:26:f25",
+                "beginMs": 0.012666,
+                "endMs": 5.500456
+              }
+            ]
+          }
+        },
+        {
+          "frame": 11,
+          "gpuRenderMs": 14.022901000000001,
+          "gpuSpanMs": 7.136466,
+          "completedWallMs": 9.300000011920929,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 7.136466,
+            "sumMs": 14.022901000000001,
+            "overlapMs": 6.8864350000000005,
+            "passes": [
+              {
+                "context": "r:1:25:f26",
+                "beginMs": 0,
+                "endMs": 6.899144
+              },
+              {
+                "context": "r:2:26:f26",
+                "beginMs": 0.012709,
+                "endMs": 7.136466
+              }
+            ]
+          }
+        },
+        {
+          "frame": 12,
+          "gpuRenderMs": 11.196366000000001,
+          "gpuSpanMs": 5.689951,
+          "completedWallMs": 6.399999976158142,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 5.689951,
+            "sumMs": 11.196366,
+            "overlapMs": 5.506415,
+            "passes": [
+              {
+                "context": "r:1:25:f27",
+                "beginMs": 0,
+                "endMs": 5.519082
+              },
+              {
+                "context": "r:2:26:f27",
+                "beginMs": 0.012667,
+                "endMs": 5.689951
+              }
+            ]
+          }
+        },
+        {
+          "frame": 13,
+          "gpuRenderMs": 12.416954,
+          "gpuSpanMs": 6.303183,
+          "completedWallMs": 7.299999952316284,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 6.303183,
+            "sumMs": 12.416954,
+            "overlapMs": 6.113771000000001,
+            "passes": [
+              {
+                "context": "r:1:25:f28",
+                "beginMs": 0,
+                "endMs": 6.126938
+              },
+              {
+                "context": "r:2:26:f28",
+                "beginMs": 0.013167,
+                "endMs": 6.303183
+              }
+            ]
+          }
+        },
+        {
+          "frame": 14,
+          "gpuRenderMs": 11.271908,
+          "gpuSpanMs": 5.725743,
+          "completedWallMs": 6.600000023841858,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 5.725743,
+            "sumMs": 11.271908,
+            "overlapMs": 5.546165,
+            "passes": [
+              {
+                "context": "r:1:25:f29",
+                "beginMs": 0,
+                "endMs": 5.559748
+              },
+              {
+                "context": "r:2:26:f29",
+                "beginMs": 0.013583,
+                "endMs": 5.725743
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "method": "raw",
+      "width": 1920,
+      "height": 1080,
+      "time": 8,
+      "motion": "glide",
+      "detail": 1,
+      "poseHeldFixed": true,
+      "warmFrames": 5,
+      "frames": 15,
+      "historyFrames": null,
+      "gpuMedianMs": 0.227737,
+      "gpuMinMs": 0.207145,
+      "gpuMaxMs": 0.24884699999999998,
+      "gpuSpanMedianMs": 0.346275,
+      "completedWallMedianMs": 1.5,
+      "completedWallMinMs": 1.2999999523162842,
+      "completedWallMaxMs": 2.199999988079071,
+      "samples": [
+        {
+          "frame": 0,
+          "gpuRenderMs": 0.223084,
+          "gpuSpanMs": 0.329292,
+          "completedWallMs": 1.5,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 0.329292,
+            "sumMs": 0.22308399999999998,
+            "overlapMs": -0.106208,
+            "passes": [
+              {
+                "context": "r:1:27:f8",
+                "beginMs": 0,
+                "endMs": 0.052417
+              },
+              {
+                "context": "r:2:28:f8",
+                "beginMs": 0.158625,
+                "endMs": 0.329292
+              }
+            ]
+          }
+        },
+        {
+          "frame": 1,
+          "gpuRenderMs": 0.207145,
+          "gpuSpanMs": 0.278429,
+          "completedWallMs": 1.300000011920929,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 0.278429,
+            "sumMs": 0.20714499999999997,
+            "overlapMs": -0.07128400000000001,
+            "passes": [
+              {
+                "context": "r:1:27:f9",
+                "beginMs": 0,
+                "endMs": 0.049787
+              },
+              {
+                "context": "r:2:28:f9",
+                "beginMs": 0.121071,
+                "endMs": 0.278429
+              }
+            ]
+          }
+        },
+        {
+          "frame": 2,
+          "gpuRenderMs": 0.24884699999999998,
+          "gpuSpanMs": 0.358961,
+          "completedWallMs": 1.699999988079071,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 0.358961,
+            "sumMs": 0.24884699999999998,
+            "overlapMs": -0.11011399999999999,
+            "passes": [
+              {
+                "context": "r:1:27:f10",
+                "beginMs": 0,
+                "endMs": 0.051327
+              },
+              {
+                "context": "r:2:28:f10",
+                "beginMs": 0.161441,
+                "endMs": 0.358961
+              }
+            ]
+          }
+        },
+        {
+          "frame": 3,
+          "gpuRenderMs": 0.225518,
+          "gpuSpanMs": 0.304468,
+          "completedWallMs": 1.5,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 0.304468,
+            "sumMs": 0.225518,
+            "overlapMs": -0.07895000000000002,
+            "passes": [
+              {
+                "context": "r:1:27:f11",
+                "beginMs": 0,
+                "endMs": 0.067076
+              },
+              {
+                "context": "r:2:28:f11",
+                "beginMs": 0.146026,
+                "endMs": 0.304468
+              }
+            ]
+          }
+        },
+        {
+          "frame": 4,
+          "gpuRenderMs": 0.20777,
+          "gpuSpanMs": 0.276512,
+          "completedWallMs": 1.2999999523162842,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 0.276512,
+            "sumMs": 0.20776999999999995,
+            "overlapMs": -0.06874200000000003,
+            "passes": [
+              {
+                "context": "r:1:27:f12",
+                "beginMs": 0,
+                "endMs": 0.049828
+              },
+              {
+                "context": "r:2:28:f12",
+                "beginMs": 0.11857,
+                "endMs": 0.276512
+              }
+            ]
+          }
+        },
+        {
+          "frame": 5,
+          "gpuRenderMs": 0.22522599999999998,
+          "gpuSpanMs": 0.304633,
+          "completedWallMs": 1.300000011920929,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 0.304633,
+            "sumMs": 0.225226,
+            "overlapMs": -0.07940699999999998,
+            "passes": [
+              {
+                "context": "r:1:27:f13",
+                "beginMs": 0,
+                "endMs": 0.062993
+              },
+              {
+                "context": "r:2:28:f13",
+                "beginMs": 0.1424,
+                "endMs": 0.304633
+              }
+            ]
+          }
+        },
+        {
+          "frame": 6,
+          "gpuRenderMs": 0.23789100000000002,
+          "gpuSpanMs": 0.316174,
+          "completedWallMs": 1.4000000357627869,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 0.316174,
+            "sumMs": 0.237891,
+            "overlapMs": -0.07828300000000002,
+            "passes": [
+              {
+                "context": "r:1:27:f14",
+                "beginMs": 0,
+                "endMs": 0.065368
+              },
+              {
+                "context": "r:2:28:f14",
+                "beginMs": 0.143651,
+                "endMs": 0.316174
+              }
+            ]
+          }
+        },
+        {
+          "frame": 7,
+          "gpuRenderMs": 0.224944,
+          "gpuSpanMs": 0.498719,
+          "completedWallMs": 2.199999988079071,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 0.498719,
+            "sumMs": 0.2249440000000001,
+            "overlapMs": -0.27377499999999994,
+            "passes": [
+              {
+                "context": "r:1:27:f15",
+                "beginMs": 0,
+                "endMs": 0.049788
+              },
+              {
+                "context": "r:2:28:f15",
+                "beginMs": 0.323563,
+                "endMs": 0.498719
+              }
+            ]
+          }
+        },
+        {
+          "frame": 8,
+          "gpuRenderMs": 0.227737,
+          "gpuSpanMs": 0.328939,
+          "completedWallMs": 1.4000000357627869,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 0.328939,
+            "sumMs": 0.22773699999999997,
+            "overlapMs": -0.10120200000000001,
+            "passes": [
+              {
+                "context": "r:1:27:f16",
+                "beginMs": 0,
+                "endMs": 0.053789
+              },
+              {
+                "context": "r:2:28:f16",
+                "beginMs": 0.154991,
+                "endMs": 0.328939
+              }
+            ]
+          }
+        },
+        {
+          "frame": 9,
+          "gpuRenderMs": 0.240068,
+          "gpuSpanMs": 0.669334,
+          "completedWallMs": 1.600000023841858,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 0.669334,
+            "sumMs": 0.24006799999999995,
+            "overlapMs": -0.42926600000000004,
+            "passes": [
+              {
+                "context": "r:1:27:f17",
+                "beginMs": 0,
+                "endMs": 0.071662
+              },
+              {
+                "context": "r:2:28:f17",
+                "beginMs": 0.500928,
+                "endMs": 0.669334
+              }
+            ]
+          }
+        },
+        {
+          "frame": 10,
+          "gpuRenderMs": 0.225693,
+          "gpuSpanMs": 0.518468,
+          "completedWallMs": 1.300000011920929,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 0.518468,
+            "sumMs": 0.22569300000000003,
+            "overlapMs": -0.292775,
+            "passes": [
+              {
+                "context": "r:1:27:f18",
+                "beginMs": 0,
+                "endMs": 0.053538
+              },
+              {
+                "context": "r:2:28:f18",
+                "beginMs": 0.346313,
+                "endMs": 0.518468
+              }
+            ]
+          }
+        },
+        {
+          "frame": 11,
+          "gpuRenderMs": 0.23723500000000003,
+          "gpuSpanMs": 0.760995,
+          "completedWallMs": 1.800000011920929,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 0.760995,
+            "sumMs": 0.23723499999999997,
+            "overlapMs": -0.52376,
+            "passes": [
+              {
+                "context": "r:1:27:f19",
+                "beginMs": 0,
+                "endMs": 0.052913
+              },
+              {
+                "context": "r:2:28:f19",
+                "beginMs": 0.576673,
+                "endMs": 0.760995
+              }
+            ]
+          }
+        },
+        {
+          "frame": 12,
+          "gpuRenderMs": 0.241986,
+          "gpuSpanMs": 0.414725,
+          "completedWallMs": 1.600000023841858,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 0.414725,
+            "sumMs": 0.241986,
+            "overlapMs": -0.172739,
+            "passes": [
+              {
+                "context": "r:1:27:f20",
+                "beginMs": 0,
+                "endMs": 0.068913
+              },
+              {
+                "context": "r:2:28:f20",
+                "beginMs": 0.241652,
+                "endMs": 0.414725
+              }
+            ]
+          }
+        },
+        {
+          "frame": 13,
+          "gpuRenderMs": 0.237947,
+          "gpuSpanMs": 0.346275,
+          "completedWallMs": 1.5,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 0.346275,
+            "sumMs": 0.23794699999999996,
+            "overlapMs": -0.10832800000000004,
+            "passes": [
+              {
+                "context": "r:1:27:f21",
+                "beginMs": 0,
+                "endMs": 0.053706
+              },
+              {
+                "context": "r:2:28:f21",
+                "beginMs": 0.162034,
+                "endMs": 0.346275
+              }
+            ]
+          }
+        },
+        {
+          "frame": 14,
+          "gpuRenderMs": 0.23274,
+          "gpuSpanMs": 0.455813,
+          "completedWallMs": 1.5,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 0.455813,
+            "sumMs": 0.23274,
+            "overlapMs": -0.22307300000000002,
+            "passes": [
+              {
+                "context": "r:1:27:f22",
+                "beginMs": 0,
+                "endMs": 0.057581
+              },
+              {
+                "context": "r:2:28:f22",
+                "beginMs": 0.280654,
+                "endMs": 0.455813
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "method": "temporal",
+      "width": 1920,
+      "height": 1080,
+      "time": 8,
+      "motion": "glide",
+      "detail": 1,
+      "poseHeldFixed": true,
+      "warmFrames": 5,
+      "frames": 15,
+      "historyFrames": 20,
+      "gpuMedianMs": 6.24638,
+      "gpuMinMs": 2.2235,
+      "gpuMaxMs": 11.684454,
+      "gpuSpanMedianMs": 3.102085,
+      "completedWallMedianMs": 4.300000011920929,
+      "completedWallMinMs": 2,
+      "completedWallMaxMs": 7.5,
+      "samples": [
+        {
+          "frame": 0,
+          "gpuRenderMs": 2.2235,
+          "gpuSpanMs": 1.212458,
+          "completedWallMs": 2,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 1.212458,
+            "sumMs": 2.2235,
+            "overlapMs": 1.011042,
+            "passes": [
+              {
+                "context": "r:1:30:f8",
+                "beginMs": 0.159333,
+                "endMs": 1.212458
+              },
+              {
+                "context": "r:2:31:f8",
+                "beginMs": 0.150958,
+                "endMs": 0.981833
+              },
+              {
+                "context": "r:3:32:f8",
+                "beginMs": 0,
+                "endMs": 0.3395
+              }
+            ]
+          }
+        },
+        {
+          "frame": 1,
+          "gpuRenderMs": 2.437824,
+          "gpuSpanMs": 1.243909,
+          "completedWallMs": 3.5,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 1.243909,
+            "sumMs": 2.4378239999999995,
+            "overlapMs": 1.1939149999999996,
+            "passes": [
+              {
+                "context": "r:1:30:f9",
+                "beginMs": 0.235683,
+                "endMs": 1.243909
+              },
+              {
+                "context": "r:2:31:f9",
+                "beginMs": 0.028747,
+                "endMs": 1.07676
+              },
+              {
+                "context": "r:3:32:f9",
+                "beginMs": 0,
+                "endMs": 0.381585
+              }
+            ]
+          }
+        },
+        {
+          "frame": 2,
+          "gpuRenderMs": 2.717585,
+          "gpuSpanMs": 1.491966,
+          "completedWallMs": 3,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 1.491966,
+            "sumMs": 2.7175849999999997,
+            "overlapMs": 1.2256189999999998,
+            "passes": [
+              {
+                "context": "r:1:30:f10",
+                "beginMs": 0.409957,
+                "endMs": 1.491966
+              },
+              {
+                "context": "r:2:31:f10",
+                "beginMs": 0.117322,
+                "endMs": 1.238827
+              },
+              {
+                "context": "r:3:32:f10",
+                "beginMs": 0,
+                "endMs": 0.514071
+              }
+            ]
+          }
+        },
+        {
+          "frame": 3,
+          "gpuRenderMs": 2.8404040000000004,
+          "gpuSpanMs": 1.442346,
+          "completedWallMs": 3.5,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 1.442346,
+            "sumMs": 2.8404039999999995,
+            "overlapMs": 1.3980579999999996,
+            "passes": [
+              {
+                "context": "r:1:30:f11",
+                "beginMs": 0.123987,
+                "endMs": 1.442346
+              },
+              {
+                "context": "r:2:31:f11",
+                "beginMs": 0.013999,
+                "endMs": 1.130671
+              },
+              {
+                "context": "r:3:32:f11",
+                "beginMs": 0,
+                "endMs": 0.405373
+              }
+            ]
+          }
+        },
+        {
+          "frame": 4,
+          "gpuRenderMs": 2.373371,
+          "gpuSpanMs": 1.42593,
+          "completedWallMs": 3.599999964237213,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 1.42593,
+            "sumMs": 2.3733709999999997,
+            "overlapMs": 0.9474409999999998,
+            "passes": [
+              {
+                "context": "r:1:30:f12",
+                "beginMs": 0.482031,
+                "endMs": 1.42593
+              },
+              {
+                "context": "r:2:31:f12",
+                "beginMs": 0.094573,
+                "endMs": 1.134212
+              },
+              {
+                "context": "r:3:32:f12",
+                "beginMs": 0,
+                "endMs": 0.389833
+              }
+            ]
+          }
+        },
+        {
+          "frame": 5,
+          "gpuRenderMs": 3.349392,
+          "gpuSpanMs": 1.845053,
+          "completedWallMs": 3.599999964237213,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 1.845053,
+            "sumMs": 3.3493920000000004,
+            "overlapMs": 1.5043390000000003,
+            "passes": [
+              {
+                "context": "r:1:30:f13",
+                "beginMs": 0.482282,
+                "endMs": 1.845053
+              },
+              {
+                "context": "r:2:31:f13",
+                "beginMs": 0.015332,
+                "endMs": 1.490258
+              },
+              {
+                "context": "r:3:32:f13",
+                "beginMs": 0,
+                "endMs": 0.511695
+              }
+            ]
+          }
+        },
+        {
+          "frame": 6,
+          "gpuRenderMs": 6.2599149999999995,
+          "gpuSpanMs": 3.102085,
+          "completedWallMs": 4.900000035762787,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 3.102085,
+            "sumMs": 6.2599149999999995,
+            "overlapMs": 3.1578299999999992,
+            "passes": [
+              {
+                "context": "r:1:30:f14",
+                "beginMs": 0.18198,
+                "endMs": 3.102085
+              },
+              {
+                "context": "r:2:31:f14",
+                "beginMs": 0.015956,
+                "endMs": 2.838155
+              },
+              {
+                "context": "r:3:32:f14",
+                "beginMs": 0,
+                "endMs": 0.517611
+              }
+            ]
+          }
+        },
+        {
+          "frame": 7,
+          "gpuRenderMs": 3.603321,
+          "gpuSpanMs": 1.819222,
+          "completedWallMs": 3.600000023841858,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 1.819222,
+            "sumMs": 3.603321,
+            "overlapMs": 1.7840990000000003,
+            "passes": [
+              {
+                "context": "r:1:30:f15",
+                "beginMs": 0.124368,
+                "endMs": 1.819222
+              },
+              {
+                "context": "r:2:31:f15",
+                "beginMs": 0.01579,
+                "endMs": 1.424371
+              },
+              {
+                "context": "r:3:32:f15",
+                "beginMs": 0,
+                "endMs": 0.499886
+              }
+            ]
+          }
+        },
+        {
+          "frame": 8,
+          "gpuRenderMs": 7.391424999999999,
+          "gpuSpanMs": 3.103186,
+          "completedWallMs": 4.899999976158142,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 3.103186,
+            "sumMs": 7.391424999999999,
+            "overlapMs": 4.288238999999999,
+            "passes": [
+              {
+                "context": "r:1:30:f16",
+                "beginMs": 0.285858,
+                "endMs": 3.103186
+              },
+              {
+                "context": "r:2:31:f16",
+                "beginMs": 0.094077,
+                "endMs": 2.795413
+              },
+              {
+                "context": "r:3:32:f16",
+                "beginMs": 0,
+                "endMs": 1.872761
+              }
+            ]
+          }
+        },
+        {
+          "frame": 9,
+          "gpuRenderMs": 6.326614999999999,
+          "gpuSpanMs": 3.258594,
+          "completedWallMs": 6.100000023841858,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 3.258594,
+            "sumMs": 6.326615,
+            "overlapMs": 3.0680210000000003,
+            "passes": [
+              {
+                "context": "r:1:30:f17",
+                "beginMs": 0.385727,
+                "endMs": 3.258594
+              },
+              {
+                "context": "r:2:31:f17",
+                "beginMs": 0.107078,
+                "endMs": 2.653047
+              },
+              {
+                "context": "r:3:32:f17",
+                "beginMs": 0,
+                "endMs": 0.907779
+              }
+            ]
+          }
+        },
+        {
+          "frame": 10,
+          "gpuRenderMs": 8.721886,
+          "gpuSpanMs": 5.790606,
+          "completedWallMs": 7.199999988079071,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 5.790606,
+            "sumMs": 8.721886000000001,
+            "overlapMs": 2.931280000000001,
+            "passes": [
+              {
+                "context": "r:1:30:f18",
+                "beginMs": 0.405309,
+                "endMs": 5.790606
+              },
+              {
+                "context": "r:2:31:f18",
+                "beginMs": 0.121493,
+                "endMs": 2.565427
+              },
+              {
+                "context": "r:3:32:f18",
+                "beginMs": 0,
+                "endMs": 0.892655
+              }
+            ]
+          }
+        },
+        {
+          "frame": 11,
+          "gpuRenderMs": 6.958158999999999,
+          "gpuSpanMs": 3.64057,
+          "completedWallMs": 6,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 3.64057,
+            "sumMs": 6.958159,
+            "overlapMs": 3.3175890000000003,
+            "passes": [
+              {
+                "context": "r:1:30:f19",
+                "beginMs": 0.365853,
+                "endMs": 3.64057
+              },
+              {
+                "context": "r:2:31:f19",
+                "beginMs": 0.020124,
+                "endMs": 2.774498
+              },
+              {
+                "context": "r:3:32:f19",
+                "beginMs": 0,
+                "endMs": 0.929068
+              }
+            ]
+          }
+        },
+        {
+          "frame": 12,
+          "gpuRenderMs": 11.684454,
+          "gpuSpanMs": 5.765315,
+          "completedWallMs": 7.5,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 5.765315,
+            "sumMs": 11.684454,
+            "overlapMs": 5.919139,
+            "passes": [
+              {
+                "context": "r:1:30:f20",
+                "beginMs": 0.172865,
+                "endMs": 5.765315
+              },
+              {
+                "context": "r:2:31:f20",
+                "beginMs": 0.020124,
+                "endMs": 5.214516
+              },
+              {
+                "context": "r:3:32:f20",
+                "beginMs": 0,
+                "endMs": 0.897612
+              }
+            ]
+          }
+        },
+        {
+          "frame": 13,
+          "gpuRenderMs": 6.895017999999999,
+          "gpuSpanMs": 3.533713,
+          "completedWallMs": 5.200000047683716,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 3.533713,
+            "sumMs": 6.895018,
+            "overlapMs": 3.361305,
+            "passes": [
+              {
+                "context": "r:1:30:f21",
+                "beginMs": 0.12291,
+                "endMs": 3.533713
+              },
+              {
+                "context": "r:2:31:f21",
+                "beginMs": 0.02054,
+                "endMs": 2.591172
+              },
+              {
+                "context": "r:3:32:f21",
+                "beginMs": 0,
+                "endMs": 0.913583
+              }
+            ]
+          }
+        },
+        {
+          "frame": 14,
+          "gpuRenderMs": 6.24638,
+          "gpuSpanMs": 3.174104,
+          "completedWallMs": 4.300000011920929,
+          "renderPasses": 3,
+          "intervals": {
+            "spanMs": 3.174104,
+            "sumMs": 6.246379999999999,
+            "overlapMs": 3.0722759999999996,
+            "passes": [
+              {
+                "context": "r:1:30:f22",
+                "beginMs": 0.417606,
+                "endMs": 3.174104
+              },
+              {
+                "context": "r:2:31:f22",
+                "beginMs": 0.031873,
+                "endMs": 2.594798
+              },
+              {
+                "context": "r:3:32:f22",
+                "beginMs": 0,
+                "endMs": 0.926957
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "method": "spectral",
+      "width": 1920,
+      "height": 1080,
+      "time": 8,
+      "motion": "glide",
+      "detail": 1,
+      "poseHeldFixed": true,
+      "warmFrames": 5,
+      "frames": 15,
+      "historyFrames": null,
+      "gpuMedianMs": 24.325848999999998,
+      "gpuMinMs": 18.946018000000002,
+      "gpuMaxMs": 41.788517,
+      "gpuSpanMedianMs": 12.43445,
+      "completedWallMedianMs": 13.399999976158142,
+      "completedWallMinMs": 11.100000023841858,
+      "completedWallMaxMs": 22.100000023841858,
+      "samples": [
+        {
+          "frame": 0,
+          "gpuRenderMs": 29.098516,
+          "gpuSpanMs": 14.792169,
+          "completedWallMs": 16.899999976158142,
+          "renderPasses": 0,
+          "intervals": {
+            "spanMs": 14.792169,
+            "sumMs": 29.098516,
+            "overlapMs": 14.306347,
+            "passes": [
+              {
+                "context": "r:1:34:f11",
+                "beginMs": 0,
+                "endMs": 14.580234
+              },
+              {
+                "context": "r:2:35:f11",
+                "beginMs": 0.273887,
+                "endMs": 14.792169
+              }
+            ]
+          }
+        },
+        {
+          "frame": 1,
+          "gpuRenderMs": 18.946018000000002,
+          "gpuSpanMs": 9.817784,
+          "completedWallMs": 11.100000023841858,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 9.817784,
+            "sumMs": 18.946018,
+            "overlapMs": 9.128233999999999,
+            "passes": [
+              {
+                "context": "r:1:34:f13",
+                "beginMs": 0,
+                "endMs": 9.621389
+              },
+              {
+                "context": "r:2:35:f13",
+                "beginMs": 0.493155,
+                "endMs": 9.817784
+              }
+            ]
+          }
+        },
+        {
+          "frame": 2,
+          "gpuRenderMs": 21.454458000000002,
+          "gpuSpanMs": 11.117312,
+          "completedWallMs": 12.099999964237213,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 11.117312,
+            "sumMs": 21.454458000000002,
+            "overlapMs": 10.337146000000002,
+            "passes": [
+              {
+                "context": "r:1:34:f14",
+                "beginMs": 0,
+                "endMs": 10.530666
+              },
+              {
+                "context": "r:2:35:f14",
+                "beginMs": 0.19352,
+                "endMs": 11.117312
+              }
+            ]
+          }
+        },
+        {
+          "frame": 3,
+          "gpuRenderMs": 21.324406000000003,
+          "gpuSpanMs": 10.897543,
+          "completedWallMs": 12.300000011920929,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 10.897543,
+            "sumMs": 21.324406,
+            "overlapMs": 10.426862999999999,
+            "passes": [
+              {
+                "context": "r:1:34:f15",
+                "beginMs": 0,
+                "endMs": 10.700639
+              },
+              {
+                "context": "r:2:35:f15",
+                "beginMs": 0.273776,
+                "endMs": 10.897543
+              }
+            ]
+          }
+        },
+        {
+          "frame": 4,
+          "gpuRenderMs": 23.462276000000003,
+          "gpuSpanMs": 11.951437,
+          "completedWallMs": 12.900000035762787,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 11.951437,
+            "sumMs": 23.462276,
+            "overlapMs": 11.510838999999999,
+            "passes": [
+              {
+                "context": "r:1:34:f16",
+                "beginMs": 0,
+                "endMs": 11.685662
+              },
+              {
+                "context": "r:2:35:f16",
+                "beginMs": 0.174823,
+                "endMs": 11.951437
+              }
+            ]
+          }
+        },
+        {
+          "frame": 5,
+          "gpuRenderMs": 22.850564,
+          "gpuSpanMs": 11.640873,
+          "completedWallMs": 12.699999988079071,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 11.640873,
+            "sumMs": 22.850564,
+            "overlapMs": 11.209691,
+            "passes": [
+              {
+                "context": "r:1:34:f17",
+                "beginMs": 0,
+                "endMs": 11.402679
+              },
+              {
+                "context": "r:2:35:f17",
+                "beginMs": 0.192988,
+                "endMs": 11.640873
+              }
+            ]
+          }
+        },
+        {
+          "frame": 6,
+          "gpuRenderMs": 22.989427999999997,
+          "gpuSpanMs": 11.991809,
+          "completedWallMs": 13,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 11.991809,
+            "sumMs": 22.989428,
+            "overlapMs": 10.997619,
+            "passes": [
+              {
+                "context": "r:1:34:f18",
+                "beginMs": 0,
+                "endMs": 11.176483
+              },
+              {
+                "context": "r:2:35:f18",
+                "beginMs": 0.178864,
+                "endMs": 11.991809
+              }
+            ]
+          }
+        },
+        {
+          "frame": 7,
+          "gpuRenderMs": 22.877144,
+          "gpuSpanMs": 11.658788,
+          "completedWallMs": 12.600000023841858,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 11.658788,
+            "sumMs": 22.877143999999998,
+            "overlapMs": 11.218355999999998,
+            "passes": [
+              {
+                "context": "r:1:34:f19",
+                "beginMs": 0,
+                "endMs": 11.434552
+              },
+              {
+                "context": "r:2:35:f19",
+                "beginMs": 0.216196,
+                "endMs": 11.658788
+              }
+            ]
+          }
+        },
+        {
+          "frame": 8,
+          "gpuRenderMs": 24.325848999999998,
+          "gpuSpanMs": 12.43445,
+          "completedWallMs": 13.399999976158142,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 12.43445,
+            "sumMs": 24.325848999999998,
+            "overlapMs": 11.891398999999998,
+            "passes": [
+              {
+                "context": "r:1:34:f20",
+                "beginMs": 0,
+                "endMs": 12.114677
+              },
+              {
+                "context": "r:2:35:f20",
+                "beginMs": 0.223278,
+                "endMs": 12.43445
+              }
+            ]
+          }
+        },
+        {
+          "frame": 9,
+          "gpuRenderMs": 24.83753,
+          "gpuSpanMs": 12.619547,
+          "completedWallMs": 13.600000023841858,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 12.619547,
+            "sumMs": 24.83753,
+            "overlapMs": 12.217983,
+            "passes": [
+              {
+                "context": "r:1:34:f21",
+                "beginMs": 0,
+                "endMs": 12.39564
+              },
+              {
+                "context": "r:2:35:f21",
+                "beginMs": 0.177657,
+                "endMs": 12.619547
+              }
+            ]
+          }
+        },
+        {
+          "frame": 10,
+          "gpuRenderMs": 26.526118,
+          "gpuSpanMs": 13.913613,
+          "completedWallMs": 14.899999976158142,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 13.913613,
+            "sumMs": 26.526118,
+            "overlapMs": 12.612505,
+            "passes": [
+              {
+                "context": "r:1:34:f22",
+                "beginMs": 0,
+                "endMs": 13.123065
+              },
+              {
+                "context": "r:2:35:f22",
+                "beginMs": 0.51056,
+                "endMs": 13.913613
+              }
+            ]
+          }
+        },
+        {
+          "frame": 11,
+          "gpuRenderMs": 28.797723,
+          "gpuSpanMs": 14.669287,
+          "completedWallMs": 15.399999976158142,
+          "renderPasses": 2,
+          "intervals": {
+            "spanMs": 14.669287,
+            "sumMs": 28.797723,
+            "overlapMs": 14.128436,
+            "passes": [
+              {
+                "context": "r:1:34:f23",
+                "beginMs": 0,
+                "endMs": 14.43063
+              },
+              {
+                "context": "r:2:35:f23",
+                "beginMs": 0.302194,
+                "endMs": 14.669287
+              }
+            ]
+          }
+        },
+        {
+          "frame": 12,
+          "gpuRenderMs": 32.193901,
+          "gpuSpanMs": 16.416123,
+          "completedWallMs": 17.599999964237213,
+          "renderPasses": 0,
+          "intervals": {
+            "spanMs": 16.416123,
+            "sumMs": 32.193901,
+            "overlapMs": 15.777777999999998,
+            "passes": [
+              {
+                "context": "r:1:34:f25",
+                "beginMs": 0,
+                "endMs": 16.192134
+              },
+              {
+                "context": "r:2:35:f25",
+                "beginMs": 0.414356,
+                "endMs": 16.416123
+              }
+            ]
+          }
+        },
+        {
+          "frame": 13,
+          "gpuRenderMs": 36.777586,
+          "gpuSpanMs": 18.684722,
+          "completedWallMs": 19.69999998807907,
+          "renderPasses": 0,
+          "intervals": {
+            "spanMs": 18.684722,
+            "sumMs": 36.77758600000001,
+            "overlapMs": 18.092864000000006,
+            "passes": [
+              {
+                "context": "r:1:34:f27",
+                "beginMs": 0,
+                "endMs": 18.460145
+              },
+              {
+                "context": "r:2:35:f27",
+                "beginMs": 0.367281,
+                "endMs": 18.684722
+              }
+            ]
+          }
+        },
+        {
+          "frame": 14,
+          "gpuRenderMs": 41.788517,
+          "gpuSpanMs": 21.249852,
+          "completedWallMs": 22.100000023841858,
+          "renderPasses": 0,
+          "intervals": {
+            "spanMs": 21.249852,
+            "sumMs": 41.788517,
+            "overlapMs": 20.538664999999998,
+            "passes": [
+              {
+                "context": "r:1:34:f29",
+                "beginMs": 0,
+                "endMs": 20.904737
+              },
+              {
+                "context": "r:2:35:f29",
+                "beginMs": 0.366072,
+                "endMs": 21.249852
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

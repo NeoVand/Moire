@@ -11,6 +11,7 @@
     "test:export": "node --test tests/export/*.test.mjs",
     "test:export:integration": "node tests/export/integration.mjs",
     "test:interaction": "node tests/export/interaction.mjs && node tests/export/morph.mjs",
+    "test:compare": "node --experimental-strip-types --test src/compare/spectral.test.ts src/compare/timing.test.ts && node --test tests/compare/reference.test.mjs && node tests/compare/materials.mjs && node tests/compare/run.mjs",
     "preview": "vite preview",
     "zoo": "node tests/zoo/run.mjs",
     "zoo:update": "node tests/zoo/run.mjs --update"

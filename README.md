@@ -116,6 +116,13 @@ npm run dev
 
 Open `http://localhost:5173`. `npm run build` writes `dist/`.
 
+The live anti-aliasing comparison is at `/compare.html`: synchronized no-AA,
+Three.js temporal AA with mipmaps and anisotropic filtering, and a GPU
+specialization of the integration method. Play the camera or click a pixel to
+compare against an independently sampled reference. See the
+[comparison contract and compiler handoff](docs/real-time-comparison.md) for
+the measured scope and the outstanding native gaming baseline.
+
 Needs a browser with [WebGPU](https://gpuweb.github.io/gpuweb/). Inverse math is kept as CPU and WGSL twins; run `node --experimental-strip-types src/gpu/inverseCpu.test.ts`.
 
 ## Paper

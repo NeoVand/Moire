@@ -11,6 +11,9 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  build: {
+    rollupOptions: { input: { main: 'index.html', compare: 'compare.html' } },
+  },
   server: {
     // Honour an assigned port so a second session can preview beside the first.
     port: process.env.PORT ? Number(process.env.PORT) : undefined,
