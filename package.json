@@ -7,6 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "collab": "node scripts/collab/cli.mjs",
+    "test:collab": "node --test scripts/collab/*.test.mjs",
     "test:motion": "node tests/motion/run.mjs",
     "test:export": "node --test tests/export/*.test.mjs",
     "test:export:integration": "node tests/export/integration.mjs",
