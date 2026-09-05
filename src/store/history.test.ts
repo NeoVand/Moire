@@ -1,0 +1,161 @@
+import assert from 'node:assert/strict';
+import { createAnimator, createTiming } from '../types/motion';
+import { composeLoop } from '../types/composition';
+import { useHistoryStore as history } from './history';
+import { useProjectStore as project, sceneOf } from './project';
+import { applyMotionAt, useTransportStore as transport } from './transport';
+
+const nextTurn = () => Promise.resolve();
+const fresh = () => { project.getState().resetProject(); return project.getState().layers[0].id; };
+const layer = (id: string) => project.getState().layers.find((l) => l.id === id)!;
+const undo = () => history.getState().undo();
+const redo = () => history.getState().redo();
+
+let id = fresh();
+const spacing = layer(id).spacing;
+project.getState().updateLayer(id, { spacing: spacing + 1 });
+await nextTurn();
+project.getState().setBackgroundColor('#eeeeee');
+await nextTurn();
+undo();
+assert.equal(project.getState().backgroundColor, '#ffffff');
+assert.equal(layer(id).spacing, spacing + 1);
+undo();
+assert.equal(layer(id).spacing, spacing);
+assert.equal(history.getState().canUndo, false);
+redo(); redo();
+assert.equal(layer(id).spacing, spacing + 1);
+assert.equal(project.getState().backgroundColor, '#eeeeee');
+undo();
+project.getState().updateLayer(id, { opacity: 0.5 });
+assert.equal(history.getState().canRedo, false);
+
+id = fresh();
+const from = layer(id).rotation;
+transport.getState().setInteracting(true);
+for (let i = 1; i <= 6; i++) {
+  project.getState().updateLayer(id, { rotation: from + i });
+  await nextTurn();
+}
+transport.getState().setInteracting(false);
+undo();
+assert.equal(layer(id).rotation, from);
+assert.equal(history.getState().canUndo, false);
+redo();
+assert.equal(layer(id).rotation, from + 6);
+
+id = fresh();
+const typedFrom = layer(id).spacing;
+project.getState().updateLayer(id, { spacing: typedFrom + 1 });
+await nextTurn();
+project.getState().updateLayer(id, { spacing: typedFrom + 2 });
+await nextTurn();
+undo();
+assert.equal(layer(id).spacing, typedFrom);
+assert.equal(history.getState().canUndo, false);
+
+id = fresh();
+const count = project.getState().layers.length;
+project.getState().addLayer('lines-parallel');
+const addedId = project.getState().selectedLayerId!;
+await nextTurn();
+undo();
+assert.equal(project.getState().layers.length, count);
+redo();
+assert.equal(project.getState().layers.length, count + 1);
+assert.equal(project.getState().selectedLayerId, addedId);
+await nextTurn();
+project.getState().reorderLayers(count, 0);
+await nextTurn();
+undo();
+assert.equal(project.getState().layers[count].id, addedId);
+
+fresh();
+const initialCount = project.getState().layers.length;
+project.getState().addLayer('lines-parallel');
+await nextTurn();
+project.getState().addLayer('lines-parallel');
+await nextTurn();
+undo();
+assert.equal(project.getState().layers.length, initialCount + 1);
+undo();
+assert.equal(project.getState().layers.length, initialCount);
+
+id = fresh();
+const a = createAnimator(`layer.${id}.rotation`, { from: 0, to: 30 });
+project.getState().putAnimator(a);
+history.getState().clear();
+project.getState().removeLayer(id);
+await nextTurn();
+assert.equal(project.getState().motion.animators.length, 0);
+undo();
+assert.ok(layer(id));
+assert.equal(project.getState().motion.animators[0].id, a.id);
+assert.equal(history.getState().canUndo, false);
+
+id = fresh();
+const once = createAnimator(`layer.${id}.rotation`, { from: 0, to: 20, mode: 'once', period: 1, ease: 'linear' });
+project.getState().putAnimator(once);
+history.getState().clear();
+transport.setState({ t: 0.5 });
+applyMotionAt(0.5);
+assert.equal(layer(id).rotation, 10);
+assert.equal(history.getState().canUndo, false);
+project.getState().setBackgroundColor('#eeeeee');
+await nextTurn();
+undo();
+assert.equal(layer(id).rotation, 10);
+assert.equal(transport.getState().t, 0.5);
+assert.equal(transport.getState().state, 'paused');
+assert.equal(project.getState().backgroundColor, '#ffffff');
+
+history.getState().clear();
+transport.setState({ recording: true });
+project.getState().setView({ envelopeContrast: 8 });
+project.getState().setView({ envelopeContrast: 1 });
+transport.setState({ recording: false });
+assert.equal(history.getState().canUndo, false);
+
+id = fresh();
+const timing = createTiming({ delay: 2, period: 9, mode: 'once' });
+const linked = createAnimator(`layer.${id}.rotation`, { timing: timing.id });
+project.getState().setMotion({ timings: [timing], animators: [linked] });
+history.getState().clear();
+project.getState().removeTiming(timing.id);
+await nextTurn();
+undo();
+assert.equal(project.getState().motion.timings[0].id, timing.id);
+assert.equal(project.getState().motion.animators[0].timing, timing.id);
+redo();
+assert.equal(project.getState().motion.animators[0].period, 9);
+assert.equal(project.getState().motion.animators[0].timing, null);
+
+history.getState().clear();
+const beforeLoop = structuredClone(sceneOf());
+const startTime = transport.getState().t;
+const synchronized = composeLoop(project.getState().motion, [linked.id], 2, 6);
+project.setState({ motion: synchronized });
+transport.getState().seek(2);
+const afterLoop = structuredClone(sceneOf());
+await nextTurn();
+undo();
+assert.deepEqual(sceneOf(), beforeLoop);
+assert.equal(transport.getState().t, startTime);
+assert.equal(history.getState().canUndo, false);
+redo();
+assert.deepEqual(sceneOf(), afterLoop);
+assert.equal(transport.getState().t, 2);
+
+project.getState().loadScene({ ...sceneOf(), layers: [layer(id)], selectedLayerId: id });
+assert.equal(history.getState().canUndo, false);
+project.getState().removeLayer(id);
+assert.equal(project.getState().layers.length, 1);
+assert.equal(project.getState().motion.animators.length, 1);
+assert.equal(history.getState().canUndo, false);
+project.getState().updateLayer(id, { spacing: 99 });
+assert.equal(history.getState().canUndo, true);
+fresh();
+assert.equal(history.getState().canUndo, false);
+assert.equal(history.getState().canRedo, false);
+
+console.log('history: undo/redo, gesture and typing groups, layers, motion, playback exclusion and document isolation passed');

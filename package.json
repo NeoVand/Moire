@@ -10,7 +10,7 @@
     "test:motion": "node tests/motion/run.mjs",
     "test:export": "node --test tests/export/*.test.mjs",
     "test:export:integration": "node tests/export/integration.mjs",
-    "test:interaction": "node tests/export/interaction.mjs",
+    "test:interaction": "node tests/export/interaction.mjs && node tests/export/morph.mjs",
     "preview": "vite preview",
     "zoo": "node tests/zoo/run.mjs",
     "zoo:update": "node tests/zoo/run.mjs --update"
