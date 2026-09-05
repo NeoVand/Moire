@@ -315,7 +315,7 @@ const main = async () => {
     jitter[1] = 0.5 * m * Math.sin(2 * Math.PI * u2);
     set(48, [0.5, state.time, jitter[0], jitter[1]]);
     set(52, [0, state.frame, state.scene, state.scene === 0 ? 20 : 2 * (25 / 3) + 2 * (5 / 3)]);
-    set(56, [state.taaAlpha, still ? 1 : 0, state.regime ? 1 : 0, 1e-4]);
+    set(56, [state.taaAlpha, still ? 1 : 0, state.regime ? 1 : 0, state.oursMode || 0]);
   };
   const writeUniforms = (samples, seed) => {
     uni[52] = samples;
@@ -541,6 +541,7 @@ const main = async () => {
     picTex.destroy();
     picTex = picTexFor(state.scene);
     refCount = 0;
+    prevH = null; // the reference restarts: a new picture, not a still frame
   };
   $('ssaa').onchange = (e) => (state.ssaa = Number(e.target.value));
   $('refn').onchange = (e) => (state.refSamples = Number(e.target.value));

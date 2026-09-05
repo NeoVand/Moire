@@ -26,8 +26,22 @@
 //     counts in cells; coverage of the disc's quadratic argument in its
 //     Hessian eigenframe where at most a few discs are within reach, the
 //     Fourier series with J1 coefficients over the reduced lattice elsewhere
-// Domain: the checkerboard and the circles at any magnification, curvature
-// to second order.
+//   fn checkerMeanH(hu, hv, hd: vec3f, x, y, period, S: f32) -> vec2f
+//   fn circlesMeanH(hu, hv, hd: vec3f, x, y, period, S: f32) -> vec2f
+//     the same pictures on a homography, exact where the pixel's footprint
+//     keeps the denominator positive: a checker edge pulls back to a line in
+//     screen space (normal g + delta grad(D)/D), so the coverage is normal
+//     distribution functions of signed distances and the joint of two edges
+//     a bivariate normal with the two edge normals' cosine; a disc pulls
+//     back to a conic, an exact quadratic in screen space, integrated by
+//     quadRegion. Beyond the guard (the denominator within 5.5 sigma of
+//     zero, or more than 5 edges a count or 9 discs in reach) the spectral
+//     path with the second-order model. These are the entry points for a
+//     plane under a pinhole camera; the Jets entries are for counts whose
+//     jets come from elsewhere.
+// Domain: the checkerboard and the circles at any magnification; the
+// homography entries are exact under the guard, the Jets entries carry the
+// counts to second order.
 // Not in it: the ground/sky edge or any silhouette, the compiler's exact
 // depth conditioning, certified whole-image bounds. The spectral
 // enumeration is capped at 2048 lattice points a pixel.
@@ -168,7 +182,10 @@ fn jetsFromHomography(hu: vec3f, hv: vec3f, hd: vec3f, x: f32, y: f32, period: f
 }
 
 // the checkerboard's pixel mean: 1/2 + E[w(u) w(v)] / 2
-fn checkerMean(J: Jets, S: f32) -> vec2f {
+fn checkerMean(J: Jets, S: f32) -> vec2f { return checkerMeanMode(J, S, 0u); }
+// mode 1: the coverage path only (spectral pixels return the mean), mode 2:
+// the spectral path only; for timing the two paths apart
+fn checkerMeanMode(J: Jets, S: f32, mode: u32) -> vec2f {
   let sig = sqrt(S);
   // curvature-aware widths and the means' second-order shift
   let fu = sqrt(J.Hu.x * J.Hu.x + 2.0 * J.Hu.y * J.Hu.y + J.Hu.z * J.Hu.z);
@@ -177,12 +194,14 @@ fn checkerMean(J: Jets, S: f32) -> vec2f {
   let sv = sqrt(S * dot(J.gv, J.gv) + 0.5 * S * S * fv * fv);
   let mu = J.u0 + 0.5 * S * (J.Hu.x + J.Hu.z);
   let mv = J.v0 + 0.5 * S * (J.Hv.x + J.Hv.z);
-  if (min(su, sv) < 0.3) {
+  if (min(su, sv) < 0.3 && mode != 3u) {
+    if (mode == 2u) { return vec2f(0.5, 1.0); }
     // coverage: the magnified count is the outer integral
     let rho = dot(J.gu, J.gv) / max(length(J.gu) * length(J.gv), 1e-12);
     let e = Eww(mu, su, mv, sv, rho);
     return vec2f(0.5 + 0.5 * e, 1.0);
   }
+  if (mode == 1u) { return vec2f(0.5, 2.0); }
   // spectral: recipes (k, l), both odd, over the lattice k gu + l gv
   var b1 = J.gu;
   var b2 = J.gv;
@@ -351,10 +370,12 @@ fn quadCoverage(a0: f32, g: vec2f, H: vec3f, S: f32) -> f32 {
 }
 
 // the circles' pixel mean: 1/2 + ... no: the disc indicator's expectation
-fn circlesMean(J: Jets, S: f32) -> vec2f {
+fn circlesMean(J: Jets, S: f32) -> vec2f { return circlesMeanMode(J, S, 0u); }
+fn circlesMeanMode(J: Jets, S: f32, mode: u32) -> vec2f {
   let sig = sqrt(S);
   let gmax = max(length(J.gu), length(J.gv));
-  if (gmax < 0.15) {
+  if (gmax < 0.15 && mode != 3u) {
+    if (mode == 2u) { return vec2f(0.5454, 1.0); }
     // coverage: the discs whose cell is within reach; each region's
     // argument (u - cu)^2 + (v - cv)^2 - rho^2 as a quadratic in the pixel
     let reach = 3.0 * sig * gmax + DISC_R;
@@ -388,6 +409,7 @@ fn circlesMean(J: Jets, S: f32) -> vec2f {
     }
     return vec2f(acc, 1.0);
   }
+  if (mode == 1u) { return vec2f(0.5454, 2.0); }
   // spectral: the disc's series over the reduced lattice, coefficient
   // (-1)^(k + l) rho J1(2 pi rho |kappa|) / |kappa|, the DC term pi rho^2
   var b1 = J.gu;
@@ -443,4 +465,376 @@ fn circlesMean(J: Jets, S: f32) -> vec2f {
   }
   return vec2f(acc, 2.0);
 }
+
+// ---------------------------------------------------------------------------
+// exact regions: a quadratic region under the pixel's Gaussian, and the
+// bivariate normal for the joint of two half-planes. The quadrature sums are
+// unrolled at module build time: a dynamically indexed local array lives in
+// thread memory on the GPU, and these loops are the kernel's inner cost.
+// ---------------------------------------------------------------------------
+` + unrolledSection() + `
+
+// ---------------------------------------------------------------------------
+// the homography entry points
+// ---------------------------------------------------------------------------
+// the edge list of a rational-linear count is not stored: the edges are
+// re-derived per pair from the half-integer index h, u(X) - b =
+// (delta + (g + delta r) . X) / (1 + r . X), b = h / 2
+struct EdgeRange { hlo: f32, hhi: f32, low: f32, ok: bool };
+fn edgeRange(u0: f32, g: vec2f, r: vec2f, sig: f32) -> EdgeRange {
+  var E: EdgeRange;
+  E.ok = true;
+  E.low = wOf(u0);
+  E.hlo = 1.0;
+  E.hhi = 0.0;
+  let L = 5.5;
+  let denom = 1.0 - L * sig * length(r);
+  if (denom <= 0.05) { E.ok = false; return E; }
+  let reach = L * sig * length(g) / denom;
+  let hlo = ceil(2.0 * (u0 - reach));
+  let hhi = floor(2.0 * (u0 + reach));
+  if (hhi - hlo > 9.0) { E.ok = false; return E; }
+  // the edges actually within reach, and the lowest of them
+  var count = 0.0;
+  var bmin = 1e30;
+  var h = hlo;
+  var first = 1e30;
+  var last = -1e30;
+  loop {
+    if (h > hhi) { break; }
+    let b = 0.5 * h;
+    let delta = u0 - b;
+    let n = g + delta * r;
+    let dist = delta / max(length(n), 1e-30);
+    if (abs(dist) < L * sig) {
+      count += 1.0;
+      bmin = min(bmin, b);
+      first = min(first, h);
+      last = max(last, h);
+    }
+    h += 1.0;
+  }
+  if (count > 5.0) { E.ok = false; return E; }
+  if (count > 0.0) { E.low = wOf(bmin - 1e-6); E.hlo = first; E.hhi = last; }
+  return E;
+}
+fn checkerMeanH(hu: vec3f, hv: vec3f, hd: vec3f, x: f32, y: f32, period: f32, S: f32) -> vec2f { return checkerMeanHMode(hu, hv, hd, x, y, period, S, 0u); }
+// mode 4: the exact part only (the fallback returns the mean), mode 5: the fallback only; for timing
+fn checkerMeanHMode(hu: vec3f, hv: vec3f, hd: vec3f, x: f32, y: f32, period: f32, S: f32, mode: u32) -> vec2f {
+  let sig = sqrt(S);
+  let L = 5.5;
+  let p = vec3f(x, y, 1.0);
+  let Nu = dot(hu, p);
+  let Nv = dot(hv, p);
+  let D = dot(hd, p);
+  let dD = hd.xy;
+  let r = dD / D;
+  let u0 = Nu / D / period;
+  let v0 = Nv / D / period;
+  let gu = (hu.xy * D - Nu * dD) / (D * D) / period;
+  let gv = (hv.xy * D - Nv * dD) / (D * D) / period;
+  let eu = edgeRange(u0, gu, r, sig);
+  let ev = edgeRange(v0, gv, r, sig);
+  if (!eu.ok || !ev.ok) {
+    if (mode == 4u) { return vec2f(0.5, 3.0); }
+    let J = jetsFromHomography(hu, hv, hd, x, y, period);
+    let rr = checkerMeanMode(J, S, 3u);
+    return vec2f(rr.x, 3.0);
+  }
+  if (mode == 5u) { return vec2f(0.5, 1.0); }
+  var acc = eu.low * ev.low;
+  var h = eu.hlo;
+  loop {
+    if (h > eu.hhi) { break; }
+    let bu = 0.5 * h;
+    let du = u0 - bu;
+    let nuv = gu + du * r;
+    let nun = max(length(nuv), 1e-30);
+    let distU = du / nun;
+    if (abs(distU) < L * sig) {
+      let ju = select(-2.0, 2.0, abs(h - 2.0 * round(0.5 * h)) < 0.5);
+      acc += ev.low * ju * Phi(distU / sig);
+      var k = ev.hlo;
+      loop {
+        if (k > ev.hhi) { break; }
+        let bv = 0.5 * k;
+        let dv = v0 - bv;
+        let nvv = gv + dv * r;
+        let nvn = max(length(nvv), 1e-30);
+        let distV = dv / nvn;
+        if (abs(distV) < L * sig) {
+          let jv = select(-2.0, 2.0, abs(k - 2.0 * round(0.5 * k)) < 0.5);
+          let corr = dot(nuv, nvv) / (nun * nvn);
+          acc += ju * jv * bvnuAny(-distU / sig, -distV / sig, corr);
+        }
+        k += 1.0;
+      }
+    }
+    h += 1.0;
+  }
+  var k = ev.hlo;
+  loop {
+    if (k > ev.hhi) { break; }
+    let bv = 0.5 * k;
+    let dv = v0 - bv;
+    let nvv = gv + dv * r;
+    let distV = dv / max(length(nvv), 1e-30);
+    if (abs(distV) < L * sig) {
+      let jv = select(-2.0, 2.0, abs(k - 2.0 * round(0.5 * k)) < 0.5);
+      acc += eu.low * jv * Phi(distV / sig);
+    }
+    k += 1.0;
+  }
+  return vec2f(0.5 + 0.5 * acc, 1.0);
+}
+fn circlesMeanH(hu: vec3f, hv: vec3f, hd: vec3f, x: f32, y: f32, period: f32, S: f32) -> vec2f { return circlesMeanHMode(hu, hv, hd, x, y, period, S, 0u); }
+fn circlesMeanHMode(hu: vec3f, hv: vec3f, hd: vec3f, x: f32, y: f32, period: f32, S: f32, mode: u32) -> vec2f {
+  let sig = sqrt(S);
+  let p = vec3f(x, y, 1.0);
+  let Nu = dot(hu, p);
+  let Nv = dot(hv, p);
+  let D = dot(hd, p);
+  let dD = hd.xy;
+  let rn = length(dD) / abs(D);
+  let u0 = Nu / D / period;
+  let v0 = Nv / D / period;
+  let gu = (hu.xy * D - Nu * dD) / (D * D) / period;
+  let gv = (hv.xy * D - Nv * dD) / (D * D) / period;
+  let gmax = max(length(gu), length(gv));
+  let denom = 1.0 - 6.0 * sig * rn;
+  let reach = 3.0 * sig * gmax / max(denom, 1e-6) + DISC_R;
+  let nu0 = floor(u0 - reach);
+  let nu1 = floor(u0 + reach);
+  let nv0 = floor(v0 - reach);
+  let nv1 = floor(v0 + reach);
+  if (denom <= 0.05 || (nu1 - nu0 + 1.0) * (nv1 - nv0 + 1.0) > 9.5) {
+    if (mode == 4u) { return vec2f(0.5454, 3.0); }
+    let J = jetsFromHomography(hu, hv, hd, x, y, period);
+    let rr = circlesMeanMode(J, S, 3u);
+    return vec2f(rr.x, 3.0);
+  }
+  if (mode == 5u) { return vec2f(0.5454, 1.0); }
+  // the affine numerators in cells and their gradients
+  let nuA = Nu / period;
+  let nvA = Nv / period;
+  let dnu = hu.xy / period;
+  let dnv = hv.xy / period;
+  let s2 = 1.0 / (D * D);
+  let L = 5.5 * sig;
+  var acc = 0.0;
+  var nu = nu0;
+  loop {
+    if (nu > nu1) { break; }
+    var nv = nv0;
+    loop {
+      if (nv > nv1) { break; }
+      let cu = nu + 0.5;
+      let cv = nv + 0.5;
+      // q(X) = (nu - cu D)^2 + (nv - cv D)^2 - R^2 D^2, scaled by 1 / D^2: exact in screen space
+      let A0 = nuA - cu * D;
+      let B0 = nvA - cv * D;
+      let dA = dnu - cu * dD;
+      let dB = dnv - cv * dD;
+      let a0 = (A0 * A0 + B0 * B0 - DISC_R * DISC_R * D * D) * s2;
+      let g = (2.0 * A0 * dA + 2.0 * B0 * dB - 2.0 * DISC_R * DISC_R * D * dD) * s2;
+      let H = vec3f(
+        2.0 * (dA.x * dA.x + dB.x * dB.x - DISC_R * DISC_R * dD.x * dD.x),
+        2.0 * (dA.x * dA.y + dB.x * dB.y - DISC_R * DISC_R * dD.x * dD.y),
+        2.0 * (dA.y * dA.y + dB.y * dB.y - DISC_R * DISC_R * dD.y * dD.y)) * s2;
+      // the quadratic's range over the footprint: outside, inside, or integrate
+      let hn = sqrt(H.x * H.x + 2.0 * H.y * H.y + H.z * H.z);
+      let range = L * length(g) + 0.5 * L * L * hn;
+      if (a0 - range > 0.0) { }
+      else if (a0 + range < 0.0) { acc += 1.0; }
+      else { acc += quadRegion(a0, g, H, S); }
+      nv += 1.0;
+    }
+    nu += 1.0;
+  }
+  return vec2f(acc, 1.0);
+}
 `;
+
+// the quadrature rules, unrolled into straight-line WGSL
+function gaussLegendre(n) {
+  const x = [];
+  const w = [];
+  for (let i = 0; i < n; i++) {
+    let z = Math.cos((Math.PI * (i + 0.75)) / (n + 0.5));
+    let pp = 0;
+    for (let it = 0; it < 100; it++) {
+      let p1 = 1;
+      let p2 = 0;
+      for (let j = 1; j <= n; j++) {
+        const p3 = p2;
+        p2 = p1;
+        p1 = ((2 * j - 1) * z * p2 - (j - 1) * p3) / j;
+      }
+      pp = (n * (z * p1 - p2)) / (z * z - 1);
+      const z1 = z;
+      z = z1 - p1 / pp;
+      if (Math.abs(z - z1) < 1e-15) break;
+    }
+    x.push(z);
+    w.push(2 / ((1 - z * z) * pp * pp));
+  }
+  return { x, w };
+}
+function f(v) {
+  const t = v.toPrecision(10);
+  return t.includes('.') || t.includes('e') ? t : `${t}.0`;
+}
+function unrolledSection() {
+  const gl6 = gaussLegendre(6);
+  const gl8 = gaussLegendre(8);
+  const gl12 = gaussLegendre(12);
+  const gl16 = gaussLegendre(16);
+  // the Genz sum for one rule: sn = sin(asr (x + 1) / 2)
+  const genz = (gl) => gl.x.map((x, i) => `  { let sn = sin(${f(0.5 * (x + 1))} * asr); bvn += ${f(gl.w[i])} * exp((sn * hk - hs) / (1.0 - sn * sn)); }`).join('\n');
+  // the high-correlation conditional integral over [lo, b]
+  const high = gl16.x.map((x, i) => `  { let xx = mid + hw * ${f(x)}; acc += ${f(gl16.w[i])} * hw * 0.3989422804014327 * exp(-0.5 * xx * xx) * Phi(-(k - r * xx) / s); }`).join('\n');
+  // one panel of quadRegion's outer integral: the node position under the panel's map
+  const panel = gl8.x.map((x, i) => `    {
+      let x = ${f(x)};
+      var t = mid + half * x;
+      var jac = half;
+      if (mapA && mapB) { t = mid + half * sin(0.5 * PI * x); jac = half * 0.5 * PI * cos(0.5 * PI * x); }
+      else if (mapA) { let sN = 0.5 * (x + 1.0); t = pa + dz * sN * sN; jac = dz * sN; }
+      else if (mapB) { let sN = 0.5 * (1.0 - x); t = pa + dz - dz * sN * sN; jac = dz * sN; }
+      let phi = 0.3989422804014327 * exp(-0.5 * t * t / S) / sig;
+      acc += ${f(gl8.w[i])} * jac * phi * innerProb(lin, gin + lmix * t, a0 + gout * t + 0.5 * lout * t * t, sig);
+    }`).join('\n');
+  return /* wgsl */ `
+fn innerProb(lin: f32, b: f32, c: f32, sig: f32) -> f32 {
+  if (abs(lin) < 1e-9) {
+    if (abs(b) < 1e-12) { return select(0.0, 1.0, c <= 0.0); }
+    let y = -c / b;
+    return select(1.0 - Phi(y / sig), Phi(y / sig), b > 0.0);
+  }
+  let D = b * b - 2.0 * lin * c;
+  if (D <= 0.0) { return select(0.0, 1.0, lin < 0.0); }
+  let sq = sqrt(D);
+  let y1 = (-b - sq) / lin;
+  let y2 = (-b + sq) / lin;
+  let p = Phi(max(y1, y2) / sig) - Phi(min(y1, y2) / sig);
+  return select(1.0 - p, p, lin > 0.0);
+}
+// P(q(X) <= 0), X ~ N(0, S I), q(x) = a0 + g . x + x^T H x / 2, exact up to
+// quadrature: the outer coordinate along the gradient's perpendicular when
+// the linear term dominates over the pixel, else the Hessian's eigenframe;
+// the inner interval is between the roots of a quadratic; the outer integral
+// is split where the discriminant changes sign, in panels of two sigma,
+// Gauss-Legendre 8, with the panels that end at a root mapped so the root's
+// square-root behaviour is smooth
+fn quadRegion(a0: f32, g: vec2f, H: vec3f, S: f32) -> f32 {
+  let sig = sqrt(S);
+  let gn = length(g);
+  let hn = sqrt(H.x * H.x + 2.0 * H.y * H.y + H.z * H.z);
+  var ein = vec2f(1.0, 0.0);
+  if (gn > 0.5 * hn * sig && gn > 1e-20) {
+    ein = g / gn;
+  } else {
+    let tr = H.x + H.z;
+    let dt = H.x * H.z - H.y * H.y;
+    let disc = sqrt(max(0.25 * tr * tr - dt, 0.0));
+    let l1 = 0.5 * tr + disc;
+    if (abs(H.y) > 1e-12) { ein = normalize(vec2f(l1 - H.z, H.y)); }
+    else if (H.z > H.x) { ein = vec2f(0.0, 1.0); }
+  }
+  let eout = vec2f(-ein.y, ein.x);
+  let lin = H.x * ein.x * ein.x + 2.0 * H.y * ein.x * ein.y + H.z * ein.y * ein.y;
+  let lout = H.x * eout.x * eout.x + 2.0 * H.y * eout.x * eout.y + H.z * eout.y * eout.y;
+  let lmix = H.x * ein.x * eout.x + H.y * (ein.x * eout.y + ein.y * eout.x) + H.z * ein.y * eout.y;
+  let gin = dot(g, ein);
+  let gout = dot(g, eout);
+  let L = 5.5 * sig;
+  // the discriminant D(t) = (gin + lmix t)^2 - 2 lin (a0 + gout t + lout t^2 / 2), a quadratic in t; its roots cut the range
+  let A = lmix * lmix - lin * lout;
+  let B = 2.0 * gin * lmix - 2.0 * lin * gout;
+  let C = gin * gin - 2.0 * lin * a0;
+  var c1 = L; // the inner cuts, sorted, L when absent
+  var c2 = L;
+  if (abs(lin) > 1e-9) {
+    if (abs(A) > 1e-12) {
+      let dd = B * B - 4.0 * A * C;
+      if (dd > 0.0) {
+        let sq = sqrt(dd);
+        let r1 = min((-B - sq) / (2.0 * A), (-B + sq) / (2.0 * A));
+        let r2 = max((-B - sq) / (2.0 * A), (-B + sq) / (2.0 * A));
+        if (r1 > -L && r1 < L) { c1 = r1; }
+        if (r2 > -L && r2 < L) { if (c1 < L) { c2 = r2; } else { c1 = r2; } }
+      }
+    } else if (abs(B) > 1e-12) {
+      let rr = -C / B;
+      if (rr > -L && rr < L) { c1 = rr; }
+    }
+  }
+  var acc = 0.0;
+  for (var seg = 0; seg < 3; seg++) {
+    let a = select(select(-L, c1, seg == 1), c2, seg == 2);
+    let b = select(select(c1, c2, seg == 1), L, seg == 2);
+    if (b - a < 1e-9) { continue; }
+    let tm = 0.5 * (a + b);
+    let Dm = (gin + lmix * tm) * (gin + lmix * tm) - 2.0 * lin * (a0 + gout * tm + 0.5 * lout * tm * tm);
+    if (abs(lin) > 1e-9 && Dm <= 0.0 && lin > 0.0) { continue; } // the region is empty here
+    let rootA = seg > 0 && a > -L;
+    let rootB = b < L;
+    let panels = ceil((b - a) / (2.0 * sig));
+    let dz = (b - a) / panels;
+    var q = 0.0;
+    loop {
+      if (q >= panels) { break; }
+      let pa = a + q * dz;
+      let half = 0.5 * dz;
+      let mid = pa + half;
+      let mapA = rootA && q < 0.5;
+      let mapB = rootB && q > panels - 1.5;
+${panel}
+      q += 1.0;
+    }
+  }
+  return acc;
+}
+// P(X > h, Y > k) for standard normals with correlation r: Genz 2004 for
+// |r| <= 0.925 (six nodes below 0.3, twelve above), the conditional integral
+// split at its transition beyond
+fn bvnu(h: f32, k: f32, r: f32) -> f32 {
+  let hk = h * k;
+  let hs = 0.5 * (h * h + k * k);
+  let asr = asin(r);
+  var bvn = 0.0;
+  if (abs(r) < 0.3) {
+${genz(gl6)}
+  } else {
+${genz(gl12)}
+  }
+  return bvn * asr / (2.0 * TAU) + Phi(-h) * Phi(-k);
+}
+fn bvnuHigh(h: f32, k: f32, r: f32) -> f32 {
+  let s = sqrt(max(1.0 - r * r, 1e-14));
+  let xs = k / r;
+  let halfw = 6.0 * s / abs(r);
+  let a = xs - halfw;
+  let b = xs + halfw;
+  var acc = 0.0;
+  if (b > h) {
+    let lo = max(h, a);
+    if (r > 0.0) { acc += Phi(-max(b, h)); }
+    else if (a > h) { acc += Phi(-h) - Phi(-a); }
+    if (lo < b) {
+      let hw = 0.5 * (b - lo);
+      let mid = 0.5 * (b + lo);
+${high}
+    }
+  } else {
+    acc = select(0.0, Phi(-h), r > 0.0);
+  }
+  return acc;
+}
+fn bvnuAny(h: f32, k: f32, r: f32) -> f32 {
+  let rc = clamp(r, -0.999999, 0.999999);
+  if (abs(rc) <= 0.925) { return bvnu(h, k, rc); }
+  return bvnuHigh(h, k, rc);
+}
+`;
+}

@@ -296,12 +296,22 @@ ${OURS_KERNEL}
   let J = jetsFromHomography(U.hu.xyz, U.hv.xyz, U.hd.xyz, x, y, period);
   var P = 0.5;
   var regime = 0.0;
-  if (scene == 0u) {
-    let r = checkerMean(J, S);
+  // timing diagnostics through p2.w: 1 runs the coverage path only (the
+  // spectral pixels return the mean), 2 the spectral path only
+  let mode = u32(U.p2.w);
+  if (mode == 0u || mode >= 4u) {
+    // the homography entries: exact under the guard
+    var r = vec2f(0.5, 0.0);
+    if (scene == 0u) { r = checkerMeanHMode(U.hu.xyz, U.hv.xyz, U.hd.xyz, x, y, period, S, mode); }
+    else { r = circlesMeanHMode(U.hu.xyz, U.hv.xyz, U.hd.xyz, x, y, period, S, mode); }
+    P = r.x;
+    regime = r.y;
+  } else if (scene == 0u) {
+    let r = checkerMeanMode(J, S, mode);
     P = r.x;
     regime = r.y;
   } else {
-    let r = circlesMean(J, S);
+    let r = circlesMeanMode(J, S, mode);
     P = r.x;
     regime = r.y;
   }
@@ -310,7 +320,10 @@ ${OURS_KERNEL}
   if (scene == 0u) { v += lightingSpec(g.viewer, 50.0); }
   if (U.p2.z > 0.5) {
     // the regime, for inspection: coverage green, spectral blue
-    return vec4f(select(vec3f(0.2, 0.3, 0.9), vec3f(0.2, 0.8, 0.3), regime < 1.5) * (0.5 + 0.5 * v), 1.0);
+    var tint = vec3f(0.2, 0.3, 0.9);
+    if (regime < 1.5) { tint = vec3f(0.2, 0.8, 0.3); }
+    if (regime > 2.5) { tint = vec3f(0.9, 0.3, 0.2); }
+    return vec4f(tint * (0.5 + 0.5 * v), 1.0);
   }
   return vec4f(vec3f(v), 1.0);
 }
