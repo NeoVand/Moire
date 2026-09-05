@@ -38,7 +38,7 @@ The unifying statement, which the benchmark note should make, is that mean-varia
 2. Breadth. Seven shaders on one plane and one camera. Their set has twenty-one, including bricks with noise. Procedural noise (Perlin, Gabor) is a picture on a large torus for which the tables would be large; we have not run it. The bumps variants (spheres) have not been run.
 3. Speed. The compiler costs 2 to 40 milliseconds a pixel on one core, 100 to 1000 times the unfiltered shader, against their 1 to 4 times. The GPU path (the spectrum as the table, measured in `tables.mjs` to need 175 terms a pixel on average) is a design with one measurement, not a demonstration.
 4. Tuned thresholds. The rule is one, but the evaluator decides local against spectral by sigma 0.02, the parallel rule by sigma 0.03 and sine 0.26, the fold growth cap 2, the cut 1e-4, the line by 24 periods. Each value was set by measurement on these shaders. The theory says what each threshold trades, not what it should be.
-5. Two probe pixels above 2e-3 remain (the rippled quadratic sine's on-axis mid-field pixel at 4.6e-3, the circles' horizon at 2.8e-3) and the step-of-a-sum tables truncate the Phi harmonics at 24, which drops the far stations of sin(n) over the integers (the convergents 333/53 and beyond of 2 pi) at the 1e-4 level.
+5. One probe pixel above 1e-3 remains away from the horizon row (the rippled quadratic sine's on-axis pixel at 1.4e-3, down from 4.6e-3 once fields were treated as jets across the pixel), the row y = 5 carries 1e-3 from the third-order phase, and the step-of-a-sum tables truncate the Phi harmonics at 24, which drops the far stations of sin(n) over the integers (the convergents 333/53 and beyond of 2 pi) at the 1e-4 level.
 
 ## What the reading suggests
 

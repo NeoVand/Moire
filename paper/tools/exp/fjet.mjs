@@ -205,11 +205,16 @@ const sameCoords = (a, b) => {
 };
 const cloFactor = (axes, fn, sig) => {
   let lastCs = null;
+  let lastM = null;
   let lastVal = null;
-  const memo = (cs) => {
-    if (sameCoords(cs, lastCs)) return lastVal;
-    lastVal = fn(cs);
+  // the coordinate map is passed through for the pixel displacement (key
+  // -1) that a closure with fields inside needs; it is part of the memo
+  const memo = (cs, coords) => {
+    const m = coords ? coords.get(-1) : undefined;
+    if (sameCoords(cs, lastCs) && (m === lastM || (m && lastM && m[0] === lastM[0] && m[1] === lastM[1]))) return lastVal;
+    lastVal = fn(cs, coords);
     lastCs = cs.slice();
+    lastM = m;
     return lastVal;
   };
   return { kind: 'clo', axes, fn: memo, sig };
@@ -288,6 +293,8 @@ const resolveFactor = (f) => {
 const evalElement = (el, coords) => {
   if (!el._axes) el._axes = el.axes();
   const key = el._axes.map((a) => coords.get(a.id));
+  const m = coords.get(-1);
+  if (m) key.push(m[0], m[1]);
   if (el._lastKey && sameCoords(key, el._lastKey)) return el._lastVal;
   const v = evalElementRaw(el, coords);
   el._lastKey = key;
@@ -304,8 +311,8 @@ const evalElementRaw = (el, coords) => {
         const u = axisCoordinate(f.axis, coords);
         v = v.scale(f.fn(u));
       } else {
-        const cs = f.axes.map((a) => axisCoordinate(a, coords));
-        const r = f.fn(cs);
+        const cs = f.axes.map((a) => bareCoordinate(a, coords));
+        const r = f.fn(cs, coords);
         v = v.mul(r);
       }
       if (!ok) break;
@@ -316,11 +323,30 @@ const evalElementRaw = (el, coords) => {
 };
 // the shifted coordinate of an axis: its own coordinate plus its field at the
 // other coordinates
+// the shifted coordinate of an axis: its own coordinate plus its field at the
+// other coordinates. The field is a jet across the pixel (its coefficients
+// vary); at a point of the pixel, carried in the coordinates under the key
+// -1 as the displacement from the centre, it is evaluated there. Without a
+// displacement the field's value at the centre is used, and the spectral
+// paths take its variation as a jet.
+const jetAt = (j, m) => j.v + j.gx * m[0] + j.gy * m[1] + 0.5 * (j.hxx * m[0] * m[0] + 2 * j.hxy * m[0] * m[1] + j.hyy * m[1] * m[1]);
+// the bare coordinate of an axis (its field not added): what a closure
+// takes, since every closure adds the fields of its axes itself
+const bareCoordinate = (axis, coords) => {
+  if (axis.alias) return axis.alias.mult * bareCoordinate(axis.alias.axis, coords);
+  const u = coords.get(axis.id);
+  if (u === undefined) throw new Error(`no coordinate for axis ${axis.label}#${axis.id}`);
+  return u;
+};
 const axisCoordinate = (axis, coords) => {
   if (axis.alias) return axis.alias.mult * axisCoordinate(axis.alias.axis, coords);
   let u = coords.get(axis.id);
   if (u === undefined) throw new Error(`no coordinate for axis ${axis.label}#${axis.id}`);
-  if (axis.field) u += evalElement(axis.field, coords).v;
+  if (axis.field) {
+    const j = evalElement(axis.field, coords);
+    const m = coords.get(-1);
+    u += m ? jetAt(j, m) : j.v;
+  }
   return u;
 };
 
@@ -392,8 +418,11 @@ const mulFactors = (fa, fb) => {
     // evaluator folds those into the residual closure of the field's axes
     const gAxes = directFactorAxes(g);
     let merged = false;
-    for (let i = 0; i < out.length; i++) {
+    // a step of a sum keeps its structure: it is never merged into a
+    // product closure (the evaluator multiplies the factors itself)
+    for (let i = 0; i < out.length && !g.stepsum; i++) {
       const f = out[i];
+      if (f.stepsum) continue;
       const fAxes = directFactorAxes(f);
       const overlap = fAxes.some((id) => gAxes.includes(id));
       if (!overlap) continue;
@@ -513,12 +542,18 @@ const stepOfSum = (P, c, g, name) => {
   }));
   const axes = [...X, ...phiList.map((q) => q.bare)];
   const nX = X.length;
-  const fn = (cs) => {
+  const fn = (cs, coords) => {
     const m = new Map();
+    const disp = coords ? coords.get(-1) : undefined;
+    if (disp) m.set(-1, disp);
     X.forEach((a, i) => m.set(a.id, cs[i]));
-    let total = c + (A.terms.length ? evalElement(A, m).v : 0);
+    const at = (el) => {
+      const j = evalElement(el, m);
+      return disp ? jetAt(j, disp) : j.v;
+    };
+    let total = c + (A.terms.length ? at(A) : 0);
     phiList.forEach((q, j) => {
-      const phi = cs[nX + j] + (q.axis.field ? evalElement(q.axis.field, m).v : 0);
+      const phi = cs[nX + j] + (q.axis.field ? at(q.axis.field) : 0);
       for (const { beta, fn: pf } of q.parts) total += beta * pf(phi);
     });
     return Jet.c(g(total));
@@ -540,7 +575,8 @@ const makeB = (parts) => {
     return b;
   };
   const grid = new Float64Array(NB + 1);
-  for (let i = 0; i <= NB; i++) grid[i] = fn(i / NB);
+  for (let i = 0; i < NB; i++) grid[i] = fn(i / NB);
+  grid[NB] = grid[0]; // periodic, exactly
   let lo = Infinity;
   let hi = -Infinity;
   for (let i = 0; i < NB; i++) {
@@ -665,26 +701,36 @@ const stepBoundaries = (B, a) => {
     if (!jumpAt.has(cell)) jumpAt.set(cell, []);
     jumpAt.get(cell).push(j.at);
   }
+  // a sample where a + B is exactly zero is a boundary itself (a sign of a
+  // sine with no offset has its roots on the grid); a change of sign
+  // between two samples is bisected
+  const sgn = (v) => (v > 0 ? 1 : v < 0 ? -1 : 0);
+  const cross = (x0, v0, x1, v1) => {
+    if (v0 === 0) pts.push(x0);
+    else if (v1 !== 0 && sgn(v0) !== sgn(v1)) pts.push(bisectRoot(B.fn, a, x0, x1));
+  };
   for (let i = 0; i < NB; i++) {
     const x0 = i / NB;
     const x1 = (i + 1) / NB;
     const js = jumpAt.get(i);
     if (!js) {
-      if (a + g[i] < 0 !== a + g[i + 1] < 0) pts.push(bisectRoot(B.fn, a, x0, x1));
+      cross(x0, a + g[i], x1, a + g[i + 1]);
       continue;
     }
     // the jumps split the cell; a root may sit on either side of each
     let lo = x0;
     for (const j of js.sort((p, q) => p - q)) {
       const hiSide = Math.max(lo, j - 1e-9);
-      if (hiSide > lo && a + B.fn(lo) < 0 !== a + B.fn(hiSide) < 0) pts.push(bisectRoot(B.fn, a, lo, hiSide));
+      if (hiSide > lo) cross(lo, a + B.fn(lo), hiSide, a + B.fn(hiSide));
       pts.push(j);
       lo = Math.min(x1, j + 1e-9);
     }
-    if (x1 > lo && a + B.fn(lo) < 0 !== a + B.fn(x1) < 0) pts.push(bisectRoot(B.fn, a, lo, x1));
+    if (x1 > lo) cross(lo, a + B.fn(lo), x1, a + B.fn(x1));
   }
   pts.sort((p, q) => p - q);
-  return pts;
+  const uniq = [];
+  for (const p of pts) if (uniq.length === 0 || p - uniq[uniq.length - 1] > 1e-12) uniq.push(p);
+  return uniq;
 };
 // the pieces of [0, 1) between the boundary points, as [lo, hi] with hi
 // possibly past 1 (the functions are periodic)
@@ -1719,7 +1765,7 @@ export class Pixel {
       for (const f of t.f) {
         if (v === 0) break;
         if (f.kind === 'pic') v *= f.fn(axisCoordinate(f.axis, coords));
-        else v *= f.fn(f.axes.map((a) => axisCoordinate(a, coords))).v;
+        else v *= f.fn(f.axes.map((a) => bareCoordinate(a, coords)), coords).v;
       }
       total += v;
     }
@@ -1794,6 +1840,7 @@ export class Pixel {
   // local values taking precedence
   pointCoords(ts, m, localCoords) {
     const coords = new Map(localCoords);
+    coords.set(-1, m);
     for (const a of this.bundleAxes(ts)) if (!coords.has(a.id)) coords.set(a.id, this.countAt(a, m));
     return coords;
   }
@@ -1956,6 +2003,7 @@ export class Pixel {
         if (lineLocal) E = this.lineQuadrature(ts, m, ehat, rMax);
         else {
           const coords = new Map();
+          coords.set(-1, m);
           coords.set(a.id, ua);
           for (const o of local) if (o !== a) coords.set(o.id, this.countAt(o, m));
           for (const o of frozen) coords.set(o.id, this.countAt(o, m));
@@ -1968,6 +2016,7 @@ export class Pixel {
         const da = (ua - a.count.v) / na;
         const m = [da * nhat[0], da * nhat[1]];
         const coords = new Map();
+        coords.set(-1, m);
         coords.set(a.id, ua);
         for (const o of axes) if (o !== a) coords.set(o.id, this.countAt(o, m));
         return coords;
@@ -1989,6 +2038,7 @@ export class Pixel {
     const coordsAt = (ua, ub) => {
       const m = pointOf(ua, ub);
       const coords = new Map();
+      coords.set(-1, m);
       coords.set(a.id, ua);
       coords.set(b.id, ub);
       for (const o of axes) if (o !== a && o !== b) coords.set(o.id, this.countAt(o, m));
@@ -2866,94 +2916,164 @@ export class Pixel {
   // with O the other closures of the term, remembered across pixels when
   // nothing local enters it) or all fixed (the table read at a and G).
   // Returns null when the term's closures reach axes that are not its own.
-  stepsumSum(c, cr, ci, phi0, bx, by, q00, q01, q11, logCoef, residual, resGrads, resHess, resK, clos, cond, localCoords) {
-    const clo = clos.find((cl) => cl.stepsum);
-    const S = clo.stepsum;
-    const others = clos.filter((cl) => cl !== clo);
+  stepsumNo(why) {
+    if (DEBUG) console.log(`      stepsum declined: ${why}`);
+    return null;
+  }
+  // The sum for a term whose closures include steps of sums, under any
+  // split of the axes. The residual axes are the steps' bare Phi axes and
+  // the rest, X (at most two). For each recipe of the Phi harmonics the
+  // steps contribute their tables T_m(a_i(x)) e^{2 pi i m.G_i(x)}, the
+  // pictures with fields their phase e^{2 pi i k G(x)} and the other
+  // closures their values, all functions on the X torus whose transform
+  // is taken by FFT (remembered across pixels when nothing local enters
+  // it) or, with no residual X, read at the fixed coordinates. A local Phi
+  // axis is a number and its picture joins its step's a. Returns null for
+  // a structure outside this.
+  stepsumSum(c, cr, ci, phi0, bx, by, q00, q01, q11, logCoef, residual, resGrads, resHess, resK, clos, fields, cond, localCoords) {
+    const steps = clos.filter((cl) => cl.stepsum);
+    const others = clos.filter((cl) => !cl.stepsum);
     const lnCut = Math.log(this.cut);
-    const xIds = new Set(S.X.map((a) => a.id));
-    const bareIds = new Set(S.phis.map((q) => q.bare.id));
-    for (const o of others) for (const a of o.axes) if (!xIds.has(a.id) && !localCoords.has(a.id)) return null;
     const resIds = new Set(residual.map((a) => a.id));
-    for (const a of residual) if (!xIds.has(a.id) && !bareIds.has(a.id)) return null;
-    const phiR = [];
-    const phiL = [];
-    S.phis.forEach((q, j) => (resIds.has(q.bare.id) ? phiR : phiL).push(j));
-    if (phiR.length === 0) return null;
-    for (const j of phiL) if (!localCoords.has(S.phis[j].bare.id)) return null;
-    const xR = [];
-    const xL = [];
-    S.X.forEach((a, i) => (resIds.has(a.id) ? xR : xL).push(i));
-    for (const i of xL) if (!localCoords.has(S.X[i].id)) return null;
-    const mask = phiR.reduce((m, j) => m | (1 << j), 0);
-    const tables = stepsumTables(S, mask, this.stepsumM, this.stepsumNA);
-    const { Ms } = tables;
-    const nP = phiR.length;
-    const nXR = xR.length;
+    const bareOwner = new Map();
+    for (const cl of steps)
+      for (const q of cl.stepsum.phis) {
+        if (bareOwner.has(q.bare.id) && bareOwner.get(q.bare.id) !== cl) return this.stepsumNo(`two steps share the Phi axis ${q.bare.label}#${q.bare.id}`);
+        bareOwner.set(q.bare.id, cl);
+      }
+    const X = residual.filter((a) => !bareOwner.has(a.id));
+    if (X.length > 2) return this.stepsumNo(`${X.length} X axes`);
+    const xIds = new Set(X.map((a) => a.id));
+    const known = (a) => xIds.has(a.id) || localCoords.has(a.id);
+    for (const cl of steps) for (const a of cl.stepsum.X) if (!known(a)) return this.stepsumNo(`X axis ${a.label}#${a.id} of a step neither residual nor local`);
+    for (const cl of steps) for (const q of cl.stepsum.phis) if (!resIds.has(q.bare.id) && !localCoords.has(q.bare.id)) return this.stepsumNo('a Phi axis neither residual nor local');
+    for (const o of others) for (const a of o.axes) if (!known(a)) return this.stepsumNo(`closure ${o.sig.slice(0, 40)} reaches ${a.label}#${a.id}`);
+    for (const f of fields) for (const a of f.axis.field.axes()) if (!known(a)) return this.stepsumNo(`field of ${f.axis.label}#${f.axis.id} reaches ${a.label}#${a.id}`);
+    // each step: its residual and local Phi axes and its tables
+    const parts = steps.map((cl) => {
+      const S = cl.stepsum;
+      const phiR = [];
+      const phiL = [];
+      S.phis.forEach((q, j) => (resIds.has(q.bare.id) ? phiR : phiL).push(j));
+      const mask = phiR.reduce((m, j) => m | (1 << j), 0);
+      const tables = phiR.length ? stepsumTables(S, mask, this.stepsumM, this.stepsumNA) : null;
+      return { S, phiR, phiL, mask, tables };
+    });
+    // the residual Phi axes in order, the last one innermost
     const idxOf = (id) => residual.findIndex((a) => a.id === id);
-    const gP = phiR.map((j) => resGrads[idxOf(S.phis[j].bare.id)]);
-    const hP = phiR.map((j) => resHess[idxOf(S.phis[j].bare.id)]);
-    const KP = phiR.map((j, r) => Math.min(resK[idxOf(S.phis[j].bare.id)], Ms[r]));
-    const gX = xR.map((i) => resGrads[idxOf(S.X[i].id)]);
-    const hX = xR.map((i) => resHess[idxOf(S.X[i].id)]);
+    const phis = [];
+    parts.forEach((P, pi) => {
+      P.phiR.forEach((j, r) => {
+        const bare = P.S.phis[j].bare;
+        const idx = idxOf(bare.id);
+        phis.push({ pi, j, r, bare, g: resGrads[idx], h: resHess[idx], K: Math.min(resK[idx], P.tables.Ms[r]) });
+      });
+    });
+    const nPhi = phis.length;
+    if (nPhi === 0) return this.stepsumNo('no residual Phi axis');
+    const gX = X.map((a) => resGrads[idxOf(a.id)]);
+    const hX = X.map((a) => resHess[idxOf(a.id)]);
     const KW = this.stepsumKW;
-    const KX = xR.map((i) => Math.min(resK[idxOf(S.X[i].id)], KW));
-    const qOf = (m) => (nP === 1 ? m[0] + Ms[0] : (m[0] + Ms[0]) * (2 * Ms[1] + 1) + m[1] + Ms[1]);
-    const ms = [];
-    if (nP === 1) for (let m = -KP[0]; m <= KP[0]; m++) ms.push([m]);
-    else for (let m1 = -KP[0]; m1 <= KP[0]; m1++) for (let m2 = -KP[1]; m2 <= KP[1]; m2++) ms.push([m1, m2]);
-    // a, the residual fields and the other closures at a full set of X
-    // coordinates (the local Phi pictures join a)
-    const aAt = (coords) => {
+    const KX = X.map((a) => Math.min(resK[idxOf(a.id)], KW));
+    const nXR = X.length;
+    // a of a step at full X coordinates: the local Phi pictures join it
+    const aAt = (P, coords) => {
+      const S = P.S;
       let a = S.c + (S.A.terms.length ? evalElement(S.A, coords).v : 0);
-      for (const j of phiL) {
+      for (const j of P.phiL) {
         const q = S.phis[j];
         const phi = localCoords.get(q.bare.id) + (q.axis.field ? evalElement(q.axis.field, coords).v : 0);
         for (const p of q.parts) a += p.beta * p.fn(phi);
       }
       return a;
     };
-    const GAt = (coords) => phiR.map((j) => (S.phis[j].axis.field ? evalElement(S.phis[j].axis.field, coords).v : 0));
+    const GAt = (coords) => phis.map((ph) => {
+      const q = parts[ph.pi].S.phis[ph.j];
+      return q.axis.field ? evalElement(q.axis.field, coords).v : 0;
+    });
+    const fieldPhaseAt = (coords) => {
+      let ph = 0;
+      for (const { k, axis } of fields) {
+        const per = axis.kind === 'edge' ? axis.edgePeriod : 1;
+        ph += (TAU * k * evalElement(axis.field, coords).v) / per;
+      }
+      return ph;
+    };
     const othersAt = (coords) => {
       let v = 1;
       for (const o of others) v *= o.fn(o.axes.map((a) => coords.get(a.id))).v;
       return v;
     };
-    // the rates and phase of a Phi recipe
-    const phiRecipe = (m) => {
+    // the table index of a part at a Phi recipe
+    const qOf = (P, m) => {
+      const Ms = P.tables.Ms;
+      let m0 = 0;
+      let m1 = 0;
+      phis.forEach((ph, i) => {
+        if (ph.pi !== parts.indexOf(P)) return;
+        if (ph.r === 0) m0 = m[i];
+        else m1 = m[i];
+      });
+      return P.tables.nP === 1 ? m0 + Ms[0] : (m0 + Ms[0]) * (2 * Ms[1] + 1) + m1 + Ms[1];
+    };
+    const recipe = (m) => {
       let mbx = bx;
       let mby = by;
       let mq00 = q00;
       let mq01 = q01;
       let mq11 = q11;
       let phase = phi0;
-      for (let r = 0; r < nP; r++) {
-        mbx += TAU * m[r] * gP[r][0];
-        mby += TAU * m[r] * gP[r][1];
-        mq00 += TAU * m[r] * hP[r][0];
-        mq01 += TAU * m[r] * hP[r][1];
-        mq11 += TAU * m[r] * hP[r][2];
-        phase += this.axisPhase(S.phis[phiR[r]].bare, m[r]);
+      for (let i = 0; i < nPhi; i++) {
+        const ph = phis[i];
+        mbx += TAU * m[i] * ph.g[0];
+        mby += TAU * m[i] * ph.g[1];
+        mq00 += TAU * m[i] * ph.h[0];
+        mq01 += TAU * m[i] * ph.h[1];
+        mq11 += TAU * m[i] * ph.h[2];
+        phase += this.axisPhase(ph.bare, m[i]);
       }
       return { mbx, mby, mq00, mq01, mq11, phase };
     };
+    // the recipes of the Phi harmonics, the last axis innermost
+    const ms = [];
+    const m = new Array(nPhi).fill(0);
+    const rec = (i) => {
+      if (i === nPhi) {
+        ms.push(m.slice());
+        return;
+      }
+      for (let v = -phis[i].K; v <= phis[i].K; v++) {
+        m[i] = v;
+        rec(i + 1);
+      }
+    };
+    rec(0);
     let acc = 0;
     if (nXR === 0) {
-      const a = aAt(localCoords);
+      const as = parts.map((P) => aAt(P, localCoords));
       const G = GAt(localCoords);
       const ov = othersAt(localCoords);
+      const fph = fieldPhaseAt(localCoords);
       if (Math.abs(ov) < 1e-15) return 0;
-      for (const m of ms) {
-        const [tr, ti] = stepsumT(tables, qOf(m), a);
-        let ph = 0;
-        for (let r = 0; r < nP; r++) ph += TAU * m[r] * G[r];
+      for (const mm of ms) {
+        let tr = ov;
+        let ti = 0;
+        parts.forEach((P, pi) => {
+          if (!P.tables) return;
+          const [r, i] = stepsumT(P.tables, qOf(P, mm), as[pi]);
+          const nr = tr * r - ti * i;
+          ti = tr * i + ti * r;
+          tr = nr;
+        });
+        let ph = fph;
+        for (let i = 0; i < nPhi; i++) ph += TAU * mm[i] * G[i];
         const cph = Math.cos(ph);
         const sph = Math.sin(ph);
-        const coefR = ov * (tr * cph - ti * sph);
-        const coefI = ov * (tr * sph + ti * cph);
+        const coefR = tr * cph - ti * sph;
+        const coefI = tr * sph + ti * cph;
         const mag = Math.hypot(coefR, coefI);
         if (mag < 1e-13) continue;
-        const R = phiRecipe(m);
+        const R = recipe(mm);
         if (logMult(R.mbx, R.mby, R.mq00, R.mq01, R.mq11, cond) + logCoef + Math.log(mag) < lnCut) continue;
         const v = termExpectation(cjScaleC(cjScaleC(c, coefR, coefI), cr, ci), R.phase, R.mbx, R.mby, R.mq00, R.mq01, R.mq11, cond);
         this.stats.recipes++;
@@ -2961,63 +3081,85 @@ export class Pixel {
       }
       return acc;
     }
-    // X residual: F_m on a midpoint grid of the residual X torus, its
-    // coefficients within |k| <= KW by FFT (the half-sample shift applied)
-    const cacheable = xL.length === 0 && phiL.length === 0;
+    // X residual: the factors on a midpoint grid of the residual X torus;
+    // the grid is remembered on the first step's tables when nothing local
+    // enters it
+    const cacheable = localCoords.size === 0 || [...localCoords.keys()].every((id) => !steps.some((cl) => cl.axes.some((a) => a.id === id)) && !others.some((o) => o.axes.some((a) => a.id === id)) && !fields.some((f) => f.axis.field.axes().some((a) => a.id === id)));
     const NG = cacheable ? this.stepsumNG : this.stepsumNGlocal;
-    const gridKey = `${mask}|${NG}|${others.map((o) => o.sig).join('*')}`;
-    let grid = cacheable ? tables.xGrids.get(gridKey) : null;
+    const home = parts.find((P) => P.tables).tables;
+    const gridKey = `${X.map((a) => a.id).join(',')}|${NG}|${steps.map((cl) => cl.stepsum.sig + ':' + parts[steps.indexOf(cl)].mask).join('*')}|${others.map((o) => o.sig).join('*')}`;
+    let grid = cacheable ? home.xGrids.get(gridKey) : null;
     if (!grid) {
       const n = nXR === 1 ? NG : NG * NG;
-      const Ag = new Float64Array(n);
       const Og = new Float64Array(n);
-      const Gg = phiR.map(() => new Float64Array(n));
+      const Gg = phis.map(() => new Float64Array(n));
+      const los = parts.map((P) => (P.tables ? new Int32Array(n) : null));
+      const frs = parts.map((P) => (P.tables ? new Float64Array(n) : null));
       let oMax = 0;
       const coords = new Map(localCoords);
       for (let i = 0; i < NG; i++)
         for (let j = 0; j < (nXR === 2 ? NG : 1); j++) {
-          coords.set(S.X[xR[0]].id, (i + 0.5) / NG);
-          if (nXR === 2) coords.set(S.X[xR[1]].id, (j + 0.5) / NG);
+          coords.set(X[0].id, (i + 0.5) / NG);
+          if (nXR === 2) coords.set(X[1].id, (j + 0.5) / NG);
           const idx = nXR === 2 ? i * NG + j : i;
-          Ag[idx] = aAt(coords);
+          parts.forEach((P, pi) => {
+            if (!P.tables) return;
+            const aG = P.tables.aGrid;
+            const nA = aG.length;
+            const a = aAt(P, coords);
+            if (!(a > aG[0])) {
+              los[pi][idx] = 0;
+              frs[pi][idx] = 0;
+            } else if (a >= aG[nA - 1]) {
+              los[pi][idx] = nA - 2;
+              frs[pi][idx] = 1;
+            } else {
+              let l = 0;
+              let h = nA - 1;
+              while (h - l > 1) {
+                const mid = (l + h) >> 1;
+                if (aG[mid] <= a) l = mid;
+                else h = mid;
+              }
+              los[pi][idx] = l;
+              frs[pi][idx] = (a - aG[l]) / (aG[h] - aG[l]);
+            }
+          });
           const G = GAt(coords);
-          for (let r = 0; r < nP; r++) Gg[r][idx] = G[r];
+          for (let r = 0; r < nPhi; r++) Gg[r][idx] = G[r];
           Og[idx] = othersAt(coords);
           oMax = Math.max(oMax, Math.abs(Og[idx]));
         }
-      // the table's interpolation at every grid point (index and fraction
-      // on the a-grid), the phasor step of each residual field, and the
-      // scratch arrays of the transform
-      const aG = tables.aGrid;
-      const nA = aG.length;
-      const lo = new Int32Array(n);
-      const fr = new Float64Array(n);
-      for (let idx = 0; idx < n; idx++) {
-        const a = Ag[idx];
-        if (!(a > aG[0])) {
-          lo[idx] = 0;
-          fr[idx] = 0;
-        } else if (a >= aG[nA - 1]) {
-          lo[idx] = nA - 2;
-          fr[idx] = 1;
-        } else {
-          let l = 0;
-          let h = nA - 1;
-          while (h - l > 1) {
-            const mid = (l + h) >> 1;
-            if (aG[mid] <= a) l = mid;
-            else h = mid;
-          }
-          lo[idx] = l;
-          fr[idx] = (a - aG[l]) / (aG[h] - aG[l]);
-        }
-      }
-      const wr = phiR.map((j, r) => Float64Array.from(Gg[r], (g) => Math.cos(TAU * g)));
-      const wi = phiR.map((j, r) => Float64Array.from(Gg[r], (g) => Math.sin(TAU * g)));
-      grid = { Ag, Gg, Og, oMax, n, lo, fr, wr, wi, zr: new Float64Array(n), zi: new Float64Array(n), zm: null, re: new Float64Array(n), im: new Float64Array(n), coefs: new Map() };
-      if (cacheable) tables.xGrids.set(gridKey, grid);
+      const wr = Gg.map((g) => Float64Array.from(g, (v) => Math.cos(TAU * v)));
+      const wi = Gg.map((g) => Float64Array.from(g, (v) => Math.sin(TAU * v)));
+      grid = { Og, Gg, los, frs, oMax, n, wr, wi, zr: new Float64Array(n), zi: new Float64Array(n), zm: null, zf: null, re: new Float64Array(n), im: new Float64Array(n), coefs: new Map(), fieldPhases: new Map() };
+      if (cacheable) home.xGrids.set(gridKey, grid);
     }
     if (grid.oMax < 1e-15) return 0;
+    // the field pictures' phase on the grid, by their harmonics
+    const fkey = fields.map((f) => `${f.axis.id}:${f.k}`).join(',');
+    let fph = grid.fieldPhases.get(fkey);
+    if (!fph) {
+      const n = grid.n;
+      const pr = new Float64Array(n);
+      const pi2 = new Float64Array(n);
+      if (fields.length === 0) pr.fill(1);
+      else {
+        const coords = new Map(localCoords);
+        for (let i = 0; i < NG; i++)
+          for (let j = 0; j < (nXR === 2 ? NG : 1); j++) {
+            coords.set(X[0].id, (i + 0.5) / NG);
+            if (nXR === 2) coords.set(X[1].id, (j + 0.5) / NG);
+            const idx = nXR === 2 ? i * NG + j : i;
+            const ph = fieldPhaseAt(coords);
+            pr[idx] = Math.cos(ph);
+            pi2[idx] = Math.sin(ph);
+          }
+      }
+      fph = { re: pr, im: pi2 };
+      if (grid.fieldPhases.size > 64) grid.fieldPhases.clear();
+      grid.fieldPhases.set(fkey, fph);
+    }
     const KWn = 2 * KW + 1;
     const kRates = (R, kx, ky) => [
       R.mbx + TAU * (kx * gX[0][0] + (nXR === 2 ? ky * gX[1][0] : 0)),
@@ -3027,12 +3169,6 @@ export class Pixel {
       R.mq11 + TAU * (kx * hX[0][2] + (nXR === 2 ? ky * hX[1][2] : 0)),
     ];
     const KY = nXR === 2 ? KX[1] : 0;
-    // the X harmonics that can pass the cut with a Phi recipe: the
-    // second-order magnitude is at most exp(-a |b|^2 / (2 (a^2 + lam^2)))
-    // for a = 1 / sig^2, b the first-order rate and lam the largest
-    // curvature any k in the box reaches, so the live k lie where the rate
-    // (or, on a line, its component along the line) is within b_max of
-    // zero: an ellipse, enumerated as an interval of ky per kx
     const aS = 1 / (cond.sig * cond.sig);
     const rowNorm = (h) => Math.max(Math.abs(h[0]) + Math.abs(h[1]), Math.abs(h[1]) + Math.abs(h[2]));
     const kList = (R, budget) => {
@@ -3123,24 +3259,28 @@ export class Pixel {
       }
       return out.length ? out : null;
     };
-    for (const m of ms) {
-      const q = qOf(m);
-      const tm = tables.tmax[q] * grid.oMax;
+    for (const mm of ms) {
+      let tm = grid.oMax;
+      const qs = parts.map((P) => (P.tables ? qOf(P, mm) : -1));
+      parts.forEach((P, pi) => {
+        if (P.tables) tm *= P.tables.tmax[qs[pi]];
+      });
       if (tm < 1e-13) continue;
-      const R = phiRecipe(m);
+      const R = recipe(mm);
       const ks = kList(R, logCoef + Math.log(tm) - lnCut);
       if (!ks) continue;
-      const ckey = m.join(',');
+      const ckey = `${mm.join(',')}|${fkey}`;
       let F = grid.coefs.get(ckey);
       if (!F) {
         const n = grid.n;
-        const { zr, zi, re, im, lo, fr, Og } = grid;
-        // e^{2 pi i m.G(x)} on the grid: advanced by one step of the last
-        // Phi harmonic from the previous m when they differ by that, else
-        // recomputed
+        const { zr, zi, re, im, Og } = grid;
+        // e^{2 pi i m.G(x)} on the grid, advanced by one step of the last
+        // Phi harmonic from the previous recipe when they differ by that
         const last = grid.zm;
-        const rl = nP - 1;
-        if (last && (nP === 1 || last[0] === m[0]) && m[rl] === last[rl] + 1) {
+        const rl = nPhi - 1;
+        let step = !!last && grid.zf === fkey && mm[rl] === last[rl] + 1;
+        for (let i = 0; step && i < rl; i++) if (mm[i] !== last[i]) step = false;
+        if (step) {
           const sr = grid.wr[rl];
           const si = grid.wi[rl];
           for (let idx = 0; idx < n; idx++) {
@@ -3152,25 +3292,37 @@ export class Pixel {
         } else {
           for (let idx = 0; idx < n; idx++) {
             let ph = 0;
-            for (let r = 0; r < nP; r++) ph += TAU * m[r] * grid.Gg[r][idx];
-            zr[idx] = Math.cos(ph);
-            zi[idx] = Math.sin(ph);
+            for (let r = 0; r < nPhi; r++) ph += TAU * mm[r] * grid.Gg[r][idx];
+            const cph = Math.cos(ph);
+            const sph = Math.sin(ph);
+            // times the field pictures' phase
+            zr[idx] = cph * fph.re[idx] - sph * fph.im[idx];
+            zi[idx] = cph * fph.im[idx] + sph * fph.re[idx];
           }
         }
-        grid.zm = m.slice();
-        const { Tre, Tim, nCoef } = tables;
+        grid.zm = mm.slice();
+        grid.zf = fkey;
+        // the product of the tables at a_i(x), times the other closures
         for (let idx = 0; idx < n; idx++) {
-          const l = lo[idx] * nCoef + q;
-          const f = fr[idx];
-          const tr = (1 - f) * Tre[l] + f * Tre[l + nCoef];
-          const ti = (1 - f) * Tim[l] + f * Tim[l + nCoef];
-          const o = Og[idx];
-          re[idx] = o * (tr * zr[idx] - ti * zi[idx]);
-          im[idx] = o * (tr * zi[idx] + ti * zr[idx]);
+          let tr = Og[idx];
+          let ti = 0;
+          for (let pi = 0; pi < parts.length; pi++) {
+            const P = parts[pi];
+            if (!P.tables) continue;
+            const { Tre, Tim, nCoef } = P.tables;
+            const l = grid.los[pi][idx] * nCoef + qs[pi];
+            const f = grid.frs[pi][idx];
+            const r = (1 - f) * Tre[l] + f * Tre[l + nCoef];
+            const i = (1 - f) * Tim[l] + f * Tim[l + nCoef];
+            const nr = tr * r - ti * i;
+            ti = tr * i + ti * r;
+            tr = nr;
+          }
+          re[idx] = tr * zr[idx] - ti * zi[idx];
+          im[idx] = tr * zi[idx] + ti * zr[idx];
         }
         if (nXR === 1) fftInPlace(re, im);
         else fft2InPlace(re, im, NG);
-        const T = { re, im };
         const wn = nXR === 1 ? KWn : KWn * KWn;
         const Fre = new Float32Array(wn);
         const Fim = new Float32Array(wn);
@@ -3182,13 +3334,14 @@ export class Pixel {
             const ang = (-Math.PI * (kx + ky)) / NG;
             const ca = Math.cos(ang);
             const sa = Math.sin(ang);
-            const r0 = T.re[idx] / grid.n;
-            const i0 = T.im[idx] / grid.n;
+            const r0 = re[idx] / n;
+            const i0 = im[idx] / n;
             const w = nXR === 2 ? (kx + KW) * KWn + ky + KW : kx + KW;
             Fre[w] = r0 * ca - i0 * sa;
             Fim[w] = r0 * sa + i0 * ca;
           }
         F = { re: Fre, im: Fim };
+        if (grid.coefs.size > 20000) grid.coefs.clear();
         grid.coefs.set(ckey, F);
         this.stats.dfts++;
       }
@@ -3201,7 +3354,7 @@ export class Pixel {
           if (mag < 1e-13) continue;
           const r = kRates(R, kx, ky);
           if (logMult(r[0], r[1], r[2], r[3], r[4], cond) + logCoef + Math.log(mag) < lnCut) continue;
-          const ph2 = R.phase + this.axisPhase(S.X[xR[0]], kx) + (nXR === 2 ? this.axisPhase(S.X[xR[1]], ky) : 0);
+          const ph2 = R.phase + this.axisPhase(X[0], kx) + (nXR === 2 ? this.axisPhase(X[1], ky) : 0);
           const v = termExpectation(cjScaleC(cjScaleC(c, coefR, coefI), cr, ci), ph2, r[0], r[1], r[2], r[3], r[4], cond);
           this.stats.recipes++;
           acc += v[0];
@@ -3245,13 +3398,14 @@ export class Pixel {
     const resFn = (cs) => {
       const m = new Map(localCoords);
       residual.forEach((a, i) => m.set(a.id, cs[i]));
-      let ph = 0;
+      // the fields' phase is a jet: their coefficients vary across the pixel
+      let ph = J0;
       for (const { k, axis } of fields) {
         const per = axis.kind === 'edge' ? axis.edgePeriod : 1;
-        ph += (TAU * k * evalElement(axis.field, m).v) / per;
+        ph = ph.add(evalElement(axis.field, m).scale((TAU * k) / per));
       }
-      let re = Jet.c(Math.cos(ph));
-      let im = Jet.c(Math.sin(ph));
+      let re = ph.cos();
+      let im = ph.sin();
       for (const cl of clos) {
         const cs2 = cl.axes.map((a) => (localCoords.has(a.id) ? localCoords.get(a.id) : cs[residual.indexOf(a)]));
         const j = cl.fn(cs2);
@@ -3260,8 +3414,8 @@ export class Pixel {
       }
       return { re, im };
     };
-    if (fields.length === 0 && clos.some((cl) => cl.stepsum)) {
-      const v = this.stepsumSum(c, cr, ci, phi0, bx, by, q00, q01, q11, logCoef, residual, resGrads, resHess, resK, clos, cond, localCoords);
+    if (clos.some((cl) => cl.stepsum)) {
+      const v = this.stepsumSum(c, cr, ci, phi0, bx, by, q00, q01, q11, logCoef, residual, resGrads, resHess, resK, clos, fields, cond, localCoords);
       if (v !== null) return v;
     }
     if (residual.length === 0) {

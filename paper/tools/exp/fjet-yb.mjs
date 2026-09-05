@@ -211,6 +211,11 @@ const sinQuadratic = (O, I) => {
   const weight = O.fract(arg);
   const color = [weight, weight, O.const(1)];
   const { LN, spec } = lighting(O, normal, I.light, I.viewer, 25, true);
+  const PART = process.env.FJET_PART;
+  if (PART === 'spec') return [spec, spec, spec];
+  if (PART === 'LN') return [LN, LN, LN];
+  if (PART === 'w') return [weight, weight, weight];
+  if (PART === 'diff') return [O.mul(weight, LN), O.mul(weight, LN), O.mul(weight, LN)];
   return color.map((ch) => O.add(O.mul(ch, LN), spec));
 };
 
@@ -310,6 +315,11 @@ const CASES = [
   makeCase('fire', 'fire', 'none'),
   makeCase('checkerboardRipples', 'checkerboard', 'ripples'),
   makeCase('sinQuadraticRipples', 'sinQuadratic', 'ripples'),
+  // the remaining published comparisons of Yang and Barnes 2018
+  makeCase('zigzagRipples', 'zigzag', 'ripples'),
+  makeCase('fireBumps', 'fire', 'bumps'),
+  makeCase('colorCirclesBumps', 'colorCircles', 'bumps'),
+  makeCase('checkerboardBumps', 'checkerboard', 'bumps'),
 ];
 
 // ---------------------------------------------------------------------------
