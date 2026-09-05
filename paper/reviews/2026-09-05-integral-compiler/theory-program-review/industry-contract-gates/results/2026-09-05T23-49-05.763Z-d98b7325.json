@@ -1,0 +1,2950 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-09-05T23:49:05.763Z",
+  "provenance": {
+    "repoRevision": "722a1a3af0ed361433dbe0563421714a52e902fb",
+    "runtime": "v24.20.0",
+    "platform": "darwin",
+    "architecture": "arm64",
+    "runnerSources": {
+      "run.mjs": "d1a74b6debde3b2120233bcfdf25dca4bece91f33be213cfefc0e5320547b28e",
+      "radial-events.mjs": "b55feade1d7d883529b3ca7f9890c01f2ce9c8179cc0ec0a1baaa6b3f47f8dc9",
+      "source-remainder.mjs": "a8d10fb9bf422e1afc48364a6373813d00737203d38a3db7ec6ca3fc8210225c",
+      "composition.mjs": "b31e98605ed7613ddbcecad8058f709013fa1fdaf1f147e5a143af1df4e8cecb"
+    },
+    "candidateSource": {
+      "commit": "722a1a3af0ed361433dbe0563421714a52e902fb",
+      "sourcePath": "paper/tools/exp/theory-probes/band-enclosure.mjs",
+      "sha256": "dbc23684f80c13d8c37c95ed5cc1f1272b6f656e25d41eadf8487ebc4f203ec7",
+      "adapter": "named-pure-functions-v1"
+    }
+  },
+  "scope": "Independent CPU mathematical/semantic fixtures; only radial functions are loaded from the candidate.",
+  "summary": {
+    "candidateRadialAccepted": false,
+    "radialCases": 18,
+    "radialViolations": 6,
+    "sourceRemainderChecks": 11,
+    "sourceRemainderChecksPassed": 11,
+    "sourceRemainderSamples": 11596,
+    "compositionCases": 17,
+    "compositionChecks": 28,
+    "compositionChecksPassed": 28,
+    "historicalRadialFailureReproduced": true,
+    "legacySourceBoundViolationFactor": 4.618802153517005,
+    "status": "candidate-radial-contract-rejected"
+  },
+  "radial": {
+    "schemaVersion": 1,
+    "contract": {
+      "claim": "Both returned radial-event endpoints contain the strict-positive event mass.",
+      "source": "Explicit factored degree-zero through degree-three polynomials.",
+      "map": "Whitened Gaussian radius; no material or camera mapping.",
+      "jointWindow": "N(0,I2), radial density r exp(-r^2/2).",
+      "domain": {
+        "radius": [
+          0,
+          6
+        ],
+        "outsideMass": "Excluded from this inner-ball event test."
+      },
+      "norm": "Absolute probability error.",
+      "errorBudget": 0.002,
+      "workCap": "Historical candidate: 240 scan cells and 40 bisections per detected crossing; no GPU cost asserted.",
+      "expectedWitness": "Every real crossing and strict-zero plateau handled; unresolved neighborhoods retained.",
+      "reference": "Known factored roots and explicitly supplied positive intervals; analytic Gaussian radial integral.",
+      "numericalReferenceAllowance": 1e-10,
+      "convergence": "No sampling discretization; double-precision coefficient and exponential evaluation is not a formal certificate."
+    },
+    "candidate": {
+      "commit": "722a1a3af0ed361433dbe0563421714a52e902fb",
+      "sourcePath": "paper/tools/exp/theory-probes/band-enclosure.mjs",
+      "sha256": "dbc23684f80c13d8c37c95ed5cc1f1272b6f656e25d41eadf8487ebc4f203ec7",
+      "adapter": "named-pure-functions-v1"
+    },
+    "checks": {
+      "total": 18,
+      "violations": 6,
+      "candidateAccepted": false
+    },
+    "historicalFailureReproduced": true,
+    "cases": [
+      {
+        "id": "positive-constant",
+        "leading": 1,
+        "factoredRoots": [],
+        "polynomial": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "strictPositiveIntervals": [
+          [
+            0,
+            6
+          ]
+        ],
+        "reference": 0.9999999847700203,
+        "lower": 0.9999999847700203,
+        "upper": 0.9999999847700203,
+        "returnedRoots": [],
+        "lowerOverstatement": 0,
+        "upperUnderstatement": 0,
+        "status": "contained-with-diagnostic-allowance"
+      },
+      {
+        "id": "negative-constant",
+        "leading": -1,
+        "factoredRoots": [],
+        "polynomial": [
+          0,
+          0,
+          0,
+          -1
+        ],
+        "strictPositiveIntervals": [],
+        "reference": 0,
+        "lower": 0,
+        "upper": 0,
+        "returnedRoots": [],
+        "lowerOverstatement": 0,
+        "upperUnderstatement": 0,
+        "status": "contained-with-diagnostic-allowance"
+      },
+      {
+        "id": "strict-zero-plateau",
+        "leading": 0,
+        "factoredRoots": [],
+        "polynomial": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "strictPositiveIntervals": [],
+        "reference": 0,
+        "lower": 0,
+        "upper": 0,
+        "returnedRoots": [],
+        "lowerOverstatement": 0,
+        "upperUnderstatement": 0,
+        "status": "contained-with-diagnostic-allowance"
+      },
+      {
+        "id": "linear-positive",
+        "leading": 1,
+        "factoredRoots": [
+          2
+        ],
+        "polynomial": [
+          0,
+          0,
+          1,
+          -2
+        ],
+        "strictPositiveIntervals": [
+          [
+            2,
+            6
+          ]
+        ],
+        "reference": 0.13533526800663295,
+        "lower": 0.135335268006636,
+        "upper": 0.13533526800664517,
+        "returnedRoots": [
+          [
+            1.9999999999999774,
+            2
+          ]
+        ],
+        "lowerOverstatement": 3.0531133177191805e-15,
+        "upperUnderstatement": 0,
+        "status": "contained-with-diagnostic-allowance"
+      },
+      {
+        "id": "linear-negative",
+        "leading": -1,
+        "factoredRoots": [
+          2
+        ],
+        "polynomial": [
+          0,
+          0,
+          -1,
+          2
+        ],
+        "strictPositiveIntervals": [
+          [
+            0,
+            2
+          ]
+        ],
+        "reference": 0.8646647167633873,
+        "lower": 0.8646647167633904,
+        "upper": 0.8646647167633934,
+        "returnedRoots": [
+          [
+            2,
+            2.0000000000000226
+          ]
+        ],
+        "lowerOverstatement": 3.1086244689504383e-15,
+        "upperUnderstatement": 0,
+        "status": "contained-with-diagnostic-allowance"
+      },
+      {
+        "id": "root-at-origin",
+        "leading": 1,
+        "factoredRoots": [
+          0
+        ],
+        "polynomial": [
+          0,
+          0,
+          1,
+          0
+        ],
+        "strictPositiveIntervals": [
+          [
+            0,
+            6
+          ]
+        ],
+        "reference": 0.9999999847700203,
+        "lower": 0.9999999847700203,
+        "upper": 0.9999999847700203,
+        "returnedRoots": [],
+        "lowerOverstatement": 0,
+        "upperUnderstatement": 0,
+        "status": "contained-with-diagnostic-allowance"
+      },
+      {
+        "id": "root-at-boundary",
+        "leading": 1,
+        "factoredRoots": [
+          6
+        ],
+        "polynomial": [
+          0,
+          0,
+          1,
+          -6
+        ],
+        "strictPositiveIntervals": [],
+        "reference": 0,
+        "lower": 1.0257039595657543e-21,
+        "upper": 4.221929846470653e-21,
+        "returnedRoots": [
+          [
+            5.999999999999977,
+            6
+          ]
+        ],
+        "lowerOverstatement": 1.0257039595657543e-21,
+        "upperUnderstatement": 0,
+        "status": "contained-with-diagnostic-allowance"
+      },
+      {
+        "id": "quadratic-gap",
+        "leading": 1,
+        "factoredRoots": [
+          1,
+          2
+        ],
+        "polynomial": [
+          0,
+          1,
+          -3,
+          2
+        ],
+        "strictPositiveIntervals": [
+          [
+            0,
+            1
+          ],
+          [
+            2,
+            6
+          ]
+        ],
+        "reference": 0.5288046082939996,
+        "lower": 0.5288046082940094,
+        "upper": 0.5288046082940255,
+        "returnedRoots": [
+          [
+            1,
+            1.0000000000000226
+          ],
+          [
+            1.9999999999999774,
+            2
+          ]
+        ],
+        "lowerOverstatement": 9.880984919163893e-15,
+        "upperUnderstatement": 0,
+        "status": "contained-with-diagnostic-allowance"
+      },
+      {
+        "id": "quadratic-band",
+        "leading": -1,
+        "factoredRoots": [
+          1,
+          2
+        ],
+        "polynomial": [
+          0,
+          -1,
+          3,
+          -2
+        ],
+        "strictPositiveIntervals": [
+          [
+            1,
+            2
+          ]
+        ],
+        "reference": 0.4711953764760208,
+        "lower": 0.4711953764760307,
+        "upper": 0.47119537647605436,
+        "returnedRoots": [
+          [
+            0.9999999999999772,
+            1
+          ],
+          [
+            2,
+            2.0000000000000226
+          ]
+        ],
+        "lowerOverstatement": 9.936496070395151e-15,
+        "upperUnderstatement": 0,
+        "status": "contained-with-diagnostic-allowance"
+      },
+      {
+        "id": "quadratic-positive-tangency",
+        "leading": 1,
+        "factoredRoots": [
+          1,
+          1
+        ],
+        "polynomial": [
+          0,
+          1,
+          -2,
+          1
+        ],
+        "strictPositiveIntervals": [
+          [
+            0,
+            6
+          ]
+        ],
+        "reference": 0.9999999847700203,
+        "lower": 0.9999999847700203,
+        "upper": 0.9999999847700203,
+        "returnedRoots": [],
+        "lowerOverstatement": 0,
+        "upperUnderstatement": 0,
+        "status": "contained-with-diagnostic-allowance"
+      },
+      {
+        "id": "quadratic-negative-tangency",
+        "leading": -1,
+        "factoredRoots": [
+          1,
+          1
+        ],
+        "polynomial": [
+          0,
+          -1,
+          2,
+          -1
+        ],
+        "strictPositiveIntervals": [],
+        "reference": 0,
+        "lower": 9.263975142559389e-9,
+        "upper": 9.264002787112702e-9,
+        "returnedRoots": [
+          [
+            0.9999999921768676,
+            0.9999999921768904
+          ],
+          [
+            1.0000000074505806,
+            1.0000000074506032
+          ]
+        ],
+        "lowerOverstatement": 9.263975142559389e-9,
+        "upperUnderstatement": 0,
+        "status": "rejected"
+      },
+      {
+        "id": "negative-origin-and-tangency",
+        "leading": -1,
+        "factoredRoots": [
+          0,
+          1,
+          1
+        ],
+        "polynomial": [
+          -1,
+          2,
+          -1,
+          0
+        ],
+        "strictPositiveIntervals": [],
+        "reference": 0,
+        "lower": 9.263975142559389e-9,
+        "upper": 9.264002787112702e-9,
+        "returnedRoots": [
+          [
+            0,
+            2.2737367544323207e-14
+          ],
+          [
+            0.9999999921768676,
+            0.9999999921768904
+          ],
+          [
+            1.0000000074505806,
+            1.0000000074506032
+          ]
+        ],
+        "lowerOverstatement": 9.263975142559389e-9,
+        "upperUnderstatement": 0,
+        "status": "rejected"
+      },
+      {
+        "id": "cubic-disconnected",
+        "leading": 1,
+        "factoredRoots": [
+          0.6,
+          1.6,
+          3.2
+        ],
+        "polynomial": [
+          1,
+          -5.4,
+          8,
+          -3.072
+        ],
+        "strictPositiveIntervals": [
+          [
+            0.6,
+            1.6
+          ],
+          [
+            3.2,
+            6
+          ]
+        ],
+        "reference": 0.5632089186231041,
+        "lower": 0.5632089186230931,
+        "upper": 0.5632089186231158,
+        "returnedRoots": [
+          [
+            0.6,
+            0.6000000000000227
+          ],
+          [
+            1.5999999999999774,
+            1.6
+          ],
+          [
+            3.2,
+            3.200000000000023
+          ]
+        ],
+        "lowerOverstatement": 0,
+        "upperUnderstatement": 0,
+        "status": "contained-with-diagnostic-allowance"
+      },
+      {
+        "id": "cubic-disconnected-opposite",
+        "leading": -1,
+        "factoredRoots": [
+          0.6,
+          1.6,
+          3.2
+        ],
+        "polynomial": [
+          -1,
+          5.4,
+          -8,
+          3.072
+        ],
+        "strictPositiveIntervals": [
+          [
+            0,
+            0.6
+          ],
+          [
+            1.6,
+            3.2
+          ]
+        ],
+        "reference": 0.4367910661469161,
+        "lower": 0.4367910661469271,
+        "upper": 0.4367910661469481,
+        "returnedRoots": [
+          [
+            0.6,
+            0.6000000000000227
+          ],
+          [
+            1.5999999999999774,
+            1.6
+          ],
+          [
+            3.2,
+            3.200000000000023
+          ]
+        ],
+        "lowerOverstatement": 1.099120794378905e-14,
+        "upperUnderstatement": 0,
+        "status": "contained-with-diagnostic-allowance"
+      },
+      {
+        "id": "two-roots-in-one-cell-lower",
+        "leading": -1,
+        "factoredRoots": [
+          1.002,
+          1.023,
+          10
+        ],
+        "polynomial": [
+          -1,
+          12.025,
+          -21.275046,
+          10.250459999999999
+        ],
+        "strictPositiveIntervals": [
+          [
+            0,
+            1.002
+          ],
+          [
+            1.023,
+            6
+          ]
+        ],
+        "reference": 0.9872652848480943,
+        "lower": 0.9999999847700203,
+        "upper": 0.9999999847700203,
+        "returnedRoots": [],
+        "lowerOverstatement": 0.012734699921925996,
+        "upperUnderstatement": 0,
+        "status": "rejected"
+      },
+      {
+        "id": "two-roots-in-one-cell-upper",
+        "leading": 1,
+        "factoredRoots": [
+          1.002,
+          1.023,
+          10
+        ],
+        "polynomial": [
+          1,
+          -12.025,
+          21.275046,
+          -10.250459999999999
+        ],
+        "strictPositiveIntervals": [
+          [
+            1.002,
+            1.023
+          ]
+        ],
+        "reference": 0.012734699921925951,
+        "lower": 0,
+        "upper": 0,
+        "returnedRoots": [],
+        "lowerOverstatement": 0,
+        "upperUnderstatement": 0.012734699921925951,
+        "status": "rejected"
+      },
+      {
+        "id": "three-roots-in-one-cell",
+        "leading": 1,
+        "factoredRoots": [
+          1.002,
+          1.011,
+          1.023
+        ],
+        "polynomial": [
+          1,
+          -3.0359999999999996,
+          3.0723209999999996,
+          -1.0363215059999997
+        ],
+        "strictPositiveIntervals": [
+          [
+            1.002,
+            1.011
+          ],
+          [
+            1.023,
+            6
+          ]
+        ],
+        "reference": 0.5980413940593691,
+        "lower": 0.592582884859058,
+        "upper": 0.5925828848590785,
+        "returnedRoots": [
+          [
+            1.0229999999980914,
+            1.022999999998114
+          ]
+        ],
+        "lowerOverstatement": 0,
+        "upperUnderstatement": 0.005458509200290562,
+        "status": "rejected"
+      },
+      {
+        "id": "three-roots-in-one-cell-opposite",
+        "leading": -1,
+        "factoredRoots": [
+          1.002,
+          1.011,
+          1.023
+        ],
+        "polynomial": [
+          -1,
+          3.0359999999999996,
+          -3.0723209999999996,
+          1.0363215059999997
+        ],
+        "strictPositiveIntervals": [
+          [
+            0,
+            1.002
+          ],
+          [
+            1.011,
+            1.023
+          ]
+        ],
+        "reference": 0.40195859071065115,
+        "lower": 0.4074170999113621,
+        "upper": 0.4074170999113689,
+        "returnedRoots": [
+          [
+            1.022999999998751,
+            1.0229999999987736
+          ]
+        ],
+        "lowerOverstatement": 0.005458509200710948,
+        "upperUnderstatement": 0,
+        "status": "rejected"
+      }
+    ],
+    "limitations": [
+      "This is a radial inequality gate, not validation of full angular coverage or source remainders.",
+      "Known mathematical roots belong to the factored polynomial; its rounded coefficients need a separate numerical enclosure.",
+      "The 1e-10 diagnostic allowance is not a proved floating-point error bound.",
+      "No timing, shader, or general-material correctness follows from passing these fixtures."
+    ]
+  },
+  "sourceRemainder": {
+    "version": 1,
+    "contract": {
+      "source": "finite real sum of sinusoidal rational-affine phases; quadratic jet of the source, not sine of a quadratic phase",
+      "model": "amplitude * [sin(theta0)+cos(theta0)*(v-v*w)-sin(theta0)*v^2/2]",
+      "phaseIdentity": "Delta=v/(1+w); Delta-(v-v*w)=v*w^2/(1+w); Delta^2-v^2=-v^2*w*(2+w)/(1+w)^2",
+      "bound": "sum |amplitude| * [|cos(theta0)|*G*K^2/(1-rho) + |sin(theta0)|*G^2*K*(2+rho)/(2*(1-rho)^2) + G^3/(6*(1-rho)^3)]",
+      "domain": "closed whitened radius-R ball with rho=||w coefficients||*R<1",
+      "errorNorm": "absolute pointwise source remainder divided by r^3",
+      "mathematicalStatus": "derivation-based whole-ball bound in exact arithmetic, contingent on the declared source and coefficients",
+      "floatingStatus": "finite deterministic probe agreement only; no outward-rounded floating certificate",
+      "residualEvaluation": "stable trigonometric identities; Taylor series for sin(delta)-delta and cos(delta)-1+delta^2/2 when |delta|<0.5",
+      "probeTolerances": {
+        "ratioSlack": 1e-11,
+        "directScaledAbsolute": 1e-11,
+        "leadingRelative": 0.000001,
+        "offsetAbsolute": 1e-13
+      }
+    },
+    "cases": [
+      {
+        "descriptor": {
+          "version": 1,
+          "id": "legacy-mixed-third-counterexample",
+          "source": {
+            "type": "sum of amplitude * sin(k_s*s + k_t*t + phase)",
+            "components": [
+              {
+                "k": [
+                  0.01,
+                  0
+                ],
+                "phase": 1.5707963267948966,
+                "amplitude": 1
+              }
+            ]
+          },
+          "map": {
+            "type": "benchmark plane",
+            "equations": [
+              "s=-50*(x-240)/(y+1)",
+              "t=-12000/(y+1)"
+            ]
+          },
+          "window": {
+            "distribution": "Gaussian",
+            "mean": [
+              240,
+              9
+            ],
+            "whitening": [
+              [
+                0.5,
+                0
+              ],
+              [
+                0,
+                0.5
+              ]
+            ],
+            "covariance": [
+              [
+                0.25,
+                0
+              ],
+              [
+                0,
+                0.25
+              ]
+            ]
+          },
+          "domain": {
+            "coordinates": "whitened z",
+            "radius": 6
+          },
+          "errorNorm": "pointwise |source-quadratic source jet| <= C*||z||^3",
+          "expected": "pass",
+          "rationalComponents": [
+            {
+              "amplitude": 1,
+              "phase": 1.5707963267948966,
+              "numerator": {
+                "constant": 0,
+                "linear": [
+                  -0.25,
+                  0
+                ]
+              },
+              "denominator": {
+                "constant": 10,
+                "linear": [
+                  0,
+                  0.5
+                ]
+              }
+            }
+          ]
+        },
+        "result": {
+          "status": "bounded",
+          "C": 0.00008093415937803695,
+          "bounds": [
+            {
+              "status": "bounded",
+              "v": [
+                -0.025,
+                0
+              ],
+              "w": [
+                0,
+                0.05
+              ],
+              "G": 0.025,
+              "K": 0.05,
+              "rho": 0.30000000000000004,
+              "theta": 1.5707963267948966,
+              "C": 0.00008093415937803695,
+              "terms": [
+                5.4671732104792564e-21,
+                0.0000733418367346939,
+                0.000007592322643343055
+              ]
+            }
+          ],
+          "sampleCount": 1931,
+          "maxResidualOverBound": 0.20101658344660428,
+          "maxComponentResidualOverBound": 0.20101658344660428,
+          "maxDirectAgreementScaledError": 1.8681757982008034e-17,
+          "worst": {
+            "r": 6,
+            "angle": 5.595961914206819,
+            "residual": -0.0035141273716959224,
+            "allowance": 0.017481778425655983
+          },
+          "sampling": {
+            "radii": [
+              0,
+              0.000006,
+              0.0006000000000000001,
+              0.06,
+              0.30000000000000004,
+              0.6000000000000001,
+              1.5,
+              3,
+              4.5,
+              5.999994,
+              6
+            ],
+            "angularGridSize": 192,
+            "extraDirections": "toward each denominator pole",
+            "directComparisonMinimumRadius": 0.05
+          }
+        }
+      },
+      {
+        "descriptor": {
+          "version": 1,
+          "id": "offset-negative-amplitude",
+          "source": {
+            "type": "sum of amplitude * sin(k_s*s + k_t*t + phase)",
+            "components": [
+              {
+                "k": [
+                  0.03,
+                  -0.01
+                ],
+                "phase": 1.37,
+                "amplitude": -0.8
+              }
+            ]
+          },
+          "map": {
+            "type": "benchmark plane",
+            "equations": [
+              "s=-50*(x-240)/(y+1)",
+              "t=-12000/(y+1)"
+            ]
+          },
+          "window": {
+            "distribution": "Gaussian",
+            "mean": [
+              218,
+              17
+            ],
+            "whitening": [
+              [
+                0.5,
+                0
+              ],
+              [
+                0,
+                0.5
+              ]
+            ],
+            "covariance": [
+              [
+                0.25,
+                0
+              ],
+              [
+                0,
+                0.25
+              ]
+            ]
+          },
+          "domain": {
+            "coordinates": "whitened z",
+            "radius": 6
+          },
+          "errorNorm": "pointwise |source-quadratic source jet| <= C*||z||^3",
+          "expected": "pass",
+          "rationalComponents": [
+            {
+              "amplitude": -0.8,
+              "phase": 1.37,
+              "numerator": {
+                "constant": 153,
+                "linear": [
+                  -0.75,
+                  0
+                ]
+              },
+              "denominator": {
+                "constant": 18,
+                "linear": [
+                  0,
+                  0.5
+                ]
+              }
+            }
+          ]
+        },
+        "result": {
+          "status": "bounded",
+          "C": 0.004193981390814585,
+          "bounds": [
+            {
+              "status": "bounded",
+              "v": [
+                -0.041666666666666664,
+                -0.2361111111111111
+              ],
+              "w": [
+                0,
+                0.027777777777777776
+              ],
+              "G": 0.23975939585600095,
+              "K": 0.027777777777777776,
+              "rho": 0.16666666666666666,
+              "theta": 9.870000000000001,
+              "C": 0.004193981390814585,
+              "terms": [
+                0.00020035783948326038,
+                0.0010727689009745111,
+                0.003969349998060459
+              ]
+            }
+          ],
+          "sampleCount": 1931,
+          "maxResidualOverBound": 0.5914736914930575,
+          "maxComponentResidualOverBound": 0.5914736914930575,
+          "maxDirectAgreementScaledError": 1.4938545935242583e-16,
+          "worst": {
+            "r": 5.999994,
+            "angle": 4.581489286485115,
+            "residual": -0.5358143980937015,
+            "allowance": 0.9058972627187268
+          },
+          "sampling": {
+            "radii": [
+              0,
+              0.000006,
+              0.0006000000000000001,
+              0.06,
+              0.30000000000000004,
+              0.6000000000000001,
+              1.5,
+              3,
+              4.5,
+              5.999994,
+              6
+            ],
+            "angularGridSize": 192,
+            "extraDirections": "toward each denominator pole",
+            "directComparisonMinimumRadius": 0.05
+          }
+        }
+      },
+      {
+        "descriptor": {
+          "version": 1,
+          "id": "anisotropic-correlated-whitening",
+          "source": {
+            "type": "sum of amplitude * sin(k_s*s + k_t*t + phase)",
+            "components": [
+              {
+                "k": [
+                  0.1,
+                  -0.04
+                ],
+                "phase": 0.6,
+                "amplitude": 1
+              },
+              {
+                "k": [
+                  -0.08,
+                  0.02
+                ],
+                "phase": -2.2,
+                "amplitude": -0.8
+              },
+              {
+                "k": [
+                  0.013,
+                  0.007
+                ],
+                "phase": 1.8,
+                "amplitude": 0.6
+              }
+            ]
+          },
+          "map": {
+            "type": "benchmark plane",
+            "equations": [
+              "s=-50*(x-240)/(y+1)",
+              "t=-12000/(y+1)"
+            ]
+          },
+          "window": {
+            "distribution": "Gaussian",
+            "mean": [
+              205,
+              16
+            ],
+            "whitening": [
+              [
+                0.8,
+                0.3
+              ],
+              [
+                0.15,
+                0.22
+              ]
+            ],
+            "covariance": [
+              [
+                0.7300000000000001,
+                0.186
+              ],
+              [
+                0.186,
+                0.07089999999999999
+              ]
+            ]
+          },
+          "domain": {
+            "coordinates": "whitened z",
+            "radius": 6
+          },
+          "errorNorm": "pointwise |source-quadratic source jet| <= C*||z||^3",
+          "expected": "pass",
+          "rationalComponents": [
+            {
+              "amplitude": 1,
+              "phase": 0.6,
+              "numerator": {
+                "constant": 655,
+                "linear": [
+                  -4,
+                  -1.5
+                ]
+              },
+              "denominator": {
+                "constant": 17,
+                "linear": [
+                  0.15,
+                  0.22
+                ]
+              }
+            },
+            {
+              "amplitude": -0.8,
+              "phase": -2.2,
+              "numerator": {
+                "constant": -380,
+                "linear": [
+                  3.2,
+                  1.2
+                ]
+              },
+              "denominator": {
+                "constant": 17,
+                "linear": [
+                  0.15,
+                  0.22
+                ]
+              }
+            },
+            {
+              "amplitude": 0.6,
+              "phase": 1.8,
+              "numerator": {
+                "constant": -61.25,
+                "linear": [
+                  -0.52,
+                  -0.195
+                ]
+              },
+              "denominator": {
+                "constant": 17,
+                "linear": [
+                  0.15,
+                  0.22
+                ]
+              }
+            }
+          ]
+        },
+        "result": {
+          "status": "bounded",
+          "C": 0.16659523948063257,
+          "bounds": [
+            {
+              "status": "bounded",
+              "v": [
+                -0.5752595155709342,
+                -0.5868512110726644
+              ],
+              "w": [
+                0.008823529411764706,
+                0.012941176470588235
+              ],
+              "G": 0.8217772533919145,
+              "K": 0.015662972889052173,
+              "rho": 0.09397783733431303,
+              "theta": 39.129411764705885,
+              "C": 0.13775329795548827,
+              "terms": [
+                0.00003116012449682222,
+                0.013358151755620901,
+                0.12436398607537055
+              ]
+            },
+            {
+              "status": "bounded",
+              "v": [
+                0.3854671280276816,
+                0.3598615916955017
+              ],
+              "w": [
+                0.008823529411764706,
+                0.012941176470588235
+              ],
+              "G": 0.5273379106109564,
+              "K": 0.015662972889052173,
+              "rho": 0.09397783733431303,
+              "theta": -24.552941176470586,
+              "C": 0.028820340545012618,
+              "terms": [
+                0.00011945435801751514,
+                0.003043572041393877,
+                0.03286239928185438
+              ]
+            },
+            {
+              "status": "bounded",
+              "v": [
+                0.0012024221453287168,
+                0.03515570934256056
+              ],
+              "w": [
+                0.008823529411764706,
+                0.012941176470588235
+              ],
+              "G": 0.03517626640782357,
+              "K": 0.015662972889052173,
+              "rho": 0.09397783733431303,
+              "theta": -1.8029411764705883,
+              "C": 0.000021600980131670473,
+              "terms": [
+                0.0000021913439902602447,
+                0.00002405631741834854,
+                0.000009753972144175337
+              ]
+            }
+          ],
+          "sampleCount": 1951,
+          "maxResidualOverBound": 0.38994376371136036,
+          "maxComponentResidualOverBound": 0.6684823016587983,
+          "maxDirectAgreementScaledError": 1.6544251114936686e-16,
+          "worst": {
+            "r": 3,
+            "angle": 0.7853981633974483,
+            "residual": 1.7539949168857785,
+            "allowance": 4.4980714659770795
+          },
+          "sampling": {
+            "radii": [
+              0,
+              0.000006,
+              0.0006000000000000001,
+              0.06,
+              0.30000000000000004,
+              0.6000000000000001,
+              1.5,
+              3,
+              4.5,
+              5.999994,
+              6
+            ],
+            "angularGridSize": 192,
+            "extraDirections": "toward each denominator pole",
+            "directComparisonMinimumRadius": 0.05
+          }
+        }
+      },
+      {
+        "descriptor": {
+          "version": 1,
+          "id": "near-pole-valid",
+          "source": {
+            "type": "sum of amplitude * sin(k_s*s + k_t*t + phase)",
+            "components": [
+              {
+                "k": [
+                  0.01,
+                  0
+                ],
+                "phase": 1.5707963267948966,
+                "amplitude": 1
+              }
+            ]
+          },
+          "map": {
+            "type": "benchmark plane",
+            "equations": [
+              "s=-50*(x-240)/(y+1)",
+              "t=-12000/(y+1)"
+            ]
+          },
+          "window": {
+            "distribution": "Gaussian",
+            "mean": [
+              240,
+              2.1
+            ],
+            "whitening": [
+              [
+                0.5,
+                0
+              ],
+              [
+                0,
+                0.5
+              ]
+            ],
+            "covariance": [
+              [
+                0.25,
+                0
+              ],
+              [
+                0,
+                0.25
+              ]
+            ]
+          },
+          "domain": {
+            "coordinates": "whitened z",
+            "radius": 6
+          },
+          "errorNorm": "pointwise |source-quadratic source jet| <= C*||z||^3",
+          "expected": "pass",
+          "rationalComponents": [
+            {
+              "amplitude": 1,
+              "phase": 1.5707963267948966,
+              "numerator": {
+                "constant": 0,
+                "linear": [
+                  -0.25,
+                  0
+                ]
+              },
+              "denominator": {
+                "constant": 3.1,
+                "linear": [
+                  0,
+                  0.5
+                ]
+              }
+            }
+          ]
+        },
+        "result": {
+          "status": "bounded",
+          "C": 4.100004335761369,
+          "bounds": [
+            {
+              "status": "bounded",
+              "v": [
+                -0.08064516129032258,
+                0
+              ],
+              "w": [
+                0,
+                0.16129032258064516
+              ],
+              "G": 0.08064516129032258,
+              "K": 0.16129032258064516,
+              "rho": 0.967741935483871,
+              "theta": 1.5707963267948966,
+              "C": 4.100004335761369,
+              "terms": [
+                3.9823322032627285e-18,
+                1.4958376690946955,
+                2.604166666666673
+              ]
+            }
+          ],
+          "sampleCount": 1931,
+          "maxResidualOverBound": 0.0015064663859929188,
+          "maxComponentResidualOverBound": 0.0015064663859929188,
+          "maxDirectAgreementScaledError": 5.105748842188119e-16,
+          "worst": {
+            "r": 6,
+            "angle": 4.4505895925855405,
+            "residual": -1.3341280422779411,
+            "allowance": 885.6009365244557
+          },
+          "sampling": {
+            "radii": [
+              0,
+              0.000006,
+              0.0006000000000000001,
+              0.06,
+              0.30000000000000004,
+              0.6000000000000001,
+              1.5,
+              3,
+              4.5,
+              5.999994,
+              6
+            ],
+            "angularGridSize": 192,
+            "extraDirections": "toward each denominator pole",
+            "directComparisonMinimumRadius": 0.05
+          }
+        }
+      },
+      {
+        "descriptor": {
+          "version": 1,
+          "id": "negative-denominator-valid",
+          "source": {
+            "type": "sum of amplitude * sin(k_s*s + k_t*t + phase)",
+            "components": [
+              {
+                "k": [
+                  0.01,
+                  0
+                ],
+                "phase": 1.5707963267948966,
+                "amplitude": 1
+              }
+            ]
+          },
+          "map": {
+            "type": "benchmark plane",
+            "equations": [
+              "s=-50*(x-240)/(y+1)",
+              "t=-12000/(y+1)"
+            ]
+          },
+          "window": {
+            "distribution": "Gaussian",
+            "mean": [
+              240,
+              -11
+            ],
+            "whitening": [
+              [
+                0.5,
+                0
+              ],
+              [
+                0,
+                0.5
+              ]
+            ],
+            "covariance": [
+              [
+                0.25,
+                0
+              ],
+              [
+                0,
+                0.25
+              ]
+            ]
+          },
+          "domain": {
+            "coordinates": "whitened z",
+            "radius": 6
+          },
+          "errorNorm": "pointwise |source-quadratic source jet| <= C*||z||^3",
+          "expected": "pass",
+          "rationalComponents": [
+            {
+              "amplitude": 1,
+              "phase": 1.5707963267948966,
+              "numerator": {
+                "constant": 0,
+                "linear": [
+                  -0.25,
+                  0
+                ]
+              },
+              "denominator": {
+                "constant": -10,
+                "linear": [
+                  0,
+                  0.5
+                ]
+              }
+            }
+          ]
+        },
+        "result": {
+          "status": "bounded",
+          "C": 0.00008093415937803695,
+          "bounds": [
+            {
+              "status": "bounded",
+              "v": [
+                0.025,
+                0
+              ],
+              "w": [
+                0,
+                -0.05
+              ],
+              "G": 0.025,
+              "K": 0.05,
+              "rho": 0.30000000000000004,
+              "theta": 1.5707963267948966,
+              "C": 0.00008093415937803695,
+              "terms": [
+                5.4671732104792564e-21,
+                0.0000733418367346939,
+                0.000007592322643343055
+              ]
+            }
+          ],
+          "sampleCount": 1931,
+          "maxResidualOverBound": 0.20101658344660428,
+          "maxComponentResidualOverBound": 0.20101658344660428,
+          "maxDirectAgreementScaledError": 1.8933214279428587e-17,
+          "worst": {
+            "r": 6,
+            "angle": 2.454369260617026,
+            "residual": -0.0035141273716959224,
+            "allowance": 0.017481778425655983
+          },
+          "sampling": {
+            "radii": [
+              0,
+              0.000006,
+              0.0006000000000000001,
+              0.06,
+              0.30000000000000004,
+              0.6000000000000001,
+              1.5,
+              3,
+              4.5,
+              5.999994,
+              6
+            ],
+            "angularGridSize": 192,
+            "extraDirections": "toward each denominator pole",
+            "directComparisonMinimumRadius": 0.05
+          }
+        }
+      },
+      {
+        "descriptor": {
+          "version": 1,
+          "id": "pole-touch-decline",
+          "source": {
+            "type": "sum of amplitude * sin(k_s*s + k_t*t + phase)",
+            "components": [
+              {
+                "k": [
+                  0.01,
+                  0
+                ],
+                "phase": 1.5707963267948966,
+                "amplitude": 1
+              }
+            ]
+          },
+          "map": {
+            "type": "benchmark plane",
+            "equations": [
+              "s=-50*(x-240)/(y+1)",
+              "t=-12000/(y+1)"
+            ]
+          },
+          "window": {
+            "distribution": "Gaussian",
+            "mean": [
+              240,
+              2
+            ],
+            "whitening": [
+              [
+                0.5,
+                0
+              ],
+              [
+                0,
+                0.5
+              ]
+            ],
+            "covariance": [
+              [
+                0.25,
+                0
+              ],
+              [
+                0,
+                0.25
+              ]
+            ]
+          },
+          "domain": {
+            "coordinates": "whitened z",
+            "radius": 6
+          },
+          "errorNorm": "pointwise |source-quadratic source jet| <= C*||z||^3",
+          "expected": "decline",
+          "rationalComponents": [
+            {
+              "amplitude": 1,
+              "phase": 1.5707963267948966,
+              "numerator": {
+                "constant": 0,
+                "linear": [
+                  -0.25,
+                  0
+                ]
+              },
+              "denominator": {
+                "constant": 3,
+                "linear": [
+                  0,
+                  0.5
+                ]
+              }
+            }
+          ]
+        },
+        "result": {
+          "status": "declined",
+          "bounds": [
+            {
+              "status": "declined",
+              "reason": "rho >= 1: ball reaches denominator zero",
+              "rho": 1
+            }
+          ],
+          "sampleCount": 0
+        }
+      },
+      {
+        "descriptor": {
+          "version": 1,
+          "id": "pole-cross-decline",
+          "source": {
+            "type": "sum of amplitude * sin(k_s*s + k_t*t + phase)",
+            "components": [
+              {
+                "k": [
+                  0.01,
+                  0
+                ],
+                "phase": 1.5707963267948966,
+                "amplitude": 1
+              }
+            ]
+          },
+          "map": {
+            "type": "benchmark plane",
+            "equations": [
+              "s=-50*(x-240)/(y+1)",
+              "t=-12000/(y+1)"
+            ]
+          },
+          "window": {
+            "distribution": "Gaussian",
+            "mean": [
+              240,
+              1
+            ],
+            "whitening": [
+              [
+                0.5,
+                0
+              ],
+              [
+                0,
+                0.5
+              ]
+            ],
+            "covariance": [
+              [
+                0.25,
+                0
+              ],
+              [
+                0,
+                0.25
+              ]
+            ]
+          },
+          "domain": {
+            "coordinates": "whitened z",
+            "radius": 6
+          },
+          "errorNorm": "pointwise |source-quadratic source jet| <= C*||z||^3",
+          "expected": "decline",
+          "rationalComponents": [
+            {
+              "amplitude": 1,
+              "phase": 1.5707963267948966,
+              "numerator": {
+                "constant": 0,
+                "linear": [
+                  -0.25,
+                  0
+                ]
+              },
+              "denominator": {
+                "constant": 2,
+                "linear": [
+                  0,
+                  0.5
+                ]
+              }
+            }
+          ]
+        },
+        "result": {
+          "status": "declined",
+          "bounds": [
+            {
+              "status": "declined",
+              "reason": "rho >= 1: ball reaches denominator zero",
+              "rho": 1.5
+            }
+          ],
+          "sampleCount": 0
+        }
+      },
+      {
+        "descriptor": {
+          "version": 1,
+          "id": "affine-positive-control",
+          "source": {
+            "type": "-0.8*sin(affine phase)"
+          },
+          "map": {
+            "type": "affine phase in whitened coordinates",
+            "equation": "(0.4+0.2*zx-0.3*zy)/2+0.6"
+          },
+          "window": {
+            "distribution": "Gaussian",
+            "mean": [
+              0,
+              0
+            ],
+            "whitening": [
+              [
+                1,
+                0
+              ],
+              [
+                0,
+                1
+              ]
+            ],
+            "covariance": [
+              [
+                1,
+                0
+              ],
+              [
+                0,
+                1
+              ]
+            ]
+          },
+          "domain": {
+            "coordinates": "whitened z",
+            "radius": 6
+          },
+          "errorNorm": "pointwise |source-quadratic source jet| <= C*||z||^3",
+          "expected": "pass",
+          "rationalComponents": [
+            {
+              "amplitude": -0.8,
+              "phase": 0.6,
+              "numerator": {
+                "constant": 0.4,
+                "linear": [
+                  0.2,
+                  -0.3
+                ]
+              },
+              "denominator": {
+                "constant": 2,
+                "linear": [
+                  0,
+                  0
+                ]
+              }
+            }
+          ]
+        },
+        "result": {
+          "status": "bounded",
+          "C": 0.0007812027763505308,
+          "bounds": [
+            {
+              "status": "bounded",
+              "v": [
+                0.1,
+                -0.15
+              ],
+              "w": [
+                0,
+                0
+              ],
+              "G": 0.18027756377319945,
+              "K": 0,
+              "rho": 0,
+              "theta": 0.8,
+              "C": 0.0007812027763505308,
+              "terms": [
+                0,
+                0,
+                0.0009765034704381635
+              ]
+            }
+          ],
+          "sampleCount": 1921,
+          "maxResidualOverBound": 0.8436404893939082,
+          "maxComponentResidualOverBound": 0.8436404893939082,
+          "maxDirectAgreementScaledError": 9.205429387768687e-17,
+          "worst": {
+            "r": 6,
+            "angle": 2.159844949342983,
+            "residual": -0.1423557271921482,
+            "allowance": 0.16873979969171465
+          },
+          "sampling": {
+            "radii": [
+              0,
+              0.000006,
+              0.0006000000000000001,
+              0.06,
+              0.30000000000000004,
+              0.6000000000000001,
+              1.5,
+              3,
+              4.5,
+              5.999994,
+              6
+            ],
+            "angularGridSize": 192,
+            "extraDirections": "toward each denominator pole",
+            "directComparisonMinimumRadius": 0.05
+          }
+        }
+      }
+    ],
+    "counterexample": {
+      "descriptorId": "legacy-mixed-third-counterexample",
+      "direction": [
+        0.816496580927726,
+        0.5773502691896258
+      ],
+      "legacyC": 0.0000026041666666666674,
+      "exactLeadingCoefficient": 0.000012028130608117204,
+      "leadingViolationFactor": 4.618802153517005,
+      "finiteRadii": [
+        {
+          "r": 0.000001,
+          "residual": 1.2028130094517683e-23,
+          "coefficient": 0.000012028130094517684,
+          "legacyRatio": 4.6188019562947895,
+          "correctedRatio": 0.14861623555432577
+        },
+        {
+          "r": 0.0001,
+          "residual": 1.2028079248355618e-17,
+          "coefficient": 0.000012028079248355615,
+          "legacyRatio": 4.618782431368555,
+          "correctedRatio": 0.14861560731326587
+        },
+        {
+          "r": 0.001,
+          "residual": 1.2027617027791108e-14,
+          "coefficient": 0.000012027617027791107,
+          "legacyRatio": 4.618604938671783,
+          "correctedRatio": 0.14860989624431725
+        },
+        {
+          "r": 0.01,
+          "residual": 1.2022996533243607e-11,
+          "coefficient": 0.000012022996533243606,
+          "legacyRatio": 4.616830668765544,
+          "correctedRatio": 0.14855280669667742
+        },
+        {
+          "r": 0.1,
+          "residual": 1.1976962109342917e-8,
+          "coefficient": 0.000011976962109342914,
+          "legacyRatio": 4.599153449987678,
+          "correctedRatio": 0.1479840181375022
+        },
+        {
+          "r": 0.25,
+          "residual": 1.8595189328022307e-7,
+          "coefficient": 0.000011900921169934276,
+          "legacyRatio": 4.5699537292547605,
+          "correctedRatio": 0.14704447740472634
+        },
+        {
+          "r": 0.5,
+          "residual": 0.0000014720065210332019,
+          "coefficient": 0.000011776052168265615,
+          "legacyRatio": 4.522004032613995,
+          "correctedRatio": 0.14550163069292685
+        },
+        {
+          "r": 1,
+          "residual": 0.000011533100415192989,
+          "coefficient": 0.000011533100415192989,
+          "legacyRatio": 4.428710559434107,
+          "correctedRatio": 0.14249978629323626
+        }
+      ]
+    },
+    "checks": [
+      {
+        "id": "legacy-mixed-third-counterexample",
+        "passed": true,
+        "expectation": "pass"
+      },
+      {
+        "id": "offset-negative-amplitude",
+        "passed": true,
+        "expectation": "pass"
+      },
+      {
+        "id": "anisotropic-correlated-whitening",
+        "passed": true,
+        "expectation": "pass"
+      },
+      {
+        "id": "near-pole-valid",
+        "passed": true,
+        "expectation": "pass"
+      },
+      {
+        "id": "negative-denominator-valid",
+        "passed": true,
+        "expectation": "pass"
+      },
+      {
+        "id": "pole-touch-decline",
+        "passed": true,
+        "expectation": "decline"
+      },
+      {
+        "id": "pole-cross-decline",
+        "passed": true,
+        "expectation": "decline"
+      },
+      {
+        "id": "affine-positive-control",
+        "passed": true,
+        "expectation": "pass"
+      },
+      {
+        "id": "legacy-bound-fails-at-every-listed-radius",
+        "passed": true
+      },
+      {
+        "id": "stable-small-radius-limit-matches-exact-mixed-coefficient",
+        "passed": true
+      },
+      {
+        "id": "additive-phase-external-vs-absorbed-equivalence",
+        "passed": true,
+        "maxAbsoluteDifference": 1.7763568394002505e-15
+      }
+    ],
+    "passed": true,
+    "limitations": [
+      "The angular/radial sample set is finite and cannot prove a continuum bound or discover every implementation defect.",
+      "Stable residual evaluation still uses IEEE double arithmetic and platform trigonometry; its accuracy is not certified by interval arithmetic.",
+      "Ordinary direct subtraction is a secondary moderate-radius check, not a reliable reference for tiny residuals.",
+      "Pole-touching/crossing balls are declined; no bound is asserted there. Coverage, threshold topology, cubic root isolation, and pixel integration are not tested.",
+      "Coefficient rounding, shader arithmetic, Gaussian tail allocation, GPU behavior, performance, and general material graphs are outside these gates."
+    ]
+  },
+  "composition": {
+    "version": 1,
+    "passed": true,
+    "contract": {
+      "objective": "Preserve joint latent dependence when filtering material products; correct marginal means are insufficient.",
+      "measure": "One shared Gaussian X~N(mu,Sigma), with finite second moments; all phase rates are radians per coordinate unit.",
+      "exactIdentities": [
+        "E exp(i(k·X+p))=exp(i(k·mu+p)−k^T Sigma k/2).",
+        "E[FG]=E[F]E[G]+E[(F−E[F])(G−E[G])].",
+        "|E[FG]−E[F]E[G]|≤sqrt(Var(F)Var(G)); exact marginal means do not make these variances vanish.",
+        "For Gaussian affine coordinates, zero cross-covariance gives independence; an arbitrary coordinate change does not."
+      ],
+      "arithmetic": "Exact analytic identities evaluated with JavaScript binary64/Math transcendentals; checks allow3e-14 rounding slack. No interval-certified floating-point error bound is claimed.",
+      "industryConsequence": "Masks, albedo and lighting sharing coordinates need joint integration or a residual/covariance bound. Multiplying independently filtered factors can fail even when both input means are exact."
+    },
+    "cases": [
+      {
+        "name": "sine-aligned",
+        "source": {
+          "gaussian": {
+            "mean": [
+              0,
+              0
+            ],
+            "covariance": [
+              [
+                1,
+                0
+              ],
+              [
+                0,
+                1
+              ]
+            ]
+          },
+          "left": {
+            "kind": "sin",
+            "rate": [
+              1,
+              0
+            ],
+            "phase": 0
+          },
+          "right": {
+            "kind": "sin",
+            "rate": [
+              1,
+              0
+            ],
+            "phase": 0
+          }
+        },
+        "exactFormula": "Gaussian characteristic function plus exact product-to-sum identities; variances are E[f²]−E[f]².",
+        "evaluation": {
+          "means": [
+            0,
+            0
+          ],
+          "seconds": [
+            0.43233235838169365,
+            0.43233235838169365
+          ],
+          "product": 0.43233235838169365,
+          "marginalSubstitution": 0,
+          "signedSubstitutionError": 0.43233235838169365,
+          "residualL2": [
+            0.6575198539828996,
+            0.6575198539828996
+          ],
+          "cauchySchwarzBound": 0.4323323583816936,
+          "marginalMeanErrorsOfConstantModels": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "name": "sine-antialigned",
+        "source": {
+          "gaussian": {
+            "mean": [
+              0,
+              0
+            ],
+            "covariance": [
+              [
+                1,
+                0
+              ],
+              [
+                0,
+                1
+              ]
+            ]
+          },
+          "left": {
+            "kind": "sin",
+            "rate": [
+              1,
+              0
+            ],
+            "phase": 0
+          },
+          "right": {
+            "kind": "sin",
+            "rate": [
+              -1,
+              0
+            ],
+            "phase": 0
+          }
+        },
+        "exactFormula": "Gaussian characteristic function plus exact product-to-sum identities; variances are E[f²]−E[f]².",
+        "evaluation": {
+          "means": [
+            0,
+            0
+          ],
+          "seconds": [
+            0.43233235838169365,
+            0.43233235838169365
+          ],
+          "product": -0.43233235838169365,
+          "marginalSubstitution": 0,
+          "signedSubstitutionError": -0.43233235838169365,
+          "residualL2": [
+            0.6575198539828996,
+            0.6575198539828996
+          ],
+          "cauchySchwarzBound": 0.4323323583816936,
+          "marginalMeanErrorsOfConstantModels": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "name": "sine-orthogonal-latents",
+        "source": {
+          "gaussian": {
+            "mean": [
+              0,
+              0
+            ],
+            "covariance": [
+              [
+                1,
+                0
+              ],
+              [
+                0,
+                1
+              ]
+            ]
+          },
+          "left": {
+            "kind": "sin",
+            "rate": [
+              1,
+              0
+            ],
+            "phase": 0
+          },
+          "right": {
+            "kind": "sin",
+            "rate": [
+              0,
+              1
+            ],
+            "phase": 0
+          }
+        },
+        "exactFormula": "Gaussian characteristic function plus exact product-to-sum identities; variances are E[f²]−E[f]².",
+        "evaluation": {
+          "means": [
+            0,
+            0
+          ],
+          "seconds": [
+            0.43233235838169365,
+            0.43233235838169365
+          ],
+          "product": 0,
+          "marginalSubstitution": 0,
+          "signedSubstitutionError": 0,
+          "residualL2": [
+            0.6575198539828996,
+            0.6575198539828996
+          ],
+          "cauchySchwarzBound": 0.4323323583816936,
+          "marginalMeanErrorsOfConstantModels": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "name": "cosine-aligned",
+        "source": {
+          "gaussian": {
+            "mean": [
+              0,
+              0
+            ],
+            "covariance": [
+              [
+                1,
+                0
+              ],
+              [
+                0,
+                1
+              ]
+            ]
+          },
+          "left": {
+            "kind": "cos",
+            "rate": [
+              1,
+              0
+            ],
+            "phase": 0
+          },
+          "right": {
+            "kind": "cos",
+            "rate": [
+              1,
+              0
+            ],
+            "phase": 0
+          }
+        },
+        "exactFormula": "Gaussian characteristic function plus exact product-to-sum identities; variances are E[f²]−E[f]².",
+        "evaluation": {
+          "means": [
+            0.6065306597126334,
+            0.6065306597126334
+          ],
+          "seconds": [
+            0.5676676416183064,
+            0.5676676416183064
+          ],
+          "product": 0.5676676416183064,
+          "marginalSubstitution": 0.36787944117144233,
+          "signedSubstitutionError": 0.19978820044686407,
+          "residualL2": [
+            0.44697673367510316,
+            0.44697673367510316
+          ],
+          "cauchySchwarzBound": 0.1997882004468641,
+          "marginalMeanErrorsOfConstantModels": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "name": "cosine-independent",
+        "source": {
+          "gaussian": {
+            "mean": [
+              0,
+              0
+            ],
+            "covariance": [
+              [
+                1,
+                0
+              ],
+              [
+                0,
+                1
+              ]
+            ]
+          },
+          "left": {
+            "kind": "cos",
+            "rate": [
+              1,
+              0
+            ],
+            "phase": 0
+          },
+          "right": {
+            "kind": "cos",
+            "rate": [
+              0,
+              1
+            ],
+            "phase": 0
+          }
+        },
+        "exactFormula": "Gaussian characteristic function plus exact product-to-sum identities; variances are E[f²]−E[f]².",
+        "evaluation": {
+          "means": [
+            0.6065306597126334,
+            0.6065306597126334
+          ],
+          "seconds": [
+            0.5676676416183064,
+            0.5676676416183064
+          ],
+          "product": 0.36787944117144233,
+          "marginalSubstitution": 0.36787944117144233,
+          "signedSubstitutionError": 0,
+          "residualL2": [
+            0.44697673367510316,
+            0.44697673367510316
+          ],
+          "cauchySchwarzBound": 0.1997882004468641,
+          "marginalMeanErrorsOfConstantModels": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "name": "mixed-sine-cosine",
+        "source": {
+          "gaussian": {
+            "mean": [
+              0,
+              0
+            ],
+            "covariance": [
+              [
+                1,
+                0
+              ],
+              [
+                0,
+                1
+              ]
+            ]
+          },
+          "left": {
+            "kind": "sin",
+            "rate": [
+              1,
+              0
+            ],
+            "phase": 0
+          },
+          "right": {
+            "kind": "cos",
+            "rate": [
+              1,
+              0
+            ],
+            "phase": 1.5707963267948966
+          }
+        },
+        "exactFormula": "Gaussian characteristic function plus exact product-to-sum identities; variances are E[f²]−E[f]².",
+        "evaluation": {
+          "means": [
+            0,
+            3.713929155009045e-17
+          ],
+          "seconds": [
+            0.43233235838169365,
+            0.43233235838169365
+          ],
+          "product": -0.43233235838169365,
+          "marginalSubstitution": 0,
+          "signedSubstitutionError": -0.43233235838169365,
+          "residualL2": [
+            0.6575198539828996,
+            0.6575198539828996
+          ],
+          "cauchySchwarzBound": 0.4323323583816936,
+          "marginalMeanErrorsOfConstantModels": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "name": "sign-aligned",
+        "source": {
+          "gaussian": {
+            "mean": [
+              0,
+              0
+            ],
+            "covariance": [
+              [
+                1,
+                0
+              ],
+              [
+                0,
+                1
+              ]
+            ]
+          },
+          "left": "sign(X0)",
+          "rightRate": [
+            1,
+            0
+          ]
+        },
+        "exactFormula": "sign(X0)²=1 a.s.; sign(−X0)=−sign(X0); X0 and X1 independent.",
+        "evaluation": {
+          "means": [
+            0,
+            0
+          ],
+          "seconds": [
+            1,
+            1
+          ],
+          "product": 1,
+          "marginalSubstitution": 0,
+          "signedSubstitutionError": 1,
+          "residualL2": [
+            1,
+            1
+          ],
+          "cauchySchwarzBound": 1,
+          "marginalMeanErrorsOfConstantModels": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "name": "binary-mask-aligned",
+        "source": {
+          "map": "(1+sign)/2",
+          "latentRelation": "aligned"
+        },
+        "exactFormula": "E[((1+F)/2)((1+G)/2)] = (1+E[F]+E[G]+E[FG])/4.",
+        "evaluation": {
+          "means": [
+            0.5,
+            0.5
+          ],
+          "seconds": [
+            0.5,
+            0.5
+          ],
+          "product": 0.5,
+          "marginalSubstitution": 0.25,
+          "signedSubstitutionError": 0.25,
+          "residualL2": [
+            0.5,
+            0.5
+          ],
+          "cauchySchwarzBound": 0.25,
+          "marginalMeanErrorsOfConstantModels": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "name": "sign-antialigned",
+        "source": {
+          "gaussian": {
+            "mean": [
+              0,
+              0
+            ],
+            "covariance": [
+              [
+                1,
+                0
+              ],
+              [
+                0,
+                1
+              ]
+            ]
+          },
+          "left": "sign(X0)",
+          "rightRate": [
+            -1,
+            0
+          ]
+        },
+        "exactFormula": "sign(X0)²=1 a.s.; sign(−X0)=−sign(X0); X0 and X1 independent.",
+        "evaluation": {
+          "means": [
+            0,
+            0
+          ],
+          "seconds": [
+            1,
+            1
+          ],
+          "product": -1,
+          "marginalSubstitution": 0,
+          "signedSubstitutionError": -1,
+          "residualL2": [
+            1,
+            1
+          ],
+          "cauchySchwarzBound": 1,
+          "marginalMeanErrorsOfConstantModels": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "name": "binary-mask-antialigned",
+        "source": {
+          "map": "(1+sign)/2",
+          "latentRelation": "antialigned"
+        },
+        "exactFormula": "E[((1+F)/2)((1+G)/2)] = (1+E[F]+E[G]+E[FG])/4.",
+        "evaluation": {
+          "means": [
+            0.5,
+            0.5
+          ],
+          "seconds": [
+            0.5,
+            0.5
+          ],
+          "product": 0,
+          "marginalSubstitution": 0.25,
+          "signedSubstitutionError": -0.25,
+          "residualL2": [
+            0.5,
+            0.5
+          ],
+          "cauchySchwarzBound": 0.25,
+          "marginalMeanErrorsOfConstantModels": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "name": "sign-independent",
+        "source": {
+          "gaussian": {
+            "mean": [
+              0,
+              0
+            ],
+            "covariance": [
+              [
+                1,
+                0
+              ],
+              [
+                0,
+                1
+              ]
+            ]
+          },
+          "left": "sign(X0)",
+          "rightRate": [
+            0,
+            1
+          ]
+        },
+        "exactFormula": "sign(X0)²=1 a.s.; sign(−X0)=−sign(X0); X0 and X1 independent.",
+        "evaluation": {
+          "means": [
+            0,
+            0
+          ],
+          "seconds": [
+            1,
+            1
+          ],
+          "product": 0,
+          "marginalSubstitution": 0,
+          "signedSubstitutionError": 0,
+          "residualL2": [
+            1,
+            1
+          ],
+          "cauchySchwarzBound": 1,
+          "marginalMeanErrorsOfConstantModels": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "name": "binary-mask-independent",
+        "source": {
+          "map": "(1+sign)/2",
+          "latentRelation": "independent"
+        },
+        "exactFormula": "E[((1+F)/2)((1+G)/2)] = (1+E[F]+E[G]+E[FG])/4.",
+        "evaluation": {
+          "means": [
+            0.5,
+            0.5
+          ],
+          "seconds": [
+            0.5,
+            0.5
+          ],
+          "product": 0.25,
+          "marginalSubstitution": 0.25,
+          "signedSubstitutionError": 0,
+          "residualL2": [
+            0.5,
+            0.5
+          ],
+          "cauchySchwarzBound": 0.25,
+          "marginalMeanErrorsOfConstantModels": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "name": "anisotropic-covariance-orthogonal",
+        "source": {
+          "gaussian": {
+            "mean": [
+              0,
+              0
+            ],
+            "covariance": [
+              [
+                4,
+                1
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          },
+          "left": {
+            "kind": "cos",
+            "rate": [
+              0.5,
+              0
+            ],
+            "phase": 0
+          },
+          "right": {
+            "kind": "cos",
+            "rate": [
+              -0.2886751345948129,
+              1.1547005383792517
+            ],
+            "phase": 0
+          }
+        },
+        "exactFormula": "Gaussian characteristic function plus exact product-to-sum identities; variances are E[f²]−E[f]².",
+        "evaluation": {
+          "means": [
+            0.6065306597126334,
+            0.6065306597126333
+          ],
+          "seconds": [
+            0.5676676416183064,
+            0.5676676416183063
+          ],
+          "product": 0.3678794411714423,
+          "marginalSubstitution": 0.3678794411714423,
+          "signedSubstitutionError": 0,
+          "residualL2": [
+            0.44697673367510316,
+            0.4469767336751032
+          ],
+          "cauchySchwarzBound": 0.19978820044686413,
+          "marginalMeanErrorsOfConstantModels": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "name": "anisotropic-euclidean-orthogonal",
+        "source": {
+          "gaussian": {
+            "mean": [
+              0,
+              0
+            ],
+            "covariance": [
+              [
+                4,
+                1
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          },
+          "left": {
+            "kind": "cos",
+            "rate": [
+              0.5,
+              0
+            ],
+            "phase": 0
+          },
+          "right": {
+            "kind": "cos",
+            "rate": [
+              0,
+              1
+            ],
+            "phase": 0
+          }
+        },
+        "exactFormula": "Gaussian characteristic function plus exact product-to-sum identities; variances are E[f²]−E[f]².",
+        "evaluation": {
+          "means": [
+            0.6065306597126334,
+            0.6065306597126334
+          ],
+          "seconds": [
+            0.5676676416183064,
+            0.5676676416183064
+          ],
+          "product": 0.4148304099305316,
+          "marginalSubstitution": 0.36787944117144233,
+          "signedSubstitutionError": 0.04695096875908927,
+          "residualL2": [
+            0.44697673367510316,
+            0.44697673367510316
+          ],
+          "cauchySchwarzBound": 0.1997882004468641,
+          "marginalMeanErrorsOfConstantModels": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "name": "affine-warp-pulled-back",
+        "source": {
+          "gaussian": {
+            "mean": [
+              0.25,
+              -0.5
+            ],
+            "covariance": [
+              [
+                0.8,
+                0.25
+              ],
+              [
+                0.25,
+                1.4
+              ]
+            ]
+          },
+          "left": {
+            "kind": "sin",
+            "rate": [
+              1.4500000000000002,
+              1.1
+            ],
+            "phase": -0.08000000000000002
+          },
+          "right": {
+            "kind": "cos",
+            "rate": [
+              -0.050000000000000044,
+              -0.8999999999999999
+            ],
+            "phase": -0.08000000000000007
+          }
+        },
+        "exactFormula": "Gaussian characteristic function plus exact product-to-sum identities; variances are E[f²]−E[f]².",
+        "evaluation": {
+          "means": [
+            -0.032799555013614645,
+            0.5248920807070573
+          ],
+          "seconds": [
+            0.4998980122407717,
+            0.5372143358501172
+          ],
+          "product": 0.015186251492829442,
+          "marginalSubstitution": -0.017216226677361782,
+          "signedSubstitutionError": 0.03240247817019122,
+          "residualL2": [
+            0.7062734608009,
+            0.511568802275054
+          ],
+          "cauchySchwarzBound": 0.3613074684205737,
+          "marginalMeanErrorsOfConstantModels": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "name": "affine-warp-pushed-measure",
+        "source": {
+          "gaussian": {
+            "mean": [
+              -0.2,
+              1.025
+            ],
+            "covariance": [
+              [
+                5.6,
+                -0.9749999999999999
+              ],
+              [
+                -0.9749999999999999,
+                1.3499999999999999
+              ]
+            ]
+          },
+          "left": {
+            "kind": "sin",
+            "rate": [
+              0.8,
+              -0.3
+            ],
+            "phase": 0.2
+          },
+          "right": {
+            "kind": "cos",
+            "rate": [
+              -0.2,
+              0.7
+            ],
+            "phase": -0.4
+          }
+        },
+        "exactFormula": "Gaussian characteristic function plus exact product-to-sum identities; variances are E[f²]−E[f]².",
+        "evaluation": {
+          "means": [
+            -0.03279955501361465,
+            0.5248920807070572
+          ],
+          "seconds": [
+            0.4998980122407717,
+            0.5372143358501172
+          ],
+          "product": 0.015186251492829447,
+          "marginalSubstitution": -0.017216226677361782,
+          "signedSubstitutionError": 0.03240247817019123,
+          "residualL2": [
+            0.7062734608009,
+            0.5115688022750541
+          ],
+          "cauchySchwarzBound": 0.36130746842057376,
+          "marginalMeanErrorsOfConstantModels": [
+            0,
+            0
+          ]
+        },
+        "coordinateContract": {
+          "A": [
+            [
+              2,
+              1
+            ],
+            [
+              0.5,
+              -1
+            ]
+          ],
+          "offset": [
+            -0.2,
+            0.4
+          ],
+          "exact": "Y=A X+b: k_pull=A^T k, phase_pull=phase+k·b; mu_Y=A mu+b, Sigma_Y=A Sigma A^T."
+        }
+      },
+      {
+        "name": "general-model-residual-bound",
+        "source": "F=G=sin(X0); Fhat=.8F+.1; Ghat=.6G−.2",
+        "exactFormula": "|E[FG−Fhat Ghat]| ≤ ||r||2||Ghat||2 + ||s||2||Fhat||2 + ||r||2||s||2, r=F−Fhat, s=G−Ghat.",
+        "evaluation": {
+          "product": 0.43233235838169365,
+          "modelProduct": 0.18751953202321295,
+          "absoluteError": 0.2448128263584807,
+          "residualL2": [
+            0.1652068229077351,
+            0.3304136458154702
+          ],
+          "modelL2": [
+            0.5354369331343178,
+            0.4423117102422337
+          ],
+          "correctBound": 0.30457517023570574,
+          "invalidResidualOnlyBound": 0.0545865886705355
+        }
+      }
+    ],
+    "checks": [
+      {
+        "name": "sine-aligned: centered residual product bound",
+        "passed": true,
+        "evidence": {
+          "absoluteError": 0.43233235838169365,
+          "bound": 0.4323323583816936
+        }
+      },
+      {
+        "name": "sine-antialigned: centered residual product bound",
+        "passed": true,
+        "evidence": {
+          "absoluteError": 0.43233235838169365,
+          "bound": 0.4323323583816936
+        }
+      },
+      {
+        "name": "sine-orthogonal-latents: centered residual product bound",
+        "passed": true,
+        "evidence": {
+          "absoluteError": 0,
+          "bound": 0.4323323583816936
+        }
+      },
+      {
+        "name": "same zero sine means permit positive, negative, or zero products",
+        "passed": true
+      },
+      {
+        "name": "aligned sine reaches the Cauchy-Schwarz bound",
+        "passed": true
+      },
+      {
+        "name": "exact marginal means alone do not control product error",
+        "passed": true
+      },
+      {
+        "name": "cosine-aligned: centered residual product bound",
+        "passed": true,
+        "evidence": {
+          "absoluteError": 0.19978820044686407,
+          "bound": 0.1997882004468641
+        }
+      },
+      {
+        "name": "cosine-independent: centered residual product bound",
+        "passed": true,
+        "evidence": {
+          "absoluteError": 0,
+          "bound": 0.1997882004468641
+        }
+      },
+      {
+        "name": "equal nonzero cosine means also fail to determine the product",
+        "passed": true
+      },
+      {
+        "name": "mixed-sine-cosine: centered residual product bound",
+        "passed": true,
+        "evidence": {
+          "absoluteError": 0.43233235838169365,
+          "bound": 0.4323323583816936
+        }
+      },
+      {
+        "name": "mixed product phase and sign",
+        "passed": true
+      },
+      {
+        "name": "sign-aligned: centered residual product bound",
+        "passed": true,
+        "evidence": {
+          "absoluteError": 1,
+          "bound": 1
+        }
+      },
+      {
+        "name": "binary-mask-aligned: centered residual product bound",
+        "passed": true,
+        "evidence": {
+          "absoluteError": 0.25,
+          "bound": 0.25
+        }
+      },
+      {
+        "name": "aligned: exact bounded mask/sign values",
+        "passed": true
+      },
+      {
+        "name": "sign-antialigned: centered residual product bound",
+        "passed": true,
+        "evidence": {
+          "absoluteError": 1,
+          "bound": 1
+        }
+      },
+      {
+        "name": "binary-mask-antialigned: centered residual product bound",
+        "passed": true,
+        "evidence": {
+          "absoluteError": 0.25,
+          "bound": 0.25
+        }
+      },
+      {
+        "name": "antialigned: exact bounded mask/sign values",
+        "passed": true
+      },
+      {
+        "name": "sign-independent: centered residual product bound",
+        "passed": true,
+        "evidence": {
+          "absoluteError": 0,
+          "bound": 1
+        }
+      },
+      {
+        "name": "binary-mask-independent: centered residual product bound",
+        "passed": true,
+        "evidence": {
+          "absoluteError": 0,
+          "bound": 0.25
+        }
+      },
+      {
+        "name": "independent: exact bounded mask/sign values",
+        "passed": true
+      },
+      {
+        "name": "anisotropic-covariance-orthogonal: centered residual product bound",
+        "passed": true,
+        "evidence": {
+          "absoluteError": 0,
+          "bound": 0.19978820044686413
+        }
+      },
+      {
+        "name": "anisotropic-euclidean-orthogonal: centered residual product bound",
+        "passed": true,
+        "evidence": {
+          "absoluteError": 0.04695096875908927,
+          "bound": 0.1997882004468641
+        }
+      },
+      {
+        "name": "independence uses k^T Sigma l, not Euclidean direction",
+        "passed": true
+      },
+      {
+        "name": "affine-warp-pulled-back: centered residual product bound",
+        "passed": true,
+        "evidence": {
+          "absoluteError": 0.03240247817019122,
+          "bound": 0.3613074684205737
+        }
+      },
+      {
+        "name": "affine-warp-pushed-measure: centered residual product bound",
+        "passed": true,
+        "evidence": {
+          "absoluteError": 0.03240247817019123,
+          "bound": 0.36130746842057376
+        }
+      },
+      {
+        "name": "affine coordinate change preserves joint means and product",
+        "passed": true
+      },
+      {
+        "name": "general product error obeys all three Cauchy-Schwarz terms",
+        "passed": true
+      },
+      {
+        "name": "dropping mixed model/residual terms would be false",
+        "passed": true
+      }
+    ],
+    "limits": [
+      "These gates cover finite affine Gaussian trigonometric factors and centered sign/mask examples, not general BSDFs, textures, visibility, non-Gaussian footprints or nonlinear warps.",
+      "The general residual theorem requires proven or conservative L2 residual/model norms under the SAME measure. Marginal mean error and a few point probes do not supply those norms.",
+      "No shader emitter, runtime budget, ray footprint transport, temporal reconstruction, discontinuity integrator or GPU performance is established here.",
+      "Exact means of a source and a surrogate do not establish their pointwise correlation, so an accurate analytic mean alone does not justify a useful control variate."
+    ]
+  },
+  "limitations": [
+    "Passing this package does not certify a shader, general material lowering, or an outward-rounded implementation.",
+    "Source-remainder and composition modules define independent contracts; they are not candidate compiler integrations.",
+    "No GPU timing, reference rendering, temporal reconstruction, or industry material coverage is established.",
+    "Use the immutable candidate revision and source hashes; the working repository may contain concurrent author changes."
+  ]
+}
