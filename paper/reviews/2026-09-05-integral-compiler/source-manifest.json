@@ -1,0 +1,10 @@
+{
+  "reviewDate": "2026-09-05",
+  "headAtPackaging": "cb7c7e0a3009eeb36696bca320e72402f9bd516e",
+  "sourceSha256": {
+    "paper/tools/exp/fjet.mjs": "77e986c50226f0510b0b3f82d960b009cfc26599167e10a17eb6989097ccd034",
+    "paper/tools/exp/fjet-yb.mjs": "083500fbd6577dfe3669803b6f954ff7b97f800b569cd3c7f39e89f3c4281f3f",
+    "paper/tools/exp/fjet-exacty.mjs": "1b2df24f738123b6def741ebe53f88ad21792bd9af3aab061dab914d1e26813e"
+  },
+  "note": "Hashes record source at packaging. Included JSONL files preserve the original exploratory runs; timings depend on the machine. Only review-package files were added or edited."
+}

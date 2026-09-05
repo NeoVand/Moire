@@ -445,6 +445,7 @@ const oursPixelSplit = (cs, x, y, stats, n, ratio) => {
 const oursPixel = (cs, x, y, stats) => (SPLIT ? oursPixelSplit(cs, x, y, stats, SPLIT, SPLIT_RATIO) : oursPixelAt(cs, x, y, stats, SIG));
 const oursPixelAt = (cs, x, y, stats, sig) => {
   F.resetAxes();
+  F.setTraceReach(6 * sig);
   const px = new Pixel(sig, 1e-4);
   if (process.env.FJET_PANEL) px.localPanel = Number(process.env.FJET_PANEL);
   if (process.env.FJET_PANEL_B) px.localPanelB = Number(process.env.FJET_PANEL_B);

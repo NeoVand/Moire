@@ -125,10 +125,16 @@ const cjScaleC = (a, re, im) => cj(a.re.scale(re).sub(a.im.scale(im)), a.re.scal
 const DEBUG = !!process.env.FJET_DEBUG;
 let axisCounter = 0;
 const axisRegistry = new Map();
-const axisKey = (count, field, kind) => {
-  const r = (v) => (Math.abs(v) < 1e-300 ? '0' : v.toPrecision(12));
-  return `${kind}|${r(count.v)},${r(count.gx)},${r(count.gy)},${r(count.hxx)},${r(count.hxy)},${r(count.hyy)}|${field ? elementSig(field) : ''}`;
-};
+// Identity of a represented expression is lossless: a count is its six jet
+// components exactly, a field is its element's signature with every
+// coefficient jet exact. Two fields whose coefficients agree at the pixel
+// centre but differ in their derivatives (X sin B and 2X sin B on the axis
+// X = 0) once shared an axis because the signature rounded the centre value
+// and dropped the derivatives; their difference traced to zero. Caches may
+// use approximate keys; identity may not.
+const num = (v) => (v === 0 ? '0' : v.toString());
+const jetSig = (j) => `${num(j.v)},${num(j.gx)},${num(j.gy)},${num(j.hxx)},${num(j.hxy)},${num(j.hyy)}`;
+const axisKey = (count, field, kind) => `${kind}|${jetSig(count)}|${field ? elementSig(field) : ''}`;
 // count1 = r * count2 as jets? returns r or null
 const proportion = (c1, c2) => {
   const p = [c1.v, c1.gx, c1.gy, c1.hxx, c1.hxy, c1.hyy];
@@ -425,7 +431,7 @@ const foldSameAxis = (terms) => {
       }
       return acc;
     };
-    const sig = `sum(${g.map((t) => `${t.c.re.v.toPrecision(6)}*${t.f.map((f) => f.sig).join('*')}`).join('+')})`;
+    const sig = `sum(${g.map((t) => `${jetSig(t.c.re)}${jetIsZero(t.c.im) ? '' : '+' + jetSig(t.c.im) + 'i'}*${t.f.map((f) => f.sig).join('*')}`).join('+')})`;
     rest.push({ c: cj(J1, J0), f: [picFactor(axis, fn, sig)] });
   }
   return rest;
@@ -436,6 +442,21 @@ const jetIsConst = (j) => j.gx === 0 && j.gy === 0 && j.hxx === 0 && j.hxy === 0
 // erfc(1/2), not the step at its centre), so the tracer folds a count to a
 // number only when both its gradient and its Hessian vanish
 const jetIsFlat = (j) => j.gradNorm() < 1e-12 && Math.abs(j.hxx) + 2 * Math.abs(j.hxy) + Math.abs(j.hyy) < 1e-12;
+// the reach, in pixels, over which the tracer judges a count's excursion
+// (six sigma of a half-pixel Gaussian); set by the harness from its sigma
+export let traceReach = 3;
+export const setTraceReach = (r) => {
+  traceReach = r;
+};
+// a threshold event 1{s >= 0} is constant across the pixel when the count's
+// excursion over the reach cannot reach zero: the fold is exact for the
+// model, and invariant under a positive rescaling of s (an absolute
+// flatness threshold turned 1{1e-14 (Z^2 - 1/2) >= 0} into a constant)
+const stepIsConstant = (j) => {
+  const R = traceReach;
+  const exc = j.gradNorm() * R + 0.5 * (Math.abs(j.hxx) + 2 * Math.abs(j.hxy) + Math.abs(j.hyy)) * R * R;
+  return exc < Math.abs(j.v) * (1 - 1e-9);
+};
 export const add = (a, b) => {
   const terms = liveTerms([...lift(a).terms, ...lift(b).terms]);
   return new Element(terms.length > 1 ? foldSameAxis(terms) : terms);
@@ -665,7 +686,7 @@ const stepOfSum = (P, c, g, name) => {
     });
     return Jet.c(g(total));
   };
-  const sig = `${name}⊕(${c.toPrecision(7)}+${elementSig(A)}|${phiList.map((q) => `${q.axis.label}${q.axis.id}:${q.axis.field ? elementSig(q.axis.field) : ''}:${q.parts.map((pp) => `${pp.beta.toPrecision(6)}*${pp.sig}`).join('+')}`).join(';')})`;
+  const sig = `${name}⊕(${num(c)}+${elementSig(A)}|${phiList.map((q) => `${q.axis.label}${q.axis.id}:${q.axis.field ? elementSig(q.axis.field) : ''}:${q.parts.map((pp) => `${num(pp.beta)}*${pp.sig}`).join('+')}`).join(';')})`;
   const clo = cloFactor(axes, fn, sig);
   clo.stepsum = { g, gp, c, A, X: Xtrue, S: Sax, H, cX, phis: phiList, sig };
   return new Element([{ c: cj(J1, J0), f: [clo] }]);
@@ -1324,7 +1345,7 @@ const collapseWith = (el, jetFn, name) => {
       }
       return jetFn(Jet.c(acc)).v;
     };
-    const sig = `${name}(${el.terms.map((t) => `${t.c.re.v.toPrecision(6)}*${t.f.map((f) => f.sig).join('*') || '1'}`).join('+')})`;
+    const sig = `${name}(${el.terms.map((t) => `${num(t.c.re.v)}*${t.f.map((f) => f.sig).join('*') || '1'}`).join('+')})`;
     return new Element([{ c: cj(J1, J0), f: [picFactor(single, fn, sig)] }]);
   }
   // otherwise a closure over all axes the element touches directly (fields
@@ -1351,7 +1372,7 @@ const collapseWith = (el, jetFn, name) => {
 // string across pixels exactly when the closure is the same function
 const elementSig = (el) =>
   el.terms
-    .map((t) => `${t.c.re.v.toPrecision(7)}${t.c.im.v !== 0 ? '+' + t.c.im.v.toPrecision(7) + 'i' : ''}*${t.f.map((f) => (f.kind === 'pic' ? `${f.sig}[${f.axis.label}${f.axis.id}]` : f.sig)).join('*') || '1'}`)
+    .map((t) => `${jetSig(t.c.re)}${jetIsZero(t.c.im) ? '' : '+' + jetSig(t.c.im) + 'i'}*${t.f.map((f) => (f.kind === 'pic' ? `${f.sig}[${f.axis.label}${f.axis.id}]` : f.sig)).join('*') || '1'}`)
     .join('+');
 const directAxes = (el) => {
   const set = new Map();
@@ -1423,7 +1444,7 @@ export const step = (x) => {
     if (sos) return sos;
     return collapseWith(P, (j) => Jet.c(j.v + c >= 0 ? 1 : 0), 'step∘');
   }
-  if (P.terms.length === 0 && jetIsFlat(s)) return Element.const(s.v >= 0 ? 1 : 0);
+  if (P.terms.length === 0 && (jetIsConst(s) || stepIsConstant(s))) return Element.const(s.v >= 0 ? 1 : 0);
   const { axis } = makeAxis(s, P.terms.length ? P : null, 'edge', 'step');
   // the picture of an edge axis is a step at zero of the raw count; the
   // periodisation is applied at evaluation, where the period is known
@@ -1458,7 +1479,7 @@ const edgePrimitive = (name, g) => (x) => {
     if (sos) return sos;
     return collapseWith(P, (j) => Jet.c(g(j.v + c)), name + '∘');
   }
-  if (P.terms.length === 0 && jetIsFlat(s)) return Element.const(g(s.v));
+  if (P.terms.length === 0 && (jetIsConst(s) || stepIsConstant(s))) return Element.const(g(s.v));
   const { axis } = makeAxis(s, P.terms.length ? P : null, 'edge', name);
   return new Element([{ c: cj(J1, J0), f: [picFactor(axis, g, name)] }]);
 };
@@ -2084,7 +2105,12 @@ export class Pixel {
     const typical = diffs.slice().sort((x, y) => x - y)[Math.floor(NG * 0.5)];
     return diffs.some((d) => d > 8 * typical + 1e-9 * (Math.abs(umax - umin) + 1) + 1e-300);
   }
-  coverageExpect(axis, fn) {
+  // With `amp`, a coefficient jet in pixel coordinates, the integral is
+  // E[amp(z) p(xi(z))]: the amplitude is a quadratic in the eigenframe and
+  // its Gaussian moments over each interval are closed form, so the mask
+  // keeps its correlation with the amplitude (E[Z^2 1{Z^2 >= 1/2}] is
+  // 0.9189, where the product of the two expectations is 0.4795).
+  coverageExpect(axis, fn, amp = null) {
     const c = axis.count;
     const S = this.sig;
     // eigen-decomposition of the Hessian
@@ -2104,6 +2130,31 @@ export class Pixel {
     const a1 = c.gx * e1[0] + c.gy * e1[1];
     const a2 = c.gx * e2[0] + c.gy * e2[1];
     const u0 = c.v;
+    // the amplitude in the eigenframe: A(w1) + B(w1) w2 + C w2^2
+    const hasAmp = amp !== null && !jetIsConst(amp);
+    const c0 = amp === null ? 1 : amp.v;
+    const c1 = hasAmp ? amp.gx * e1[0] + amp.gy * e1[1] : 0;
+    const c2 = hasAmp ? amp.gx * e2[0] + amp.gy * e2[1] : 0;
+    const c11 = hasAmp ? amp.hxx * e1[0] * e1[0] + 2 * amp.hxy * e1[0] * e1[1] + amp.hyy * e1[1] * e1[1] : 0;
+    const c12 = hasAmp ? amp.hxx * e1[0] * e2[0] + amp.hxy * (e1[0] * e2[1] + e1[1] * e2[0]) + amp.hyy * e1[1] * e2[1] : 0;
+    const c22 = hasAmp ? amp.hxx * e2[0] * e2[0] + 2 * amp.hxy * e2[0] * e2[1] + amp.hyy * e2[1] * e2[1] : 0;
+    // Gaussian moments of orders 0, 1, 2 over [lo, hi] for N(0, S^2)
+    const phiS = (w) => (Number.isFinite(w) ? Math.exp(-0.5 * (w / S) ** 2) / (S * Math.sqrt(TAU)) : 0);
+    const moments = (lo, hi) => {
+      const M0 = (Number.isFinite(hi) ? normalCdf(hi / S) : 1) - (Number.isFinite(lo) ? normalCdf(lo / S) : 0);
+      const plo = phiS(lo);
+      const phi = phiS(hi);
+      const M1 = S * S * (plo - phi);
+      const M2 = S * S * M0 + S * S * ((Number.isFinite(lo) ? lo * plo : 0) - (Number.isFinite(hi) ? hi * phi : 0));
+      return [M0, M1, M2];
+    };
+    const weigh = (w1, M) => {
+      if (!hasAmp) return c0 * M[0];
+      const A = c0 + c1 * w1 + 0.5 * c11 * w1 * w1;
+      const B = c2 + c12 * w1;
+      return A * M[0] + B * M[1] + 0.5 * c22 * M[2];
+    };
+    const FULL = [1, 0, S * S];
     // the excursion of the count over the reach (a disc of radius L sig)
     const L = 6;
     let umin = Infinity;
@@ -2139,20 +2190,21 @@ export class Pixel {
       const probW2 = (w1) => {
         const k = u0 + a1 * w1 + 0.5 * l1 * w1 * w1 - cv;
         if (Math.abs(l2) < 1e-14 * (Math.abs(a2) + 1e-300)) {
-          if (Math.abs(a2) < 1e-300) return k <= 0 ? 1 : 0;
+          if (Math.abs(a2) < 1e-300) return k <= 0 ? weigh(w1, FULL) : 0;
           // a2 w2 + k <= 0
           const r = -k / a2;
-          return a2 > 0 ? normalCdf(r / S) : 1 - normalCdf(r / S);
+          return a2 > 0 ? weigh(w1, moments(-Infinity, r)) : weigh(w1, moments(r, Infinity));
         }
         const D = a2 * a2 - 2 * l2 * k;
-        if (D < 0) return l2 > 0 ? 0 : 1;
+        if (D < 0) return l2 > 0 ? 0 : weigh(w1, FULL);
         const sq = Math.sqrt(D);
         const r1 = (-a2 - sq) / l2;
         const r2 = (-a2 + sq) / l2;
         const lo = Math.min(r1, r2);
         const hi = Math.max(r1, r2);
-        const inside = normalCdf(hi / S) - normalCdf(lo / S);
-        return l2 > 0 ? inside : 1 - inside;
+        const inside = moments(lo, hi);
+        if (l2 > 0) return weigh(w1, inside);
+        return weigh(w1, [FULL[0] - inside[0], FULL[1] - inside[1], FULL[2] - inside[2]]);
       };
       // cut the w1 line where the discriminant vanishes (roots appear), or,
       // when the second direction is inert, where the count itself crosses
@@ -2590,9 +2642,14 @@ export class Pixel {
           if (mine.length === 0) continue;
           const prod = (u) => mine.reduce((pr, f) => pr * f.fn(u), 1);
           if (a.kind !== 'edge' && !this.isFrozen(a) && !this.picturesJump(a, prod)) continue;
-          const v = this.coverageExpect(a, prod);
-          cr = cr.scale(v);
-          ci = ci.scale(v);
+          // the coefficient jet is integrated with the mask, and becomes the
+          // number E[c p]; the term's other factors then see a constant
+          // coefficient (their correlation with the mask is the stated
+          // approximation)
+          const vRe = this.coverageExpect(a, prod, cr);
+          const vIm = jetIsZero(ci) ? 0 : this.coverageExpect(a, prod, ci);
+          cr = Jet.c(vRe);
+          ci = Jet.c(vIm);
           fs = fs.filter((f) => !mine.includes(f));
           ch = true;
         }
@@ -3054,7 +3111,7 @@ export class Pixel {
                   fieldAxes.forEach((a, i) => m.set(a.id, cs[i]));
                   return Jet.c(fn(u0 + evalElement(field, m).v));
                 },
-                `${f.sig}@${u0.toPrecision(8)}`,
+                `${f.sig}@${num(u0)}`,
               ),
             );
           }
