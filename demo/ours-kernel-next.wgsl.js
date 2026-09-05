@@ -66,13 +66,14 @@ fn wOf(u: f32) -> f32 { return select(-1.0, 1.0, fract(u) < 0.5); }
 // Re E[exp(i (phi0 + b . x + x^T Q x / 2))], x ~ N(0, S I): the multiplier
 // theorem at second order in closed form
 fn multRe(phi0: f32, b: vec2f, q: vec3f, S: f32) -> f32 {
+  WORK += 1.0;
   let tr: f32 = q.x + q.z;
   let dt: f32 = q.x * q.z - q.y * q.y;
   let disc: f32 = sqrt(max(0.25 * tr * tr - dt, 0.0));
   let l1: f32 = 0.5 * tr + disc;
   let l2: f32 = 0.5 * tr - disc;
-  let modu: f32 = pow((1.0 + S * S * l1 * l1) * (1.0 + S * S * l2 * l2), -0.25);
-  let ph: f32 = 0.5 * (atan(S * l1) + atan(S * l2));
+  let modu: f32 = inverseSqrt(sqrt((1.0 + S * S * l1 * l1) * (1.0 + S * S * l2 * l2)));
+  let ph: f32 = 0.5 * atan2(S * (l1 + l2), 1.0 - S * S * l1 * l2); // atan a + atan b = atan2(a + b, 1 - a b)
   // b^T adj(I - i S Q) b / det, adj = [[1 - i S q11, i S q01], [i S q01, 1 - i S q00]]
   let Ar: f32 = b.x * b.x + b.y * b.y;
   let Ai: f32 = -S * (q.z * b.x * b.x - 2.0 * q.y * b.x * b.y + q.x * b.y * b.y);
@@ -303,7 +304,7 @@ function exactRegions() {
   const gl16 = gaussLegendre(16);
   const genz = (gl) => gl.x.map((x, i) => `  { let sn: f32 = sin(${lit(0.5 * (x + 1))} * asr); bvn += ${lit(gl.w[i])} * exp((sn * hk - hs) / (1.0 - sn * sn)); }`).join('\n');
   const high = gl16.x.map((x, i) => `  { let xx: f32 = mid + hw * ${lit(x)}; acc += ${lit(gl16.w[i])} * hw * 0.3989422804014327 * exp(-0.5 * xx * xx) * Phi(-(k - r * xx) / s); }`).join('\n');
-  const panel = gl8.x.map((x, i) => `    {
+  const panel = gl16.x.map((x, i) => `    {
       let x: f32 = ${lit(x)};
       var t: f32 = mid + half * x;
       var jac: f32 = half;
@@ -311,7 +312,7 @@ function exactRegions() {
       else if (mapA) { let sN: f32 = 0.5 * (x + 1.0); t = pa + dz * sN * sN; jac = dz * sN; }
       else if (mapB) { let sN: f32 = 0.5 * (1.0 - x); t = pa + dz - dz * sN * sN; jac = dz * sN; }
       let phi: f32 = 0.3989422804014327 * exp(-0.5 * t * t / S) / sig;
-      acc += ${lit(gl8.w[i])} * jac * phi * innerProb(lin, gin + lmix * t, a0 + gout * t + 0.5 * lout * t * t, sig);
+      acc += ${lit(gl16.w[i])} * jac * phi * innerProb(lin, gin + lmix * t, a0 + gout * t + 0.5 * lout * t * t, sig);
     }`).join('\n');
   return `
 // the probability under N(0, sigma^2) of the set where lin/2 y^2 + b y + c <= 0
@@ -333,8 +334,8 @@ fn innerProb(lin: f32, b: f32, c: f32, sig: f32) -> f32 {
 // quadrature: the outer coordinate along the gradient's perpendicular when
 // the linear term dominates over the pixel, else the Hessian's eigenframe;
 // the inner interval is between the roots of a quadratic; the outer integral
-// is split where the discriminant changes sign, in panels of two sigma,
-// Gauss-Legendre 8, with the panels that end at a root mapped so the root's
+// is split where the discriminant changes sign, in panels of 5.5 sigma,
+// Gauss-Legendre 16, with the panels that end at a root mapped so the root's
 // square-root behaviour is smooth
 fn quadRegion(a0: f32, g: vec2f, H: vec3f, S: f32) -> f32 {
   let sig: f32 = sqrt(S);
@@ -389,7 +390,7 @@ fn quadRegion(a0: f32, g: vec2f, H: vec3f, S: f32) -> f32 {
     if (abs(lin) > 1e-9 && Dm <= 0.0 && lin > 0.0) { continue; } // the region is empty here
     let rootA: bool = seg > 0 && a > -L;
     let rootB: bool = b < L;
-    let panels: f32 = ceil((b - a) / (2.0 * sig));
+    let panels: f32 = ceil((b - a) / (5.5 * sig));
     let dz: f32 = (b - a) / panels;
     var q: f32 = 0.0;
     loop {
@@ -399,6 +400,7 @@ fn quadRegion(a0: f32, g: vec2f, H: vec3f, S: f32) -> f32 {
       let mid: f32 = pa + half;
       let mapA: bool = rootA && q < 0.5;
       let mapB: bool = rootB && q > panels - 1.5;
+      WORK += 1.0;
 ${panel}
       q += 1.0;
     }
@@ -444,6 +446,7 @@ ${high}
   return acc;
 }
 fn bvnuAny(h: f32, k: f32, r: f32) -> f32 {
+  WORK += 1.0;
   let rc: f32 = clamp(r, -0.999999, 0.999999);
   if (abs(rc) <= 0.925) { return bvnu(h, k, rc); }
   return bvnuHigh(h, k, rc);
@@ -677,7 +680,7 @@ export function toHLSL(src) {
   s = s.replace(/^const (\w+): (\w+) = /gm, (m, n, t) => `static const ${typeOf(t)} ${n} = `);
   s = s.replace(/\b(let|var) (\w+): (\w+)( =|;)/g, (m, kw, n, t, tail) => `${typeOf(t)} ${n}${tail}`);
   s = s.replace(/\bloop \{/g, 'while (true) {');
-  s = s.replace(/\bfract\(/g, 'frac(');
+  s = s.replace(/\bfract\(/g, 'frac(').replace(/\binverseSqrt\(/g, 'rsqrt(');
   s = s.replace(/\bvec2f\(/g, 'float2(').replace(/\bvec3f\(/g, 'float3(');
   s = s.replace(/\bf32\(/g, 'float(').replace(/\bu32\(/g, 'uint(').replace(/\bi32\(/g, 'int(');
   s = s.replace(/\b(\d+)u\b/g, '$1');
@@ -940,4 +943,5 @@ fn circlesMeanMode(J: Jets, S: f32, mode: u32) -> vec2f {
 
 const PORTABLE = PORTABLE_MATH + exactRegions() + PORTABLE_H;
 export const OURS_KERNEL = PORTABLE + LEGACY_WGSL;
+export const HAS_WORK_COUNTER = true;
 export const OURS_KERNEL_HLSL = HLSL_PRELUDE + toHLSL(PORTABLE);

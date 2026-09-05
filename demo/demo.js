@@ -574,6 +574,25 @@ const main = async () => {
   window.demoState = state;
   window.demoMeters = meters;
   window.demoBench = bench;
+  // read the ours texture back: statistics of channel 0 by row band, for the work counter and error maps
+  window.demoReadOurs = async () => {
+    const bytes = W * 16;
+    const buf = device.createBuffer({ size: bytes * H, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+    const enc = device.createCommandEncoder();
+    enc.copyTextureToBuffer({ texture: tex.ours }, { buffer: buf, bytesPerRow: bytes }, [W, H]);
+    device.queue.submit([enc.finish()]);
+    await buf.mapAsync(GPUMapMode.READ);
+    const data = new Float32Array(buf.getMappedRange().slice(0));
+    buf.unmap();
+    buf.destroy();
+    const bands = [[0, Math.round(H * 0.08)], [Math.round(H * 0.08), Math.round(H * 0.2)], [Math.round(H * 0.2), H]];
+    const out = { mean: 0, max: 0, bands: [] };
+    let total = 0;
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const v = data[(y * W + x) * 4]; total += v; if (v > out.max) out.max = v; }
+    out.mean = total / (W * H);
+    for (const [y0, y1] of bands) { let t = 0; let m = 0; for (let y = y0; y < y1; y++) for (let x = 0; x < W; x++) { const v = data[(y * W + x) * 4]; t += v; if (v > m) m = v; } out.bands.push({ rows: `${y0}-${y1 - 1}`, mean: +(t / ((y1 - y0) * W)).toFixed(2), max: m }); }
+    return out;
+  };
   requestAnimationFrame(frame);
 };
 

@@ -288,6 +288,8 @@ export const ARM_MIP = /* wgsl */ `
 // Fourier series over the lattice of recipes k gu + l gv near the origin,
 // each term the Gaussian expectation of its quadratic phase in closed form.
 export const ARM_OURS = /* wgsl */ `
+// the working copy's work counter: expensive calls per pixel (mode 6 shows it)
+var<private> WORK: f32 = 0.0;
 ${KERNEL}
 @fragment fn fsOurs(i: VOut) -> @location(0) vec4f {
   let x = floor(i.uv.x * U.res.x);
@@ -322,6 +324,10 @@ ${KERNEL}
   let LN = lightingLN();
   var v = LN * P;
   if (scene == 0u) { v += lightingSpec(g.viewer, 50.0); }
+  if (mode == 6u) {
+    // the work count as a grey level: 256 expensive calls saturate
+    return vec4f(vec3f(WORK), 1.0);
+  }
   if (U.p2.z > 0.5) {
     // the regime, for inspection: coverage green, spectral blue
     var tint = vec3f(0.2, 0.3, 0.9);
