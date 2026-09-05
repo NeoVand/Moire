@@ -1,15 +1,24 @@
 // Run from any directory: node /path/to/bessel-shift-probe.mjs
-// Optional: MOIRE_REPO=/path/to/Moire; output is next to this probe.
+// Optional: MOIRE_REPO=/path/to/Moire; --out /path/to/new-results.jsonl.
+// Default output is a unique timestamped file in runs/. Existing files are never overwritten.
 // No compiler files are edited. Private functions are exported from a temporary
 // byte-for-byte source copy, and the actual benchmark is traced through it.
-import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdtempSync, rmSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { resolve, join } from 'node:path';
+import { resolve, join, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import assert from 'node:assert/strict';
 
 const here = fileURLToPath(new URL('.', import.meta.url));
+let output;
+for (let i = 2; i < process.argv.length; i++) {
+  const arg = process.argv[i];
+  if (arg === '--out' && process.argv[i + 1] && !process.argv[i + 1].startsWith('--')) output = resolve(process.argv[++i]);
+  else if (arg.startsWith('--out=') && arg.length > 6) output = resolve(arg.slice(6));
+  else throw new Error('Usage: node bessel-shift-probe.mjs [--out NEW_FILE.jsonl]');
+}
+output ??= join(here, 'runs', `bessel-shift-${new Date().toISOString().replaceAll(':', '-')}-${randomUUID().slice(0, 8)}.jsonl`);
 const repo = process.env.MOIRE_REPO || fileURLToPath(new URL('../../../../', import.meta.url));
 const temp = mkdtempSync(join(tmpdir(), 'moire-bessel-'));
 const TAU = 2 * Math.PI;
@@ -213,6 +222,7 @@ try {
       coefficient,maxAbsReferenceError:err(integralDC,[coefficient,0])});
   }
   emit({kind:'complete',milliseconds:performance.now()-start,rows:rows.length+1});
-  writeFileSync(join(here,'bessel-shift-results.jsonl'),rows.map(x=>JSON.stringify(x)).join('\n')+'\n');
-  console.log(JSON.stringify(rows.at(-1)));
+  mkdirSync(dirname(output), { recursive: true });
+  writeFileSync(output,rows.map(x=>JSON.stringify(x)).join('\n')+'\n', { flag: 'wx' });
+  console.log(JSON.stringify({ ...rows.at(-1), output }));
 } finally { rmSync(temp,{recursive:true,force:true}); }

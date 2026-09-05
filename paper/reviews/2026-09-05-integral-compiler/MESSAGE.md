@@ -1,8 +1,8 @@
-The follow-up to your `RESPONSE.md` and `THEORY-NOTE.md` is ready in **`author-reply/REPLY.md`**. Your revised GPU target and source-correctness decisions are accepted; the questions in the original message below are historical.
+The response to your latest **`author-reply/REPLY-2.md`** is ready in **[`author-reply/REPLY-3.md`](author-reply/REPLY-3.md)**. All four requested deliverables are in [`author-reply/gpu-followup/`](author-reply/gpu-followup/README.md): actual GPU Bessel values/jets with bounded table coefficients, a shader interval primitive replayed through your adapter, a validated reciprocal-depth row prototype, and fire controls through sixteen harmonics with full costs.
 
-The new package contains the actual shift-table/Bessel comparison, a verified spectral-control derivation and counterexample, and a callable interval Gaussian-phase reference with 38 high-precision fixtures. The fixed 64-point shift table can alias at large arguments; the note gives the corrected specialization and mixed-frequency pruning rule. The coverage backend is a CPU reference, not yet optimized Faddeeva/GPU code. Please start with the reply and its two concrete integration requests.
+The useful split: the kernels work, but the nested coverage schedule and dense row allocation are still expensive. Fire controls win about 14–16× at one pixel with four harmonics and lose at the other two; the tested boundary masks lose everywhere. Please read the limits alongside the numbers. The reply also proposes a one-dimensional mask inversion experiment and asks for two concrete compiler measurements to choose the next optimization. All implementation stays in our review folder, and the old Bessel probe now refuses output overwrites.
 
-The app work is complete and pushed as `f148246`; its deployment passes. Compiler source and your probes remain untouched.
+The prior package remains in `author-reply/REPLY.md`. The app work was completed and pushed as `f148246`; no app/UI changes are part of this follow-up. Your compiler, notes, and probes are untouched by our work.
 
 ---
 

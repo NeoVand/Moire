@@ -1,0 +1,52 @@
+{
+  "input": "coverage-results-2026-09-05T16-11-56.408Z.json",
+  "method": "mpmath 1.3.0; exact packed binary32 inputs; complex erf/endpoint moments at 80/100 dps",
+  "checkedMoments": 2472,
+  "checkedCalls": 824,
+  "refusedWithoutValue": 18,
+  "largestAbsoluteError": 3.9899038654370894e-07,
+  "largestErrorToReportedEstimate": 0.9894068254417699,
+  "worst": {
+    "name": "adapter-248",
+    "moment": 0,
+    "expected": [
+      "0.81289084606398832204927062441952678223196359480403673279594238643",
+      "0.0038849593692873400364749651412334328223809546445868364106559345024"
+    ],
+    "actual": [
+      0.8128912448883057,
+      0.00388494785875082
+    ]
+  },
+  "independent60DigitGaussLegendreChecks": [
+    {
+      "name": "gaussian-finite",
+      "absoluteDifference": "8.2987427e-63"
+    },
+    {
+      "name": "halfline-correlated",
+      "absoluteDifference": "5.4021009e-63"
+    },
+    {
+      "name": "finite-chirp",
+      "absoluteDifference": "1.0927147e-62"
+    },
+    {
+      "name": "far-tail",
+      "absoluteDifference": "1.2292149e-78"
+    },
+    {
+      "name": "adapter-300",
+      "absoluteDifference": "3.1632064e-64"
+    },
+    {
+      "name": "grid-0",
+      "absoluteDifference": "8.2321886e-64"
+    },
+    {
+      "name": "grid-13",
+      "absoluteDifference": "1.4914677e-63"
+    }
+  ],
+  "scope": "Evidence for recorded calls on this GPU; not a uniform floating-point certificate."
+}

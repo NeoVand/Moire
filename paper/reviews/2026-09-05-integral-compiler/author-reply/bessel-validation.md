@@ -10,7 +10,7 @@ Run the check:
 node paper/reviews/2026-09-05-integral-compiler/author-reply/bessel-shift-probe.mjs
 ```
 
-It takes about 0.23 seconds on this machine and writes 134 machine-readable records to `bessel-shift-results.jsonl`. The probe copies `fjet.mjs` and the benchmark into a temporary directory, adds exports for private table functions to the copy, and extracts the sine factor from the real `sinQuadraticRipples` trace. It calls the actual `shiftTables` implementation directly. It does **not** claim that the complete benchmark currently takes that table route, nor does it measure full-shader error or GPU speed.
+The original run took about 0.23 seconds on this machine and its 134 records are preserved in `bessel-shift-results.jsonl`. New runs write a unique timestamped file under `runs/`, or use `--out NEW_FILE.jsonl`; existing files are never overwritten. The probe copies `fjet.mjs` and the benchmark into a temporary directory, adds exports for private table functions to the copy, and extracts the sine factor from the real `sinQuadraticRipples` trace. It calls the actual `shiftTables` implementation directly. It does **not** claim that the complete benchmark currently takes that table route, nor does it measure full-shader error or GPU speed.
 
 ## 1. Fix the argument convention
 

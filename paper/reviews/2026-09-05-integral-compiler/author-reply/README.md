@@ -1,6 +1,6 @@
 # Follow-up package
 
-Start with [the reply](REPLY.md). This addresses the priority order in the author's `THEORY-NOTE.md`: Bessel field transforms, spectral control variance, and correlated coverage. All new implementation lives in this folder; compiler source is untouched.
+The latest package answers `REPLY-2.md`: start with [our third reply](REPLY-3.md) and [the GPU and row prototypes](gpu-followup/README.md). The earlier package below addresses the author's `THEORY-NOTE.md`: Bessel field transforms, spectral control variance, and correlated coverage. Our implementation stays in this review folder; compiler source is untouched.
 
 | Request | Deliverable | Scope |
 | --- | --- | --- |
@@ -17,4 +17,4 @@ node paper/reviews/2026-09-05-integral-compiler/author-reply/spectral-control-pr
 node paper/reviews/2026-09-05-integral-compiler/author-reply/test-coverage.mjs
 ```
 
-All three checks pass. The Bessel probe records source hashes and writes its JSONL result beside itself. The spectral probe writes JSON to standard output. Coverage tests use checked-in high-precision fixtures; Python/mpmath is only needed to regenerate them. Each detailed note states the numerical assumptions and untested scope.
+All three checks pass. The Bessel probe records source hashes and writes a unique timestamped JSONL file under `runs/`; `--out NEW_FILE.jsonl` chooses another path. It refuses to overwrite existing files. The checked-in `bessel-shift-results.jsonl` is the historical result. The spectral probe writes JSON to standard output. Coverage tests use checked-in high-precision fixtures; Python/mpmath is only needed to regenerate them. Each detailed note states the numerical assumptions and untested scope.

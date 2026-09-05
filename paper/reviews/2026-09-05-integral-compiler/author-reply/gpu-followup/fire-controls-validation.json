@@ -1,0 +1,1 @@
+{"tests":3564,"maxRelativeDivergenceError":0.0000013348324958874889,"maxSourceError":3.3095748364075916e-13,"meaning":"Finite differences of vector fields versus analytic Stein controls; full source, masks, branch restriction, and radial transition exercised. This is a numerical implementation gate; zero mean follows from the compact-support divergence identity."}
