@@ -1,0 +1,760 @@
+{
+  "created_at": "20260905T203359.481058Z",
+  "status": "passed",
+  "project": "/Users/neo/repos/Moire/native/Unreal/MoireComparison",
+  "generator": "native-mrq-v1",
+  "engine": "5.8.2-56702186+++UE5+Release-5.8",
+  "rendered": false,
+  "sequence_preparation": "/Users/neo/repos/Moire/native/Unreal/MoireComparison/Saved/MoireComparison/prepare-capture-20260905T202256.868118Z.json",
+  "sequence_preparation_sha256": "bec62fff67a452c1259fa366099f53af36e41265d6c4366bc252b295bfb6c925",
+  "script_sha256": "fe9d6ad39d8d2215f9ce35b177f503dd5e3973ce10debc6c9e55793d3e06f078",
+  "configs": [
+    {
+      "pose": "Glide0",
+      "arm": "raw",
+      "map": "/Game/MoireComparison/Maps/Glide0",
+      "sequence": "/Game/MoireComparison/CaptureSequences/Glide0",
+      "config": "/Game/MoireComparison/MRQ/B20260905T203359_481058Z/raw_Glide0",
+      "map_sha256": "3117a9f6f6b86983b0c03dc9dc92dae73b6c67b5453f9cc486002484485dd85d",
+      "sequence_sha256": "ad4f3a2d5bd23e96b6cbdba9bf0720cbaf2f843036b671f9afee91ff6d6e1e1e",
+      "config_sha256": "d46674a5d71e0a592676f9c670b4e4a7ec871256e6b250fdade2176195c89627",
+      "camera_pose": {
+        "name": "Glide0",
+        "motion": "glide",
+        "time": 0.0,
+        "detail": 1.0,
+        "three_eye": [
+          0.0,
+          12.0,
+          28.0
+        ],
+        "three_target": [
+          0.0,
+          0.0,
+          -22.0
+        ],
+        "unreal_location_cm": [
+          -2800.0,
+          0.0,
+          1200.0
+        ],
+        "unreal_target_cm": [
+          2200.0,
+          0.0,
+          0.0
+        ],
+        "unreal_rotation_degrees": {
+          "pitch": -13.495733280795811,
+          "yaw": 0.0,
+          "roll": 0.0
+        },
+        "period_world": 4.0,
+        "horizontal_fov_degrees": 79.31687852038162
+      },
+      "output_directory": "/Users/neo/repos/Moire/native/Unreal/MoireComparison/Saved/MoireComparison/MRQ/20260905T203359.481058Z/raw_Glide0",
+      "requested_cvars": {
+        "sg.AntiAliasingQuality": 3,
+        "r.AntiAliasingMethod": 0,
+        "r.ScreenPercentage": 100,
+        "r.SecondaryScreenPercentage.GameViewport": 100,
+        "r.DynamicRes.OperationMode": 0,
+        "r.TSR.History.ScreenPercentage": 200,
+        "r.MotionBlurQuality": 0,
+        "r.DepthOfFieldQuality": 0,
+        "r.BloomQuality": 0,
+        "r.EyeAdaptationQuality": 0,
+        "r.EyeAdaptation.PreExposureOverride": 1,
+        "r.LensFlareQuality": 0,
+        "r.SceneColorFringeQuality": 0,
+        "r.Tonemapper.Quality": 0
+      },
+      "contract": {
+        "label": "Native MRQ quality capture",
+        "performance_measurement": false,
+        "output_size": [
+          640,
+          360
+        ],
+        "fixed_fps": 60,
+        "sequence_frame_range": [
+          64,
+          65
+        ],
+        "spatial_samples": 1,
+        "temporal_samples": 1,
+        "tile_count": 1,
+        "render_warmup_samples": 64,
+        "engine_warmup_count": 0,
+        "warmup_note": "64 discarded render samples at the fixed first pose; MRQ forces one setup engine tick",
+        "aa_method": "None",
+        "cinematic_scalability": false,
+        "disable_tone_curve": true,
+        "readback": "MRQ deferred render target to PNG; 8-bit display transfer requires validation"
+      }
+    },
+    {
+      "pose": "Glide0",
+      "arm": "tsr",
+      "map": "/Game/MoireComparison/Maps/Glide0",
+      "sequence": "/Game/MoireComparison/CaptureSequences/Glide0",
+      "config": "/Game/MoireComparison/MRQ/B20260905T203359_481058Z/tsr_Glide0",
+      "map_sha256": "3117a9f6f6b86983b0c03dc9dc92dae73b6c67b5453f9cc486002484485dd85d",
+      "sequence_sha256": "ad4f3a2d5bd23e96b6cbdba9bf0720cbaf2f843036b671f9afee91ff6d6e1e1e",
+      "config_sha256": "9d2a787d879b35d86d61a6a861eac6c2e82c2a7631a969a49672c76f93a58644",
+      "camera_pose": {
+        "name": "Glide0",
+        "motion": "glide",
+        "time": 0.0,
+        "detail": 1.0,
+        "three_eye": [
+          0.0,
+          12.0,
+          28.0
+        ],
+        "three_target": [
+          0.0,
+          0.0,
+          -22.0
+        ],
+        "unreal_location_cm": [
+          -2800.0,
+          0.0,
+          1200.0
+        ],
+        "unreal_target_cm": [
+          2200.0,
+          0.0,
+          0.0
+        ],
+        "unreal_rotation_degrees": {
+          "pitch": -13.495733280795811,
+          "yaw": 0.0,
+          "roll": 0.0
+        },
+        "period_world": 4.0,
+        "horizontal_fov_degrees": 79.31687852038162
+      },
+      "output_directory": "/Users/neo/repos/Moire/native/Unreal/MoireComparison/Saved/MoireComparison/MRQ/20260905T203359.481058Z/tsr_Glide0",
+      "requested_cvars": {
+        "sg.AntiAliasingQuality": 3,
+        "r.AntiAliasingMethod": 4,
+        "r.ScreenPercentage": 100,
+        "r.SecondaryScreenPercentage.GameViewport": 100,
+        "r.DynamicRes.OperationMode": 0,
+        "r.TSR.History.ScreenPercentage": 200,
+        "r.MotionBlurQuality": 0,
+        "r.DepthOfFieldQuality": 0,
+        "r.BloomQuality": 0,
+        "r.EyeAdaptationQuality": 0,
+        "r.EyeAdaptation.PreExposureOverride": 1,
+        "r.LensFlareQuality": 0,
+        "r.SceneColorFringeQuality": 0,
+        "r.Tonemapper.Quality": 0
+      },
+      "contract": {
+        "label": "Native MRQ quality capture",
+        "performance_measurement": false,
+        "output_size": [
+          640,
+          360
+        ],
+        "fixed_fps": 60,
+        "sequence_frame_range": [
+          64,
+          65
+        ],
+        "spatial_samples": 1,
+        "temporal_samples": 1,
+        "tile_count": 1,
+        "render_warmup_samples": 64,
+        "engine_warmup_count": 0,
+        "warmup_note": "64 discarded render samples at the fixed first pose; MRQ forces one setup engine tick",
+        "aa_method": "TSR",
+        "cinematic_scalability": false,
+        "disable_tone_curve": true,
+        "readback": "MRQ deferred render target to PNG; 8-bit display transfer requires validation"
+      }
+    },
+    {
+      "pose": "Glide0",
+      "arm": "analytic",
+      "map": "/Game/MoireComparison/Maps/Glide0_Analytic",
+      "sequence": "/Game/MoireComparison/CaptureSequences/Glide0_Analytic",
+      "config": "/Game/MoireComparison/MRQ/B20260905T203359_481058Z/analytic_Glide0",
+      "map_sha256": "769128a884f95fc5075e2d337b0e2c03d7a811d8ac6cf0f1fe3e489dbd17a1d4",
+      "sequence_sha256": "85cdebe3d3a284e7068d575a63b3f7afdf8d55df095b82d098dce71f970643a1",
+      "config_sha256": "55b142028e5300c257cbf5551c9713ae3575765ad84c048197567498b16dc663",
+      "camera_pose": {
+        "name": "Glide0",
+        "motion": "glide",
+        "time": 0.0,
+        "detail": 1.0,
+        "three_eye": [
+          0.0,
+          12.0,
+          28.0
+        ],
+        "three_target": [
+          0.0,
+          0.0,
+          -22.0
+        ],
+        "unreal_location_cm": [
+          -2800.0,
+          0.0,
+          1200.0
+        ],
+        "unreal_target_cm": [
+          2200.0,
+          0.0,
+          0.0
+        ],
+        "unreal_rotation_degrees": {
+          "pitch": -13.495733280795811,
+          "yaw": 0.0,
+          "roll": 0.0
+        },
+        "period_world": 4.0,
+        "horizontal_fov_degrees": 79.31687852038162
+      },
+      "output_directory": "/Users/neo/repos/Moire/native/Unreal/MoireComparison/Saved/MoireComparison/MRQ/20260905T203359.481058Z/analytic_Glide0",
+      "requested_cvars": {
+        "sg.AntiAliasingQuality": 3,
+        "r.AntiAliasingMethod": 0,
+        "r.ScreenPercentage": 100,
+        "r.SecondaryScreenPercentage.GameViewport": 100,
+        "r.DynamicRes.OperationMode": 0,
+        "r.TSR.History.ScreenPercentage": 200,
+        "r.MotionBlurQuality": 0,
+        "r.DepthOfFieldQuality": 0,
+        "r.BloomQuality": 0,
+        "r.EyeAdaptationQuality": 0,
+        "r.EyeAdaptation.PreExposureOverride": 1,
+        "r.LensFlareQuality": 0,
+        "r.SceneColorFringeQuality": 0,
+        "r.Tonemapper.Quality": 0
+      },
+      "contract": {
+        "label": "Native MRQ quality capture",
+        "performance_measurement": false,
+        "output_size": [
+          640,
+          360
+        ],
+        "fixed_fps": 60,
+        "sequence_frame_range": [
+          64,
+          65
+        ],
+        "spatial_samples": 1,
+        "temporal_samples": 1,
+        "tile_count": 1,
+        "render_warmup_samples": 64,
+        "engine_warmup_count": 0,
+        "warmup_note": "64 discarded render samples at the fixed first pose; MRQ forces one setup engine tick",
+        "aa_method": "None",
+        "cinematic_scalability": false,
+        "disable_tone_curve": true,
+        "readback": "MRQ deferred render target to PNG; 8-bit display transfer requires validation"
+      }
+    },
+    {
+      "pose": "Glide8",
+      "arm": "raw",
+      "map": "/Game/MoireComparison/Maps/Glide8",
+      "sequence": "/Game/MoireComparison/CaptureSequences/Glide8",
+      "config": "/Game/MoireComparison/MRQ/B20260905T203359_481058Z/raw_Glide8",
+      "map_sha256": "ace6dde5113fb7681fb2382ec6c45bf674c913b1866672ac04a5c8395c2971f7",
+      "sequence_sha256": "9118005dd58731be6df8e43b83f83ccdd52b48f9fc32cdf40057d7916dd6691f",
+      "config_sha256": "52290fe5b96619fd3598192e718b8f69540ee47f756dfa54175e8d95eeb41f38",
+      "camera_pose": {
+        "name": "Glide8",
+        "motion": "glide",
+        "time": 8.0,
+        "detail": 1.0,
+        "three_eye": [
+          4.705895550506519,
+          12.0,
+          28.0
+        ],
+        "three_target": [
+          2.1176529977279337,
+          0.0,
+          -22.0
+        ],
+        "unreal_location_cm": [
+          -2800.0,
+          470.58955505065194,
+          1200.0
+        ],
+        "unreal_target_cm": [
+          2200.0,
+          211.76529977279336,
+          0.0
+        ],
+        "unreal_rotation_degrees": {
+          "pitch": -13.478346777114242,
+          "yaw": -2.9632625952875062,
+          "roll": 0.0
+        },
+        "period_world": 4.0,
+        "horizontal_fov_degrees": 79.31687852038162
+      },
+      "output_directory": "/Users/neo/repos/Moire/native/Unreal/MoireComparison/Saved/MoireComparison/MRQ/20260905T203359.481058Z/raw_Glide8",
+      "requested_cvars": {
+        "sg.AntiAliasingQuality": 3,
+        "r.AntiAliasingMethod": 0,
+        "r.ScreenPercentage": 100,
+        "r.SecondaryScreenPercentage.GameViewport": 100,
+        "r.DynamicRes.OperationMode": 0,
+        "r.TSR.History.ScreenPercentage": 200,
+        "r.MotionBlurQuality": 0,
+        "r.DepthOfFieldQuality": 0,
+        "r.BloomQuality": 0,
+        "r.EyeAdaptationQuality": 0,
+        "r.EyeAdaptation.PreExposureOverride": 1,
+        "r.LensFlareQuality": 0,
+        "r.SceneColorFringeQuality": 0,
+        "r.Tonemapper.Quality": 0
+      },
+      "contract": {
+        "label": "Native MRQ quality capture",
+        "performance_measurement": false,
+        "output_size": [
+          640,
+          360
+        ],
+        "fixed_fps": 60,
+        "sequence_frame_range": [
+          64,
+          65
+        ],
+        "spatial_samples": 1,
+        "temporal_samples": 1,
+        "tile_count": 1,
+        "render_warmup_samples": 64,
+        "engine_warmup_count": 0,
+        "warmup_note": "64 discarded render samples at the fixed first pose; MRQ forces one setup engine tick",
+        "aa_method": "None",
+        "cinematic_scalability": false,
+        "disable_tone_curve": true,
+        "readback": "MRQ deferred render target to PNG; 8-bit display transfer requires validation"
+      }
+    },
+    {
+      "pose": "Glide8",
+      "arm": "tsr",
+      "map": "/Game/MoireComparison/Maps/Glide8",
+      "sequence": "/Game/MoireComparison/CaptureSequences/Glide8",
+      "config": "/Game/MoireComparison/MRQ/B20260905T203359_481058Z/tsr_Glide8",
+      "map_sha256": "ace6dde5113fb7681fb2382ec6c45bf674c913b1866672ac04a5c8395c2971f7",
+      "sequence_sha256": "9118005dd58731be6df8e43b83f83ccdd52b48f9fc32cdf40057d7916dd6691f",
+      "config_sha256": "1992e30831d7bfc755282a784079eae5dfbd8742e5cbf1d391c38d4c36cb215c",
+      "camera_pose": {
+        "name": "Glide8",
+        "motion": "glide",
+        "time": 8.0,
+        "detail": 1.0,
+        "three_eye": [
+          4.705895550506519,
+          12.0,
+          28.0
+        ],
+        "three_target": [
+          2.1176529977279337,
+          0.0,
+          -22.0
+        ],
+        "unreal_location_cm": [
+          -2800.0,
+          470.58955505065194,
+          1200.0
+        ],
+        "unreal_target_cm": [
+          2200.0,
+          211.76529977279336,
+          0.0
+        ],
+        "unreal_rotation_degrees": {
+          "pitch": -13.478346777114242,
+          "yaw": -2.9632625952875062,
+          "roll": 0.0
+        },
+        "period_world": 4.0,
+        "horizontal_fov_degrees": 79.31687852038162
+      },
+      "output_directory": "/Users/neo/repos/Moire/native/Unreal/MoireComparison/Saved/MoireComparison/MRQ/20260905T203359.481058Z/tsr_Glide8",
+      "requested_cvars": {
+        "sg.AntiAliasingQuality": 3,
+        "r.AntiAliasingMethod": 4,
+        "r.ScreenPercentage": 100,
+        "r.SecondaryScreenPercentage.GameViewport": 100,
+        "r.DynamicRes.OperationMode": 0,
+        "r.TSR.History.ScreenPercentage": 200,
+        "r.MotionBlurQuality": 0,
+        "r.DepthOfFieldQuality": 0,
+        "r.BloomQuality": 0,
+        "r.EyeAdaptationQuality": 0,
+        "r.EyeAdaptation.PreExposureOverride": 1,
+        "r.LensFlareQuality": 0,
+        "r.SceneColorFringeQuality": 0,
+        "r.Tonemapper.Quality": 0
+      },
+      "contract": {
+        "label": "Native MRQ quality capture",
+        "performance_measurement": false,
+        "output_size": [
+          640,
+          360
+        ],
+        "fixed_fps": 60,
+        "sequence_frame_range": [
+          64,
+          65
+        ],
+        "spatial_samples": 1,
+        "temporal_samples": 1,
+        "tile_count": 1,
+        "render_warmup_samples": 64,
+        "engine_warmup_count": 0,
+        "warmup_note": "64 discarded render samples at the fixed first pose; MRQ forces one setup engine tick",
+        "aa_method": "TSR",
+        "cinematic_scalability": false,
+        "disable_tone_curve": true,
+        "readback": "MRQ deferred render target to PNG; 8-bit display transfer requires validation"
+      }
+    },
+    {
+      "pose": "Glide8",
+      "arm": "analytic",
+      "map": "/Game/MoireComparison/Maps/Glide8_Analytic",
+      "sequence": "/Game/MoireComparison/CaptureSequences/Glide8_Analytic",
+      "config": "/Game/MoireComparison/MRQ/B20260905T203359_481058Z/analytic_Glide8",
+      "map_sha256": "fa2a63066100fea559b113468fd44a7785c24adff6ca3abda62baf155011c7ff",
+      "sequence_sha256": "b4edb12a5ae8f94b3de614a37c3178539e5cd7332ae919a6ec8c8ce2a358a77b",
+      "config_sha256": "371d4284d43b3fd2efdb7e63185b11daf6ea55cfd9382abd5102413e1712fe15",
+      "camera_pose": {
+        "name": "Glide8",
+        "motion": "glide",
+        "time": 8.0,
+        "detail": 1.0,
+        "three_eye": [
+          4.705895550506519,
+          12.0,
+          28.0
+        ],
+        "three_target": [
+          2.1176529977279337,
+          0.0,
+          -22.0
+        ],
+        "unreal_location_cm": [
+          -2800.0,
+          470.58955505065194,
+          1200.0
+        ],
+        "unreal_target_cm": [
+          2200.0,
+          211.76529977279336,
+          0.0
+        ],
+        "unreal_rotation_degrees": {
+          "pitch": -13.478346777114242,
+          "yaw": -2.9632625952875062,
+          "roll": 0.0
+        },
+        "period_world": 4.0,
+        "horizontal_fov_degrees": 79.31687852038162
+      },
+      "output_directory": "/Users/neo/repos/Moire/native/Unreal/MoireComparison/Saved/MoireComparison/MRQ/20260905T203359.481058Z/analytic_Glide8",
+      "requested_cvars": {
+        "sg.AntiAliasingQuality": 3,
+        "r.AntiAliasingMethod": 0,
+        "r.ScreenPercentage": 100,
+        "r.SecondaryScreenPercentage.GameViewport": 100,
+        "r.DynamicRes.OperationMode": 0,
+        "r.TSR.History.ScreenPercentage": 200,
+        "r.MotionBlurQuality": 0,
+        "r.DepthOfFieldQuality": 0,
+        "r.BloomQuality": 0,
+        "r.EyeAdaptationQuality": 0,
+        "r.EyeAdaptation.PreExposureOverride": 1,
+        "r.LensFlareQuality": 0,
+        "r.SceneColorFringeQuality": 0,
+        "r.Tonemapper.Quality": 0
+      },
+      "contract": {
+        "label": "Native MRQ quality capture",
+        "performance_measurement": false,
+        "output_size": [
+          640,
+          360
+        ],
+        "fixed_fps": 60,
+        "sequence_frame_range": [
+          64,
+          65
+        ],
+        "spatial_samples": 1,
+        "temporal_samples": 1,
+        "tile_count": 1,
+        "render_warmup_samples": 64,
+        "engine_warmup_count": 0,
+        "warmup_note": "64 discarded render samples at the fixed first pose; MRQ forces one setup engine tick",
+        "aa_method": "None",
+        "cinematic_scalability": false,
+        "disable_tone_curve": true,
+        "readback": "MRQ deferred render target to PNG; 8-bit display transfer requires validation"
+      }
+    },
+    {
+      "pose": "Approach4",
+      "arm": "raw",
+      "map": "/Game/MoireComparison/Maps/Approach4",
+      "sequence": "/Game/MoireComparison/CaptureSequences/Approach4",
+      "config": "/Game/MoireComparison/MRQ/B20260905T203359_481058Z/raw_Approach4",
+      "map_sha256": "1e4749845d18cac2f30e1b7de23a852de9b97cfd3ea7d07e29e70079a74bb40d",
+      "sequence_sha256": "215364697d7bff8c0e73754df2e762ecc6bd192406898b5d00e7e6bb5755d6cc",
+      "config_sha256": "a9756ac99a14c21aa575a19a05d8019bcaa57f9b11485aebbf818096e6a9a43a",
+      "camera_pose": {
+        "name": "Approach4",
+        "motion": "approach",
+        "time": 4.0,
+        "detail": 2.0,
+        "three_eye": [
+          0.0,
+          12.0,
+          18.75113345321237
+        ],
+        "three_target": [
+          0.0,
+          0.0,
+          -31.24886654678763
+        ],
+        "unreal_location_cm": [
+          -1875.113345321237,
+          0.0,
+          1200.0
+        ],
+        "unreal_target_cm": [
+          3124.886654678763,
+          0.0,
+          0.0
+        ],
+        "unreal_rotation_degrees": {
+          "pitch": -13.495733280795811,
+          "yaw": 0.0,
+          "roll": 0.0
+        },
+        "period_world": 2.0,
+        "horizontal_fov_degrees": 79.31687852038162
+      },
+      "output_directory": "/Users/neo/repos/Moire/native/Unreal/MoireComparison/Saved/MoireComparison/MRQ/20260905T203359.481058Z/raw_Approach4",
+      "requested_cvars": {
+        "sg.AntiAliasingQuality": 3,
+        "r.AntiAliasingMethod": 0,
+        "r.ScreenPercentage": 100,
+        "r.SecondaryScreenPercentage.GameViewport": 100,
+        "r.DynamicRes.OperationMode": 0,
+        "r.TSR.History.ScreenPercentage": 200,
+        "r.MotionBlurQuality": 0,
+        "r.DepthOfFieldQuality": 0,
+        "r.BloomQuality": 0,
+        "r.EyeAdaptationQuality": 0,
+        "r.EyeAdaptation.PreExposureOverride": 1,
+        "r.LensFlareQuality": 0,
+        "r.SceneColorFringeQuality": 0,
+        "r.Tonemapper.Quality": 0
+      },
+      "contract": {
+        "label": "Native MRQ quality capture",
+        "performance_measurement": false,
+        "output_size": [
+          640,
+          360
+        ],
+        "fixed_fps": 60,
+        "sequence_frame_range": [
+          64,
+          65
+        ],
+        "spatial_samples": 1,
+        "temporal_samples": 1,
+        "tile_count": 1,
+        "render_warmup_samples": 64,
+        "engine_warmup_count": 0,
+        "warmup_note": "64 discarded render samples at the fixed first pose; MRQ forces one setup engine tick",
+        "aa_method": "None",
+        "cinematic_scalability": false,
+        "disable_tone_curve": true,
+        "readback": "MRQ deferred render target to PNG; 8-bit display transfer requires validation"
+      }
+    },
+    {
+      "pose": "Approach4",
+      "arm": "tsr",
+      "map": "/Game/MoireComparison/Maps/Approach4",
+      "sequence": "/Game/MoireComparison/CaptureSequences/Approach4",
+      "config": "/Game/MoireComparison/MRQ/B20260905T203359_481058Z/tsr_Approach4",
+      "map_sha256": "1e4749845d18cac2f30e1b7de23a852de9b97cfd3ea7d07e29e70079a74bb40d",
+      "sequence_sha256": "215364697d7bff8c0e73754df2e762ecc6bd192406898b5d00e7e6bb5755d6cc",
+      "config_sha256": "f499268fedbab6380fd96b16f1fb30bf72217a6e339c63ba241cb088205cbb0d",
+      "camera_pose": {
+        "name": "Approach4",
+        "motion": "approach",
+        "time": 4.0,
+        "detail": 2.0,
+        "three_eye": [
+          0.0,
+          12.0,
+          18.75113345321237
+        ],
+        "three_target": [
+          0.0,
+          0.0,
+          -31.24886654678763
+        ],
+        "unreal_location_cm": [
+          -1875.113345321237,
+          0.0,
+          1200.0
+        ],
+        "unreal_target_cm": [
+          3124.886654678763,
+          0.0,
+          0.0
+        ],
+        "unreal_rotation_degrees": {
+          "pitch": -13.495733280795811,
+          "yaw": 0.0,
+          "roll": 0.0
+        },
+        "period_world": 2.0,
+        "horizontal_fov_degrees": 79.31687852038162
+      },
+      "output_directory": "/Users/neo/repos/Moire/native/Unreal/MoireComparison/Saved/MoireComparison/MRQ/20260905T203359.481058Z/tsr_Approach4",
+      "requested_cvars": {
+        "sg.AntiAliasingQuality": 3,
+        "r.AntiAliasingMethod": 4,
+        "r.ScreenPercentage": 100,
+        "r.SecondaryScreenPercentage.GameViewport": 100,
+        "r.DynamicRes.OperationMode": 0,
+        "r.TSR.History.ScreenPercentage": 200,
+        "r.MotionBlurQuality": 0,
+        "r.DepthOfFieldQuality": 0,
+        "r.BloomQuality": 0,
+        "r.EyeAdaptationQuality": 0,
+        "r.EyeAdaptation.PreExposureOverride": 1,
+        "r.LensFlareQuality": 0,
+        "r.SceneColorFringeQuality": 0,
+        "r.Tonemapper.Quality": 0
+      },
+      "contract": {
+        "label": "Native MRQ quality capture",
+        "performance_measurement": false,
+        "output_size": [
+          640,
+          360
+        ],
+        "fixed_fps": 60,
+        "sequence_frame_range": [
+          64,
+          65
+        ],
+        "spatial_samples": 1,
+        "temporal_samples": 1,
+        "tile_count": 1,
+        "render_warmup_samples": 64,
+        "engine_warmup_count": 0,
+        "warmup_note": "64 discarded render samples at the fixed first pose; MRQ forces one setup engine tick",
+        "aa_method": "TSR",
+        "cinematic_scalability": false,
+        "disable_tone_curve": true,
+        "readback": "MRQ deferred render target to PNG; 8-bit display transfer requires validation"
+      }
+    },
+    {
+      "pose": "Approach4",
+      "arm": "analytic",
+      "map": "/Game/MoireComparison/Maps/Approach4_Analytic",
+      "sequence": "/Game/MoireComparison/CaptureSequences/Approach4_Analytic",
+      "config": "/Game/MoireComparison/MRQ/B20260905T203359_481058Z/analytic_Approach4",
+      "map_sha256": "c0b3f2cd227659e59a51f7071e56ae60e9a078e5622160703b59e5232c21f4c6",
+      "sequence_sha256": "3ebd57979ed64c437bbb81eef85f56fd39e10202eba287dceaed99dcf27e37cc",
+      "config_sha256": "f79bd1753d1c6cebbe0558d69331f3333e67a613093d508503d98f5f58a42e3f",
+      "camera_pose": {
+        "name": "Approach4",
+        "motion": "approach",
+        "time": 4.0,
+        "detail": 2.0,
+        "three_eye": [
+          0.0,
+          12.0,
+          18.75113345321237
+        ],
+        "three_target": [
+          0.0,
+          0.0,
+          -31.24886654678763
+        ],
+        "unreal_location_cm": [
+          -1875.113345321237,
+          0.0,
+          1200.0
+        ],
+        "unreal_target_cm": [
+          3124.886654678763,
+          0.0,
+          0.0
+        ],
+        "unreal_rotation_degrees": {
+          "pitch": -13.495733280795811,
+          "yaw": 0.0,
+          "roll": 0.0
+        },
+        "period_world": 2.0,
+        "horizontal_fov_degrees": 79.31687852038162
+      },
+      "output_directory": "/Users/neo/repos/Moire/native/Unreal/MoireComparison/Saved/MoireComparison/MRQ/20260905T203359.481058Z/analytic_Approach4",
+      "requested_cvars": {
+        "sg.AntiAliasingQuality": 3,
+        "r.AntiAliasingMethod": 0,
+        "r.ScreenPercentage": 100,
+        "r.SecondaryScreenPercentage.GameViewport": 100,
+        "r.DynamicRes.OperationMode": 0,
+        "r.TSR.History.ScreenPercentage": 200,
+        "r.MotionBlurQuality": 0,
+        "r.DepthOfFieldQuality": 0,
+        "r.BloomQuality": 0,
+        "r.EyeAdaptationQuality": 0,
+        "r.EyeAdaptation.PreExposureOverride": 1,
+        "r.LensFlareQuality": 0,
+        "r.SceneColorFringeQuality": 0,
+        "r.Tonemapper.Quality": 0
+      },
+      "contract": {
+        "label": "Native MRQ quality capture",
+        "performance_measurement": false,
+        "output_size": [
+          640,
+          360
+        ],
+        "fixed_fps": 60,
+        "sequence_frame_range": [
+          64,
+          65
+        ],
+        "spatial_samples": 1,
+        "temporal_samples": 1,
+        "tile_count": 1,
+        "render_warmup_samples": 64,
+        "engine_warmup_count": 0,
+        "warmup_note": "64 discarded render samples at the fixed first pose; MRQ forces one setup engine tick",
+        "aa_method": "None",
+        "cinematic_scalability": false,
+        "disable_tone_curve": true,
+        "readback": "MRQ deferred render target to PNG; 8-bit display transfer requires validation"
+      }
+    }
+  ]
+}

@@ -1,10 +1,10 @@
 # Native Unreal comparison
 
-This is an isolated **content-only Unreal 5.8.2 project** with a matched point source, actual Unreal TSR configuration, and the shared analytic HLSL material. Six maps, six materials and six camera sequences have been generated successfully. Shader bodies pass standalone DXC compilation; actual captured images and Metal execution are separate gates. The user's existing Unreal project and engine installation are not edited.
+This is an isolated **content-only Unreal 5.8.2 project** with a matched point source, actual Unreal TSR configuration, and the shared analytic HLSL material. Six maps, six materials and six camera sequences have been generated successfully. The first matched Glide0 images now execute the point source, actual Unreal TSR and our shared analytic HLSL on Metal. Open the [three-image comparison](comparison.html). The user's existing Unreal project and engine installation are not edited.
 
-Start with [the controlled viewport capture workflow](tools/capture-native.md). The first target is one still pose per method at 640×360, then the other fixed poses. Motion replay, disocclusion and native performance remain later checks. Offline capture frame stepping is not evidence of sustained real-time throughput.
+Start with the working [Movie Render Queue capture workflow](tools/capture-mrq.md). The first three stills use 640×360 output and a fixed camera. MRQ creates an offline view family; motion replay, disocclusion and main-game performance remain separate checks. Capture duration is not evidence of sustained real-time throughput.
 
-The first Mac offscreen viewport run initialized Metal SM6, finished shader compilation and stepped through the requested frame, but delivered no PNG. Its [failure record](evidence/capture-20260905T202331.609258Z-raw-Glide0/diagnosis.json) is preserved. That viewport readback route is not currently verified; a separate native render-target capture is being prepared. No native image is claimed from the failed run.
+The first Mac offscreen viewport run initialized Metal SM6, finished shader compilation and stepped through the requested frame, but delivered no PNG. Its [failure record](evidence/capture-20260905T202331.609258Z-raw-Glide0/diagnosis.json) is preserved. That viewport readback route remains unverified. The successful MRQ route uses its own native render target. Both results are retained; the MRQ images do not validate the failed viewport path.
 
 ## Reproduce the project
 
@@ -20,6 +20,7 @@ node native/Unreal/MoireComparison/Scripts/stage_kernel.mjs
   -unattended -nop4 -nosplash -nullrhi
 
 PYTHONDONTWRITEBYTECODE=1 python3 native/tools/capture_native.py --prepare
+PYTHONDONTWRITEBYTECODE=1 python3 native/tools/capture_mrq.py --prepare
 ```
 
 The first command stages the author-owned HLSL for Unreal's existing `/Project` shader mapping. Generated includes and assets are ignored; the generators are the source of truth. The stage adds namespace isolation and checks source/generator/output hashes, without changing the mathematics. Start Unreal after staging a settled author handoff. Restage and restart after a kernel change so cached includes cannot be attributed to newer code.
@@ -59,20 +60,25 @@ The shared kernel returns regime 4 for declined or exhausted work. Current mater
 ## Capturing and interpreting results
 
 ```sh
-PYTHONDONTWRITEBYTECODE=1 python3 native/tools/capture_native.py --arm raw --pose Glide0 --render
-PYTHONDONTWRITEBYTECODE=1 python3 native/tools/capture_native.py --arm tsr --pose Glide0 --render
-PYTHONDONTWRITEBYTECODE=1 python3 native/tools/capture_native.py --arm analytic --pose Glide0 --render
+PYTHONDONTWRITEBYTECODE=1 python3 native/tools/capture_mrq.py --arm raw --pose Glide0 --render
+PYTHONDONTWRITEBYTECODE=1 python3 native/tools/capture_mrq.py --arm tsr --pose Glide0 --render
+PYTHONDONTWRITEBYTECODE=1 python3 native/tools/capture_mrq.py --arm analytic --pose Glide0 --render
 ```
 
-Run one method at a time. The runner uses the actual game viewport through Unreal's automated LevelSequence capture, with one spatial sample and one temporal sample per frame, no tiling, 64 warm-up frame steps, and the saved frame explicitly identified. It retains process status, dimensions, source hashes, requested and logged console settings, shader errors and images. It does not silently treat process success as pipeline verification. No rendering measurements should be called performance while other editors or GPU jobs are active.
+Run one method at a time from the same prepared batch. The runner records actual source hashes, camera assets, settings, process status, dimensions, shader errors and images. It requires a correctly numbered frame rather than treating process success as a successful capture. The [matched batch](evidence/mrq-prepare-20260905T203352.265013Z/capture-batch.json) has one spatial sample, one temporal sample, 64 discarded render warm-ups, and one saved frame numbered 64. TSR retains its native jitter. Those warm-ups are renders at a fixed pose, not 64 moving game frames.
 
-Unlit emission, disabled exposure, `r.EyeAdaptation.PreExposureOverride=1`, and the `ShowFlag.Tonemapper 0` console command request a simple output path. They do not prove equality with Three's linear-to-sRGB output. PNGs are viewport output, not linear measurements. Before scoring, verify the transfer function and known dark/light/sky values or obtain a linear render-target readback. Also check actual content dimensions, camera activation, horizon, off-axis phase, active Metal shader platform and effective AA mode.
+The first MRQ image exposed a default vignette. The corrected batch disables it with `r.Tonemapper.Quality=0`; exposure, tone curve and other post effects are also disabled. All 230,400 raw pixels lie within one byte of the rounded expected dark/light/sky palette, with at most one byte of spatial spread per channel. The maximum distance to the unrounded standard sRGB value is 1.05028 bytes. This calibration establishes the flat-color transfer within output precision; it does not certify sub-byte accuracy. The initial vignette image is preserved alongside the corrected result.
 
-The existing material reference excludes the outer plane edge and a three-pixel band at the geometric horizon. Do not infer silhouette or sky accuracy from its scores. The fixed scenes do not yet test motion, history recovery after cuts, disocclusion, or gameplay. Capture warm-up frame counts describe sequence stepping; verify the actual temporal-history state before claiming an exact TSR history age.
+The [independent CPU image check](evidence/quality-20260905T204627830Z/README.md) retains all 54 predetermined off-axis pixels. Stable raw point parity matches at 47/47 positions. Against two 65,536-sample Gaussian references, linear RGB RMS is 0.271281 for raw, 0.113124 for TSR and 0.00215019 for analytic. All analytic channels fit the palette-derived PNG allowance; this does not establish zero shader error or a continuous transfer bound. The largest reference-sequence disagreement is 0.00156487 and is not an error bound. The CPU runner also passes from a relocated evidence tree with no generated Unreal assets.
+
+The gallery uses the original PNGs. Image scaling in a browser can change their apparent fine detail; open each image at its native size. Quantized sRGB PNG readback is not a float linear render target. Our reference filter has Gaussian sigma 0.5 pixel, while TSR uses its own reconstruction filter. Errors against that reference are diagnostic and do not alone establish an overall quality ranking.
+
+The existing reference excludes the outer plane edge and a three-pixel band at the geometric horizon. Do not infer silhouette or sky accuracy from its scores. The fixed scenes do not yet test motion, history recovery after cuts, disocclusion, or gameplay. Main-game capture and uncontended whole-frame timing remain the next native gates. The moving version must replace fixed homography rows with camera-derived inputs, replay the same trajectory and cuts for every arm, and record unsupported kernel regimes.
 
 ## Verification
 
 ```sh
+node native/tools/compare_mrq.mjs
 PYTHONDONTWRITEBYTECODE=1 python3 native/check_preparation.py
 PYTHONDONTWRITEBYTECODE=1 python3 native/tools/compile_hlsl.py --spirv
 PYTHONDONTWRITEBYTECODE=1 python3 native/tools/compile_material.py

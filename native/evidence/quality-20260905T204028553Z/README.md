@@ -1,0 +1,22 @@
+# Native fixed-pose quality diagnostic
+
+Status: needs-investigation. Sources, camera metadata, size, and common settings match; native AA modes are 0 / 4 / 0. The raw point check matches at 47/47 stable fixtures; 7 boundary fixtures are retained in quality statistics but omitted from that parity check.
+
+The 54 fixed off-axis pixels use an independent original ray/plane checker reference, Gaussian sigma 0.5 pixels, two 65,536-sample sequences. Maximum sequence disagreement is 1.5649e-3 linear RGB; this is a convergence diagnostic, not a bound.
+
+| Arm | Linear RGB RMSE | Maximum absolute error | Largest local one-code step |
+| --- | ---: | ---: | ---: |
+| raw | 2.7128e-1 | 4.0171e-1 | 7.9841e-3 |
+| tsr | 1.1312e-1 | 3.4017e-1 | 7.9841e-3 |
+| analytic | 2.1502e-3 | 5.4581e-3 | 7.9841e-3 |
+
+TSR uses a different reconstruction filter. This table measures deviation from the chosen Gaussian and does not declare an overall winner. PNG readback has quantization and dithering; the complete raw image is within one display byte of the expected palette.
+
+- One fixed Glide0 pose, 640 by 360, unlit plane only; these measurements do not establish motion quality, disocclusion, scene-general accuracy, or real-time frame cost.
+- MRQ uses the native deferred renderer and TSR but bIsOfflineRender=true. The 64 discarded fixed-pose samples settle history. This is a quality capture, not a live gameplay timing measurement.
+- TSR reconstructs with its own history/filter/sharpening. Error against the selected sigma=0.5 Gaussian is a target-specific diagnostic, not an overall AA ranking.
+- PNG is 8-bit with observed dithering. One local display-code step and two-sequence differences are reported separately; neither is a certified total error bound. No float-render-target accuracy claim.
+- Matching camera metadata and independent raw phase checks support registration at tested pixels. Analytic and raw maps necessarily differ in material; metadata equality alone is not full scene identity proof.
+- The fixed family excludes geometric horizon and plane edges; it does not measure filtering across geometry boundaries.
+
+Reproduce: `node native/tools/compare_mrq.mjs`. Explicit `--raw`, `--tsr`, `--analytic` report paths and a fresh `--out` directory are also accepted. This performs CPU image analysis only. Full per-pixel data, capture hashes, configuration, and actual queried cvars are in [report.json](report.json).

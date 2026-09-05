@@ -1,0 +1,31 @@
+{
+  "createdAt": "2026-09-05T20:46:47.944Z",
+  "status": "passed",
+  "utilitySha256": "3821675900e2d00039a703d9ae3b1f26df4fadaaa8a638cec480cc109c916e3a",
+  "explicitCommand": [
+    "/Users/neo/.vite-plus/js_runtime/node/24.20.0/bin/node",
+    "/Users/neo/repos/Moire/native/tools/compare_mrq.mjs",
+    "--raw",
+    "/Users/neo/repos/Moire/native/evidence/mrq-capture-20260905T203404.322055Z-raw-Glide0/report.json",
+    "--tsr",
+    "/Users/neo/repos/Moire/native/evidence/mrq-capture-20260905T203440.239836Z-tsr-Glide0/report.json",
+    "--analytic",
+    "/Users/neo/repos/Moire/native/evidence/mrq-capture-20260905T203502.965788Z-analytic-Glide0/report.json",
+    "--preparation",
+    "moved-preparation.json",
+    "--out",
+    "explicit-result"
+  ],
+  "explicitWorkingDirectory": "/tmp/moire-mrq-preparation-option-6g6bl8",
+  "explicitPreparationArchiveSha256": "48818126ed7b534b753e756db4f29ba4055be9cb7001d9c40f97cbd08eba1948",
+  "explicitReportSha256": "3a13e59951f2ddcdfec28bfacb67e0ba71db1ce7003e2e62eb030e539886edc9",
+  "defaultReportSha256": "e8b5b8479d77637db0ff82af06b8c9ab3781b44beaccf48205d933e752ccb313",
+  "explicitPathResolvedCorrectlyForAllArms": true,
+  "pathIdentityUsesRealpathForMacTmpSymlink": true,
+  "defaultAndExplicitPixelsAndSummariesExactlyEqual": true,
+  "numericallyIdenticalToPrevious": "native/evidence/quality-20260905T204422132Z/report.json",
+  "exitCodes": {
+    "default": 0,
+    "explicit": 0
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "createdAt": "2026-09-05T20:44:22.407Z",
+  "status": "passed",
+  "utilitySha256": "78b5e1aa345e5274da9dc16edf55f15744888fff61c20cc593f3d75a327081ce",
+  "fixtureRoot": "/tmp/moire-mrq-relocation-SVMvOd",
+  "workingDirectory": "/tmp/moire-mrq-relocation-SVMvOd",
+  "command": [
+    "/Users/neo/.vite-plus/js_runtime/node/24.20.0/bin/node",
+    "/Users/neo/repos/Moire/native/tools/compare_mrq.mjs",
+    "--raw",
+    "/tmp/moire-mrq-relocation-SVMvOd/evidence/mrq-capture-20260905T203404.322055Z-raw-Glide0/report.json",
+    "--tsr",
+    "/tmp/moire-mrq-relocation-SVMvOd/evidence/mrq-capture-20260905T203440.239836Z-tsr-Glide0/report.json",
+    "--analytic",
+    "/tmp/moire-mrq-relocation-SVMvOd/evidence/mrq-capture-20260905T203502.965788Z-analytic-Glide0/report.json",
+    "--out",
+    "/tmp/moire-mrq-relocation-SVMvOd/quality-output"
+  ],
+  "inputs": {
+    "raw": {
+      "report": "/tmp/moire-mrq-relocation-SVMvOd/evidence/mrq-capture-20260905T203404.322055Z-raw-Glide0/report.json",
+      "artifactProvenance": "/tmp/moire-mrq-relocation-SVMvOd/nonexistent-original-host/capture/raw_Glide0.0064.png",
+      "preparationProvenance": "/tmp/moire-mrq-relocation-SVMvOd/nonexistent-original-host/Saved/preparation.json",
+      "bothProvenancePathsExist": false,
+      "imageSha256": "7ac1857bf1203056c7abe5a4bd77e22dac071e6083cc9e8825b3b5ce3158eaf3"
+    },
+    "tsr": {
+      "report": "/tmp/moire-mrq-relocation-SVMvOd/evidence/mrq-capture-20260905T203440.239836Z-tsr-Glide0/report.json",
+      "artifactProvenance": "/tmp/moire-mrq-relocation-SVMvOd/nonexistent-original-host/capture/tsr_Glide0.0064.png",
+      "preparationProvenance": "/tmp/moire-mrq-relocation-SVMvOd/nonexistent-original-host/Saved/preparation.json",
+      "bothProvenancePathsExist": false,
+      "imageSha256": "5103bee06ab0284959b41a4cd08d3b52799b3ffdfc72fd5c643f888d97ed1924"
+    },
+    "analytic": {
+      "report": "/tmp/moire-mrq-relocation-SVMvOd/evidence/mrq-capture-20260905T203502.965788Z-analytic-Glide0/report.json",
+      "artifactProvenance": "/tmp/moire-mrq-relocation-SVMvOd/nonexistent-original-host/capture/analytic_Glide0.0064.png",
+      "preparationProvenance": "/tmp/moire-mrq-relocation-SVMvOd/nonexistent-original-host/Saved/preparation.json",
+      "bothProvenancePathsExist": false,
+      "imageSha256": "6177929b438458f8d95439e7d8ce1229d4fd6c0042c633f6f84c9f1045abd4cf"
+    }
+  },
+  "originalAbsoluteProvenancePathsReplacedWithNonexistentPaths": true,
+  "unrealInstallationOrGeneratedAssetFilesCopied": false,
+  "archivedPreparationSha256": "48818126ed7b534b753e756db4f29ba4055be9cb7001d9c40f97cbd08eba1948",
+  "relocatedExitCode": 0,
+  "relocatedReportSha256": "bf4762a0c1d26cd274ad11e5745d40fc511a2225525306b65331e47d29f83a98",
+  "relocatedSummary": {
+    "raw": {
+      "pixels": 54,
+      "rmseLinearRgb": 0.2712814261478921,
+      "meanAbsLinearRgb": 0.2014243930275392,
+      "maxAbsLinearRgb": 0.401705050660932,
+      "maxOneCodeStepLinear": 0.007984122378371095,
+      "rmseAfterDisplayAllowanceLinearRgb": 0.26652629911250825,
+      "maxAbsAfterDisplayAllowanceLinearRgb": 0.3972445249049585,
+      "channelsOutsideDisplayAllowance": 117
+    },
+    "tsr": {
+      "pixels": 54,
+      "rmseLinearRgb": 0.11312355003900525,
+      "meanAbsLinearRgb": 0.08004438928994652,
+      "maxAbsLinearRgb": 0.34016876992096645,
+      "maxOneCodeStepLinear": 0.007984122378371095,
+      "rmseAfterDisplayAllowanceLinearRgb": 0.10905116776858537,
+      "maxAbsAfterDisplayAllowanceLinearRgb": 0.3370169915187142,
+      "channelsOutsideDisplayAllowance": 117
+    },
+    "analytic": {
+      "pixels": 54,
+      "rmseLinearRgb": 0.0021501946445553516,
+      "meanAbsLinearRgb": 0.001583205778974676,
+      "maxAbsLinearRgb": 0.005458096582630301,
+      "maxOneCodeStepLinear": 0.007984122378371095,
+      "rmseAfterDisplayAllowanceLinearRgb": 0,
+      "maxAbsAfterDisplayAllowanceLinearRgb": 0,
+      "channelsOutsideDisplayAllowance": 0
+    }
+  },
+  "numericallyIdenticalToRepositoryRun": true,
+  "numericallyIdenticalToPreviousReport": "native/evidence/quality-20260905T204145924Z/report.json"
+}
