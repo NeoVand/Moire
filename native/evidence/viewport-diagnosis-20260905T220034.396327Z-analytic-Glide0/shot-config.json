@@ -1,0 +1,13 @@
+{
+  "output": "/Users/neo/repos/Moire/native/evidence/viewport-diagnosis-20260905T220034.396327Z-analytic-Glide0/frames/analytic_Glide0.0120.png",
+  "record": "/Users/neo/repos/Moire/native/evidence/viewport-diagnosis-20260905T220034.396327Z-analytic-Glide0/shot.json",
+  "world": "/Game/MoireComparison/Maps/Glide0_MotionAnalytic.Glide0_MotionAnalytic",
+  "warmup_frames": 64,
+  "motion_sequence": "/Game/MoireComparison/MotionSequences/Glide0_MotionAnalytic",
+  "target_sequence_frame": 120,
+  "uninterrupted_motion": true,
+  "maximum_readback_frames": 3,
+  "post_completion_frames": 2,
+  "nearby_pre_tick_frames": 3,
+  "expected_sequence_rate": 60
+}

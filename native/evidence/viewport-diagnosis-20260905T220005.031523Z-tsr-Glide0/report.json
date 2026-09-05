@@ -1,0 +1,2483 @@
+{
+  "argv": [
+    "/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/Mac/UnrealEditor.app/Contents/MacOS/UnrealEditor",
+    "/Users/neo/repos/Moire/native/Unreal/MoireComparison/MoireComparison.uproject",
+    "/Game/MoireComparison/Maps/Glide0?game=/Script/MovieRenderPipelineCore.MoviePipelineGameMode",
+    "-game",
+    "-windowed",
+    "-ForceRes",
+    "-ResX=640",
+    "-ResY=360",
+    "-NoTextureStreaming",
+    "-LogCmds=LogMovieSceneCapture VeryVerbose",
+    "-ExecCmds=sg.AntiAliasingQuality 3,r.AntiAliasingMethod 4,r.ScreenPercentage 100,r.SecondaryScreenPercentage.GameViewport 100,r.DynamicRes.OperationMode 0,r.TSR.History.ScreenPercentage 200,r.MotionBlurQuality 0,r.DepthOfFieldQuality 0,r.BloomQuality 0,r.EyeAdaptationQuality 0,r.EyeAdaptation.PreExposureOverride 1,r.LensFlareQuality 0,r.SceneColorFringeQuality 0,r.Tonemapper.Quality 0,ShowFlag.Tonemapper 0,framegrabber.framelatency 0,sg.AntiAliasingQuality,r.AntiAliasingMethod,r.ScreenPercentage,r.SecondaryScreenPercentage.GameViewport,r.DynamicRes.OperationMode,r.TSR.History.ScreenPercentage,r.MotionBlurQuality,r.DepthOfFieldQuality,r.BloomQuality,r.EyeAdaptationQuality,r.EyeAdaptation.PreExposureOverride,r.LensFlareQuality,r.SceneColorFringeQuality,r.Tonemapper.Quality,ShowFlag.Tonemapper,framegrabber.framelatency,gamma 2.2,getall Engine DisplayGamma,py /Users/neo/repos/Moire/native/tools/viewport_diagnosis_shot.py",
+    "-unattended",
+    "-nop4",
+    "-nosplash",
+    "-nosound",
+    "-stdout",
+    "-FullStdOutLogOutput",
+    "-AbsLog=/Users/neo/repos/Moire/native/evidence/viewport-diagnosis-20260905T220005.031523Z-tsr-Glide0/unreal.log",
+    "-UseFixedTimeStep",
+    "-FPS=60"
+  ],
+  "output_directory": "/Users/neo/repos/Moire/native/evidence/viewport-diagnosis-20260905T220005.031523Z-tsr-Glide0",
+  "action": "render",
+  "execute_requested": true,
+  "renderer_will_start": true,
+  "performance_measurement": false,
+  "shot_config": {
+    "output": "/Users/neo/repos/Moire/native/evidence/viewport-diagnosis-20260905T220005.031523Z-tsr-Glide0/frames/tsr_Glide0.0120.png",
+    "record": "/Users/neo/repos/Moire/native/evidence/viewport-diagnosis-20260905T220005.031523Z-tsr-Glide0/shot.json",
+    "world": "/Game/MoireComparison/Maps/Glide0.Glide0",
+    "warmup_frames": 64,
+    "motion_sequence": "/Game/MoireComparison/MotionSequences/Glide0",
+    "target_sequence_frame": 120,
+    "uninterrupted_motion": true,
+    "maximum_readback_frames": 3,
+    "post_completion_frames": 2,
+    "nearby_pre_tick_frames": 3,
+    "expected_sequence_rate": 60
+  },
+  "actual_saved_phase": "unassigned; select and verify a recorded camera observation against the raw image",
+  "route": "ordinary game viewport -> Shot/FScreenshotRequest -> PNG",
+  "status": "captured-pipeline-verification-pending",
+  "started_at": "20260905T220005.031523Z",
+  "source_hashes": {
+    "native/tools/viewport_diagnosis.py": "5ebfcf476f350985f9836141834d740e71b93446dabe841b7b1dfcc9fbd0cb13",
+    "native/Unreal/MoireComparison/MoireComparison.uproject": "499cf1857cef9b748c80a96b50cfcf867d700c595e7f155a98677c16c793132b",
+    "native/Unreal/MoireComparison/Config/DefaultEngine.ini": "76d6bfd602f35c0e4896f7f492fa5b7ed0aa061a7ae5b3d1044397bc50e286c6",
+    "native/Unreal/MoireComparison/Scripts/scene_contract.py": "dfd8ac7def736ae7146286add5109cc059c51dd377e2615de9b8933516ec7a6d",
+    "native/Unreal/MoireComparison/Scripts/analytic_material.py": "e14cf5faf5a7570699ec0c7fa1f6d3cc5502edd8c6a81dcd878410f94027f169",
+    "native/Unreal/MoireComparison/Shaders/Moire/Generated/Kernel.ush": "9fc69877f79ed170e926825b119018623f68ffa887a9ae73d179eb9550a52f26",
+    "native/Unreal/MoireComparison/Shaders/Moire/Generated/source.json": "39c3ead89d0a8fb3d4497b3e42ae70b3ba7e22bfb710b491a33172c902936286",
+    "demo/ours-kernel.wgsl.js": "ac855cdb4d478faf8130176d8dda2507b28909218a8d955c6b1e724e6c083cd1",
+    "demo/ours-kernel.hlsl": "85c87f01b4d16a18dbad1fa8a34dc2e793eeb0769377569fb3432ebf7a5595bc",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_Analytic_Approach4.uasset": "19a7043b8e3a8b152ec11e160d6cd0f5d99df8590ea566517d92fae9c6b3101a",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_Analytic_Glide0.uasset": "60529526d4a05b8441a597de9588c008a1c341f55c44ccf28c11f8d5fb97eaa5",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_Analytic_Glide8.uasset": "473b6f2c08ce8d16b49fc3df28dd4409c164dc695ae20576fb3029d14a279b82",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_Checker_Detail1.uasset": "dfc9682c330ecaaac01d4e5bf49fc7c7e1bdd9aeb8cf9835d73e2bceaedc41ac",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_Checker_Detail2.uasset": "9e7f9ffe0b638b5c24913330183a08633e0f719115cd05b2f18ea87acacf98ac",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_MotionAnalytic_Detail1.uasset": "52261a35e5c478df172ffb1a9653e489941287fe3590e84ec632c0024a18f0c8",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_MotionAnalytic_Detail2.uasset": "e803f0790207c502c38069452ed264a5647156fc9946e5f1d2ef3f4401f3ef4e",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_MotionRegimes_Detail1.uasset": "a18a9d6776a79772d8b0e179021f641a663e55a20306629a54842942d67f3848",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_MotionRegimes_Detail2.uasset": "d45231aaf26d1f0642c91c4c323dc1d868f4b3213bb3b0eab6925834e8dafeb7",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_Sky.uasset": "2db5c3fc276261d2ab9750054863ed180395957397855d92f0602953ffe628a2",
+    "native/tools/viewport_diagnosis_shot.py": "834f5ddfe5a6100e0e8f1a088437656925598ebbe3ebe467c2887d25ef5ca765",
+    "native/evidence/viewport-diagnosis-20260905T220005.031523Z-tsr-Glide0/shot-config.json": "2ac0f42645365d2588c53606f8e07b00b9b647e709c502c236e8a0e06db268f6",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Maps/Glide0.umap": "3117a9f6f6b86983b0c03dc9dc92dae73b6c67b5453f9cc486002484485dd85d",
+    "native/Unreal/MoireComparison/Content/MoireComparison/MotionSequences/Glide0.uasset": "ab47a50ec115abe7abec9b9ec7de5d86168ab2f9fae2e2ea06b2d220f0981c1c"
+  },
+  "artifacts": [
+    {
+      "path": "/Users/neo/repos/Moire/native/evidence/viewport-diagnosis-20260905T220005.031523Z-tsr-Glide0/frames/tsr_Glide0.0120.png",
+      "sha256": "7139739a5fa8f2fcf9105afaadc3cfc594ab8b927996ee405320fe20768ac7d5",
+      "size": [
+        640,
+        360
+      ],
+      "png_bit_depth": 8,
+      "png_color_type": 6,
+      "file_frame_label": 120,
+      "sequence_frame": null
+    }
+  ],
+  "engine_build": {
+    "MajorVersion": 5,
+    "MinorVersion": 8,
+    "PatchVersion": 2,
+    "Changelist": 56702186,
+    "CompatibleChangelist": 55116800,
+    "IsLicenseeVersion": 0,
+    "IsPromotedBuild": 1,
+    "BranchName": "++UE5+Release-5.8"
+  },
+  "prepared_scene": {
+    "pose": {
+      "name": "Glide0",
+      "motion": "glide",
+      "time": 2.0,
+      "detail": 1.0
+    },
+    "map": "/Game/MoireComparison/Maps/Glide0",
+    "sequence": "/Game/MoireComparison/MotionSequences/Glide0",
+    "arms": [
+      "raw",
+      "tsr"
+    ],
+    "camera": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+    "binding_id": "E7BDD8287242D6FD8E5B07BD68420017",
+    "map_sha256": "3117a9f6f6b86983b0c03dc9dc92dae73b6c67b5453f9cc486002484485dd85d",
+    "sequence_sha256": "ab47a50ec115abe7abec9b9ec7de5d86168ab2f9fae2e2ea06b2d220f0981c1c",
+    "channel_evaluation": {
+      "channels": [
+        "Location.X",
+        "Location.Y",
+        "Location.Z",
+        "Rotation.X",
+        "Rotation.Y",
+        "Rotation.Z",
+        "Scale.X",
+        "Scale.Y",
+        "Scale.Z"
+      ],
+      "samples_per_channel": 481,
+      "evaluated_values_sha256": "4a8767bbc28547aaf7605d1abe95d735d213a556725ae9628ba561ae08bd8b9b",
+      "max_absolute_error": 0.0
+    },
+    "camera_evaluation": {
+      "method": "Transient LevelSequencePlayer.set_playback_position and bound CameraActor transform readback",
+      "rendered_frames_checked": 480,
+      "seek_reset_frames": [
+        0,
+        240,
+        0,
+        479,
+        0
+      ],
+      "max_error_per_channel": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.4688843066323898e-06,
+        9.826559855241612e-05,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual_transforms_sha256": "7ba2f7854478b09da89dfa1e9d71672ec1305455e33374c0afc66116d7915f96",
+      "translation_tolerance_cm": 0.00011,
+      "rotation_tolerance_degrees": 0.00011,
+      "tolerance_reason": "USceneComponent world-transform cache skips changes within its 1e-4 Equals tolerance; exact channel values are checked separately",
+      "endpoint_480": "Key/channel verified; outside the exclusive playback range",
+      "camera_history_reset_verified": false
+    },
+    "camera_pose": {
+      "name": "Glide0",
+      "motion": "glide",
+      "time": 2.0,
+      "detail": 1.0,
+      "three_eye": [
+        3.1871171875253004,
+        12.0,
+        28.0
+      ],
+      "three_target": [
+        1.4342027343863852,
+        0.0,
+        -22.0
+      ],
+      "unreal_location_cm": [
+        -2800.0,
+        318.71171875253003,
+        1200.0
+      ],
+      "unreal_target_cm": [
+        2200.0,
+        143.42027343863853,
+        0.0
+      ],
+      "unreal_rotation_degrees": {
+        "pitch": -13.487750057473606,
+        "yaw": -2.0078696564462195,
+        "roll": 0.0
+      },
+      "period_world": 4.0,
+      "horizontal_fov_degrees": 79.31687852038162
+    },
+    "expected_sequence_sample": {
+      "frame": 120,
+      "time_seconds": 2.0,
+      "values": [
+        -2800.0,
+        318.71171875253003,
+        1200.0,
+        0.0,
+        -13.487750057473606,
+        -2.0078696564462195,
+        1.0,
+        1.0,
+        1.0
+      ]
+    }
+  },
+  "preparation_report": "/Users/neo/repos/Moire/native/Unreal/MoireComparison/Saved/MoireComparison/prepare-motion-20260905T210302.118764Z.json",
+  "preparation_sha256": "37630cd931629cbf6b8251fa08fe86f818032dea6725219d96f62a308ceac5db",
+  "requested_cvars": {
+    "sg.AntiAliasingQuality": 3,
+    "r.AntiAliasingMethod": 4,
+    "r.ScreenPercentage": 100,
+    "r.SecondaryScreenPercentage.GameViewport": 100,
+    "r.DynamicRes.OperationMode": 0,
+    "r.TSR.History.ScreenPercentage": 200,
+    "r.MotionBlurQuality": 0,
+    "r.DepthOfFieldQuality": 0,
+    "r.BloomQuality": 0,
+    "r.EyeAdaptationQuality": 0,
+    "r.EyeAdaptation.PreExposureOverride": 1,
+    "r.LensFlareQuality": 0,
+    "r.SceneColorFringeQuality": 0,
+    "r.Tonemapper.Quality": 0,
+    "ShowFlag.Tonemapper": 0,
+    "framegrabber.framelatency": 0
+  },
+  "contract": {
+    "arm": "tsr",
+    "pose": "Glide0",
+    "resolution": [
+      640,
+      360
+    ],
+    "fixed_fps": 60,
+    "warmup_sequence_frames": 64,
+    "output_sequence_frame": null,
+    "requested_sequence_frame": 120,
+    "sample_time_seconds": null,
+    "requested_sample_time_seconds": 2.0,
+    "camera_motion": "glide",
+    "prepared_camera_is_request_pose_only": true,
+    "saved_phase_assignment": "requires independent raw-image registration to recorded camera observations",
+    "spatial_samples": 1,
+    "temporal_subsamples": 1,
+    "new_view_family": false,
+    "mrq": false,
+    "highres_screenshot": false,
+    "real_window": true,
+    "ordinary_shot": true,
+    "fixed_pose_sequence_label_only": false,
+    "motion_sequence_playback": true,
+    "capture_after_paused_motion_history": false,
+    "capture_uninterrupted_motion": true,
+    "filename_is_request_frame_label_only": true,
+    "motion_capture_limitation": "single image during continuous playback; saved phase unassigned until independent registration; not a temporal sequence or performance measurement",
+    "game_mode": "/Script/MovieRenderPipelineCore.MoviePipelineGameMode",
+    "preloaded_passthrough_material": null,
+    "buffer_visualization_material": null,
+    "registration": null,
+    "eager_material_shader_compilation": false,
+    "discarded_readback_warmup_frames": [],
+    "display_gamma": 2.2,
+    "readback_stage": "game viewport backbuffer after gamma-only tonemapper",
+    "readback_transfer": "power-gamma",
+    "readback_transfer_validation": "Gamma-only pow(linear, 1/display_gamma); byte palette must independently confirm"
+  },
+  "process_id": 27995,
+  "exit_code": 0,
+  "elapsed_wall_seconds": 17.791673916974105,
+  "source_hashes_after": {
+    "native/tools/viewport_diagnosis.py": "5ebfcf476f350985f9836141834d740e71b93446dabe841b7b1dfcc9fbd0cb13",
+    "native/Unreal/MoireComparison/MoireComparison.uproject": "499cf1857cef9b748c80a96b50cfcf867d700c595e7f155a98677c16c793132b",
+    "native/Unreal/MoireComparison/Config/DefaultEngine.ini": "76d6bfd602f35c0e4896f7f492fa5b7ed0aa061a7ae5b3d1044397bc50e286c6",
+    "native/Unreal/MoireComparison/Scripts/scene_contract.py": "dfd8ac7def736ae7146286add5109cc059c51dd377e2615de9b8933516ec7a6d",
+    "native/Unreal/MoireComparison/Scripts/analytic_material.py": "e14cf5faf5a7570699ec0c7fa1f6d3cc5502edd8c6a81dcd878410f94027f169",
+    "native/Unreal/MoireComparison/Shaders/Moire/Generated/Kernel.ush": "9fc69877f79ed170e926825b119018623f68ffa887a9ae73d179eb9550a52f26",
+    "native/Unreal/MoireComparison/Shaders/Moire/Generated/source.json": "39c3ead89d0a8fb3d4497b3e42ae70b3ba7e22bfb710b491a33172c902936286",
+    "demo/ours-kernel.wgsl.js": "ac855cdb4d478faf8130176d8dda2507b28909218a8d955c6b1e724e6c083cd1",
+    "demo/ours-kernel.hlsl": "85c87f01b4d16a18dbad1fa8a34dc2e793eeb0769377569fb3432ebf7a5595bc",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_Analytic_Approach4.uasset": "19a7043b8e3a8b152ec11e160d6cd0f5d99df8590ea566517d92fae9c6b3101a",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_Analytic_Glide0.uasset": "60529526d4a05b8441a597de9588c008a1c341f55c44ccf28c11f8d5fb97eaa5",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_Analytic_Glide8.uasset": "473b6f2c08ce8d16b49fc3df28dd4409c164dc695ae20576fb3029d14a279b82",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_Checker_Detail1.uasset": "dfc9682c330ecaaac01d4e5bf49fc7c7e1bdd9aeb8cf9835d73e2bceaedc41ac",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_Checker_Detail2.uasset": "9e7f9ffe0b638b5c24913330183a08633e0f719115cd05b2f18ea87acacf98ac",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_MotionAnalytic_Detail1.uasset": "52261a35e5c478df172ffb1a9653e489941287fe3590e84ec632c0024a18f0c8",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_MotionAnalytic_Detail2.uasset": "e803f0790207c502c38069452ed264a5647156fc9946e5f1d2ef3f4401f3ef4e",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_MotionRegimes_Detail1.uasset": "a18a9d6776a79772d8b0e179021f641a663e55a20306629a54842942d67f3848",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_MotionRegimes_Detail2.uasset": "d45231aaf26d1f0642c91c4c323dc1d868f4b3213bb3b0eab6925834e8dafeb7",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Materials/M_Sky.uasset": "2db5c3fc276261d2ab9750054863ed180395957397855d92f0602953ffe628a2",
+    "native/tools/viewport_diagnosis_shot.py": "834f5ddfe5a6100e0e8f1a088437656925598ebbe3ebe467c2887d25ef5ca765",
+    "native/evidence/viewport-diagnosis-20260905T220005.031523Z-tsr-Glide0/shot-config.json": "2ac0f42645365d2588c53606f8e07b00b9b647e709c502c236e8a0e06db268f6",
+    "native/Unreal/MoireComparison/Content/MoireComparison/Maps/Glide0.umap": "3117a9f6f6b86983b0c03dc9dc92dae73b6c67b5453f9cc486002484485dd85d",
+    "native/Unreal/MoireComparison/Content/MoireComparison/MotionSequences/Glide0.uasset": "ab47a50ec115abe7abec9b9ec7de5d86168ab2f9fae2e2ea06b2d220f0981c1c"
+  },
+  "source_hashes_stable": true,
+  "capture_lines": [
+    "LogCsvProfiler: Display: Metadata set : commandline=\"\" /Users/neo/repos/Moire/native/Unreal/MoireComparison/MoireComparison.uproject /Game/MoireComparison/Maps/Glide0?game=/Script/MovieRenderPipelineCore.MoviePipelineGameMode -game -windowed -ForceRes -ResX=640 -ResY=360 -NoTextureStreaming -LogCmds=\"LogMovieSceneCapture VeryVerbose\" -ExecCmds=\"sg.AntiAliasingQuality 3,r.AntiAliasingMethod 4,r.ScreenPercentage 100,r.SecondaryScreenPercentage.GameViewport 100,r.DynamicRes.OperationMode 0,r.TSR.History.ScreenPercentage 200,r.MotionBlurQuality 0,r.DepthOfFieldQuality 0,r.BloomQuality 0,r.EyeAdaptationQuality 0,r.EyeAdaptation.PreExposureOverride 1,r.LensFlareQuality 0,r.SceneColorFringeQuality 0,r.Tonemapper.Quality 0,ShowFlag.Tonemapper 0,framegrabber.framelatency 0,sg.AntiAliasingQuality,r.AntiAliasingMethod,r.ScreenPercentage,r.SecondaryScreenPercentage.GameViewport,r.DynamicRes.OperationMode,r.TSR.History.ScreenPercentage,r.MotionBlurQuality,r.DepthOfFieldQuality,r.BloomQuality,r.EyeAdaptationQuality,r.EyeAdaptation.PreExposureOverride,r.LensFlareQuality,r.SceneColorFringeQuality,r.Tonemapper.Quality,ShowFlag.Tonemapper,framegrabber.framelatency,gamma 2.2,getall Engine DisplayGamma,py /Users/neo/repos/Moire/native/tools/viewport_diagnosis_shot.py\" -unattended -nop4 -nosplash -nosound -stdout -FullStdOutLogOutput -AbsLog=/Users/neo/repos/Moire/native/evidence/viewport-diagnosis-20260905T220005.031523Z-tsr-Glide0/unreal.log -UseFixedTimeStep -FPS=60\"\"",
+    "LogHAL: Log category LogMovieSceneCapture verbosity has been raised to VeryVerbose.",
+    "LogInit: Command Line: /Game/MoireComparison/Maps/Glide0?game=/Script/MovieRenderPipelineCore.MoviePipelineGameMode -game -windowed -ForceRes -ResX=640 -ResY=360 -NoTextureStreaming -LogCmds=\"LogMovieSceneCapture VeryVerbose\" -ExecCmds=\"sg.AntiAliasingQuality 3,r.AntiAliasingMethod 4,r.ScreenPercentage 100,r.SecondaryScreenPercentage.GameViewport 100,r.DynamicRes.OperationMode 0,r.TSR.History.ScreenPercentage 200,r.MotionBlurQuality 0,r.DepthOfFieldQuality 0,r.BloomQuality 0,r.EyeAdaptationQuality 0,r.EyeAdaptation.PreExposureOverride 1,r.LensFlareQuality 0,r.SceneColorFringeQuality 0,r.Tonemapper.Quality 0,ShowFlag.Tonemapper 0,framegrabber.framelatency 0,sg.AntiAliasingQuality,r.AntiAliasingMethod,r.ScreenPercentage,r.SecondaryScreenPercentage.GameViewport,r.DynamicRes.OperationMode,r.TSR.History.ScreenPercentage,r.MotionBlurQuality,r.DepthOfFieldQuality,r.BloomQuality,r.EyeAdaptationQuality,r.EyeAdaptation.PreExposureOverride,r.LensFlareQuality,r.SceneColorFringeQuality,r.Tonemapper.Quality,ShowFlag.Tonemapper,framegrabber.framelatency,gamma 2.2,getall Engine DisplayGamma,py /Users/neo/repos/Moire/native/tools/viewport_diagnosis_shot.py\" -unattended -nop4 -nosplash -nosound -stdout -FullStdOutLogOutput -AbsLog=/Users/neo/repos/Moire/native/evidence/viewport-diagnosis-20260905T220005.031523Z-tsr-Glide0/unreal.log -UseFixedTimeStep -FPS=60"
+  ],
+  "failures": [],
+  "handled_ensures": [],
+  "shot_record": {
+    "status": "captured",
+    "registered_engine_frame": 0,
+    "capture_route": "ordinary Shot",
+    "uninterrupted_motion": true,
+    "paused_for_shot": false,
+    "extra_stationary_readback_frame": false,
+    "history_reset_during_final_seek": false,
+    "nearby_ticks": [
+      {
+        "phase": "post",
+        "engine_frame": 2,
+        "sequence_time": {
+          "frame": 56,
+          "sub_frame": 5.960464477539063e-08,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 0.933333334326744,
+        "camera_location": [
+          -2800.0,
+          155.0213059402483,
+          1200.0
+        ],
+        "camera_rotation": [
+          2.5553487480493206e-17,
+          -13.493843290232858,
+          -0.9769326377774518
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 3,
+        "sequence_time": {
+          "frame": 57,
+          "sub_frame": 0.0,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 0.95,
+        "camera_location": [
+          -2800.0,
+          157.72453772096034,
+          1200.0
+        ],
+        "camera_rotation": [
+          -0.0,
+          -13.49377681545366,
+          -0.9939648131820037
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 4,
+        "sequence_time": {
+          "frame": 57,
+          "sub_frame": 0.9999999403953552,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 0.9666666656732559,
+        "camera_location": [
+          -2800.0,
+          160.4243346181782,
+          1200.0
+        ],
+        "camera_rotation": [
+          -0.0,
+          -13.493709280530538,
+          -1.010975171266864
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 5,
+        "sequence_time": {
+          "frame": 59,
+          "sub_frame": 2.980232238769531e-07,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 0.983333338300387,
+        "camera_location": [
+          -2800.0,
+          163.12063896056668,
+          1200.0
+        ],
+        "camera_rotation": [
+          -2.555346579757287e-17,
+          -13.493640687319218,
+          -1.0279633460460786
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 6,
+        "sequence_time": {
+          "frame": 60,
+          "sub_frame": 2.384185791015625e-07,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.000000003973643,
+        "camera_location": [
+          -2800.0,
+          165.8133897796092,
+          1200.0
+        ],
+        "camera_rotation": [
+          -0.0,
+          -13.49357104594668,
+          -1.0449289514097015
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 7,
+        "sequence_time": {
+          "frame": 61,
+          "sub_frame": 1.7881393432617188e-07,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.016666669646899,
+        "camera_location": [
+          -2800.0,
+          168.5025295584838,
+          1200.0
+        ],
+        "camera_rotation": [
+          -0.0,
+          -13.493500361150668,
+          -1.0618716226259155
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 8,
+        "sequence_time": {
+          "frame": 62,
+          "sub_frame": 1.1920928955078125e-07,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.0333333353201548,
+        "camera_location": [
+          -2800.0,
+          171.1879997338153,
+          1200.0
+        ],
+        "camera_rotation": [
+          -0.0,
+          -13.493428639137788,
+          -1.0787909885099793
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 9,
+        "sequence_time": {
+          "frame": 63,
+          "sub_frame": 5.960464477539063e-08,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.0500000009934107,
+        "camera_location": [
+          -2800.0,
+          173.86974182214414,
+          1200.0
+        ],
+        "camera_rotation": [
+          2.5553435318258972e-17,
+          -13.493355886205164,
+          -1.0956866784201793
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 10,
+        "sequence_time": {
+          "frame": 64,
+          "sub_frame": 0.0,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.0666666666666667,
+        "camera_location": [
+          -2800.0,
+          176.54769742119984,
+          1200.0
+        ],
+        "camera_rotation": [
+          -0.0,
+          -13.493282108740289,
+          -1.1125583222663522
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 11,
+        "sequence_time": {
+          "frame": 65,
+          "sub_frame": 8.344650268554688e-07,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.0833333472410838,
+        "camera_location": [
+          -2800.0,
+          179.2218105985253,
+          1200.0
+        ],
+        "camera_rotation": [
+          2.555341941844752e-17,
+          -13.493207314501147,
+          -1.129405565672641
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 12,
+        "sequence_time": {
+          "frame": 66,
+          "sub_frame": 7.748603820800781e-07,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.1000000129143397,
+        "camera_location": [
+          -2800.0,
+          181.8920183397972,
+          1200.0
+        ],
+        "camera_rotation": [
+          2.555341130568036e-17,
+          -13.493131506142506,
+          -1.146228009232232
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 13,
+        "sequence_time": {
+          "frame": 67,
+          "sub_frame": 7.152557373046875e-07,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.1166666785875956,
+        "camera_location": [
+          -2800.0,
+          184.55826488477865,
+          1200.0
+        ],
+        "camera_rotation": [
+          5.1106806171148535e-17,
+          -13.493054694298168,
+          -1.1630252999646016
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 14,
+        "sequence_time": {
+          "frame": 67,
+          "sub_frame": 0.9999997615814209,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.1333333293596903,
+        "camera_location": [
+          -2800.0,
+          187.22048979111364,
+          1200.0
+        ],
+        "camera_rotation": [
+          -0.0,
+          -13.4929768844321,
+          -1.179797054978053
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 15,
+        "sequence_time": {
+          "frame": 69,
+          "sub_frame": 5.960464477539062e-07,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.1500000099341074,
+        "camera_location": [
+          -2800.0,
+          189.87864221415074,
+          1200.0
+        ],
+        "camera_rotation": [
+          -2.5553386325815823e-17,
+          -13.49289808316331,
+          -1.196542952001323
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 16,
+        "sequence_time": {
+          "frame": 70,
+          "sub_frame": 1.430511474609375e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.1666666905085246,
+        "camera_location": [
+          -2800.0,
+          192.53265950189598,
+          1200.0
+        ],
+        "camera_rotation": [
+          -0.0,
+          -13.492818297546766,
+          -1.2132625944208826
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 17,
+        "sequence_time": {
+          "frame": 71,
+          "sub_frame": 4.76837158203125e-07,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.1833333412806193,
+        "camera_location": [
+          -2800.0,
+          195.1824791260806,
+          1200.0
+        ],
+        "camera_rotation": [
+          2.5553369145072377e-17,
+          -13.492737536079748,
+          -1.2299555865715777
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 18,
+        "sequence_time": {
+          "frame": 72,
+          "sub_frame": 1.3113021850585938e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.2000000218550364,
+        "camera_location": [
+          -2800.0,
+          197.82805284843198,
+          1200.0
+        ],
+        "camera_rotation": [
+          -0.0,
+          -13.492655801513765,
+          -1.2466216223568838
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 19,
+        "sequence_time": {
+          "frame": 73,
+          "sub_frame": 3.5762786865234375e-07,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.2166666726271311,
+        "camera_location": [
+          -2800.0,
+          200.46931360085057,
+          1200.0
+        ],
+        "camera_rotation": [
+          -0.0,
+          -13.492573105361144,
+          -1.2632602778485873
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 20,
+        "sequence_time": {
+          "frame": 74,
+          "sub_frame": 1.1920928955078125e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.2333333532015482,
+        "camera_location": [
+          -2800.0,
+          203.10621330064208,
+          1200.0
+        ],
+        "camera_rotation": [
+          -0.0,
+          -13.492489454581177,
+          -1.279871248394329
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 21,
+        "sequence_time": {
+          "frame": 75,
+          "sub_frame": 2.384185791015625e-07,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.250000003973643,
+        "camera_location": [
+          -2800.0,
+          205.7386850998334,
+          1200.0
+        ],
+        "camera_rotation": [
+          -0.0,
+          -13.49240485411764,
+          -1.2964541109143966
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 22,
+        "sequence_time": {
+          "frame": 76,
+          "sub_frame": 1.0728836059570312e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.26666668454806,
+        "camera_location": [
+          -2800.0,
+          208.36668107549704,
+          1200.0
+        ],
+        "camera_rotation": [
+          -0.0,
+          -13.492319311089263,
+          -1.3130085618412297
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 23,
+        "sequence_time": {
+          "frame": 77,
+          "sub_frame": 1.9073486328125e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.2833333651224772,
+        "camera_location": [
+          -2800.0,
+          210.9901392884983,
+          1200.0
+        ],
+        "camera_rotation": [
+          2.555331513667168e-17,
+          -13.492232835849677,
+          -1.3295342096283773
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 24,
+        "sequence_time": {
+          "frame": 78,
+          "sub_frame": 9.5367431640625e-07,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.300000015894572,
+        "camera_location": [
+          -2800.0,
+          213.6089979311852,
+          1200.0
+        ],
+        "camera_rotation": [
+          2.5553305784035086e-17,
+          -13.49214543479474,
+          -1.346030663210968
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 25,
+        "sequence_time": {
+          "frame": 79,
+          "sub_frame": 1.7881393432617188e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.316666696468989,
+        "camera_location": [
+          -2800.0,
+          216.22320932810365,
+          1200.0
+        ],
+        "camera_rotation": [
+          -0.0,
+          -13.492057116626254,
+          -1.3624976208580504
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 26,
+        "sequence_time": {
+          "frame": 80,
+          "sub_frame": 8.344650268554688e-07,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.3333333472410838,
+        "camera_location": [
+          -2800.0,
+          218.83270720702984,
+          1200.0
+        ],
+        "camera_rotation": [
+          5.1106573569959866e-17,
+          -13.491967885363463,
+          -1.3789346631940587
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 27,
+        "sequence_time": {
+          "frame": 81,
+          "sub_frame": 1.6689300537109375e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.3500000278155009,
+        "camera_location": [
+          -2800.0,
+          221.4374440626862,
+          1200.0
+        ],
+        "camera_rotation": [
+          2.5553277140231792e-17,
+          -13.491877752558194,
+          -1.395341489926693
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 28,
+        "sequence_time": {
+          "frame": 82,
+          "sub_frame": 7.152557373046875e-07,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.3666666785875956,
+        "camera_location": [
+          -2800.0,
+          224.03735386326932,
+          1200.0
+        ],
+        "camera_rotation": [
+          2.5553267399821112e-17,
+          -13.491786725091517,
+          -1.4117176835654277
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 29,
+        "sequence_time": {
+          "frame": 82,
+          "sub_frame": 0.9999997615814209,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.3833333293596903,
+        "camera_location": [
+          -2800.0,
+          226.63238464518375,
+          1200.0
+        ],
+        "camera_rotation": [
+          -0.0,
+          -13.491694810785534,
+          -1.4280629154176838
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 30,
+        "sequence_time": {
+          "frame": 84,
+          "sub_frame": 2.384185791015625e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.4000000397364298,
+        "camera_location": [
+          -2800.0,
+          229.2224891432249,
+          1200.0
+        ],
+        "camera_rotation": [
+          -2.555324763535837e-17,
+          -13.491602017366803,
+          -1.4443768864301205
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 31,
+        "sequence_time": {
+          "frame": 85,
+          "sub_frame": 1.430511474609375e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.4166666905085246,
+        "camera_location": [
+          -2800.0,
+          231.80759243938246,
+          1200.0
+        ],
+        "camera_rotation": [
+          -2.555323761322363e-17,
+          -13.491508354987502,
+          -1.4606591235728388
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 32,
+        "sequence_time": {
+          "frame": 86,
+          "sub_frame": 4.76837158203125e-07,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.4333333412806193,
+        "camera_location": [
+          -2800.0,
+          234.3876475001486,
+          1200.0
+        ],
+        "camera_rotation": [
+          -2.555322749873967e-17,
+          -13.49141382883232,
+          -1.476909329056184
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 33,
+        "sequence_time": {
+          "frame": 87,
+          "sub_frame": 3.0994415283203125e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.4500000516573588,
+        "camera_location": [
+          -2800.0,
+          236.96260732816108,
+          1200.0
+        ],
+        "camera_rotation": [
+          2.555321729275866e-17,
+          -13.491318446845469,
+          -1.4931272056514902
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 34,
+        "sequence_time": {
+          "frame": 88,
+          "sub_frame": 2.1457672119140625e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.4666667024294535,
+        "camera_location": [
+          -2800.0,
+          239.53239744768135,
+          1200.0
+        ],
+        "camera_rotation": [
+          -0.0,
+          -13.491222220772045,
+          -1.5093122834182966
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 35,
+        "sequence_time": {
+          "frame": 89,
+          "sub_frame": 1.1920928955078125e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.4833333532015482,
+        "camera_location": [
+          -2800.0,
+          242.09697110334923,
+          1200.0
+        ],
+        "camera_rotation": [
+          -0.0,
+          -13.491125158707119,
+          -1.5254642667609914
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 36,
+        "sequence_time": {
+          "frame": 90,
+          "sub_frame": 2.384185791015625e-07,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.500000003973643,
+        "camera_location": [
+          -2800.0,
+          244.6562724446574,
+          1200.0
+        ],
+        "camera_rotation": [
+          2.5553186136471018e-17,
+          -13.491027265114726,
+          -1.5415828023832319
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 37,
+        "sequence_time": {
+          "frame": 91,
+          "sub_frame": 2.86102294921875e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.5166667143503825,
+        "camera_location": [
+          -2800.0,
+          247.21025485039263,
+          1200.0
+        ],
+        "camera_rotation": [
+          -2.5553175574416607e-17,
+          -13.490928552265586,
+          -1.5576675960859916
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 38,
+        "sequence_time": {
+          "frame": 92,
+          "sub_frame": 1.9073486328125e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.5333333651224772,
+        "camera_location": [
+          -2800.0,
+          249.75884445249636,
+          1200.0
+        ],
+        "camera_rotation": [
+          -0.0,
+          -13.490829028172925,
+          -1.5737181815080705
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 39,
+        "sequence_time": {
+          "frame": 93,
+          "sub_frame": 9.5367431640625e-07,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.550000015894572,
+        "camera_location": [
+          -2800.0,
+          252.30199488228592,
+          1200.0
+        ],
+        "camera_rotation": [
+          -0.0,
+          -13.490728701206931,
+          -1.5897342656804767
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 40,
+        "sequence_time": {
+          "frame": 94,
+          "sub_frame": 3.5762786865234375e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.5666667262713114,
+        "camera_location": [
+          -2800.0,
+          254.83965981132792,
+          1200.0
+        ],
+        "camera_rotation": [
+          2.5553143371556595e-17,
+          -13.490627579796241,
+          -1.605715555934523
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 41,
+        "sequence_time": {
+          "frame": 95,
+          "sub_frame": 2.6226043701171875e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.5833333770434062,
+        "camera_location": [
+          -2800.0,
+          257.37176584422633,
+          1200.0
+        ],
+        "camera_rotation": [
+          -2.555313246816852e-17,
+          -13.490525673528966,
+          -1.621661589196208
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 42,
+        "sequence_time": {
+          "frame": 96,
+          "sub_frame": 1.6689300537109375e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.6000000278155009,
+        "camera_location": [
+          -2800.0,
+          259.89826691291705,
+          1200.0
+        ],
+        "camera_rotation": [
+          -0.0,
+          -13.490422992322125,
+          -1.6375720747042237
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 43,
+        "sequence_time": {
+          "frame": 97,
+          "sub_frame": 7.152557373046875e-07,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.6166666785875956,
+        "camera_location": [
+          -2800.0,
+          262.4191079960258,
+          1200.0
+        ],
+        "camera_rotation": [
+          -0.0,
+          -13.49031954112826,
+          -1.6534466647028694
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 44,
+        "sequence_time": {
+          "frame": 98,
+          "sub_frame": 3.337860107421875e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.633333388964335,
+        "camera_location": [
+          -2800.0,
+          264.93424316960693,
+          1200.0
+        ],
+        "camera_rotation": [
+          -2.5553099264171338e-17,
+          -13.490215334029756,
+          -1.6692850699347448
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 45,
+        "sequence_time": {
+          "frame": 99,
+          "sub_frame": 2.384185791015625e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.6500000397364298,
+        "camera_location": [
+          -2800.0,
+          267.4435996908415,
+          1200.0
+        ],
+        "camera_rotation": [
+          2.55530880345868e-17,
+          -13.490110375511279,
+          -1.6850868309768996
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 46,
+        "sequence_time": {
+          "frame": 100,
+          "sub_frame": 1.430511474609375e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.6666666905085246,
+        "camera_location": [
+          -2800.0,
+          269.9471319065251,
+          1200.0
+        ],
+        "camera_rotation": [
+          2.5553076726224905e-17,
+          -13.490004679788683,
+          -1.700851660393482
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 47,
+        "sequence_time": {
+          "frame": 101,
+          "sub_frame": 4.0531158447265625e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.683333400885264,
+        "camera_location": [
+          -2800.0,
+          272.44479420658627,
+          1200.0
+        ],
+        "camera_rotation": [
+          -2.5553065339460295e-17,
+          -13.48989825034465,
+          -1.7165792697086315
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 48,
+        "sequence_time": {
+          "frame": 102,
+          "sub_frame": 3.0994415283203125e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.7000000516573588,
+        "camera_location": [
+          -2800.0,
+          274.93651435428563,
+          1200.0
+        ],
+        "camera_rotation": [
+          2.5553053875806895e-17,
+          -13.48979110131063,
+          -1.7322692040316383
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 49,
+        "sequence_time": {
+          "frame": 103,
+          "sub_frame": 2.1457672119140625e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.7166667024294535,
+        "camera_location": [
+          -2800.0,
+          277.42224701801047,
+          1200.0
+        ],
+        "camera_rotation": [
+          -2.555304233608581e-17,
+          -13.489683240342744,
+          -1.74792117725616
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 50,
+        "sequence_time": {
+          "frame": 104,
+          "sub_frame": 1.1920928955078125e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.7333333532015482,
+        "camera_location": [
+          -2800.0,
+          279.9019380642286,
+          1200.0
+        ],
+        "camera_rotation": [
+          -0.0,
+          -13.489574678236126,
+          -1.763534848252448
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 51,
+        "sequence_time": {
+          "frame": 105,
+          "sub_frame": 3.814697265625e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.7500000635782877,
+        "camera_location": [
+          -2800.0,
+          282.37554231526315,
+          1200.0
+        ],
+        "camera_rotation": [
+          -2.5553019032599952e-17,
+          -13.489465421408568,
+          -1.7791099318004626
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 52,
+        "sequence_time": {
+          "frame": 106,
+          "sub_frame": 2.86102294921875e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.7666667143503825,
+        "camera_location": [
+          -2800.0,
+          284.8429882311528,
+          1200.0
+        ],
+        "camera_rotation": [
+          -0.0,
+          -13.48935548021177,
+          -1.7946459770934096
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 53,
+        "sequence_time": {
+          "frame": 107,
+          "sub_frame": 1.9073486328125e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.7833333651224772,
+        "camera_location": [
+          -2800.0,
+          287.3042309228838,
+          1200.0
+        ],
+        "camera_rotation": [
+          -2.5552995436832238e-17,
+          -13.489244866578188,
+          -1.8101427015490117
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 54,
+        "sequence_time": {
+          "frame": 108,
+          "sub_frame": 9.5367431640625e-07,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.800000015894572,
+        "camera_location": [
+          -2800.0,
+          289.7592167902591,
+          1200.0
+        ],
+        "camera_rotation": [
+          -5.110596706418181e-17,
+          -13.489133588844709,
+          -1.8255997672475244
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 55,
+        "sequence_time": {
+          "frame": 109,
+          "sub_frame": 3.5762786865234375e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.8166667262713114,
+        "camera_location": [
+          -2800.0,
+          292.2079011037374,
+          1200.0
+        ],
+        "camera_rotation": [
+          2.555297155741029e-17,
+          -13.489021656351158,
+          -1.8410168923505812
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 56,
+        "sequence_time": {
+          "frame": 110,
+          "sub_frame": 2.6226043701171875e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.8333333770434062,
+        "camera_location": [
+          -2800.0,
+          294.6502130450632,
+          1200.0
+        ],
+        "camera_rotation": [
+          2.5552959513926523e-17,
+          -13.488909079699567,
+          -1.8563936308175362
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 57,
+        "sequence_time": {
+          "frame": 111,
+          "sub_frame": 1.6689300537109375e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.8500000278155009,
+        "camera_location": [
+          -2800.0,
+          297.0861081834622,
+          1200.0
+        ],
+        "camera_rotation": [
+          -0.0,
+          -13.488795868344313,
+          -1.8717297027971544
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 58,
+        "sequence_time": {
+          "frame": 112,
+          "sub_frame": 4.291534423828125e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.8666667381922404,
+        "camera_location": [
+          -2800.0,
+          299.51554213573155,
+          1200.0
+        ],
+        "camera_rotation": [
+          7.665880567425554e-17,
+          -13.488682033133898,
+          -1.8870248289770757
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 59,
+        "sequence_time": {
+          "frame": 112,
+          "sub_frame": 0.9999997615814209,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.8833333293596903,
+        "camera_location": [
+          -2800.0,
+          301.93843599806746,
+          1200.0
+        ],
+        "camera_rotation": [
+          2.5552922980989723e-17,
+          -13.488567581214966,
+          -1.9022785120064327
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 60,
+        "sequence_time": {
+          "frame": 114,
+          "sub_frame": 5.9604644775390625e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.9000000993410746,
+        "camera_location": [
+          -2800.0,
+          304.3547802404112,
+          1200.0
+        ],
+        "camera_rotation": [
+          -0.0,
+          -13.488452524593924,
+          -1.917490692478282
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 61,
+        "sequence_time": {
+          "frame": 115,
+          "sub_frame": 5.0067901611328125e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.9166667501131693,
+        "camera_location": [
+          -2800.0,
+          306.76447905220476,
+          1200.0
+        ],
+        "camera_rotation": [
+          -0.0,
+          -13.488336874050503,
+          -1.9326607670946034
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 62,
+        "sequence_time": {
+          "frame": 116,
+          "sub_frame": 4.0531158447265625e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.933333400885264,
+        "camera_location": [
+          -2800.0,
+          309.16749724025965,
+          1200.0
+        ],
+        "camera_rotation": [
+          -0.0,
+          -13.48822063888173,
+          -1.9477885144185623
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "pre",
+        "engine_frame": 63,
+        "sequence_time": {
+          "frame": 117,
+          "sub_frame": 3.0994415283203125e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.9500000516573588,
+        "camera_location": [
+          -2800.0,
+          311.5637824723745,
+          1200.0
+        ],
+        "camera_rotation": [
+          5.110574674240306e-17,
+          -13.488103829257966,
+          -1.962873605166692
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 63,
+        "sequence_time": {
+          "frame": 117,
+          "sub_frame": 3.0994415283203125e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.9500000516573588,
+        "camera_location": [
+          -2800.0,
+          311.5637824723745,
+          1200.0
+        ],
+        "camera_rotation": [
+          5.110574674240306e-17,
+          -13.488103829257966,
+          -1.962873605166692
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "pre",
+        "engine_frame": 64,
+        "sequence_time": {
+          "frame": 118,
+          "sub_frame": 2.1457672119140625e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.9666667024294535,
+        "camera_location": [
+          -2800.0,
+          313.9532825629762,
+          1200.0
+        ],
+        "camera_rotation": [
+          -5.110572163089716e-17,
+          -13.487986455399096,
+          -1.9779157110310737
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 64,
+        "sequence_time": {
+          "frame": 118,
+          "sub_frame": 2.1457672119140625e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.9666667024294535,
+        "camera_location": [
+          -2800.0,
+          313.9532825629762,
+          1200.0
+        ],
+        "camera_rotation": [
+          -5.110572163089716e-17,
+          -13.487986455399096,
+          -1.9779157110310737
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "pre",
+        "engine_frame": 65,
+        "sequence_time": {
+          "frame": 119,
+          "sub_frame": 1.1920928955078125e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.9833333532015482,
+        "camera_location": [
+          -2800.0,
+          316.33594547425633,
+          1200.0
+        ],
+        "camera_rotation": [
+          5.1105696401113904e-17,
+          -13.487868527573484,
+          -1.992914504686837
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 65,
+        "sequence_time": {
+          "frame": 119,
+          "sub_frame": 1.1920928955078125e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 1.9833333532015482,
+        "camera_location": [
+          -2800.0,
+          316.33594547425633,
+          1200.0
+        ],
+        "camera_rotation": [
+          5.1105696401113904e-17,
+          -13.487868527573484,
+          -1.992914504686837
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "pre",
+        "engine_frame": 66,
+        "sequence_time": {
+          "frame": 120,
+          "sub_frame": 2.384185791015625e-07,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 2.000000003973643,
+        "camera_location": [
+          -2800.0,
+          318.71171931730436,
+          1200.0
+        ],
+        "camera_rotation": [
+          -0.0,
+          -13.487750057445224,
+          -2.0078696600013473
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 66,
+        "sequence_time": {
+          "frame": 120,
+          "sub_frame": 2.384185791015625e-07,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 2.000000003973643,
+        "camera_location": [
+          -2800.0,
+          318.71171931730436,
+          1200.0
+        ],
+        "camera_rotation": [
+          -0.0,
+          -13.487750057445224,
+          -2.0078696600013473
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "pre",
+        "engine_frame": 67,
+        "sequence_time": {
+          "frame": 121,
+          "sub_frame": 6.4373016357421875e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 2.0166667739550275,
+        "camera_location": [
+          -2800.0,
+          321.0805692464548,
+          1200.0
+        ],
+        "camera_rotation": [
+          -5.1105645595672334e-17,
+          -13.487631051825984,
+          -2.022780957569409
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 67,
+        "sequence_time": {
+          "frame": 121,
+          "sub_frame": 6.4373016357421875e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 2.0166667739550275,
+        "camera_location": [
+          -2800.0,
+          321.0805692464548,
+          1200.0
+        ],
+        "camera_rotation": [
+          -5.1105645595672334e-17,
+          -13.487631051825984,
+          -2.022780957569409
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "pre",
+        "engine_frame": 68,
+        "sequence_time": {
+          "frame": 122,
+          "sub_frame": 5.4836273193359375e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 2.033333424727122,
+        "camera_location": [
+          -2800.0,
+          323.4424098371651,
+          1200.0
+        ],
+        "camera_rotation": [
+          -0.0,
+          -13.48751152417867,
+          -2.0376478602658494
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 68,
+        "sequence_time": {
+          "frame": 122,
+          "sub_frame": 5.4836273193359375e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 2.033333424727122,
+        "camera_location": [
+          -2800.0,
+          323.4424098371651,
+          1200.0
+        ],
+        "camera_rotation": [
+          -0.0,
+          -13.48751152417867,
+          -2.0376478602658494
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "pre",
+        "engine_frame": 69,
+        "sequence_time": {
+          "frame": 123,
+          "sub_frame": 4.5299530029296875e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 2.050000075499217,
+        "camera_location": [
+          -2800.0,
+          325.79720659721715,
+          1200.0
+        ],
+        "camera_rotation": [
+          -0.0,
+          -13.487391482757461,
+          -2.05247015121364
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      },
+      {
+        "phase": "post",
+        "engine_frame": 69,
+        "sequence_time": {
+          "frame": 123,
+          "sub_frame": 4.5299530029296875e-06,
+          "rate_numerator": 60,
+          "rate_denominator": 1
+        },
+        "sample_time_seconds": 2.050000075499217,
+        "camera_location": [
+          -2800.0,
+          325.79720659721715,
+          1200.0
+        ],
+        "camera_rotation": [
+          -0.0,
+          -13.487391482757461,
+          -2.05247015121364
+        ],
+        "camera_fov": 79.31687927246094,
+        "is_playing": true,
+        "camera_cut_flag_after_draw": false,
+        "view_target_actor": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0",
+        "active_camera_component": "/Game/MoireComparison/Maps/Glide0.Glide0:PersistentLevel.CameraActor_0.CameraComponent",
+        "camera_cut": false
+      }
+    ],
+    "camera_cut_events": [],
+    "actual_saved_sequence_time": null,
+    "camera_cut_detection": "LevelSequence.on_camera_cut events and sequence/component continuity; post-draw camera-manager flag is supplemental because Draw clears it",
+    "saved_phase_assignment": "pending independent raw-image registration to recorded camera observations",
+    "observation_stage_note": "Slate pre/post ticks follow the game update and viewport draw; neither is a GPU timestamp or screenshot callback",
+    "sequence_created_engine_frame": 1,
+    "sequence_start_frame": 55,
+    "initial_seek_only": true,
+    "continuous_playback_between_start_and_target": true,
+    "sequence_at_request": {
+      "frame": 120,
+      "sub_frame": 2.384185791015625e-07,
+      "rate_numerator": 60,
+      "rate_denominator": 1
+    },
+    "requested_engine_frame": 66,
+    "camera_location": [
+      -2800.0,
+      318.71171931730436,
+      1200.0
+    ],
+    "camera_rotation": [
+      -0.0,
+      -13.487750057445224,
+      -2.0078696600013473
+    ],
+    "camera_fov": 79.31687927246094,
+    "fixed_camera": false,
+    "high_resolution_screenshot": false,
+    "completed_engine_frame": 67,
+    "png_bytes": 283402,
+    "camera_at_completion": {
+      "camera_location": [
+        -2800.0,
+        321.0805692464548,
+        1200.0
+      ],
+      "camera_rotation": [
+        -5.1105645595672334e-17,
+        -13.487631051825984,
+        -2.022780957569409
+      ],
+      "camera_fov": 79.31687927246094
+    },
+    "sequence_at_completion": {
+      "frame": 121,
+      "sub_frame": 6.4373016357421875e-06,
+      "rate_numerator": 60,
+      "rate_denominator": 1
+    },
+    "completion_observation_note": "First Slate post-tick that observed the written PNG; not an exact render callback",
+    "observations_finished_engine_frame": 69,
+    "sequence_at_observations_finished": {
+      "frame": 123,
+      "sub_frame": 4.5299530029296875e-06,
+      "rate_numerator": 60,
+      "rate_denominator": 1
+    },
+    "continuous_playback_through_completion": true,
+    "sequence_continuity_valid": true,
+    "unexpected_camera_cut_detected": false
+  },
+  "console_setting_lines": [
+    "LogCsvProfiler: Display: Metadata set : commandline=\"\" /Users/neo/repos/Moire/native/Unreal/MoireComparison/MoireComparison.uproject /Game/MoireComparison/Maps/Glide0?game=/Script/MovieRenderPipelineCore.MoviePipelineGameMode -game -windowed -ForceRes -ResX=640 -ResY=360 -NoTextureStreaming -LogCmds=\"LogMovieSceneCapture VeryVerbose\" -ExecCmds=\"sg.AntiAliasingQuality 3,r.AntiAliasingMethod 4,r.ScreenPercentage 100,r.SecondaryScreenPercentage.GameViewport 100,r.DynamicRes.OperationMode 0,r.TSR.History.ScreenPercentage 200,r.MotionBlurQuality 0,r.DepthOfFieldQuality 0,r.BloomQuality 0,r.EyeAdaptationQuality 0,r.EyeAdaptation.PreExposureOverride 1,r.LensFlareQuality 0,r.SceneColorFringeQuality 0,r.Tonemapper.Quality 0,ShowFlag.Tonemapper 0,framegrabber.framelatency 0,sg.AntiAliasingQuality,r.AntiAliasingMethod,r.ScreenPercentage,r.SecondaryScreenPercentage.GameViewport,r.DynamicRes.OperationMode,r.TSR.History.ScreenPercentage,r.MotionBlurQuality,r.DepthOfFieldQuality,r.BloomQuality,r.EyeAdaptationQuality,r.EyeAdaptation.PreExposureOverride,r.LensFlareQuality,r.SceneColorFringeQuality,r.Tonemapper.Quality,ShowFlag.Tonemapper,framegrabber.framelatency,gamma 2.2,getall Engine DisplayGamma,py /Users/neo/repos/Moire/native/tools/viewport_diagnosis_shot.py\" -unattended -nop4 -nosplash -nosound -stdout -FullStdOutLogOutput -AbsLog=/Users/neo/repos/Moire/native/evidence/viewport-diagnosis-20260905T220005.031523Z-tsr-Glide0/unreal.log -UseFixedTimeStep -FPS=60\"\"",
+    "LogInit: Command Line: /Game/MoireComparison/Maps/Glide0?game=/Script/MovieRenderPipelineCore.MoviePipelineGameMode -game -windowed -ForceRes -ResX=640 -ResY=360 -NoTextureStreaming -LogCmds=\"LogMovieSceneCapture VeryVerbose\" -ExecCmds=\"sg.AntiAliasingQuality 3,r.AntiAliasingMethod 4,r.ScreenPercentage 100,r.SecondaryScreenPercentage.GameViewport 100,r.DynamicRes.OperationMode 0,r.TSR.History.ScreenPercentage 200,r.MotionBlurQuality 0,r.DepthOfFieldQuality 0,r.BloomQuality 0,r.EyeAdaptationQuality 0,r.EyeAdaptation.PreExposureOverride 1,r.LensFlareQuality 0,r.SceneColorFringeQuality 0,r.Tonemapper.Quality 0,ShowFlag.Tonemapper 0,framegrabber.framelatency 0,sg.AntiAliasingQuality,r.AntiAliasingMethod,r.ScreenPercentage,r.SecondaryScreenPercentage.GameViewport,r.DynamicRes.OperationMode,r.TSR.History.ScreenPercentage,r.MotionBlurQuality,r.DepthOfFieldQuality,r.BloomQuality,r.EyeAdaptationQuality,r.EyeAdaptation.PreExposureOverride,r.LensFlareQuality,r.SceneColorFringeQuality,r.Tonemapper.Quality,ShowFlag.Tonemapper,framegrabber.framelatency,gamma 2.2,getall Engine DisplayGamma,py /Users/neo/repos/Moire/native/tools/viewport_diagnosis_shot.py\" -unattended -nop4 -nosplash -nosound -stdout -FullStdOutLogOutput -AbsLog=/Users/neo/repos/Moire/native/evidence/viewport-diagnosis-20260905T220005.031523Z-tsr-Glide0/unreal.log -UseFixedTimeStep -FPS=60",
+    "LogConfig: Set CVar [[r.ScreenPercentage:100]]",
+    "LogConfig: Set CVar [[r.SecondaryScreenPercentage.GameViewport:100]]",
+    "LogConfig: Set CVar [[r.DynamicRes.OperationMode:0]]",
+    "LogConfig: Set CVar [[r.TSR.History.ScreenPercentage:200]]",
+    "LogConfig: Set CVar [[r.EyeAdaptationQuality:0]]",
+    "LogConfig: Set CVar [[r.EyeAdaptation.PreExposureOverride:1]]",
+    "LogConfig: Set CVar [[r.MotionBlurQuality:0]]",
+    "LogConfig: Set CVar [[r.BloomQuality:0]]",
+    "LogConfig: Set CVar [[r.LensFlareQuality:0]]",
+    "LogConfig: Set CVar [[r.SceneColorFringeQuality:0]]",
+    "[2026.09.05-22.00.06:246][  0]LogConfig: Set CVar [[r.AntiAliasingMethod:0]]",
+    "[2026.09.05-22.00.06:247][  0]LogConfig: Set CVar [[r.DepthOfFieldQuality:2]]",
+    "[2026.09.05-22.00.06:247][  0]LogConfig: Set CVar [[r.Tonemapper.Quality:5]]",
+    "[2026.09.05-22.00.19:140][  0]sg.AntiAliasingQuality = \"3\"",
+    "[2026.09.05-22.00.19:140][  0]r.AntiAliasingMethod = \"4\"",
+    "[2026.09.05-22.00.19:140][  0]r.ScreenPercentage = \"100\"",
+    "[2026.09.05-22.00.19:140][  0]r.SecondaryScreenPercentage.GameViewport = \"100\"",
+    "[2026.09.05-22.00.19:140][  0]r.DynamicRes.OperationMode = \"0\"",
+    "[2026.09.05-22.00.19:140][  0]r.TSR.History.ScreenPercentage = \"200\"",
+    "[2026.09.05-22.00.19:140][  0]r.MotionBlurQuality = \"0\"",
+    "[2026.09.05-22.00.19:140][  0]r.DepthOfFieldQuality = \"0\"",
+    "[2026.09.05-22.00.19:140][  0]r.BloomQuality = \"0\"",
+    "[2026.09.05-22.00.19:140][  0]r.EyeAdaptationQuality = \"0\"",
+    "[2026.09.05-22.00.19:140][  0]r.EyeAdaptation.PreExposureOverride = \"1\"",
+    "[2026.09.05-22.00.19:140][  0]r.LensFlareQuality = \"0\"",
+    "[2026.09.05-22.00.19:140][  0]r.SceneColorFringeQuality = \"0\"",
+    "[2026.09.05-22.00.19:140][  0]r.Tonemapper.Quality = \"0\"",
+    "[2026.09.05-22.00.19:140][  0]ShowFlag.Tonemapper = \"0\"",
+    "[2026.09.05-22.00.19:140][  0]framegrabber.framelatency = \"0\"",
+    "[2026.09.05-22.00.19:140][  0]sg.AntiAliasingQuality = \"3\"      LastSetBy: Console",
+    "[2026.09.05-22.00.19:140][  0]r.AntiAliasingMethod = \"4\"      LastSetBy: Console",
+    "[2026.09.05-22.00.19:140][  0]r.ScreenPercentage = \"100\"      LastSetBy: Console",
+    "[2026.09.05-22.00.19:141][  0]r.SecondaryScreenPercentage.GameViewport = \"100\"      LastSetBy: Console",
+    "[2026.09.05-22.00.19:141][  0]r.DynamicRes.OperationMode = \"0\"      LastSetBy: Console",
+    "[2026.09.05-22.00.19:141][  0]r.TSR.History.ScreenPercentage = \"200\"      LastSetBy: Console",
+    "[2026.09.05-22.00.19:141][  0]r.MotionBlurQuality = \"0\"      LastSetBy: Console",
+    "[2026.09.05-22.00.19:141][  0]r.DepthOfFieldQuality = \"0\"      LastSetBy: Console",
+    "[2026.09.05-22.00.19:141][  0]r.BloomQuality = \"0\"      LastSetBy: Console",
+    "[2026.09.05-22.00.19:141][  0]r.EyeAdaptationQuality = \"0\"      LastSetBy: Console",
+    "[2026.09.05-22.00.19:141][  0]r.EyeAdaptation.PreExposureOverride = \"1\"      LastSetBy: Console",
+    "[2026.09.05-22.00.19:141][  0]r.LensFlareQuality = \"0\"      LastSetBy: Console",
+    "[2026.09.05-22.00.19:141][  0]r.SceneColorFringeQuality = \"0\"      LastSetBy: Console",
+    "[2026.09.05-22.00.19:141][  0]r.Tonemapper.Quality = \"0\"      LastSetBy: Console",
+    "[2026.09.05-22.00.19:141][  0]ShowFlag.Tonemapper = \"0\"      LastSetBy: Console",
+    "[2026.09.05-22.00.19:141][  0]framegrabber.framelatency = \"0\"      LastSetBy: Console",
+    "[2026.09.05-22.00.19:142][  0]0) GameEngine /Engine/Transient.GameEngine_0.DisplayGamma = 2.200000",
+    "[2026.09.05-22.00.19:181][  0]LogEngine: Warning: \tsg.AntiAliasingQuality 3",
+    "[2026.09.05-22.00.19:181][  0]LogEngine: Warning: \tr.AntiAliasingMethod 4",
+    "[2026.09.05-22.00.19:181][  0]LogEngine: Warning: \tr.ScreenPercentage 100",
+    "[2026.09.05-22.00.19:181][  0]LogEngine: Warning: \tr.SecondaryScreenPercentage.GameViewport 100",
+    "[2026.09.05-22.00.19:181][  0]LogEngine: Warning: \tr.DynamicRes.OperationMode 0",
+    "[2026.09.05-22.00.19:181][  0]LogEngine: Warning: \tr.TSR.History.ScreenPercentage 200",
+    "[2026.09.05-22.00.19:181][  0]LogEngine: Warning: \tr.MotionBlurQuality 0",
+    "[2026.09.05-22.00.19:181][  1]LogEngine: Warning: \tr.DepthOfFieldQuality 0",
+    "[2026.09.05-22.00.19:181][  1]LogEngine: Warning: \tr.BloomQuality 0",
+    "[2026.09.05-22.00.19:181][  1]LogEngine: Warning: \tr.EyeAdaptationQuality 0",
+    "[2026.09.05-22.00.19:181][  1]LogEngine: Warning: \tr.EyeAdaptation.PreExposureOverride 1",
+    "[2026.09.05-22.00.19:181][  1]LogEngine: Warning: \tr.LensFlareQuality 0",
+    "[2026.09.05-22.00.19:181][  1]LogEngine: Warning: \tr.SceneColorFringeQuality 0",
+    "[2026.09.05-22.00.19:181][  1]LogEngine: Warning: \tr.Tonemapper.Quality 0",
+    "[2026.09.05-22.00.19:181][  1]LogEngine: Warning: \tShowFlag.Tonemapper 0",
+    "[2026.09.05-22.00.19:181][  1]LogEngine: Warning: \tframegrabber.framelatency 0",
+    "[2026.09.05-22.00.19:181][  1]LogEngine: Warning: \tsg.AntiAliasingQuality",
+    "[2026.09.05-22.00.19:181][  1]LogEngine: Warning: \tr.AntiAliasingMethod",
+    "[2026.09.05-22.00.19:181][  1]LogEngine: Warning: \tr.ScreenPercentage",
+    "[2026.09.05-22.00.19:181][  1]LogEngine: Warning: \tr.SecondaryScreenPercentage.GameViewport",
+    "[2026.09.05-22.00.19:181][  1]LogEngine: Warning: \tr.DynamicRes.OperationMode",
+    "[2026.09.05-22.00.19:181][  1]LogEngine: Warning: \tr.TSR.History.ScreenPercentage",
+    "[2026.09.05-22.00.19:181][  1]LogEngine: Warning: \tr.MotionBlurQuality",
+    "[2026.09.05-22.00.19:181][  1]LogEngine: Warning: \tr.DepthOfFieldQuality",
+    "[2026.09.05-22.00.19:181][  1]LogEngine: Warning: \tr.BloomQuality",
+    "[2026.09.05-22.00.19:181][  1]LogEngine: Warning: \tr.EyeAdaptationQuality",
+    "[2026.09.05-22.00.19:181][  1]LogEngine: Warning: \tr.EyeAdaptation.PreExposureOverride",
+    "[2026.09.05-22.00.19:181][  1]LogEngine: Warning: \tr.LensFlareQuality",
+    "[2026.09.05-22.00.19:181][  1]LogEngine: Warning: \tr.SceneColorFringeQuality",
+    "[2026.09.05-22.00.19:181][  1]LogEngine: Warning: \tr.Tonemapper.Quality",
+    "[2026.09.05-22.00.19:181][  1]LogEngine: Warning: \tShowFlag.Tonemapper",
+    "[2026.09.05-22.00.19:181][  1]LogEngine: Warning: \tframegrabber.framelatency",
+    "[2026.09.05-22.00.19:181][  1]LogEngine: Warning: \tgetall Engine DisplayGamma"
+  ],
+  "discarded_artifacts": [],
+  "frame_files_valid": true
+}

@@ -63,9 +63,10 @@ async function timestampIntervals(renderer) {
 }
 
 export async function measureMethod({ method, width, height, time, warmFrames = 5, frames = 15 }) {
-  if (!['raw', 'temporal', 'spectral', 'lattice'].includes(method)) throw new Error(`Unknown comparison arm: ${method}`);
-  const sceneMethod = method === 'lattice' ? 'spectral' : method;
-  const kernel = method === 'lattice' ? 'lattice' : 'projective';
+  if (!['raw', 'temporal', 'spectral', 'lattice', 'homography'].includes(method)) throw new Error(`Unknown comparison arm: ${method}`);
+  const shared = ['lattice','homography'].includes(method);
+  const sceneMethod = shared ? 'spectral' : method;
+  const kernel = shared ? method : 'projective';
   const renderer = new WebGPURenderer({ antialias: false, trackTimestamp: true });
   renderer.setPixelRatio(1);
   renderer.setSize(width, height, false);
@@ -116,7 +117,7 @@ export async function measureMethod({ method, width, height, time, warmFrames = 
     const gpu = samples.map(s => s.gpuRenderMs).filter(n => n !== null && Number.isFinite(n));
     const wall = samples.map(s => s.completedWallMs);
     const span = samples.map(s => s.gpuSpanMs).filter(n => n !== null && Number.isFinite(n));
-    return { method, sceneMethod, kernel, authorKernel: method === 'lattice' ? 'demo/ours-kernel.wgsl.js' : null, threeRevision: REVISION, timestampsSupported: timestamps, failure, width, height, time, motion: 'glide', detail: 1, poseHeldFixed: true, warmFrames, frames, historyFrames: temporal?.framesSinceReset ?? null,
+    return { method, sceneMethod, kernel, authorKernel: shared ? 'demo/ours-kernel.wgsl.js' : null, threeRevision: REVISION, timestampsSupported: timestamps, failure, width, height, time, motion: 'glide', detail: 1, poseHeldFixed: true, warmFrames, frames, historyFrames: temporal?.framesSinceReset ?? null,
       gpuMedianMs: gpu.length ? median(gpu) : null, gpuMinMs: gpu.length ? Math.min(...gpu) : null, gpuMaxMs: gpu.length ? Math.max(...gpu) : null,
       gpuSpanMedianMs: span.length ? median(span) : null,
       completedWallMedianMs: wall.length ? median(wall) : null, completedWallMinMs: wall.length ? Math.min(...wall) : null, completedWallMaxMs: wall.length ? Math.max(...wall) : null, samples };

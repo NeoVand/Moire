@@ -1,0 +1,12 @@
+{
+  "kind": "browser DOM and visual review of native image gallery",
+  "source_sha256": "122b938a326e8928dd265ed7b2bdc27ea551c0125ed4455c215969074e2c10ef",
+  "checks": {
+    "moving_selector_updates_all_three_images": true,
+    "original_links_match_images": true,
+    "images_loaded_640_by_360": true,
+    "horizontal_overflow": false,
+    "extra_controls_added": false
+  },
+  "scope": "Still-image gallery only; no video or performance measurement."
+}

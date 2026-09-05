@@ -6,16 +6,19 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createServer } from 'vite';
 import puppeteer from 'puppeteer-core';
+import { createCandidateSource, assertCandidateUnchanged } from './candidate-source.mjs';
 import { gaussianOffsets, integratePixel } from './reference.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const out = process.argv.find(arg => arg.startsWith('--out='))?.slice(6) || path.join(os.tmpdir(), `moire-comparison-materials-${Date.now()}.json`);
-const sourceNames = ['src/compare/scene.ts', 'src/compare/spectral.ts', 'src/compare/authorKernel.ts', 'demo/ours-kernel.wgsl.js', 'tests/compare/browser-entry.mjs', 'tests/compare/reference.mjs', 'tests/compare/materials.mjs'];
+const candidate = createCandidateSource({ root, evidencePath: out });
+const sourceNames = ['tests/compare/candidate-source.mjs', 'vite.config.ts', 'src/compare/scene.ts', 'src/compare/spectral.ts', 'src/compare/authorKernel.ts', 'demo/ours-kernel.wgsl.js', 'tests/compare/browser-entry.mjs', 'tests/compare/reference.mjs', 'tests/compare/materials.mjs'];
 const hashes = () => Object.fromEntries(sourceNames.map(name => [name, createHash('sha256').update(fs.readFileSync(path.join(root, name))).digest('hex')]));
 const sourceHashes = hashes();
 const report = { createdAt: new Date().toISOString(), status: 'running', browser: null, adapter: null,
   host: { platform: os.platform(), arch: os.arch(), cpu: os.cpus()[0]?.model }, sourceHashes,
-  authorKernel: { adapter: 'src/compare/authorKernel.ts', source: 'demo/ours-kernel.wgsl.js', sha256: sourceHashes['demo/ours-kernel.wgsl.js'] },
+  kernelSource: candidate.metadata,
+  authorKernel: { adapter: 'src/compare/authorKernel.ts', source: candidate.metadata.modulePath, importedAs: 'demo/ours-kernel.wgsl.js', sha256: candidate.metadata.sha256, sourceMode: candidate.metadata.mode },
   measurement: { readback: 'All legacy RGBA8Unorm linear columns are unchanged, with 1/255 code steps. All three filtered arms also have separate RGBA32Float output, or an explicitly reported RGBA16Float fallback. Float format, finite/range/alpha validation, and observed 8-bit-minus-float differences accompany each configuration. These differences are observations, not a certified error decomposition.',
     reference: 'Two independently shifted 65536-sample Gaussian sequences of the exact rational source, sigma0.5. Sequence disagreement is not an error bound. Float output removes the 8-bit readback floor but does not improve reference convergence or shader arithmetic.',
     arms: { raw: 'Point source', spectral: 'Existing projective coverage / fixed spectral kernel', lattice: 'Shared author lattice kernel through the common scene adapter', homography: 'Shared author guarded homography kernel through the common scene adapter' },
@@ -31,7 +34,7 @@ const persist = () => {
   fs.renameSync(temporary, out);
 };
 persist();
-const server = await createServer({ root, configFile: path.join(root, 'vite.config.ts'), server: { port: 5199, host: '127.0.0.1', strictPort: false, hmr: false }, logLevel: 'silent' });
+const server = await createServer({ root, plugins: candidate.plugins, configFile: path.join(root, 'vite.config.ts'), server: { port: 5199, host: '127.0.0.1', strictPort: false, hmr: false }, logLevel: 'silent' });
 await server.listen();
 const browser = await puppeteer.launch({ executablePath: process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true, args: ['--enable-unsafe-webgpu', '--hide-scrollbars', '--mute-audio'] });
 let currentConfig = null;
@@ -167,6 +170,7 @@ try {
   };
   homographyPolarityCoverage.missing = ['dark', 'light'].filter(value => homographyPolarityCoverage[`${value}Checks`] === 0);
   report.homographyPolarityCoverage = homographyPolarityCoverage;
+  report.kernelSourceVerification = assertCandidateUnchanged(candidate);
   report.sourceHashesAfter = hashes();
   assert.deepEqual(report.sourceHashesAfter, sourceHashes, 'Source changed during the material comparison; repeat on a stable version.');
   report.status = 'passed';
@@ -175,7 +179,7 @@ try {
 } catch (error) {
   report.status = 'failed';
   report.failure = { currentConfig, message: error.message, stack: error.stack, browserErrors: errors };
-  try { report.sourceHashesAfter = hashes(); } catch (hashError) { report.sourceHashReadError = hashError.message; }
+  try { report.kernelSourceVerification = candidate.verify(); report.sourceHashesAfter = hashes(); } catch (hashError) { report.sourceHashReadError = hashError.message; }
   persist();
   console.error(`FAIL actual WebGPU materials; evidence saved to ${out}\n${error.message}`);
   process.exitCode = 1;

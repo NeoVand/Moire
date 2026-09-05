@@ -1,0 +1,47 @@
+{
+  "status": "failed",
+  "registered_engine_frame": 0,
+  "capture_route": "ordinary Shot",
+  "uninterrupted_motion": true,
+  "paused_for_shot": false,
+  "extra_stationary_readback_frame": false,
+  "history_reset_during_final_seek": false,
+  "nearby_ticks": [
+    {
+      "phase": "post",
+      "engine_frame": 2,
+      "sequence_time": {
+        "frame": 56,
+        "sub_frame": 5.960464477539063e-08,
+        "rate_numerator": 60,
+        "rate_denominator": 1
+      },
+      "sample_time_seconds": 0.933333334326744,
+      "camera_location": [
+        -2800.0,
+        155.0213059402483,
+        1200.0
+      ],
+      "camera_rotation": [
+        2.5553487480493206e-17,
+        -13.493843290232858,
+        -0.9769326377774518
+      ],
+      "camera_fov": 79.31687927246094,
+      "is_playing": true,
+      "camera_cut_flag_after_draw": false,
+      "active_camera_component": null,
+      "camera_cut": false
+    }
+  ],
+  "camera_cut_events": [],
+  "actual_saved_sequence_time": null,
+  "camera_cut_detection": "LevelSequence.on_camera_cut events and sequence/component continuity; post-draw camera-manager flag is supplemental because Draw clears it",
+  "saved_phase_assignment": "pending independent raw-image registration to recorded camera observations",
+  "observation_stage_note": "Slate pre/post ticks follow the game update and viewport draw; neither is a GPU timestamp or screenshot callback",
+  "sequence_created_engine_frame": 1,
+  "sequence_start_frame": 55,
+  "initial_seek_only": true,
+  "continuous_playback_between_start_and_target": true,
+  "error": "Sequence has no active camera component"
+}

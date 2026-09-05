@@ -6,10 +6,13 @@ import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { createServer } from 'vite';
 import puppeteer from 'puppeteer-core';
+import { createCandidateSource, assertCandidateUnchanged } from './candidate-source.mjs';
+import { quadratureFixtures, quadratureReferenceEvidence } from './quadrature-fixtures.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const out = process.argv.find(a => a.startsWith('--out='))?.slice(6) || path.join(os.tmpdir(), `moire-homography-${Date.now()}.json`);
-const sourceNames = ['demo/ours-kernel.wgsl.js', 'tests/compare/homography-browser.mjs', 'tests/compare/homography.mjs'];
+const candidate = createCandidateSource({ root, evidencePath: out });
+const sourceNames = ['tests/compare/quadrature-fixtures.mjs', 'tests/compare/candidate-source.mjs', 'vite.config.ts', 'demo/ours-kernel.wgsl.js', 'tests/compare/homography-browser.mjs', 'tests/compare/homography.mjs'];
 const hashes = () => Object.fromEntries(sourceNames.map(p => [p, createHash('sha256').update(fs.readFileSync(path.join(root, p))).digest('hex')]));
 const sourceHashes = hashes();
 // A&S CDF approximation (absolute error below 7.5e-8), used only for the
@@ -65,12 +68,13 @@ cases.push({ ...fixture('circle-perspective', 0.8, 0.7, [0.08, 0.01], [0.005, 0.
 const originals = [...cases];
 for (const c of originals) for (const scale of [-1, 3.7, -3.7]) cases.push({ ...c, name: `${c.name}-scale${scale}`, base: c.name,
   hu: c.hu.map(v => scale * v), hv: c.hv.map(v => scale * v), hd: c.hd.map(v => scale * v), expected: undefined });
+cases.push(...quadratureFixtures);
 
-const report = { createdAt: new Date().toISOString(), status: 'running', sourceHashes,
-  reference: { circle: discB, refinementDifference: Math.abs(discA - discB), method: 'Conditional CDF intervals of the original repeated discs, Simpson outer integration; no Taylor counts.' }, cases, results: [], failures: [] };
+const report = { createdAt: new Date().toISOString(), status: 'running', sourceHashes, kernelSource: candidate.metadata,
+  reference: { circle: discB, refinementDifference: Math.abs(discA - discB), method: 'Conditional CDF intervals of the original repeated discs, Simpson outer integration; no Taylor counts.', quadrature: quadratureReferenceEvidence }, cases, results: [], failures: [] };
 fs.writeFileSync(out, JSON.stringify(report, null, 2), { flag: 'wx' });
 const save = () => fs.writeFileSync(out, JSON.stringify(report, null, 2));
-const server = await createServer({ root, configFile: path.join(root, 'vite.config.ts'), server: { host: '127.0.0.1', port: 5201, strictPort: false, hmr: false }, logLevel: 'silent' });
+const server = await createServer({ root, plugins: candidate.plugins, configFile: path.join(root, 'vite.config.ts'), server: { host: '127.0.0.1', port: 5201, strictPort: false, hmr: false }, logLevel: 'silent' });
 await server.listen();
 const browser = await puppeteer.launch({ executablePath: process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true, args: ['--enable-unsafe-webgpu', '--mute-audio'] });
 try {
@@ -97,6 +101,7 @@ try {
     }
     if (problems.length) report.failures.push({ name: c.name, problems, expected: c.expected, tolerance: c.tolerance, actual });
   }
+  report.kernelSourceVerification = assertCandidateUnchanged(candidate);
   report.sourceHashesAfter = hashes();
   if (JSON.stringify(report.sourceHashesAfter) !== JSON.stringify(sourceHashes)) report.failures.push({ problems: ['Source changed during run; do not attribute these results to the final file.'] });
   report.status = report.failures.length ? 'failed' : 'passed';
@@ -104,6 +109,8 @@ try {
   console.log(JSON.stringify({ status: report.status, cases: cases.length, failures: report.failures, report: out }, null, 2));
   if (report.failures.length) process.exitCode = 1;
 } catch (error) {
-  report.status = 'failed'; report.failure = error.message; save();
+  report.status = 'failed'; report.failure = error.message;
+  try { report.kernelSourceVerification = candidate.verify(); report.sourceHashesAfter = hashes(); } catch (verificationError) { report.sourceVerificationError = verificationError.message; }
+  save();
   console.error(`FAIL shared homography gate: ${error.message}\nEvidence: ${out}`); process.exitCode = 1;
 } finally { await browser.close(); await server.close(); }

@@ -1,0 +1,23 @@
+{
+  "mode": "immutable-git-candidate",
+  "requestedRef": "1612267",
+  "commit": "1612267f55e9d00ec07482036427c69644e3cb19",
+  "modulePath": "demo/ours-kernel.wgsl.js",
+  "gitBlob": "8e8e17cc35be5c0e4ffb2609969cd19082d80a09",
+  "gitMode": "100644",
+  "sha256": "ac855cdb4d478faf8130176d8dda2507b28909218a8d955c6b1e724e6c083cd1",
+  "byteLength": 39712,
+  "selectedExport": "OURS_KERNEL",
+  "exports": [
+    "OURS_KERNEL",
+    "OURS_KERNEL_HLSL",
+    "toHLSL"
+  ],
+  "productionModule": "demo/ours-kernel.wgsl.js",
+  "productionSha256Before": "ac855cdb4d478faf8130176d8dda2507b28909218a8d955c6b1e724e6c083cd1",
+  "snapshot": "performance-stable-before.json.kernel/source.mjs",
+  "adapter": "performance-stable-before.json.kernel/adapter.mjs",
+  "adapterSha256": "0afdcae4a017a29f69edec6d2cd1a60cda11a7f1f1c00f9da2c78ce2e72c2435",
+  "workCounterShim": false,
+  "attribution": "sha256 identifies the exact Git module bytes. sourceHashes in the runner identify live harness files, not the selected candidate. No working candidate file or dependency is loaded."
+}

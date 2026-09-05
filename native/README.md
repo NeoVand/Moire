@@ -1,8 +1,8 @@
 # Native Unreal comparison
 
-This is an isolated **content-only Unreal 5.8.2 project** with a matched point source, actual Unreal TSR configuration, and the shared analytic HLSL material. The [comparison gallery](comparison.html) now shows clean ordinary-game Metal captures at rest and after camera motion. The user's existing Unreal project and engine installation are not edited.
+This is an isolated **content-only Unreal 5.8.2 project** with a matched point source, actual Unreal TSR configuration, and the shared analytic HLSL material. The [comparison gallery](comparison.html) now shows clean ordinary-game Metal captures at rest and while the camera keeps moving. The user's existing Unreal project and engine installation are not edited.
 
-The [moving native workflow](tools/live.md) supplies camera-following materials, matched sequences and autoplay maps. The analytic pattern has been observed moving in a normal Unreal game window. Both captured triplets pass independent source, camera, color and registration checks. The after-motion images include one stationary readback frame; uninterrupted temporal behavior, synchronized native presentation, replay-history checks and controlled frame timing remain pending.
+The [moving native workflow](tools/live.md) supplies camera-following materials, matched sequences and autoplay maps. The analytic pattern has been observed moving in a normal Unreal game window. The latest triplet keeps playback running through readback. Raw pixels uniquely identify the saved time, with matching camera and capture timing in the other arms. Trajectory-wide temporal quality, synchronized native presentation, replay-history checks and controlled frame timing remain pending.
 
 Use the working [ordinary-game screenshot workflow](tools/viewport_diagnosis.md) for new captures. It uses plain `Shot` from a real game window at 640×360, with identical source and display settings across arms. The earlier [Movie Render Queue workflow](tools/capture-mrq.md) and [MRQ gallery](comparison-mrq.html) remain as separate controls. MRQ creates an offline view family. Neither capture duration nor screenshot writing time measures sustained real-time throughput.
 
@@ -72,6 +72,12 @@ The [fixed-camera report](evidence/game-quality-20260905T212821544Z/README.md) a
 These ordinary-game PNGs use a recorded power gamma of 2.2, unlike the earlier MRQ sRGB images. Calibration checks three source colors; it does not establish an arbitrary continuous transfer bound. Small analytic residuals remain beyond the unchanged display-code allowance, including channel-dependent output differences. The [precision notes](evidence/game-quality-20260905T212821544Z/integration-notes.md) retain those failures and reference-convergence limits. TSR uses its own reconstruction filter, so the Gaussian-target scores are a diagnostic, not an overall AA ranking.
 
 The moving sequences play continuously to frame 120, then pause for one additional stationary readback frame. Matching recorded cameras, sequence times and independent raw registration establish corresponding after-motion stills. They do not yet establish uninterrupted temporal quality, cut recovery or frame rate. Open the original PNGs in the gallery to avoid browser scaling of fine detail.
+
+The newer [uninterrupted capture report](evidence/game-quality-20260905T221241048Z/README.md) removes that pause. A request at sequence frame 120 saves the next game frame, at 2.016666774 seconds. Dense raw registration passes 876/876 points at that time; neighboring frames disagree. All three runs keep playing through frame 123, with matching camera/time observations and no cut, skip or ensure. Raw pixels independently identify time; the filtered arms inherit it through matching readback phase and observed camera metadata.
+
+All 54 quality probes remain. Linear RGB RMSE is 0.279080 / 0.0961393 / 0.00433559 for raw / TSR / analytic, with a maximum analytic residual of 0.00229292 beyond the unchanged display-code allowance. These are selected-pixel, filter-specific results for one genuinely moving frame, not a temporal-error curve or performance measurement. The gallery now uses this newer triplet; the held-frame controls above remain archived.
+
+The next integration step is the [synchronized native viewport](tools/synchronized-view-design.md), followed by a combined filtered-shading + TSR arm and native whole-frame timing. The source investigation identifies a project-local runtime plugin route; that plugin has not yet been built.
 
 ## Earlier MRQ controls
 

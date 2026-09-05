@@ -1,0 +1,44 @@
+{
+  "createdAt": "2026-09-05T22:01:39.643877+00:00",
+  "status": "passed",
+  "cpuOnly": true,
+  "syntheticControlNotRenderingEvidence": true,
+  "utilitySha256": "e11e0699cbe7eef731fbce7dae9b7f1cd24ef00a52291cf277dfd4f13134fe0f",
+  "relocation": {
+    "productionSourceTreePresent": false,
+    "nativeProjectPresent": false,
+    "sourceReportsAndSnapshotsOnly": true,
+    "exitCode": 0,
+    "status": "passed",
+    "maxLatticeDifference": 1.1920928955078125e-07,
+    "maxHomographyDifference": 1.4901161193847656e-07
+  },
+  "negativeControl": {
+    "syntheticChange": "Add 0.001 to first latticeFloat only, in relocated candidate report",
+    "original": 0.42249998450279236,
+    "mutated": 0.42349998450279236,
+    "exitCode": 1,
+    "status": "failed",
+    "failures": [
+      {
+        "name": "latticeFloat per-pixel difference",
+        "detail": [
+          {
+            "configuration": {
+              "width": 192,
+              "height": 128,
+              "time": 0,
+              "motion": "glide",
+              "detail": 1
+            },
+            "x": 18,
+            "y": 34,
+            "candidate": 0.42349998450279236,
+            "frozen": 0.42249998450279236,
+            "delta": 0.0010000000000000009
+          }
+        ]
+      }
+    ]
+  }
+}

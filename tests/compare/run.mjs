@@ -1,14 +1,22 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import { createHash } from 'node:crypto';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createServer } from 'vite';
 import puppeteer from 'puppeteer-core';
+import { createCandidateSource, assertCandidateUnchanged } from './candidate-source.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const out = process.argv.find(arg => arg.startsWith('--out='))?.slice(6) || path.join(os.tmpdir(), `moire-comparison-live-${Date.now()}.json`);
-const server = await createServer({ root, configFile: path.join(root, 'vite.config.ts'), server: { port: 5198, host: '127.0.0.1', strictPort: false, hmr: false }, logLevel: 'silent' });
+const candidate = createCandidateSource({ root, evidencePath: out });
+const sourceNames = ['tests/compare/run.mjs', 'tests/compare/candidate-source.mjs', 'vite.config.ts', 'compare.html',
+  ...fs.readdirSync(path.join(root, 'src/compare')).filter(name => /\.(tsx?|css)$/.test(name) && !name.includes('.test.')).map(name => `src/compare/${name}`),
+  'demo/ours-kernel.wgsl.js'];
+const hashes = () => Object.fromEntries(sourceNames.map(name => [name, createHash('sha256').update(fs.readFileSync(path.join(root, name))).digest('hex')]));
+const sourceHashes = hashes();
+const server = await createServer({ root, plugins: candidate.plugins, configFile: path.join(root, 'vite.config.ts'), server: { port: 5198, host: '127.0.0.1', strictPort: false, hmr: false }, logLevel: 'silent' });
 await server.listen();
 const browser = await puppeteer.launch({ executablePath: process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true, args: ['--enable-unsafe-webgpu', '--hide-scrollbars', '--mute-audio'] });
 try {
@@ -147,8 +155,18 @@ try {
   await page.click('.compare-play');
   await page.screenshot({ path: out.replace(/\.json$/, '.png'), fullPage: true });
   assert.deepEqual(errors, [], `Browser errors: ${errors.join('\n')}`);
-  fs.writeFileSync(out, JSON.stringify({ createdAt: new Date().toISOString(), browser: await browser.version(), result, kernelSwitch, inspection }, null, 2), { flag: 'wx' });
+  const kernelSourceVerification = assertCandidateUnchanged(candidate);
+  const sourceHashesAfter = hashes();
+  assert.deepEqual(sourceHashesAfter, sourceHashes, 'Source changed during the live comparison.');
+  fs.writeFileSync(out, JSON.stringify({ kernelSource: candidate.metadata, kernelSourceVerification, sourceHashes, sourceHashesAfter, createdAt: new Date().toISOString(), browser: await browser.version(), result, kernelSwitch, inspection }, null, 2), { flag: 'wx' });
   console.log(`PASS synchronized live WebGPU comparison, real TRAA history/reset, resize, texture phase, controls, pixel inspector; ${out}`);
+} catch (error) {
+  const failure = { createdAt: new Date().toISOString(), status: 'failed', failure: error.message,
+    kernelSource: candidate.metadata, sourceHashes };
+  try { failure.kernelSourceVerification = candidate.verify(); failure.sourceHashesAfter = hashes(); }
+  catch (verificationError) { failure.sourceVerificationError = verificationError.message; }
+  if (!fs.existsSync(out)) fs.writeFileSync(out, JSON.stringify(failure, null, 2), { flag: 'wx' });
+  throw error;
 } finally {
   await browser.close(); await server.close();
 }

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Candidate ordinary-game FinalImage export; default only prints a plan.
+"""Ordinary-game Shot capture; default only prints a plan.
 
-The supported capture candidate uses the actual application binary and a real
-window with the original PNG FrameGrabber protocol. Legacy offscreen plans remain
+The supported capture uses the actual application binary and a real window.
+Fixed and paused-motion controls remain the defaults. Legacy offscreen plans remain
 inspectable, but execution is refused because they launched crash reporters.
 This is a readback diagnostic, not an FPS measurement.
 """
@@ -36,7 +36,8 @@ def main():
     parser.add_argument("--windowed", action="store_true", help="Real application window with PNG FrameGrabber; required for render")
     parser.add_argument("--shot", action="store_true", help="Plain viewport Shot after 64 warmup ticks, without a capture protocol")
     parser.add_argument("--motion", action="store_true", help="Play the prepared motion sequence, then hold the requested frame for Shot")
-    parser.add_argument("--frame", type=int, help="Motion sequence frame; default120 for motion,64 fixed label")
+    parser.add_argument("--uninterrupted", action="store_true", help="Keep motion playing through Shot; actual saved phase requires independent registration")
+    parser.add_argument("--frame", type=int, help="Motion request frame; default 120 for motion, 64 fixed label")
     parser.add_argument("--copy-material", action="store_true", help="Use the owned one-node copy material instead of stock FinalImage")
     parser.add_argument("--eager-shaders", action="store_true", help="Compile material shader maps on load instead of first draw")
     parser.add_argument("--readback-warmup", type=int, choices=(0, 1, 2), default=0,
@@ -55,9 +56,13 @@ def main():
         parser.error("Shot requires a real --windowed application")
     if args.motion and (not args.shot or args.pose == "Glide8"):
         parser.error("Motion requires --windowed --shot with Glide0 or Approach4")
+    if args.uninterrupted and not args.motion:
+        parser.error("Uninterrupted capture requires --motion --windowed --shot")
     args.frame = args.frame if args.frame is not None else 120 if args.motion else 64
     if args.motion and not 65 <= args.frame < 480:
-        parser.error("Motion frame must be65..479 to include the full warmup")
+        parser.error("Motion frame must be 65..479 to include the full warmup")
+    if args.uninterrupted and args.frame > 474:
+        parser.error("Uninterrupted request frame must be 65..474 to leave room for readback observations")
     if not 1 <= args.timeout <= 600:
         parser.error("Timeout must be 1..600 seconds")
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ")
@@ -148,10 +153,18 @@ def main():
             command = [c for c in command if not c.startswith(("-Movie", "-LevelSequence=", "-UseBurnIn=", "-WriteEdit", "-WriteFinalCut"))]
             command = [c + ",py " + str(shot_script) if c.startswith("-ExecCmds=") else c for c in command]
             command += ["-UseFixedTimeStep", "-FPS=60"]
+    shot_settings = ({"output": str(evidence / "frames" / (args.arm + "_" + args.pose + f".{args.frame:04d}.png")),
+        "record": str(evidence / "shot.json"), "world": record["map"] + "." + record["map"].rsplit("/", 1)[-1],
+        "warmup_frames": 64, "motion_sequence": record["sequence"] if args.motion else None,
+        "target_sequence_frame": args.frame, "uninterrupted_motion": args.uninterrupted,
+        "maximum_readback_frames": 3, "post_completion_frames": 2,
+        "nearby_pre_tick_frames": 3, "expected_sequence_rate": 60} if args.shot and record else None)
     plan = {"argv": command, "output_directory": str(evidence),
             "action": "prepare-material" if args.prepare_material else "inspect-material" if args.inspect_material else "render",
             "execute_requested": args.render or args.inspect_material or args.prepare_material, "renderer_will_start": args.render,
             "performance_measurement": False,
+            "shot_config": shot_settings,
+            "actual_saved_phase": "unassigned; select and verify a recorded camera observation against the raw image" if args.uninterrupted else "fixed or held camera",
             "route": ("ordinary game viewport -> Shot/FScreenshotRequest -> PNG" if args.shot else
                       "ordinary game view -> real window -> Slate FrameGrabber -> PNG" if args.windowed else
                       "LEGACY DISABLED: offscreen CustomRenderPasses FinalImage -> RDG readback -> PNG")}
@@ -163,10 +176,7 @@ def main():
     process_env = None
     if args.shot:
         shot_config = evidence / "shot-config.json"
-        shot_config.write_text(json.dumps({"output": str(evidence / "frames" / (args.arm + "_" + args.pose + f".{args.frame:04d}.png")),
-            "record": str(evidence / "shot.json"), "world": record["map"] + "." + record["map"].rsplit("/", 1)[-1],
-            "warmup_frames": 64, "motion_sequence": record["sequence"] if args.motion else None,
-            "target_sequence_frame": args.frame}, indent=2) + "\n")
+        shot_config.write_text(json.dumps(shot_settings, indent=2) + "\n")
         process_env = {**os.environ, "MOIRE_VIEWPORT_SHOT_CONFIG": str(shot_config)}
     watched = [Path(__file__), PROJECT / "MoireComparison.uproject", PROJECT / "Config/DefaultEngine.ini",
                PROJECT / "Scripts/scene_contract.py", PROJECT / "Scripts/analytic_material.py",
@@ -188,16 +198,25 @@ def main():
         report.update({"prepared_scene": record, "preparation_report": str(preparation_path),
                        "preparation_sha256": sha(preparation_path), "requested_cvars": cvars,
                        "contract": {"arm": args.arm, "pose": args.pose, "resolution": [640,360],
-                           "fixed_fps": 60, "warmup_sequence_frames": 64, "output_sequence_frame": args.frame,
-                           "sample_time_seconds": record["pose"]["time"], "camera_motion": record["pose"]["motion"],
+                           "fixed_fps": 60, "warmup_sequence_frames": 64,
+                           "output_sequence_frame": None if args.uninterrupted else args.frame,
+                           "requested_sequence_frame": args.frame,
+                           "sample_time_seconds": None if args.uninterrupted else record["pose"]["time"],
+                           "requested_sample_time_seconds": record["pose"]["time"],
+                           "camera_motion": record["pose"]["motion"],
+                           "prepared_camera_is_request_pose_only": args.uninterrupted,
+                           "saved_phase_assignment": "requires independent raw-image registration to recorded camera observations" if args.uninterrupted else "fixed or held camera",
                            "spatial_samples": 1, "temporal_subsamples": 1, "new_view_family": False,
                            "mrq": False, "highres_screenshot": False,
                            "real_window": args.windowed,
                            "ordinary_shot": args.shot,
                            "fixed_pose_sequence_label_only": args.shot and not args.motion,
                            "motion_sequence_playback": args.motion,
-                           "capture_after_paused_motion_history": args.motion,
-                           "motion_capture_limitation": "one additional stationary readback frame after real playback; not uninterrupted motion" if args.motion else None,
+                           "capture_after_paused_motion_history": args.motion and not args.uninterrupted,
+                           "capture_uninterrupted_motion": args.uninterrupted,
+                           "filename_is_request_frame_label_only": args.uninterrupted,
+                           "motion_capture_limitation": ("single image during continuous playback; saved phase unassigned until independent registration; not a temporal sequence or performance measurement" if args.uninterrupted else
+                                                         "one additional stationary readback frame after real playback; not uninterrupted motion" if args.motion else None),
                            "game_mode": game_mode if args.windowed else "map default",
                            "preloaded_passthrough_material": None if args.windowed else material_path,
                            "buffer_visualization_material": None if args.windowed else material_path,
@@ -257,8 +276,9 @@ def main():
             target.append({"path": str(file), "sha256": sha(file), "size": size,
                                         "png_bit_depth": header[24] if valid else None,
                                         "png_color_type": header[25] if valid else None,
-                                        "sequence_frame": int(frame) if frame.isdecimal() else -1})
-        valid = (len(report["artifacts"]) == 1 and all(a["size"] == [640,360] and a["sequence_frame"] == args.frame for a in report["artifacts"])
+                                        "file_frame_label": int(frame) if frame.isdecimal() else -1,
+                                        "sequence_frame": None if args.uninterrupted else int(frame) if frame.isdecimal() else -1})
+        valid = (len(report["artifacts"]) == 1 and all(a["size"] == [640,360] and a["file_frame_label"] == args.frame for a in report["artifacts"])
                  and [a["sequence_frame"] for a in report["discarded_artifacts"]] == list(range(64 - args.readback_warmup, 64))
                  and all(a["size"] == [640,360] for a in report["discarded_artifacts"]))
         report["frame_files_valid"] = valid

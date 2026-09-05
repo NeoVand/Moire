@@ -1,0 +1,540 @@
+{
+  "createdAt": "2026-09-05T21:58:11.976Z",
+  "status": "passed",
+  "limit": 16384,
+  "meaning": "Test-only bounded WGSL execution. Exhausted raw values are interrupted computations, not pixel estimates. Non-exhaustion establishes this watchdog was not reached, not numerical accuracy or production performance.",
+  "sourcePath": "demo/ours-kernel-next.wgsl.js",
+  "harnessHashesBefore": {
+    "tests/compare/watchdog.mjs": "16b53f3dc1b07b7ee6bc8f314b670bae72a7af8d75acc01087250098aea95b30",
+    "tests/compare/watchdog-browser.mjs": "45600b469eb553ef72392e3e127e831feef8250295bdf3b7ece6d070c0b9d3d2",
+    "tests/compare/watchdog-instrument.mjs": "16ed12b6e3b2ce6e3e5cddcc120aeaa01aff0b578a088f63f02dea0ef19df8f3"
+  },
+  "workingSourceHashBefore": "93c7d46a06e6958f3acc0c50dcefe017b98093cebbfc4c4e266fce0c2e7bbdba",
+  "cases": [
+    {
+      "name": "negative-control-infinite-nested-continue",
+      "material": "synthetic",
+      "hu": [
+        0,
+        0,
+        0
+      ],
+      "hv": [
+        0,
+        0,
+        0
+      ],
+      "hd": [
+        0,
+        0,
+        1
+      ],
+      "x": 0,
+      "y": 0,
+      "period": 1,
+      "variance": 0.25,
+      "expectedExhaustion": true
+    },
+    {
+      "name": "A-checker-phase-2pow23",
+      "material": "checker",
+      "hu": [
+        0.1,
+        0,
+        8388608
+      ],
+      "hv": [
+        0,
+        0.1,
+        0.25
+      ],
+      "hd": [
+        0,
+        0,
+        1
+      ],
+      "x": 0,
+      "y": 0,
+      "period": 1,
+      "variance": 0.25
+    },
+    {
+      "name": "B-circle-phase-2pow24",
+      "material": "circles",
+      "hu": [
+        0.01,
+        0,
+        16777216
+      ],
+      "hv": [
+        0,
+        0.01,
+        0.5
+      ],
+      "hd": [
+        0,
+        0,
+        1
+      ],
+      "x": 0,
+      "y": 0,
+      "period": 1,
+      "variance": 0.25
+    },
+    {
+      "name": "C-checker-near-collinear",
+      "material": "checker",
+      "hu": [
+        1,
+        0,
+        0.17
+      ],
+      "hv": [
+        0.5,
+        1e-8,
+        0.23
+      ],
+      "hd": [
+        0,
+        0,
+        1
+      ],
+      "x": 0,
+      "y": 0,
+      "period": 1,
+      "variance": 0.25
+    },
+    {
+      "name": "C-circle-near-collinear",
+      "material": "circles",
+      "hu": [
+        1,
+        0,
+        0.17
+      ],
+      "hv": [
+        0.5,
+        1e-8,
+        0.23
+      ],
+      "hd": [
+        0,
+        0,
+        1
+      ],
+      "x": 0,
+      "y": 0,
+      "period": 1,
+      "variance": 0.25
+    },
+    {
+      "name": "control-checker-interior",
+      "material": "checker",
+      "hu": [
+        0.02,
+        0,
+        0.25
+      ],
+      "hv": [
+        0,
+        0.02,
+        0.25
+      ],
+      "hd": [
+        0,
+        0,
+        1
+      ],
+      "x": 0,
+      "y": 0,
+      "period": 1,
+      "variance": 0.25,
+      "expectedExhaustion": false,
+      "expected": 1,
+      "tolerance": 0.000002
+    },
+    {
+      "name": "control-checker-corner",
+      "material": "checker",
+      "hu": [
+        0.1,
+        0,
+        0
+      ],
+      "hv": [
+        0,
+        0.1,
+        0
+      ],
+      "hd": [
+        0,
+        0,
+        1
+      ],
+      "x": 0,
+      "y": 0,
+      "period": 1,
+      "variance": 0.25,
+      "expectedExhaustion": false,
+      "expected": 0.5,
+      "tolerance": 0.000002
+    },
+    {
+      "name": "control-circle-interior",
+      "material": "circles",
+      "hu": [
+        0.02,
+        0,
+        0.5
+      ],
+      "hv": [
+        0,
+        0.02,
+        0.5
+      ],
+      "hd": [
+        0,
+        0,
+        1
+      ],
+      "x": 0,
+      "y": 0,
+      "period": 1,
+      "variance": 0.25,
+      "expectedExhaustion": false,
+      "expected": 1,
+      "tolerance": 0.000002
+    }
+  ],
+  "versions": [
+    {
+      "ref": "6eddded",
+      "commit": "6eddded0ef1f04479a9b0560ddda881307e4eece",
+      "sourcePath": "demo/ours-kernel-next.wgsl.js",
+      "selectedExport": "OURS_KERNEL_CORE",
+      "snapshot": "watchdog.json.0.kernel.txt",
+      "moduleHashBefore": "f3d1cf46906a06f3780a32da3acc2bcab30a0fedeaf94aed6d13b0d5a790316f",
+      "kernelHash": "d0c52245280bc4e2bc9bd24e148c0c3095f09622b7073d1a8ff80448aff1737e",
+      "instrumentedHash": "85328b9b51e18694890b6d3ebfe7848b263ff002478b4f41cd1c5c36a8d75167",
+      "instrumentation": {
+        "limit": 16384,
+        "loopCount": 26,
+        "uncovered": 0,
+        "loops": [
+          {
+            "kind": "for",
+            "line": 70,
+            "column": 3,
+            "bodyStart": 3081
+          },
+          {
+            "kind": "for",
+            "line": 106,
+            "column": 3,
+            "bodyStart": 4774
+          },
+          {
+            "kind": "for",
+            "line": 114,
+            "column": 5,
+            "bodyStart": 5128
+          },
+          {
+            "kind": "for",
+            "line": 180,
+            "column": 3,
+            "bodyStart": 8397
+          },
+          {
+            "kind": "for",
+            "line": 188,
+            "column": 5,
+            "bodyStart": 8751
+          },
+          {
+            "kind": "for",
+            "line": 287,
+            "column": 3,
+            "bodyStart": 13046
+          },
+          {
+            "kind": "loop",
+            "line": 299,
+            "column": 5,
+            "bodyStart": 13638
+          },
+          {
+            "kind": "for",
+            "line": 586,
+            "column": 3,
+            "bodyStart": 31152
+          },
+          {
+            "kind": "for",
+            "line": 633,
+            "column": 3,
+            "bodyStart": 32889
+          },
+          {
+            "kind": "for",
+            "line": 643,
+            "column": 7,
+            "bodyStart": 33286
+          },
+          {
+            "kind": "for",
+            "line": 658,
+            "column": 3,
+            "bodyStart": 33819
+          },
+          {
+            "kind": "for",
+            "line": 709,
+            "column": 3,
+            "bodyStart": 36193
+          },
+          {
+            "kind": "for",
+            "line": 710,
+            "column": 5,
+            "bodyStart": 36240
+          },
+          {
+            "kind": "loop",
+            "line": 747,
+            "column": 3,
+            "bodyStart": 37999
+          },
+          {
+            "kind": "loop",
+            "line": 780,
+            "column": 3,
+            "bodyStart": 39476
+          },
+          {
+            "kind": "loop",
+            "line": 789,
+            "column": 7,
+            "bodyStart": 39728
+          },
+          {
+            "kind": "for",
+            "line": 794,
+            "column": 9,
+            "bodyStart": 39889
+          },
+          {
+            "kind": "for",
+            "line": 897,
+            "column": 3,
+            "bodyStart": 44076
+          },
+          {
+            "kind": "for",
+            "line": 897,
+            "column": 33,
+            "bodyStart": 44110
+          },
+          {
+            "kind": "for",
+            "line": 901,
+            "column": 3,
+            "bodyStart": 44279
+          },
+          {
+            "kind": "loop",
+            "line": 908,
+            "column": 5,
+            "bodyStart": 44470
+          },
+          {
+            "kind": "for",
+            "line": 913,
+            "column": 7,
+            "bodyStart": 44621
+          },
+          {
+            "kind": "loop",
+            "line": 951,
+            "column": 5,
+            "bodyStart": 45959
+          },
+          {
+            "kind": "loop",
+            "line": 954,
+            "column": 7,
+            "bodyStart": 46023
+          },
+          {
+            "kind": "for",
+            "line": 983,
+            "column": 3,
+            "bodyStart": 47094
+          },
+          {
+            "kind": "loop",
+            "line": 984,
+            "column": 5,
+            "bodyStart": 47105
+          }
+        ]
+      },
+      "results": [
+        {
+          "name": "negative-control-infinite-nested-continue",
+          "rawMean": 16383,
+          "rawRegime": 99,
+          "fuel": 16384,
+          "exhausted": true
+        },
+        {
+          "name": "A-checker-phase-2pow23",
+          "rawMean": 0.5,
+          "rawRegime": 3,
+          "fuel": 435,
+          "exhausted": false
+        },
+        {
+          "name": "B-circle-phase-2pow24",
+          "rawMean": 0.844097375869751,
+          "rawRegime": 4,
+          "fuel": 2217,
+          "exhausted": false
+        },
+        {
+          "name": "C-checker-near-collinear",
+          "rawMean": 0.5,
+          "rawRegime": 4,
+          "fuel": 19,
+          "exhausted": false
+        },
+        {
+          "name": "C-circle-near-collinear",
+          "rawMean": 0.5454000234603882,
+          "rawRegime": 4,
+          "fuel": 2,
+          "exhausted": false
+        },
+        {
+          "name": "control-checker-interior",
+          "rawMean": 1,
+          "rawRegime": 1,
+          "fuel": 0,
+          "exhausted": false
+        },
+        {
+          "name": "control-checker-corner",
+          "rawMean": 0.5,
+          "rawRegime": 1,
+          "fuel": 5,
+          "exhausted": false
+        },
+        {
+          "name": "control-circle-interior",
+          "rawMean": 1,
+          "rawRegime": 1,
+          "fuel": 2,
+          "exhausted": false
+        }
+      ],
+      "watchdogChecks": [
+        {
+          "name": "negative-control-infinite-nested-continue",
+          "expectedExhaustion": true,
+          "actualExhaustion": true,
+          "fuel": 16384,
+          "passed": true
+        },
+        {
+          "name": "A-checker-phase-2pow23",
+          "expectedExhaustion": false,
+          "actualExhaustion": false,
+          "fuel": 435,
+          "passed": true
+        },
+        {
+          "name": "B-circle-phase-2pow24",
+          "expectedExhaustion": false,
+          "actualExhaustion": false,
+          "fuel": 2217,
+          "passed": true
+        },
+        {
+          "name": "C-checker-near-collinear",
+          "expectedExhaustion": false,
+          "actualExhaustion": false,
+          "fuel": 19,
+          "passed": true
+        },
+        {
+          "name": "C-circle-near-collinear",
+          "expectedExhaustion": false,
+          "actualExhaustion": false,
+          "fuel": 2,
+          "passed": true
+        },
+        {
+          "name": "control-checker-interior",
+          "expectedExhaustion": false,
+          "actualExhaustion": false,
+          "fuel": 0,
+          "passed": true
+        },
+        {
+          "name": "control-checker-corner",
+          "expectedExhaustion": false,
+          "actualExhaustion": false,
+          "fuel": 5,
+          "passed": true
+        },
+        {
+          "name": "control-circle-interior",
+          "expectedExhaustion": false,
+          "actualExhaustion": false,
+          "fuel": 2,
+          "passed": true
+        }
+      ],
+      "controlQualityChecks": [
+        {
+          "name": "control-checker-interior",
+          "expected": 1,
+          "error": 0,
+          "tolerance": 0.000002,
+          "passed": true
+        },
+        {
+          "name": "control-checker-corner",
+          "expected": 0.5,
+          "error": 0,
+          "tolerance": 0.000002,
+          "passed": true
+        },
+        {
+          "name": "control-circle-interior",
+          "expected": 1,
+          "error": 0,
+          "tolerance": 0.000002,
+          "passed": true
+        }
+      ],
+      "failures": [],
+      "adapter": {
+        "vendor": "apple",
+        "architecture": "metal-3"
+      },
+      "format": "Float32 storage buffer",
+      "moduleHashAfter": "f3d1cf46906a06f3780a32da3acc2bcab30a0fedeaf94aed6d13b0d5a790316f",
+      "status": "passed"
+    }
+  ],
+  "failures": [],
+  "browser": "Chrome/152.0.7977.76",
+  "harnessHashesAfter": {
+    "tests/compare/watchdog.mjs": "16b53f3dc1b07b7ee6bc8f314b670bae72a7af8d75acc01087250098aea95b30",
+    "tests/compare/watchdog-browser.mjs": "45600b469eb553ef72392e3e127e831feef8250295bdf3b7ece6d070c0b9d3d2",
+    "tests/compare/watchdog-instrument.mjs": "16ed12b6e3b2ce6e3e5cddcc120aeaa01aff0b578a088f63f02dea0ef19df8f3"
+  },
+  "workingSourceHashAfter": "93c7d46a06e6958f3acc0c50dcefe017b98093cebbfc4c4e266fce0c2e7bbdba",
+  "workingSourceChanged": false
+}

@@ -7,15 +7,20 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { createServer } from 'vite';
 import puppeteer from 'puppeteer-core';
+import { createCandidateSource, assertCandidateUnchanged } from './candidate-source.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const out = process.argv.find(arg => arg.startsWith('--out='))?.slice(6) || path.join(os.tmpdir(), `moire-comparison-performance-${Date.now()}.json`);
-const sourceNames = ['src/compare/scene.ts', 'src/compare/spectral.ts', 'src/compare/authorKernel.ts', 'demo/ours-kernel.wgsl.js', 'src/compare/temporal.ts', 'tests/compare/performance-entry.mjs', 'tests/compare/performance.mjs', 'node_modules/three/src/renderers/webgpu/utils/WebGPUTimestampQueryPool.js'];
+const candidate = createCandidateSource({ root, evidencePath: out });
+const methods=(process.argv.find(arg=>arg.startsWith('--methods='))?.slice(10)??'raw,temporal,spectral,lattice,homography').split(',');
+assert.ok(methods.length>0&&new Set(methods).size===methods.length&&methods.every(m=>['raw','temporal','spectral','lattice','homography'].includes(m)),'--methods must list distinct supported comparison arms.');
+const sourceNames = ['tests/compare/candidate-source.mjs', 'vite.config.ts', 'src/compare/scene.ts', 'src/compare/spectral.ts', 'src/compare/authorKernel.ts', 'demo/ours-kernel.wgsl.js', 'src/compare/temporal.ts', 'tests/compare/performance-entry.mjs', 'tests/compare/performance.mjs', 'node_modules/three/src/renderers/webgpu/utils/WebGPUTimestampQueryPool.js'];
 const hashes = () => Object.fromEntries(sourceNames.map(name => [name, createHash('sha256').update(fs.readFileSync(path.join(root, name))).digest('hex')]));
 const sourceHashes = hashes();
 const report = {
   createdAt: new Date().toISOString(), status: 'running', commit: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(), sourceHashes,
-  authorKernel: { adapter: 'src/compare/authorKernel.ts', source: 'demo/ours-kernel.wgsl.js', sha256: sourceHashes['demo/ours-kernel.wgsl.js'] },
+  kernelSource: candidate.metadata,requestedMethods:methods,
+  authorKernel: { adapter: 'src/compare/authorKernel.ts', source: candidate.metadata.modulePath, importedAs: 'demo/ours-kernel.wgsl.js', sha256: candidate.metadata.sha256, sourceMode: candidate.metadata.mode },
   host: { platform: os.platform(), arch: os.arch(), cpu: os.cpus()[0]?.model }, browser: null, adapter: null,
   measurement: { isolated: 'One renderer/method active at a time. Other applications may contend; close the visible comparison because pause still renders TAA history.',
     gpuSum: 'Public Three sum from ONE timestamp query resolve per frame. Diagnostic raw timestamps are copied from that same resolved buffer. Pass intervals can overlap, so this sum is not elapsed GPU time.',
@@ -32,7 +37,7 @@ const persist = () => {
   fs.renameSync(temporary, out);
 };
 persist();
-const server = await createServer({ root, configFile: path.join(root, 'vite.config.ts'), server: { port: 5200, host: '127.0.0.1', strictPort: false, hmr: false }, logLevel: 'silent' });
+const server = await createServer({ root, plugins: candidate.plugins, configFile: path.join(root, 'vite.config.ts'), server: { port: 5200, host: '127.0.0.1', strictPort: false, hmr: false }, logLevel: 'silent' });
 await server.listen();
 const browser = await puppeteer.launch({ executablePath: process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true, args: ['--enable-unsafe-webgpu', '--hide-scrollbars', '--mute-audio'] });
 let currentCase = null;
@@ -49,7 +54,7 @@ try {
     const info = gpu?.info;
     return info ? { vendor: info.vendor, architecture: info.architecture, device: info.device, description: info.description } : null;
   });
-  for (const [width, height] of [[640, 360], [1920, 1080]]) for (const time of [0, 8]) for (const method of ['raw', 'temporal', 'spectral', 'lattice']) {
+  for (const [width, height] of [[640, 360], [1920, 1080]]) for (const time of [0, 8]) for (const method of methods) {
     currentCase = { method, width, height, time, warmFrames: 5, frames: 15 };
     const result = await page.evaluate(async options => {
       const { measureMethod } = await import('/tests/compare/performance-entry.mjs');
@@ -84,6 +89,7 @@ try {
     console.log(JSON.stringify(summary));
   }
   assert.deepEqual(errors, []);
+  report.kernelSourceVerification = assertCandidateUnchanged(candidate);
   report.sourceHashesAfter = hashes();
   assert.deepEqual(report.sourceHashesAfter, sourceHashes, 'The source changed during the performance run; repeat on a stable version.');
   report.status = 'passed';
@@ -92,7 +98,7 @@ try {
 } catch (error) {
   report.status = 'failed';
   report.failure = { currentCase, message: error.message, stack: error.stack };
-  try { report.sourceHashesAfter = hashes(); } catch (hashError) { report.sourceHashReadError = hashError.message; }
+  try { report.kernelSourceVerification = candidate.verify(); report.sourceHashesAfter = hashes(); } catch (hashError) { report.sourceHashReadError = hashError.message; }
   persist();
   console.error(`FAIL isolated actual-GPU method timings; evidence saved to ${out}\n${error.message}`);
   process.exitCode = 1;

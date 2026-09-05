@@ -19,7 +19,9 @@ const out = process.argv.find(a => a.startsWith('--out='))?.slice(6) || path.joi
 const limit = 16384;
 const hash = value => createHash('sha256').update(value).digest('hex');
 const git = args => execFileSync('git', args, { cwd: root, encoding: 'utf8' });
-const sourcePath = 'demo/ours-kernel.wgsl.js';
+const sourcePath = process.argv.find(a => a.startsWith('--kernel-path='))?.slice(14) || 'demo/ours-kernel.wgsl.js';
+assert.match(sourcePath,/^[A-Za-z0-9_./-]+\.(?:js|mjs)$/,'A repository-relative JavaScript module path is required.');
+assert.ok(!sourcePath.startsWith('/')&&!sourcePath.startsWith('-')&&!sourcePath.split('/').some(p=>!p||p==='.'||p==='..'),'Invalid module path.');
 const harnessPaths = ['tests/compare/watchdog.mjs', 'tests/compare/watchdog-browser.mjs', 'tests/compare/watchdog-instrument.mjs'];
 const harnessHashes = () => Object.fromEntries(harnessPaths.map(p => [p, hash(fs.readFileSync(path.join(root, p)))]));
 const workingHash = () => hash(fs.readFileSync(path.join(root, sourcePath)));
@@ -45,7 +47,7 @@ const cases = [
 const report = {
   createdAt: new Date().toISOString(), status: 'running', limit,
   meaning: 'Test-only bounded WGSL execution. Exhausted raw values are interrupted computations, not pixel estimates. Non-exhaustion establishes this watchdog was not reached, not numerical accuracy or production performance.',
-  harnessHashesBefore: harnessHashes(), workingSourceHashBefore: workingHash(), cases, versions: [], failures: [],
+  sourcePath,harnessHashesBefore: harnessHashes(), workingSourceHashBefore: workingHash(), cases, versions: [], failures: [],
 };
 fs.writeFileSync(out, JSON.stringify(report, null, 2), { flag: 'wx' });
 const save = () => fs.writeFileSync(out, JSON.stringify(report, null, 2));
@@ -55,12 +57,16 @@ for (const ref of refs) {
   const commit = ref === 'WORKTREE' ? null : git(['rev-parse', '--verify', `${ref}^{commit}`]).trim();
   const moduleSource = commit ? git(['show', `${commit}:${sourcePath}`]) : fs.readFileSync(path.join(root, sourcePath), 'utf8');
   // Evaluate the exact immutable module bytes read above, never the mutable path.
-  const { OURS_KERNEL } = await import(`data:text/javascript;base64,${Buffer.from(moduleSource).toString('base64')}`);
+  const module = await import(`data:text/javascript;base64,${Buffer.from(moduleSource).toString('base64')}`);
+  const selectedExport=typeof module.OURS_KERNEL_CORE==='string'?'OURS_KERNEL_CORE':'OURS_KERNEL';
+  const OURS_KERNEL=module[selectedExport];
   assert.equal(typeof OURS_KERNEL, 'string');
   const uninstrumented = `const PI: f32 = 3.141592653589793;\nconst TAU: f32 = 6.283185307179586;\n${OURS_KERNEL}\n${negativeControl}`;
   const transformed = instrumentWgslWatchdog(uninstrumented, { limit });
   assert.equal(transformed.audit.loopCount, findWgslLoops(OURS_KERNEL).length + 2);
-  const version = { ref, commit, moduleHashBefore: hash(moduleSource), kernelHash: hash(OURS_KERNEL), instrumentedHash: hash(transformed.code),
+  const snapshotPath=`${out}.${snapshots.length}.kernel.txt`;
+  fs.writeFileSync(snapshotPath,moduleSource,{flag:'wx'});
+  const version = { ref, commit, sourcePath,selectedExport,snapshot:path.basename(snapshotPath),moduleHashBefore: hash(moduleSource), kernelHash: hash(OURS_KERNEL), instrumentedHash: hash(transformed.code),
     instrumentation: transformed.audit, results: [], watchdogChecks: [], controlQualityChecks: [], failures: [] };
   report.versions.push(version); snapshots.push({ version, ...transformed });
 }

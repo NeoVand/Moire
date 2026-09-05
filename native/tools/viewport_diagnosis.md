@@ -45,6 +45,40 @@ The independent [motion quality report](../evidence/game-quality-20260905T212756
 
 The first otherwise clean Shot attempt is [preserved](../evidence/viewport-diagnosis-20260905T212232.686005Z-raw-Glide0/report.json): an incorrectly spelled `nosuffix` parameter let Unreal append a filename suffix, so the callback did not recognize completion. Adding the required dash fixed only the capture filename handling. That report remains failed.
 
+### Uninterrupted motion
+
+The separate `--uninterrupted` option keeps the sequence playing through the Shot request, file completion, and two subsequent observation ticks. The fixed and paused-motion commands above retain their original behavior. The three native captures below completed without errors or ensures, with matching frozen sources. Independent saved-frame phase registration is the next acceptance gate.
+
+```sh
+# Inspect the complete configuration without launching Unreal.
+python3 native/tools/viewport_diagnosis.py --windowed --shot --motion --uninterrupted --frame 120 --arm raw --pose Glide0
+
+# Run only in an agreed GPU window; substitute tsr or analytic for matched arms.
+python3 native/tools/viewport_diagnosis.py --render --windowed --shot --motion --uninterrupted --frame 120 --arm raw --pose Glide0 --timeout 120
+```
+
+| Arm | Report | Image |
+| --- | --- | --- |
+| Raw | [215931.012554Z](../evidence/viewport-diagnosis-20260905T215931.012554Z-raw-Glide0/report.json) | [PNG](../evidence/viewport-diagnosis-20260905T215931.012554Z-raw-Glide0/frames/raw_Glide0.0120.png) |
+| TSR | [220005.031523Z](../evidence/viewport-diagnosis-20260905T220005.031523Z-tsr-Glide0/report.json) | [PNG](../evidence/viewport-diagnosis-20260905T220005.031523Z-tsr-Glide0/frames/tsr_Glide0.0120.png) |
+| Dynamic analytic | [220034.396327Z](../evidence/viewport-diagnosis-20260905T220034.396327Z-analytic-Glide0/report.json) | [PNG](../evidence/viewport-diagnosis-20260905T220034.396327Z-analytic-Glide0/frames/analytic_Glide0.0120.png) |
+
+All three records agree: Shot is requested at engine frame 66, sequence frame 120 + 2.384185791015625e-7; completion is observed at engine frame 67, sequence frame 121 + 6.4373016357421875e-6. Playback continues through sequence frame 123, with 75 recorded observations and no subsequent seek, pause, skipped step, or camera-cut event. All PNGs are 640×360, 8-bit RGBA. These are observations of capture behavior; the filename does not establish the saved phase.
+
+There is one initial seek, then continuous playback at the capture's fixed simulation step. There is no pause or corrective seek at the request or completion. The helper rejects unexpected engine or sequence frame skips, stopped playback, changed camera components, and sequence camera-cut events after the initial binding. It allows at most three engine frames to observe the PNG, then records two more ticks before quitting its own process. Shader errors, ensures, and changed sources remain capture failures.
+
+The filename labels the **request frame**, not the saved frame. `contract.capture_uninterrupted_motion` is true; `sample_time_seconds` and `output_sequence_frame` are null until independent registration. `requested_sequence_frame` and `requested_sample_time_seconds` identify the intended request. The prepared camera is likewise the request pose, not an assertion about the PNG. Artifact metadata preserves `file_frame_label` separately and leaves `sequence_frame` null.
+
+`shot_record.nearby_ticks` records each warmup post-tick and nearby pre/post ticks from three sequence frames before the request through two engine frames after observed completion. Each entry contains `phase` (`pre` or `post`), `engine_frame`, the qualified `sequence_time`, camera location/rotation/FOV, `is_playing`, `camera_cut`, and the active camera component. The original request/completion fields remain available. `actual_saved_sequence_time` stays null; observing the file is not an exact screenshot callback or a GPU timestamp.
+
+Camera-cut detection uses the reflected `LevelSequencePlayer.on_camera_cut` delegate (`LevelSequencePlayer.h:110`, `LevelSequencePlayer.cpp:223`) and records its events separately. `MovieSceneCameraCutGameHandler.cpp:456` sends that notification for a new hard camera cut; sequence jumps and active-camera changes are checked independently. The camera manager's flag is only supplemental: `GameViewportClient.cpp:1924` clears it during drawing, so its later false value cannot prove that no cut occurred. This bounded fixture has no external gameplay system producing unrelated camera cuts.
+
+The [first native attempt](../evidence/viewport-diagnosis-20260905T215838.615574Z-raw-Glide0/report.json) stopped before Shot because the sequence's cached camera component was null. The actual camera had moved correctly. `MovieSceneCameraCutGameHandler.cpp:333–353` returns early when the existing view target already matches the sequence camera; consequently the cache populated by `OnCameraCutUpdated` can remain empty. The helper now reads the actual player's view target and its camera component through the reflected `Controller.GetViewTarget` and `Actor.GetComponentByClass` APIs. The failed run remains preserved. The corrected helper also passes [nine synthetic callback cases](../evidence/viewport-uninterrupted-cpu-20260905T215942Z/report.json), with a reproducible harness alongside the report; these simulations validate control flow, not Unreal rendering or image phase.
+
+Installed source establishes the relevant order: `LaunchEngineLoop.cpp:5859` ticks the game engine, whose `GameEngine.cpp:2034` redraws the viewport. `UnrealClient.cpp:1872` processes ordinary screenshots after viewport drawing. Only afterward does `LaunchEngineLoop.cpp:5991` tick Slate widgets. `SlateApplication.cpp:1758,1827` broadcasts the pre/post tick delegates around widget drawing; both therefore follow the game draw. `PySlate.cpp:99,134` exposes these exact delegates. A Shot requested from the post-tick cannot capture that already-processed game draw; the next draw is the expected candidate, which still requires image verification.
+
+Independent phase registration must select a unique matching camera time from recorded post-ticks **after the request and no later than first observed file completion**, using the raw source and dense phase checks. Other arms must match that observed time and relative frame latency. It must not select time by minimizing our method's error or infer it from the filename. A single verified image during playback is useful for checking camera-following behavior; it does not establish temporal artifact quality over a video or game performance.
+
 ## Historical failures and remaining inferences
 
 The [original raw capture](../evidence/capture-20260905T202331.609258Z-raw-Glide0/diagnosis.json) initialized Metal SM6, rendered the warm-up sequence, and logged one capture request at sequence frame 64. No PNG arrived after 132.8 seconds. The sampled process was still rendering; watched source hashes were stable. “Captured frame” in that log records a request, not completed readback.

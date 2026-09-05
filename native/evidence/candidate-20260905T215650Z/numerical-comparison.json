@@ -1,0 +1,1526 @@
+{
+  "createdAt": "2026-09-05T22:00:41.018Z",
+  "status": "passed",
+  "cpuOnly": true,
+  "utility": {
+    "path": "native/evidence/candidate-20260905T215650Z/compare-numerical.mjs",
+    "sha256": "e11e0699cbe7eef731fbce7dae9b7f1cd24ef00a52291cf277dfd4f13134fe0f"
+  },
+  "inputs": {
+    "candidate": {
+      "path": "native/evidence/candidate-20260905T215650Z/materials.json",
+      "sha256": "c59a5f883ff0e5846fe3a85a3fc672b418dc0586344d5a07cafb94a5ac580115"
+    },
+    "frozen": {
+      "path": "docs/compare-evidence/bounded-materials-2026-09-05T20-20-28.274Z.json",
+      "sha256": "8d01f88801726af7adc53231c175bb6751910c53954cfa471094132a4abf8bc3"
+    },
+    "homography": {
+      "path": "native/evidence/candidate-20260905T215650Z/homography.json",
+      "sha256": "61604aa0fb8627bb44c1215b3e07a1d450e49a6d8c10083c7b19ada6f3f84e62"
+    },
+    "watchdog": {
+      "path": "native/evidence/candidate-20260905T215650Z/watchdog.json",
+      "sha256": "7c04a3598999f630d656e90889f7cb59aa006d6e76f880315dee910482ed003c"
+    },
+    "provenance": {
+      "path": "native/evidence/candidate-20260905T215650Z/provenance.json",
+      "sha256": "f38d842ba653761defff261a8ad95efb1a05dc2b41245a00da97b494839028f9"
+    },
+    "compilation": {
+      "path": "native/evidence/compile-20260905T215656.380252Z/report.json",
+      "sha256": "42b1a2d0c3070248a997aa4e12078c46662f0b97dcc01dc2d32ae0e4fcc7dda6"
+    }
+  },
+  "comparison": {
+    "frozenCommit": "1612267f55e9d00ec07482036427c69644e3cb19",
+    "candidate": {
+      "mode": "immutable-git-candidate",
+      "requestedRef": "6eddded",
+      "commit": "6eddded0ef1f04479a9b0560ddda881307e4eece",
+      "modulePath": "demo/ours-kernel-next.wgsl.js",
+      "gitBlob": "771bb09d767c44439d07bfc70b23f3b1b700226c",
+      "gitMode": "100644",
+      "sha256": "f3d1cf46906a06f3780a32da3acc2bcab30a0fedeaf94aed6d13b0d5a790316f",
+      "byteLength": 61182,
+      "selectedExport": "OURS_KERNEL_CORE",
+      "exports": [
+        "HAS_WORK_COUNTER",
+        "OURS_KERNEL",
+        "OURS_KERNEL_CORE",
+        "OURS_KERNEL_HLSL",
+        "RIPPLES_LINE",
+        "RIPPLES_LINE_STUB",
+        "RIPPLES_SPECTRAL",
+        "RIPPLES_SPECTRAL_STUB",
+        "ripplesWith",
+        "toHLSL"
+      ],
+      "productionModule": "demo/ours-kernel.wgsl.js",
+      "productionSha256Before": "ac855cdb4d478faf8130176d8dda2507b28909218a8d955c6b1e724e6c083cd1",
+      "snapshot": "materials.json.kernel/source.mjs",
+      "adapter": "materials.json.kernel/adapter.mjs",
+      "adapterSha256": "8209bc8225013f456bc33524ddc1a27f302388689413f850c64138dd7a0460a5",
+      "workCounterShim": false,
+      "attribution": "sha256 identifies the exact Git module bytes. sourceHashes in the runner identify live harness files, not the selected candidate. No working candidate file or dependency is loaded."
+    },
+    "selectedCoreSha256": "d0c52245280bc4e2bc9bd24e148c0c3095f09622b7073d1a8ff80448aff1737e",
+    "selectedCoreUtf8Bytes": 46906,
+    "coreHashOrigin": "CPU extraction from the exact archived module; matches independent provenance and the pre-instrumentation watchdog hash. Original material report records raw-module hash plus selected export, not a separate device-observed core hash.",
+    "units": "Linear intensity [0,1], sampled first color channel from RGBA32Float captures.",
+    "threshold": 0.0001,
+    "cases": [
+      {
+        "configuration": {
+          "width": 192,
+          "height": 128,
+          "time": 0,
+          "motion": "glide",
+          "detail": 1
+        },
+        "matchedPixels": 40
+      },
+      {
+        "configuration": {
+          "width": 192,
+          "height": 128,
+          "time": 8,
+          "motion": "glide",
+          "detail": 1
+        },
+        "matchedPixels": 40
+      },
+      {
+        "configuration": {
+          "width": 192,
+          "height": 128,
+          "time": 4,
+          "motion": "approach",
+          "detail": 2
+        },
+        "matchedPixels": 40
+      }
+    ],
+    "filtered": {
+      "latticeFloat": {
+        "pixels": 120,
+        "tolerance": 0.0001,
+        "passed": true,
+        "changedPixels": 16,
+        "maxAbsoluteDifference": 1.1920928955078125e-7,
+        "rmsDifference": 2.637687930931996e-8,
+        "maximum": {
+          "configuration": {
+            "width": 192,
+            "height": 128,
+            "time": 0,
+            "motion": "glide",
+            "detail": 1
+          },
+          "x": 18,
+          "y": 36,
+          "candidate": 0.42249998450279236,
+          "frozen": 0.4225001037120819,
+          "delta": -1.1920928955078125e-7
+        },
+        "changed": [
+          {
+            "configuration": {
+              "width": 192,
+              "height": 128,
+              "time": 0,
+              "motion": "glide",
+              "detail": 1
+            },
+            "x": 143,
+            "y": 34,
+            "candidate": 0.42250004410743713,
+            "frozen": 0.42249998450279236,
+            "delta": 5.960464477539063e-8
+          },
+          {
+            "configuration": {
+              "width": 192,
+              "height": 128,
+              "time": 0,
+              "motion": "glide",
+              "detail": 1
+            },
+            "x": 18,
+            "y": 36,
+            "candidate": 0.42249998450279236,
+            "frozen": 0.4225001037120819,
+            "delta": -1.1920928955078125e-7
+          },
+          {
+            "configuration": {
+              "width": 192,
+              "height": 128,
+              "time": 0,
+              "motion": "glide",
+              "detail": 1
+            },
+            "x": 53,
+            "y": 36,
+            "candidate": 0.4224999248981476,
+            "frozen": 0.4224998950958252,
+            "delta": 2.9802322387695312e-8
+          },
+          {
+            "configuration": {
+              "width": 192,
+              "height": 128,
+              "time": 0,
+              "motion": "glide",
+              "detail": 1
+            },
+            "x": 179,
+            "y": 36,
+            "candidate": 0.42249998450279236,
+            "frozen": 0.4225001037120819,
+            "delta": -1.1920928955078125e-7
+          },
+          {
+            "configuration": {
+              "width": 192,
+              "height": 128,
+              "time": 0,
+              "motion": "glide",
+              "detail": 1
+            },
+            "x": 143,
+            "y": 40,
+            "candidate": 0.42190638184547424,
+            "frozen": 0.42190635204315186,
+            "delta": 2.9802322387695312e-8
+          },
+          {
+            "configuration": {
+              "width": 192,
+              "height": 128,
+              "time": 0,
+              "motion": "glide",
+              "detail": 1
+            },
+            "x": 179,
+            "y": 40,
+            "candidate": 0.42250004410743713,
+            "frozen": 0.4225001037120819,
+            "delta": -5.960464477539063e-8
+          },
+          {
+            "configuration": {
+              "width": 192,
+              "height": 128,
+              "time": 0,
+              "motion": "glide",
+              "detail": 1
+            },
+            "x": 18,
+            "y": 48,
+            "candidate": 0.3864363729953766,
+            "frozen": 0.3864363431930542,
+            "delta": 2.9802322387695312e-8
+          },
+          {
+            "configuration": {
+              "width": 192,
+              "height": 128,
+              "time": 8,
+              "motion": "glide",
+              "detail": 1
+            },
+            "x": 18,
+            "y": 36,
+            "candidate": 0.42249998450279236,
+            "frozen": 0.4224998652935028,
+            "delta": 1.1920928955078125e-7
+          },
+          {
+            "configuration": {
+              "width": 192,
+              "height": 128,
+              "time": 8,
+              "motion": "glide",
+              "detail": 1
+            },
+            "x": 53,
+            "y": 36,
+            "candidate": 0.4225001335144043,
+            "frozen": 0.4225001931190491,
+            "delta": -5.960464477539063e-8
+          },
+          {
+            "configuration": {
+              "width": 192,
+              "height": 128,
+              "time": 8,
+              "motion": "glide",
+              "detail": 1
+            },
+            "x": 179,
+            "y": 36,
+            "candidate": 0.42249998450279236,
+            "frozen": 0.4225001037120819,
+            "delta": -1.1920928955078125e-7
+          },
+          {
+            "configuration": {
+              "width": 192,
+              "height": 128,
+              "time": 8,
+              "motion": "glide",
+              "detail": 1
+            },
+            "x": 53,
+            "y": 40,
+            "candidate": 0.42206814885139465,
+            "frozen": 0.42206811904907227,
+            "delta": 2.9802322387695312e-8
+          },
+          {
+            "configuration": {
+              "width": 192,
+              "height": 128,
+              "time": 8,
+              "motion": "glide",
+              "detail": 1
+            },
+            "x": 143,
+            "y": 40,
+            "candidate": 0.4224277436733246,
+            "frozen": 0.422427773475647,
+            "delta": -2.9802322387695312e-8
+          },
+          {
+            "configuration": {
+              "width": 192,
+              "height": 128,
+              "time": 8,
+              "motion": "glide",
+              "detail": 1
+            },
+            "x": 18,
+            "y": 48,
+            "candidate": 0.42026975750923157,
+            "frozen": 0.4202697277069092,
+            "delta": 2.9802322387695312e-8
+          },
+          {
+            "configuration": {
+              "width": 192,
+              "height": 128,
+              "time": 4,
+              "motion": "approach",
+              "detail": 2
+            },
+            "x": 53,
+            "y": 48,
+            "candidate": 0.4227963984012604,
+            "frozen": 0.4227963387966156,
+            "delta": 5.960464477539063e-8
+          },
+          {
+            "configuration": {
+              "width": 192,
+              "height": 128,
+              "time": 4,
+              "motion": "approach",
+              "detail": 2
+            },
+            "x": 143,
+            "y": 48,
+            "candidate": 0.42260921001434326,
+            "frozen": 0.42260926961898804,
+            "delta": -5.960464477539063e-8
+          },
+          {
+            "configuration": {
+              "width": 192,
+              "height": 128,
+              "time": 4,
+              "motion": "approach",
+              "detail": 2
+            },
+            "x": 179,
+            "y": 48,
+            "candidate": 0.42267754673957825,
+            "frozen": 0.422677606344223,
+            "delta": -5.960464477539063e-8
+          }
+        ]
+      },
+      "homographyFloat": {
+        "pixels": 120,
+        "tolerance": 0.0001,
+        "passed": true,
+        "changedPixels": 18,
+        "maxAbsoluteDifference": 1.4901161193847656e-7,
+        "rmsDifference": 3.19594302617419e-8,
+        "maximum": {
+          "configuration": {
+            "width": 192,
+            "height": 128,
+            "time": 0,
+            "motion": "glide",
+            "detail": 1
+          },
+          "x": 97,
+          "y": 48,
+          "candidate": 0.4225260019302368,
+          "frozen": 0.42252615094184875,
+          "delta": -1.4901161193847656e-7
+        },
+        "changed": [
+          {
+            "configuration": {
+              "width": 192,
+              "height": 128,
+              "time": 0,
+              "motion": "glide",
+              "detail": 1
+            },
+            "x": 143,
+            "y": 34,
+            "candidate": 0.42250004410743713,
+            "frozen": 0.42249998450279236,
+            "delta": 5.960464477539063e-8
+          },
+          {
+            "configuration": {
+              "width": 192,
+              "height": 128,
+              "time": 0,
+              "motion": "glide",
+              "detail": 1
+            },
+            "x": 18,
+            "y": 36,
+            "candidate": 0.42249998450279236,
+            "frozen": 0.4225001037120819,
+            "delta": -1.1920928955078125e-7
+          },
+          {
+            "configuration": {
+              "width": 192,
+              "height": 128,
+              "time": 0,
+              "motion": "glide",
+              "detail": 1
+            },
+            "x": 53,
+            "y": 36,
+            "candidate": 0.4224999248981476,
+            "frozen": 0.4224998950958252,
+            "delta": 2.9802322387695312e-8
+          },
+          {
+            "configuration": {
+              "width": 192,
+              "height": 128,
+              "time": 0,
+              "motion": "glide",
+              "detail": 1
+            },
+            "x": 179,
+            "y": 36,
+            "candidate": 0.42249998450279236,
+            "frozen": 0.4225001037120819,
+            "delta": -1.1920928955078125e-7
+          },
+          {
+            "configuration": {
+              "width": 192,
+              "height": 128,
+              "time": 0,
+              "motion": "glide",
+              "detail": 1
+            },
+            "x": 179,
+            "y": 40,
+            "candidate": 0.42250004410743713,
+            "frozen": 0.4225001037120819,
+            "delta": -5.960464477539063e-8
+          },
+          {
+            "configuration": {
+              "width": 192,
+              "height": 128,
+              "time": 0,
+              "motion": "glide",
+              "detail": 1
+            },
+            "x": 97,
+            "y": 48,
+            "candidate": 0.4225260019302368,
+            "frozen": 0.42252615094184875,
+            "delta": -1.4901161193847656e-7
+          },
+          {
+            "configuration": {
+              "width": 192,
+              "height": 128,
+              "time": 0,
+              "motion": "glide",
+              "detail": 1
+            },
+            "x": 143,
+            "y": 48,
+            "candidate": 0.3968781530857086,
+            "frozen": 0.39687812328338623,
+            "delta": 2.9802322387695312e-8
+          },
+          {
+            "configuration": {
+              "width": 192,
+              "height": 128,
+              "time": 8,
+              "motion": "glide",
+              "detail": 1
+            },
+            "x": 18,
+            "y": 36,
+            "candidate": 0.42249998450279236,
+            "frozen": 0.4224998652935028,
+            "delta": 1.1920928955078125e-7
+          },
+          {
+            "configuration": {
+              "width": 192,
+              "height": 128,
+              "time": 8,
+              "motion": "glide",
+              "detail": 1
+            },
+            "x": 53,
+            "y": 36,
+            "candidate": 0.4225001335144043,
+            "frozen": 0.4225001931190491,
+            "delta": -5.960464477539063e-8
+          },
+          {
+            "configuration": {
+              "width": 192,
+              "height": 128,
+              "time": 8,
+              "motion": "glide",
+              "detail": 1
+            },
+            "x": 179,
+            "y": 36,
+            "candidate": 0.42249998450279236,
+            "frozen": 0.4225001037120819,
+            "delta": -1.1920928955078125e-7
+          },
+          {
+            "configuration": {
+              "width": 192,
+              "height": 128,
+              "time": 8,
+              "motion": "glide",
+              "detail": 1
+            },
+            "x": 53,
+            "y": 40,
+            "candidate": 0.42206814885139465,
+            "frozen": 0.42206811904907227,
+            "delta": 2.9802322387695312e-8
+          },
+          {
+            "configuration": {
+              "width": 192,
+              "height": 128,
+              "time": 8,
+              "motion": "glide",
+              "detail": 1
+            },
+            "x": 143,
+            "y": 40,
+            "candidate": 0.4224277436733246,
+            "frozen": 0.422427773475647,
+            "delta": -2.9802322387695312e-8
+          },
+          {
+            "configuration": {
+              "width": 192,
+              "height": 128,
+              "time": 8,
+              "motion": "glide",
+              "detail": 1
+            },
+            "x": 18,
+            "y": 48,
+            "candidate": 0.42026975750923157,
+            "frozen": 0.4202697277069092,
+            "delta": 2.9802322387695312e-8
+          },
+          {
+            "configuration": {
+              "width": 192,
+              "height": 128,
+              "time": 8,
+              "motion": "glide",
+              "detail": 1
+            },
+            "x": 53,
+            "y": 48,
+            "candidate": 0.44634974002838135,
+            "frozen": 0.4463496804237366,
+            "delta": 5.960464477539063e-8
+          },
+          {
+            "configuration": {
+              "width": 192,
+              "height": 128,
+              "time": 8,
+              "motion": "glide",
+              "detail": 1
+            },
+            "x": 97,
+            "y": 48,
+            "candidate": 0.42251673340797424,
+            "frozen": 0.4225166141986847,
+            "delta": 1.1920928955078125e-7
+          },
+          {
+            "configuration": {
+              "width": 192,
+              "height": 128,
+              "time": 4,
+              "motion": "approach",
+              "detail": 2
+            },
+            "x": 53,
+            "y": 48,
+            "candidate": 0.4227963984012604,
+            "frozen": 0.4227963387966156,
+            "delta": 5.960464477539063e-8
+          },
+          {
+            "configuration": {
+              "width": 192,
+              "height": 128,
+              "time": 4,
+              "motion": "approach",
+              "detail": 2
+            },
+            "x": 143,
+            "y": 48,
+            "candidate": 0.42260921001434326,
+            "frozen": 0.42260926961898804,
+            "delta": -5.960464477539063e-8
+          },
+          {
+            "configuration": {
+              "width": 192,
+              "height": 128,
+              "time": 4,
+              "motion": "approach",
+              "detail": 2
+            },
+            "x": 179,
+            "y": 48,
+            "candidate": 0.42267754673957825,
+            "frozen": 0.422677606344223,
+            "delta": -5.960464477539063e-8
+          }
+        ]
+      }
+    },
+    "controls": {
+      "reference": {
+        "pixels": 120,
+        "tolerance": 0,
+        "passed": true,
+        "changedPixels": 0,
+        "maxAbsoluteDifference": 0,
+        "rmsDifference": 0,
+        "maximum": null,
+        "changed": []
+      },
+      "sequenceDifference": {
+        "pixels": 120,
+        "tolerance": 0,
+        "passed": true,
+        "changedPixels": 0,
+        "maxAbsoluteDifference": 0,
+        "rmsDifference": 0,
+        "maximum": null,
+        "changed": []
+      },
+      "point": {
+        "pixels": 120,
+        "tolerance": 0,
+        "passed": true,
+        "changedPixels": 0,
+        "maxAbsoluteDifference": 0,
+        "rmsDifference": 0,
+        "maximum": null,
+        "changed": []
+      },
+      "raw": {
+        "pixels": 120,
+        "tolerance": 0,
+        "passed": true,
+        "changedPixels": 0,
+        "maxAbsoluteDifference": 0,
+        "rmsDifference": 0,
+        "maximum": null,
+        "changed": []
+      },
+      "rawError": {
+        "pixels": 120,
+        "tolerance": 0,
+        "passed": true,
+        "changedPixels": 0,
+        "maxAbsoluteDifference": 0,
+        "rmsDifference": 0,
+        "maximum": null,
+        "changed": []
+      },
+      "spectral": {
+        "pixels": 120,
+        "tolerance": 0,
+        "passed": true,
+        "changedPixels": 0,
+        "maxAbsoluteDifference": 0,
+        "rmsDifference": 0,
+        "maximum": null,
+        "changed": []
+      },
+      "spectralFloat": {
+        "pixels": 120,
+        "tolerance": 0,
+        "passed": true,
+        "changedPixels": 0,
+        "maxAbsoluteDifference": 0,
+        "rmsDifference": 0,
+        "maximum": null,
+        "changed": []
+      },
+      "spectralError": {
+        "pixels": 120,
+        "tolerance": 0,
+        "passed": true,
+        "changedPixels": 0,
+        "maxAbsoluteDifference": 0,
+        "rmsDifference": 0,
+        "maximum": null,
+        "changed": []
+      },
+      "spectralFloatError": {
+        "pixels": 120,
+        "tolerance": 0,
+        "passed": true,
+        "changedPixels": 0,
+        "maxAbsoluteDifference": 0,
+        "rmsDifference": 0,
+        "maximum": null,
+        "changed": []
+      },
+      "lattice": {
+        "pixels": 120,
+        "tolerance": 0,
+        "passed": true,
+        "changedPixels": 0,
+        "maxAbsoluteDifference": 0,
+        "rmsDifference": 0,
+        "maximum": null,
+        "changed": []
+      },
+      "homography": {
+        "pixels": 120,
+        "tolerance": 0,
+        "passed": true,
+        "changedPixels": 0,
+        "maxAbsoluteDifference": 0,
+        "rmsDifference": 0,
+        "maximum": null,
+        "changed": []
+      }
+    }
+  },
+  "sourceAudit": {
+    "harnessComparison": [
+      {
+        "file": "src/compare/scene.ts",
+        "frozen": "1bc167f22ad07d36d475b8a7ec0b782cb725c807438547d577b8bdd8ae4accee",
+        "candidate": "1bc167f22ad07d36d475b8a7ec0b782cb725c807438547d577b8bdd8ae4accee",
+        "same": true
+      },
+      {
+        "file": "src/compare/spectral.ts",
+        "frozen": "0cc609d922870d49e504c355783d313c402aecc1451b6f055dcf7203bbc0d9d4",
+        "candidate": "0cc609d922870d49e504c355783d313c402aecc1451b6f055dcf7203bbc0d9d4",
+        "same": true
+      },
+      {
+        "file": "src/compare/authorKernel.ts",
+        "frozen": "b89d8889947a8333b4f15e2e8870fcf9f95ec4d420c442e77298aec17833d3d0",
+        "candidate": "b89d8889947a8333b4f15e2e8870fcf9f95ec4d420c442e77298aec17833d3d0",
+        "same": true
+      },
+      {
+        "file": "demo/ours-kernel.wgsl.js",
+        "frozen": "ac855cdb4d478faf8130176d8dda2507b28909218a8d955c6b1e724e6c083cd1",
+        "candidate": "ac855cdb4d478faf8130176d8dda2507b28909218a8d955c6b1e724e6c083cd1",
+        "same": true
+      },
+      {
+        "file": "tests/compare/browser-entry.mjs",
+        "frozen": "484e2b9b66cbea6d2a2c280a6853444609f4ef26d68a3160e26e3cfe81927c9b",
+        "candidate": "484e2b9b66cbea6d2a2c280a6853444609f4ef26d68a3160e26e3cfe81927c9b",
+        "same": true
+      },
+      {
+        "file": "tests/compare/reference.mjs",
+        "frozen": "c73eb2366b43fbd6845a0c6cefe976b81dbfa40bb6eb3dd86cbea76dfb6e9820",
+        "candidate": "c73eb2366b43fbd6845a0c6cefe976b81dbfa40bb6eb3dd86cbea76dfb6e9820",
+        "same": true
+      },
+      {
+        "file": "tests/compare/materials.mjs",
+        "frozen": "783b089cc330a220ef9690e7083384c2e26b222c07d3442a8ac1931f16eb24ef",
+        "candidate": "d79811cd2133ee9618a9c61415a827f88c12dece8a01c575e70cac3d7eed9463",
+        "same": false
+      }
+    ],
+    "runnerChange": "Only candidate-selection and provenance plumbing differ between the archived material runners; captured shader adapters, scene, reference and browser capture source hashes are identical.",
+    "productionDependency": "The production file must exist for normal Vite resolution and is read only for integrity hashing. Its shader body is not loaded in candidate mode: the pre-load plugin returns the archived candidate via a private virtual module. This test host still uses the explicitly recorded live scene and adapters.",
+    "candidateDependency": "The selector rejects external module imports, re-exports, dynamic imports and import.meta; this archived module constructs its exports without external artifacts. No WORK declaration is injected."
+  },
+  "gateSummary": {
+    "directFixtures": {
+      "status": "passed",
+      "count": 122
+    },
+    "materialProbes": {
+      "status": "passed",
+      "count": 120
+    },
+    "watchdog": {
+      "status": "passed",
+      "checks": 8,
+      "note": "Includes an intentionally infinite negative control that must exhaust its budget; non-exhaustion does not certify numerical accuracy or timing."
+    },
+    "compilation": {
+      "status": "passed",
+      "jobs": 8,
+      "note": "Standalone DXC checker/circle pixel and compute entry wrappers, DXIL and SPIR-V; not Unreal material or Metal execution."
+    }
+  },
+  "limitations": [
+    "120 fixed checkerboard material probes in three poses; not a bound on every image pixel or all scenes.",
+    "The separate 122 direct fixtures include circles, but these full-scene material probes are checkerboard only.",
+    "Unchanged noisy Gaussian references enable a candidate-vs-frozen comparison; sequence disagreement remains an observation, not an error bound.",
+    "Selecting OURS_KERNEL_CORE excludes the ripple extension. This package does not validate ripple rendering.",
+    "No candidate performance measurement, native rendering validation, or production promotion is claimed."
+  ],
+  "checks": [
+    {
+      "name": "candidate material report passed",
+      "passed": true
+    },
+    {
+      "name": "frozen material report passed",
+      "passed": true
+    },
+    {
+      "name": "candidate source stable during GPU run",
+      "passed": true
+    },
+    {
+      "name": "frozen source stable during GPU run",
+      "passed": true
+    },
+    {
+      "name": "candidate archive and production file stable during GPU run",
+      "passed": true
+    },
+    {
+      "name": "numerical scene, adapters, browser capture, reference and production control match",
+      "passed": true,
+      "detail": [
+        {
+          "file": "src/compare/scene.ts",
+          "frozen": "1bc167f22ad07d36d475b8a7ec0b782cb725c807438547d577b8bdd8ae4accee",
+          "candidate": "1bc167f22ad07d36d475b8a7ec0b782cb725c807438547d577b8bdd8ae4accee",
+          "same": true
+        },
+        {
+          "file": "src/compare/spectral.ts",
+          "frozen": "0cc609d922870d49e504c355783d313c402aecc1451b6f055dcf7203bbc0d9d4",
+          "candidate": "0cc609d922870d49e504c355783d313c402aecc1451b6f055dcf7203bbc0d9d4",
+          "same": true
+        },
+        {
+          "file": "src/compare/authorKernel.ts",
+          "frozen": "b89d8889947a8333b4f15e2e8870fcf9f95ec4d420c442e77298aec17833d3d0",
+          "candidate": "b89d8889947a8333b4f15e2e8870fcf9f95ec4d420c442e77298aec17833d3d0",
+          "same": true
+        },
+        {
+          "file": "demo/ours-kernel.wgsl.js",
+          "frozen": "ac855cdb4d478faf8130176d8dda2507b28909218a8d955c6b1e724e6c083cd1",
+          "candidate": "ac855cdb4d478faf8130176d8dda2507b28909218a8d955c6b1e724e6c083cd1",
+          "same": true
+        },
+        {
+          "file": "tests/compare/browser-entry.mjs",
+          "frozen": "484e2b9b66cbea6d2a2c280a6853444609f4ef26d68a3160e26e3cfe81927c9b",
+          "candidate": "484e2b9b66cbea6d2a2c280a6853444609f4ef26d68a3160e26e3cfe81927c9b",
+          "same": true
+        },
+        {
+          "file": "tests/compare/reference.mjs",
+          "frozen": "c73eb2366b43fbd6845a0c6cefe976b81dbfa40bb6eb3dd86cbea76dfb6e9820",
+          "candidate": "c73eb2366b43fbd6845a0c6cefe976b81dbfa40bb6eb3dd86cbea76dfb6e9820",
+          "same": true
+        },
+        {
+          "file": "tests/compare/materials.mjs",
+          "frozen": "783b089cc330a220ef9690e7083384c2e26b222c07d3442a8ac1931f16eb24ef",
+          "candidate": "d79811cd2133ee9618a9c61415a827f88c12dece8a01c575e70cac3d7eed9463",
+          "same": false
+        }
+      ]
+    },
+    {
+      "name": "same adapter and browser",
+      "passed": true
+    },
+    {
+      "name": "candidate uses immutable committed core",
+      "passed": true
+    },
+    {
+      "name": "raw candidate snapshot hash",
+      "passed": true
+    },
+    {
+      "name": "recorded adapter hash",
+      "passed": true
+    },
+    {
+      "name": "independently extracted core matches provenance and watchdog",
+      "passed": true
+    },
+    {
+      "name": "direct fixtures share candidate module and selected export",
+      "passed": true
+    },
+    {
+      "name": "HLSL compilation is from this candidate",
+      "passed": true
+    },
+    {
+      "name": "same unique configurations",
+      "passed": true
+    },
+    {
+      "name": "matching configuration [192,128,\"glide\",0,1]",
+      "passed": true
+    },
+    {
+      "name": "same float format [192,128,\"glide\",0,1]",
+      "passed": true
+    },
+    {
+      "name": "same unique probe set [192,128,\"glide\",0,1]",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:18,34",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:53,34",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:97,34",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:143,34",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:179,34",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:18,36",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:53,36",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:97,36",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:143,36",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:179,36",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:18,40",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:53,40",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:97,40",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:143,40",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:179,40",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:18,48",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:53,48",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:97,48",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:143,48",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:179,48",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:18,64",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:53,64",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:97,64",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:143,64",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:179,64",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:18,88",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:53,88",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:97,88",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:143,88",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:179,88",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:18,112",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:53,112",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:97,112",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:143,112",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:179,112",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:18,124",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:53,124",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:97,124",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:143,124",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",0,1]:179,124",
+      "passed": true
+    },
+    {
+      "name": "matching configuration [192,128,\"glide\",8,1]",
+      "passed": true
+    },
+    {
+      "name": "same float format [192,128,\"glide\",8,1]",
+      "passed": true
+    },
+    {
+      "name": "same unique probe set [192,128,\"glide\",8,1]",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:18,34",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:53,34",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:97,34",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:143,34",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:179,34",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:18,36",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:53,36",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:97,36",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:143,36",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:179,36",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:18,40",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:53,40",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:97,40",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:143,40",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:179,40",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:18,48",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:53,48",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:97,48",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:143,48",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:179,48",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:18,64",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:53,64",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:97,64",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:143,64",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:179,64",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:18,88",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:53,88",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:97,88",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:143,88",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:179,88",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:18,112",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:53,112",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:97,112",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:143,112",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:179,112",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:18,124",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:53,124",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:97,124",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:143,124",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"glide\",8,1]:179,124",
+      "passed": true
+    },
+    {
+      "name": "matching configuration [192,128,\"approach\",4,2]",
+      "passed": true
+    },
+    {
+      "name": "same float format [192,128,\"approach\",4,2]",
+      "passed": true
+    },
+    {
+      "name": "same unique probe set [192,128,\"approach\",4,2]",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:18,34",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:53,34",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:97,34",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:143,34",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:179,34",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:18,36",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:53,36",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:97,36",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:143,36",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:179,36",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:18,40",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:53,40",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:97,40",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:143,40",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:179,40",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:18,48",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:53,48",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:97,48",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:143,48",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:179,48",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:18,64",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:53,64",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:97,64",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:143,64",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:179,64",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:18,88",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:53,88",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:97,88",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:143,88",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:179,88",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:18,112",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:53,112",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:97,112",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:143,112",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:179,112",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:18,124",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:53,124",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:97,124",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:143,124",
+      "passed": true
+    },
+    {
+      "name": "matching probe [192,128,\"approach\",4,2]:179,124",
+      "passed": true
+    },
+    {
+      "name": "all 120 archived probes matched",
+      "passed": true
+    },
+    {
+      "name": "latticeFloat per-pixel difference",
+      "passed": true
+    },
+    {
+      "name": "homographyFloat per-pixel difference",
+      "passed": true
+    },
+    {
+      "name": "reference per-pixel difference",
+      "passed": true
+    },
+    {
+      "name": "sequenceDifference per-pixel difference",
+      "passed": true
+    },
+    {
+      "name": "point per-pixel difference",
+      "passed": true
+    },
+    {
+      "name": "raw per-pixel difference",
+      "passed": true
+    },
+    {
+      "name": "rawError per-pixel difference",
+      "passed": true
+    },
+    {
+      "name": "spectral per-pixel difference",
+      "passed": true
+    },
+    {
+      "name": "spectralFloat per-pixel difference",
+      "passed": true
+    },
+    {
+      "name": "spectralError per-pixel difference",
+      "passed": true
+    },
+    {
+      "name": "spectralFloatError per-pixel difference",
+      "passed": true
+    },
+    {
+      "name": "lattice per-pixel difference",
+      "passed": true
+    },
+    {
+      "name": "homography per-pixel difference",
+      "passed": true
+    },
+    {
+      "name": "same source-stability and polarity labels",
+      "passed": true
+    },
+    {
+      "name": "input file unchanged: candidate",
+      "passed": true
+    },
+    {
+      "name": "input file unchanged: frozen",
+      "passed": true
+    },
+    {
+      "name": "input file unchanged: homography",
+      "passed": true
+    },
+    {
+      "name": "input file unchanged: watchdog",
+      "passed": true
+    },
+    {
+      "name": "input file unchanged: provenance",
+      "passed": true
+    },
+    {
+      "name": "input file unchanged: compilation",
+      "passed": true
+    },
+    {
+      "name": "snapshot unchanged during CPU extraction",
+      "passed": true
+    }
+  ],
+  "failures": []
+}

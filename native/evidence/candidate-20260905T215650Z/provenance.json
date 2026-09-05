@@ -1,0 +1,9 @@
+{
+  "commit": "6eddded0ef1f04479a9b0560ddda881307e4eece",
+  "source_path": "demo/ours-kernel-next.wgsl.js",
+  "source_sha256": "f3d1cf46906a06f3780a32da3acc2bcab30a0fedeaf94aed6d13b0d5a790316f",
+  "hlsl_sha256": "3fd0d4bc423892334f8da79822f76c973d5ca49290694acf7fa39f276414a2bb",
+  "generated_file_matches": true,
+  "core_sha256": "d0c52245280bc4e2bc9bd24e148c0c3095f09622b7073d1a8ff80448aff1737e",
+  "stable_not_promoted": true
+}

@@ -42,7 +42,7 @@
     </header>
     <div class="views" role="group" aria-label="Camera view">
       <button type="button" data-view="rest" aria-pressed="true" aria-controls="comparison-images">At rest</button>
-      <button type="button" data-view="motion" aria-pressed="false" aria-controls="comparison-images">After motion</button>
+      <button type="button" data-view="motion" aria-pressed="false" aria-controls="comparison-images">In motion</button>
     </div>
     <section id="comparison-images" class="images" aria-label="Matched Unreal game captures at rest">
       <figure>
@@ -64,9 +64,9 @@
     </footer>
     <details>
       <summary>Capture details and evidence</summary>
-      <p>These are captures of Unreal 5.8.2’s ordinary game renderer, with the same procedural checkerboard, camera and display settings. At rest uses 64 warmup ticks. After motion plays the camera to two seconds, then holds it for one readback frame; the recorded camera and sequence time agree before and after capture. These still images do not measure uninterrupted motion quality or game frame rate.</p>
+      <p>These are captures of Unreal 5.8.2’s ordinary game renderer, with the same procedural checkerboard, camera and display settings. At rest uses 64 warmup ticks. In motion keeps the camera playing through capture. Raw pixels identify the saved frame at 2.017 seconds; the other methods have matching camera and readback timing. These are still images, so they do not measure temporal quality over a trajectory or game frame rate.</p>
       <p>TSR uses 100% input/output resolution and a 200% history. Our shader integrates a Gaussian pixel window with standard deviation 0.5 pixel; TSR has a different reconstruction filter. The scene is unlit, and exposure, tone curve, vignette, motion blur and dynamic resolution are disabled. Independent checks verify the source, color transfer and camera registration.</p>
-      <p><a href="evidence/game-quality-20260905T212821544Z/README.md">At-rest evidence</a> · <a href="evidence/game-quality-20260905T212756753Z/README.md">After-motion evidence</a> · <a href="tools/viewport_diagnosis.md">Reproduce the captures</a> · <a href="comparison-mrq.html">Earlier MRQ gallery</a></p>
+      <p><a href="evidence/game-quality-20260905T212821544Z/README.md">At-rest evidence</a> · <a href="evidence/game-quality-20260905T221241048Z/README.md">Moving-frame evidence</a> · <a href="tools/viewport_diagnosis.md">Reproduce the captures</a> · <a href="comparison-mrq.html">Earlier MRQ gallery</a></p>
     </details>
   </main>
   <script>
@@ -81,12 +81,12 @@
         ]
       },
       motion: {
-        label: 'After motion',
-        context: 'Captured after camera motion, held for one readback frame. Open any image to inspect the original pixels.',
+        label: 'In motion',
+        context: 'Captured while the camera is moving. Open any image to inspect the original pixels.',
         images: [
-          'evidence/viewport-diagnosis-20260905T212612.895862Z-raw-Glide0/frames/raw_Glide0.0120.png',
-          'evidence/viewport-diagnosis-20260905T212647.625707Z-tsr-Glide0/frames/tsr_Glide0.0120.png',
-          'evidence/viewport-diagnosis-20260905T212630.590287Z-analytic-Glide0/frames/analytic_Glide0.0120.png'
+          'evidence/viewport-diagnosis-20260905T215931.012554Z-raw-Glide0/frames/raw_Glide0.0120.png',
+          'evidence/viewport-diagnosis-20260905T220005.031523Z-tsr-Glide0/frames/tsr_Glide0.0120.png',
+          'evidence/viewport-diagnosis-20260905T220034.396327Z-analytic-Glide0/frames/analytic_Glide0.0120.png'
         ]
       }
     };

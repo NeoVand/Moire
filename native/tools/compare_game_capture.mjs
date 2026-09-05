@@ -92,7 +92,81 @@ export function cameraSource(pose, width, height) {
   return {ground,ink,horizonDistance:(x,y)=>-(c[1]+dx[1]*x+dy[1]*y)/denominatorSlope};
 }
 
-function resolvePose(records, explicitTime) {
+export function poseAtTime(base, motion, time) {
+  assert.ok(['glide','approach'].includes(motion),'Cannot reconstruct an unknown camera motion.');
+  const x=motion==='glide'?Math.sin(time*.28)*6:0;
+  const z=motion==='approach'?28-Math.sin(time*.22)*12:28;
+  const eye=[x,12,z],target=[x*.45,0,z-50],look=target.map((v,i)=>v-eye[i]);
+  const unreal=v=>[-100*v[2],100*v[0],100*v[1]];
+  return {...base,motion,time,three_eye:eye,three_target:target,
+    unreal_location_cm:unreal(eye),unreal_target_cm:unreal(target),
+    unreal_rotation_degrees:{roll:0,pitch:Math.atan2(look[1],Math.hypot(look[0],look[2]))*180/Math.PI,yaw:Math.atan2(look[0],-look[2])*180/Math.PI}};
+}
+
+function tickSeconds(tick) {
+  const q=tick?.sequence_time, rate=q?.rate_numerator/q?.rate_denominator;
+  return Number.isFinite(rate)&&rate>0?(q.frame+q.sub_frame)/rate:NaN;
+}
+
+export function denseRegistration(image, source, transfer) {
+  const result={family:'x=13..639 step17, y=93..359 step11; original-source horizon >3px; parity stable within +/-0.01px',checked:0,failures:[]};
+  for(let y=93;y<360;y+=11)for(let x=13;x<640;x+=17) {
+    const cx=x+.5,cy=y+.5,ink=source.ink(cx,cy);
+    if(ink===null||source.horizonDistance(cx,cy)<=3||![-.01,0,.01].every(dx=>[-.01,0,.01].every(dy=>source.ink(cx+dx,cy+dy)===ink)))continue;
+    result.checked++;
+    const expected=Math.round(255*transfer.encode(DARK+(LIGHT-DARK)*ink));
+    const codes=displayCodesAt(image,x,y);
+    if(codes.some(v=>Math.abs(v-expected)>1))result.failures.push({x,y,displayCodes:codes,expectedRoundedDisplayCode:expected});
+  }
+  return result;
+}
+
+export function resolveUninterruptedPose(records, explicitTime, transfer) {
+  const raw=records.raw.report, base=raw.prepared_scene.camera_pose;
+  const shot=raw.shot_record, motion=raw.contract.camera_motion??base.motion;
+  const fallbackTime=raw.contract.requested_sequence_frame/60;
+  const fallback=Number.isFinite(fallbackTime)?fallbackTime:base.time;
+  const result={pose:poseAtTime(base,motion,fallback),time:fallback,
+    source:'unresolved uninterrupted screenshot frame; fallback pose is diagnostic only',
+    frameRegistration:{passed:false,candidates:[],selectedTicks:{},failures:[]}};
+  const registration=result.frameRegistration;
+  const fail=message=>registration.failures.push(message);
+  if(!ARMS.every(arm=>records[arm].report.contract.capture_uninterrupted_motion===true))fail('All three captures must use uninterrupted motion.');
+  if(!transfer.supported||!calibrateRawPalette(records.raw.image,transfer).passed)fail('Raw transfer must pass before frame registration.');
+  const ticks=(shot?.nearby_ticks??[]).filter(t=>t.phase==='post'&&
+    t.engine_frame>shot.requested_engine_frame&&t.engine_frame<=shot.completed_engine_frame&&Number.isFinite(tickSeconds(t)));
+  for(const tick of ticks) {
+    const time=tickSeconds(tick);
+    const pose=poseAtTime(base,motion,time), source=cameraSource(pose,640,360);
+    const check=denseRegistration(records.raw.image,source,transfer);
+    registration.candidates.push({time,engineFrame:tick.engine_frame,
+      engineFramesAfterRequest:tick.engine_frame-shot.requested_engine_frame,
+      checked:check.checked,mismatches:check.failures.length,
+      firstFailures:check.failures.slice(0,8),tick,pose});
+  }
+  const matches=registration.candidates.filter(c=>c.checked>=500&&c.mismatches===0);
+  if(matches.length!==1)fail(`Expected one independently registered saved time; found ${matches.length}.`);
+  if(matches.length===1) {
+    const selected=matches[0];
+    if(explicitTime!==undefined&&Math.abs(explicitTime-selected.time)>1e-6)fail('Explicit time conflicts with independently registered time.');
+    for(const arm of ARMS) {
+      const other=records[arm].report.shot_record;
+      const candidates=(other?.nearby_ticks??[]).filter(t=>t.phase==='post'&&
+        t.engine_frame>other.requested_engine_frame&&t.engine_frame<=other.completed_engine_frame&&
+        Math.abs(tickSeconds(t)-selected.time)<1e-6&&
+        t.engine_frame-other.requested_engine_frame===selected.engineFramesAfterRequest);
+      if(candidates.length!==1)fail(`${arm}: saved camera time/readback phase is not uniquely matched.`);
+      else registration.selectedTicks[arm]=candidates[0];
+    }
+    Object.assign(result,{pose:selected.pose,time:selected.time});
+  }
+  registration.passed=registration.failures.length===0;
+  if(registration.passed)result.source='unique dense original-ray registration among recorded post-request game frames';
+  return result;
+}
+
+function resolvePose(records, explicitTime, transfer) {
+  if(ARMS.some(arm=>records[arm].report.contract.capture_uninterrupted_motion))return resolveUninterruptedPose(records,explicitTime,transfer);
   const base = records.raw.report.prepared_scene.camera_pose;
   const actualTimes = ARMS.map(arm=>records[arm].report.contract.sample_time_seconds).filter(t=>t!==undefined);
   assert.ok(actualTimes.every(t=>Number.isFinite(t)), 'Invalid capture time metadata.');
@@ -107,10 +181,7 @@ function resolvePose(records, explicitTime) {
   }
   if(time===base.time) return {pose:base,time,source:'prepared fixed-camera metadata at its recorded time'};
   const motion=records.raw.report.contract.camera_motion??base.motion;
-  assert.ok(['glide','approach'].includes(motion),'Cannot reconstruct an unknown camera motion.');
-  const x=motion==='glide'?Math.sin(time*.28)*6:0;
-  const z=motion==='approach'?28-Math.sin(time*.22)*12:28;
-  return {pose:{...base,motion,time,three_eye:[x,12,z],three_target:[x*.45,0,z-50]},time,source:'known scene motion reconstructed at explicit/recorded sample time; transform was not read back'};
+  return {pose:poseAtTime(base,motion,time),time,source:'known scene motion reconstructed at explicit/recorded sample time; transform was not read back'};
 }
 
 export function main(argv=process.argv.slice(2)) {
@@ -142,6 +213,7 @@ export function main(argv=process.argv.slice(2)) {
     check(`${arm}: sources stable`,r.source_hashes_stable===true&&same(r.source_hashes,r.source_hashes_after));
     check(`${arm}: ordinary game view`,r.contract.new_view_family===false&&r.contract.mrq===false&&r.contract.highres_screenshot===false);
     check(`${arm}: output frame matches contract`,artifact.sequence_frame===r.contract.output_sequence_frame);
+    if(r.contract.capture_uninterrupted_motion)check(`${arm}: filename is only a request label`,artifact.sequence_frame===null&&r.contract.output_sequence_frame===null&&artifact.file_frame_label===r.contract.requested_sequence_frame&&r.contract.sample_time_seconds===null);
     const archive=path.join(path.dirname(reportPath),'preparation.json');
     const preparationArchived=fs.existsSync(archive);
     if(preparationArchived)check(`${arm}: archived preparation hash`,sha(fs.readFileSync(archive))===r.preparation_sha256);
@@ -163,16 +235,28 @@ export function main(argv=process.argv.slice(2)) {
     check(`${arm}: preparation match`,r.preparation_sha256===base.preparation_sha256);
   }
   for(const name of ['map','sequence','map_sha256','sequence_sha256'])check(`Raw/TSR ${name} match`,records.tsr.report.prepared_scene[name]===base.prepared_scene[name]);
-  const resolved=resolvePose(records,options.time), source=cameraSource(resolved.pose,640,360);
+  const transfer=resolveTransfer(ARMS.map(arm=>records[arm].report)),palette=paletteFor(transfer);
+  const resolved=resolvePose(records,options.time,transfer), source=cameraSource(resolved.pose,640,360);
+  if(resolved.frameRegistration)check('Uninterrupted saved frame independently registered',resolved.frameRegistration.passed,resolved.frameRegistration.failures.join(' '));
   const expectedLocation=[-100*resolved.pose.three_eye[2],100*resolved.pose.three_eye[0],100*resolved.pose.three_eye[1]];
   const look=resolved.pose.three_target.map((v,i)=>v-resolved.pose.three_eye[i]);
   const expectedRotation=[0,Math.atan2(look[1],Math.hypot(look[0],look[2]))*180/Math.PI,Math.atan2(look[0],-look[2])*180/Math.PI];
   for(const arm of ARMS)if(records[arm].report.contract.ordinary_shot) {
-    const s=records[arm].report.shot_record;
-    check(`${arm}: ordinary Shot completed`,s?.status==='captured'&&s.high_resolution_screenshot===false);
+    const record=records[arm].report.shot_record;
+    const continuous=records[arm].report.contract.capture_uninterrupted_motion;
+    const s=continuous?resolved.frameRegistration?.selectedTicks[arm]:record;
+    check(`${arm}: ordinary Shot completed`,record?.status==='captured'&&record.high_resolution_screenshot===false);
     check(`${arm}: observed Shot camera location`,s?.camera_location?.length===3&&s.camera_location.every((v,i)=>Math.abs(v-expectedLocation[i])<=.01),'Tolerance 0.01 cm against original scene camera.');
     check(`${arm}: observed Shot camera rotation`,s?.camera_rotation?.length===3&&s.camera_rotation.every((v,i)=>Math.abs(((v-expectedRotation[i]+540)%360)-180)<=1e-4),'Tolerance 0.0001 degrees; Shot record order is roll,pitch,yaw.');
     check(`${arm}: observed Shot camera FOV`,Number.isFinite(s?.camera_fov)&&Math.abs(s.camera_fov-resolved.pose.horizontal_fov_degrees)<=1e-4);
+    if(continuous) {
+      check(`${arm}: uninterrupted playback disclosed`,record.paused_for_shot===false&&record.extra_stationary_readback_frame===false&&record.continuous_playback_between_start_and_target===true&&record.history_reset_during_final_seek===false);
+      const nearby=record.nearby_ticks??[];
+      const interval=nearby.filter(t=>t.phase==='post'&&t.engine_frame>=record.requested_engine_frame&&t.engine_frame<=record.completed_engine_frame);
+      check(`${arm}: capture interval stayed playing without cuts`,interval.length>=2&&interval.every(t=>t.is_playing===true&&t.camera_cut===false));
+      check(`${arm}: capture interval has consecutive game frames`,interval.length>=2&&interval[0].engine_frame===record.requested_engine_frame&&interval.at(-1).engine_frame===record.completed_engine_frame&&interval.every((t,i)=>!i||(t.engine_frame===interval[i-1].engine_frame+1&&Math.abs(tickSeconds(t)-tickSeconds(interval[i-1])-1/60)<1e-6)));
+      check(`${arm}: continuous capture state verified`,record.sequence_continuity_valid===true&&record.unexpected_camera_cut_detected===false&&record.actual_saved_sequence_time===null&&Array.isArray(record.camera_cut_events)&&record.camera_cut_events.every(e=>e.engine_frame<=record.sequence_created_engine_frame+1));
+    }
     if(records[arm].report.contract.capture_after_paused_motion_history) {
       const at=s.camera_at_completion;
       check(`${arm}: paused motion readback disclosed`,s.paused_for_shot===true&&s.extra_stationary_readback_frame===true&&s.continuous_playback_between_start_and_target===true&&s.history_reset_during_final_seek===false);
@@ -183,7 +267,6 @@ export function main(argv=process.argv.slice(2)) {
       }
     }
   }
-  const transfer=resolveTransfer(ARMS.map(arm=>records[arm].report)),palette=paletteFor(transfer);
   check('Documented transfer definition supported',transfer.supported);
   const rawPalette=calibrateRawPalette(records.raw.image,transfer);
   check('Raw palette validates selected transfer',rawPalette.passed);
@@ -230,15 +313,7 @@ export function main(argv=process.argv.slice(2)) {
   // motion offset can change only quality pixels excluded by their phase guard.
   // This family is fixed independently of image errors and never filters the
   // 54-point Gaussian quality family.
-  const registration={family:'x=13..639 step17, y=93..359 step11; original-source horizon >3px; parity stable within +/-0.01px',checked:0,failures:[],tested:transferPassed};
-  if(transferPassed)for(let y=93;y<360;y+=11)for(let x=13;x<640;x+=17) {
-    const cx=x+.5,cy=y+.5,ink=source.ink(cx,cy);
-    if(ink===null||source.horizonDistance(cx,cy)<=3||![-.01,0,.01].every(dx=>[-.01,0,.01].every(dy=>source.ink(cx+dx,cy+dy)===ink)))continue;
-    registration.checked++;
-    const expected=Math.round(255*transfer.encode(DARK+(LIGHT-DARK)*ink));
-    const codes=displayCodesAt(records.raw.image,x,y);
-    if(codes.some(v=>Math.abs(v-expected)>1))registration.failures.push({x,y,displayCodes:codes,expectedRoundedDisplayCode:expected});
-  }
+  const registration=transferPassed?{...denseRegistration(records.raw.image,source,transfer),tested:true}:{checked:0,failures:[],tested:false};
   if(transferPassed)check('Dense raw registration matches the declared camera time',registration.checked>0&&registration.failures.length===0);
   const summarize=arm=>{
     const errors=pixels.flatMap(p=>p.measured[arm].signedLinearError),residual=pixels.flatMap(p=>p.measured[arm].signedErrorAfterDisplayAllowance);
@@ -248,7 +323,7 @@ export function main(argv=process.argv.slice(2)) {
   const summary=canScore&&phaseFailures.length===0&&registration.failures.length===0&&pixels.length>0?Object.fromEntries(ARMS.map(arm=>[arm,summarize(arm)])):null;
   if(!summary)for(const p of pixels)for(const arm of ARMS) p.measured[arm]={displayCodes:p.measured[arm].displayCodes};
   const report={createdAt:stamp,status:summary?'measured-filter-specific-diagnostic':'quantitative-scores-withheld',performanceMeasurement:false,
-    captureHistory:base.contract.capture_after_paused_motion_history?'Continuous playback to target, then paused for one additional stationary readback frame; not an uninterrupted motion capture.':'Fixed camera with warmed history; no convergence claim.',
+    captureHistory:base.contract.capture_uninterrupted_motion?(resolved.frameRegistration?.passed&&metadataPassed?'Sequence remains playing through screenshot readback. Raw pixels independently identify saved time; other arms use matching observed camera and readback-phase metadata. One moving frame does not establish temporal quality over a trajectory.':'Uninterrupted capture requested, but saved-frame or capture-metadata validation failed; quantitative claims are withheld.'):base.contract.capture_after_paused_motion_history?'Continuous playback to target, then paused for one additional stationary readback frame; not an uninterrupted motion capture.':'Fixed camera with warmed history; no convergence claim.',
     inputs:Object.fromEntries(ARMS.map(arm=>[arm,{report:relative(records[arm].reportPath),reportSha256:sha(fs.readFileSync(records[arm].reportPath)),image:relative(records[arm].imagePath),imageSha256:records[arm].report.artifacts[0].sha256,originalImageProvenance:records[arm].report.artifacts[0].path,pngBitDepth:records[arm].image.depth,storedSamplesPreserved:true,preparationSha256:records[arm].report.preparation_sha256,preparationArchiveVerified:records[arm].preparationArchived?checks.find(c=>c.name===`${arm}: archived preparation hash`).passed:false,contract:records[arm].report.contract,preparedScene:records[arm].report.prepared_scene,shotRecord:records[arm].report.shot_record??null,requestedCvars:records[arm].report.requested_cvars}])),
     checks,warnings,commonSourceHashes:common,camera:resolved,calibration:{transfer,passed:transferPassed,rawPalette,sky},phase:{checked:phase.length,failures:phaseFailures.map(p=>[p.x,p.y]),denseRegistration:registration},
     reference:{method:'independent original camera ray / finite ground intersection and exact checker parity',sigmaPixels:.5,samplesPerPixel:131072,seeds:[1701,2909],sequenceDifferenceIsBound:false,maximumSequenceDifferenceLinear:summary?Math.max(...pixels.map(p=>p.reference.sequenceDifferenceLinear)):null,family:'54 fixed pixels before geometry exclusions; no error-dependent selection',retainedPixels:pixels.length,excluded},summary,pixels,

@@ -1,0 +1,153 @@
+{
+  "status": "passed",
+  "created_at": "2026-09-05T21:57:22.091542+00:00",
+  "synthetic": true,
+  "actual_unreal_process_started": false,
+  "gpu_used": false,
+  "scope": "CPU simulation of helper callbacks, mode invariants, failure paths and cleanup; not Unreal API, image or phase validation",
+  "source_hashes": {
+    "native/tools/viewport_diagnosis_shot.py": "204b2229a157c5157be2ad9b8cbb48fd30a804d8da0b6920417a399c45ed4367",
+    "native/tools/viewport_diagnosis.py": "5ebfcf476f350985f9836141834d740e71b93446dabe841b7b1dfcc9fbd0cb13"
+  },
+  "source_hashes_after": {
+    "native/tools/viewport_diagnosis_shot.py": "204b2229a157c5157be2ad9b8cbb48fd30a804d8da0b6920417a399c45ed4367",
+    "native/tools/viewport_diagnosis.py": "5ebfcf476f350985f9836141834d740e71b93446dabe841b7b1dfcc9fbd0cb13"
+  },
+  "source_hashes_stable": true,
+  "runner_hash_coverage": {
+    "runner": "watched includes Path(__file__)",
+    "helper_and_camera_cut_callback": "watched includes shot_script; on_sequence_camera_cut is defined in that file",
+    "self_contained_config": "watched includes shot_config"
+  },
+  "tests": [
+    {
+      "mode": "uninterrupted",
+      "passed": true,
+      "synthetic_capture_status": "captured",
+      "expected_failure": null,
+      "seek_count": 1,
+      "pause_count": 0,
+      "request_sequence": {
+        "frame": 120,
+        "sub_frame": 0,
+        "rate_numerator": 60,
+        "rate_denominator": 1
+      },
+      "completion_sequence": {
+        "frame": 121,
+        "sub_frame": 0,
+        "rate_numerator": 60,
+        "rate_denominator": 1
+      },
+      "observation_end_sequence": {
+        "frame": 123,
+        "sub_frame": 0,
+        "rate_numerator": 60,
+        "rate_denominator": 1
+      }
+    },
+    {
+      "mode": "paused",
+      "passed": true,
+      "synthetic_capture_status": "captured",
+      "expected_failure": null,
+      "seek_count": 1,
+      "pause_count": 1,
+      "request_sequence": {
+        "frame": 120,
+        "sub_frame": 0,
+        "rate_numerator": 60,
+        "rate_denominator": 1
+      },
+      "completion_sequence": {
+        "frame": 120,
+        "sub_frame": 0,
+        "rate_numerator": 60,
+        "rate_denominator": 1
+      },
+      "observation_end_sequence": null
+    },
+    {
+      "mode": "fixed",
+      "passed": true,
+      "synthetic_capture_status": "captured",
+      "expected_failure": null,
+      "seek_count": 0,
+      "pause_count": 0,
+      "request_sequence": null,
+      "completion_sequence": null,
+      "observation_end_sequence": null
+    },
+    {
+      "mode": "skip",
+      "passed": true,
+      "synthetic_capture_status": "failed",
+      "expected_failure": "Unexpected engine/sequence frame skip, repeat, or jump",
+      "seek_count": 1,
+      "pause_count": 0,
+      "request_sequence": null,
+      "completion_sequence": null,
+      "observation_end_sequence": null
+    },
+    {
+      "mode": "cut-event",
+      "passed": true,
+      "synthetic_capture_status": "failed",
+      "expected_failure": "Unexpected camera cut after the initial sequence binding",
+      "seek_count": 1,
+      "pause_count": 0,
+      "request_sequence": null,
+      "completion_sequence": null,
+      "observation_end_sequence": null
+    },
+    {
+      "mode": "cut-flag",
+      "passed": true,
+      "synthetic_capture_status": "failed",
+      "expected_failure": "Unexpected camera cut after the initial sequence binding",
+      "seek_count": 1,
+      "pause_count": 0,
+      "request_sequence": null,
+      "completion_sequence": null,
+      "observation_end_sequence": null
+    },
+    {
+      "mode": "stopped",
+      "passed": true,
+      "synthetic_capture_status": "failed",
+      "expected_failure": "Sequence unexpectedly stopped or paused during uninterrupted capture",
+      "seek_count": 1,
+      "pause_count": 0,
+      "request_sequence": null,
+      "completion_sequence": null,
+      "observation_end_sequence": null
+    },
+    {
+      "mode": "camera-change",
+      "passed": true,
+      "synthetic_capture_status": "failed",
+      "expected_failure": "Unexpected active camera change during uninterrupted playback",
+      "seek_count": 1,
+      "pause_count": 0,
+      "request_sequence": null,
+      "completion_sequence": null,
+      "observation_end_sequence": null
+    },
+    {
+      "mode": "late-file",
+      "passed": true,
+      "synthetic_capture_status": "failed",
+      "expected_failure": "Screenshot was not observed within the bounded readback window",
+      "seek_count": 1,
+      "pause_count": 0,
+      "request_sequence": {
+        "frame": 120,
+        "sub_frame": 0,
+        "rate_numerator": 60,
+        "rate_denominator": 1
+      },
+      "completion_sequence": null,
+      "observation_end_sequence": null
+    }
+  ]
+}

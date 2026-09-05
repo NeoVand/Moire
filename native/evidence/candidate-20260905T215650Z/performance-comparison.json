@@ -1,0 +1,300 @@
+{
+  "status": "measured-with-nonstationary-controls",
+  "production_promotion_accepted": false,
+  "intrinsic_speed_factor_established": false,
+  "native_game_performance_measured": false,
+  "all_360_timestamp_samples_valid": true,
+  "sources": {
+    "performance-stable-before.json": "b2582ac30bc0a330399cc821d8498b1241cf67369a0f56995072167a50592df4",
+    "performance-candidate.json": "57206552d929048428c0d8ddc9203f2d28e6114ef4fc6cd3e0a421759c611b3a",
+    "performance-stable-after.json": "c8679c9faf835395c04e88926a6ac0769e14838321dd61e9bedba35aa65e4e3f"
+  },
+  "rows": [
+    {
+      "method": "raw",
+      "width": 640,
+      "height": 360,
+      "time": 0,
+      "runs": [
+        {
+          "file": "performance-stable-before.json",
+          "gpuSpanMedianMs": 6.081564,
+          "completedWallMedianMs": 9.800000011920929,
+          "completedWallRangeMs": [
+            1.899999976158142,
+            17.5
+          ]
+        },
+        {
+          "file": "performance-candidate.json",
+          "gpuSpanMedianMs": 0.142285,
+          "completedWallMedianMs": 1.100000023841858,
+          "completedWallRangeMs": [
+            0.6000000238418579,
+            12.099999964237213
+          ]
+        },
+        {
+          "file": "performance-stable-after.json",
+          "gpuSpanMedianMs": 0.532926,
+          "completedWallMedianMs": 1.699999988079071,
+          "completedWallRangeMs": [
+            1.199999988079071,
+            9.100000023841858
+          ]
+        }
+      ]
+    },
+    {
+      "method": "homography",
+      "width": 640,
+      "height": 360,
+      "time": 0,
+      "runs": [
+        {
+          "file": "performance-stable-before.json",
+          "gpuSpanMedianMs": 8.462742,
+          "completedWallMedianMs": 10.899999976158142,
+          "completedWallRangeMs": [
+            4.100000023841858,
+            15.800000011920929
+          ]
+        },
+        {
+          "file": "performance-candidate.json",
+          "gpuSpanMedianMs": 1.174512,
+          "completedWallMedianMs": 2.100000023841858,
+          "completedWallRangeMs": [
+            1.5,
+            5.700000047683716
+          ]
+        },
+        {
+          "file": "performance-stable-after.json",
+          "gpuSpanMedianMs": 7.712197,
+          "completedWallMedianMs": 8.600000023841858,
+          "completedWallRangeMs": [
+            2.899999976158142,
+            16.69999998807907
+          ]
+        }
+      ]
+    },
+    {
+      "method": "raw",
+      "width": 640,
+      "height": 360,
+      "time": 8,
+      "runs": [
+        {
+          "file": "performance-stable-before.json",
+          "gpuSpanMedianMs": 7.610562,
+          "completedWallMedianMs": 9.899999976158142,
+          "completedWallRangeMs": [
+            2.899999976158142,
+            20.5
+          ]
+        },
+        {
+          "file": "performance-candidate.json",
+          "gpuSpanMedianMs": 0.26765,
+          "completedWallMedianMs": 2,
+          "completedWallRangeMs": [
+            1.699999988079071,
+            2.199999988079071
+          ]
+        },
+        {
+          "file": "performance-stable-after.json",
+          "gpuSpanMedianMs": 0.155368,
+          "completedWallMedianMs": 2.199999988079071,
+          "completedWallRangeMs": [
+            1.0999999642372131,
+            7.5
+          ]
+        }
+      ]
+    },
+    {
+      "method": "homography",
+      "width": 640,
+      "height": 360,
+      "time": 8,
+      "runs": [
+        {
+          "file": "performance-stable-before.json",
+          "gpuSpanMedianMs": 11.819181,
+          "completedWallMedianMs": 14.199999988079071,
+          "completedWallRangeMs": [
+            6.399999976158142,
+            20.69999998807907
+          ]
+        },
+        {
+          "file": "performance-candidate.json",
+          "gpuSpanMedianMs": 2.243904,
+          "completedWallMedianMs": 4.100000023841858,
+          "completedWallRangeMs": [
+            3.899999976158142,
+            6.899999976158142
+          ]
+        },
+        {
+          "file": "performance-stable-after.json",
+          "gpuSpanMedianMs": 3.195096,
+          "completedWallMedianMs": 4.800000011920929,
+          "completedWallRangeMs": [
+            3.799999952316284,
+            7.599999964237213
+          ]
+        }
+      ]
+    },
+    {
+      "method": "raw",
+      "width": 1920,
+      "height": 1080,
+      "time": 0,
+      "runs": [
+        {
+          "file": "performance-stable-before.json",
+          "gpuSpanMedianMs": 6.805668,
+          "completedWallMedianMs": 9.5,
+          "completedWallRangeMs": [
+            1.5999999642372131,
+            17
+          ]
+        },
+        {
+          "file": "performance-candidate.json",
+          "gpuSpanMedianMs": 1.080517,
+          "completedWallMedianMs": 3.099999964237213,
+          "completedWallRangeMs": [
+            2.600000023841858,
+            4.900000035762787
+          ]
+        },
+        {
+          "file": "performance-stable-after.json",
+          "gpuSpanMedianMs": 0.998829,
+          "completedWallMedianMs": 3.099999964237213,
+          "completedWallRangeMs": [
+            2.800000011920929,
+            3.5
+          ]
+        }
+      ]
+    },
+    {
+      "method": "homography",
+      "width": 1920,
+      "height": 1080,
+      "time": 0,
+      "runs": [
+        {
+          "file": "performance-stable-before.json",
+          "gpuSpanMedianMs": 12.413496,
+          "completedWallMedianMs": 15.199999988079071,
+          "completedWallRangeMs": [
+            7.199999988079071,
+            22.80000001192093
+          ]
+        },
+        {
+          "file": "performance-candidate.json",
+          "gpuSpanMedianMs": 8.444348,
+          "completedWallMedianMs": 9.099999964237213,
+          "completedWallRangeMs": [
+            7.699999988079071,
+            11.400000035762787
+          ]
+        },
+        {
+          "file": "performance-stable-after.json",
+          "gpuSpanMedianMs": 9.165856,
+          "completedWallMedianMs": 10.300000011920929,
+          "completedWallRangeMs": [
+            7.400000035762787,
+            12.700000047683716
+          ]
+        }
+      ]
+    },
+    {
+      "method": "raw",
+      "width": 1920,
+      "height": 1080,
+      "time": 8,
+      "runs": [
+        {
+          "file": "performance-stable-before.json",
+          "gpuSpanMedianMs": 6.042848,
+          "completedWallMedianMs": 7.900000035762787,
+          "completedWallRangeMs": [
+            3.400000035762787,
+            16.299999952316284
+          ]
+        },
+        {
+          "file": "performance-candidate.json",
+          "gpuSpanMedianMs": 0.833574,
+          "completedWallMedianMs": 2.600000023841858,
+          "completedWallRangeMs": [
+            1.7000000476837158,
+            3.100000023841858
+          ]
+        },
+        {
+          "file": "performance-stable-after.json",
+          "gpuSpanMedianMs": 1.076601,
+          "completedWallMedianMs": 3.199999988079071,
+          "completedWallRangeMs": [
+            2.5,
+            3.399999976158142
+          ]
+        }
+      ]
+    },
+    {
+      "method": "homography",
+      "width": 1920,
+      "height": 1080,
+      "time": 8,
+      "runs": [
+        {
+          "file": "performance-stable-before.json",
+          "gpuSpanMedianMs": 15.731177,
+          "completedWallMedianMs": 19.19999998807907,
+          "completedWallRangeMs": [
+            9.200000047683716,
+            25.5
+          ]
+        },
+        {
+          "file": "performance-candidate.json",
+          "gpuSpanMedianMs": 6.343237,
+          "completedWallMedianMs": 8.199999988079071,
+          "completedWallRangeMs": [
+            3.5,
+            12.399999976158142
+          ]
+        },
+        {
+          "file": "performance-stable-after.json",
+          "gpuSpanMedianMs": 8.867177,
+          "completedWallMedianMs": 10.600000023841858,
+          "completedWallRangeMs": [
+            8,
+            13.200000047683716
+          ]
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "Stable-before/candidate/stable-after order, five warm frames and15 measured frames percase. No native or other agent GPU submissions during these jobs, but desktop activity was not globally controlled.",
+    "Unchanged raw control varies substantially; e.g640x360 t0 completedwallmedians9.8/1.1/1.7ms. Lower candidate medians alone do not establish an intrinsic speed factor.",
+    "Pass sums may overlap; use elapsed GPU spans and completed queue wall times. These omit presentation and the rest of a game.",
+    "Only grazing checkerboard homography path is timed; circle cost and temporal quality are unmeasured."
+  ]
+}
