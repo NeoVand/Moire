@@ -65,6 +65,11 @@ export function Slider({
   // only give them somewhere to go stale.
   useParamRegistration(path ? { path, label, min, max, step, unit, quantize, display } : null);
   const trackRef = useRef<HTMLDivElement>(null);
+  // The parent creates an onChange closure on every sampled value. Keep the
+  // drag listener stable so an update cannot end its own interaction/undo group.
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+  const draggingRef = useRef(false);
   // Whether this knob already has motion, so the button can say so at a glance
   // rather than only inside the panel behind it.
   const animated = useProjectStore((s) =>
@@ -95,14 +100,14 @@ export function Slider({
           fineOriginRef.current.value +
           ((clientX - fineOriginRef.current.x) / Math.max(rect.width, 1)) * span * 0.12;
         const usedStep = step < 1 ? Math.max(step / 10, 1e-4) : step;
-        onChange(snap(raw, usedStep, min, max));
+        onChangeRef.current(snap(raw, usedStep, min, max));
         return;
       }
       fineOriginRef.current = { x: clientX, value: valueRef.current };
       const t = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
-      onChange(snap(min + t * (max - min), step, min, max));
+      onChangeRef.current(snap(min + t * (max - min), step, min, max));
     },
-    [min, max, step, onChange]
+    [min, max, step]
   );
 
   useEffect(() => {
@@ -112,6 +117,7 @@ export function Slider({
     }
     const onMove = (e: MouseEvent) => applyFromClientX(e.clientX, e.shiftKey);
     const onUp = () => {
+      draggingRef.current = false;
       setIsDragging(false);
       useTransportStore.getState().setInteracting(false);
     };
@@ -121,18 +127,23 @@ export function Slider({
     };
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
+    window.addEventListener('blur', onUp);
     window.addEventListener('keydown', onKey);
     window.addEventListener('keyup', onKey);
     return () => {
       window.removeEventListener('mousemove', onMove);
       window.removeEventListener('mouseup', onUp);
+      window.removeEventListener('blur', onUp);
       window.removeEventListener('keydown', onKey);
       window.removeEventListener('keyup', onKey);
-      // A panel that closes mid-drag would otherwise leave motion yielding to a
-      // hand that is no longer there, and nothing would ever move again.
-      useTransportStore.getState().setInteracting(false);
     };
   }, [isDragging, applyFromClientX]);
+
+  // Closing the owning panel still ends a gesture; replacing its listener while
+  // mounted does not. This also handles a range change during an active drag.
+  useEffect(() => () => {
+    if (draggingRef.current) useTransportStore.getState().setInteracting(false);
+  }, []);
 
   const commitDraft = () => {
     const parsed = Number.parseFloat(draft);
@@ -218,6 +229,7 @@ export function Slider({
         className="relative h-4 overflow-visible cursor-ew-resize"
         onMouseDown={(e) => {
           e.preventDefault();
+          draggingRef.current = true;
           setIsDragging(true);
           // Motion yields while the knob is held, so an animated one can be
           // grabbed and looked at rather than fighting the clock for its value.

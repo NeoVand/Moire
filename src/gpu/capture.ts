@@ -5,6 +5,8 @@ export interface CaptureOptions {
   aspect?: number;
   /** An exact frame height in pixels, which overrides `scale` when given. */
   height?: number;
+  /** Internal: viewport buffer used to frame a whole take despite window resizes. */
+  framing?: { width: number; height: number };
   /**
    * Draw the frame as the interaction ladder would at this buffer scale:
    * the hairline floor, the integral ramps and the pooling weight stay at

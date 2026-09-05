@@ -121,39 +121,37 @@ const probes = new Map<string, Promise<boolean>>();
 const PROBE_FRAMES = 6;
 
 async function probe(info: VideoFormatInfo, width: number, height: number, fps: number) {
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return false;
-
-  const output = new Output({
-    format: info.id === 'mp4' ? new Mp4OutputFormat() : new WebMOutputFormat(),
-    target: new BufferTarget(),
-  });
-  const source = new CanvasSource(canvas, { codec: info.codec, quality: QUALITY });
-  output.addVideoTrack(source, { frameRate: fps });
-
+  let output: Output | null = null;
   try {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return false;
+    output = new Output({
+      format: info.id === 'mp4' ? new Mp4OutputFormat() : new WebMOutputFormat(),
+      target: new BufferTarget(),
+    });
+    const source = new CanvasSource(canvas, { codec: info.codec, quality: QUALITY });
+    output.addVideoTrack(source, { frameRate: fps });
     await output.start();
     for (let i = 0; i < PROBE_FRAMES; i++) {
-      // Not a blank frame: an encoder can accept flat colour and refuse detail,
-      // and this tool draws nothing but detail.
       ctx.fillStyle = i % 2 ? '#ffffff' : '#000000';
       ctx.fillRect(0, 0, width, height);
       ctx.fillStyle = '#808080';
-      for (let k = 0; k < 64; k++) ctx.fillRect(((k * 97) % width), 0, 2, height);
+      for (let k = 0; k < 64; k++) ctx.fillRect((k * 97) % width, 0, 2, height);
       await source.add(i / fps, 1 / fps);
     }
     await output.finalize();
     return true;
   } catch {
-    await output.cancel().catch(() => {});
+    await output?.cancel().catch(() => {});
     return false;
   }
 }
 
 export function encodable(format: VideoFormat, width: number, height: number, fps: number) {
+  if (![width, height, fps].every((v) => Number.isFinite(v) && v > 0)) return Promise.resolve(false);
   const info = VIDEO_FORMATS.find((f) => f.id === format) ?? VIDEO_FORMATS[0];
   const key = `${format}:${width}x${height}@${fps}`;
   let hit = probes.get(key);
@@ -206,6 +204,9 @@ export interface VideoSink extends RecordSink {
 }
 
 export function videoSink(opts: VideoSinkOptions): VideoSink {
+  if (![opts.width, opts.height, opts.fps].every((v) => Number.isFinite(v) && v > 0)) {
+    throw new Error('Enter a valid video size and frame rate.');
+  }
   const info = VIDEO_FORMATS.find((f) => f.id === opts.format) ?? VIDEO_FORMATS[0];
   const canvas = document.createElement('canvas');
   canvas.width = opts.width;
@@ -229,8 +230,8 @@ export function videoSink(opts: VideoSinkOptions): VideoSink {
       // configuration this machine will not take fails here -- with whatever the
       // encoder says about it -- rather than several frames later as a flush.
       if (!started) {
-        await output.start();
         started = true;
+        await output.start();
       }
       ctx.drawImage(await frame.canvas(), 0, 0, canvas.width, canvas.height);
       await source.add(index / opts.fps, 1 / opts.fps);
@@ -243,9 +244,15 @@ export function videoSink(opts: VideoSinkOptions): VideoSink {
         await output.cancel().catch(() => {});
         return;
       }
-      await output.finalize();
-      const buffer = (output.target as BufferTarget).buffer;
-      if (buffer) blob = new Blob([buffer], { type: info.mime });
+      try {
+        await output.finalize();
+        const buffer = (output.target as BufferTarget).buffer;
+        if (!buffer) throw new Error('The encoder did not produce a video file.');
+        blob = new Blob([buffer], { type: info.mime });
+      } catch (error) {
+        await output.cancel().catch(() => {});
+        throw error;
+      }
     },
     result: () => blob,
   };

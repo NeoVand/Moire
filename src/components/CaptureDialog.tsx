@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Camera01Icon,
-  Delete02Icon,
   FolderOpenIcon,
   ImageDownloadIcon,
   PauseIcon,
@@ -16,6 +15,7 @@ import {
   frameCount,
   pickDirectory,
   recordFrames,
+  recordingError,
   type RecordProgress,
 } from '../gpu/recorder';
 import {
@@ -31,25 +31,15 @@ import { useLibraryStore } from '../store/library';
 import { useProjectStore } from '../store/project';
 import { MotionList } from './MotionList';
 import { motionSpan } from '../types/motion';
+import { composeLoop, loopIssues } from '../types/composition';
+import { paramDescriptor } from '../store/params';
 import { useTransportStore } from '../store/transport';
 import { FloatingPanel } from './ui/FloatingPanel';
 import { Icon } from './ui/Icon';
 import { NumberField } from './ui/NumberField';
 import { InfoTip } from './ui/Tip';
 
-/**
- * Capture: everything that leaves the tool as pixels.
- *
- * One still and nine hundred frames are the same operation at different lengths,
- * so they share a panel, a resolution and an aspect. What differs is the clock:
- * a still is whatever is on screen, and a recording is a stated range of the
- * transport's time, rendered frame by frame at an exact rate regardless of how
- * fast the machine can draw.
- *
- * Frames are the honest output and the only one here for now. They are also what
- * makes a clip reproducible -- a project file and two timestamps -- which is the
- * claim the paper's supplemental video will make.
- */
+/** Still export and deterministic, frame-by-frame recording share the same framing. */
 
 const ASPECTS: { label: string; ratio: string; value: number }[] = [
   { label: 'Canvas', ratio: '', value: 0 },
@@ -78,19 +68,41 @@ const rowLabel = 'text-[9px] uppercase tracking-[0.09em] text-[var(--text-muted)
 const button =
   'flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-[var(--border)] ' +
   'px-2.5 py-1.5 text-[11px] text-[var(--text-primary)] hover:bg-[var(--bg-hover)] disabled:opacity-40';
+const periodOf = (path: string) => paramDescriptor(path)?.period;
+
+// Session preferences survive closing this floating panel. A different document
+// gets its own range; output size and codec remain the author's preferences.
+let remembered: {
+  revision: number; aspect: number; scale: number; fps: number; intent: 'clip' | 'loop';
+  t0: number; t1: number; format: 'frames' | VideoFormat; videoHeight: number;
+} | undefined;
 
 export function CaptureDialog({ onClose }: { onClose: () => void }) {
-  const [aspect, setAspect] = useState(0);
-  const [scale, setScale] = useState(2);
-  const [fps, setFps] = useState(60);
-  const [t0, setT0] = useState(0);
-  const [t1, setT1] = useState(6);
-  const [format, setFormat] = useState<'frames' | VideoFormat>('mp4');
-  const [videoHeight, setVideoHeight] = useState(1080);
+  const revision = useProjectStore((s) => s.documentRevision);
+  const [initial] = useState(() => remembered);
+  const [aspect, setAspect] = useState(initial?.aspect ?? 0);
+  const [scale, setScale] = useState(initial?.scale ?? 2);
+  const [fps, setFps] = useState(initial?.fps ?? 60);
+  const [intent, setIntent] = useState<'clip' | 'loop'>(initial?.revision === revision ? initial.intent : 'clip');
+  const [t0, setT0] = useState(initial?.revision === revision ? initial.t0 : 0);
+  const [t1, setT1] = useState(() => {
+    if (initial?.revision === revision) return initial.t1;
+    const motion = useProjectStore.getState().motion;
+    const { muted, solo } = useTransportStore.getState();
+    return motionSpan({ ...motion, animators: motion.animators.filter((a) => solo ? a.id === solo : !muted.includes(a.id)) }, periodOf).end;
+  });
+  const [format, setFormat] = useState<'frames' | VideoFormat>(initial?.format ?? 'mp4');
+  const [videoHeight, setVideoHeight] = useState(initial?.videoHeight ?? 1080);
   const [encodable, setEncodable] = useState<Set<VideoFormat> | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [progress, setProgress] = useState<RecordProgress | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [starting, setStarting] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const [status, setStatus] = useState<{ text: string; error: boolean } | null>(null);
+  const mounted = useRef(true);
+  const pending = useRef(false);
+  const previewGeneration = useRef(0);
   const abort = useRef<AbortController | null>(null);
   const previewUrl = useRef<string | null>(null);
   const rendering = useRef(false);
@@ -101,15 +113,21 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
   const state = useTransportStore((s) => s.state);
   const clock = useTransportStore((s) => s.t);
   const recording = useTransportStore((s) => s.recording);
-  const play = useTransportStore((s) => s.play);
+  const previewRange = useTransportStore((s) => s.previewRange);
   const pause = useTransportStore((s) => s.pause);
   const stop = useTransportStore((s) => s.stop);
   const seek = useTransportStore((s) => s.seek);
   const name = useLibraryStore((s) => s.name);
   const motion = useProjectStore((s) => s.motion);
-  const animators = motion.animators.length;
+  const muted = useTransportStore((s) => s.muted);
+  const solo = useTransportStore((s) => s.solo);
+  const effectiveMotion = {
+    ...motion,
+    animators: motion.animators.filter((a) => a.enabled && (solo ? a.id === solo : !muted.includes(a.id))),
+  };
+  const busy = recording || starting || saving;
   const playing = state === 'playing';
-  const span = motionSpan(motion);
+  const span = motionSpan(effectiveMotion, periodOf);
   // Within a hundredth of what the motion actually asks for.
   const fitted = Math.abs(t1 - span.end) < 0.01 && t0 === 0;
 
@@ -120,8 +138,32 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
       ? null
       : videoFrameSize(format, videoHeight, aspect || canvasAspect);
   const frames = frameCount({ t0, t1, fps });
+  const rangeError = recordingError({ t0, t1, fps });
+  const encodedDuration = frames / fps;
+  const issues = loopIssues(effectiveMotion, t0, t0 + encodedDuration, periodOf);
+  const issueGroups = Array.from(new Set(issues.map((issue) => issue.reason))).map((reason) => ({
+    reason,
+    tracks: issues.filter((issue) => issue.reason === reason).map((issue) => {
+      const a = motion.animators.find((item) => item.id === issue.id)!;
+      return paramDescriptor(a.path)?.label ?? a.path;
+    }),
+  }));
+
+  const previousRevision = useRef(revision);
+  useEffect(() => {
+    if (previousRevision.current !== revision) {
+      previousRevision.current = revision;
+      setT0(0);
+      setT1(motionSpan(useProjectStore.getState().motion, periodOf).end);
+      setIntent('clip');
+    }
+  }, [revision]);
+  useEffect(() => {
+    remembered = { revision, aspect, scale, fps, intent, t0, t1, format, videoHeight };
+  }, [revision, aspect, scale, fps, intent, t0, t1, format, videoHeight]);
 
   const refreshPreview = useCallback(async () => {
+    if (!mounted.current || useTransportStore.getState().recording) return;
     if (rendering.current) {
       again.current = true;
       return;
@@ -130,134 +172,161 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
     try {
       do {
         again.current = false;
+        const generation = previewGeneration.current;
         const blob = await capturePng({ scale: 1, aspect: aspectRef.current });
+        if (!mounted.current || useTransportStore.getState().recording || generation !== previewGeneration.current) break;
         const url = URL.createObjectURL(blob);
         if (previewUrl.current) URL.revokeObjectURL(previewUrl.current);
         previewUrl.current = url;
         setPreview(url);
       } while (again.current);
     } catch {
-      // The canvas may not be ready yet; the next change tries again.
+      // Startup may still be compiling; a later scene change retries.
     } finally {
       rendering.current = false;
     }
   }, []);
 
   useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      abort.current?.abort();
+      if (previewUrl.current) URL.revokeObjectURL(previewUrl.current);
+    };
+  }, []);
+
+  useEffect(() => {
     void refreshPreview();
   }, [refreshPreview, aspect]);
 
-  // What a take produced is true of that take and of nothing else. Left on
-  // screen while the settings move underneath it, "238 frames, 4.2 MB" stops
-  // describing the last recording and starts looking like a prediction of the
-  // next one -- which it is not, and which is why the count appeared frozen.
   useEffect(() => {
     setStatus(null);
   }, [format, fps, t0, t1, scale, aspect, videoHeight]);
 
-  // The range is offered rather than imposed: it is set once, when the panel
-  // opens, so that adjusting it by hand is not undone by the next edit.
+  // A running preview must never use bounds different from the visible controls.
   useEffect(() => {
-    const s = motionSpan(useProjectStore.getState().motion);
-    if (!s.empty) setT1(Math.round(s.end * 100) / 100);
-  }, []);
+    const transport = useTransportStore.getState();
+    if (transport.range && !transport.recording) transport.pause();
+  }, [t0, t1, fps, intent]);
 
-  // Finding out costs a real encode, so it happens when the settings settle
-  // rather than on every keystroke, and null means "not known yet" rather than
-  // "none" -- greying every format out while checking would be a lie.
   useEffect(() => {
+    if (recording) return;
     let live = true;
     setEncodable(null);
     const timer = setTimeout(() => {
-      void encodableFormats(videoHeight, aspect || canvasAspect, fps).then((set) => {
-        if (live) setEncodable(set);
-      });
+      void encodableFormats(videoHeight, aspect || canvasAspect, fps)
+        .then((set) => { if (live) setEncodable(set); })
+        .catch(() => { if (live) setEncodable(new Set()); });
     }, 200);
-    return () => {
-      live = false;
-      clearTimeout(timer);
-    };
-  }, [videoHeight, aspect, canvasAspect, fps]);
+    return () => { live = false; clearTimeout(timer); };
+  }, [videoHeight, aspect, canvasAspect, fps, recording]);
 
-  // The preview follows the construction, but not while recording: a thumbnail
-  // is not worth a render between every pair of captured frames.
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | null = null;
-    const unsub = useProjectStore.subscribe(() => {
-      if (useTransportStore.getState().recording) return;
+    const changed = () => {
       if (timer) clearTimeout(timer);
-      timer = setTimeout(() => void refreshPreview(), 500);
+      if (useTransportStore.getState().recording) return;
+      timer = setTimeout(() => void refreshPreview(), 300);
+    };
+    const unsubProject = useProjectStore.subscribe(changed);
+    const unsubTransport = useTransportStore.subscribe((s, prev) => {
+      if (s.state !== prev.state || s.recording !== prev.recording) changed();
     });
     return () => {
-      unsub();
+      unsubProject(); unsubTransport();
       if (timer) clearTimeout(timer);
-      if (previewUrl.current) URL.revokeObjectURL(previewUrl.current);
     };
   }, [refreshPreview]);
 
   const saveStill = async () => {
+    if (pending.current || useTransportStore.getState().recording) return;
+    pending.current = true;
+    setSaving(true);
+    const wasPlaying = useTransportStore.getState().state === 'playing';
+    pause();
     try {
       await exportPng({ scale, aspect });
-      setStatus(null);
+      if (mounted.current) setStatus({ text: 'PNG saved.', error: false });
     } catch (err) {
-      console.error(err);
-      setStatus({ text: 'Could not capture the canvas.', error: true });
+      if (mounted.current) setStatus({ text: err instanceof Error ? err.message : 'Could not capture the canvas.', error: true });
+    } finally {
+      pending.current = false;
+      if (mounted.current) setSaving(false);
+      if (wasPlaying && !useTransportStore.getState().recording) {
+        useTransportStore.setState({ state: 'playing' });
+      }
     }
   };
 
   const record = async () => {
+    if (pending.current || useTransportStore.getState().recording || rangeError) return;
+    pending.current = true;
+    setStarting(true);
     setStatus(null);
-    const wantsFrames = format === 'frames';
-    const dir = wantsFrames ? await pickDirectory() : null;
-    if (wantsFrames && !dir) return;
-
-    const video =
-      wantsFrames || !videoSize
+    setCancelling(false);
+    previewGeneration.current++;
+    const controller = new AbortController();
+    abort.current = controller;
+    try {
+      const wantsFrames = format === 'frames';
+      const dir = wantsFrames ? await pickDirectory() : null;
+      if (controller.signal.aborted || (wantsFrames && !dir)) return;
+      const video = wantsFrames || !videoSize
         ? null
         : videoSink({ format, width: videoSize.width, height: videoSize.height, fps });
-    abort.current = new AbortController();
-    setProgress({ frame: 0, frames, elapsed: 0 });
-    try {
       const out = await recordFrames(
-        // A recording lands on a stated height; a folder of stills keeps the
-        // still export's multiplier, which is what that control is for.
         { t0, t1, fps, aspect, ...(videoSize ? { height: videoSize.height } : { scale }) },
         video ?? directorySink(dir!),
-        setProgress,
-        abort.current.signal
+        (p) => { if (mounted.current) setProgress(p); },
+        controller.signal
       );
+      if (!mounted.current) return;
       const file = video?.result();
-      if (file && !out.cancelled) {
+      if (file && !out.cancelled && !controller.signal.aborted) {
         downloadVideo(file, format as VideoFormat, name.trim() || 'moire');
-        setStatus({
-          text: `${out.frames} frames, ${(file.size / 1e6).toFixed(1)} MB.`,
-          error: false,
-        });
+        setStatus({ text: `Saved ${out.frames} frames · ${(out.frames / fps).toFixed(2)}s · ${(file.size / 1e6).toFixed(1)} MB.`, error: false });
       } else {
         setStatus({
-          text: out.cancelled
-            ? `Stopped after ${out.frames} of ${frames} frames.`
-            : `Wrote ${out.frames} frames.`,
+          text: out.cancelled || controller.signal.aborted
+            ? `Cancelled after ${out.frames} of ${frames} frames.${wantsFrames ? ' The partial take remains in its folder.' : ''}`
+            : `Saved ${out.frames} PNGs in a new take folder.`,
           error: false,
         });
       }
     } catch (err) {
-      console.error(err);
-      const flush = err instanceof Error && /flush/i.test(err.message);
-      setStatus({
-        text: flush
-          ? `The encoder gave up on ${videoSize?.width}×${videoSize?.height} at ${fps} a second. ` +
-            `Drop the rate or the size and try again.`
-          : err instanceof Error
-            ? err.message
-            : 'The recording failed.',
+      if (mounted.current) setStatus({
+        text: err instanceof Error && /flush/i.test(err.message)
+          ? `The encoder failed at ${videoSize?.width}×${videoSize?.height}, ${fps} fps. Try a smaller size or lower frame rate.`
+          : err instanceof Error ? err.message : 'The recording failed.',
         error: true,
       });
     } finally {
       abort.current = null;
-      setProgress(null);
-      void refreshPreview();
+      pending.current = false;
+      if (mounted.current) {
+        setStarting(false); setProgress(null); setCancelling(false);
+        void refreshPreview();
+      }
     }
+  };
+
+  const cancel = () => {
+    abort.current?.abort();
+    setCancelling(true);
+  };
+
+  const scrub = (t: number) => {
+    pause();
+    seek(Math.max(0, t));
+  };
+
+  const makeLoop = () => {
+    if (rangeError || encodedDuration < 0.002) return;
+    pause();
+    useProjectStore.setState({ motion: composeLoop(motion, effectiveMotion.animators.map((a) => a.id), t0, encodedDuration) });
+    setT1(t0 + encodedDuration);
+    scrub(t0);
   };
 
   // A format greyed out in the row above is still the one selected, and a record
@@ -274,16 +343,19 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
       id="capture"
       width={286}
       defaultPosition={{ x: window.innerWidth - 310, y: 56 }}
-      onClose={onClose}
+      onClose={() => {
+        if (pending.current) { cancel(); return; }
+        onClose();
+      }}
       mark={<Icon icon={Camera01Icon} size={14} />}
       title="Capture"
     >
-      <div className="grid gap-2.5">
-        <div className="flex h-[150px] items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] p-2">
+      <div className="grid max-h-[calc(100dvh-110px)] gap-2.5 overflow-y-auto overscroll-contain">
+        <div title="Framing preview; pause playback to refresh" className="relative flex h-[130px] items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] p-2">
           {preview ? (
             <img
               src={preview}
-              alt="Capture preview"
+              alt="Framing preview"
               className="border border-[var(--border)]"
               style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
             />
@@ -292,8 +364,8 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
           )}
         </div>
 
-        <div className="grid gap-1.5">
-          <span className={rowLabel}>Frame</span>
+        <fieldset disabled={busy} className="grid min-w-0 gap-1.5">
+          <legend className={rowLabel}>Framing</legend>
           <div className="flex flex-wrap items-center gap-1.5">
             <div className={group}>
               {ASPECTS.map((a) => (
@@ -321,46 +393,51 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
               </span>
             )}
           </div>
-        </div>
-
-        <button type="button" className={button} onClick={() => void saveStill()} disabled={recording}>
+        </fieldset>
+        <button type="button" className={button} onClick={() => void saveStill()} disabled={busy}>
           <Icon icon={ImageDownloadIcon} size={13} />
-          Save this frame
+          {saving ? 'Saving PNG…' : 'Save frame'}
         </button>
 
         <div className="flex items-center gap-1 border-t border-[var(--border)] pt-2.5">
           <span className={rowLabel}>Recording</span>
           <InfoTip
-            text="Frames are rendered one at a time at exactly the stated rate, however long each takes — so the output is exact even when the machine is not. The same range recorded twice gives the same frames."
+            text="Each frame uses an exact timestamp; the end of the range is excluded."
             label="Recording"
           />
         </div>
 
+        <fieldset disabled={busy} className="grid min-w-0 gap-2.5">
+        <div className="flex items-center gap-2">
+          <div className={group}>
+            <button type="button" className={chip(intent === 'clip')} onClick={() => setIntent('clip')} title="Preview once from In to Out">Clip</button>
+            <button type="button" className={chip(intent === 'loop')} onClick={() => setIntent('loop')} title="Preview the chosen range repeatedly and check how motions meet">Loop</button>
+          </div>
+          <span className="text-[10px] tabular-nums text-[var(--text-muted)]">{encodedDuration.toFixed(2)}s</span>
+        </div>
         <div className="flex items-center gap-0.5">
-          <button type="button" className={btn} title="Back to the start" onClick={() => seek(0)} disabled={recording}>
+          <button type="button" className={btn} title="Back to In" onClick={() => scrub(t0)} disabled={recording}>
             <Icon icon={PreviousIcon} size={13} />
           </button>
           <button
             type="button"
             className={`${btn} ${playing ? 'text-[var(--text-primary)]' : ''}`}
-            title={playing ? 'Pause' : 'Play'}
-            onClick={() => (playing ? pause() : play())}
-            disabled={recording}
+            title={playing ? 'Pause' : intent === 'loop' ? 'Preview loop' : 'Preview clip'}
+            onClick={() => (playing ? pause() : previewRange(t0, t0 + encodedDuration, intent === 'loop', true))}
+            disabled={recording || !!rangeError}
           >
             <Icon icon={playing ? PauseIcon : PlayIcon} size={13} />
           </button>
           <button type="button" className={btn} title="Stop and rewind" onClick={stop} disabled={recording}>
             <Icon icon={StopIcon} size={13} />
           </button>
-          <span className="ml-1 font-mono text-[10px] tabular-nums text-[var(--text-muted)]">
-            {state === 'stopped' ? 'idle' : `${clock.toFixed(1)}s`}
-          </span>
+          <NumberField label="Playhead" value={clock} onChange={scrub} min={0} step={1 / fps} decimals={2} suffix="s" width={58} />
           <span className="flex-1" />
           <button
             type="button"
             className="rounded-md px-2 py-1 text-[10px] text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-30"
             title="Use the clock's current position as the in point"
-            onClick={() => setT0(Math.round(clock * 100) / 100)}
+            onClick={() => { const t = Math.round(clock * 100) / 100; setT0(t); if (t >= t1) setT1(t + 1); }}
             disabled={recording}
           >
             set in
@@ -369,7 +446,7 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
             type="button"
             className="rounded-md px-2 py-1 text-[10px] text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-30"
             title="Use the clock's current position as the out point"
-            onClick={() => setT1(Math.round(clock * 100) / 100)}
+            onClick={() => { const t = Math.max(1 / fps, Math.round(clock * 100) / 100); setT1(t); if (t <= t0) setT0(Math.max(0, t - 1)); }}
             disabled={recording}
           >
             set out
@@ -381,22 +458,20 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
         <div className="grid gap-1.5">
           <div className="flex items-center gap-2">
             <span className="text-[10.5px] text-[var(--text-secondary)]">From</span>
-            <NumberField value={t0} step={0.5} min={0} decimals={2} suffix="s" onChange={setT0} />
+            <NumberField label="Recording start" value={t0} step={0.5} min={0} decimals={2} suffix="s" onChange={setT0} />
             <span className="flex-1" />
             <span className="text-[10.5px] text-[var(--text-secondary)]">To</span>
-            <NumberField value={t1} step={0.5} min={0} decimals={2} suffix="s" onChange={setT1} />
+            <NumberField label="Recording end" value={t1} step={0.5} min={0} decimals={2} suffix="s" onChange={setT1} />
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-1.5">
             <div className={group}>
               {RATES.map((r) => (
-                <button key={r} type="button" className={chip(fps === r)} onClick={() => setFps(r)}>
+                <button key={r} type="button" className={chip(fps === r)} title={`${r} frames per second`} onClick={() => setFps(r)}>
                   {r}
                 </button>
               ))}
             </div>
-            <span className="font-mono text-[10px] tabular-nums text-[var(--text-muted)]">
-              {frames} frames
-            </span>
+            <span className="text-[9px] text-[var(--text-muted)]">fps</span>
             <span className="flex-1" />
             <button
               type="button"
@@ -404,8 +479,8 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
                 span.empty
                   ? 'Nothing moves yet'
                   : span.seamless
-                    ? `${span.end.toFixed(2)}s is one whole cycle of everything moving, so the clip loops without a join`
-                    : `${span.end.toFixed(2)}s is when the motion has finished saying what it has to say`
+                    ? `Fit to a complete ${span.end.toFixed(2)}s cycle`
+                    : `Fit to ${span.end.toFixed(2)}s of motion; the boundary may jump`
               }
               onClick={() => {
                 setT0(0);
@@ -414,22 +489,25 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
               disabled={span.empty || fitted}
               className={chip(fitted && !span.empty)}
             >
-              fit
+              Fit
             </button>
           </div>
-          {!span.empty && (
-            <p className="text-[9px] leading-[1.4] text-[var(--text-muted)]">
-              {fitted && span.seamless
-                ? 'One whole cycle of everything moving, so this loops without a join.'
-                : `The motion here runs ${span.end.toFixed(2)}s${span.seamless ? ' to a clean loop' : ''}.`}
-            </p>
+          {intent === 'loop' && !rangeError && !span.empty && (
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] text-[var(--text-muted)]">{issues.length ? 'Check join' : 'Closed loop'}</span>
+              <InfoTip label="Loop join" text={issues.length
+                ? issueGroups.map(({ reason }) => reason).join(' ')
+                : 'All active motions return together at the selected frame rate.'} />
+              {issues.length > 0 && <button type="button" className={`${chip(false)} ml-auto`} onClick={makeLoop}
+                title="Make every active motion bounce once over this range, keeping its value range. Undo restores the original timing.">Sync</button>}
+            </div>
           )}
         </div>
 
         <div className="flex flex-wrap items-center gap-1.5">
           <div className={group}>
             <button type="button" className={chip(format === 'frames')} onClick={() => setFormat('frames')}>
-              frames
+              PNGs
             </button>
             {VIDEO_FORMATS.map((f) => (
               <button
@@ -455,7 +533,7 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
                   <button
                     key={v.height}
                     type="button"
-                    title={`${v.height} lines`}
+                    title={`${v.height} pixels high`}
                     className={chip(videoHeight === v.height)}
                     onClick={() => setVideoHeight(v.height)}
                   >
@@ -470,92 +548,56 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
           )}
         </div>
 
-        {videoSize && encodable === null && (
-          <p className="text-[9px] leading-[1.4] text-[var(--text-muted)]">
-            Checking what this machine will encode at {videoSize.width}×{videoSize.height},
-            {' '}{fps} a second…
-          </p>
+        </fieldset>
+
+        {rangeError && <p role="alert" className="text-[10px] text-[#c0392b]">{rangeError}</p>}
+
+        {refused && (
+          <span className="text-[10px] text-[#c0392b]">
+            {format.toUpperCase()} unavailable here. {alternative ? `Try ${alternative.label}.` : 'Try a smaller size or PNGs.'}
+          </span>
         )}
 
-        {refused && videoSize && (
-          <p className="text-[10px] leading-[1.4] text-[#c0392b]">
-            This machine will not encode {format.toUpperCase()} at {videoSize.width}×
-            {videoSize.height}, {fps} a second.{' '}
-            {alternative
-              ? `${alternative.label} will, or drop the rate.`
-              : 'Drop the rate or the size — 4K tends to stop above 60.'}
-          </p>
-        )}
-
-        {videoSize && videoSize.height !== videoHeight && (
-          <p className="text-[9px] leading-[1.4] text-[var(--text-muted)]">
-            Held to {videoSize.width}×{videoSize.height}: this codec will not encode a frame
-            that wide at {videoHeight} lines.
-          </p>
-        )}
-
-        {animators === 0 && (
-          <p className="text-[10px] leading-[1.4] text-[var(--text-muted)]">
-            Nothing in this construction moves yet, so every frame would be the same picture.
-            Give a slider motion with its play button first.
-          </p>
-        )}
-
-        {progress ? (
+        {starting || progress ? (
           <div className="grid gap-1.5">
-            <div className="h-[3px] overflow-hidden rounded-full bg-[var(--track)]">
-              <div
-                className="h-full rounded-full bg-[var(--text-primary)] transition-[width]"
-                style={{ width: `${(progress.frame / progress.frames) * 100}%` }}
-              />
+            <div role="progressbar" aria-label="Recording progress" aria-valuemin={0} aria-valuemax={progress?.frames ?? frames} aria-valuenow={progress?.frame ?? 0}
+              className="h-[3px] overflow-hidden rounded-full bg-[var(--track)]">
+              <div className="h-full rounded-full bg-[var(--text-primary)] transition-[width]"
+                style={{ width: `${progress ? (progress.frame / progress.frames) * 100 : 0}%` }} />
             </div>
             <div className="flex items-center gap-2">
-              <span className="font-mono text-[10px] tabular-nums text-[var(--text-muted)]">
-                {progress.frame} / {progress.frames}
-                {progress.frame > 0 &&
-                  ` · ${Math.round(
-                    (progress.elapsed / progress.frame) * (progress.frames - progress.frame)
-                  )}s left`}
+              <span role="status" className="text-[10px] tabular-nums text-[var(--text-secondary)]">
+                {cancelling ? 'Cancelling…'
+                  : !progress || progress.stage === 'preparing' ? 'Preparing recording…'
+                  : progress.stage === 'finalizing' ? 'Finishing file…'
+                  : `${progress.frame} / ${progress.frames} frames · ${Math.ceil((progress.elapsed / Math.max(1, progress.frame)) * (progress.frames - progress.frame))}s left`}
               </span>
               <span className="flex-1" />
-              <button
-                type="button"
-                title="Stop recording"
-                aria-label="Stop recording"
-                onClick={() => abort.current?.abort()}
-                className="grid size-7 place-items-center rounded-md text-[#c0392b] hover:bg-[color-mix(in_srgb,#c0392b_16%,transparent)]"
-              >
-                <Icon icon={Delete02Icon} size={13} />
+              <button type="button" onClick={cancel} disabled={cancelling}
+                className="rounded-md px-2 py-1 text-[11px] text-[var(--text-primary)] hover:bg-[var(--bg-hover)] disabled:opacity-40">
+                Cancel
               </button>
             </div>
           </div>
         ) : (
-          <button
-            type="button"
-            className={button}
-            onClick={() => void record()}
-            disabled={refused || (format === 'frames' && !directoryPickerAvailable())}
-            title={
-              directoryPickerAvailable()
-                ? 'Choose a folder; one PNG per frame is written into it'
-                : 'This browser cannot write a folder of frames'
-            }
-          >
+          <button type="button" className={button} onClick={() => void record()}
+            disabled={busy || !!rangeError || refused || (format !== 'frames' && encodable === null) || (format === 'frames' && !directoryPickerAvailable())}
+            title={format === 'frames'
+              ? directoryPickerAvailable() ? 'Choose a folder; a new take folder will contain one PNG per frame' : 'This browser cannot write a folder of frames'
+              : `Download one ${format.toUpperCase()} file`}>
             <Icon icon={format === 'frames' ? FolderOpenIcon : Camera01Icon} size={13} />
-            {format === 'frames' ? 'Record frames…' : `Record ${format.toUpperCase()}`}
-            <span className="font-mono text-[10px] tabular-nums text-[var(--text-muted)]">
-              {frames} frames
-            </span>
+            {recording ? 'Recording…' : format !== 'frames' && encodable === null ? 'Checking formats…' : format === 'frames' ? 'Export PNGs…' : `Export ${format.toUpperCase()}`}
+            <span className="font-mono text-[10px] tabular-nums text-[var(--text-muted)]">{frames} frames</span>
           </button>
         )}
 
         {status && (
           <p
+            role={status.error ? 'alert' : 'status'}
             className={`text-[10.5px] leading-[1.4] ${
               status.error ? 'text-[#c0392b]' : 'text-[var(--text-muted)]'
             }`}
           >
-            {!status.error && <span className="text-[var(--text-secondary)]">Last take: </span>}
             {status.text}
           </p>
         )}

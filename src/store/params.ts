@@ -1,8 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useProjectStore } from './project';
 import type { PatternLayer } from '../types/moire';
 import type { ViewState } from './project';
 import type { SceneData } from './scene';
+import { describeParam, type ParamDescriptor } from './paramMetadata';
+export type { ParamDescriptor } from './paramMetadata';
 
 /**
  * Every animatable number in the document, addressed by a stable path.
@@ -33,27 +35,6 @@ import type { SceneData } from './scene';
 
 export type ParamPath = string;
 
-/** What a knob looks like, published by whichever slider is currently mounted. */
-export interface ParamDescriptor {
-  path: ParamPath;
-  label: string;
-  min: number;
-  max: number;
-  step: number;
-  unit?: string;
-  /**
-   * Knobs that are only meaningful as whole numbers -- quadrature taps, polygon
-   * sides, line counts. A ramp across one of these steps rather than sliding, and
-   * saying so here is what stops an animation asking for 17.4 taps.
-   */
-  quantize?: 'int';
-  /**
-   * Stored value times this is what the slider shows. Only the wave's phase needs
-   * it, being kept in radians and presented in degrees; everywhere else it is 1.
-   */
-  display?: number;
-}
-
 const descriptors = new Map<ParamPath, ParamDescriptor>();
 
 /**
@@ -61,9 +42,8 @@ const descriptors = new Map<ParamPath, ParamDescriptor>();
  * of every knob's range -- would be a second copy of numbers that already exist
  * in the markup, and the copy would be the one that went stale.
  *
- * A knob whose panel is closed is simply absent, which costs nothing: an
- * animation on it still runs, because running needs only the path and the two
- * ends, both of which are stored. Only editing it in the popover needs this.
+ * Mounted presentation takes priority; document metadata supplies the same
+ * information when the owning panel is closed or has never been opened.
  */
 export function useParamRegistration(desc: ParamDescriptor | null) {
   const key = desc?.path;
@@ -77,8 +57,24 @@ export function useParamRegistration(desc: ParamDescriptor | null) {
   }, [key, json]);
 }
 
+function resolveDescriptor(path: ParamPath, layers: PatternLayer[]): ParamDescriptor | undefined {
+  const fallback = describeParam(path, layers);
+  const mounted = descriptors.get(path);
+  // The control owns presentation; the document owns semantic properties such
+  // as a verified full-turn period, which need not be repeated in every slider.
+  return mounted ? { ...fallback, ...mounted } : fallback;
+}
+
 export function paramDescriptor(path: ParamPath): ParamDescriptor | undefined {
-  return descriptors.get(path);
+  return resolveDescriptor(path, useProjectStore.getState().layers);
+}
+
+/** React follows document metadata without re-rendering for every animated value. */
+export function useParamDescriptor(path: ParamPath | null): ParamDescriptor | undefined {
+  const json = useProjectStore((s) => path
+    ? JSON.stringify(resolveDescriptor(path, s.layers))
+    : undefined);
+  return useMemo(() => json ? JSON.parse(json) as ParamDescriptor : undefined, [json]);
 }
 
 /** Every knob currently on screen. The motion list needs this; so does a console. */
@@ -115,7 +111,8 @@ export function readParam(path: ParamPath): number | undefined {
     if (!layer) return undefined;
     const [, , a, b] = parts;
     if (a === 'field') {
-      const v = layer.field?.[b as 'amount' | 'scale'];
+      const v = layer.field?.[b as 'amount' | 'scale' | 'soften'];
+      if (b === 'soften' && v === undefined && layer.field) return 0;
       return typeof v === 'number' ? v : undefined;
     }
     if (a === 'position' || a === 'offset' || a === 'scale') {
@@ -135,6 +132,7 @@ export function readParam(path: ParamPath): number | undefined {
  * whether a hand or a clock moved the knob.
  */
 export function writeParam(path: ParamPath, value: number): void {
+  if (paramDescriptor(path)?.quantize === 'int') value = Math.round(value);
   const s = useProjectStore.getState();
   const parts = path.split('.');
 
@@ -186,7 +184,8 @@ export function applyParams(values: Map<ParamPath, number>): void {
   let anyView = false;
   let anyCamera = false;
 
-  for (const [path, value] of values) {
+  for (const [path, raw] of values) {
+    const value = paramDescriptor(path)?.quantize === 'int' ? Math.round(raw) : raw;
     const parts = path.split('.');
     if (parts[0] === 'view') {
       view[parts[1]] = value;

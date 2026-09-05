@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom';
 import { Cancel01Icon } from '@hugeicons/core-free-icons';
 import { IconButton } from './IconButton';
+import { useTransportStore } from '../../store/transport';
 
 /**
  * A movable panel over the canvas — the editors' chrome. Unlike the Popover it
@@ -83,6 +84,10 @@ export function FloatingPanel({
   children: ReactNode;
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
+  const recording = useTransportStore((s) => s.recording);
+  useEffect(() => {
+    if (panelRef.current) panelRef.current.inert = recording && id !== 'capture';
+  }, [recording, id]);
   const [pos, setPos] = useState<Point>(() => readPosition(id) ?? defaultPosition);
   const [z, setZ] = useState(() => ++zTop);
   const key = useRef(Symbol(id));
@@ -92,8 +97,13 @@ export function FloatingPanel({
   useEffect(() => {
     const replace = () => setPos((p) => clamp(p, panelRef.current));
     replace();
+    const observer = new ResizeObserver(replace);
+    if (panelRef.current) observer.observe(panelRef.current);
     window.addEventListener('resize', replace);
-    return () => window.removeEventListener('resize', replace);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', replace);
+    };
   }, []);
 
   // Escape peels panels top-down, one per press, so stacked editors close in

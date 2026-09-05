@@ -2,6 +2,7 @@ import { ViewIcon, ViewOffSlashIcon } from '@hugeicons/core-free-icons';
 import { scheduleOf, type Animator } from '../types/motion';
 import { useEditorStore } from '../store/editor';
 import { paramDescriptor } from '../store/params';
+import { displayValue } from '../store/paramMetadata';
 import { useProjectStore } from '../store/project';
 import { useTransportStore } from '../store/transport';
 import { Icon } from './ui/Icon';
@@ -60,6 +61,9 @@ const num = (v: number) => (Math.abs(v) >= 100 ? v.toFixed(0) : v.toFixed(2).rep
 
 export function MotionList() {
   const animators = useProjectStore((s) => s.motion.animators);
+  // Layer names can change without any motion document change.
+  useProjectStore((s) => s.layers.map((layer) => `${layer.id}:${layer.name}`).join('|'));
+  const recording = useTransportStore((s) => s.recording);
   const timings = useProjectStore((s) => s.motion.timings);
   const muted = useTransportStore((s) => s.muted);
   const solo = useTransportStore((s) => s.solo);
@@ -71,12 +75,19 @@ export function MotionList() {
   if (animators.length === 0) return null;
 
   return (
-    <div className="grid max-h-[132px] gap-px overflow-y-auto">
+    <fieldset disabled={recording} className="grid max-h-[132px] min-w-0 gap-px overflow-y-auto disabled:opacity-60">
       {animators.map((a) => {
         const { label, where } = nameOf(a);
         const s = scheduleOf(a, timings);
-        const off = solo ? solo !== a.id : muted.includes(a.id);
+        const off = !a.enabled || (solo ? solo !== a.id : muted.includes(a.id));
         const isSolo = solo === a.id;
+        const desc = paramDescriptor(a.path);
+        const from = desc ? displayValue(a.from, desc) : a.from;
+        const to = desc ? displayValue(a.to, desc) : a.to;
+        const interval = `${num(from)}→${num(to)}${desc?.unit ?? ''}`;
+        const duration = s.period * (s.mode === 'bounce' ? 2 : 1);
+        const mode = s.mode === 'bounce' ? 'Bounce' : s.mode === 'loop' ? 'Repeat' : 'Once';
+        const state = !a.enabled ? 'Disabled' : off ? 'Held' : mode;
         return (
           <div
             key={a.id}
@@ -87,31 +98,28 @@ export function MotionList() {
             <button
               type="button"
               onClick={() => openMotion(a.path)}
-              title={`${a.path} — ${num(a.from)} to ${num(a.to)} over ${s.period}s, ${s.mode}`}
+              aria-label={`Edit motion: ${where ? `${where}, ` : ''}${label}`}
+              title={`${where ? `${where} · ` : ''}${label}: ${interval}, ${num(duration)}s ${s.mode === 'once' ? 'duration' : 'cycle'}, ${state}`}
               className={`flex min-w-0 flex-1 items-baseline gap-1.5 text-left ${
                 off ? 'opacity-40' : ''
               }`}
             >
               <span className="truncate text-[10.5px] text-[var(--text-primary)]">{label}</span>
-              {where && (
-                <span className="shrink-0 truncate text-[9px] text-[var(--text-muted)]">
-                  {where}
-                </span>
-              )}
-              <span className="flex-1" />
-              <span className="shrink-0 font-mono text-[9px] tabular-nums text-[var(--text-muted)]">
-                {num(a.from)}→{num(a.to)}
+              {where && <span className="min-w-0 flex-1 truncate text-[9px] text-[var(--text-muted)]">{where}</span>}
+              <span className="ml-auto shrink-0 font-mono text-[9px] tabular-nums text-[var(--text-muted)]">
+                {a.enabled ? `${num(duration)}s` : 'off'}
               </span>
             </button>
             <button
               type="button"
               title={isSolo ? 'Stop soloing' : 'Solo — hold everything else still'}
-              aria-label={isSolo ? 'Stop soloing' : 'Solo'}
+              aria-label={isSolo ? `Stop soloing ${label}` : `Solo ${label}`}
+              disabled={!a.enabled}
               onClick={() => toggleSolo(a.id)}
               className={`shrink-0 rounded px-1 py-px text-[9px] ${
                 isSolo
                   ? 'bg-[var(--text-primary)] text-[var(--bg-secondary)]'
-                  : 'text-[var(--text-muted)] opacity-0 group-hover:opacity-100 hover:text-[var(--text-primary)]'
+                  : 'text-[var(--text-muted)] opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:text-[var(--text-primary)] disabled:opacity-30'
               }`}
             >
               solo
@@ -119,12 +127,13 @@ export function MotionList() {
             <button
               type="button"
               title={muted.includes(a.id) ? 'Let this move again' : 'Hold this one still'}
-              aria-label={muted.includes(a.id) ? 'Unmute' : 'Mute'}
+              aria-label={muted.includes(a.id) ? `Let ${label} move` : `Hold ${label} still`}
+              disabled={!a.enabled}
               onClick={() => toggleMute(a.id)}
               className={`grid size-4 shrink-0 place-items-center rounded ${
                 muted.includes(a.id)
                   ? 'text-[var(--text-secondary)]'
-                  : 'text-[var(--text-muted)] opacity-0 group-hover:opacity-100 hover:text-[var(--text-primary)]'
+                  : 'text-[var(--text-muted)] opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:text-[var(--text-primary)] disabled:opacity-30'
               }`}
             >
               <Icon icon={muted.includes(a.id) ? ViewOffSlashIcon : ViewIcon} size={11} />
@@ -132,6 +141,6 @@ export function MotionList() {
           </div>
         );
       })}
-    </div>
+    </fieldset>
   );
 }

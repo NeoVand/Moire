@@ -15,7 +15,7 @@ import { applyMotionAt, useTransportStore } from '../store/transport';
  * that takes. Output is exact 60 fps even when the render is nowhere near it.
  *
  * That is also what makes a take reproducible: every frame is a pure function of
- * its own timestamp, so the same range recorded twice is the same file twice.
+ * its own timestamp, so the same construction and range produce the same sampled frames.
  *
  * `renderer.snapshot()` is what makes this possible. It cancels any pending
  * animation frame, renders the current state synchronously at an explicit size,
@@ -65,15 +65,28 @@ export interface RecordProgress {
   frames: number;
   /** Seconds of wall time elapsed, for an honest estimate of what is left. */
   elapsed: number;
+  stage?: 'preparing' | 'rendering' | 'finalizing';
+}
+
+export function recordingError(opts: RecordOptions): string | null {
+  if (![opts.t0, opts.t1, opts.fps].every(Number.isFinite)) return 'Enter a valid range and frame rate.';
+  if (opts.t0 < 0 || opts.t1 <= opts.t0) return 'The end must be later than the start.';
+  if (opts.fps <= 0) return 'The frame rate must be greater than zero.';
+  const count = Math.round((opts.t1 - opts.t0) * opts.fps);
+  if (!Number.isSafeInteger(count) || count < 1) return 'The range must contain at least one frame.';
+  if (opts.height !== undefined && (!Number.isFinite(opts.height) || opts.height <= 0)) return 'Enter a valid frame height.';
+  if (opts.scale !== undefined && (!Number.isFinite(opts.scale) || opts.scale <= 0)) return 'Enter a valid resolution scale.';
+  if (opts.aspect !== undefined && (!Number.isFinite(opts.aspect) || opts.aspect < 0)) return 'Enter a valid frame shape.';
+  return null;
 }
 
 export function frameCount(opts: RecordOptions): number {
-  return Math.max(1, Math.round((opts.t1 - opts.t0) * opts.fps));
+  return recordingError(opts) ? 0 : Math.round((opts.t1 - opts.t0) * opts.fps);
 }
 
-/** Five digits: an hour at sixty frames a second still sorts correctly. */
+/** Six digits cover an hour at sixty frames a second. */
 export function frameName(index: number): string {
-  return `frame_${String(index).padStart(5, '0')}.png`;
+  return `frame_${String(index).padStart(6, '0')}.png`;
 }
 
 export async function recordFrames(
@@ -82,15 +95,22 @@ export async function recordFrames(
   onProgress?: (p: RecordProgress) => void,
   signal?: AbortSignal
 ): Promise<{ frames: number; cancelled: boolean }> {
+  const error = recordingError(opts);
+  if (error) throw new Error(error);
   const frames = frameCount(opts);
   const transport = useTransportStore.getState();
+  if (transport.recording) throw new Error('A recording is already in progress.');
+  // Freeze the viewport used to frame this take, even if the window is resized.
+  const framing = captureSize() ?? undefined;
   const restore = { state: transport.state, t: transport.t };
+  const motion = structuredClone(useProjectStore.getState().motion);
+  const muted = [...transport.muted];
+  const solo = transport.solo;
   // Where every animated knob stood before the take. Putting the clock back is
-  // not enough to put the picture back: a `once` that has already landed applies
-  // nothing at all, so restoring the time would leave the document sitting on the
-  // last frame recorded. The values have to be remembered directly.
+  // not enough to restore a manual pose after a completed transition. Preserve
+  // the actual values, rather than resampling the animation over the user's pose.
   const held = new Map<string, number>();
-  for (const a of useProjectStore.getState().motion.animators) {
+  for (const a of motion.animators) {
     const v = readParam(a.path);
     if (v !== undefined) held.set(a.path, v);
   }
@@ -98,14 +118,15 @@ export async function recordFrames(
   let written = 0;
   let cancelled = false;
   let failed = false;
+  let failure: unknown;
 
   // Recording suspends every rule that exists for the sake of someone watching:
   // held animators run, a hand on a knob no longer yields, and the transport
   // stops advancing on its own because the recorder is the clock now.
   useTransportStore.setState({ recording: true, state: 'paused' });
-  await captureSettle();
-
   try {
+    onProgress?.({ frame: 0, frames, elapsed: 0, stage: 'preparing' });
+    if (!signal?.aborted) await captureSettle();
     for (let n = 0; n < frames; n++) {
       if (signal?.aborted) {
         cancelled = true;
@@ -113,11 +134,11 @@ export async function recordFrames(
       }
       const t = opts.t0 + n / opts.fps;
       useTransportStore.setState({ t });
-      applyMotionAt(t, { includeHeld: true });
+      applyMotionAt(t, { includeHeld: true, motion, muted, solo });
       // The canvas is only valid inside this callback -- the renderer restores
       // its display size as soon as it returns -- so the sink does its work here
       // rather than being handed something that will change under it.
-      await captureWith({ scale: opts.scale, aspect: opts.aspect, height: opts.height }, async (canvas) => {
+      await captureWith({ scale: opts.scale, aspect: opts.aspect, height: opts.height, framing }, async (canvas) => {
         await sink.frame(n, {
           canvas: async () => canvas,
           png: () =>
@@ -127,22 +148,49 @@ export async function recordFrames(
         });
       });
       written = n + 1;
-      onProgress?.({ frame: written, frames, elapsed: (performance.now() - started) / 1000 });
+      onProgress?.({ frame: written, frames, elapsed: (performance.now() - started) / 1000, stage: 'rendering' });
     }
   } catch (err) {
     failed = true;
-    throw err;
+    failure = err;
   } finally {
-    await sink.close?.(!failed && !cancelled);
-    useTransportStore.setState({ recording: false, ...restore });
-    applyParams(held);
+    cancelled ||= signal?.aborted ?? false;
+    try {
+      if (!failed && !cancelled) {
+        try {
+          onProgress?.({ frame: written, frames, elapsed: (performance.now() - started) / 1000, stage: 'finalizing' });
+        } catch (error) {
+          failed = true;
+          failure = error;
+        }
+      }
+      try {
+        await sink.close?.(!failed && !cancelled);
+      } catch (error) {
+        // Keep the frame failure when closing a broken sink also fails.
+        if (!failed) {
+          failed = true;
+          failure = error;
+        }
+      }
+    } finally {
+      try {
+        // Restore while the recorder still owns the clock; a project write after
+        // resuming Play would otherwise be mistaken for a hand edit and pause it.
+        applyParams(held);
+      } finally {
+        useTransportStore.setState({ recording: false, ...restore });
+      }
+    }
   }
 
+  cancelled ||= signal?.aborted ?? false;
+  if (failed) throw failure;
   return { frames: written, cancelled };
 }
 
 /** The pixel size a recording would have, for showing before starting one. */
-export function recordSize(opts: { scale?: number; aspect?: number }) {
+export function recordSize(opts: { scale?: number; aspect?: number; height?: number }) {
   return captureSize(opts);
 }
 
@@ -152,8 +200,9 @@ type PermissionState = 'granted' | 'denied' | 'prompt';
 
 interface DirectoryHandle {
   name?: string;
+  getDirectoryHandle(name: string, opts?: { create?: boolean }): Promise<DirectoryHandle>;
   getFileHandle(name: string, opts?: { create?: boolean }): Promise<{
-    createWritable(): Promise<{ write(data: Blob): Promise<void>; close(): Promise<void> }>;
+    createWritable(): Promise<{ write(data: Blob): Promise<void>; close(): Promise<void>; abort?(): Promise<void> }>;
   }>;
   queryPermission?(opts: { mode: 'read' | 'readwrite' }): Promise<PermissionState>;
   requestPermission?(opts: { mode: 'read' | 'readwrite' }): Promise<PermissionState>;
@@ -195,9 +244,9 @@ export async function pickDirectory(): Promise<DirectoryHandle | null> {
   if (!pick) return null;
   try {
     return await pick({ mode: 'readwrite' });
-  } catch {
-    // The picker was dismissed, which is not an error worth reporting.
-    return null;
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') return null;
+    throw error;
   }
 }
 
@@ -209,13 +258,25 @@ export async function pickDirectory(): Promise<DirectoryHandle | null> {
  * directory handle streams at constant cost regardless of how long the take is.
  */
 export function directorySink(dir: DirectoryHandle): RecordSink {
+  // A fresh take never overwrites an earlier sequence or leaves an old tail.
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const name = `moire-${stamp}-${crypto.randomUUID().slice(0, 8)}`;
+  let take: Promise<DirectoryHandle> | null = null;
   return {
     async frame(index, frame) {
       try {
-        const file = await dir.getFileHandle(frameName(index), { create: true });
+        const png = await frame.png();
+        take ??= dir.getDirectoryHandle(name, { create: true });
+        const folder = await take;
+        const file = await folder.getFileHandle(frameName(index), { create: true });
         const stream = await file.createWritable();
-        await stream.write(await frame.png());
-        await stream.close();
+        try {
+          await stream.write(png);
+          await stream.close();
+        } catch (error) {
+          await stream.abort?.().catch(() => {});
+          throw error;
+        }
       } catch (err) {
         // The first frame is the probe: a folder that cannot be written to fails
         // here, before anything has been written and while the count still reads

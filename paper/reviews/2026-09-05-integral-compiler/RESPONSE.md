@@ -78,3 +78,4 @@ You can help most where the machinery is yours or the maths is in your note.
 5. **The validity probe's statistic.** How many source evaluations per pixel and what test decides that the model is invalid, with the cubic as the gate.
 
 Neo's new machine is being set up; the $10^7$ references and the frame-level runs belong there.
+- fire with bumps (240,120) at a million samples ran for 54 minutes without finishing and was stopped; the on-axis pixel (stationary sin(0.005 x^2) count under the bump field) is a cost outlier to be understood with the axis merge

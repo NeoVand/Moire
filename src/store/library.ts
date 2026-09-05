@@ -96,7 +96,8 @@ async function seedOpening() {
  */
 function startIfAsked() {
   const { motion } = useProjectStore.getState();
-  useTransportStore.getState().stop();
+  // Loading already resets the transport. Keep a saved, manually adjusted pose
+  // intact unless the document explicitly asks to play from its beginning.
   if (motion.playOnLoad) useTransportStore.getState().play();
 }
 
@@ -165,7 +166,6 @@ export const useLibraryStore = create<LibraryStore>((set, get) => ({
         // half of itself.
         useProjectStore.getState().loadScene(parseScene(session.scene));
         sessionText = session.scene;
-        startIfAsked();
         const owner = session.projectId ? await readProject(session.projectId) : null;
         savedText = owner?.scene ?? null;
         set({
@@ -305,9 +305,9 @@ if (import.meta.env.DEV) {
  * can be drawn — there is no window in which an edit is unprotected.
  */
 let timer: ReturnType<typeof setTimeout> | null = null;
-useProjectStore.subscribe(() => {
+function scheduleAutosave() {
   const lib = useLibraryStore.getState();
-  if (!lib.hydrated || !lib.available) return;
+  if (!lib.hydrated || !lib.available || useTransportStore.getState().recording) return;
   // Throttle, not debounce. A debounce resets its timer on every change, so a
   // stream of them postpones the write forever -- and a previewing animation is
   // exactly that stream, sixty a second, indefinitely. Leaving a scheduled timer
@@ -316,6 +316,7 @@ useProjectStore.subscribe(() => {
   if (timer) return;
   timer = setTimeout(() => {
     timer = null;
+    if (useTransportStore.getState().recording) return;
     const scene = currentText();
     // A previewing animation rewrites the store every frame while saying nothing
     // new about the construction, since sceneOf() puts animated knobs back at
@@ -327,4 +328,8 @@ useProjectStore.subscribe(() => {
     const dirty = savedText !== null && savedText !== scene;
     if (dirty !== useLibraryStore.getState().dirty) useLibraryStore.setState({ dirty });
   }, AUTOSAVE_MS);
+}
+useProjectStore.subscribe(scheduleAutosave);
+useTransportStore.subscribe((state, previous) => {
+  if (previous.recording && !state.recording) scheduleAutosave();
 });

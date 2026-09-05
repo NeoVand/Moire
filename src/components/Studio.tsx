@@ -11,6 +11,8 @@ import {
   MicroscopeIcon,
   ViewIcon,
   ViewOffSlashIcon,
+  UndoIcon,
+  RedoIcon,
 } from '@hugeicons/core-free-icons';
 import {
   LAYER_DEFAULTS,
@@ -30,6 +32,7 @@ import {
 } from '../types/moire';
 import { useLibraryStore } from '../store/library';
 import { useTransportStore } from '../store/transport';
+import { useHistoryStore } from '../store/history';
 import { layerPath, viewPath } from '../store/params';
 import { VIEW_DEFAULTS, useProjectStore, useSelectedLayer } from '../store/project';
 import { CaptureDialog } from './CaptureDialog';
@@ -1117,6 +1120,25 @@ function Chrome({ onToggle }: { onToggle: () => void }) {
   );
 }
 
+function HistoryControls() {
+  const canUndo = useHistoryStore((s) => s.canUndo);
+  const canRedo = useHistoryStore((s) => s.canRedo);
+  const undo = useHistoryStore((s) => s.undo);
+  const redo = useHistoryStore((s) => s.redo);
+  return (
+    <div className="mt-1 flex items-center gap-2">
+      <button type="button" title="Undo (⌘Z / Ctrl+Z)" disabled={!canUndo} onClick={undo}
+        className="flex items-center gap-1 rounded px-1 py-1 text-[10px] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] disabled:opacity-30">
+        <Icon icon={UndoIcon} size={12} /> Undo
+      </button>
+      <button type="button" title="Redo (⌘⇧Z / Ctrl+Shift+Z)" disabled={!canRedo} onClick={redo}
+        className="flex items-center gap-1 rounded px-1 py-1 text-[10px] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] disabled:opacity-30">
+        <Icon icon={RedoIcon} size={12} /> Redo
+      </button>
+    </div>
+  );
+}
+
 export function Studio() {
   const [open, setOpen] = useState(readOpen);
   const [fieldLayerId, setFieldLayerId] = useState<string | null>(null);
@@ -1168,6 +1190,7 @@ export function Studio() {
           <div className="flex min-h-0 max-h-full flex-col overflow-hidden rounded-[inherit]">
             <header className="shrink-0 px-4 pt-3 pb-2">
               <Chrome onToggle={() => setOpen(false)} />
+              <HistoryControls />
             </header>
 
             <Rule />

@@ -18,6 +18,8 @@ import type { SceneData } from './scene';
 import { writeParamInto } from './params';
 import {
   MOTION_NONE,
+  detachTiming,
+  sampleAnimator,
   scheduleOf,
   type Animator,
   type MotionDoc,
@@ -117,6 +119,8 @@ export const VIEW_DEFAULTS: ViewState = {
 };
 
 export interface ProjectStore {
+  /** Session-only generation: loading another document resets its transport. */
+  documentRevision: number;
   layers: PatternLayer[];
   selectedLayerId: string | null;
   camera: CameraState;
@@ -243,6 +247,7 @@ const initial = createDefaultProject();
 const initialMotion = createIntroMotion();
 
 export const useProjectStore = create<ProjectStore>((set, get) => ({
+  documentRevision: 0,
   layers: initial.layers,
   selectedLayerId: initial.selectedLayerId,
   camera: initial.camera,
@@ -310,21 +315,22 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     })),
 
   removeLayer: (id) => {
+    if (get().layers.length <= 1 || !get().layers.some((layer) => layer.id === id)) return;
     endLayerMorph(id);
     // Motion on a layer that no longer exists would be a silent no-op that the
     // motion list still lists. Take it with the layer.
-    set((s) => ({
-      motion: {
-        ...s.motion,
-        animators: s.motion.animators.filter((a) => !a.path.startsWith(`layer.${id}.`)),
-      },
-    }));
     set((s) => {
-      if (s.layers.length <= 1) return s;
       const layers = s.layers.filter((layer) => layer.id !== id);
       const selectedLayerId =
         s.selectedLayerId === id ? layers[layers.length - 1]?.id ?? null : s.selectedLayerId;
-      return { layers, selectedLayerId };
+      return {
+        layers,
+        selectedLayerId,
+        motion: {
+          ...s.motion,
+          animators: s.motion.animators.filter((a) => !a.path.startsWith(`layer.${id}.`)),
+        },
+      };
     });
   },
 
@@ -410,6 +416,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   loadScene: (scene) => {
     // A load during the intro would be animated over; the intro yields.
     set({
+      documentRevision: get().documentRevision + 1,
       layers: scene.layers,
       selectedLayerId: scene.selectedLayerId,
       camera: { zoom: clampZoom(scene.camera.zoom), pan: scene.camera.pan },
@@ -450,10 +457,9 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     set((s) => ({
       motion: {
         ...s.motion,
-        // Animators pointing at a deleted timing fall back to their own
-        // schedule rather than stopping: the fields are always there.
+        // Removing a shared schedule changes ownership, not the animation.
         timings: s.motion.timings.filter((t) => t.id !== id),
-        animators: s.motion.animators.map((a) => (a.timing === id ? { ...a, timing: null } : a)),
+        animators: s.motion.animators.map((a) => (a.timing === id ? detachTiming(a, s.motion.timings) : a)),
       },
     })),
 
@@ -463,6 +469,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     // from.
     const fresh = createDefaultProject();
     set({
+      documentRevision: get().documentRevision + 1,
       layers: fresh.layers,
       selectedLayerId: fresh.selectedLayerId,
       camera: fresh.camera,
@@ -485,7 +492,7 @@ export function sceneOf(s: ProjectStore = useProjectStore.getState()): SceneData
     selectedLayerId: s.selectedLayerId,
     camera: s.camera,
     backgroundColor: s.backgroundColor,
-    view: s.view,
+    view: { ...s.view },
     motion: s.motion,
   };
 
@@ -493,7 +500,7 @@ export function sceneOf(s: ProjectStore = useProjectStore.getState()): SceneData
   // instant is a fact about the clock rather than about the construction:
   // writing it down would mean a document that drifts every time it is saved,
   // and a file exported mid-swing that opens somewhere nobody chose. So loop and
-  // bounce go back to their `from`, the value the cycle departs from.
+  // bounce go back to their phase-aware value at time zero.
   //
   // `once` is left exactly as it stands. It is a transition, not a cycle: before
   // it runs the document is at the start, after it runs the document is at the
@@ -503,7 +510,7 @@ export function sceneOf(s: ProjectStore = useProjectStore.getState()): SceneData
     // Through scheduleOf, since an animator on a shared timing takes its mode
     // from the timing and not from its own fields.
     if (a.enabled && scheduleOf(a, s.motion.timings).mode !== 'once') {
-      writeParamInto(scene, a.path, a.from);
+      writeParamInto(scene, a.path, sampleAnimator(a, s.motion.timings, 0));
     }
   }
   return scene;

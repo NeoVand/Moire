@@ -19,6 +19,7 @@ import {
 } from './composite';
 import { clearLayerMorphs, hasLayerMorphs } from './typeMorph';
 import type { ViewState } from '../store/project';
+import type { CaptureOptions } from './capture';
 
 export interface RendererSync {
   layers: PatternLayer[];
@@ -209,37 +210,14 @@ async function encodeCanvasPng(source: HTMLCanvasElement): Promise<Blob> {
 /** Quiet time after the last change before a reduced frame is redrawn full size. */
 const SETTLE_MS = 150;
 /**
- * The frame budget a reduced buffer aims under: one vsync at 60 Hz, with the
- * measurement's own submit-to-completion latency counted against it.
- */
-const FRAME_BUDGET_MS = 18;
-/**
  * The pooling gate (see `view.pool`): buffer pixels per period under which,
  * or a floored half-stroke in buffer pixels under which, the plain render is
  * allowed to pool. Coarse on purpose: the shader's own weights decide.
  */
 const POOL_PX = 12;
 const POOL_STROKE_PX = 1.4;
-/** The buffer scales tried, largest first; each step halves the pixel count. */
-const INTERACTION_SCALES = [1, 0.71, 0.5, 0.35, 0.25];
-/** The frame interval a stream is held to: 60 frames a second, on any display. */
-const VSYNC_MS = 16.7;
-/** No stream logic this soon after a mount or rebuild: warm-up jank is not a hand. */
+/** Keep startup and shader rebuild work out of steady-state timing. */
 const WARMUP_MS = 500;
-/** Frames after a buffer change still draining the old buffer's work. */
-const DRAIN_FRAMES = 2;
-/** And the time: a backlog of overrunning frames takes longer than two frames to clear. */
-const DRAIN_MS = 150;
-/** Stream frames whose mean interval is one verdict on the buffer. */
-const PACE_WINDOW = 8;
-
-/** The largest buffer scale that brings a full-size frame of this cost under budget. */
-function interactionScale(fullCost: number): number {
-  for (const scale of INTERACTION_SCALES) {
-    if (fullCost * scale * scale <= FRAME_BUDGET_MS) return scale;
-  }
-  return INTERACTION_SCALES[INTERACTION_SCALES.length - 1];
-}
 
 export class MoireRenderer {
   private renderer: THREE.WebGPURenderer | null = null;
@@ -259,6 +237,9 @@ export class MoireRenderer {
   private morphRaf = 0;
   private fieldTimer = 0;
   private building: Promise<void> | null = null;
+  private captures: Promise<void> = Promise.resolve();
+  private capturing = false;
+  private resizeAfterCapture = false;
   /** The expressions the live material was built for, one per slot. */
   private fieldSources: string[] = [];
   /** Decoded image fields, by the key `fieldSource` gives them. */
@@ -270,40 +251,10 @@ export class MoireRenderer {
   private lastHeight = 0;
   private lastDpr = 0;
   /**
-   * Interaction resolution. A frame that costs more than a vsync at the full
-   * buffer — the exact envelope at a retina window is 60 to 140 ms — renders
-   * at a reduced buffer while a hand is on something (a drag on the stage, a
-   * slider, a wheel burst, a playing animator) and full size once it lets go.
-   * The envelope is an average over the carrier's period, so its picture
-   * holds no carrier-scale detail and survives the downsample; the plain
-   * render is under a vsync at 15 Mpx and never triggers it.
-   *
-   * The stream starts from what this machine actually paid: `fullCost` is
-   * the queue time of the last isolated full-size frame (an idle GPU
-   * measures cold, so the start is a notch pessimistic). Inside the stream
-   * the verdict is the one thing the viewer sees: the animation-frame
-   * cadence, read by a metronome that runs for the stream's duration.
-   * Chrome throttles animation frames under GPU back-pressure and not
-   * otherwise, and a continuous metronome is independent of how often the
-   * hand moves. A window whose mean interval overran drops the buffer
-   * straight to the notch that fits (cost goes with the square of the
-   * scale) and locks it there for the stream; two clean windows step it up
-   * a notch. A change of buffer is free (the swapchain reconfigures in
-   * under a frame), but the frames right after one are still draining the
-   * old work, so they do not vote. Where a stream ended is remembered,
-   * along with the notch that overran, keyed by what sets the cost's class
-   * (the view, the layer count, the buffer size — the cold measurement is
-   * too noisy to key on), and the next stream under the same key starts
-   * there and never probes that notch again, so a second drag is right from
-   * its first frame. Nothing is a stream in the first second after a mount
-   * or a shader rebuild: the app's own startup burst and warm-up jank are
-   * not a hand, and once poisoned the memory with "full size overruns".
-   *
-   * Not used, because each follows the frame rate rather than revealing it:
-   * per-frame queue completion times (Chrome observes completions once per
-   * frame, so every frame reads as one vsync at any scale) and the wait
-   * between a frame's request and its callback (pointer events are
-   * dispatched frame-aligned).
+   * Live views keep one pixel grid and one integration method through pan,
+   * zoom and playback. A coarser preview changes which fringes are visible;
+   * swapping the envelope solver on pointer-down also changes its appearance.
+   * Explicit snapshot options still let research tools request other observers.
    */
   private scale = 1;
   /** The pooling gate's zoom-free part, and the finest visible pitch (world units). */
@@ -316,22 +267,8 @@ export class MoireRenderer {
   private tableScene: THREE.Scene | null = null;
   private fullCost = 0;
   private lastRequest = 0;
-  private settleTimer = 0;
-  private metroRaf = 0;
-  private lastTick = 0;
   private held = false;
-  private inStream = false;
-  private locked = false;
-  private lockedScale = 0;
-  private failedScale = 0;
-  private costKey = '';
-  private memoryKey = '';
   private readyAt = 0;
-  private framesAtScale = 0;
-  private drainUntil = 0;
-  private intervals: number[] = [];
-  private goodWindows = 0;
-  private steppedFrom = 0;
 
   canvas: HTMLCanvasElement | null = null;
 
@@ -502,7 +439,9 @@ export class MoireRenderer {
 
   sync(state: RendererSync) {
     this.lastState = state;
+    if (this.capturing) return;
     this.writeSlots();
+    if (this.scale !== 1) this.restoreFullResolution();
     this.watchFields();
     if (hasLayerMorphs()) this.ensureMorphLoop();
   }
@@ -521,8 +460,6 @@ export class MoireRenderer {
       (source, i) => source === fieldSource(state.layers[i]?.field)
     );
     const slotsSettled = this.slotCount === slotsNeeded(state.layers);
-    for (const field of this.imageFields.values()) field.texture.dispose();
-    this.imageFields.clear();
     if (this.fieldTimer) clearTimeout(this.fieldTimer);
     if (fieldsSettled && slotsSettled) {
       this.fieldTimer = 0;
@@ -542,6 +479,17 @@ export class MoireRenderer {
   }
 
   private async rebuildFields() {
+    if (this.building) return this.building;
+    const pending = this.rebuildFieldsNow();
+    this.building = pending;
+    try {
+      await pending;
+    } finally {
+      this.building = null;
+    }
+  }
+
+  private async rebuildFieldsNow() {
     const state = this.lastState;
     if (!this.ready || !this.renderer || !this.scene || !this.camera || !this.mesh || !state) return;
     const wanted = this.slots.map((_, i) => fieldSource(state.layers[i]?.field));
@@ -549,28 +497,34 @@ export class MoireRenderer {
     if (
       wantedSlots === this.slotCount &&
       wanted.every((source, i) => source === this.fieldSources[i])
-    ) {
-      return;
-    }
+    ) return;
 
-    this.fieldSources = wanted;
-    this.slotCount = wantedSlots;
-    await this.loadImageFields(state, wanted);
-    if (this.disposed) return;
+    const oldSources = this.fieldSources;
+    const oldCount = this.slotCount;
     const previous = this.material;
-    const material = this.buildMaterial();
-    this.material = material;
-    this.mesh.material = material;
-
-    // Hold the last frame instead of drawing through the build. A pipeline this
-    // size takes long enough that compiling it inside a draw call reads as a
-    // freeze, and the uniforms are shared, so the frame after it is current.
     this.ready = false;
-    this.building = this.renderer.compileAsync(this.scene, this.camera).then(() => undefined);
     try {
-      await this.building;
+      // Image decoding belongs to the same pending build as shader compilation.
+      // Capture must not slip through the interval before compileAsync starts.
+      await this.loadImageFields(state, wanted);
+      if (this.disposed) return;
+      this.fieldSources = wanted;
+      this.slotCount = wantedSlots;
+      const material = this.buildMaterial();
+      this.material = material;
+      this.mesh.material = material;
+      await this.renderer.compileAsync(this.scene, this.camera);
+      previous?.dispose();
+    } catch (error) {
+      this.fieldSources = oldSources;
+      this.slotCount = oldCount;
+      if (previous && this.material !== previous) {
+        this.material?.dispose();
+        this.material = previous;
+        this.mesh.material = previous;
+      }
+      throw error;
     } finally {
-      this.building = null;
       this.ready = !this.disposed;
       this.readyAt = performance.now();
     }
@@ -578,9 +532,6 @@ export class MoireRenderer {
     const t0 = performance.now();
     this.draw();
     if (this.scale === 1) void this.measure(t0);
-    previous?.dispose();
-    // Nothing syncs while a build is in flight, so an edit made during one is only
-    // noticed here.
     this.watchFields();
   }
 
@@ -591,12 +542,14 @@ export class MoireRenderer {
    * loads a scene and settles instead of guessing at the debounce.
    */
   async settle(): Promise<void> {
-    if (this.fieldTimer) {
-      clearTimeout(this.fieldTimer);
-      this.fieldTimer = 0;
-      await this.rebuildFields();
+    while (this.fieldTimer || this.building) {
+      if (this.fieldTimer) {
+        clearTimeout(this.fieldTimer);
+        this.fieldTimer = 0;
+        await this.rebuildFields();
+      }
+      await this.building;
     }
-    await this.building;
   }
 
   /** The backend three actually initialised — goldens never compare across backends. */
@@ -612,6 +565,11 @@ export class MoireRenderer {
   private writeSlots() {
     const state = this.lastState;
     if (!this.cameraUniforms || !this.viewUniforms || !state) return;
+    // Slot writes finish expired morphs and update their source types. Decide
+    // the solver only afterwards, so the last morph tick is already settled.
+    for (let i = 0; i < this.slots.length; i++) {
+      writeLayerSlot(this.slots[i], state.layers[i]);
+    }
     // Zoom is buffer pixels per world unit, so a reduced buffer scales it
     // with itself and the framing is identical by construction.
     this.cameraUniforms.zoom.value = state.camera.zoom * this.scale;
@@ -637,8 +595,6 @@ export class MoireRenderer {
     const envelope = state.view.envelope && !ratioOn;
     const contoursOn = state.view.envelopeContours;
     const wantsScan = envelope || contoursOn;
-    // What sets a frame's cost class, for the interaction buffer's memory.
-    this.costKey = `${envelope ? 1 : 0}${ratioOn ? 1 : 0}${contoursOn ? 1 : 0}${this.viewUniforms?.pool.value ? 1 : 0}${this.viewUniforms?.table.value ? 1 : 0}|${state.layers.length}|${this.lastWidth}x${this.lastHeight}@${this.lastDpr}`;
     // The regime mask and the orientation-aware sweep read the same ranked
     // pair the ratio view compares, so an enveloped stack keeps those uniforms
     // warm even with the ratio view off — falling back to the topmost scalar
@@ -717,7 +673,7 @@ export class MoireRenderer {
     );
     // A morphing layer carries two trios; the exact chain carries one, so a
     // type ease (280 ms) rides the tap loop and the exact path resumes on
-    // the next sync after it settles.
+    // its final tick, after the slot updates above settle it.
     this.viewUniforms.exactSweep.value = envelope && !anyLattice && !hasLayerMorphs() ? 1 : 0;
     // The pair table serves the exact envelope of two field-free scalar
     // families under a whole-number sweep (a walking family's trio is not
@@ -784,15 +740,12 @@ export class MoireRenderer {
     this.viewUniforms.licAB.value.set(...pairLicense(lay(iA), bDistinct, thr));
     this.viewUniforms.licAC.value.set(...pairLicense(lay(iA), lay(iC), thr));
     this.viewUniforms.licBC.value.set(...pairLicense(bDistinct, lay(iC), thr));
-
-    for (let i = 0; i < this.slots.length; i++) {
-      writeLayerSlot(this.slots[i], state.layers[i]);
-    }
   }
 
   private ensureMorphLoop() {
-    if (this.morphRaf || !this.ready) return;
+    if (this.capturing || this.morphRaf || !this.ready) return;
     const step = () => {
+      if (this.capturing) { this.morphRaf = 0; return; }
       this.writeSlots();
       if (this.ready && this.renderer && this.scene && this.camera) {
         this.draw();
@@ -803,132 +756,32 @@ export class MoireRenderer {
   }
 
   render() {
-    if (!this.ready || !this.renderer) return;
+    if (this.capturing || !this.ready || !this.renderer) return;
     const now = performance.now();
-    // A held pointer, or requests inside the settle window of each other,
-    // are a hand on something — once the pipeline is warm.
     const warm = now - this.readyAt > WARMUP_MS;
-    const streaming = warm && (this.held || now - this.lastRequest < SETTLE_MS);
+    const interacting = warm && (this.held || now - this.lastRequest < SETTLE_MS);
     this.lastRequest = now;
-    if (streaming && !this.inStream) {
-      this.inStream = true;
-      if (this.costKey !== this.memoryKey) {
-        this.memoryKey = this.costKey;
-        this.lockedScale = 0;
-        this.failedScale = 0;
-      }
-      // An exact envelope streams by the synthesis, not the chain whose cost
-      // the rest frame measured: it starts full size and the pacing decides.
-      const synthStream = this.viewUniforms?.exactSweep.value === 1 && this.poolK <= 4;
-      const start =
-        this.lockedScale > 0 ? this.lockedScale : synthStream ? 1 : interactionScale(this.fullCost);
-      if (start < 1) this.setScale(start);
-      if (this.viewUniforms) this.viewUniforms.stream.value = 1;
-      this.startMetronome();
-    } else if (!streaming) {
-      this.inStream = false;
-      if (this.viewUniforms) this.viewUniforms.stream.value = 0;
-    }
-    this.armSettle();
+    this.restoreFullResolution();
+    // The same pose uses the same solver, including while a pointer is held.
+    if (this.viewUniforms) this.viewUniforms.stream.value = 0;
     if (this.raf) return;
     this.raf = requestAnimationFrame(() => {
       this.raf = 0;
-      if (!this.ready || !this.renderer || !this.scene || !this.camera) return;
+      if (this.capturing || !this.ready || !this.renderer || !this.scene || !this.camera) return;
       const t0 = performance.now();
       this.draw();
-      if (!streaming && this.scale === 1) void this.measure(t0);
+      if (!interacting) void this.measure(t0);
     });
   }
 
-  /** The stream's metronome: one callback per animation frame while it lasts. */
-  private startMetronome() {
-    if (this.metroRaf) return;
-    this.lastTick = 0;
-    this.framesAtScale = 0;
-    this.intervals = [];
-    this.goodWindows = 0;
-    this.steppedFrom = 0;
-    const tick = (now: number) => {
-      if (!this.inStream || this.disposed) {
-        this.metroRaf = 0;
-        return;
-      }
-      this.metroRaf = requestAnimationFrame(tick);
-      if (this.lastTick) this.pace(now - this.lastTick);
-      this.lastTick = now;
-    };
-    this.metroRaf = requestAnimationFrame(tick);
-  }
-
-  /** A hand is on the stage or a slider: no full-size frame until it lets go. */
+  /** Track gestures for timing without changing their picture quality. */
   hold(held: boolean) {
     this.held = held;
-    this.armSettle();
   }
 
-  /** The stream ends SETTLE_MS after the last request, once nothing is held. */
-  private armSettle() {
-    if (this.settleTimer) {
-      clearTimeout(this.settleTimer);
-      this.settleTimer = 0;
-    }
-    if (this.inStream && !this.held) {
-      this.settleTimer = window.setTimeout(() => this.restoreScale(), SETTLE_MS);
-    }
-  }
-
-  /**
-   * One frame interval joins the window; a full window is a verdict. The
-   * verdict is the mean with the single worst interval left out: a GC pause
-   * or a panel re-render is one long frame and not the buffer's fault, while
-   * a buffer that overruns does it every frame.
-   */
-  private pace(interval: number) {
-    if (++this.framesAtScale <= DRAIN_FRAMES || performance.now() < this.drainUntil) return;
-    this.intervals.push(interval);
-    const n = this.intervals.length;
-    if (n < PACE_WINDOW / 2) return;
-    const sum = this.intervals.reduce((a, b) => a + b, 0);
-    const mean = (sum - Math.max(...this.intervals)) / (n - 1);
-    // A clear overrun is answered at half a window; anything finer waits for one.
-    const overran = mean > VSYNC_MS * 1.5;
-    if (!overran && n < PACE_WINDOW) return;
-    this.intervals = [];
-    if (mean > VSYNC_MS * 1.1) {
-      // Dropping frames: back to the notch this stream already held, else
-      // straight to the notch that fits (a throttled cadence overstates the
-      // cost, so the fit is only for a start that overran); and no larger
-      // again this stream.
-      const fit = this.scale * Math.sqrt(VSYNC_MS / mean);
-      const next =
-        this.steppedFrom ||
-        INTERACTION_SCALES.find((s) => s <= fit) ||
-        INTERACTION_SCALES[INTERACTION_SCALES.length - 1];
-      this.steppedFrom = 0;
-      this.locked = true;
-      this.goodWindows = 0;
-      // The smallest notch seen to fail: every notch above it fails too.
-      this.failedScale = this.failedScale ? Math.min(this.failedScale, this.scale) : this.scale;
-      if (next < this.scale) this.setScale(next);
-      return;
-    }
-    if (!this.locked && ++this.goodWindows >= 2) {
-      this.goodWindows = 0;
-      const i = INTERACTION_SCALES.indexOf(this.scale);
-      if (i > 0 && (!this.failedScale || INTERACTION_SCALES[i - 1] < this.failedScale)) {
-        this.steppedFrom = this.scale;
-        this.setScale(INTERACTION_SCALES[i - 1]);
-      }
-    }
-  }
-
-  /** What the last full-size frame cost and the buffer scale in use, for the dev bridge. */
+  /** What the last isolated full-size frame cost, for the dev bridge. */
   frameCost(): { fullCost: number; scale: number; pacing: string } {
-    return {
-      fullCost: this.fullCost,
-      scale: this.scale,
-      pacing: `stream=${this.inStream ? 1 : 0} locked=${this.locked ? 1 : 0} remembered=${this.lockedScale} failed=${this.failedScale} key=${this.memoryKey} good=${this.goodWindows} n=${this.intervals.length} metro=${this.metroRaf ? 1 : 0}`,
-    };
+    return { fullCost: this.fullCost, scale: this.scale, pacing: 'full-resolution' };
   }
 
   /**
@@ -955,34 +808,15 @@ export class MoireRenderer {
     this.renderer.render(this.scene, this.camera);
   }
 
-  /** The buffer at a fraction of the full size, framing unchanged. */
-  private setScale(scale: number) {
-    if (!this.renderer || scale === this.scale) return;
-    this.scale = scale;
-    this.framesAtScale = 0;
-    this.drainUntil = performance.now() + DRAIN_MS;
-    this.intervals = [];
-    this.renderer.setPixelRatio((this.lastDpr || 1) * scale);
+  /** Live rendering always uses the full buffer, including after a view change. */
+  private restoreFullResolution() {
+    if (!this.renderer || this.scale === 1) return;
+    this.scale = 1;
+    this.renderer.setPixelRatio(this.lastDpr || 1);
     this.renderer.setSize(Math.max(1, this.lastWidth), Math.max(1, this.lastHeight), false);
     this.writeSlots();
   }
 
-  /** The stream has stopped: back to the full buffer, and one frame of it. */
-  private restoreScale() {
-    this.settleTimer = 0;
-    if (this.held) return;
-    // Where the stream ended is where the next one under this key starts.
-    this.lockedScale = this.scale;
-    this.locked = false;
-    this.inStream = false;
-    const wasStream = this.viewUniforms?.stream.value === 1;
-    if (this.viewUniforms) this.viewUniforms.stream.value = 0;
-    if (this.scale === 1 && !wasStream) return;
-    if (this.scale !== 1) this.setScale(1);
-    this.render();
-  }
-
-  /** An isolated full-size frame's cost, from submit to the queue's completion. */
   private async measure(t0: number) {
     const backend = this.renderer?.backend as
       | { device?: { queue?: { onSubmittedWorkDone?: () => Promise<undefined> } } }
@@ -1005,10 +839,10 @@ export class MoireRenderer {
    * multiplies the zoom uniform so the framing is identical by construction:
    * world extent is buffer over zoom, and both scale together.
    */
-  private exportFrame(opts: { scale?: number; aspect?: number; height?: number } = {}) {
+  private exportFrame(opts: CaptureOptions = {}) {
     const scale = Math.max(opts.scale ?? 1, 0.05);
-    const bufW = Math.max(1, Math.round(this.lastWidth * (this.lastDpr || 1)));
-    const bufH = Math.max(1, Math.round(this.lastHeight * (this.lastDpr || 1)));
+    const bufW = opts.framing?.width ?? Math.max(1, Math.round(this.lastWidth * (this.lastDpr || 1)));
+    const bufH = opts.framing?.height ?? Math.max(1, Math.round(this.lastHeight * (this.lastDpr || 1)));
     const aspect = opts.aspect || bufW / bufH;
     const coverByWidth = aspect <= bufW / bufH;
     // A stated height wins over a multiplier. A still is sized relative to the
@@ -1031,13 +865,13 @@ export class MoireRenderer {
   }
 
   /** The pixel size `snapshot` would render for these options, without rendering. */
-  snapshotSize(opts: { scale?: number; aspect?: number; height?: number } = {}): { width: number; height: number } {
+  snapshotSize(opts: CaptureOptions = {}): { width: number; height: number } {
     const { width, height } = this.exportFrame(opts);
     return { width, height };
   }
 
   async snapshot(
-    opts: { scale?: number; aspect?: number; height?: number; interactionScale?: number } = {}
+    opts: CaptureOptions = {}
   ): Promise<Blob> {
     return this.snapshotWith(opts, (canvas) => encodeCanvasPng(canvas));
   }
@@ -1050,11 +884,24 @@ export class MoireRenderer {
    * moment the callback is done with it either way.
    */
   async snapshotWith<T>(
-    opts: { scale?: number; aspect?: number; height?: number; interactionScale?: number } = {},
+    opts: CaptureOptions = {},
     read: (canvas: HTMLCanvasElement) => Promise<T> | T
   ): Promise<T> {
-    // An export that lands inside a field rebuild waits for it rather than failing.
-    await this.building;
+    // The canvas is an exclusive resource until its reader has consumed it.
+    const previous = this.captures;
+    let release!: () => void;
+    this.captures = new Promise<void>((resolve) => { release = resolve; });
+    await previous;
+    try {
+      return await this.snapshotNow(opts, read);
+    } finally {
+      release();
+    }
+  }
+
+  private async snapshotNow<T>(opts: CaptureOptions, read: (canvas: HTMLCanvasElement) => Promise<T> | T): Promise<T> {
+    // Flush scheduled expression changes as well as a build already in flight.
+    await this.settle();
     if (
       !this.ready ||
       !this.renderer ||
@@ -1069,11 +916,12 @@ export class MoireRenderer {
       cancelAnimationFrame(this.raf);
       this.raf = 0;
     }
-    if (this.settleTimer) {
-      clearTimeout(this.settleTimer);
-      this.settleTimer = 0;
-    }
-    this.setScale(1);
+    if (this.morphRaf) cancelAnimationFrame(this.morphRaf);
+    this.morphRaf = 0;
+    clearLayerMorphs();
+    this.writeSlots();
+    this.restoreFullResolution();
+    this.capturing = true;
     // One render at an explicit framebuffer size, with the zoom uniform scaled
     // to match — the pattern is resolution-free, so the pixels are simply asked
     // again, and the stroke floor keeps hairlines printable at any size.
@@ -1086,28 +934,45 @@ export class MoireRenderer {
       if (this.viewUniforms) {
         this.viewUniforms.pool.value = this.poolGate(zoom0 * zScale, opts.interactionScale ?? 1);
       }
-      // A harness may ask for the frame as the interaction ladder would draw
-      // it: the export is already at the reduced size (its zoom scaled), and
-      // this tells the shader how much smaller than rest that is, so the
-      // hairline floor, the integral ramps and the pooling weight stay at
-      // rest exactly as they do while a hand is on the zoom.
+      // Research captures can explicitly reproduce a reduced observer. The
+      // export already has the requested buffer and zoom; this scale preserves
+      // the rest profile's hairline floor and integral ramps for comparison.
       this.cameraUniforms.scale.value = opts.interactionScale ?? 1;
-      // A stated interaction scale asks for the frame as a stream draws it.
+      // This explicit research hook may also select the former preview solver;
+      // ordinary live views always keep the resting solver.
       if (this.viewUniforms) this.viewUniforms.stream.value = opts.interactionScale !== undefined ? 1 : 0;
       this.draw();
       return await read(this.canvas);
     } finally {
-      this.cameraUniforms.scale.value = this.scale;
-      if (this.viewUniforms) this.viewUniforms.stream.value = 0;
-      this.cameraUniforms.zoom.value = zoom0;
-      if (this.viewUniforms) this.viewUniforms.pool.value = this.poolGate(zoom0, this.scale);
-      this.renderer.setPixelRatio(this.lastDpr || 1);
-      this.renderer.setSize(this.lastWidth, this.lastHeight, false);
-      this.render();
+      try {
+        // A device remount can dispose this renderer during an asynchronous read.
+        if (!this.disposed && this.renderer && this.cameraUniforms) {
+          this.cameraUniforms.scale.value = this.scale;
+          if (this.viewUniforms) this.viewUniforms.stream.value = 0;
+          this.cameraUniforms.zoom.value = zoom0;
+          if (this.viewUniforms) this.viewUniforms.pool.value = this.poolGate(zoom0, this.scale);
+          this.renderer.setPixelRatio(this.lastDpr || 1);
+          this.renderer.setSize(this.lastWidth, this.lastHeight, false);
+        }
+      } finally {
+        this.capturing = false;
+      }
+      if (this.resizeAfterCapture) {
+        this.resizeAfterCapture = false;
+        this.resize();
+      }
+      // A state change during an asynchronous read is displayed after the frame
+      // has been consumed, never by redrawing underneath its reader.
+      if (!this.disposed) {
+        this.writeSlots();
+        this.watchFields();
+        this.render();
+      }
     }
   }
 
   resize() {
+    if (this.capturing) { this.resizeAfterCapture = true; return; }
     if (!this.renderer || !this.container) return;
     const width = Math.max(1, this.container.clientWidth);
     const height = Math.max(1, this.container.clientHeight);
@@ -1127,27 +992,20 @@ export class MoireRenderer {
     if (this.raf) cancelAnimationFrame(this.raf);
     if (this.morphRaf) cancelAnimationFrame(this.morphRaf);
     if (this.fieldTimer) clearTimeout(this.fieldTimer);
-    if (this.settleTimer) clearTimeout(this.settleTimer);
-    if (this.metroRaf) cancelAnimationFrame(this.metroRaf);
-    this.metroRaf = 0;
     this.raf = 0;
     this.morphRaf = 0;
     this.fieldTimer = 0;
-    this.settleTimer = 0;
     this.scale = 1;
     this.fullCost = 0;
     this.held = false;
-    this.inStream = false;
-    this.locked = false;
-    this.lockedScale = 0;
-    this.failedScale = 0;
-    this.memoryKey = '';
     this.lastState = null;
     clearLayerMorphs();
     this.observer?.disconnect();
     this.observer = null;
     this.mesh?.geometry.dispose();
     this.material?.dispose();
+    for (const field of this.imageFields.values()) field.texture.dispose();
+    this.imageFields.clear();
     this.renderer?.dispose();
     if (this.canvas?.parentElement) {
       this.canvas.parentElement.removeChild(this.canvas);

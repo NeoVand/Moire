@@ -95,6 +95,7 @@ export function MoireStage() {
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
+      if (useTransportStore.getState().recording) return;
       if (e.code === 'Space' && !e.repeat) {
         const tag = (e.target as HTMLElement | null)?.tagName;
         if (tag === 'INPUT' || tag === 'TEXTAREA') return;
@@ -122,6 +123,7 @@ export function MoireStage() {
     if (!container) return;
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
+      if (useTransportStore.getState().recording) return;
       const { camera, setCamera } = useProjectStore.getState();
       const rect = container.getBoundingClientRect();
       const world = clientToWorld(e.clientX, e.clientY, rect, camera.zoom, camera.pan);
@@ -136,6 +138,7 @@ export function MoireStage() {
   }, []);
 
   const onPointerDown = (e: React.PointerEvent) => {
+    if (useTransportStore.getState().recording) return;
     const container = containerRef.current;
     if (!container) return;
     const { camera, selectedLayerId, layers } = useProjectStore.getState();
@@ -155,11 +158,16 @@ export function MoireStage() {
     };
     setCursor(mode === 'pan' ? 'grabbing' : mode === 'rotate' ? 'crosshair' : 'move');
     container.setPointerCapture(e.pointerId);
+    useTransportStore.getState().setInteracting(true);
     gpuRef.current?.hold(true);
     e.preventDefault();
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
+    if (useTransportStore.getState().recording) {
+      dragRef.current = null;
+      return;
+    }
     const drag = dragRef.current;
     if (!drag) {
       if (e.altKey) setCursor('crosshair');
@@ -223,6 +231,7 @@ export function MoireStage() {
 
   const onPointerUp = (e: React.PointerEvent) => {
     dragRef.current = null;
+    useTransportStore.getState().setInteracting(false);
     gpuRef.current?.hold(false);
     setCursor(spaceRef.current ? 'grab' : 'default');
     if (containerRef.current?.hasPointerCapture(e.pointerId)) {

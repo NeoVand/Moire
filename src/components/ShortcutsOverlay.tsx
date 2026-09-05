@@ -11,11 +11,15 @@ import {
   SlidersHorizontalIcon,
   ViewOffIcon,
   ZoomInAreaIcon,
+  UndoIcon,
+  RedoIcon,
 } from '@hugeicons/core-free-icons';
 import { isTypingTarget } from '../lib/keyboard';
 import { Icon } from './ui/Icon';
 
 const ROWS: { icon: typeof KeyboardIcon; keys: string; detail: string }[] = [
+  { icon: UndoIcon, keys: '⌘/Ctrl Z', detail: 'Undo' },
+  { icon: RedoIcon, keys: '⌘/Ctrl ⇧Z', detail: 'Redo' },
   { icon: Move01Icon, keys: 'Drag', detail: 'Move the selected field' },
   { icon: Rotate01Icon, keys: '⌥-drag', detail: 'Rotate around the origin' },
   { icon: Move01Icon, keys: 'Space-drag', detail: 'Pan the canvas' },

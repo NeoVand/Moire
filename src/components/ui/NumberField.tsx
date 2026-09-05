@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useTransportStore } from '../../store/transport';
 
 /**
  * A number you can drag or type, and nothing else.
@@ -19,6 +20,7 @@ export function NumberField({
   suffix,
   width = 52,
   decimals,
+  label,
 }: {
   value: number;
   onChange: (v: number) => void;
@@ -28,10 +30,15 @@ export function NumberField({
   suffix?: string;
   width?: number;
   decimals?: number;
+  label?: string;
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
   const drag = useRef<{ x: number; v: number; moved: boolean } | null>(null);
+
+  useEffect(() => () => {
+    if (drag.current) useTransportStore.getState().setInteracting(false);
+  }, []);
 
   const places = decimals ?? (step >= 1 ? 0 : step >= 0.1 ? 1 : 2);
   const clamp = (v: number) => Math.min(max, Math.max(min, v));
@@ -39,7 +46,7 @@ export function NumberField({
 
   const commit = () => {
     const parsed = Number.parseFloat(draft);
-    if (!Number.isNaN(parsed)) onChange(clamp(parsed));
+    if (Number.isFinite(parsed)) onChange(clamp(parsed));
     setEditing(false);
   };
 
@@ -49,6 +56,7 @@ export function NumberField({
         className="quiet-edit rounded-md bg-[var(--bg-primary)] px-1.5 py-[3px] text-right font-mono text-[10px] tabular-nums text-[var(--text-primary)] outline-none"
         style={{ width }}
         value={draft}
+        aria-label={label}
         autoFocus
         onChange={(e) => setDraft(e.target.value)}
         onBlur={commit}
@@ -63,11 +71,29 @@ export function NumberField({
   return (
     <button
       type="button"
+      aria-label={label}
       style={{ width }}
       className="cursor-ew-resize rounded-md bg-[var(--bg-primary)] px-1.5 py-[3px] text-right font-mono text-[10px] tabular-nums text-[var(--text-primary)] select-none hover:bg-[var(--bg-hover)]"
+      onClick={(e) => {
+        // Keyboard activation has no pointer-up to open the editor.
+        if (e.detail === 0) {
+          setDraft(shown);
+          setEditing(true);
+        }
+      }}
+      onPointerCancel={() => {
+        drag.current = null;
+        useTransportStore.getState().setInteracting(false);
+      }}
+      onLostPointerCapture={() => {
+        if (!drag.current) return;
+        drag.current = null;
+        useTransportStore.getState().setInteracting(false);
+      }}
       onPointerDown={(e) => {
         e.currentTarget.setPointerCapture(e.pointerId);
         drag.current = { x: e.clientX, v: value, moved: false };
+        useTransportStore.getState().setInteracting(true);
       }}
       onPointerMove={(e) => {
         const d = drag.current;
@@ -81,9 +107,10 @@ export function NumberField({
         onChange(clamp(d.v + Math.round(dx / 2) * unit));
       }}
       onPointerUp={(e) => {
-        e.currentTarget.releasePointerCapture(e.pointerId);
         const d = drag.current;
         drag.current = null;
+        e.currentTarget.releasePointerCapture(e.pointerId);
+        useTransportStore.getState().setInteracting(false);
         // A press that never moved was a click, and a click means type it.
         if (d && !d.moved) {
           setDraft(shown);

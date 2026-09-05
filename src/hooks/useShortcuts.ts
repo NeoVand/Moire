@@ -2,11 +2,23 @@ import { useEffect } from 'react';
 import { exportPng } from '../gpu/capture';
 import { isTypingTarget } from '../lib/keyboard';
 import { useProjectStore } from '../store/project';
+import { useTransportStore } from '../store/transport';
+import { useHistoryStore } from '../store/history';
 
 export function useShortcuts() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (isTypingTarget(e.target)) return;
+      if (isTypingTarget(e.target) || useTransportStore.getState().recording) return;
+      if (e.metaKey || e.ctrlKey) {
+        const key = e.key.toLowerCase();
+        if (key === 'z' || (key === 'y' && e.ctrlKey)) {
+          e.preventDefault();
+          const history = useHistoryStore.getState();
+          if (e.shiftKey || key === 'y') history.redo();
+          else history.undo();
+        }
+        return;
+      }
 
       const store = useProjectStore.getState();
       const selected = store.layers.find((layer) => layer.id === store.selectedLayerId);

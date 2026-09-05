@@ -44,11 +44,7 @@ export interface Animator {
   ease: MotionEase;
   /** Offset into the cycle at t = 0, in turns. Two knobs a quarter apart. */
   phase: number;
-  /**
-   * Hold at the start value until the transport is running, rather than moving
-   * on its own while the tool sits idle. An authoring convenience only: a
-   * recording ignores it, so a take never depends on which knobs were noodling.
-   */
+  /** Legacy idle-preview preference, retained when loading older scenes. */
   hold: boolean;
   enabled: boolean;
 }
@@ -102,6 +98,12 @@ export function scheduleOf(
   return timings.find((t) => t.id === a.timing) ?? a;
 }
 
+/** Disconnect a shared timing without changing any part of its schedule. */
+export function detachTiming(a: Animator, timings: Timing[]): Animator {
+  const { delay, period, mode, ease } = scheduleOf(a, timings);
+  return { ...a, delay, period, mode, ease, timing: null };
+}
+
 const frac = (v: number) => v - Math.floor(v);
 /** 0 → 1 → 0 across the unit interval: the there-and-back of a bounce. */
 const triangle = (v: number) => (v < 0.5 ? v * 2 : 2 - v * 2);
@@ -125,7 +127,7 @@ const EASE: Record<MotionEase, (v: number) => number> = {
 export function sampleAnimator(a: Animator, timings: Timing[], t: number): number {
   const s = scheduleOf(a, timings);
   const period = Math.max(1e-3, s.period);
-  const elapsed = Math.max(0, t - s.delay);
+  const elapsed = Math.max(0, t - Math.max(0, s.delay));
   // A scene written before phase existed has none, and an undefined here would
   // turn the whole sample into NaN rather than into a knob that simply does not
   // start part way round.
@@ -160,25 +162,33 @@ export function sampleAnimator(a: Animator, timings: Timing[], t: number): numbe
  */
 export function isSpent(a: Animator, timings: Timing[], t: number): boolean {
   const s = scheduleOf(a, timings);
-  return s.mode === 'once' && t > s.delay + Math.max(1e-3, s.period);
+  return s.mode === 'once' && t > Math.max(0, s.delay) + Math.max(1e-3, s.period);
 }
 
 /**
- * Every knob's value at time `t`, as a plain map. Later animators on the same
+ * Every knob's value at time `t`, including the destination of a finished
+ * transition. Sampling must not depend on which frames were visited before it.
+ * The live clock can release finished transitions to allow subsequent editing;
+ * seeking and capture always keep their destinations.
+ * Later animators on the same
  * path win, which is arbitrary but has to be something; the editor is what stops
  * two animators sharing a path in the first place.
  */
 export function sampleMotion(
   motion: MotionDoc,
   t: number,
-  opts: { includeHeld?: boolean; skip?: (a: Animator) => boolean } = {}
+  opts: {
+    includeHeld?: boolean;
+    releaseFinished?: boolean;
+    skip?: (a: Animator) => boolean;
+  } = {}
 ): Map<string, number> {
   const out = new Map<string, number>();
   for (const a of motion.animators) {
     if (!a.enabled) continue;
-    if (!opts.includeHeld && a.hold) continue;
+    if (opts.includeHeld === false && a.hold) continue;
     if (opts.skip?.(a)) continue;
-    if (isSpent(a, motion.timings, t)) continue;
+    if (opts.releaseFinished && isSpent(a, motion.timings, t)) continue;
     out.set(a.path, sampleAnimator(a, motion.timings, t));
   }
   return out;
@@ -193,7 +203,7 @@ function gcd(a: number, b: number): number {
 export interface MotionSpan {
   /** Where a clip of this document should end, in seconds. */
   end: number;
-  /** True when playing that range back to back has no visible join. */
+  /** True when the numeric tracks close continuously over this range. */
   seamless: boolean;
   /** Nothing enabled moves, so any range would be one still picture repeated. */
   empty: boolean;
@@ -208,11 +218,9 @@ export interface MotionSpan {
  * schedule.
  *
  * For a `once` the answer is when it lands. For anything cyclic it is a common
- * multiple of the cycles -- which is the difference between a clip that loops
- * and a clip that jumps, because a range that cuts a cycle part way through will
- * always jump when it repeats. Two knobs at 3s and 4s need 12s to come back
- * together; asking for 6 would look wrong every time round and it would not be
- * obvious why.
+ * multiple of the cycles. Matching the schedule is necessary but does not make
+ * a restart seamless: unequal endpoints still jump at every restart. Two bounce
+ * cycles at 3s and 4s need 12s to come back together.
  *
  * The common multiple is taken over hundredths of a second, and abandoned if it
  * runs past a minute: cycles that share no reasonable multiple get the longest
@@ -221,8 +229,8 @@ export interface MotionSpan {
 const QUANTUM = 100; // hundredths of a second
 const LOOP_CAP = 60 * QUANTUM;
 
-export function motionSpan(motion: MotionDoc): MotionSpan {
-  const live = motion.animators.filter((a) => a.enabled);
+export function motionSpan(motion: MotionDoc, periodOf?: (path: string) => number | undefined): MotionSpan {
+  const live = motion.animators.filter((a) => a.enabled && a.from !== a.to);
   if (live.length === 0) return { end: 6, seamless: false, empty: true };
 
   let onceEnd = 0;
@@ -231,33 +239,47 @@ export function motionSpan(motion: MotionDoc): MotionSpan {
   let longestCycle = 0;
   let anyCyclic = false;
   let allPrompt = true;
+  let allContinuous = true;
+  let quantizedExactly = true;
 
   for (const a of live) {
     const s = scheduleOf(a, motion.timings);
-    maxDelay = Math.max(maxDelay, s.delay);
-    if (s.delay > 1e-6) allPrompt = false;
+    const delay = Math.max(0, s.delay);
+    const period = Math.max(1e-3, s.period);
     if (s.mode === 'once') {
-      onceEnd = Math.max(onceEnd, s.delay + s.period);
+      onceEnd = Math.max(onceEnd, delay + period);
       continue;
     }
+    maxDelay = Math.max(maxDelay, delay);
+    if (delay > 1e-6) allPrompt = false;
     anyCyclic = true;
-    const cycle = s.mode === 'bounce' ? s.period * 2 : s.period;
+    if (s.mode === 'loop') {
+      const parameterPeriod = periodOf?.(a.path);
+      const turns = parameterPeriod && Number.isFinite(parameterPeriod) && parameterPeriod > 0
+        ? (a.to - a.from) / parameterPeriod : NaN;
+      if (!Number.isFinite(turns) || Math.round(turns) === 0 || Math.abs(turns - Math.round(turns)) > 1e-7) {
+        allContinuous = false;
+      }
+    }
+    const cycle = s.mode === 'bounce' ? period * 2 : period;
     longestCycle = Math.max(longestCycle, cycle);
     const ticks = Math.max(1, Math.round(cycle * QUANTUM));
-    cycleLcm = cycleLcm === 0 ? ticks : (cycleLcm / gcd(cycleLcm, ticks)) * ticks;
-    if (cycleLcm > LOOP_CAP) cycleLcm = -1;
-    if (cycleLcm === -1) break;
+    if (Math.abs(ticks / QUANTUM - cycle) > 1e-8) quantizedExactly = false;
+    if (cycleLcm !== -1) {
+      cycleLcm = cycleLcm === 0 ? ticks : (cycleLcm / gcd(cycleLcm, ticks)) * ticks;
+      if (cycleLcm > LOOP_CAP) cycleLcm = -1;
+    }
   }
 
   if (!anyCyclic) return { end: Math.max(0.1, onceEnd), seamless: false, empty: false };
 
-  const usable = cycleLcm > 0 && cycleLcm <= LOOP_CAP;
+  const usable = cycleLcm > 0 && cycleLcm <= LOOP_CAP && quantizedExactly;
   const loop = usable ? cycleLcm / QUANTUM : longestCycle;
   return {
     end: Math.max(0.1, Math.max(onceEnd, maxDelay + loop)),
     // A join is invisible only when the cycles all close together and nothing
     // was still waiting to start.
-    seamless: usable && allPrompt && onceEnd <= 1e-6,
+    seamless: usable && allPrompt && allContinuous && quantizedExactly && onceEnd <= 1e-6,
     empty: false,
   };
 }

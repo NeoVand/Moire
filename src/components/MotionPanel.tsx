@@ -15,6 +15,8 @@ import {
 } from '@hugeicons/core-free-icons';
 import {
   createAnimator,
+  createTiming,
+  detachTiming,
   sampleAnimator,
   scheduleOf,
   type Animator,
@@ -23,7 +25,8 @@ import {
   type Timing,
 } from '../types/motion';
 import { useEditorStore } from '../store/editor';
-import { paramDescriptor, readParam } from '../store/params';
+import { useParamDescriptor, readParam } from '../store/params';
+import { displayValue, storedValue, suggestedInterval } from '../store/paramMetadata';
 import { useProjectStore } from '../store/project';
 import { useTransportStore } from '../store/transport';
 import { FloatingPanel } from './ui/FloatingPanel';
@@ -51,8 +54,8 @@ const MODES: { id: MotionMode; label: string; hint: string; icon: HugeIcon }[] =
   { id: 'bounce', label: 'Bounce', hint: 'There and back, forever.', icon: ArrowHorizontalIcon },
   {
     id: 'loop',
-    label: 'Loop',
-    hint: 'To the end, jump back, again.',
+    label: 'Repeat',
+    hint: 'Go to the end, then jump back to the start. This can make a visible cut.',
     icon: ArrowReloadHorizontalIcon,
   },
   { id: 'once', label: 'Once', hint: 'Cross once and stay.', icon: ArrowRightToLineIcon },
@@ -79,10 +82,11 @@ const W = 248;
 const H = 62;
 
 /** The animation as a shape, over two crossings, with a dot for where it is now. */
-function Curve({ a, timings }: { a: Animator; timings: Timing[] }) {
+function Curve({ a, timings, active }: { a: Animator; timings: Timing[]; active: boolean }) {
   const dot = useRef<SVGCircleElement>(null);
   const s = scheduleOf(a, timings);
-  const window = s.delay + s.period * (s.mode === 'once' ? 1.6 : 2);
+  const cycle = s.period * (s.mode === 'bounce' ? 2 : 1);
+  const window = s.delay + (s.mode === 'once' ? s.period * 1.6 : cycle * 2);
   const lo = Math.min(a.from, a.to);
   const hi = Math.max(a.from, a.to);
   const span = Math.max(1e-6, hi - lo);
@@ -105,9 +109,9 @@ function Curve({ a, timings }: { a: Animator; timings: Timing[] }) {
       raf = requestAnimationFrame(step);
       const node = dot.current;
       if (!node) return;
-      const { state, t } = useTransportStore.getState();
-      const now = state === 'stopped' ? performance.now() / 1000 : t;
-      const wrapped = now % window;
+      const { t } = useTransportStore.getState();
+      const wrapped = s.mode === 'once' ? Math.min(t, window)
+        : t <= s.delay ? t : s.delay + ((t - s.delay) % (cycle * 2));
       node.setAttribute('cx', String(x(wrapped)));
       node.setAttribute('cy', String(y(sampleAnimator(a, timings, wrapped))));
     };
@@ -147,7 +151,7 @@ function Curve({ a, timings }: { a: Animator; timings: Timing[] }) {
         strokeWidth="1.5"
         strokeLinejoin="round"
       />
-      <circle ref={dot} r="2.5" className="fill-[var(--text-primary)]" />
+      {active && <circle ref={dot} r="2.5" className="fill-[var(--text-primary)]" />}
     </svg>
   );
 }
@@ -198,8 +202,8 @@ function Transport() {
       >
         <Icon icon={StopIcon} size={13} />
       </button>
-      <span className="ml-1 font-mono text-[10px] tabular-nums text-[var(--text-muted)]">
-        {state === 'stopped' ? 'idle' : `${t.toFixed(1)}s`}
+      <span title={state} className="ml-1 font-mono text-[10px] tabular-nums text-[var(--text-muted)]">
+        {t.toFixed(1)}s
       </span>
     </div>
   );
@@ -211,22 +215,30 @@ export function MotionPanel() {
   const motion = useProjectStore((s) => s.motion);
   const putAnimator = useProjectStore((s) => s.putAnimator);
   const removeAnimator = useProjectStore((s) => s.removeAnimator);
+  const putTiming = useProjectStore((s) => s.putTiming);
 
   const existing = path ? motion.animators.find((a) => a.path === path) : undefined;
-  const desc = path ? paramDescriptor(path) : undefined;
+  const desc = useParamDescriptor(path);
+  const recording = useTransportStore((s) => s.recording);
+  const muted = useTransportStore((s) => s.muted);
+  const solo = useTransportStore((s) => s.solo);
   const [draft, setDraft] = useState<Animator | null>(null);
+  const ownerName = useProjectStore((state) => {
+    if (!path) return '';
+    const [owner, id] = path.split('.');
+    return owner === 'layer' ? state.layers.find((layer) => layer.id === id)?.name ?? ''
+      : owner === 'camera' ? 'Camera' : 'View';
+  });
 
-  // A knob with no motion gets a proposal rather than an empty form: from where
-  // it stands to the far end of its range. A wrong suggestion is quicker to
-  // correct than a blank one is to fill.
+  // Start from the current pose with a modest change. Opening this editor never
+  // changes the scene; the explicit Add and play action starts the proposal.
   useEffect(() => {
     if (!path || existing || !desc) {
       setDraft(null);
       return;
     }
     const now = readParam(path) ?? (desc.min + desc.max) / 2;
-    const far = Math.abs(desc.max - now) >= Math.abs(now - desc.min) ? desc.max : desc.min;
-    setDraft(createAnimator(path, { from: now, to: far }));
+    setDraft(createAnimator(path, suggestedInterval(now, desc)));
   }, [path, existing, desc]);
 
   if (!path || !desc) return null;
@@ -234,12 +246,63 @@ export function MotionPanel() {
   if (!a) return null;
   const live = !!existing;
   const s = scheduleOf(a, motion.timings);
-  const step = Math.max(desc.step, (desc.max - desc.min) / 200);
+  const step = desc.step;
+  const fromShown = displayValue(a.from, desc);
+  const toShown = displayValue(a.to, desc);
+  // Imported intervals may deliberately extend past a slider's normal range.
+  const min = Math.min(desc.min, fromShown, toShown);
+  const max = Math.max(desc.max, fromShown, toShown);
+  const sharedTiming = motion.timings.find((timing) => timing.id === a.timing);
+  const groupSize = (id: string) => motion.animators.filter((item) => item.timing === id).length + (!live && a.timing === id ? 1 : 0);
+  const active = live && a.enabled && (solo ? solo === a.id : !muted.includes(a.id));
 
   const edit = (patch: Partial<Animator>) => {
-    const next = { ...a, ...patch };
+    if (recording) return;
+    const base = patch.timing === null ? detachTiming(a, motion.timings) : a;
+    const next = { ...base, ...patch };
     if (live) putAnimator(next);
     else setDraft(next);
+  };
+
+  const editSchedule = (patch: Partial<Timing>) => {
+    if (recording) return;
+    if (sharedTiming) putTiming({ ...sharedTiming, ...patch });
+    else edit(patch);
+  };
+
+  const motionName = (other: Animator) => {
+    const [owner, id] = other.path.split('.');
+    const layer = useProjectStore.getState().layers.find((item) => item.id === id);
+    const label = other.path.split('.').slice(owner === 'layer' ? 2 : 1).join(' ');
+    return `${owner === 'layer' ? layer?.name ?? 'Layer' : owner} · ${label}`;
+  };
+
+  const chooseTiming = (choice: string) => {
+    if (recording) return;
+    if (choice === 'own') {
+      edit(detachTiming(a, motion.timings));
+      return;
+    }
+    if (choice.startsWith('shared:')) {
+      const timing = motion.timings.find((item) => item.id === choice.slice(7));
+      if (timing) edit({ delay: timing.delay, period: timing.period, mode: timing.mode, ease: timing.ease, timing: timing.id });
+      return;
+    }
+    const other = motion.animators.find((item) => item.id === choice.slice(6));
+    if (!other) return;
+    // Make linking two independent motions a single recoverable edit.
+    const transport = useTransportStore.getState();
+    const wasInteracting = transport.interacting;
+    transport.setInteracting(true);
+    try {
+      const source = scheduleOf(other, motion.timings);
+      const timing = createTiming({ name: motionName(other), delay: source.delay, period: source.period, mode: source.mode, ease: source.ease });
+      putTiming(timing);
+      putAnimator({ ...other, timing: timing.id });
+      edit({ delay: timing.delay, period: timing.period, mode: timing.mode, ease: timing.ease, timing: timing.id });
+    } finally {
+      transport.setInteracting(wasInteracting);
+    }
   };
 
   return (
@@ -248,47 +311,60 @@ export function MotionPanel() {
       width={276}
       defaultPosition={{ x: 268, y: 120 }}
       onClose={close}
-      title={desc.label}
+      title={<span title={ownerName}>{desc.label}</span>}
       mark={<span className="font-mono text-[9px] text-[var(--text-muted)]">motion</span>}
     >
-      <div className="grid gap-3">
-        <Curve a={a} timings={motion.timings} />
-
+      <fieldset disabled={recording} className="grid max-h-[calc(100dvh-110px)] min-w-0 gap-3 overflow-y-auto overscroll-contain disabled:opacity-60">
+        <Curve a={a} timings={motion.timings} active={active} />
         <div className="grid gap-1.5 border-t border-[var(--border)] pt-2.5">
-          <span className={rowLabel}>Interval</span>
+          <div className="flex items-center justify-between gap-2">
+            <span className={rowLabel}>Interval</span>
+            {live && (
+              <label className="flex items-center gap-1.5 text-[9px] text-[var(--text-muted)]" title="Include this motion in playback and export">
+                <input type="checkbox" checked={a.enabled}
+                  onChange={(e) => edit({ enabled: e.target.checked })}
+                  className="accent-[var(--text-primary)]" />
+                Enabled
+              </label>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             <span className="text-[10.5px] text-[var(--text-secondary)]">From</span>
             <NumberField
-              value={a.from}
+              label="Motion from"
+              value={fromShown}
               step={step}
-              min={desc.min}
-              max={desc.max}
+              min={desc.period ? undefined : min}
+              max={desc.period ? undefined : max}
               suffix={desc.unit || undefined}
-              onChange={(from) => edit({ from })}
+              onChange={(from) => edit({ from: storedValue(from, desc) })}
             />
             <span className="flex-1" />
             <span className="text-[10.5px] text-[var(--text-secondary)]">To</span>
             <NumberField
-              value={a.to}
+              label="Motion to"
+              value={toShown}
               step={step}
-              min={desc.min}
-              max={desc.max}
+              min={desc.period ? undefined : min}
+              max={desc.period ? undefined : max}
               suffix={desc.unit || undefined}
-              onChange={(to) => edit({ to })}
+              onChange={(to) => edit({ to: storedValue(to, desc) })}
             />
           </div>
         </div>
 
         <div className="grid gap-1.5 border-t border-[var(--border)] pt-2.5">
-          <span className={rowLabel}>Repeat</span>
+          <span className={rowLabel}>Playback</span>
           <div className={`${group} grid-cols-3`}>
             {MODES.map((m) => (
               <button
                 key={m.id}
                 type="button"
-                title={m.hint}
+                title={m.id === 'loop' && desc.period
+                  ? `Repeat from the start. A change of ${displayValue(desc.period, desc)}${desc.unit ?? ''} makes one full turn.`
+                  : m.hint}
                 className={seg(s.mode === m.id)}
-                onClick={() => edit({ mode: m.id, timing: null })}
+                onClick={() => editSchedule({ mode: m.id })}
               >
                 <Icon icon={m.icon} size={12} />
                 {m.label}
@@ -306,7 +382,7 @@ export function MotionPanel() {
                 type="button"
                 title={e.hint}
                 className={seg(s.ease === e.id)}
-                onClick={() => edit({ ease: e.id, timing: null })}
+                onClick={() => editSchedule({ ease: e.id })}
               >
                 <Icon icon={e.icon} size={12} />
                 {e.label}
@@ -316,25 +392,50 @@ export function MotionPanel() {
         </div>
 
         <div className="grid gap-1.5 border-t border-[var(--border)] pt-2.5">
-          <span className={rowLabel}>Timing</span>
-          <label className="flex items-center justify-between gap-2">
-            <span className="text-[10.5px] text-[var(--text-secondary)]">Seconds across</span>
+          <div className="flex items-center gap-2">
+            <span className={rowLabel}>Timing</span>
+            <select
+              aria-label="Timing group"
+              title={sharedTiming
+                ? `${groupSize(sharedTiming.id)} motions share playback, easing and timing. Choose Own timing to separate this one.`
+                : 'Use an independent schedule, or match another motion.'}
+              value={sharedTiming ? `shared:${sharedTiming.id}` : 'own'}
+              onChange={(e) => chooseTiming(e.target.value)}
+              className="min-w-0 flex-1 rounded-md border border-[var(--border)] bg-[var(--bg-primary)] px-1.5 py-1 text-[10px] text-[var(--text-secondary)]"
+            >
+              <option value="own">Own timing</option>
+              {motion.timings.map((timing) => (
+                <option key={timing.id} value={`shared:${timing.id}`}>{timing.name} · {groupSize(timing.id)}</option>
+              ))}
+              {motion.animators.filter((other) => other.id !== a.id && !other.timing).map((other) => (
+                <option key={other.id} value={`match:${other.id}`}>Match {motionName(other)}</option>
+              ))}
+            </select>
+          </div>
+          <label className="flex items-center justify-between gap-2" title="Time for one crossing. Bounce takes the same time to return.">
+            <span className="text-[10.5px] text-[var(--text-secondary)]">Across</span>
+            <span className="flex-1" />
+            {s.mode === 'bounce' && <span className="text-[9px] tabular-nums text-[var(--text-muted)]">
+              {Math.round(s.period * 200) / 100}s cycle
+            </span>}
             <NumberField
+              label="One-way duration"
               value={s.period}
               step={0.5}
               min={0.05}
               suffix="s"
-              onChange={(period) => edit({ period, timing: null })}
+              onChange={(period) => editSchedule({ period })}
             />
           </label>
           <label className="flex items-center justify-between gap-2">
             <span className="text-[10.5px] text-[var(--text-secondary)]">Wait first</span>
             <NumberField
+              label="Wait first"
               value={s.delay}
               step={0.5}
               min={0}
               suffix="s"
-              onChange={(delay) => edit({ delay, timing: null })}
+              onChange={(delay) => editSchedule({ delay })}
             />
           </label>
           {/* Waiting and starting part way round are different things, and only
@@ -342,13 +443,13 @@ export function MotionPanel() {
               later, which for something endless is invisible after the first
               pass. An offset is what puts two knobs permanently out of step. */}
           {s.mode !== 'once' && (
-            <>
               <label
                 className="flex items-center justify-between gap-2"
                 title="Where in its cycle this begins. Two knobs 25% apart stay a quarter-cycle out of step."
               >
                 <span className="text-[10.5px] text-[var(--text-secondary)]">Start part way</span>
                 <NumberField
+                  label="Start part way"
                   value={Math.round((a.phase || 0) * 1000) / 10}
                   step={5}
                   min={0}
@@ -358,33 +459,9 @@ export function MotionPanel() {
                   onChange={(pct) => edit({ phase: (pct % 100) / 100 })}
                 />
               </label>
-              <p className="text-[9px] leading-[1.4] text-[var(--text-muted)]">
-                {Math.round(s.period * (s.mode === 'bounce' ? 2 : 1) * 10) / 10}s for a full cycle,
-                which is the length a clip has to fit.
-              </p>
-            </>
           )}
         </div>
 
-        <label className="flex items-start gap-2 border-t border-[var(--border)] pt-2.5">
-          <input
-            type="checkbox"
-            checked={a.hold}
-            onChange={(e) => edit({ hold: e.target.checked })}
-            className="mt-[1px] accent-[var(--text-primary)]"
-          />
-          <span className="text-[10px] leading-[1.35] text-[var(--text-secondary)]">
-            Only on play
-            <span className="block text-[9px] text-[var(--text-muted)]">
-              Otherwise it moves as soon as it is set. Recording ignores this.
-            </span>
-          </span>
-        </label>
-
-        {/* Running it and being rid of it are the two things wanted once it is
-            set up, so they share the last row. Deleting is an icon rather than a
-            sentence because it is the one control here that cannot be undone by
-            doing it again. */}
         <div className="flex items-center gap-2 border-t border-[var(--border)] pt-2.5">
           <Transport />
           <span className="flex-1" />
@@ -394,6 +471,7 @@ export function MotionPanel() {
               title="Remove this motion"
               aria-label="Remove this motion"
               onClick={() => {
+                if (recording) return;
                 removeAnimator(a.id);
                 close();
               }}
@@ -404,14 +482,19 @@ export function MotionPanel() {
           ) : (
             <button
               type="button"
-              onClick={() => putAnimator(a)}
+              onClick={() => {
+                if (recording) return;
+                putAnimator(a);
+                useTransportStore.getState().seek(0);
+                useTransportStore.getState().play();
+              }}
               className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-[10.5px] text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
             >
-              Animate this
+              Add and play
             </button>
           )}
         </div>
-      </div>
+      </fieldset>
     </FloatingPanel>
   );
 }
