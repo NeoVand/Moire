@@ -115,16 +115,20 @@ const main = async () => {
   const wantTs = adapter.features.has('timestamp-query');
   const device = await adapter.requestDevice({ requiredFeatures: wantTs ? ['timestamp-query'] : [] });
   const hasTs = device.features.has('timestamp-query');
+  device.lost.then((info) => log(`device lost: ${info.reason} ${info.message}`));
+  // a pipeline the backend compiler rejects fails silently otherwise: name it
+  device.addEventListener('uncapturederror', (e) => log(`GPU error: ${String(e.error && e.error.message).slice(0, 400)}`));
   log(`adapter: ${adapter.info ? `${adapter.info.vendor} ${adapter.info.architecture} ${adapter.info.description}` : 'unknown'}; timestamps ${hasTs ? 'on' : 'off'}`);
   const canvas = $('canvas');
   const ctx = canvas.getContext('webgpu');
   const format = navigator.gpu.getPreferredCanvasFormat();
   ctx.configure({ device, format, alphaMode: 'opaque' });
 
-  let W = 480;
-  let H = 320;
+  const q = new URLSearchParams(location.search);
+  let W = Number((q.get('size') || '480x320').split('x')[0]);
+  let H = Number((q.get('size') || '480x320').split('x')[1]);
   const state = {
-    scene: 0,
+    scene: Number(q.get('scene') || 0),
     path: 'ybBoth',
     ssaa: 16,
     refSamples: 1024,
@@ -154,7 +158,8 @@ const main = async () => {
 
   // the mipmapped picture: one period of the checkerboard (scene 0) or the circles cell (scene 1), 1024 texels, box-filtered chain
   const PIC_N = 1024;
-  const picTexFor = (scene) => {
+  const picTexFor = (sceneIn) => {
+    const scene = sceneIn === 2 ? 0 : sceneIn; // the rippled checkerboard samples the checker texture
     const levels = Math.log2(PIC_N) + 1;
     const t = device.createTexture({ size: [PIC_N, PIC_N], format: 'r8unorm', mipLevelCount: levels, usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST });
     let data = new Float32Array(PIC_N * PIC_N);
@@ -194,6 +199,8 @@ const main = async () => {
     return t;
   };
   let picTex = picTexFor(state.scene);
+  $('scene').value = String(state.scene);
+  $('res').value = `${W}x${H}`;
   const picSampler = device.createSampler({ addressModeU: 'repeat', addressModeV: 'repeat', magFilter: 'linear', minFilter: 'linear', mipmapFilter: 'linear', maxAnisotropy: 16 });
 
   // uniforms: 16 vec4
@@ -207,11 +214,23 @@ const main = async () => {
       entries: [{ binding: 0, visibility: GPUShaderStage.FRAGMENT | GPUShaderStage.VERTEX, buffer: { type: 'uniform' } }, ...extra],
     });
     const mod = module(code);
+    const t0 = performance.now();
+    device.pushErrorScope('internal');
+    device.pushErrorScope('validation');
     const pipeline = device.createRenderPipeline({
       layout: device.createPipelineLayout({ bindGroupLayouts: [layout] }),
       vertex: { module: mod, entryPoint: 'vsFull' },
       fragment: { module: mod, entryPoint: entry, targets: [{ format: 'rgba32float' }] },
       primitive: { topology: 'triangle-list' },
+    });
+    device.popErrorScope().then((err) => err && log(`${entry}: pipeline validation error: ${err.message.slice(0, 400)}`));
+    device.popErrorScope().then((err) => err && log(`${entry}: pipeline internal error: ${err.message.slice(0, 400)}`));
+    // the pipeline is created asynchronously on the GPU process; wait for it once to time the compile
+    device.queue.onSubmittedWorkDone();
+    mod.getCompilationInfo().then((info) => {
+      const ms = performance.now() - t0;
+      const errs = info.messages.filter((m) => m.type === 'error');
+      if (errs.length || ms > 500) log(`${entry}: shader compile ${ms.toFixed(0)} ms${errs.length ? `, ${errs.length} errors: ${errs[0].message}` : ''}`);
     });
     return { pipeline, layout };
   };
@@ -314,7 +333,7 @@ const main = async () => {
     jitter[0] = 0.5 * m * Math.cos(2 * Math.PI * u2);
     jitter[1] = 0.5 * m * Math.sin(2 * Math.PI * u2);
     set(48, [0.5, state.time, jitter[0], jitter[1]]);
-    set(52, [0, state.frame, state.scene, state.scene === 0 ? 20 : 2 * (25 / 3) + 2 * (5 / 3)]);
+    set(52, [0, state.frame, state.scene, state.scene === 1 ? 2 * (25 / 3) + 2 * (5 / 3) : 20]);
     set(56, [state.taaAlpha, still ? 1 : 0, state.regime ? 1 : 0, state.oursMode || 0]);
   };
   const writeUniforms = (samples, seed) => {
@@ -479,6 +498,11 @@ const main = async () => {
     refPing ^= 1;
     refCount = still ? refCount + 1 : 1;
     prevH = Hm;
+    if (state.frame === 0 || state.frame === 5) {
+      const f = state.frame;
+      const t1 = performance.now();
+      device.queue.onSubmittedWorkDone().then(() => log(`frame ${f}: GPU completed ${(performance.now() - t1).toFixed(0)} ms after submit`));
+    }
     state.frame++;
     if (!meters.pending) {
       meters.pending = true;
@@ -574,6 +598,46 @@ const main = async () => {
   window.demoState = state;
   window.demoMeters = meters;
   window.demoBench = bench;
+  // step frames without the animation loop (an occluded window throttles it): await the GPU each step
+  window.demoStep = async (n = 1) => {
+    for (let i = 0; i < n; i++) {
+      frame();
+      await device.queue.onSubmittedWorkDone();
+    }
+    await new Promise((r) => setTimeout(r, 50));
+    updateTable();
+  };
+  // read any arm's texture back (channel 0 as a Float32Array of W * H): 'ours' or 'ref'
+  window.demoReadTex = async (name) => {
+    const t = name === 'ref' ? (refPing ? tex.refB : tex.refA) : tex[name];
+    const bytes = W * 16;
+    const buf = device.createBuffer({ size: bytes * H, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+    const enc = device.createCommandEncoder();
+    enc.copyTextureToBuffer({ texture: t }, { buffer: buf, bytesPerRow: bytes }, [W, H]);
+    device.queue.submit([enc.finish()]);
+    await buf.mapAsync(GPUMapMode.READ);
+    const data = new Float32Array(buf.getMappedRange().slice(0));
+    buf.unmap();
+    buf.destroy();
+    const out = new Float32Array(W * H);
+    for (let i = 0; i < W * H; i++) out[i] = data[i * 4];
+    return out;
+  };
+  // the error of ours against the reference by row: RMS per row and the worst pixel
+  window.demoRowError = async (bandRows = 8) => {
+    const a = await window.demoReadTex('ours');
+    const b = await window.demoReadTex('ref');
+    const rows = [];
+    let worst = { err: 0, x: 0, y: 0 };
+    for (let y = 0; y < H; y++) {
+      let s = 0;
+      for (let x = 0; x < W; x++) { const e = a[y * W + x] - b[y * W + x]; s += e * e; if (Math.abs(e) > worst.err) worst = { err: Math.abs(e), x, y, ours: a[y * W + x], ref: b[y * W + x] }; }
+      rows.push(Math.sqrt(s / W));
+    }
+    const bands = [];
+    for (let y0 = 0; y0 < H; y0 += bandRows) { let s = 0; let n = 0; for (let y = y0; y < Math.min(H, y0 + bandRows); y++) { s += rows[y] * rows[y]; n++; } bands.push({ rows: `${y0}-${Math.min(H, y0 + bandRows) - 1}`, rms: +Math.sqrt(s / n).toFixed(5) }); }
+    return { bands, worst, refFrames: refCount };
+  };
   // read the ours texture back: statistics of channel 0 by row band, for the work counter and error maps
   window.demoReadOurs = async () => {
     const bytes = W * 16;

@@ -1,8 +1,15 @@
 import { OURS_KERNEL } from './ours-kernel.wgsl.js';
-import { OURS_KERNEL as OURS_KERNEL_NEXT } from './ours-kernel-next.wgsl.js';
+import { OURS_KERNEL_CORE as NEXT_CORE, ripplesWith, RIPPLES_LINE, RIPPLES_SPECTRAL, RIPPLES_LINE_STUB, RIPPLES_SPECTRAL_STUB } from './ours-kernel-next.wgsl.js';
 // the frozen kernel is what the collaborator measures; ?kernel=next selects
-// the working copy where the cost work happens
-const KERNEL = new URLSearchParams(globalThis.location ? globalThis.location.search : '').get('kernel') === 'next' ? OURS_KERNEL_NEXT : OURS_KERNEL;
+// the working copy where the cost work happens, and ?ripples=none|line|spectral|all
+// bisects the ripples' functions when the GPU compiler fails on them
+const params = new URLSearchParams(globalThis.location ? globalThis.location.search : '');
+const useNext = params.get('kernel') === 'next';
+const ripplesPart = params.get('ripples') || 'all';
+const HAS_RIPPLES = useNext && ripplesPart !== 'none';
+const KERNEL = useNext
+  ? NEXT_CORE + (HAS_RIPPLES ? ripplesWith(ripplesPart === 'spectral' ? RIPPLES_LINE_STUB : RIPPLES_LINE, ripplesPart === 'line' ? RIPPLES_SPECTRAL_STUB : RIPPLES_SPECTRAL) : '')
+  : OURS_KERNEL;
 
 // WGSL for the side-by-side anti-aliasing demo: the plane seen through a
 // homography, the benchmark shaders point-evaluated, and the arms: point
@@ -95,11 +102,41 @@ fn pictureAt(scene: u32, s: f32, t: f32) -> f32 {
   return 0.5 - 0.5 * sign(r - circleR);
 }
 
+// the ripples of Yang and Barnes: height a sin(f r - velocity time), r = hypot(s, t),
+// the normal from the height's gradient, the counts displaced by the parallax h viewer.xy
+const RIPPLE_A: f32 = 0.3333333333333333;
+const RIPPLE_F: f32 = 3.0;
+struct Rippled { s: f32, t: f32, normal: vec3f };
+fn rippled(s: f32, t: f32, viewer: vec3f) -> Rippled {
+  let r = sqrt(s * s + t * t);
+  let theta = r * RIPPLE_F;
+  let h = RIPPLE_A * sin(theta);
+  let rinv = 1.0 / max(r, 1e-9);
+  let dhdu = s * RIPPLE_A * RIPPLE_F * rinv * cos(theta);
+  let dhdv = t * RIPPLE_A * RIPPLE_F * rinv * cos(theta);
+  var o: Rippled;
+  o.normal = normalize(vec3f(dhdu, dhdv, 1.0));
+  o.s = s + h * viewer.x;
+  o.t = t + h * viewer.y;
+  return o;
+}
+fn lightingOn(normal: vec3f, viewer: vec3f, specPow: f32) -> vec2f {
+  let LN = max(dot(U.light.xyz, normal), 0.0);
+  let R = 2.0 * LN * normal - U.light.xyz;
+  let spec = pow(max(dot(R, viewer), 0.0), specPow);
+  return vec2f(LN, spec);
+}
 // the shader's colour at a continuous pixel position: the point sample
 fn shade(x: f32, y: f32) -> vec3f {
   let g = ground(x, y);
   if (g.d <= 0.0) { return vec3f(0.0); }
   let scene = u32(U.p1.z);
+  if (scene == 2u) {
+    let rp = rippled(g.s, g.t, g.viewer);
+    let P = pictureAt(0u, rp.s, rp.t);
+    let l = lightingOn(rp.normal, g.viewer, 50.0);
+    return vec3f(l.x * P + l.y);
+  }
   let P = pictureAt(scene, g.s, g.t);
   let LN = lightingLN();
   if (scene == 0u) {
@@ -270,8 +307,15 @@ export const ARM_MIP = /* wgsl */ `
   let uv = vec2f(g.s, g.t) / period;
   let ddx = vec2f(gu.x, gv.x) / period;
   let ddy = vec2f(gu.y, gv.y) / period;
-  let P = textureSampleGrad(picTex, picSamp, uv, ddx, ddy).x;
   let scene = u32(U.p1.z);
+  if (scene == 2u) {
+    // a game's route: parallax-displaced coordinates, the texture's footprint from the plane, the normal map at the centre
+    let rp = rippled(g.s, g.t, g.viewer);
+    let P2 = textureSampleGrad(picTex, picSamp, vec2f(rp.s, rp.t) / period, ddx, ddy).x;
+    let l = lightingOn(rp.normal, g.viewer, 50.0);
+    return vec4f(vec3f(l.x * P2 + l.y), 1.0);
+  }
+  let P = textureSampleGrad(picTex, picSamp, uv, ddx, ddy).x;
   let LN = lightingLN();
   var v = LN * P;
   if (scene == 0u) { v += lightingSpec(g.viewer, 50.0); }
@@ -302,9 +346,20 @@ ${KERNEL}
   let J = jetsFromHomography(U.hu.xyz, U.hv.xyz, U.hd.xyz, x, y, period);
   var P = 0.5;
   var regime = 0.0;
+  let mode = u32(U.p2.w);
+  if (scene == 2u) {
+    ${HAS_RIPPLES ? 'let rr = ripplesMeanHMode(U.hu.xyz, U.hv.xyz, U.hd.xyz, x, y, period, S, g.viewer, U.light.xyz, mode);' : 'let rr = vec2f(0.5, 4.0); // this kernel has no ripples entry'}
+    if (mode == 6u) { return vec4f(vec3f(WORK), 1.0); }
+    if (U.p2.z > 0.5) {
+      var tint2 = vec3f(0.2, 0.3, 0.9);
+      if (rr.y < 1.5) { tint2 = vec3f(0.2, 0.8, 0.3); }
+      if (rr.y > 3.5) { tint2 = vec3f(0.9, 0.2, 0.9); }
+      return vec4f(tint2 * (0.5 + 0.5 * rr.x), 1.0);
+    }
+    return vec4f(vec3f(rr.x), 1.0);
+  }
   // timing diagnostics through p2.w: 1 runs the coverage path only (the
   // spectral pixels return the mean), 2 the spectral path only
-  let mode = u32(U.p2.w);
   if (mode == 0u || mode >= 4u) {
     // the homography entries: exact under the guard
     var r = vec2f(0.5, 0.0);
