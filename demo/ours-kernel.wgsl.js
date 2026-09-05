@@ -494,9 +494,11 @@ fn edgeRange(u0: f32, g: vec2f, r: vec2f, sig: f32) -> EdgeRange {
   let hlo = ceil(2.0 * (u0 - reach));
   let hhi = floor(2.0 * (u0 + reach));
   if (hhi - hlo > 9.0) { E.ok = false; return E; }
-  // the edges actually within reach, and the lowest of them
+  // the edges actually within reach; the value of w below the lowest of
+  // them follows from that edge's parity (an integer edge jumps -1 to +1,
+  // a half-integer edge +1 to -1), with no epsilon, so it holds at any
+  // distance from the origin in float32
   var count = 0.0;
-  var bmin = 1e30;
   var h = hlo;
   var first = 1e30;
   var last = -1e30;
@@ -508,14 +510,18 @@ fn edgeRange(u0: f32, g: vec2f, r: vec2f, sig: f32) -> EdgeRange {
     let dist = delta / max(length(n), 1e-30);
     if (abs(dist) < L * sig) {
       count += 1.0;
-      bmin = min(bmin, b);
       first = min(first, h);
       last = max(last, h);
     }
     h += 1.0;
   }
   if (count > 5.0) { E.ok = false; return E; }
-  if (count > 0.0) { E.low = wOf(bmin - 1e-6); E.hlo = first; E.hhi = last; }
+  if (count > 0.0) {
+    let even = abs(first - 2.0 * round(0.5 * first)) < 0.5;
+    E.low = select(1.0, -1.0, even);
+    E.hlo = first;
+    E.hhi = last;
+  }
   return E;
 }
 fn checkerMeanH(hu: vec3f, hv: vec3f, hd: vec3f, x: f32, y: f32, period: f32, S: f32) -> vec2f { return checkerMeanHMode(hu, hv, hd, x, y, period, S, 0u); }
@@ -600,13 +606,16 @@ fn circlesMeanHMode(hu: vec3f, hv: vec3f, hd: vec3f, x: f32, y: f32, period: f32
   let v0 = Nv / D / period;
   let gu = (hu.xy * D - Nu * dD) / (D * D) / period;
   let gv = (hv.xy * D - Nv * dD) / (D * D) / period;
-  let gmax = max(length(gu), length(gv));
-  let denom = 1.0 - 6.0 * sig * rn;
-  let reach = 3.0 * sig * gmax / max(denom, 1e-6) + DISC_R;
-  let nu0 = floor(u0 - reach);
-  let nu1 = floor(u0 + reach);
-  let nv0 = floor(v0 - reach);
-  let nv1 = floor(v0 + reach);
+  let denom = 1.0 - 5.5 * sig * rn;
+  // the cells whose disc can reach the footprint: per axis, the disc's
+  // radius plus the count's 5.5 sigma excursion, the same reach the conic
+  // rule keeps below
+  let reachU = 5.5 * sig * length(gu) / max(denom, 1e-6) + DISC_R;
+  let reachV = 5.5 * sig * length(gv) / max(denom, 1e-6) + DISC_R;
+  let nu0 = floor(u0 - reachU);
+  let nu1 = floor(u0 + reachU);
+  let nv0 = floor(v0 - reachV);
+  let nv1 = floor(v0 + reachV);
   if (denom <= 0.05 || (nu1 - nu0 + 1.0) * (nv1 - nv0 + 1.0) > 9.5) {
     if (mode == 4u) { return vec2f(0.5454, 3.0); }
     let J = jetsFromHomography(hu, hv, hd, x, y, period);
