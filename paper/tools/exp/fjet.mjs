@@ -80,6 +80,9 @@ export class Jet {
   }
   sqrt() {
     const s = Math.sqrt(this.v);
+    // at zero the derivatives are infinite; a finite jet with the right
+    // value is what a kink's tip should carry (a point of measure zero)
+    if (s < 1e-150) return Jet.c(s);
     return this.unary(s, 0.5 / s, -0.25 / (s * this.v));
   }
   exp() {
@@ -454,6 +457,524 @@ const smoothFn = (name, jetFn) => (x) => {
   if (el.isSmooth()) return Element.fromJet(jetFn(el.smoothPart()));
   return collapseWith(el, jetFn, name);
 };
+// A non-smooth primitive g of a constant plus a part on some counts X
+// (closures, pictures) plus pictures with constant coefficients on other
+// counts Phi that may carry fields over X: g(c + A(x) + sum_j B_j(phi_j +
+// G_j(x))). As a function of phi it is a picture on the Phi torus whose
+// coefficients are functions of a = c + A(x): T_m(a), the transform of
+// phi -> g(a + B(phi)). For g linear on each side of zero (step, sign,
+// relu, abs) that transform is exact: between the roots of a + B(phi) = 0
+// and the jumps of B the integrand is linear in B, and Gauss-Legendre
+// integrates it. The element is kept as one closure over X and bare Phi
+// axes carrying that structure, so that its transform over all of them
+// factorises at evaluation into the table T_m(a), tabulated once over the
+// range of a, and a transform over X of T_m(c + A(x)) e^{2 pi i m.G(x)},
+// which does not depend on the pixel.
+const STEP_PIECES = {
+  step: { am: 0, bm: 0, ap: 1, bp: 0 },
+  sign: { am: -1, bm: 0, ap: 1, bp: 0 },
+  relu: { am: 0, bm: 0, ap: 0, bp: 1 },
+  abs: { am: 0, bm: -1, ap: 0, bp: 1 },
+};
+const stepOfSum = (P, c, g, name) => {
+  const gp = STEP_PIECES[name];
+  if (!gp) return null;
+  const phiTerms = [];
+  const aTerms = [];
+  for (const t of P.terms) {
+    const f = t.f;
+    if (f.length === 1 && f[0].kind === 'pic' && f[0].axis.kind === 'periodic' && jetIsConst(t.c.re) && jetIsZero(t.c.im)) phiTerms.push(t);
+    else aTerms.push(t);
+  }
+  if (phiTerms.length === 0) return null;
+  const A = new Element(aTerms);
+  const xSet = new Map();
+  for (const a of A.axes()) xSet.set(a.id, a);
+  const phis = new Map();
+  for (const t of phiTerms) {
+    const axis = t.f[0].axis;
+    if (!phis.has(axis.id)) phis.set(axis.id, { axis, parts: [] });
+    phis.get(axis.id).parts.push({ beta: t.c.re.v, fn: t.f[0].fn, sig: t.f[0].sig });
+    if (axis.field) for (const a of axis.field.axes()) xSet.set(a.id, a);
+  }
+  if (phis.size > 2) return null;
+  for (const { axis } of phis.values()) if (xSet.has(axis.id)) return null;
+  const X = [...xSet.values()];
+  if (X.length === 0 || X.length > 2) return null;
+  // with one Phi axis over one X axis the plain closure (one axis, its
+  // field over the other) is transformed exactly by the residual paths and
+  // has been measured; the rule is for the structures those cannot reach
+  if (X.length + phis.size < 3) return null;
+  const phiList = [...phis.values()].map((q) => ({
+    axis: q.axis,
+    parts: q.parts,
+    bare: q.axis.field ? makeAxis(q.axis.count, null, 'periodic', `${q.axis.label}°`).axis : q.axis,
+    B: makeB(q.parts),
+  }));
+  const axes = [...X, ...phiList.map((q) => q.bare)];
+  const nX = X.length;
+  const fn = (cs) => {
+    const m = new Map();
+    X.forEach((a, i) => m.set(a.id, cs[i]));
+    let total = c + (A.terms.length ? evalElement(A, m).v : 0);
+    phiList.forEach((q, j) => {
+      const phi = cs[nX + j] + (q.axis.field ? evalElement(q.axis.field, m).v : 0);
+      for (const { beta, fn: pf } of q.parts) total += beta * pf(phi);
+    });
+    return Jet.c(g(total));
+  };
+  const sig = `${name}⊕(${c.toPrecision(7)}+${elementSig(A)}|${phiList.map((q) => `${q.axis.label}${q.axis.id}:${q.axis.field ? elementSig(q.axis.field) : ''}:${q.parts.map((pp) => `${pp.beta.toPrecision(6)}*${pp.sig}`).join('+')}`).join(';')})`;
+  const clo = cloFactor(axes, fn, sig);
+  clo.stepsum = { g, gp, c, A, X, phis: phiList, sig };
+  return new Element([{ c: cj(J1, J0), f: [clo] }]);
+};
+
+// a picture sum B(phi) = sum beta_i p_i(phi) on one axis: its values on a
+// fine grid, its jumps (located), its critical values (extrema between
+// jumps and the two sides of each jump) and its smooth bandwidth
+const NB = 2048;
+const makeB = (parts) => {
+  const fn = (u) => {
+    let b = 0;
+    for (const p of parts) b += p.beta * p.fn(u);
+    return b;
+  };
+  const grid = new Float64Array(NB + 1);
+  for (let i = 0; i <= NB; i++) grid[i] = fn(i / NB);
+  let lo = Infinity;
+  let hi = -Infinity;
+  for (let i = 0; i < NB; i++) {
+    lo = Math.min(lo, grid[i]);
+    hi = Math.max(hi, grid[i]);
+  }
+  const range = hi - lo;
+  const diffs = new Float64Array(NB);
+  for (let i = 0; i < NB; i++) diffs[i] = Math.abs(grid[i + 1] - grid[i]);
+  const typical = Float64Array.from(diffs).sort()[NB >> 1];
+  const jumps = [];
+  for (let i = 0; i < NB; i++) {
+    if (diffs[i] < 6 * typical + 1e-9 * range + 1e-300) continue;
+    let x0 = i / NB;
+    let x1 = (i + 1) / NB;
+    const f0 = grid[i];
+    const d = diffs[i];
+    for (let it = 0; it < 48; it++) {
+      const xm = (x0 + x1) / 2;
+      if (Math.abs(fn(xm) - f0) > d / 2) x1 = xm;
+      else x0 = xm;
+    }
+    // a steep slope shrinks with the bracket, a jump does not
+    if (Math.abs(fn(x1) - fn(x0)) < 0.5 * d) continue;
+    jumps.push({ at: (x0 + x1) / 2, left: fn(x0), right: fn(x1) });
+  }
+  const crit = [];
+  for (const j of jumps) crit.push(j.left, j.right);
+  const gr = 0.6180339887498949;
+  for (let i = 1; i < NB; i++) {
+    const d0 = grid[i] - grid[i - 1];
+    const d1 = grid[i + 1] - grid[i];
+    if (!(d0 * d1 < 0)) continue;
+    if (jumps.some((j) => Math.abs(j.at - i / NB) < 1.5 / NB)) continue;
+    // golden-section refinement of the extremum in the two cells around i
+    let a = (i - 1) / NB;
+    let b = (i + 1) / NB;
+    const sgn = d0 > 0 ? 1 : -1;
+    let c1 = b - gr * (b - a);
+    let c2 = a + gr * (b - a);
+    let f1 = sgn * fn(c1);
+    let f2 = sgn * fn(c2);
+    for (let it = 0; it < 60; it++) {
+      if (f1 > f2) {
+        b = c2;
+        c2 = c1;
+        f2 = f1;
+        c1 = b - gr * (b - a);
+        f1 = sgn * fn(c1);
+      } else {
+        a = c1;
+        c1 = c2;
+        f1 = f2;
+        c2 = a + gr * (b - a);
+        f2 = sgn * fn(c2);
+      }
+    }
+    crit.push(fn((a + b) / 2));
+  }
+  if (crit.length === 0) crit.push(lo, hi);
+  // the smooth bandwidth between jumps, from the pictures' names
+  let bw = 0;
+  for (const p of parts) {
+    const mm = /∘(\d+)x/.exec(p.sig);
+    const mult = mm ? Number(mm[1]) : 1;
+    if (/^(sin|cos)/.test(p.sig)) bw = Math.max(bw, mult);
+    else if (/^(fract|mod)/.test(p.sig)) bw = Math.max(bw, 0);
+    else bw = Math.max(bw, 8 * mult);
+  }
+  return { fn, grid, jumps, crit, lo, hi, bw };
+};
+
+// Gauss-Legendre nodes and weights on [-1, 1]
+const glCache = new Map();
+const gaussLegendre = (n) => {
+  const hit = glCache.get(n);
+  if (hit) return hit;
+  const x = new Float64Array(n);
+  const w = new Float64Array(n);
+  for (let i = 0; i < n; i++) {
+    let z = Math.cos((Math.PI * (i + 0.75)) / (n + 0.5));
+    let pp = 0;
+    for (let it = 0; it < 100; it++) {
+      let p1 = 1;
+      let p2 = 0;
+      for (let j = 1; j <= n; j++) {
+        const p3 = p2;
+        p2 = p1;
+        p1 = ((2 * j - 1) * z * p2 - (j - 1) * p3) / j;
+      }
+      pp = (n * (z * p1 - p2)) / (z * z - 1);
+      const z1 = z;
+      z = z1 - p1 / pp;
+      if (Math.abs(z - z1) < 1e-15) break;
+    }
+    x[i] = z;
+    w[i] = 2 / ((1 - z * z) * pp * pp);
+  }
+  const out = { x, w };
+  glCache.set(n, out);
+  return out;
+};
+const GLN = 32;
+
+// the boundaries on [0, 1) of the pieces on which a + B(phi) keeps its sign:
+// the roots of a + B and the jumps of B, sorted
+const bisectRoot = (fn, a, x0, x1) => {
+  let f0 = a + fn(x0) < 0;
+  for (let it = 0; it < 60; it++) {
+    const xm = (x0 + x1) / 2;
+    if (a + fn(xm) < 0 === f0) x0 = xm;
+    else x1 = xm;
+  }
+  return (x0 + x1) / 2;
+};
+const stepBoundaries = (B, a) => {
+  const pts = [];
+  const g = B.grid;
+  const jumpAt = new Map();
+  for (const j of B.jumps) {
+    const cell = Math.min(NB - 1, Math.floor(j.at * NB));
+    if (!jumpAt.has(cell)) jumpAt.set(cell, []);
+    jumpAt.get(cell).push(j.at);
+  }
+  for (let i = 0; i < NB; i++) {
+    const x0 = i / NB;
+    const x1 = (i + 1) / NB;
+    const js = jumpAt.get(i);
+    if (!js) {
+      if (a + g[i] < 0 !== a + g[i + 1] < 0) pts.push(bisectRoot(B.fn, a, x0, x1));
+      continue;
+    }
+    // the jumps split the cell; a root may sit on either side of each
+    let lo = x0;
+    for (const j of js.sort((p, q) => p - q)) {
+      const hiSide = Math.max(lo, j - 1e-9);
+      if (hiSide > lo && a + B.fn(lo) < 0 !== a + B.fn(hiSide) < 0) pts.push(bisectRoot(B.fn, a, lo, hiSide));
+      pts.push(j);
+      lo = Math.min(x1, j + 1e-9);
+    }
+    if (x1 > lo && a + B.fn(lo) < 0 !== a + B.fn(x1) < 0) pts.push(bisectRoot(B.fn, a, lo, x1));
+  }
+  pts.sort((p, q) => p - q);
+  return pts;
+};
+// the pieces of [0, 1) between the boundary points, as [lo, hi] with hi
+// possibly past 1 (the functions are periodic)
+const piecesOf = (pts) => {
+  if (pts.length === 0) return [[0, 1]];
+  const out = [];
+  for (let i = 0; i < pts.length; i++) out.push([pts[i], i + 1 < pts.length ? pts[i + 1] : pts[0] + 1]);
+  return out;
+};
+
+// T_m(a) for |m| <= M of phi -> g(a + B(phi)), g piecewise linear: exact
+// by Gauss-Legendre on the pieces, sub-panels short enough for e^{-2 pi i m phi}
+const stepTransform1 = (gp, B, a, M, outRe, outIm) => {
+  const n = 2 * M + 1;
+  for (let i = 0; i < n; i++) {
+    outRe[i] = 0;
+    outIm[i] = 0;
+  }
+  const gl = gaussLegendre(GLN);
+  const hmax = Math.min(0.25, 20 / (Math.PI * (M + B.bw + 1)));
+  for (const [p, q] of piecesOf(stepBoundaries(B, a))) {
+    if (q - p < 1e-13) continue;
+    const mid = (p + q) / 2;
+    const neg = a + B.fn(mid) < 0;
+    const al = neg ? gp.am : gp.ap;
+    const be = neg ? gp.bm : gp.bp;
+    if (al === 0 && be === 0) continue;
+    const nsub = Math.max(1, Math.ceil((q - p) / hmax));
+    const h = (q - p) / nsub;
+    for (let s = 0; s < nsub; s++) {
+      const c0 = p + (s + 0.5) * h;
+      for (let i = 0; i < GLN; i++) {
+        const phi = c0 + 0.5 * h * gl.x[i];
+        const val = 0.5 * h * gl.w[i] * (al + be * (a + B.fn(phi)));
+        // e^{-2 pi i m phi} from m = -M up, by a recurrence
+        const ang = TAU * M * phi;
+        let er = Math.cos(ang);
+        let ei = Math.sin(ang);
+        const zr = Math.cos(TAU * phi);
+        const zi = -Math.sin(TAU * phi);
+        for (let m = 0; m < n; m++) {
+          outRe[m] += val * er;
+          outIm[m] += val * ei;
+          const nr = er * zr - ei * zi;
+          ei = er * zi + ei * zr;
+          er = nr;
+        }
+      }
+    }
+  }
+};
+// T_{m1 m2}(a) of (phi1, phi2) -> g(a + B1(phi1) + B2(phi2)): the inner
+// transform over phi1 is exact at each phi2; the outer integral has square
+// root singularities where a + B2(phi2) meets a critical value of B1, so it
+// is split there and at the jumps of B2, each panel mapped by a cosine so
+// that its ends are regular. Index (m1 + M1) (2 M2 + 1) + m2 + M2.
+const stepTransform2 = (gp, B1, B2, a, M1, M2, outRe, outIm) => {
+  const n1 = 2 * M1 + 1;
+  const n2 = 2 * M2 + 1;
+  for (let i = 0; i < n1 * n2; i++) {
+    outRe[i] = 0;
+    outIm[i] = 0;
+  }
+  const pts = [];
+  for (const v of B1.crit) for (const r of stepBoundaries(B2, a + v)) pts.push(r);
+  pts.sort((p, q) => p - q);
+  const uniq = [];
+  for (const p of pts) if (uniq.length === 0 || p - uniq[uniq.length - 1] > 1e-12) uniq.push(p);
+  const gl = gaussLegendre(GLN);
+  const tRe = new Float64Array(n1);
+  const tIm = new Float64Array(n1);
+  const hmax = Math.min(0.25, 20 / (Math.PI * (M1 / 2 + M2 + B2.bw + 1)));
+  for (const [p, q] of piecesOf(uniq)) {
+    if (q - p < 1e-13) continue;
+    const nsub = Math.max(1, Math.ceil((q - p) / hmax));
+    const h = (q - p) / nsub;
+    for (let s = 0; s < nsub; s++) {
+      const lo = p + s * h;
+      for (let i = 0; i < GLN; i++) {
+        // tau in [0, 1], phi = lo + h (1 - cos(pi tau)) / 2
+        const tau = 0.5 * (gl.x[i] + 1);
+        const phi = lo + (h * (1 - Math.cos(Math.PI * tau))) / 2;
+        const w = 0.5 * gl.w[i] * ((h * Math.PI) / 2) * Math.sin(Math.PI * tau);
+        if (w < 1e-18) continue;
+        stepTransform1(gp, B1, a + B2.fn(phi), M1, tRe, tIm);
+        const ang = TAU * M2 * phi;
+        let er = Math.cos(ang);
+        let ei = Math.sin(ang);
+        const zr = Math.cos(TAU * phi);
+        const zi = -Math.sin(TAU * phi);
+        for (let m2 = 0; m2 < n2; m2++) {
+          const wr = w * er;
+          const wi = w * ei;
+          for (let m1 = 0; m1 < n1; m1++) {
+            const o = m1 * n2 + m2;
+            outRe[o] += tRe[m1] * wr - tIm[m1] * wi;
+            outIm[o] += tRe[m1] * wi + tIm[m1] * wr;
+          }
+          const nr = er * zr - ei * zi;
+          ei = er * zi + ei * zr;
+          er = nr;
+        }
+      }
+    }
+  }
+};
+
+// the tables of a step of a sum for the residual Phi axes named by mask:
+// T_m(a) on a grid of a covering the range of c + A(x) over the X torus
+// (widened by the local Phi pictures' range), dense where T is not linear
+// in a; remembered by the closure's signature (nothing here depends on
+// the pixel)
+const stepsumCache = new Map();
+const stepsumTables = (S, mask, M0, NA) => {
+  const key = `${S.sig}|${mask}|${M0}|${NA}`;
+  const hit = stepsumCache.get(key);
+  if (hit) return hit;
+  const nX = S.X.length;
+  const phiR = [];
+  const phiL = [];
+  S.phis.forEach((q, j) => (mask & (1 << j) ? phiR : phiL).push(j));
+  const nP = phiR.length;
+  const Ms = nP === 1 ? [Math.max(M0, 48)] : [M0, M0];
+  // the range of a = c + A(x) over the X torus
+  let amin = Infinity;
+  let amax = -Infinity;
+  const NS = nX === 1 ? 1024 : 96;
+  for (let i = 0; i < NS; i++)
+    for (let j = 0; j < (nX === 2 ? NS : 1); j++) {
+      const m = new Map();
+      m.set(S.X[0].id, (i + 0.5) / NS);
+      if (nX === 2) m.set(S.X[1].id, (j + 0.5) / NS);
+      const a = S.c + (S.A.terms.length ? evalElement(S.A, m).v : 0);
+      if (Number.isFinite(a)) {
+        amin = Math.min(amin, a);
+        amax = Math.max(amax, a);
+      }
+    }
+  if (!Number.isFinite(amin)) {
+    amin = S.c;
+    amax = S.c;
+  }
+  const pad = 0.02 * (amax - amin) + 1e-6;
+  amin -= pad;
+  amax += pad;
+  for (const j of phiL) {
+    amin += S.phis[j].B.lo;
+    amax += S.phis[j].B.hi;
+  }
+  // where g(a + B_R) is not linear in a: a + [B_R.lo, B_R.hi] straddles zero
+  let bLo = 0;
+  let bHi = 0;
+  for (const j of phiR) {
+    bLo += S.phis[j].B.lo;
+    bHi += S.phis[j].B.hi;
+  }
+  const aL = Math.max(amin, -bHi - 1e-9);
+  const aR = Math.min(amax, -bLo + 1e-9);
+  const nodes = [];
+  if (aL < aR) {
+    if (amin < aL) nodes.push(amin);
+    for (let i = 0; i < NA; i++) nodes.push(aL + ((aR - aL) * i) / (NA - 1));
+    if (amax > aR) nodes.push(amax);
+  } else {
+    nodes.push(amin, amax > amin ? amax : amin + 1);
+  }
+  const aGrid = Float64Array.from(nodes);
+  const nCoef = nP === 1 ? 2 * Ms[0] + 1 : (2 * Ms[0] + 1) * (2 * Ms[1] + 1);
+  const Tre = new Float64Array(aGrid.length * nCoef);
+  const Tim = new Float64Array(aGrid.length * nCoef);
+  const rowRe = new Float64Array(nCoef);
+  const rowIm = new Float64Array(nCoef);
+  const t0 = DEBUG ? performance.now() : 0;
+  for (let ia = 0; ia < aGrid.length; ia++) {
+    if (nP === 1) stepTransform1(S.gp, S.phis[phiR[0]].B, aGrid[ia], Ms[0], rowRe, rowIm);
+    else stepTransform2(S.gp, S.phis[phiR[0]].B, S.phis[phiR[1]].B, aGrid[ia], Ms[0], Ms[1], rowRe, rowIm);
+    Tre.set(rowRe, ia * nCoef);
+    Tim.set(rowIm, ia * nCoef);
+  }
+  const tmax = new Float64Array(nCoef);
+  for (let ia = 0; ia < aGrid.length; ia++) for (let q = 0; q < nCoef; q++) tmax[q] = Math.max(tmax[q], Math.hypot(Tre[ia * nCoef + q], Tim[ia * nCoef + q]));
+  if (DEBUG) console.log(`      stepsum tables mask ${mask} Ms ${Ms.join(',')} a-nodes ${aGrid.length} [${amin.toFixed(3)}, ${amax.toFixed(3)}] active [${aL.toFixed(3)}, ${aR.toFixed(3)}] ${(performance.now() - t0).toFixed(0)} ms`);
+  const tables = { Ms, nP, nCoef, aGrid, Tre, Tim, tmax, xGrids: new Map() };
+  if (stepsumCache.size > 64) stepsumCache.clear();
+  stepsumCache.set(key, tables);
+  return tables;
+};
+// T_m(a) by linear interpolation on the a-grid: [re, im]
+const stepsumT = (tables, q, a) => {
+  const { aGrid, nCoef, Tre, Tim } = tables;
+  const n = aGrid.length;
+  if (a <= aGrid[0]) return [Tre[q], Tim[q]];
+  if (a >= aGrid[n - 1]) return [Tre[(n - 1) * nCoef + q], Tim[(n - 1) * nCoef + q]];
+  let lo = 0;
+  let hi = n - 1;
+  while (hi - lo > 1) {
+    const mid = (lo + hi) >> 1;
+    if (aGrid[mid] <= a) lo = mid;
+    else hi = mid;
+  }
+  const f = (a - aGrid[lo]) / (aGrid[hi] - aGrid[lo]);
+  return [(1 - f) * Tre[lo * nCoef + q] + f * Tre[hi * nCoef + q], (1 - f) * Tim[lo * nCoef + q] + f * Tim[hi * nCoef + q]];
+};
+// iterative radix-2 complex FFT: in place on the given arrays, twiddles and
+// the bit reversal remembered per length
+const fftPlans = new Map();
+const fftPlan = (n) => {
+  const hit = fftPlans.get(n);
+  if (hit) return hit;
+  const rev = new Uint32Array(n);
+  for (let i = 1, j = 0; i < n; i++) {
+    let bit = n >> 1;
+    for (; j & bit; bit >>= 1) j ^= bit;
+    j ^= bit;
+    rev[i] = j;
+  }
+  const wr = new Float64Array(n / 2);
+  const wi = new Float64Array(n / 2);
+  for (let k = 0; k < n / 2; k++) {
+    wr[k] = Math.cos((-TAU * k) / n);
+    wi[k] = Math.sin((-TAU * k) / n);
+  }
+  const plan = { rev, wr, wi };
+  fftPlans.set(n, plan);
+  return plan;
+};
+const fftInPlace = (R, I) => {
+  const n = R.length;
+  const { rev, wr, wi } = fftPlan(n);
+  for (let i = 1; i < n; i++) {
+    const j = rev[i];
+    if (i < j) {
+      let t = R[i];
+      R[i] = R[j];
+      R[j] = t;
+      t = I[i];
+      I[i] = I[j];
+      I[j] = t;
+    }
+  }
+  for (let len = 2; len <= n; len <<= 1) {
+    const half = len >> 1;
+    const step = n / len;
+    for (let i = 0; i < n; i += len) {
+      for (let j = 0, k = 0; j < half; j++, k += step) {
+        const cr = wr[k];
+        const ci = wi[k];
+        const ur = R[i + j];
+        const ui = I[i + j];
+        const xr = R[i + j + half];
+        const xi = I[i + j + half];
+        const vr = xr * cr - xi * ci;
+        const vi = xr * ci + xi * cr;
+        R[i + j] = ur + vr;
+        I[i + j] = ui + vi;
+        R[i + j + half] = ur - vr;
+        I[i + j + half] = ui - vi;
+      }
+    }
+  }
+};
+const fft1 = (re, im) => {
+  const R = Float64Array.from(re);
+  const I = im ? Float64Array.from(im) : new Float64Array(re.length);
+  fftInPlace(R, I);
+  return { re: R, im: I };
+};
+const fft2InPlace = (R, I, N) => {
+  const colR = new Float64Array(N);
+  const colI = new Float64Array(N);
+  for (let i = 0; i < N; i++) fftInPlace(R.subarray(i * N, (i + 1) * N), I.subarray(i * N, (i + 1) * N));
+  for (let j = 0; j < N; j++) {
+    for (let i = 0; i < N; i++) {
+      colR[i] = R[i * N + j];
+      colI[i] = I[i * N + j];
+    }
+    fftInPlace(colR, colI);
+    for (let i = 0; i < N; i++) {
+      R[i * N + j] = colR[i];
+      I[i * N + j] = colI[i];
+    }
+  }
+};
+const fft2 = (re, im, N) => {
+  const R = Float64Array.from(re);
+  const I = im ? Float64Array.from(im) : new Float64Array(N * N);
+  fft2InPlace(R, I, N);
+  return { re: R, im: I };
+};
+
 const collapseWith = (el, jetFn, name) => {
   if (el.terms.length === 0) return Element.const(jetFn(J0).v);
   // one axis, every factor a picture on it: the composition is a picture on
@@ -568,6 +1089,8 @@ export const step = (x) => {
   const P = el.pictured();
   if (s.gradNorm() < 1e-12 && P.terms.length > 0) {
     const c = s.v;
+    const sos = stepOfSum(P, c, (u) => (u >= 0 ? 1 : 0), 'step');
+    if (sos) return sos;
     return collapseWith(P, (j) => Jet.c(j.v + c >= 0 ? 1 : 0), 'step∘');
   }
   if (P.terms.length === 0 && s.gradNorm() < 1e-12) return Element.const(s.v >= 0 ? 1 : 0);
@@ -584,6 +1107,8 @@ const edgePrimitive = (name, g) => (x) => {
   const P = el.pictured();
   if (s.gradNorm() < 1e-12 && P.terms.length > 0) {
     const c = s.v;
+    const sos = stepOfSum(P, c, g, name);
+    if (sos) return sos;
     return collapseWith(P, (j) => Jet.c(g(j.v + c)), name + '∘');
   }
   if (P.terms.length === 0 && s.gradNorm() < 1e-12) return Element.const(g(s.v));
@@ -1113,6 +1638,11 @@ export class Pixel {
     this.parallelSin = 0.26; // sine of the angle within which axes count as parallel
     this.lineMaxPeriods = 24; // pointwise along a line up to this many periods of the fastest axis
     this.localPanel = 3; // Gauss-Legendre panel width along a local axis, in pixel-sigmas of it
+    this.stepsumM = 24; // harmonics per Phi axis in the tables of a step of a sum (48 at least for one axis)
+    this.stepsumNA = 257; // a-nodes of those tables over the range where T is not linear in a
+    this.stepsumKW = 32; // window of X harmonics kept from the transform over X
+    this.stepsumNG = 256; // grid per residual X axis for that transform (remembered across pixels)
+    this.stepsumNGlocal = 128; // the same when local coordinates enter it (rebuilt per point)
     this.stats = { terms: 0, recipes: 0, dfts: 0, overflow: 0, localNodes: 0 };
   }
   axisSigma(axis) {
@@ -2329,6 +2859,356 @@ export class Pixel {
     }
     return acc;
   }
+  // The sum for a step of a sum under any split of its axes: the residual
+  // Phi axes are summed through the table T_m(a); a local Phi axis is a
+  // number and its picture joins a; the residual X axes are transformed
+  // (the transform over X of F_m(x) = O(x) T_m(a(x)) e^{2 pi i m.G(x)},
+  // with O the other closures of the term, remembered across pixels when
+  // nothing local enters it) or all fixed (the table read at a and G).
+  // Returns null when the term's closures reach axes that are not its own.
+  stepsumSum(c, cr, ci, phi0, bx, by, q00, q01, q11, logCoef, residual, resGrads, resHess, resK, clos, cond, localCoords) {
+    const clo = clos.find((cl) => cl.stepsum);
+    const S = clo.stepsum;
+    const others = clos.filter((cl) => cl !== clo);
+    const lnCut = Math.log(this.cut);
+    const xIds = new Set(S.X.map((a) => a.id));
+    const bareIds = new Set(S.phis.map((q) => q.bare.id));
+    for (const o of others) for (const a of o.axes) if (!xIds.has(a.id) && !localCoords.has(a.id)) return null;
+    const resIds = new Set(residual.map((a) => a.id));
+    for (const a of residual) if (!xIds.has(a.id) && !bareIds.has(a.id)) return null;
+    const phiR = [];
+    const phiL = [];
+    S.phis.forEach((q, j) => (resIds.has(q.bare.id) ? phiR : phiL).push(j));
+    if (phiR.length === 0) return null;
+    for (const j of phiL) if (!localCoords.has(S.phis[j].bare.id)) return null;
+    const xR = [];
+    const xL = [];
+    S.X.forEach((a, i) => (resIds.has(a.id) ? xR : xL).push(i));
+    for (const i of xL) if (!localCoords.has(S.X[i].id)) return null;
+    const mask = phiR.reduce((m, j) => m | (1 << j), 0);
+    const tables = stepsumTables(S, mask, this.stepsumM, this.stepsumNA);
+    const { Ms } = tables;
+    const nP = phiR.length;
+    const nXR = xR.length;
+    const idxOf = (id) => residual.findIndex((a) => a.id === id);
+    const gP = phiR.map((j) => resGrads[idxOf(S.phis[j].bare.id)]);
+    const hP = phiR.map((j) => resHess[idxOf(S.phis[j].bare.id)]);
+    const KP = phiR.map((j, r) => Math.min(resK[idxOf(S.phis[j].bare.id)], Ms[r]));
+    const gX = xR.map((i) => resGrads[idxOf(S.X[i].id)]);
+    const hX = xR.map((i) => resHess[idxOf(S.X[i].id)]);
+    const KW = this.stepsumKW;
+    const KX = xR.map((i) => Math.min(resK[idxOf(S.X[i].id)], KW));
+    const qOf = (m) => (nP === 1 ? m[0] + Ms[0] : (m[0] + Ms[0]) * (2 * Ms[1] + 1) + m[1] + Ms[1]);
+    const ms = [];
+    if (nP === 1) for (let m = -KP[0]; m <= KP[0]; m++) ms.push([m]);
+    else for (let m1 = -KP[0]; m1 <= KP[0]; m1++) for (let m2 = -KP[1]; m2 <= KP[1]; m2++) ms.push([m1, m2]);
+    // a, the residual fields and the other closures at a full set of X
+    // coordinates (the local Phi pictures join a)
+    const aAt = (coords) => {
+      let a = S.c + (S.A.terms.length ? evalElement(S.A, coords).v : 0);
+      for (const j of phiL) {
+        const q = S.phis[j];
+        const phi = localCoords.get(q.bare.id) + (q.axis.field ? evalElement(q.axis.field, coords).v : 0);
+        for (const p of q.parts) a += p.beta * p.fn(phi);
+      }
+      return a;
+    };
+    const GAt = (coords) => phiR.map((j) => (S.phis[j].axis.field ? evalElement(S.phis[j].axis.field, coords).v : 0));
+    const othersAt = (coords) => {
+      let v = 1;
+      for (const o of others) v *= o.fn(o.axes.map((a) => coords.get(a.id))).v;
+      return v;
+    };
+    // the rates and phase of a Phi recipe
+    const phiRecipe = (m) => {
+      let mbx = bx;
+      let mby = by;
+      let mq00 = q00;
+      let mq01 = q01;
+      let mq11 = q11;
+      let phase = phi0;
+      for (let r = 0; r < nP; r++) {
+        mbx += TAU * m[r] * gP[r][0];
+        mby += TAU * m[r] * gP[r][1];
+        mq00 += TAU * m[r] * hP[r][0];
+        mq01 += TAU * m[r] * hP[r][1];
+        mq11 += TAU * m[r] * hP[r][2];
+        phase += this.axisPhase(S.phis[phiR[r]].bare, m[r]);
+      }
+      return { mbx, mby, mq00, mq01, mq11, phase };
+    };
+    let acc = 0;
+    if (nXR === 0) {
+      const a = aAt(localCoords);
+      const G = GAt(localCoords);
+      const ov = othersAt(localCoords);
+      if (Math.abs(ov) < 1e-15) return 0;
+      for (const m of ms) {
+        const [tr, ti] = stepsumT(tables, qOf(m), a);
+        let ph = 0;
+        for (let r = 0; r < nP; r++) ph += TAU * m[r] * G[r];
+        const cph = Math.cos(ph);
+        const sph = Math.sin(ph);
+        const coefR = ov * (tr * cph - ti * sph);
+        const coefI = ov * (tr * sph + ti * cph);
+        const mag = Math.hypot(coefR, coefI);
+        if (mag < 1e-13) continue;
+        const R = phiRecipe(m);
+        if (logMult(R.mbx, R.mby, R.mq00, R.mq01, R.mq11, cond) + logCoef + Math.log(mag) < lnCut) continue;
+        const v = termExpectation(cjScaleC(cjScaleC(c, coefR, coefI), cr, ci), R.phase, R.mbx, R.mby, R.mq00, R.mq01, R.mq11, cond);
+        this.stats.recipes++;
+        acc += v[0];
+      }
+      return acc;
+    }
+    // X residual: F_m on a midpoint grid of the residual X torus, its
+    // coefficients within |k| <= KW by FFT (the half-sample shift applied)
+    const cacheable = xL.length === 0 && phiL.length === 0;
+    const NG = cacheable ? this.stepsumNG : this.stepsumNGlocal;
+    const gridKey = `${mask}|${NG}|${others.map((o) => o.sig).join('*')}`;
+    let grid = cacheable ? tables.xGrids.get(gridKey) : null;
+    if (!grid) {
+      const n = nXR === 1 ? NG : NG * NG;
+      const Ag = new Float64Array(n);
+      const Og = new Float64Array(n);
+      const Gg = phiR.map(() => new Float64Array(n));
+      let oMax = 0;
+      const coords = new Map(localCoords);
+      for (let i = 0; i < NG; i++)
+        for (let j = 0; j < (nXR === 2 ? NG : 1); j++) {
+          coords.set(S.X[xR[0]].id, (i + 0.5) / NG);
+          if (nXR === 2) coords.set(S.X[xR[1]].id, (j + 0.5) / NG);
+          const idx = nXR === 2 ? i * NG + j : i;
+          Ag[idx] = aAt(coords);
+          const G = GAt(coords);
+          for (let r = 0; r < nP; r++) Gg[r][idx] = G[r];
+          Og[idx] = othersAt(coords);
+          oMax = Math.max(oMax, Math.abs(Og[idx]));
+        }
+      // the table's interpolation at every grid point (index and fraction
+      // on the a-grid), the phasor step of each residual field, and the
+      // scratch arrays of the transform
+      const aG = tables.aGrid;
+      const nA = aG.length;
+      const lo = new Int32Array(n);
+      const fr = new Float64Array(n);
+      for (let idx = 0; idx < n; idx++) {
+        const a = Ag[idx];
+        if (!(a > aG[0])) {
+          lo[idx] = 0;
+          fr[idx] = 0;
+        } else if (a >= aG[nA - 1]) {
+          lo[idx] = nA - 2;
+          fr[idx] = 1;
+        } else {
+          let l = 0;
+          let h = nA - 1;
+          while (h - l > 1) {
+            const mid = (l + h) >> 1;
+            if (aG[mid] <= a) l = mid;
+            else h = mid;
+          }
+          lo[idx] = l;
+          fr[idx] = (a - aG[l]) / (aG[h] - aG[l]);
+        }
+      }
+      const wr = phiR.map((j, r) => Float64Array.from(Gg[r], (g) => Math.cos(TAU * g)));
+      const wi = phiR.map((j, r) => Float64Array.from(Gg[r], (g) => Math.sin(TAU * g)));
+      grid = { Ag, Gg, Og, oMax, n, lo, fr, wr, wi, zr: new Float64Array(n), zi: new Float64Array(n), zm: null, re: new Float64Array(n), im: new Float64Array(n), coefs: new Map() };
+      if (cacheable) tables.xGrids.set(gridKey, grid);
+    }
+    if (grid.oMax < 1e-15) return 0;
+    const KWn = 2 * KW + 1;
+    const kRates = (R, kx, ky) => [
+      R.mbx + TAU * (kx * gX[0][0] + (nXR === 2 ? ky * gX[1][0] : 0)),
+      R.mby + TAU * (kx * gX[0][1] + (nXR === 2 ? ky * gX[1][1] : 0)),
+      R.mq00 + TAU * (kx * hX[0][0] + (nXR === 2 ? ky * hX[1][0] : 0)),
+      R.mq01 + TAU * (kx * hX[0][1] + (nXR === 2 ? ky * hX[1][1] : 0)),
+      R.mq11 + TAU * (kx * hX[0][2] + (nXR === 2 ? ky * hX[1][2] : 0)),
+    ];
+    const KY = nXR === 2 ? KX[1] : 0;
+    // the X harmonics that can pass the cut with a Phi recipe: the
+    // second-order magnitude is at most exp(-a |b|^2 / (2 (a^2 + lam^2)))
+    // for a = 1 / sig^2, b the first-order rate and lam the largest
+    // curvature any k in the box reaches, so the live k lie where the rate
+    // (or, on a line, its component along the line) is within b_max of
+    // zero: an ellipse, enumerated as an interval of ky per kx
+    const aS = 1 / (cond.sig * cond.sig);
+    const rowNorm = (h) => Math.max(Math.abs(h[0]) + Math.abs(h[1]), Math.abs(h[1]) + Math.abs(h[2]));
+    const kList = (R, budget) => {
+      if (budget <= 0) return null;
+      // the curvature of a recipe grows with |k|: lam(k) <= lam0 + sum_i
+      // rho_i |k_i|, so the bound |b(k)|^2 <= s2 (a^2 + lam(k)^2) is a
+      // quadratic inequality in ky for each kx, solved on each sign of ky
+      const lam0 = rowNorm([R.mq00, R.mq01, R.mq11]);
+      const rho = hX.map((h) => TAU * rowNorm(h));
+      const s2 = (2 * budget) / aS;
+      // b(k) = b0 + cx kx + cy ky as vectors (dim 2) or scalars along e (dim 1)
+      let b0x;
+      let b0y;
+      let cxx;
+      let cxy;
+      let cyx;
+      let cyy;
+      if (cond.dim === 2) {
+        b0x = R.mbx;
+        b0y = R.mby;
+        cxx = TAU * gX[0][0];
+        cxy = TAU * gX[0][1];
+        cyx = nXR === 2 ? TAU * gX[1][0] : 0;
+        cyy = nXR === 2 ? TAU * gX[1][1] : 0;
+      } else {
+        const ex = cond.e[0];
+        const ey = cond.e[1];
+        const mx = cond.m[0];
+        const my = cond.m[1];
+        b0x = (R.mbx + R.mq00 * mx + R.mq01 * my) * ex + (R.mby + R.mq01 * mx + R.mq11 * my) * ey;
+        b0y = 0;
+        const along = (g, h) => TAU * (g[0] * ex + g[1] * ey + (h[0] * mx + h[1] * my) * ex + (h[1] * mx + h[2] * my) * ey);
+        cxx = along(gX[0], hX[0]);
+        cxy = 0;
+        cyx = nXR === 2 ? along(gX[1], hX[1]) : 0;
+        cyy = 0;
+      }
+      // the set {y : A y^2 + B y + C <= 0} restricted to sgn y >= 0 and
+      // [-KY, KY], as [lo, hi] (empty when lo > hi)
+      const solve = (A, B, C, sgn) => {
+        let lo = sgn > 0 ? 0 : -KY;
+        let hi = sgn > 0 ? KY : 0;
+        if (Math.abs(A) < 1e-18) {
+          if (Math.abs(B) < 1e-18) return C <= 0 ? [lo, hi] : [1, 0];
+          const r = -C / B;
+          if (B > 0) hi = Math.min(hi, Math.floor(r + 1e-9));
+          else lo = Math.max(lo, Math.ceil(r - 1e-9));
+          return [lo, hi];
+        }
+        const disc = B * B - 4 * A * C;
+        if (A > 0) {
+          if (disc < 0) return [1, 0];
+          const sq = Math.sqrt(disc);
+          return [Math.max(lo, Math.ceil((-B - sq) / (2 * A) - 1e-9)), Math.min(hi, Math.floor((-B + sq) / (2 * A) + 1e-9))];
+        }
+        // A < 0: the set is everything outside the roots (or everything)
+        if (disc < 0) return [lo, hi];
+        const sq = Math.sqrt(disc);
+        const r1 = (-B + sq) / (2 * A);
+        const r2 = (-B - sq) / (2 * A);
+        const left = [lo, Math.min(hi, Math.floor(Math.min(r1, r2) + 1e-9))];
+        const right = [Math.max(lo, Math.ceil(Math.max(r1, r2) - 1e-9)), hi];
+        const ok1 = left[0] <= left[1];
+        const ok2 = right[0] <= right[1];
+        if (ok1 && ok2) return [left[0], right[1]];
+        if (ok1) return left;
+        if (ok2) return right;
+        return [1, 0];
+      };
+      const out = [];
+      for (let kx = -KX[0]; kx <= KX[0]; kx++) {
+        const px = b0x + cxx * kx;
+        const py = b0y + cxy * kx;
+        const L = lam0 + rho[0] * Math.abs(kx);
+        if (nXR === 1) {
+          if (px * px + py * py <= s2 * (aS * aS + L * L)) out.push([kx, 0, 0]);
+          continue;
+        }
+        const r1 = rho[1];
+        const A0 = cyx * cyx + cyy * cyy - s2 * r1 * r1;
+        const B0 = 2 * (px * cyx + py * cyy);
+        const C0 = px * px + py * py - s2 * (aS * aS + L * L);
+        const up = solve(A0, B0 - 2 * s2 * L * r1, C0, 1);
+        const dn = solve(A0, B0 + 2 * s2 * L * r1, C0, -1);
+        const lo = Math.min(up[0] <= up[1] ? up[0] : Infinity, dn[0] <= dn[1] ? dn[0] : Infinity);
+        const hi = Math.max(up[0] <= up[1] ? up[1] : -Infinity, dn[0] <= dn[1] ? dn[1] : -Infinity);
+        if (lo <= hi) out.push([kx, lo, hi]);
+      }
+      return out.length ? out : null;
+    };
+    for (const m of ms) {
+      const q = qOf(m);
+      const tm = tables.tmax[q] * grid.oMax;
+      if (tm < 1e-13) continue;
+      const R = phiRecipe(m);
+      const ks = kList(R, logCoef + Math.log(tm) - lnCut);
+      if (!ks) continue;
+      const ckey = m.join(',');
+      let F = grid.coefs.get(ckey);
+      if (!F) {
+        const n = grid.n;
+        const { zr, zi, re, im, lo, fr, Og } = grid;
+        // e^{2 pi i m.G(x)} on the grid: advanced by one step of the last
+        // Phi harmonic from the previous m when they differ by that, else
+        // recomputed
+        const last = grid.zm;
+        const rl = nP - 1;
+        if (last && (nP === 1 || last[0] === m[0]) && m[rl] === last[rl] + 1) {
+          const sr = grid.wr[rl];
+          const si = grid.wi[rl];
+          for (let idx = 0; idx < n; idx++) {
+            const a = zr[idx];
+            const b = zi[idx];
+            zr[idx] = a * sr[idx] - b * si[idx];
+            zi[idx] = a * si[idx] + b * sr[idx];
+          }
+        } else {
+          for (let idx = 0; idx < n; idx++) {
+            let ph = 0;
+            for (let r = 0; r < nP; r++) ph += TAU * m[r] * grid.Gg[r][idx];
+            zr[idx] = Math.cos(ph);
+            zi[idx] = Math.sin(ph);
+          }
+        }
+        grid.zm = m.slice();
+        const { Tre, Tim, nCoef } = tables;
+        for (let idx = 0; idx < n; idx++) {
+          const l = lo[idx] * nCoef + q;
+          const f = fr[idx];
+          const tr = (1 - f) * Tre[l] + f * Tre[l + nCoef];
+          const ti = (1 - f) * Tim[l] + f * Tim[l + nCoef];
+          const o = Og[idx];
+          re[idx] = o * (tr * zr[idx] - ti * zi[idx]);
+          im[idx] = o * (tr * zi[idx] + ti * zr[idx]);
+        }
+        if (nXR === 1) fftInPlace(re, im);
+        else fft2InPlace(re, im, NG);
+        const T = { re, im };
+        const wn = nXR === 1 ? KWn : KWn * KWn;
+        const Fre = new Float32Array(wn);
+        const Fim = new Float32Array(wn);
+        for (let kx = -KW; kx <= KW; kx++)
+          for (let ky = -(nXR === 2 ? KW : 0); ky <= (nXR === 2 ? KW : 0); ky++) {
+            const ix = ((kx % NG) + NG) % NG;
+            const iy = ((ky % NG) + NG) % NG;
+            const idx = nXR === 2 ? ix * NG + iy : ix;
+            const ang = (-Math.PI * (kx + ky)) / NG;
+            const ca = Math.cos(ang);
+            const sa = Math.sin(ang);
+            const r0 = T.re[idx] / grid.n;
+            const i0 = T.im[idx] / grid.n;
+            const w = nXR === 2 ? (kx + KW) * KWn + ky + KW : kx + KW;
+            Fre[w] = r0 * ca - i0 * sa;
+            Fim[w] = r0 * sa + i0 * ca;
+          }
+        F = { re: Fre, im: Fim };
+        grid.coefs.set(ckey, F);
+        this.stats.dfts++;
+      }
+      for (const [kx, kyLo, kyHi] of ks)
+        for (let ky = kyLo; ky <= kyHi; ky++) {
+          const w = nXR === 2 ? (kx + KW) * KWn + ky + KW : kx + KW;
+          const coefR = F.re[w];
+          const coefI = F.im[w];
+          const mag = Math.hypot(coefR, coefI);
+          if (mag < 1e-13) continue;
+          const r = kRates(R, kx, ky);
+          if (logMult(r[0], r[1], r[2], r[3], r[4], cond) + logCoef + Math.log(mag) < lnCut) continue;
+          const ph2 = R.phase + this.axisPhase(S.X[xR[0]], kx) + (nXR === 2 ? this.axisPhase(S.X[xR[1]], ky) : 0);
+          const v = termExpectation(cjScaleC(cjScaleC(c, coefR, coefI), cr, ci), ph2, r[0], r[1], r[2], r[3], r[4], cond);
+          this.stats.recipes++;
+          acc += v[0];
+        }
+    }
+    return acc;
+  }
   residualSum(c, picCoef, ks, bx, by, logCoef, residual, resGrads, resHess, resK, clos, cond, localCoords) {
     const S = this.sig * this.sig;
     const lnCut = Math.log(this.cut);
@@ -2380,6 +3260,10 @@ export class Pixel {
       }
       return { re, im };
     };
+    if (fields.length === 0 && clos.some((cl) => cl.stepsum)) {
+      const v = this.stepsumSum(c, cr, ci, phi0, bx, by, q00, q01, q11, logCoef, residual, resGrads, resHess, resK, clos, cond, localCoords);
+      if (v !== null) return v;
+    }
     if (residual.length === 0) {
       // everything fixed: the closure is a constant jet
       const v = resFn([]);
@@ -2578,21 +3462,20 @@ const roundK = (K) => {
 const fourierJet2 = (fn, K0in, K1in, axes) => {
   const K0 = roundK(K0in);
   const K1 = roundK(K1in);
-  const M0 = 4 * K0 + 8;
   const wrap = (a) => (a.kind === 'edge' ? (u) => a.center + (u - Math.round(u)) * a.edgePeriod : (u) => u);
   const w0 = wrap(axes[0]);
   const w1 = wrap(axes[1]);
-  const rowCoef = new Array(M0);
-  for (let i = 0; i < M0; i++) {
-    const u0 = w0(i / M0);
-    const g = (u1) => fn([u0, w1(u1)]);
-    // jumps along axis 1 on this row
+  const n1 = 2 * K1 + 1;
+  // the jumps along axis 1 on the row at u0
+  const rowJumps = (u0) => {
+    const x0 = w0(u0);
+    const g = (u1) => fn([x0, w1(u1)]).re.v;
     const Ms = 64;
     const vals = new Float64Array(Ms + 1);
     let vmin = Infinity;
     let vmax = -Infinity;
     for (let j = 0; j <= Ms; j++) {
-      vals[j] = g(j / Ms).re.v;
+      vals[j] = g(j / Ms);
       vmin = Math.min(vmin, vals[j]);
       vmax = Math.max(vmax, vals[j]);
     }
@@ -2600,17 +3483,26 @@ const fourierJet2 = (fn, K0in, K1in, axes) => {
     for (let j = 0; j < Ms; j++) {
       const d = Math.abs(vals[j + 1] - vals[j]);
       if (d > 0.25 * Math.max(vmax - vmin, 1e-12) + 1e-12) {
-        let x0 = j / Ms;
-        let x1 = (j + 1) / Ms;
+        let a = j / Ms;
+        let b = (j + 1) / Ms;
         const f0 = vals[j];
         for (let it = 0; it < 40; it++) {
-          const xm = (x0 + x1) / 2;
-          if (Math.abs(g(xm).re.v - f0) > d / 2) x1 = xm;
-          else x0 = xm;
+          const xm = (a + b) / 2;
+          if (Math.abs(g(xm) - f0) > d / 2) b = xm;
+          else a = xm;
         }
-        jumps.push((x0 + x1) / 2);
+        // a steep slope shrinks with the bracket, a jump does not
+        if (Math.abs(g(b) - g(a)) < 0.5 * d) continue;
+        jumps.push((a + b) / 2);
       }
     }
+    return jumps;
+  };
+  // the row's coefficients in m1 (jets), by Gauss-Legendre between its jumps
+  const rowCoefs = (u0) => {
+    const x0 = w0(u0);
+    const g = (u1) => fn([x0, w1(u1)]);
+    const jumps = rowJumps(u0);
     const nodes = [];
     if (jumps.length === 0) {
       const M1 = Math.max(64, 2 * K1 + 2);
@@ -2631,12 +3523,8 @@ const fourierJet2 = (fn, K0in, K1in, axes) => {
         }
       }
     }
-    const rowR = new Array(2 * K1 + 1);
-    const rowI = new Array(2 * K1 + 1);
-    for (let m1 = -K1; m1 <= K1; m1++) {
-      rowR[m1 + K1] = J0;
-      rowI[m1 + K1] = J0;
-    }
+    const rowR = new Array(n1).fill(J0);
+    const rowI = new Array(n1).fill(J0);
     for (const [u1, wt] of nodes) {
       const { re, im } = g(u1);
       const r = re.scale(wt);
@@ -2658,27 +3546,69 @@ const fourierJet2 = (fn, K0in, K1in, axes) => {
         cr = nr;
       }
     }
-    rowCoef[i] = { rowR, rowI };
-  }
-  const re = new Array((2 * K0 + 1) * (2 * K1 + 1));
-  const im = new Array((2 * K0 + 1) * (2 * K1 + 1));
-  for (let m0 = -K0; m0 <= K0; m0++)
-    for (let m1 = -K1; m1 <= K1; m1++) {
-      let aR = J0;
-      let aI = J0;
-      for (let i = 0; i < M0; i++) {
-        const ang = (-TAU * m0 * i) / M0;
-        const c = Math.cos(ang);
-        const sn = Math.sin(ang);
-        const r = rowCoef[i].rowR[m1 + K1];
-        const m = rowCoef[i].rowI[m1 + K1];
-        aR = aR.add(r.scale(c).sub(m.scale(sn)));
-        aI = aI.add(r.scale(sn).add(m.scale(c)));
-      }
-      const idx = (m0 + K0) * (2 * K1 + 1) + (m1 + K1);
-      re[idx] = aR.scale(1 / M0);
-      im[idx] = aI.scale(1 / M0);
+    return { rowR, rowI, jumps: jumps.length };
+  };
+  // The outer direction. Where the number of jumps on a row changes, a
+  // jump curve is tangent to the rows and the row's coefficients have a
+  // square-root singularity in u0; where the closure jumps along u0 they
+  // jump. Both are located and the circle of u0 is cut there; each piece is
+  // integrated on cosine-mapped Gauss-Legendre sub-panels, which are exact
+  // at square-root ends.
+  const MS0 = 64;
+  const counts = new Int32Array(MS0 + 1);
+  for (let i = 0; i <= MS0; i++) counts[i] = rowJumps(i / MS0).length;
+  const sing = [];
+  for (let i = 0; i < MS0; i++) {
+    if (counts[i] === counts[i + 1]) continue;
+    let a = i / MS0;
+    let b = (i + 1) / MS0;
+    const ca = counts[i];
+    for (let it = 0; it < 30; it++) {
+      const m = (a + b) / 2;
+      if (rowJumps(m).length === ca) a = m;
+      else b = m;
     }
+    sing.push((a + b) / 2);
+  }
+  for (const u1c of [0.13, 0.41, 0.67, 0.89]) for (const j of locateJumps((u0) => fn([w0(u0), w1(u1c)]).re.v, 64)) sing.push(j);
+  sing.sort((p, q) => p - q);
+  const cuts = [];
+  for (const s of sing) if (cuts.length === 0 || s - cuts[cuts.length - 1] > 1e-9) cuts.push(s);
+  const pieces = [];
+  if (cuts.length === 0) pieces.push([0, 1]);
+  else for (let i = 0; i < cuts.length; i++) pieces.push([cuts[i], i + 1 < cuts.length ? cuts[i + 1] : cuts[0] + 1]);
+  const gl = gaussLegendre(16);
+  const hmax = Math.min(0.25, 20 / (Math.PI * (K0 + K1 / 2 + 2)));
+  const n0 = 2 * K0 + 1;
+  const re = new Array(n0 * n1).fill(J0);
+  const im = new Array(n0 * n1).fill(J0);
+  for (const [p, q] of pieces) {
+    if (q - p < 1e-12) continue;
+    const nsub = Math.max(1, Math.ceil((q - p) / hmax));
+    const h = (q - p) / nsub;
+    for (let s = 0; s < nsub; s++) {
+      const lo = p + s * h;
+      for (let i = 0; i < gl.x.length; i++) {
+        const tau = 0.5 * (gl.x[i] + 1);
+        const u0 = lo + (h * (1 - Math.cos(Math.PI * tau))) / 2;
+        const w = 0.5 * gl.w[i] * ((h * Math.PI) / 2) * Math.sin(Math.PI * tau);
+        if (w < 1e-18) continue;
+        const { rowR, rowI } = rowCoefs(u0 - Math.floor(u0));
+        for (let m0 = -K0; m0 <= K0; m0++) {
+          const ang = -TAU * m0 * u0;
+          const c = w * Math.cos(ang);
+          const sn = w * Math.sin(ang);
+          const base = (m0 + K0) * n1;
+          for (let m1 = 0; m1 < n1; m1++) {
+            const r = rowR[m1];
+            const m = rowI[m1];
+            re[base + m1] = re[base + m1].add(r.scale(c).sub(m.scale(sn)));
+            im[base + m1] = im[base + m1].add(r.scale(sn).add(m.scale(c)));
+          }
+        }
+      }
+    }
+  }
   return { re, im, K0, K1 };
 };
 
@@ -2689,4 +3619,4 @@ export const resetAxes = () => {
   axisCounter = 0;
   axisRegistry.clear();
 };
-export { evalElement, TAU };
+export { evalElement, TAU, stepsumTables as __stepsumTables, stepTransform1 as __stepTransform1, stepTransform2 as __stepTransform2, makeB as __makeB, STEP_PIECES as __STEP_PIECES, fft2 as __fft2 };

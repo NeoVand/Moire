@@ -13,7 +13,9 @@ import { Jet, Pixel } from './fjet.mjs';
 const TAU = 2 * Math.PI;
 const W = 480;
 const H = 320;
-const SIG = 0.5;
+// FJET_SIG overrides the pixel's sigma (a diagnostic: the truth and the
+// compiler both use it)
+const SIG = process.env.FJET_SIG ? Number(process.env.FJET_SIG) : 0.5;
 const args = process.argv.slice(2);
 const PROBE = args.includes('--probe');
 const SAVE = args.includes('--save');
@@ -554,6 +556,8 @@ const wanted = CASES.filter((c) => !only || only.slice(7).split(',').includes(c.
 const main = async () => {
 
 const atArg = process.argv.find((a) => a.startsWith('--at='));
+// FJET_BRUTE=N: samples of the probe's brute force (100000 by default)
+const NBRUTE = process.env.FJET_BRUTE ? Number(process.env.FJET_BRUTE) : 100000;
 const PROBE_AT = atArg ? atArg.slice(5).split(';').map((p) => p.split(',').map(Number)) : null;
 if (PROBE) {
   for (const cs of wanted) {
@@ -576,9 +580,14 @@ if (PROBE) {
     ]) {
       const stats = { terms: 0, recipes: 0, dfts: 0, overflow: 0 };
       const t0 = performance.now();
-      const v = oursPixel(cs, x, y, stats)[0];
+      let v = NaN;
+      try {
+        v = oursPixel(cs, x, y, stats)[0];
+      } catch (e) {
+        console.log(`  (${x},${y}) FAILED: ${e.message.slice(0, 300)}`);
+      }
       const ms = performance.now() - t0;
-      const ref = brutePixel(cs, x, y, 100000, 1);
+      const ref = brutePixel(cs, x, y, NBRUTE, 1);
       const pt = cs.eval(NUM, x, y, false)[0];
       console.log(`  (${x},${y}) ours ${v.toFixed(5)} brute ${ref.toFixed(5)} |err| ${Math.abs(v - ref).toExponential(1)} point ${pt.toFixed(3)}  recipes ${stats.recipes} dfts ${stats.dfts} ${stats.overflow ? 'OVERFLOW' : ''} ${ms.toFixed(1)} ms`);
     }
@@ -662,4 +671,7 @@ for (const cs of wanted) {
   writeFileSync(new URL('../../data/fjet-yb.json', import.meta.url), JSON.stringify({ protocol: { W, H, sigma: SIG, samples: QUICK ? 200 : 1000 }, results }, null, 1));
 }
 };
-if (isMainThread) main();
+if (isMainThread && !process.env.FJET_LIB) main();
+// FJET_LIB=1: import the harness as a library (no main); the cases and the
+// pixel evaluators are what a debugging script needs
+export { CASES, oursPixel, brutePixel, SIG, W, H, FJ, NUM };
