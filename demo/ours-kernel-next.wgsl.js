@@ -1378,7 +1378,236 @@ fn circlesMeanMode(J: Jets, S: f32, mode: u32) -> vec2f {
 `;
 
 const PORTABLE = PORTABLE_MATH + exactRegions() + PORTABLE_H;
+
+export const MASK_WGSL = /* wgsl */ `
+// ---------------------------------------------------------------------------
+// a thresholded quasi-periodic field, the first node beyond tilings and discs:
+// F(s, t) = sum_i a_i sin(k_i . (s, t) + phi_i), picture 1{F > t0}. Three
+// regimes with witnesses: the near field where the fastest wavenumber times
+// sigma is under 0.15 takes the field's second-order jet as a conic (regime 1);
+// the mid field up to 1.5 takes exact roots along lines parallel to the
+// gradient with quadrature across them (regime 2); beyond that the picture's
+// stationary coverage, flagged (regime 4)
+// ---------------------------------------------------------------------------
+const MASK_T0: f32 = 0.3;
+const MASK_A: vec3f = vec3f(1.0, 0.8, 0.6);
+const MASK_PH: vec3f = vec3f(0.0, 1.0, 2.0);
+const MASK_K1: vec2f = vec2f(0.260980704, 0.0807307922); const MASK_K2: vec2f = vec2f(-0.0476208137, 0.366518457); const MASK_K3: vec2f = vec2f(-0.554610007, 0.136658897);
+fn maskField(s: f32, t: f32) -> f32 {
+  let st: vec2f = vec2f(s, t);
+  return MASK_A.x * sin(dot(MASK_K1, st) + MASK_PH.x) + MASK_A.y * sin(dot(MASK_K2, st) + MASK_PH.y) + MASK_A.z * sin(dot(MASK_K3, st) + MASK_PH.z);
+}
+// the field at a footprint point X (pixels from the centre) by the exact
+// rational-linear pullback: s = period (u0 + (gu + u0 r) . X) / (1 + r . X)
+fn maskAt(J: Jets, rr: vec2f, period: f32, X: vec2f) -> f32 {
+  WORK += 1.0;
+  let den: f32 = 1.0 + dot(rr, X);
+  let s: f32 = period * (J.u0 + dot(J.gu + J.u0 * rr, X)) / den;
+  let t: f32 = period * (J.v0 + dot(J.gv + J.v0 * rr, X)) / den;
+  return maskField(s, t);
+}
+// the Gaussian measure along the line X = p ePerp + tau e of {F > t0}: sign
+// changes on a scan of step h, six bisections each, the intervals summed exactly
+fn maskLine(J: Jets, rr: vec2f, period: f32, sig: f32, e: vec2f, ePerp: vec2f, p: f32, h: f32) -> f32 {
+  let Lt: f32 = 4.0 * sig;
+  let ns: i32 = clamp(i32(ceil(2.0 * Lt / h)), 4, 64);
+  let dg: f32 = 2.0 * Lt / f32(ns);
+  var ta: f32 = -Lt;
+  var fa: f32 = maskAt(J, rr, period, p * ePerp + ta * e) - MASK_T0;
+  var inside: bool = fa > 0.0;
+  var lo: f32 = -Lt;
+  var acc: f32 = 0.0;
+  for (var i: i32 = 1; i <= ns; i++) {
+    let tb: f32 = -Lt + f32(i) * dg;
+    let fb: f32 = maskAt(J, rr, period, p * ePerp + tb * e) - MASK_T0;
+    if ((fa > 0.0) != (fb > 0.0)) {
+      var a: f32 = ta;
+      var b: f32 = tb;
+      var fav: f32 = fa;
+      for (var it: i32 = 0; it < 6; it++) {
+        let m: f32 = 0.5 * (a + b);
+        let fm: f32 = maskAt(J, rr, period, p * ePerp + m * e) - MASK_T0;
+        if ((fm > 0.0) == (fav > 0.0)) { a = m; fav = fm; } else { b = m; }
+      }
+      let root: f32 = 0.5 * (a + b);
+      if (inside) { acc += Phi(root / sig) - Phi(lo / sig); inside = false; }
+      else { lo = root; inside = true; }
+    }
+    ta = tb;
+    fa = fb;
+  }
+  if (inside) { acc += Phi(Lt / sig) - Phi(lo / sig); }
+  return acc;
+}
+// the far field: the indicator's Fourier series on the torus of the three phases,
+// g(theta) = 1{sum a_i sin theta_i > t0}, recipes m = (m1, m2, m3) with the rate
+// sum m_i grad theta_i and the phases' curvatures; the table MASK_C holds c_m for
+// |m_i| <= MASK_M, real when m1 + m2 + m3 is even and imaginary when odd (the
+// indicator is invariant under theta -> pi - theta). The first two rates form the
+// lattice, the third the shift, as in the ripple path; a recipe outside the table
+// or an exhausted budget is reported as regime 4
+const MASK_M: i32 = 12;
+@group(0) @binding(3) var<storage, read> MASK_C: array<f32>;
+fn maskCoef(m1: i32, m2: i32, m3: i32) -> f32 {
+  let W: i32 = 2 * MASK_M + 1;
+  return MASK_C[((m1 + MASK_M) * W + (m2 + MASK_M)) * W + (m3 + MASK_M)];
+}
+fn maskSpectral(th: vec3f, g1: vec2f, g2: vec2f, g3: vec2f, H1: vec3f, H2: vec3f, H3: vec3f, S: f32) -> vec2f {
+  var acc: f32 = maskCoef(0, 0, 0);
+  let Lat: Lattice = reduceLattice(g1 / TAU, g2 / TAU);
+  let w3: vec2f = g3 / TAU;
+  let hn: f32 = sqrt(H1.x * H1.x + 2.0 * H1.y * H1.y + H1.z * H1.z) + sqrt(H2.x * H2.x + 2.0 * H2.y * H2.y + H2.z * H2.z) + sqrt(H3.x * H3.x + 2.0 * H3.y * H3.y + H3.z * H3.z);
+  let lam: f32 = hn * 8.0;
+  let Rr: f32 = min(1.6 * sqrt(1.0 + S * S * lam * lam), 12.0);
+  let n1: f32 = length(Lat.b1);
+  let e1: vec2f = Lat.b1 / max(n1, 1e-30);
+  let ePerp: vec2f = vec2f(-e1.y, e1.x);
+  let sPerp: f32 = dot(Lat.b2, ePerp);
+  let b2Par: f32 = dot(Lat.b2, e1);
+  if (n1 < 1e-4 || abs(sPerp) < 1e-4) { return vec2f(acc, 4.0); }
+  var tried: i32 = 0;
+  var flagged: bool = false;
+  for (var pp: i32 = 0; pp <= MASK_M; pp++) {
+    let mult: f32 = select(2.0, 1.0, pp == 0);
+    let c: vec2f = f32(pp) * w3;
+    let cPerp: f32 = dot(c, ePerp);
+    let cPar: f32 = dot(c, e1);
+    let nA: f32 = (-Rr - cPerp) / sPerp;
+    let nB: f32 = (Rr - cPerp) / sPerp;
+    let nLo: f32 = ceil(min(nA, nB));
+    let nHi: f32 = floor(max(nA, nB));
+    let nCount: i32 = i32(min(max(nHi - nLo, -1.0), 512.0)) + 1;
+    for (var iN: i32 = 0; iN < nCount; iN++) {
+      let n: f32 = nLo + f32(iN);
+      let dPerp: f32 = n * sPerp + cPerp;
+      let hw2: f32 = Rr * Rr - dPerp * dPerp;
+      if (hw2 < 0.0) { continue; }
+      let hw: f32 = sqrt(hw2);
+      let mStar: f32 = -(n * b2Par + cPar) / n1;
+      var m0: f32 = ceil(mStar - hw / n1);
+      var mEnd: f32 = floor(mStar + hw / n1);
+      // the table's box |m1|, |m2| <= M clips the row: (m1, m2) = m T0 + n T1, and a
+      // near-resonant basis steps m1 or m2 by several units a lattice step, so the
+      // box leaves a few candidates a row where the disc alone holds hundreds
+      let Mf: f32 = f32(MASK_M);
+      // a basis step that leaves m1 (or m2) fixed along the row: the row is in or out as a whole
+      if (abs(Lat.T0.x) <= 0.5 && abs(n * Lat.T1.x) > Mf + 0.5) { continue; }
+      if (abs(Lat.T0.y) <= 0.5 && abs(n * Lat.T1.y) > Mf + 0.5) { continue; }
+      if (abs(Lat.T0.x) > 0.5) {
+        let lo: f32 = (-Mf - n * Lat.T1.x) / Lat.T0.x;
+        let hi: f32 = (Mf - n * Lat.T1.x) / Lat.T0.x;
+        m0 = max(m0, ceil(min(lo, hi)));
+        mEnd = min(mEnd, floor(max(lo, hi)));
+      }
+      if (abs(Lat.T0.y) > 0.5) {
+        let lo: f32 = (-Mf - n * Lat.T1.y) / Lat.T0.y;
+        let hi: f32 = (Mf - n * Lat.T1.y) / Lat.T0.y;
+        m0 = max(m0, ceil(min(lo, hi)));
+        mEnd = min(mEnd, floor(max(lo, hi)));
+      }
+      let mCount: i32 = i32(min(max(mEnd - m0, -1.0), 512.0)) + 1;
+      for (var iM: i32 = 0; iM < mCount; iM++) {
+        let m: f32 = m0 + f32(iM);
+        tried += 1;
+        if (tried > 4096) { flagged = true; break; }
+        let ab: vec2f = m * Lat.T0 + n * Lat.T1;
+        let m1: i32 = i32(round(ab.x));
+        let m2: i32 = i32(round(ab.y));
+        if (pp == 0 && m1 == 0 && m2 == 0) { continue; } // the mean is already in
+        let bb: vec2f = f32(m1) * g1 + f32(m2) * g2 + f32(pp) * g3;
+        let qq: vec3f = f32(m1) * H1 + f32(m2) * H2 + f32(pp) * H3;
+        let lamT: f32 = sqrt(qq.x * qq.x + 2.0 * qq.y * qq.y + qq.z * qq.z);
+        let curv: f32 = 1.0 + S * S * lamT * lamT;
+        let reach: f32 = TAU * 1.6 * sqrt(curv);
+        if (dot(bb, bb) > reach * reach) { continue; }
+        let mb: f32 = exp(-0.5 * S * dot(bb, bb) / curv);
+        // a recipe beyond the table: its coefficient is under the last shell's 2e-3, so
+        // it matters, and flags the pixel, only when its multiplier is substantial
+        if (abs(m1) > MASK_M || abs(m2) > MASK_M) { if (mb > 0.25) { flagged = true; } continue; }
+        let cm: f32 = maskCoef(m1, m2, pp);
+        if (abs(cm) * mb < 1e-5) { continue; }
+        var phi0: f32 = f32(m1) * th.x + f32(m2) * th.y + f32(pp) * th.z;
+        // an imaginary coefficient i c: Re(i c E) = c Re(E e^{i pi / 2})
+        if (((m1 + m2 + pp) & 1) == 1) { phi0 += 0.5 * PI; }
+        acc += mult * cm * multRe(phi0, bb, qq, S);
+      }
+      if (tried > 4096) { break; }
+    }
+    if (tried > 4096) { break; }
+  }
+  return vec2f(acc, select(2.0, 4.0, flagged));
+}
+// mode 7 forces the line regime where the conic would apply; mode 8 the
+// spectral series everywhere; mean is the picture's stationary coverage, the
+// answer when the series cannot be evaluated
+fn maskMeanHMode(hu: vec3f, hv: vec3f, hd: vec3f, x: f32, y: f32, period: f32, S: f32, mean: f32, mode: u32) -> vec2f {
+  let sig: f32 = sqrt(S);
+  let J: Jets = jetsFromHomography(hu, hv, hd, x, y, period);
+  let pt: vec3f = vec3f(x, y, 1.0);
+  let D: f32 = dot(hd, pt);
+  let rr: vec2f = hd.xy / D;
+  let st0: vec2f = period * vec2f(J.u0, J.v0);
+  let gs: vec2f = period * J.gu;
+  let gt: vec2f = period * J.gv;
+  let Hs: vec3f = period * J.Hu;
+  let Ht: vec3f = period * J.Hv;
+  // the field's jet at the centre and its fastest wavenumber in pixels
+  var F0: f32 = 0.0;
+  var gF: vec2f = vec2f(0.0);
+  var HF: vec3f = vec3f(0.0);
+  var kmax: f32 = 0.0;
+  var th0: vec3f = vec3f(0.0);
+  var g1: vec2f = vec2f(0.0); var g2: vec2f = vec2f(0.0); var g3: vec2f = vec2f(0.0);
+  var H1: vec3f = vec3f(0.0); var H2: vec3f = vec3f(0.0); var H3: vec3f = vec3f(0.0);
+  for (var i: i32 = 0; i < 3; i++) {
+    var k: vec2f = MASK_K1; var a: f32 = MASK_A.x; var ph: f32 = MASK_PH.x;
+    if (i == 1) { k = MASK_K2; a = MASK_A.y; ph = MASK_PH.y; }
+    if (i == 2) { k = MASK_K3; a = MASK_A.z; ph = MASK_PH.z; }
+    let th: f32 = dot(k, st0) + ph;
+    let gth: vec2f = k.x * gs + k.y * gt;
+    let Hth: vec3f = k.x * Hs + k.y * Ht;
+    if (i == 0) { th0.x = th; g1 = gth; H1 = Hth; } else if (i == 1) { th0.y = th; g2 = gth; H2 = Hth; } else { th0.z = th; g3 = gth; H3 = Hth; }
+    let sn: f32 = sin(th);
+    let cs: f32 = cos(th);
+    F0 += a * sn;
+    gF += a * cs * gth;
+    HF += a * (cs * Hth - sn * vec3f(gth.x * gth.x, gth.x * gth.y, gth.y * gth.y));
+    kmax = max(kmax, length(gth));
+  }
+  let ks: f32 = kmax * sig;
+  if (mode == 8u) { return maskSpectral(th0, g1, g2, g3, H1, H2, H3, S); }
+  if (ks < 0.15 && mode != 7u) {
+    // the near field: the zero set of the jet is a conic; quadRegion measures q <= 0
+    return vec2f(quadRegion(MASK_T0 - F0, -gF, -HF, S), 1.0);
+  }
+  if (ks < 1.5 || mode == 7u) {
+    let gn: f32 = length(gF);
+    var e: vec2f = vec2f(1.0, 0.0);
+    if (gn > 1e-12) { e = gF / gn; }
+    let ePerp: vec2f = vec2f(-e.y, e.x);
+    // the scan step: an eighth of the shortest wavelength (a quarter missed islands
+    // narrower than the step near the spectral boundary: 0.2 lost at one pixel)
+    let h: f32 = min(0.5, TAU / (8.0 * max(kmax, 1e-6)));
+    let Lp: f32 = 3.5 * sig;
+    var acc: f32 = 0.0;
+    var norm: f32 = 0.0;
+    for (var q: i32 = 0; q < 2; q++) {
+      let a: f32 = -Lp + f32(q) * Lp;
+      for (var kq: i32 = 0; kq < 8; kq++) {
+        let p: f32 = a + 0.5 * Lp * (1.0 + glx8(kq));
+        let w: f32 = glw8(kq) * 0.5 * Lp * 0.3989422804014327 * exp(-0.5 * p * p / S) / sig;
+        acc += w * maskLine(J, rr, period, sig, e, ePerp, p, h);
+        norm += w;
+      }
+    }
+    return vec2f(acc / max(norm, 1e-12), 2.0);
+  }
+  let sp: vec2f = maskSpectral(th0, g1, g2, g3, H1, H2, H3, S);
+  if (sp.y > 3.5) { return vec2f(mean, 4.0); }
+  return sp;
+}
+`;
 export const OURS_KERNEL_CORE = PORTABLE + LEGACY_WGSL;
-export const OURS_KERNEL = OURS_KERNEL_CORE + RIPPLES_WGSL;
+export const OURS_KERNEL = OURS_KERNEL_CORE + RIPPLES_WGSL + MASK_WGSL;
 export const HAS_WORK_COUNTER = true;
 export const OURS_KERNEL_HLSL = HLSL_PRELUDE + toHLSL(PORTABLE);

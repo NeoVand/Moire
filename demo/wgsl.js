@@ -1,5 +1,5 @@
 import { OURS_KERNEL } from './ours-kernel.wgsl.js';
-import { OURS_KERNEL_CORE as NEXT_CORE, ripplesWith, RIPPLES_LINE, RIPPLES_SPECTRAL, RIPPLES_LINE_STUB, RIPPLES_SPECTRAL_STUB } from './ours-kernel-next.wgsl.js';
+import { OURS_KERNEL_CORE as NEXT_CORE, ripplesWith, RIPPLES_LINE, RIPPLES_SPECTRAL, RIPPLES_LINE_STUB, RIPPLES_SPECTRAL_STUB, MASK_WGSL } from './ours-kernel-next.wgsl.js';
 // the frozen kernel is what the collaborator measures; ?kernel=next selects
 // the working copy where the cost work happens, and ?ripples=none|line|spectral|all
 // bisects the ripples' functions when the GPU compiler fails on them
@@ -7,8 +7,9 @@ const params = new URLSearchParams(globalThis.location ? globalThis.location.sea
 const useNext = params.get('kernel') === 'next';
 const ripplesPart = params.get('ripples') || 'all';
 const HAS_RIPPLES = useNext && ripplesPart !== 'none';
+const HAS_MASK = useNext;
 const KERNEL = useNext
-  ? NEXT_CORE + (HAS_RIPPLES ? ripplesWith(ripplesPart === 'spectral' ? RIPPLES_LINE_STUB : RIPPLES_LINE, ripplesPart === 'line' ? RIPPLES_SPECTRAL_STUB : RIPPLES_SPECTRAL) : '')
+  ? NEXT_CORE + (HAS_RIPPLES ? ripplesWith(ripplesPart === 'spectral' ? RIPPLES_LINE_STUB : RIPPLES_LINE, ripplesPart === 'line' ? RIPPLES_SPECTRAL_STUB : RIPPLES_SPECTRAL) : '') + MASK_WGSL
   : OURS_KERNEL;
 
 // WGSL for the side-by-side anti-aliasing demo: the plane seen through a
@@ -42,6 +43,7 @@ struct Uniforms {
   p0: vec4f,      // sigma, time, jitter x, jitter y (pixels)
   p1: vec4f,      // samples, seed, scene, period
   p2: vec4f,      // taa alpha, reference accumulate (0/1), regime debug, ours cut
+  p3: vec4f,      // x: the mask's stationary coverage (scene 3)
 };
 @group(0) @binding(0) var<uniform> U: Uniforms;
 
@@ -83,8 +85,18 @@ fn lightingSpec(viewer: vec3f, specPow: f32) -> f32 {
   return pow(max(dot(R, viewer), 0.0), specPow);
 }
 
-// the pictures: scene 0 checkerboard, scene 1 circles, on (s, t)
+// the mask of scene 3: a quasi-periodic field thresholded (the same constants as the kernel's node, kept apart on purpose)
+const MASKREF_T0: f32 = 0.3;
+const MASKREF_A: vec3f = vec3f(1.0, 0.8, 0.6);
+const MASKREF_PH: vec3f = vec3f(0.0, 1.0, 2.0);
+const MASKREF_K1: vec2f = vec2f(0.260980704, 0.0807307922); const MASKREF_K2: vec2f = vec2f(-0.0476208137, 0.366518457); const MASKREF_K3: vec2f = vec2f(-0.554610007, 0.136658897);
+fn maskRef(s: f32, t: f32) -> f32 {
+  let st = vec2f(s, t);
+  return MASKREF_A.x * sin(dot(MASKREF_K1, st) + MASKREF_PH.x) + MASKREF_A.y * sin(dot(MASKREF_K2, st) + MASKREF_PH.y) + MASKREF_A.z * sin(dot(MASKREF_K3, st) + MASKREF_PH.z);
+}
+// the pictures: scene 0 checkerboard, scene 1 circles, scene 3 the mask, on (s, t)
 fn pictureAt(scene: u32, s: f32, t: f32) -> f32 {
+  if (scene == 3u) { return select(0.0, 1.0, maskRef(s, t) > MASKREF_T0); }
   if (scene == 0u) {
     let xs = fract(s / 20.0);
     let ys = fract(t / 20.0);
@@ -296,7 +308,8 @@ export const ARM_MIP = /* wgsl */ `
   let y = floor(i.uv.y * U.res.y);
   let g = ground(x, y);
   if (g.d <= 0.0) { return vec4f(0.0, 0.0, 0.0, 1.0); }
-  let period = U.p1.w;
+  // scene 3 has no period: its texture holds 1024 plane units and repeats beyond them
+  let period = select(U.p1.w, 1024.0, u32(U.p1.z) == 3u);
   let p = vec3f(x, y, 1.0);
   let Nu = dot(U.hu.xyz, p);
   let Nv = dot(U.hv.xyz, p);
@@ -347,6 +360,18 @@ ${KERNEL}
   var P = 0.5;
   var regime = 0.0;
   let mode = u32(U.p2.w);
+  if (scene == 3u) {
+    ${HAS_MASK ? 'let mr = maskMeanHMode(U.hu.xyz, U.hv.xyz, U.hd.xyz, x, y, period, S, U.p3.x, mode);' : 'let mr = vec2f(0.5, 4.0); // this kernel has no mask entry'}
+    if (mode == 6u) { return vec4f(vec3f(WORK / 256.0), 1.0); }
+    let vm = lightingLN() * mr.x;
+    if (U.p2.z > 0.5) {
+      var tint3 = vec3f(0.2, 0.3, 0.9);
+      if (mr.y < 1.5) { tint3 = vec3f(0.2, 0.8, 0.3); }
+      if (mr.y > 3.5) { tint3 = vec3f(0.9, 0.2, 0.9); }
+      return vec4f(tint3 * (0.5 + 0.5 * vm), 1.0);
+    }
+    return vec4f(vec3f(vm), 1.0);
+  }
   if (scene == 2u) {
     ${HAS_RIPPLES ? 'let rr = ripplesMeanHMode(U.hu.xyz, U.hv.xyz, U.hd.xyz, x, y, period, S, g.viewer, U.light.xyz, mode);' : 'let rr = vec2f(0.5, 4.0); // this kernel has no ripples entry'}
     if (mode == 6u) { return vec4f(vec3f(WORK), 1.0); }

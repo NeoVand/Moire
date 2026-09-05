@@ -5,12 +5,13 @@
 //
 // needs wgsl_reflect (not a repo dependency): npm install --no-save wgsl_reflect
 // or point WGSL_REFLECT at a directory that has node_modules/wgsl_reflect.
-// usage: node demo/tests/ripples-cpu.mjs [--scene 0|1|2] [x,y ...] [--mode N] [--grid N]
+// usage: node demo/tests/ripples-cpu.mjs [--scene 0|1|2|3] [x,y ...] [--mode N] [--grid N]
 //        [--stub line|spectral] [--sub 'from=>to' ...] [--frozen] [--nodisp] [--flatlight]
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
 import { COMMON } from '../wgsl.js';
-import { OURS_KERNEL_CORE, ripplesWith, RIPPLES_LINE, RIPPLES_SPECTRAL, RIPPLES_LINE_STUB, RIPPLES_SPECTRAL_STUB } from '../ours-kernel-next.wgsl.js';
+import { maskCoefTable } from '../mask-table.js';
+import { OURS_KERNEL_CORE, ripplesWith, RIPPLES_LINE, RIPPLES_SPECTRAL, RIPPLES_LINE_STUB, RIPPLES_SPECTRAL_STUB, MASK_WGSL } from '../ours-kernel-next.wgsl.js';
 
 const loadInterpreter = async () => {
   const bases = [process.env.WGSL_REFLECT, process.cwd(), new URL('../..', import.meta.url).pathname].filter(Boolean);
@@ -71,9 +72,12 @@ function shade(x, y, sc, vfix = null) {
   }
   // scene 1: discs of radius 25/3 with gap 5/3 on a cell of 20
   const circles = (s, t) => { const R = 25 / 3, gap = 5 / 3, d = 2 * R + 2 * gap; const xm = fract(s / d) * d - gap; const ym = fract(t / d) * d - gap; const r = Math.hypot(xm - R, ym - R); return r < R ? 1 : (r > R ? 0 : 0.5); };
-  const P = sc === 1 ? circles(s, t) : checker(s, t);
+  // scene 3: the thresholded quasi-periodic field (the demo's constants)
+  const MASK = { t0: 0.3, a: [1, 0.8, 0.6], ph: [0, 1, 2], lam: [23, 17, 11], al: [0.3, 1.7, 2.9] };
+  const maskF = (s, t) => MASK.a.reduce((acc, a, i) => acc + a * Math.sin((2 * Math.PI / MASK.lam[i]) * (Math.cos(MASK.al[i]) * s + Math.sin(MASK.al[i]) * t) + MASK.ph[i]), 0);
+  const P = sc === 3 ? (maskF(s, t) > MASK.t0 ? 1 : 0) : sc === 1 ? circles(s, t) : checker(s, t);
   const LN = Math.max(LIGHT[2], 0);
-  if (sc === 1) return LN * P;
+  if (sc === 1 || sc === 3) return LN * P;
   const R = [-LIGHT[0], -LIGHT[1], 2 * LN - LIGHT[2]];
   const spec = Math.pow(Math.max(dot(R, viewer), 0), 50);
   return LN * P + spec;
@@ -102,7 +106,7 @@ function brute(x, y, sc, N = grid) {
 // the kernel + a compute entry
 const line = stub === 'line' ? RIPPLES_LINE_STUB : RIPPLES_LINE;
 const spectral = stub === 'spectral' ? RIPPLES_SPECTRAL_STUB : RIPPLES_SPECTRAL;
-const KERNEL = OURS_KERNEL_CORE + ripplesWith(line, spectral);
+const KERNEL = OURS_KERNEL_CORE + ripplesWith(line, spectral) + MASK_WGSL;
 const ENTRY = /* wgsl */ `
 @group(0) @binding(1) var<storage, read> inp: array<f32>;
 @group(0) @binding(2) var<storage, read_write> outp: array<f32>;
@@ -119,6 +123,9 @@ const ENTRY = /* wgsl */ `
   var rr: vec2f = vec2f(0.0, 0.0);
   if (which == 2u) {
     rr = ripplesMeanHMode(U.hu.xyz, U.hv.xyz, U.hd.xyz, x, y, period, S, g.viewer, U.light.xyz, mode);
+  } else if (which == 3u) {
+    let r = maskMeanHMode(U.hu.xyz, U.hv.xyz, U.hd.xyz, x, y, period, S, U.p3.x, mode);
+    rr = vec2f(lightingLN() * r.x, r.y);
   } else if (which == 1u) {
     let r = circlesMeanHMode(U.hu.xyz, U.hv.xyz, U.hd.xyz, x, y, period, S, mode);
     rr = vec2f(lightingLN() * r.x, r.y);
@@ -157,6 +164,11 @@ uni.set([240, 160, 1 / 240, 1 / 160], 44);
 uni.set([SIG, 0, 0, 0], 48);
 uni.set([0, 0, scene, PERIOD], 52);
 uni.set([0.1, 1, 0, mode], 56);
+// the mask node's coefficient table and its mean (the stationary coverage), scene 3
+const MASK_MM = Number(process.env.MASK_M || 12); // pair with --sub 'const MASK_M: i32 = 12;=>const MASK_M: i32 = N;'
+const MASK_TABLE = maskCoefTable(MASK_MM, Math.max(96, 4 * MASK_MM));
+uni.set([MASK_TABLE.mean, 0, 0, 0], 60);
+if (scene === 3) console.log(`mask table: mean ${MASK_TABLE.mean.toFixed(5)}, symmetry residual ${MASK_TABLE.vanish.toExponential(1)}`);
 
 const n = pixels.length;
 const inp = new Float32Array(n * 4);
@@ -170,7 +182,7 @@ for (let i = 0; i < n; i++) {
   const oo = new Float32Array(4);
   const t1 = performance.now();
   try {
-    exec.dispatchWorkgroups('main', [1, 1, 1], { 0: { 0: { uniform: uni }, 1: one, 2: oo } });
+    exec.dispatchWorkgroups('main', [1, 1, 1], { 0: { 0: { uniform: uni }, 1: one, 2: oo, 3: MASK_TABLE.table } });
   } catch (e) {
     console.log(`${x},${y}: interpreter error: ${e.message}`);
     continue;

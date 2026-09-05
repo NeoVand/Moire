@@ -4,6 +4,7 @@
 // texture, ours, and a sampled reference. Meters: RMS error of each arm
 // against the reference in linear light and after the 8-bit clamp, and the
 // GPU time of each arm's pass.
+import { MASK, maskField, maskCoefTable } from './mask-table.js';
 import { COMMON, ARM_POINT, ARM_SSAA, ARM_REFERENCE, ARM_TAA, ARM_MIP, ARM_OURS, METERS, DISPLAY } from './wgsl.js';
 
 const $ = (id) => document.getElementById(id);
@@ -20,6 +21,9 @@ const ARMS = ['point', 'ssaa', 'taa', 'mip', 'ours', 'reference'];
 // ---------------------------------------------------------------------------
 // the benchmark's plane: s = -50 (x - 240) / (y + 1), t = -12000 / (y + 1),
 // translated by (os, ot) on the plane
+// the mask of scene 3 (its field, and the torus coefficient table for the kernel's far field)
+const MASK_TABLE = maskCoefTable(12, 96);
+const maskMean = MASK_TABLE.mean;
 const homographyYB = (os, ot) => ({
   hu: [-50, os, 12000 + os],
   hv: [0, ot, -12000 + ot],
@@ -168,7 +172,9 @@ const main = async () => {
         const u = (i + 0.5) / PIC_N;
         const v = (j + 0.5) / PIC_N;
         let P;
-        if (scene === 0) {
+        if (scene === 3) {
+          P = maskField(u * 1024, v * 1024) > MASK.t0 ? 1 : 0; // 1024 plane units a tile
+        } else if (scene === 0) {
           const ss = u >= 0.5 ? 1 : 0;
           const tt = v >= 0.5 ? 1 : 0;
           P = ss * tt + (1 - ss) * (1 - tt);
@@ -207,6 +213,11 @@ const main = async () => {
   const UBYTES = 16 * 16;
   const ubuf = device.createBuffer({ size: UBYTES, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
   const dbuf = device.createBuffer({ size: 32, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+  // the mask node's coefficient table (scene 3), read by the ours pass at binding 3
+  const maskBuf = device.createBuffer({ size: MASK_TABLE.table.byteLength, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+  device.queue.writeBuffer(maskBuf, 0, MASK_TABLE.table);
+  const maskEntry = { binding: 3, visibility: GPUShaderStage.FRAGMENT, buffer: { type: 'read-only-storage' } };
+  const maskBind = { binding: 3, resource: { buffer: maskBuf } };
 
   const module = (code) => device.createShaderModule({ code: COMMON + code });
   const render = (code, entry, extra = []) => {
@@ -245,7 +256,7 @@ const main = async () => {
       { binding: 1, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'float' } },
       { binding: 2, visibility: GPUShaderStage.FRAGMENT, sampler: { type: 'filtering' } },
     ]),
-    ours: render(ARM_OURS, 'fsOurs'),
+    ours: render(ARM_OURS, 'fsOurs', [maskEntry]),
   };
   // meters
   const metersLayout = device.createBindGroupLayout({
@@ -335,6 +346,7 @@ const main = async () => {
     set(48, [0.5, state.time, jitter[0], jitter[1]]);
     set(52, [0, state.frame, state.scene, state.scene === 1 ? 2 * (25 / 3) + 2 * (5 / 3) : 20]);
     set(56, [state.taaAlpha, still ? 1 : 0, state.regime ? 1 : 0, state.oursMode || 0]);
+    set(60, [maskMean, 0, 0, 0]);
   };
   const writeUniforms = (samples, seed) => {
     uni[52] = samples;
@@ -392,7 +404,7 @@ const main = async () => {
         draw(enc, plain(tex.taa), P.taaResolve.pipeline, bind(P.taaResolve.layout, [{ binding: 1, resource: view(tex.taaCur) }, { binding: 2, resource: view(tex.taaHist) }]));
       });
       bench.ms[3] = await run((enc) => draw(enc, plain(tex.mip), P.mip.pipeline, bind(P.mip.layout, [{ binding: 1, resource: picTex.createView() }, { binding: 2, resource: picSampler }])));
-      bench.ms[4] = await run((enc) => draw(enc, plain(tex.ours), P.ours.pipeline, bind(P.ours.layout, [])));
+      bench.ms[4] = await run((enc) => draw(enc, plain(tex.ours), P.ours.pipeline, bind(P.ours.layout, [maskBind])));
       writeUniforms(state.refSamples, 1);
       bench.ms[5] = await run((enc) => draw(enc, plain(tex.refB), P.reference.pipeline, bind(P.reference.layout, [{ binding: 1, resource: view(tex.refA) }])));
     } catch (e) {
@@ -436,7 +448,7 @@ const main = async () => {
       draw(enc, passDesc(tex.taa, 3), P.taaResolve.pipeline, bind(P.taaResolve.layout, [{ binding: 1, resource: view(tex.taaCur) }, { binding: 2, resource: view(tex.taaHist) }]));
       enc.copyTextureToTexture({ texture: tex.taa }, { texture: tex.taaHist }, [W, H]);
       draw(enc, passDesc(tex.mip, 4), P.mip.pipeline, bind(P.mip.layout, [{ binding: 1, resource: picTex.createView() }, { binding: 2, resource: picSampler }]));
-      draw(enc, passDesc(tex.ours, 5), P.ours.pipeline, bind(P.ours.layout, []));
+      draw(enc, passDesc(tex.ours, 5), P.ours.pipeline, bind(P.ours.layout, [maskBind]));
     });
     // the reference, with its own sample count
     const refSrc = refPing ? tex.refB : tex.refA;
