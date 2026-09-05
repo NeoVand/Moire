@@ -5,7 +5,7 @@
 //
 // needs wgsl_reflect (not a repo dependency): npm install --no-save wgsl_reflect
 // or point WGSL_REFLECT at a directory that has node_modules/wgsl_reflect.
-// usage: node demo/tests/ripples-cpu.mjs [--scene 0|2] [x,y ...] [--mode N] [--grid N]
+// usage: node demo/tests/ripples-cpu.mjs [--scene 0|1|2] [x,y ...] [--mode N] [--grid N]
 //        [--stub line|spectral] [--sub 'from=>to' ...] [--frozen] [--nodisp] [--flatlight]
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
@@ -69,8 +69,11 @@ function shade(x, y, sc, vfix = null) {
     const spec = Math.pow(Math.max(dot(R, viewer), 0), 50);
     return LN * P + spec;
   }
-  const P = checker(s, t);
+  // scene 1: discs of radius 25/3 with gap 5/3 on a cell of 20
+  const circles = (s, t) => { const R = 25 / 3, gap = 5 / 3, d = 2 * R + 2 * gap; const xm = fract(s / d) * d - gap; const ym = fract(t / d) * d - gap; const r = Math.hypot(xm - R, ym - R); return r < R ? 1 : (r > R ? 0 : 0.5); };
+  const P = sc === 1 ? circles(s, t) : checker(s, t);
   const LN = Math.max(LIGHT[2], 0);
+  if (sc === 1) return LN * P;
   const R = [-LIGHT[0], -LIGHT[1], 2 * LN - LIGHT[2]];
   const spec = Math.pow(Math.max(dot(R, viewer), 0), 50);
   return LN * P + spec;
@@ -116,6 +119,9 @@ const ENTRY = /* wgsl */ `
   var rr: vec2f = vec2f(0.0, 0.0);
   if (which == 2u) {
     rr = ripplesMeanHMode(U.hu.xyz, U.hv.xyz, U.hd.xyz, x, y, period, S, g.viewer, U.light.xyz, mode);
+  } else if (which == 1u) {
+    let r = circlesMeanHMode(U.hu.xyz, U.hv.xyz, U.hd.xyz, x, y, period, S, mode);
+    rr = vec2f(lightingLN() * r.x, r.y);
   } else {
     let r = checkerMeanHMode(U.hu.xyz, U.hv.xyz, U.hd.xyz, x, y, period, S, mode);
     rr = vec2f(lightingLN() * r.x + lightingSpec(g.viewer, 50.0), r.y);

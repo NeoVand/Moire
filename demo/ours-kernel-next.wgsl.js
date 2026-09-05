@@ -745,24 +745,34 @@ fn multC(phi0: f32, b: vec2f, q: vec3f, S: f32) -> vec2f {
   let arg: f32 = phi0 + ph + Ei;
   return vec2f(amp * cos(arg), amp * sin(arg));
 }
-// J_n(x) for small |x| (the displacement's arguments stay under a few) by the
-// ascending series; n >= 0, J_{-n} = (-1)^n J_n
-fn besselSmall(n: i32, x: f32) -> f32 {
-  let h: f32 = 0.5 * x;
-  var term: f32 = 1.0;
-  for (var i: i32 = 1; i <= n; i++) { term *= h / f32(i); }
-  var sum: f32 = term;
-  let h2: f32 = -h * h;
-  for (var j: i32 = 1; j < 14; j++) {
-    term *= h2 / (f32(j) * f32(n + j));
-    sum += term;
+// J_0(x) to J_6(x) at once by Miller's downward recurrence from order 26,
+// normalised by J_0 + 2 sum J_2k = 1 (4.8e-8 worst against the series for |x| <= 8;
+// the recipes skip |x| > 8); J_{-n} = (-1)^n J_n applies at the use
+fn besselAll(x: f32) -> array<f32, 7> {
+  var j: array<f32, 7>;
+  let ax: f32 = abs(x);
+  if (ax < 1e-4) {
+    j[0] = 1.0; j[1] = 0.5 * x;
+    for (var k: i32 = 2; k < 7; k++) { j[k] = 0.0; }
+    return j;
   }
-  return sum;
-}
-fn besselJ(n: i32, x: f32) -> f32 {
-  let an: i32 = abs(n);
-  let v: f32 = besselSmall(an, x);
-  return select(v, -v, n < 0 && (an & 1) == 1);
+  var jp: f32 = 0.0;
+  var jc: f32 = 1e-20;
+  var norm: f32 = 0.0;
+  for (var n: i32 = 26; n > 0; n--) {
+    let jm: f32 = (2.0 * f32(n) / ax) * jc - jp;
+    jp = jc;
+    jc = jm;
+    if (n - 1 <= 6) { j[n - 1] = jc; }
+    if ((n - 1) % 2 == 0) { norm += select(2.0 * jc, jc, n - 1 == 0); }
+    if (abs(jc) > 1e20) {
+      jc *= 1e-20; jp *= 1e-20; norm *= 1e-20;
+      for (var k: i32 = 0; k < 7; k++) { j[k] *= 1e-20; }
+    }
+  }
+  for (var k: i32 = 0; k < 7; k++) { j[k] /= norm; }
+  if (x < 0.0) { for (var k: i32 = 1; k < 7; k += 2) { j[k] = -j[k]; } }
+  return j;
 }
 // the ripple phase's second-order jet: s = period u, t = period v, r = hypot(s, t), psi = f r
 struct RippleJets { psi: J2 };
@@ -1053,11 +1063,14 @@ fn ripplesSpectral(J: Jets, R: RippleJets, dir: vec2f, viewer: vec3f, light: vec
         if (abs(base) * cb * mb < 1e-5) { continue; }
         let theta: f32 = TAU * (k * Au + l * Av);
         if (abs(theta) > 8.0) { continue; }
+        let jv: array<f32, 7> = besselAll(theta);
         var cr: f32 = 0.0;
         for (var nb: i32 = -RIP_NB; nb <= RIP_NB; nb++) {
           let mm: i32 = abs(pp - nb);
           if (mm > RIP_M) { continue; }
-          cr += base * besselJ(nb, theta) * Lc[mm];
+          let an: i32 = abs(nb);
+          let jn: f32 = select(jv[an], -jv[an], nb < 0 && (an & 1) == 1);
+          cr += base * jn * Lc[mm];
         }
         if (abs(cr) * mb < 1e-5) { continue; }
         let phi0: f32 = TAU * (k * J.u0 + l * J.v0) + f32(pp) * R.psi.v;
