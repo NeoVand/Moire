@@ -11,9 +11,15 @@
 //   fn jetsFromHomography(hu, hv, hd: vec3f, x, y, period: f32) -> Jets
 //     exact jets from the homography numerators (u, v, d)
 //   fn checkerMean(J: Jets, S: f32) -> vec2f
-//     .x the pixel mean of the unit checkerboard ([fract(u) >= 1/2] xor
-//     [fract(v) >= 1/2]) under the isotropic Gaussian window of variance S
-//     pixels squared; .y the regime, 1 coverage, 2 spectral
+//     .x the pixel mean of the unit checkerboard, white where the two
+//     half-period predicates [fract(u) >= 1/2] and [fract(v) >= 1/2] are
+//     equal (xnor: ss tt + (1 - ss)(1 - tt), the Yang-Barnes picture),
+//     under the isotropic Gaussian window of variance S pixels squared;
+//     .y the regime, 1 coverage, 2 spectral. Both branches compute
+//     1/2 + E[w(u) w(v)] / 2 with w = +1 where fract < 1/2, so the
+//     parity is the same in the coverage sum and the Fourier series
+//   The jets are ratios of the numerators, so the sign of D does not
+//   matter to the kernel; the caller decides ground against sky.
 // Domain: the checkerboard at any magnification, curvature to second order.
 // Not in it: the ground/sky edge or any silhouette, the compiler's exact
 // depth conditioning, certified whole-image bounds. The spectral
