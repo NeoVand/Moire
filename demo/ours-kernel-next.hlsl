@@ -2,6 +2,8 @@
 static const float OURS_TAU = 6.283185307179586;
 static const float OURS_PI = 3.141592653589793;
 
+// the work counter: expensive calls a pixel (multRe, the bivariate normal, a disc
+// panel, a line node), read by the demo's mode 6; the HLSL emission strips it
 // erf, Abramowitz and Stegun 7.1.26 (|error| < 1.5e-7)
 float erfA(float x) {
   float s = sign(x);
@@ -17,7 +19,6 @@ float wOf(float u) { return ((frac(u) < 0.5) ? (1.0) : (-1.0)); }
 // Re E[exp(i (phi0 + b . x + x^T Q x / 2))], x ~ N(0, S I): the multiplier
 // theorem at second order in closed form
 float multRe(float phi0, float2 b, float3 q, float S) {
-  WORK += 1.0;
   float tr = q.x + q.z;
   float dt = q.x * q.z - q.y * q.y;
   float disc = sqrt(max(0.25 * tr * tr - dt, 0.0));
@@ -301,7 +302,6 @@ float quadRegion(float a0, float2 g, float3 H, float S) {
       float mid = pa + half;
       bool mapA = rootA && q < 0.5;
       bool mapB = rootB && q > panels - 1.5;
-      WORK += 1.0;
     {
       float x = 0.9894009350;
       float t = mid + half * x;
@@ -544,7 +544,6 @@ float bvnuHigh(float h, float k, float r) {
   return acc;
 }
 float bvnuAny(float h, float k, float r) {
-  WORK += 1.0;
   float rc = clamp(r, -0.999999, 0.999999);
   if (abs(rc) <= 0.925) { return bvnu(h, k, rc); }
   return bvnuHigh(h, k, rc);

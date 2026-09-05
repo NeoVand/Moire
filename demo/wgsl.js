@@ -332,8 +332,8 @@ export const ARM_MIP = /* wgsl */ `
 // Fourier series over the lattice of recipes k gu + l gv near the origin,
 // each term the Gaussian expectation of its quadratic phase in closed form.
 export const ARM_OURS = /* wgsl */ `
-// the working copy's work counter: expensive calls per pixel (mode 6 shows it)
-var<private> WORK: f32 = 0.0;
+// the work counter: expensive calls a pixel (mode 6 shows it); the next kernel declares its own
+${useNext ? '' : 'var<private> WORK: f32 = 0.0;'}
 ${KERNEL}
 @fragment fn fsOurs(i: VOut) -> @location(0) vec4f {
   let x = floor(i.uv.x * U.res.x);

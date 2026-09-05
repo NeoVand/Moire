@@ -133,7 +133,7 @@ const forInterp = (t) => t
   .replace(/E\.ok = false;/g, 'E.ok = 0u;')
   .replace('if (!eu.ok || !ev.ok)', 'if (eu.ok == 0u || ev.ok == 0u)')
   .replace('psiRate <= 2.0 && eu.ok && ev.ok', 'psiRate <= 2.0 && eu.ok == 1u && ev.ok == 1u');
-let code = forInterp(COMMON + 'var<private> WORK: f32 = 0.0;\n' + KERNEL + ENTRY);
+let code = forInterp(COMMON + KERNEL + ENTRY);
 for (const [a, b] of subs) { if (!code.includes(a)) console.log(`warning: sub not found: ${a}`); code = code.split(a).join(b); }
 if (/\.ok\b(?! ==)/.test(code.replace(/E\.ok = [01]u/g, ''))) console.log('warning: an unpatched .ok remains');
 const t0 = performance.now();

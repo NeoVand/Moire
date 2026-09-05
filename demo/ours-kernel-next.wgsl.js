@@ -51,6 +51,9 @@
 // (explicit types, no arrays or matrices) and emitted in both languages;
 // the Jets coverage entries are WGSL only.
 const PORTABLE_MATH = /* wgsl */ `
+// the work counter: expensive calls a pixel (multRe, the bivariate normal, a disc
+// panel, a line node), read by the demo's mode 6; the HLSL emission strips it
+var<private> WORK: f32 = 0.0;
 // erf, Abramowitz and Stegun 7.1.26 (|error| < 1.5e-7)
 fn erfA(x: f32) -> f32 {
   let s: f32 = sign(x);
@@ -668,7 +671,8 @@ function translateSelect(src) {
   return out;
 }
 export function toHLSL(src) {
-  let s = src;
+  // the production emission carries no instrumentation: the counter and its increments go
+  let s = src.replace(/^var<private> WORK: f32 = 0\.0;\n/m, '').replace(/^[ \t]*WORK \+= 1\.0;[^\n]*\n/gm, '');
   s = s.replace(/fn (\w+)\(([^)]*)\) -> (\w+) \{/g, (m, name, args, ret) => {
     const a = args.trim() ? args.split(',').map((p) => { const [n, t] = p.split(':').map((v) => v.trim()); return `${typeOf(t)} ${n}`; }).join(', ') : '';
     return `${typeOf(ret)} ${name}(${a}) {`;
