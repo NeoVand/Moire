@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Anti-aliasing side by side</title>
+    <style>
+      :root { color-scheme: dark; }
+      body { margin: 0; background: #101114; color: #d8d8d8; font: 13px/1.4 -apple-system, system-ui, sans-serif; }
+      header { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; padding: 8px 12px; border-bottom: 1px solid #2a2c33; }
+      header label { display: inline-flex; gap: 6px; align-items: center; }
+      select, button, input { font: inherit; background: #1b1d23; color: #e6e6e6; border: 1px solid #3a3d47; border-radius: 4px; padding: 2px 6px; }
+      button { cursor: pointer; }
+      main { padding: 8px 12px; }
+      #canvas { width: 100%; max-width: 1440px; display: block; image-rendering: pixelated; background: #000; }
+      .labels { display: grid; grid-template-columns: repeat(3, 1fr); max-width: 1440px; font-size: 12px; color: #aaa; }
+      .labels span { padding: 2px 4px; }
+      table { border-collapse: collapse; margin-top: 8px; }
+      td, th { padding: 3px 12px 3px 0; text-align: right; border-bottom: 1px solid #23252c; }
+      td:first-child, th:first-child { text-align: left; }
+      tr.ref td { color: #8a8a8a; }
+      #status { color: #9a9a9a; margin-top: 6px; }
+      #log { white-space: pre-wrap; color: #7f8794; margin-top: 8px; font-size: 12px; }
+      .note { color: #9a9a9a; max-width: 900px; margin-top: 10px; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <label>scene <select id="scene"><option value="0" selected>checkerboard</option><option value="1">circles</option></select></label>
+      <label>camera <select id="path"></select></label>
+      <label>speed <select id="speed"><option value="0.25">0.25x</option><option value="1" selected>1x</option><option value="3">3x</option></select></label>
+      <button id="pause">pause</button>
+      <button id="measure" title="time each arm alone, four passes each">measure GPU time</button>
+      <label>SSAA <select id="ssaa"><option value="4">4 spp</option><option value="16" selected>16 spp</option><option value="64">64 spp</option></select></label>
+      <label>reference <select id="refn"><option value="256">256 spp</option><option value="1024" selected>1024 spp</option><option value="4096">4096 spp</option></select></label>
+      <label>size <select id="res"><option value="480x320" selected>480 x 320</option><option value="960x640">960 x 640</option></select></label>
+      <label><input type="checkbox" id="heat" /> error x <select id="gain"><option value="4">4</option><option value="8" selected>8</option><option value="32">32</option></select></label>
+      <label><input type="checkbox" id="regime" /> show regime</label>
+    </header>
+    <main>
+      <div class="labels"><span>no anti-aliasing (1 sample)</span><span>supersampling</span><span>temporal AA</span></div>
+      <canvas id="canvas" width="1440" height="640"></canvas>
+      <div class="labels"><span>mipmapped texture, 16x anisotropic</span><span>ours: the pixel integrated in closed form</span><span>reference: sampled</span></div>
+      <table>
+        <thead><tr><th>arm</th><th>RMS (linear)</th><th>RMS (8-bit, /255)</th><th>PSNR dB</th><th>GPU ms</th></tr></thead>
+        <tbody id="meters"></tbody>
+      </table>
+      <div id="status"></div>
+      <p class="note">Every pane renders the same shader on the same plane at the same instant. The reference draws each pixel with stratified Gaussian samples (sigma 0.5 px, the protocol of Yang and Barnes 2018) and keeps accumulating while the camera rests. Click a pane to magnify the six views around that pixel; click again to release.</p>
+      <div id="log"></div>
+    </main>
+    <script type="module" src="./demo.js"></script>
+  </body>
+</html>
