@@ -1,6 +1,6 @@
 // Generated from demo/ours-kernel.wgsl.js: the same kernel in HLSL.
-static const float TAU = 6.283185307179586;
-static const float PI = 3.141592653589793;
+static const float OURS_TAU = 6.283185307179586;
+static const float OURS_PI = 3.141592653589793;
 
 // erf, Abramowitz and Stegun 7.1.26 (|error| < 1.5e-7)
 float erfA(float x) {
@@ -81,7 +81,7 @@ Lattice reduceLattice(float2 gu, float2 gv) {
 float latticeReach(Jets J, float S) {
   float fu = sqrt(J.Hu.x * J.Hu.x + 2.0 * J.Hu.y * J.Hu.y + J.Hu.z * J.Hu.z);
   float fv = sqrt(J.Hv.x * J.Hv.x + 2.0 * J.Hv.y * J.Hv.y + J.Hv.z * J.Hv.z);
-  float lam = TAU * (fu + fv) * 8.0;
+  float lam = OURS_TAU * (fu + fv) * 8.0;
   return min(1.6 * sqrt(1.0 + S * S * lam * lam), 12.0);
 }
 
@@ -110,10 +110,10 @@ float checkerSpectral(Jets J, float S) {
       float l = kl.y;
       bool ok = (abs(k - 2.0 * round(0.5 * (k - 1.0)) - 1.0) < 0.5) && (abs(l - 2.0 * round(0.5 * (l - 1.0)) - 1.0) < 0.5);
       if (ok) {
-        float coef = -2.0 / (PI * PI * k * l);
-        float2 bb = TAU * (k * J.gu + l * J.gv);
-        float3 qq = TAU * (k * J.Hu + l * J.Hv);
-        float phi0 = TAU * (k * J.u0 + l * J.v0);
+        float coef = -2.0 / (OURS_PI * OURS_PI * k * l);
+        float2 bb = OURS_TAU * (k * J.gu + l * J.gv);
+        float3 qq = OURS_TAU * (k * J.Hu + l * J.Hv);
+        float phi0 = OURS_TAU * (k * J.u0 + l * J.v0);
         acc += coef * multRe(phi0, bb, qq, S);
         count += 1.0;
       }
@@ -169,13 +169,13 @@ float circlesSpectral(Jets J, float S) {
       float2 kl = m * L.T0 + n * L.T1;
       float k = kl.x;
       float l = kl.y;
-      float kap = TAU * DISC_R * sqrt(k * k + l * l);
-      float coef = TAU * DISC_R * DISC_R * j1overx(kap);
+      float kap = OURS_TAU * DISC_R * sqrt(k * k + l * l);
+      float coef = OURS_TAU * DISC_R * DISC_R * j1overx(kap);
       float parity = k + l - 2.0 * floor(0.5 * (k + l));
       if (parity > 0.5) { coef = -coef; }
-      float2 bb = TAU * (k * J.gu + l * J.gv);
-      float3 qq = TAU * (k * J.Hu + l * J.Hv);
-      float phi0 = TAU * (k * J.u0 + l * J.v0);
+      float2 bb = OURS_TAU * (k * J.gu + l * J.gv);
+      float3 qq = OURS_TAU * (k * J.Hu + l * J.Hv);
+      float phi0 = OURS_TAU * (k * J.u0 + l * J.v0);
       acc += coef * multRe(phi0, bb, qq, S);
       count += 1.0;
       m += 1.0;
@@ -276,7 +276,7 @@ float quadRegion(float a0, float2 g, float3 H, float S) {
       float x = 0.9602898565;
       float t = mid + half * x;
       float jac = half;
-      if (mapA && mapB) { t = mid + half * sin(0.5 * PI * x); jac = half * 0.5 * PI * cos(0.5 * PI * x); }
+      if (mapA && mapB) { t = mid + half * sin(0.5 * OURS_PI * x); jac = half * 0.5 * OURS_PI * cos(0.5 * OURS_PI * x); }
       else if (mapA) { float sN = 0.5 * (x + 1.0); t = pa + dz * sN * sN; jac = dz * sN; }
       else if (mapB) { float sN = 0.5 * (1.0 - x); t = pa + dz - dz * sN * sN; jac = dz * sN; }
       float phi = 0.3989422804014327 * exp(-0.5 * t * t / S) / sig;
@@ -286,7 +286,7 @@ float quadRegion(float a0, float2 g, float3 H, float S) {
       float x = 0.7966664774;
       float t = mid + half * x;
       float jac = half;
-      if (mapA && mapB) { t = mid + half * sin(0.5 * PI * x); jac = half * 0.5 * PI * cos(0.5 * PI * x); }
+      if (mapA && mapB) { t = mid + half * sin(0.5 * OURS_PI * x); jac = half * 0.5 * OURS_PI * cos(0.5 * OURS_PI * x); }
       else if (mapA) { float sN = 0.5 * (x + 1.0); t = pa + dz * sN * sN; jac = dz * sN; }
       else if (mapB) { float sN = 0.5 * (1.0 - x); t = pa + dz - dz * sN * sN; jac = dz * sN; }
       float phi = 0.3989422804014327 * exp(-0.5 * t * t / S) / sig;
@@ -296,7 +296,7 @@ float quadRegion(float a0, float2 g, float3 H, float S) {
       float x = 0.5255324099;
       float t = mid + half * x;
       float jac = half;
-      if (mapA && mapB) { t = mid + half * sin(0.5 * PI * x); jac = half * 0.5 * PI * cos(0.5 * PI * x); }
+      if (mapA && mapB) { t = mid + half * sin(0.5 * OURS_PI * x); jac = half * 0.5 * OURS_PI * cos(0.5 * OURS_PI * x); }
       else if (mapA) { float sN = 0.5 * (x + 1.0); t = pa + dz * sN * sN; jac = dz * sN; }
       else if (mapB) { float sN = 0.5 * (1.0 - x); t = pa + dz - dz * sN * sN; jac = dz * sN; }
       float phi = 0.3989422804014327 * exp(-0.5 * t * t / S) / sig;
@@ -306,7 +306,7 @@ float quadRegion(float a0, float2 g, float3 H, float S) {
       float x = 0.1834346425;
       float t = mid + half * x;
       float jac = half;
-      if (mapA && mapB) { t = mid + half * sin(0.5 * PI * x); jac = half * 0.5 * PI * cos(0.5 * PI * x); }
+      if (mapA && mapB) { t = mid + half * sin(0.5 * OURS_PI * x); jac = half * 0.5 * OURS_PI * cos(0.5 * OURS_PI * x); }
       else if (mapA) { float sN = 0.5 * (x + 1.0); t = pa + dz * sN * sN; jac = dz * sN; }
       else if (mapB) { float sN = 0.5 * (1.0 - x); t = pa + dz - dz * sN * sN; jac = dz * sN; }
       float phi = 0.3989422804014327 * exp(-0.5 * t * t / S) / sig;
@@ -316,7 +316,7 @@ float quadRegion(float a0, float2 g, float3 H, float S) {
       float x = -0.1834346425;
       float t = mid + half * x;
       float jac = half;
-      if (mapA && mapB) { t = mid + half * sin(0.5 * PI * x); jac = half * 0.5 * PI * cos(0.5 * PI * x); }
+      if (mapA && mapB) { t = mid + half * sin(0.5 * OURS_PI * x); jac = half * 0.5 * OURS_PI * cos(0.5 * OURS_PI * x); }
       else if (mapA) { float sN = 0.5 * (x + 1.0); t = pa + dz * sN * sN; jac = dz * sN; }
       else if (mapB) { float sN = 0.5 * (1.0 - x); t = pa + dz - dz * sN * sN; jac = dz * sN; }
       float phi = 0.3989422804014327 * exp(-0.5 * t * t / S) / sig;
@@ -326,7 +326,7 @@ float quadRegion(float a0, float2 g, float3 H, float S) {
       float x = -0.5255324099;
       float t = mid + half * x;
       float jac = half;
-      if (mapA && mapB) { t = mid + half * sin(0.5 * PI * x); jac = half * 0.5 * PI * cos(0.5 * PI * x); }
+      if (mapA && mapB) { t = mid + half * sin(0.5 * OURS_PI * x); jac = half * 0.5 * OURS_PI * cos(0.5 * OURS_PI * x); }
       else if (mapA) { float sN = 0.5 * (x + 1.0); t = pa + dz * sN * sN; jac = dz * sN; }
       else if (mapB) { float sN = 0.5 * (1.0 - x); t = pa + dz - dz * sN * sN; jac = dz * sN; }
       float phi = 0.3989422804014327 * exp(-0.5 * t * t / S) / sig;
@@ -336,7 +336,7 @@ float quadRegion(float a0, float2 g, float3 H, float S) {
       float x = -0.7966664774;
       float t = mid + half * x;
       float jac = half;
-      if (mapA && mapB) { t = mid + half * sin(0.5 * PI * x); jac = half * 0.5 * PI * cos(0.5 * PI * x); }
+      if (mapA && mapB) { t = mid + half * sin(0.5 * OURS_PI * x); jac = half * 0.5 * OURS_PI * cos(0.5 * OURS_PI * x); }
       else if (mapA) { float sN = 0.5 * (x + 1.0); t = pa + dz * sN * sN; jac = dz * sN; }
       else if (mapB) { float sN = 0.5 * (1.0 - x); t = pa + dz - dz * sN * sN; jac = dz * sN; }
       float phi = 0.3989422804014327 * exp(-0.5 * t * t / S) / sig;
@@ -346,7 +346,7 @@ float quadRegion(float a0, float2 g, float3 H, float S) {
       float x = -0.9602898565;
       float t = mid + half * x;
       float jac = half;
-      if (mapA && mapB) { t = mid + half * sin(0.5 * PI * x); jac = half * 0.5 * PI * cos(0.5 * PI * x); }
+      if (mapA && mapB) { t = mid + half * sin(0.5 * OURS_PI * x); jac = half * 0.5 * OURS_PI * cos(0.5 * OURS_PI * x); }
       else if (mapA) { float sN = 0.5 * (x + 1.0); t = pa + dz * sN * sN; jac = dz * sN; }
       else if (mapB) { float sN = 0.5 * (1.0 - x); t = pa + dz - dz * sN * sN; jac = dz * sN; }
       float phi = 0.3989422804014327 * exp(-0.5 * t * t / S) / sig;
@@ -386,7 +386,7 @@ float bvnu(float h, float k, float r) {
   { float sn = sin(0.04794137181 * asr); bvn += 0.1069393260 * exp((sn * hk - hs) / (1.0 - sn * sn)); }
   { float sn = sin(0.009219682877 * asr); bvn += 0.04717533639 * exp((sn * hk - hs) / (1.0 - sn * sn)); }
   }
-  return bvn * asr / (2.0 * TAU) + Phi(-h) * Phi(-k);
+  return bvn * asr / (2.0 * OURS_TAU) + Phi(-h) * Phi(-k);
 }
 float bvnuHigh(float h, float k, float r) {
   float s = sqrt(max(1.0 - r * r, 1e-14));
@@ -447,6 +447,9 @@ EdgeRange edgeRange(float u0, float2 g, float2 r, float sig) {
   float denom = 1.0 - L * sig * length(r);
   if (denom <= 0.05) { E.ok = false; return E; }
   float reach = L * sig * length(g) / denom;
+  // a count beyond 2^20 periods has no sub-period precision in float32 for
+  // any method: the picture is not representable there
+  if (abs(u0) > 1048576.0) { E.ok = false; return E; }
   float hlo = ceil(2.0 * (u0 - reach));
   float hhi = floor(2.0 * (u0 + reach));
   if (hhi - hlo > 9.0) { E.ok = false; return E; }
@@ -455,11 +458,11 @@ EdgeRange edgeRange(float u0, float2 g, float2 r, float sig) {
   // a half-integer edge +1 to -1), with no epsilon, so it holds at any
   // distance from the origin in float32
   float count = 0.0;
-  float h = hlo;
   float first = 1e30;
   float last = -1e30;
-  while (true) {
-    if (h > hhi) { break; }
+  int nh = int(hhi - hlo) + 1; // the loops run on integer counters: a float step can stall at large phases
+  for (int ih = 0; ih < nh; ih++) {
+    float h = hlo + float(ih);
     float b = 0.5 * h;
     float delta = u0 - b;
     float2 n = g + delta * r;
@@ -469,7 +472,6 @@ EdgeRange edgeRange(float u0, float2 g, float2 r, float sig) {
       first = min(first, h);
       last = max(last, h);
     }
-    h += 1.0;
   }
   if (count > 5.0) { E.ok = false; return E; }
   if (count > 0.0) {
@@ -480,7 +482,6 @@ EdgeRange edgeRange(float u0, float2 g, float2 r, float sig) {
   }
   return E;
 }
-float2 checkerMeanH(float3 hu, float3 hv, float3 hd, float x, float y, float period, float S) { return checkerMeanHMode(hu, hv, hd, x, y, period, S, 0); }
 // mode 4: the exact part only (the fallback returns the mean), mode 5: the fallback only; for timing
 float2 checkerMeanHMode(float3 hu, float3 hv, float3 hd, float x, float y, float period, float S, uint mode) {
   float sig = sqrt(S);
@@ -504,9 +505,10 @@ float2 checkerMeanHMode(float3 hu, float3 hv, float3 hd, float x, float y, float
   }
   if (mode == 5) { return float2(0.5, 1.0); }
   float acc = eu.low * ev.low;
-  float h = eu.hlo;
-  while (true) {
-    if (h > eu.hhi) { break; }
+  int nu = int(eu.hhi - eu.hlo) + 1;
+  int nvE = int(ev.hhi - ev.hlo) + 1;
+  for (int ih = 0; ih < nu; ih++) {
+    float h = eu.hlo + float(ih);
     float bu = 0.5 * h;
     float du = u0 - bu;
     float2 nuv = gu + du * r;
@@ -515,9 +517,8 @@ float2 checkerMeanHMode(float3 hu, float3 hv, float3 hd, float x, float y, float
     if (abs(distU) < L * sig) {
       float ju = ((abs(h - 2.0 * round(0.5 * h)) < 0.5) ? (2.0) : (-2.0));
       acc += ev.low * ju * Phi(distU / sig);
-      float k = ev.hlo;
-      while (true) {
-        if (k > ev.hhi) { break; }
+      for (int ik = 0; ik < nvE; ik++) {
+        float k = ev.hlo + float(ik);
         float bv = 0.5 * k;
         float dv = v0 - bv;
         float2 nvv = gv + dv * r;
@@ -528,14 +529,11 @@ float2 checkerMeanHMode(float3 hu, float3 hv, float3 hd, float x, float y, float
           float corr = dot(nuv, nvv) / (nun * nvn);
           acc += ju * jv * bvnuAny(-distU / sig, -distV / sig, corr);
         }
-        k += 1.0;
       }
     }
-    h += 1.0;
   }
-  float k = ev.hlo;
-  while (true) {
-    if (k > ev.hhi) { break; }
+  for (int ik = 0; ik < nvE; ik++) {
+    float k = ev.hlo + float(ik);
     float bv = 0.5 * k;
     float dv = v0 - bv;
     float2 nvv = gv + dv * r;
@@ -544,11 +542,10 @@ float2 checkerMeanHMode(float3 hu, float3 hv, float3 hd, float x, float y, float
       float jv = ((abs(k - 2.0 * round(0.5 * k)) < 0.5) ? (2.0) : (-2.0));
       acc += eu.low * jv * Phi(distV / sig);
     }
-    k += 1.0;
   }
   return float2(0.5 + 0.5 * acc, 1.0);
 }
-float2 circlesMeanH(float3 hu, float3 hv, float3 hd, float x, float y, float period, float S) { return circlesMeanHMode(hu, hv, hd, x, y, period, S, 0); }
+float2 checkerMeanH(float3 hu, float3 hv, float3 hd, float x, float y, float period, float S) { return checkerMeanHMode(hu, hv, hd, x, y, period, S, 0); }
 float2 circlesMeanHMode(float3 hu, float3 hv, float3 hd, float x, float y, float period, float S, uint mode) {
   float sig = sqrt(S);
   float3 p = float3(x, y, 1.0);
@@ -571,7 +568,7 @@ float2 circlesMeanHMode(float3 hu, float3 hv, float3 hd, float x, float y, float
   float nu1 = floor(u0 + reachU);
   float nv0 = floor(v0 - reachV);
   float nv1 = floor(v0 + reachV);
-  if (denom <= 0.05 || (nu1 - nu0 + 1.0) * (nv1 - nv0 + 1.0) > 9.5) {
+  if (denom <= 0.05 || (nu1 - nu0 + 1.0) * (nv1 - nv0 + 1.0) > 9.5 || abs(u0) > 1048576.0 || abs(v0) > 1048576.0) {
     if (mode == 4) { return float2(0.5454, 3.0); }
     Jets J = jetsFromHomography(hu, hv, hd, x, y, period);
     return float2(circlesSpectral(J, S), 3.0);
@@ -585,14 +582,12 @@ float2 circlesMeanHMode(float3 hu, float3 hv, float3 hd, float x, float y, float
   float s2 = 1.0 / (D * D);
   float L = 5.5 * sig;
   float acc = 0.0;
-  float nu = nu0;
-  while (true) {
-    if (nu > nu1) { break; }
-    float nv = nv0;
-    while (true) {
-      if (nv > nv1) { break; }
-      float cu = nu + 0.5;
-      float cv = nv + 0.5;
+  int cellsU = int(nu1 - nu0) + 1;
+  int cellsV = int(nv1 - nv0) + 1;
+  for (int iu = 0; iu < cellsU; iu++) {
+    for (int iv = 0; iv < cellsV; iv++) {
+      float cu = nu0 + float(iu) + 0.5;
+      float cv = nv0 + float(iv) + 0.5;
       // q(X) = (nu - cu D)^2 + (nv - cv D)^2 - R^2 D^2, scaled by 1 / D^2: exact in screen space
       float A0 = nuA - cu * D;
       float B0 = nvA - cv * D;
@@ -610,9 +605,8 @@ float2 circlesMeanHMode(float3 hu, float3 hv, float3 hd, float x, float y, float
       if (a0 - range > 0.0) { }
       else if (a0 + range < 0.0) { acc += 1.0; }
       else { acc += quadRegion(a0, g, H, S); }
-      nv += 1.0;
     }
-    nu += 1.0;
   }
   return float2(acc, 1.0);
 }
+float2 circlesMeanH(float3 hu, float3 hv, float3 hd, float x, float y, float period, float S) { return circlesMeanHMode(hu, hv, hd, x, y, period, S, 0); }

@@ -144,7 +144,7 @@ fn checkerSpectral(J: Jets, S: f32) -> f32 {
   let nMax: f32 = floor(R / perp);
   var acc: f32 = 0.5;
   var count: f32 = 0.0;
-  var n: f32 = -nMax;
+  var n: f32 = 0.0; // the half lattice; the conjugate half is folded in
   loop {
     if (n > nMax) { break; }
     let c: vec2f = n * L.b2;
@@ -158,13 +158,20 @@ fn checkerSpectral(J: Jets, S: f32) -> f32 {
       let k: f32 = kl.x;
       let l: f32 = kl.y;
       let ok: bool = (abs(k - 2.0 * round(0.5 * (k - 1.0)) - 1.0) < 0.5) && (abs(l - 2.0 * round(0.5 * (l - 1.0)) - 1.0) < 0.5);
-      if (ok) {
-        let coef: f32 = -2.0 / (PI * PI * k * l);
+      // the conjugate pair (k, l), (-k, -l) shares its real part: keep one of each
+      let half: bool = n > 0.0 || (n == 0.0 && m > 0.0);
+      if (ok && half) {
         let bb: vec2f = TAU * (k * J.gu + l * J.gv);
         let qq: vec3f = TAU * (k * J.Hu + l * J.Hv);
-        let phi0: f32 = TAU * (k * J.u0 + l * J.v0);
-        acc += coef * multRe(phi0, bb, qq, S);
-        count += 1.0;
+        // the term's own reach: its rate against the curvature it carries
+        let lamT: f32 = sqrt(qq.x * qq.x + 2.0 * qq.y * qq.y + qq.z * qq.z);
+        let reach: f32 = TAU * 1.6 * sqrt(1.0 + S * S * lamT * lamT);
+        if (dot(bb, bb) <= reach * reach) {
+          let coef: f32 = -4.0 / (PI * PI * k * l);
+          let phi0: f32 = TAU * (k * J.u0 + l * J.v0);
+          acc += coef * multRe(phi0, bb, qq, S);
+          count += 1.0;
+        }
       }
       m += 1.0;
       if (count > 2048.0) { break; }
@@ -205,7 +212,7 @@ fn circlesSpectral(J: Jets, S: f32) -> f32 {
   let nMax: f32 = floor(R / perp);
   var acc: f32 = 0.0;
   var count: f32 = 0.0;
-  var n: f32 = -nMax;
+  var n: f32 = 0.0; // the half lattice; the conjugate half is folded in
   loop {
     if (n > nMax) { break; }
     let c: vec2f = n * L.b2;
@@ -218,15 +225,24 @@ fn circlesSpectral(J: Jets, S: f32) -> f32 {
       let kl: vec2f = m * L.T0 + n * L.T1;
       let k: f32 = kl.x;
       let l: f32 = kl.y;
-      let kap: f32 = TAU * DISC_R * sqrt(k * k + l * l);
-      var coef: f32 = TAU * DISC_R * DISC_R * j1overx(kap);
-      let parity: f32 = k + l - 2.0 * floor(0.5 * (k + l));
-      if (parity > 0.5) { coef = -coef; }
-      let bb: vec2f = TAU * (k * J.gu + l * J.gv);
-      let qq: vec3f = TAU * (k * J.Hu + l * J.Hv);
-      let phi0: f32 = TAU * (k * J.u0 + l * J.v0);
-      acc += coef * multRe(phi0, bb, qq, S);
-      count += 1.0;
+      let half: bool = n > 0.0 || (n == 0.0 && m > 0.0);
+      let dc: bool = n == 0.0 && m == 0.0;
+      if (half || dc) {
+        let bb: vec2f = TAU * (k * J.gu + l * J.gv);
+        let qq: vec3f = TAU * (k * J.Hu + l * J.Hv);
+        let lamT: f32 = sqrt(qq.x * qq.x + 2.0 * qq.y * qq.y + qq.z * qq.z);
+        let reach: f32 = TAU * 1.6 * sqrt(1.0 + S * S * lamT * lamT);
+        if (dot(bb, bb) <= reach * reach) {
+          let kap: f32 = TAU * DISC_R * sqrt(k * k + l * l);
+          var coef: f32 = TAU * DISC_R * DISC_R * j1overx(kap);
+          let parity: f32 = k + l - 2.0 * floor(0.5 * (k + l));
+          if (parity > 0.5) { coef = -coef; }
+          if (!dc) { coef = 2.0 * coef; }
+          let phi0: f32 = TAU * (k * J.u0 + l * J.v0);
+          acc += coef * multRe(phi0, bb, qq, S);
+          count += 1.0;
+        }
+      }
       m += 1.0;
       if (count > 2048.0) { break; }
     }
@@ -387,6 +403,8 @@ fn bvnu(h: f32, k: f32, r: f32) -> f32 {
   var bvn: f32 = 0.0;
   if (abs(r) < 0.3) {
 ${genz(gl6)}
+  } else if (abs(r) < 0.75) {
+${genz(gl8)}
   } else {
 ${genz(gl12)}
   }

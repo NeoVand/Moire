@@ -1,4 +1,8 @@
 import { OURS_KERNEL } from './ours-kernel.wgsl.js';
+import { OURS_KERNEL as OURS_KERNEL_NEXT } from './ours-kernel-next.wgsl.js';
+// the frozen kernel is what the collaborator measures; ?kernel=next selects
+// the working copy where the cost work happens
+const KERNEL = new URLSearchParams(globalThis.location ? globalThis.location.search : '').get('kernel') === 'next' ? OURS_KERNEL_NEXT : OURS_KERNEL;
 
 // WGSL for the side-by-side anti-aliasing demo: the plane seen through a
 // homography, the benchmark shaders point-evaluated, and the arms: point
@@ -284,7 +288,7 @@ export const ARM_MIP = /* wgsl */ `
 // Fourier series over the lattice of recipes k gu + l gv near the origin,
 // each term the Gaussian expectation of its quadratic phase in closed form.
 export const ARM_OURS = /* wgsl */ `
-${OURS_KERNEL}
+${KERNEL}
 @fragment fn fsOurs(i: VOut) -> @location(0) vec4f {
   let x = floor(i.uv.x * U.res.x);
   let y = floor(i.uv.y * U.res.y);
