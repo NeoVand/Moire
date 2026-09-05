@@ -87,6 +87,39 @@ fn multRe(phi0: f32, b: vec2f, q: vec3f, S: f32) -> f32 {
   let Ei: f32 = -0.5 * S * (Ai * Dr - Ar * Di) / dd;
   return modu * exp(Er) * cos(phi0 + ph + Ei);
 }
+// the same expectation for a rational-linear phase, phi0 + A . X / (1 + r . X),
+// evaluated exactly: along lines perpendicular to r the phase is linear in the
+// coordinate p, so the Gaussian integral over p is closed form, and the
+// integral over the depth coordinate tau is a quadrature with the exact phase
+// (24 nodes over 4 sigma). Used where the third-order witness says the
+// quadratic model of the phase fails (the mid rows of a plane in perspective)
+fn multDepthRe(phi0: f32, A: vec2f, r: vec2f, S: f32) -> f32 {
+  WORK += 1.0;
+  let sig: f32 = sqrt(S);
+  let rn: f32 = length(r);
+  var er: vec2f = vec2f(1.0, 0.0);
+  if (rn > 1e-30) { er = r / rn; }
+  let ep: vec2f = vec2f(-er.y, er.x);
+  let Ar: f32 = dot(A, er);
+  let Ap: f32 = dot(A, ep);
+  let Lt: f32 = 4.0 * sig;
+  var acc: f32 = 0.0;
+  var norm: f32 = 0.0;
+  for (var q: i32 = 0; q < 3; q++) {
+    let a: f32 = -Lt + f32(q) * (2.0 * Lt / 3.0);
+    let half: f32 = Lt / 3.0;
+    for (var kq: i32 = 0; kq < 8; kq++) {
+      let tau: f32 = a + half * (1.0 + glx8(kq));
+      let den: f32 = 1.0 + rn * tau;
+      let w: f32 = glw8(kq) * half * 0.3989422804014327 * exp(-0.5 * tau * tau / S) / sig;
+      let beta: f32 = Ap / den;
+      let alpha: f32 = phi0 + Ar * tau / den;
+      acc += w * exp(-0.5 * S * beta * beta) * cos(alpha);
+      norm += w;
+    }
+  }
+  return acc / max(norm, 1e-12);
+}
 
 struct Jets { u0: f32, v0: f32, gu: vec2f, gv: vec2f, Hu: vec3f, Hv: vec3f };
 // exact jets of the two counts from a homography: (Nu, Nv, D) = (hu, hv, hd) . (x, y, 1),
@@ -1452,7 +1485,7 @@ fn maskCoef(m1: i32, m2: i32, m3: i32) -> f32 {
   let W: i32 = 2 * MASK_M + 1;
   return MASK_C[((m1 + MASK_M) * W + (m2 + MASK_M)) * W + (m3 + MASK_M)];
 }
-fn maskSpectral(th: vec3f, g1: vec2f, g2: vec2f, g3: vec2f, H1: vec3f, H2: vec3f, H3: vec3f, S: f32) -> vec2f {
+fn maskSpectral(th: vec3f, thk: vec3f, rr: vec2f, g1: vec2f, g2: vec2f, g3: vec2f, H1: vec3f, H2: vec3f, H3: vec3f, S: f32) -> vec2f {
   var acc: f32 = maskCoef(0, 0, 0);
   let Lat: Lattice = reduceLattice(g1 / TAU, g2 / TAU);
   let w3: vec2f = g3 / TAU;
@@ -1529,7 +1562,14 @@ fn maskSpectral(th: vec3f, g1: vec2f, g2: vec2f, g3: vec2f, H1: vec3f, H2: vec3f
         var phi0: f32 = f32(m1) * th.x + f32(m2) * th.y + f32(pp) * th.z;
         // an imaginary coefficient i c: Re(i c E) = c Re(E e^{i pi / 2})
         if (((m1 + m2 + pp) & 1) == 1) { phi0 += 0.5 * PI; }
-        acc += mult * cm * multRe(phi0, bb, qq, S);
+        // the recipe's phase is rational-linear, phi0 + A . X / (1 + r . X) with
+        // A = b + (sum m_i k_i . (s0, t0)) r; its cubic term along the depth
+        // direction over 2.5 sigma is the witness for the quadratic model
+        let A: vec2f = bb + (f32(m1) * thk.x + f32(m2) * thk.y + f32(pp) * thk.z) * rr;
+        let rn: f32 = length(rr);
+        let cub3: f32 = abs(dot(A, rr)) * rn * (2.5 * sqrt(S)) * (2.5 * sqrt(S)) * (2.5 * sqrt(S));
+        if (cub3 > 0.05) { acc += mult * cm * multDepthRe(phi0, A, rr, S); }
+        else { acc += mult * cm * multRe(phi0, bb, qq, S); }
       }
       if (tried > 4096) { break; }
     }
@@ -1557,16 +1597,18 @@ fn maskMeanHMode(hu: vec3f, hv: vec3f, hd: vec3f, x: f32, y: f32, period: f32, S
   var HF: vec3f = vec3f(0.0);
   var kmax: f32 = 0.0;
   var th0: vec3f = vec3f(0.0);
+  var thk: vec3f = vec3f(0.0); // the phases without their offsets: the rational form's numerator
   var g1: vec2f = vec2f(0.0); var g2: vec2f = vec2f(0.0); var g3: vec2f = vec2f(0.0);
   var H1: vec3f = vec3f(0.0); var H2: vec3f = vec3f(0.0); var H3: vec3f = vec3f(0.0);
   for (var i: i32 = 0; i < 3; i++) {
     var k: vec2f = MASK_K1; var a: f32 = MASK_A.x; var ph: f32 = MASK_PH.x;
     if (i == 1) { k = MASK_K2; a = MASK_A.y; ph = MASK_PH.y; }
     if (i == 2) { k = MASK_K3; a = MASK_A.z; ph = MASK_PH.z; }
-    let th: f32 = dot(k, st0) + ph;
+    let thl: f32 = dot(k, st0);
+    let th: f32 = thl + ph;
     let gth: vec2f = k.x * gs + k.y * gt;
     let Hth: vec3f = k.x * Hs + k.y * Ht;
-    if (i == 0) { th0.x = th; g1 = gth; H1 = Hth; } else if (i == 1) { th0.y = th; g2 = gth; H2 = Hth; } else { th0.z = th; g3 = gth; H3 = Hth; }
+    if (i == 0) { th0.x = th; thk.x = thl; g1 = gth; H1 = Hth; } else if (i == 1) { th0.y = th; thk.y = thl; g2 = gth; H2 = Hth; } else { th0.z = th; thk.z = thl; g3 = gth; H3 = Hth; }
     let sn: f32 = sin(th);
     let cs: f32 = cos(th);
     F0 += a * sn;
@@ -1575,7 +1617,7 @@ fn maskMeanHMode(hu: vec3f, hv: vec3f, hd: vec3f, x: f32, y: f32, period: f32, S
     kmax = max(kmax, length(gth));
   }
   let ks: f32 = kmax * sig;
-  if (mode == 8u) { return maskSpectral(th0, g1, g2, g3, H1, H2, H3, S); }
+  if (mode == 8u) { return maskSpectral(th0, thk, rr, g1, g2, g3, H1, H2, H3, S); }
   if (ks < 0.15 && mode != 7u) {
     // the near field: the zero set of the jet is a conic; quadRegion measures q <= 0
     return vec2f(quadRegion(MASK_T0 - F0, -gF, -HF, S), 1.0);
@@ -1602,7 +1644,7 @@ fn maskMeanHMode(hu: vec3f, hv: vec3f, hd: vec3f, x: f32, y: f32, period: f32, S
     }
     return vec2f(acc / max(norm, 1e-12), 2.0);
   }
-  let sp: vec2f = maskSpectral(th0, g1, g2, g3, H1, H2, H3, S);
+  let sp: vec2f = maskSpectral(th0, thk, rr, g1, g2, g3, H1, H2, H3, S);
   if (sp.y > 3.5) { return vec2f(mean, 4.0); }
   return sp;
 }
