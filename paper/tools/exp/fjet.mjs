@@ -701,11 +701,16 @@ const stepOfSum = (P, c, g, name) => {
 const shiftCache = new Map();
 // grids of terms without tables (a shift or field pictures alone)
 const plainGridHome = { xGrids: new Map() };
-const shiftTables = (H, Saxes, OS, NGS, KWS, thetaMax, dTheta) => {
+const shiftTables = (H, Saxes, OS, NGS0, KWS, thetaMax, dTheta) => {
+  const Theta = Math.max(thetaMax * 1.5, 1);
+  // the torus grid aliases when the sidebands reach half of it: J_n(theta)
+  // lives out to |n| about theta + 12, so the grid must hold twice that
+  // (a 64-point grid is good to 1e-5 up to theta about 34)
+  let NGS = NGS0;
+  while (NGS < 1.4 * Theta + 16 && NGS < 1024) NGS *= 2;
   const key = `${H.key}|${Saxes.map((a) => a.id).join(',')}|${OS.map((o) => o.sig).join('*')}|${NGS}|${KWS}|${dTheta}`;
   let T = shiftCache.get(key);
   if (T && T.thetaMax >= thetaMax) return T;
-  const Theta = Math.max(thetaMax * 1.5, 1);
   const NT = Math.ceil(Theta / dTheta);
   const nS = Saxes.length;
   const n = nS === 1 ? NGS : NGS * NGS;
@@ -787,6 +792,7 @@ const shiftTables = (H, Saxes, OS, NGS, KWS, thetaMax, dTheta) => {
 // Q, Q', Q'' at theta for the window index w, by quadratic interpolation
 // on the three nearest nodes: [re, im] each
 const shiftAt = (T, theta, w, out) => {
+  if (T.analytic) return T.at(theta, w, out);
   const { NT, dTheta, wn } = T;
   let x = theta / dTheta + NT;
   if (x < 1) x = 1;
@@ -804,6 +810,281 @@ const shiftAt = (T, theta, w, out) => {
     out[2 * q] = w0 * A[0][a] + w1 * A[0][b] + w2 * A[0][cc];
     out[2 * q + 1] = w0 * A[1][a] + w1 * A[1][b] + w2 * A[1][cc];
   }
+};
+
+// Bessel functions J_0..J_N at a real x by Miller's backward recurrence,
+// normalised with J_0 + 2 (J_2 + J_4 + ...) = 1 (double precision; the GPU
+// form, in float32 with a bound, is the collaborator's task)
+const besselJ = (x, N) => {
+  const ax = Math.abs(x);
+  const out = new Float64Array(N + 1);
+  if (ax < 1e-300) {
+    out[0] = 1;
+    return out;
+  }
+  const M0 = Math.max(N, Math.ceil(ax)) + 20 + Math.ceil(3 * Math.cbrt(Math.max(ax, 1)));
+  const M = M0 + (M0 % 2);
+  const tmp = new Float64Array(M + 2);
+  tmp[M + 1] = 0;
+  tmp[M] = 1e-280;
+  for (let n = M; n >= 1; n--) {
+    const v = ((2 * n) / ax) * tmp[n] - tmp[n + 1];
+    tmp[n - 1] = v;
+    if (Math.abs(v) > 1e200) for (let k = n - 1; k <= M + 1; k++) tmp[k] *= 1e-200;
+  }
+  let norm = tmp[0];
+  for (let k = 2; k <= M; k += 2) norm += 2 * tmp[k];
+  const sgn = x < 0 ? -1 : 1;
+  let sg = 1;
+  for (let n = 0; n <= N; n++) {
+    out[n] = (sg * tmp[n]) / norm;
+    sg *= sgn;
+  }
+  return out;
+};
+// the analytic shift provider: for a shift function H that is a product of
+// one sine or cosine per S axis (one or two axes), the family
+//   Q(theta; l) = int O(s) e^{i theta H(s)} e^{-2 pi i l.s} ds
+// is a Jacobi-Anger series. One axis: e^{i theta sin a} = sum_n J_n(theta)
+// e^{i n a}, and a cosine carries i^n. Two axes: H = T1(a) T2(b) is
+// (e1 U1(a - b) + e2 U2(a + b)) / 2, so the coefficient of e^{i(n a + m b)}
+// is u1_p(e1 theta / 2) u2_q(e2 theta / 2) with p = (n - m) / 2 and
+// q = (n + m) / 2 (zero when n and m differ in parity), products of two
+// Bessel functions at half the argument. O, the other closures on the S
+// axes (the shading), is sampled once on a midpoint grid and transformed;
+// its spectrum is independent of theta and convolves the Bessel
+// coefficients. The derivatives Q' and Q'' come from adjacent orders,
+// J'_n = (J_{n-1} - J_{n+1}) / 2 and J''_n = (J_{n-2} - 2 J_n + J_{n+2}) / 4.
+// This replaces the theta grid of shiftTables (which aliases on its
+// 64-point torus grid past theta of about 32 and interpolates in theta)
+// with exact coefficients at any theta, and sizes the sideband window from
+// the argument instead of a fixed 16.
+// the relative magnitude below which a term of O's spectrum is dropped (it
+// enters the coefficients linearly; the pixel's own cut is 1e-4 of a term)
+const SHIFT_O_CUT = process.env.FJET_OCUT ? Number(process.env.FJET_OCUT) : 1e-5;
+// beyond this many spectrum terms of O the per-request convolution costs
+// more than the theta grid's fixed price; the tables (alias-safe grid) take
+// over for two axes
+const SHIFT_O_TERMS_MAX = process.env.FJET_OTERMS ? Number(process.env.FJET_OTERMS) : 64;
+const IPOW_RE = [1, 0, -1, 0];
+const IPOW_IM = [0, 1, 0, -1];
+// counters for the cost study: distinct thetas seen and coefficient requests
+let shiftThetas = 0;
+let shiftRequests = 0;
+const shiftCounters = () => ({ thetas: shiftThetas, requests: shiftRequests });
+const shiftAnalytic = (H, Saxes, OS, NGO, KWS0, thetaMax) => {
+  const nS = Saxes.length;
+  if (nS < 1 || nS > 2) return null;
+  if (H.factors.length !== nS) return null;
+  const trig = new Array(nS).fill(null);
+  for (const f of H.factors) {
+    if (f.kind !== 'pic' || (f.sig !== 'sin' && f.sig !== 'cos')) return null;
+    const i = Saxes.findIndex((a) => a === f.axis);
+    if (i < 0 || trig[i]) return null;
+    trig[i] = f.sig;
+  }
+  if (trig.some((t) => !t)) return null;
+  const key = `A|${H.key}|${Saxes.map((a) => a.id).join(',')}|${OS.map((o) => o.sig).join('*')}|${NGO}`;
+  const cached = shiftCache.get(key);
+  if (cached === null) return null; // declined before: O too rich for two axes
+  if (cached && cached.thetaMax >= thetaMax) return cached;
+  // O's spectrum on the S torus
+  const n = nS === 1 ? NGO : NGO * NGO;
+  const re = new Float64Array(n);
+  const im = new Float64Array(n);
+  const coords = new Map();
+  let oMax = 0;
+  const oList = []; // [j1, j2, re, im]
+  if (OS.length === 0) {
+    oList.push([0, 0, 1, 0]);
+    oMax = 1;
+  } else {
+    for (let i = 0; i < NGO; i++)
+      for (let j = 0; j < (nS === 2 ? NGO : 1); j++) {
+        coords.set(Saxes[0].id, (i + 0.5) / NGO);
+        if (nS === 2) coords.set(Saxes[1].id, (j + 0.5) / NGO);
+        let o = 1;
+        for (const cl of OS) o *= cl.fn(cl.axes.map((a) => bareCoordinate(a, coords)), coords).v;
+        re[nS === 2 ? i * NGO + j : i] = o;
+        oMax = Math.max(oMax, Math.abs(o));
+      }
+    if (nS === 1) fftInPlace(re, im);
+    else fft2InPlace(re, im, NGO);
+    const half = NGO / 2;
+    let amax = 0;
+    for (let idx = 0; idx < n; idx++) amax = Math.max(amax, Math.hypot(re[idx], im[idx]));
+    const cut = SHIFT_O_CUT * amax;
+    for (let kx = -half + 1; kx < half; kx++)
+      for (let ky = -(nS === 2 ? half - 1 : 0); ky <= (nS === 2 ? half - 1 : 0); ky++) {
+        const ix = ((kx % NGO) + NGO) % NGO;
+        const iy = ((ky % NGO) + NGO) % NGO;
+        const idx = nS === 2 ? ix * NGO + iy : ix;
+        if (Math.hypot(re[idx], im[idx]) <= cut) continue;
+        const ang = (-Math.PI * (kx + ky)) / NGO;
+        const ca = Math.cos(ang);
+        const sa = Math.sin(ang);
+        const r0 = re[idx] / n;
+        const i0 = im[idx] / n;
+        oList.push([kx, ky, r0 * ca - i0 * sa, r0 * sa + i0 * ca]);
+      }
+  }
+  let oBand = 0;
+  for (const o of oList) oBand = Math.max(oBand, Math.abs(o[0]), Math.abs(o[1]));
+  if (nS === 2 && oList.length > SHIFT_O_TERMS_MAX) {
+    if (DEBUG) console.log(`      shift analytic declined: O has ${oList.length} spectrum terms on two axes (> ${SHIFT_O_TERMS_MAX}); tables`);
+    shiftCache.set(key, null);
+    return null;
+  }
+  // the sideband window, sized by the argument: J_n(x) is negligible past
+  // |n| = |x| + margin
+  const Theta = Math.max(thetaMax * 1.5, 1);
+  const need = Math.ceil(Theta) + 12 + Math.ceil(3 * Math.cbrt(Theta));
+  const KWS = Math.max(KWS0, need);
+  const KWn = 2 * KWS + 1;
+  const wn = nS === 1 ? KWn : KWn * KWn;
+  const NJ = KWS + oBand + 4;
+  // the two-axis decomposition T1(a) T2(b) = (e1 U1(a - b) + e2 U2(a + b)) / 2
+  let U1 = null;
+  let U2 = null;
+  let e1 = 1;
+  let e2 = 1;
+  if (nS === 2) {
+    const [t1, t2] = trig;
+    if (t1 === 'sin' && t2 === 'sin') [U1, e1, U2, e2] = ['cos', 1, 'cos', -1];
+    else if (t1 === 'sin' && t2 === 'cos') [U1, e1, U2, e2] = ['sin', 1, 'sin', 1];
+    else if (t1 === 'cos' && t2 === 'sin') [U1, e1, U2, e2] = ['sin', -1, 'sin', 1];
+    else [U1, e1, U2, e2] = ['cos', 1, 'cos', 1];
+  }
+  // the Bessel array for the current theta: J_k(z0) for k = 0..NJ+2 at the
+  // signed argument z0 = theta (one axis) or theta / 2 (two axes); negative
+  // orders by J_{-k} = (-1)^k J_k, and an argument e z0 with e = -1 by
+  // J_k(-z0) = (-1)^k J_k(z0)
+  let cachedTheta = NaN;
+  let J = null;
+  const jAt = (k) => {
+    const a = Math.abs(k);
+    if (a > NJ + 2) return 0;
+    const v = J[a];
+    return k < 0 && a % 2 === 1 ? -v : v;
+  };
+  // c_n(w) at w = e z0 with its first two derivatives in w: J_n(w) for a
+  // sine, i^n J_n(w) for a cosine; J'_n = (J_{n-1} - J_{n+1}) / 2 and
+  // J''_n = (J_{n-2} - 2 J_n + J_{n+2}) / 4 hold at any real argument
+  const coefTrio = (T, e, nn, out) => {
+    // J_k(e z0) = e^k J_k(z0): with e = -1 the odd orders flip sign
+    const sOdd = e < 0 ? -1 : 1;
+    const jm2 = jAt(nn - 2);
+    const jm1 = jAt(nn - 1) * sOdd;
+    const j00 = jAt(nn);
+    const jp1 = jAt(nn + 1) * sOdd;
+    const jp2 = jAt(nn + 2);
+    const sN = nn % 2 !== 0 ? sOdd : 1;
+    const j0 = j00 * sN;
+    const j1 = 0.5 * (jm1 - jp1) * sN;
+    const j2 = 0.25 * (jm2 - 2 * j00 + jp2) * sN;
+    if (T === 'sin') {
+      out[0] = j0;
+      out[1] = 0;
+      out[2] = j1;
+      out[3] = 0;
+      out[4] = j2;
+      out[5] = 0;
+    } else {
+      const r4 = ((nn % 4) + 4) % 4;
+      const pr = IPOW_RE[r4];
+      const pi = IPOW_IM[r4];
+      out[0] = pr * j0;
+      out[1] = pi * j0;
+      out[2] = pr * j1;
+      out[3] = pi * j1;
+      out[4] = pr * j2;
+      out[5] = pi * j2;
+    }
+  };
+  const tmpA = new Float64Array(6);
+  const tmpB = new Float64Array(6);
+  // the bare coefficient (no O) of order (nn, mm) at the cached theta with
+  // its theta derivatives: [re, im] x 3
+  const bare = (nn, mm, out) => {
+    if (nS === 1) {
+      coefTrio(trig[0], 1, nn, out);
+      return;
+    }
+    if ((((nn - mm) % 2) + 2) % 2 !== 0) {
+      out.fill(0);
+      return;
+    }
+    const pp = (nn - mm) / 2;
+    const qq = (nn + mm) / 2;
+    coefTrio(U1, e1, pp, tmpA);
+    coefTrio(U2, e2, qq, tmpB);
+    // d/dtheta of u(e theta / 2) is (e / 2) u'
+    const d1 = e1 / 2;
+    const d2 = e2 / 2;
+    const vr = tmpA[0] * tmpB[0] - tmpA[1] * tmpB[1];
+    const vi = tmpA[0] * tmpB[1] + tmpA[1] * tmpB[0];
+    const ar1 = d1 * (tmpA[2] * tmpB[0] - tmpA[3] * tmpB[1]) + d2 * (tmpA[0] * tmpB[2] - tmpA[1] * tmpB[3]);
+    const ai1 = d1 * (tmpA[2] * tmpB[1] + tmpA[3] * tmpB[0]) + d2 * (tmpA[0] * tmpB[3] + tmpA[1] * tmpB[2]);
+    const ar2 = d1 * d1 * (tmpA[4] * tmpB[0] - tmpA[5] * tmpB[1]) + 2 * d1 * d2 * (tmpA[2] * tmpB[2] - tmpA[3] * tmpB[3]) + d2 * d2 * (tmpA[0] * tmpB[4] - tmpA[1] * tmpB[5]);
+    const ai2 = d1 * d1 * (tmpA[4] * tmpB[1] + tmpA[5] * tmpB[0]) + 2 * d1 * d2 * (tmpA[2] * tmpB[3] + tmpA[3] * tmpB[2]) + d2 * d2 * (tmpA[0] * tmpB[5] + tmpA[1] * tmpB[4]);
+    out[0] = vr;
+    out[1] = vi;
+    out[2] = ar1;
+    out[3] = ai1;
+    out[4] = ar2;
+    out[5] = ai2;
+  };
+  const tmpC = new Float64Array(6);
+  // entries already computed at the cached theta (a recipe's sidebands
+  // share theta and are asked for one at a time)
+  let memo = new Map();
+  const at = (theta, w, out) => {
+    if (theta !== cachedTheta) {
+      J = besselJ(nS === 1 ? theta : theta / 2, NJ + 2);
+      cachedTheta = theta;
+      memo = new Map();
+      shiftThetas++;
+    }
+    const hit = memo.get(w);
+    if (hit) {
+      out.set(hit);
+      return;
+    }
+    shiftRequests++;
+    let l1;
+    let l2 = 0;
+    if (nS === 1) l1 = w - KWS;
+    else {
+      l1 = Math.floor(w / KWn) - KWS;
+      l2 = (w % KWn) - KWS;
+    }
+    out.fill(0);
+    // orders beyond the Bessel support at this theta are zero: J_n(x) is
+    // negligible past |n| = |x| + 10 + 3 cbrt|x| (two axes: n, m within
+    // twice the support at x = theta / 2)
+    const ax = Math.abs(theta);
+    const support = ax + 12 + 3 * Math.cbrt(Math.max(ax, 1));
+    if (Math.max(Math.abs(l1), Math.abs(l2)) - oBand > support) {
+      memo.set(w, Float64Array.from(out));
+      return;
+    }
+    // Q(l) = sum_j o_j C_{l - j}(theta)
+    for (const [j1, j2, orr, oi] of oList) {
+      bare(l1 - j1, l2 - j2, tmpC);
+      for (let q = 0; q < 3; q++) {
+        const cr = tmpC[2 * q];
+        const ci = tmpC[2 * q + 1];
+        out[2 * q] += orr * cr - oi * ci;
+        out[2 * q + 1] += orr * ci + oi * cr;
+      }
+    }
+    memo.set(w, Float64Array.from(out));
+  };
+  if (DEBUG) console.log(`      shift analytic O-cut ${SHIFT_O_CUT} H=${H.sig} S=[${Saxes.map((a) => a.label + '#' + a.id)}] O=[${OS.map((o) => o.sig.slice(0, 20))}] theta ${Theta.toFixed(1)} window ${KWS} O-terms ${oList.length}`);
+  const T = { analytic: true, thetaMax: Theta, wn, KWn, KWS, nS, hMax: 1, oMax, at };
+  if (shiftCache.size > 64) shiftCache.clear();
+  shiftCache.set(key, T);
+  return T;
 };
 
 // a picture sum B(phi) = sum beta_i p_i(phi) on one axis: its values on a
@@ -2014,6 +2295,7 @@ export class Pixel {
     this.shiftNG = 64; // grid per shift axis for the family over the shift torus
     this.shiftKW = 16; // window of shift harmonics kept
     this.shiftDTheta = 0.05; // theta step of the family (quadratic interpolation)
+    this.shiftMode = 'analytic'; // 'analytic': Bessel coefficients for sinusoidal shifts, tables otherwise; 'table': always the theta grid
     this.curvedWidth = true; // the width of a count includes its curvature (false: first order only, the ablation)
     this.coverageNG = 192; // grid over a curved count's excursion for the coverage integral
     this.stats = { terms: 0, recipes: 0, dfts: 0, overflow: 0, localNodes: 0, thetaAbsMax: 0, thetaHMax: 0, shiftOrderMax: 0 };
@@ -3954,10 +4236,11 @@ export class Pixel {
       X.forEach((a, i) => (thetaMax += KX[i] * absv(cXof[i])));
       fieldH.forEach((j) => (thetaMax += absv(j) / TAU));
       thetaMax *= TAU;
-      ST = shiftTables(H, Sres, OS, this.shiftNG, this.shiftKW, thetaMax, this.shiftDTheta);
+      ST = (this.shiftMode !== 'table' && shiftAnalytic(H, Sres, OS, this.shiftNG, this.shiftKW, thetaMax)) || null;
+      if (!ST) ST = shiftTables(H, Sres, OS, this.shiftNG, this.shiftKW, thetaMax, this.shiftDTheta);
       gS = Sres.map((a) => resGrads[idxOf(a.id)]);
       hS = Sres.map((a) => resHess[idxOf(a.id)]);
-      KS = Sres.map((a) => Math.min(resK[idxOf(a.id)], this.shiftKW));
+      KS = Sres.map((a) => Math.min(resK[idxOf(a.id)], ST.KWS));
     }
     // coordinates with the shift's H terms dropped (when the family is used)
     const withSkip = (coords) => {
@@ -4070,6 +4353,8 @@ export class Pixel {
       // 64-point torus grid aliases past about 32), and the sideband order
       if (Math.abs(th.v) > this.stats.thetaAbsMax) this.stats.thetaAbsMax = Math.abs(th.v);
       if (Math.abs(th.v) * ST.hMax > this.stats.thetaHMax) this.stats.thetaHMax = Math.abs(th.v) * ST.hMax;
+      this.stats.shiftWindow = ST.KWS;
+      this.stats.shiftAnalytic = !!ST.analytic;
       for (const [ks0, ks1lo, ks1hi] of kss) {
         const o = Math.max(Math.abs(ks0), Math.abs(ks1lo), Math.abs(ks1hi));
         if (o > this.stats.shiftOrderMax) this.stats.shiftOrderMax = o;
@@ -4773,4 +5058,4 @@ export const resetAxes = () => {
   axisCounter = 0;
   axisRegistry.clear();
 };
-export { evalElement, TAU, stepsumTables as __stepsumTables, stepTransform1 as __stepTransform1, stepTransform2 as __stepTransform2, makeB as __makeB, STEP_PIECES as __STEP_PIECES, fft2 as __fft2 };
+export { evalElement, TAU, shiftCounters as __shiftCounters, shiftTables as __shiftTables, shiftAnalytic as __shiftAnalytic, besselJ as __besselJ, shiftAt as __shiftAt, stepsumTables as __stepsumTables, stepTransform1 as __stepTransform1, stepTransform2 as __stepTransform2, makeB as __makeB, STEP_PIECES as __STEP_PIECES, fft2 as __fft2 };

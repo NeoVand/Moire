@@ -458,6 +458,7 @@ const oursPixelAt = (cs, x, y, stats, sig) => {
   if (process.env.FJET_LINEMAX) px.lineMaxPeriods = Number(process.env.FJET_LINEMAX);
   if (process.env.FJET_FOLDGROWTH) px.foldGrowth = Number(process.env.FJET_FOLDGROWTH);
   if (process.env.FJET_CURV === '0') px.curvedWidth = false;
+  if (process.env.FJET_SHIFT) px.shiftMode = process.env.FJET_SHIFT;
   if (process.env.FJET_MAXK) px.maxK = Number(process.env.FJET_MAXK);
   const out = cs.eval(FJ, x, y, true);
   // channels with the same structure (grey shaders build three equal
@@ -476,8 +477,8 @@ const oursPixelAt = (cs, x, y, stats, sig) => {
     stats.thetaAbsMax = Math.max(stats.thetaAbsMax || 0, px.stats.thetaAbsMax || 0);
     stats.thetaHMax = Math.max(stats.thetaHMax || 0, px.stats.thetaHMax || 0);
     stats.shiftOrderMax = Math.max(stats.shiftOrderMax || 0, px.stats.shiftOrderMax || 0);
-    stats.shiftGrid = px.shiftNG;
-    stats.shiftWindow = px.shiftKW;
+    stats.shiftGrid = px.stats.shiftAnalytic ? 'analytic' : px.shiftNG;
+    stats.shiftWindow = px.stats.shiftWindow || px.shiftKW;
   }
   return vals;
 };
