@@ -431,6 +431,11 @@ const foldSameAxis = (terms) => {
   return rest;
 };
 const jetIsConst = (j) => j.gx === 0 && j.gy === 0 && j.hxx === 0 && j.hxy === 0 && j.hyy === 0;
+// a jet that neither moves nor curves across the pixel: a stationary count
+// with curvature is not constant (a step of eps (Z^2 - 1/2) has coverage
+// erfc(1/2), not the step at its centre), so the tracer folds a count to a
+// number only when both its gradient and its Hessian vanish
+const jetIsFlat = (j) => j.gradNorm() < 1e-12 && Math.abs(j.hxx) + 2 * Math.abs(j.hxy) + Math.abs(j.hyy) < 1e-12;
 export const add = (a, b) => {
   const terms = liveTerms([...lift(a).terms, ...lift(b).terms]);
   return new Element(terms.length > 1 ? foldSameAxis(terms) : terms);
@@ -867,6 +872,53 @@ const makeB = (parts) => {
 
 // Gauss-Legendre nodes and weights on [-1, 1]
 const glCache = new Map();
+// erf by Cody's rational Chebyshev approximations (1969), to 1e-16
+const erf = (x) => {
+  const a = [3.1611237438705656, 113.864154151050156, 377.485237685302021, 3209.37758913846947, 0.185777706184603153];
+  const b = [23.6012909523441209, 244.024637934444173, 1282.61652607737228, 2844.23683343917062];
+  const c = [0.564188496988670089, 8.88314979438837594, 66.1191906371416295, 298.635138197400131, 881.95222124176909, 1712.04761263407058, 2051.07837782607147, 1230.33935479799725, 2.15311535474403846e-8];
+  const d = [15.7449261107098347, 117.693950891312499, 537.181101862009858, 1621.38957456669019, 3290.79923573345963, 4362.61909014324716, 3439.36767414372164, 1230.33935480374942];
+  const pp = [0.305326634961232344, 0.360344899949804439, 0.125781726111229246, 0.0160837851487422766, 0.000658749161529837803, 0.0163153871373020978];
+  const qq = [2.56852019228982242, 1.87295284992346725, 0.527905102951428412, 0.0605183413124413191, 0.00233520497626869185];
+  const ax = Math.abs(x);
+  let res;
+  if (ax <= 0.46875) {
+    const z = ax * ax;
+    let xn = a[4] * z;
+    let xd = z;
+    for (let i = 0; i < 3; i++) {
+      xn = (xn + a[i]) * z;
+      xd = (xd + b[i]) * z;
+    }
+    return (x * (xn + a[3])) / (xd + b[3]);
+  } else if (ax <= 4) {
+    let xn = c[8] * ax;
+    let xd = ax;
+    for (let i = 0; i < 7; i++) {
+      xn = (xn + c[i]) * ax;
+      xd = (xd + d[i]) * ax;
+    }
+    res = (xn + c[7]) / (xd + d[7]);
+    const z = Math.floor(ax * 16) / 16;
+    res = Math.exp(-z * z) * Math.exp(-(ax - z) * (ax + z)) * res;
+  } else {
+    const z = 1 / (ax * ax);
+    let xn = pp[5] * z;
+    let xd = z;
+    for (let i = 0; i < 4; i++) {
+      xn = (xn + pp[i]) * z;
+      xd = (xd + qq[i]) * z;
+    }
+    res = (z * (xn + pp[4])) / (xd + qq[4]);
+    res = (0.5641895835477563 - res) / ax;
+    const zz = Math.floor(ax * 16) / 16;
+    res = Math.exp(-zz * zz) * Math.exp(-(ax - zz) * (ax + zz)) * res;
+  }
+  return x < 0 ? res - 1 : 1 - res;
+};
+// standard normal distribution function
+const normalCdf = (x) => 0.5 * (1 + erf(x / Math.SQRT2));
+
 const gaussLegendre = (n) => {
   const hit = glCache.get(n);
   if (hit) return hit;
@@ -1338,7 +1390,7 @@ const periodic = (name, period, fnOnPeriod) => (x) => {
   const el = lift(x);
   const s = el.smoothPart();
   const P = el.pictured();
-  if (s.gradNorm() < 1e-12 && P.terms.length > 0) {
+  if (jetIsFlat(s) && P.terms.length > 0) {
     // no varying smooth part: a periodic function of a picture is a picture
     const c = s.v;
     return collapseWith(P, (j) => Jet.c(fnOnPeriod(((j.v + c) / period) % 1)).add(J0), name + '∘');
@@ -1363,7 +1415,7 @@ export const step = (x) => {
   const el = lift(x);
   const s = el.smoothPart();
   const P = el.pictured();
-  if (s.gradNorm() < 1e-12 && P.terms.length > 0) {
+  if (jetIsFlat(s) && P.terms.length > 0) {
     const c = s.v;
     const aff = affineOfTwoValued(P, c, (u) => (u >= 0 ? 1 : 0));
     if (aff) return aff;
@@ -1371,7 +1423,7 @@ export const step = (x) => {
     if (sos) return sos;
     return collapseWith(P, (j) => Jet.c(j.v + c >= 0 ? 1 : 0), 'step∘');
   }
-  if (P.terms.length === 0 && s.gradNorm() < 1e-12) return Element.const(s.v >= 0 ? 1 : 0);
+  if (P.terms.length === 0 && jetIsFlat(s)) return Element.const(s.v >= 0 ? 1 : 0);
   const { axis } = makeAxis(s, P.terms.length ? P : null, 'edge', 'step');
   // the picture of an edge axis is a step at zero of the raw count; the
   // periodisation is applied at evaluation, where the period is known
@@ -1398,7 +1450,7 @@ const edgePrimitive = (name, g) => (x) => {
   const el = lift(x);
   const s = el.smoothPart();
   const P = el.pictured();
-  if (s.gradNorm() < 1e-12 && P.terms.length > 0) {
+  if (jetIsFlat(s) && P.terms.length > 0) {
     const c = s.v;
     const aff = affineOfTwoValued(P, c, g);
     if (aff) return aff;
@@ -1406,7 +1458,7 @@ const edgePrimitive = (name, g) => (x) => {
     if (sos) return sos;
     return collapseWith(P, (j) => Jet.c(g(j.v + c)), name + '∘');
   }
-  if (P.terms.length === 0 && s.gradNorm() < 1e-12) return Element.const(g(s.v));
+  if (P.terms.length === 0 && jetIsFlat(s)) return Element.const(g(s.v));
   const { axis } = makeAxis(s, P.terms.length ? P : null, 'edge', name);
   return new Element([{ c: cj(J1, J0), f: [picFactor(axis, g, name)] }]);
 };
@@ -1942,6 +1994,7 @@ export class Pixel {
     this.shiftKW = 16; // window of shift harmonics kept
     this.shiftDTheta = 0.05; // theta step of the family (quadratic interpolation)
     this.curvedWidth = true; // the width of a count includes its curvature (false: first order only, the ablation)
+    this.coverageNG = 192; // grid over a curved count's excursion for the coverage integral
     this.stats = { terms: 0, recipes: 0, dfts: 0, overflow: 0, localNodes: 0 };
   }
   // the width of a count under the pixel, in periods: the standard deviation
@@ -1991,6 +2044,289 @@ export class Pixel {
   frozenValue(axis) {
     const c = axis.count;
     return c.v + 0.5 * this.sig * this.sig * (c.hxx + c.hyy);
+  }
+  // the expectation of a picture of a curved count over the pixel: with
+  // z ~ N(0, sig^2 I) and xi(z) = u0 + g.z + z^T H z / 2, rotate to H's
+  // eigenvectors, condition on the first coordinate (Gauss-Legendre panels
+  // cut where the roots in the second appear or vanish), and in the second
+  // the count is a quadratic whose sublevel sets are intervals, so the
+  // distribution function F(c) = P(xi <= c) is a sum of normal
+  // distribution differences. The picture is sampled on a grid over the
+  // count's excursion with its jumps located by bisection, interpolated
+  // linearly between, and E p(xi) = sum over segments of the linear
+  // interpolant integrated against dF. This is the boundary-aware coverage
+  // a reviewer asked for: freezing a step of eps (Z^2 - 1/2) at its mean
+  // eps/2 returns 1 for every eps, where P(Z^2 > 1/2) = erfc(1/2) = 0.4795.
+  // does a picture jump within the count's excursion across the pixel?
+  picturesJump(axis, fn) {
+    const c = axis.count;
+    const S = this.sig;
+    const L = 6;
+    let umin = Infinity;
+    let umax = -Infinity;
+    for (let i = 0; i < 32; i++) {
+      const th = (TAU * i) / 32;
+      for (const r of [0.5, 1]) {
+        const w1 = r * L * S * Math.cos(th);
+        const w2 = r * L * S * Math.sin(th);
+        const u = c.v + c.gx * w1 + c.gy * w2 + 0.5 * (c.hxx * w1 * w1 + 2 * c.hxy * w1 * w2 + c.hyy * w2 * w2);
+        umin = Math.min(umin, u);
+        umax = Math.max(umax, u);
+      }
+    }
+    umin = Math.min(umin, c.v);
+    umax = Math.max(umax, c.v);
+    const NG = 96;
+    const vs = [];
+    for (let i = 0; i <= NG; i++) vs.push(fn(umin + ((umax - umin) * i) / NG));
+    const diffs = [];
+    for (let i = 0; i < NG; i++) diffs.push(Math.abs(vs[i + 1] - vs[i]));
+    const typical = diffs.slice().sort((x, y) => x - y)[Math.floor(NG * 0.5)];
+    return diffs.some((d) => d > 8 * typical + 1e-9 * (Math.abs(umax - umin) + 1) + 1e-300);
+  }
+  coverageExpect(axis, fn) {
+    const c = axis.count;
+    const S = this.sig;
+    // eigen-decomposition of the Hessian
+    const hxx = c.hxx;
+    const hxy = c.hxy;
+    const hyy = c.hyy;
+    const tr = hxx + hyy;
+    const disc = Math.sqrt(Math.max(0, ((hxx - hyy) / 2) ** 2 + hxy * hxy));
+    const l1 = tr / 2 + disc;
+    const l2 = tr / 2 - disc;
+    let e1;
+    if (Math.abs(hxy) > 1e-300) e1 = [l1 - hyy, hxy];
+    else e1 = hxx >= hyy ? [1, 0] : [0, 1];
+    const n1 = Math.hypot(e1[0], e1[1]);
+    e1 = [e1[0] / n1, e1[1] / n1];
+    const e2 = [-e1[1], e1[0]];
+    const a1 = c.gx * e1[0] + c.gy * e1[1];
+    const a2 = c.gx * e2[0] + c.gy * e2[1];
+    const u0 = c.v;
+    // the excursion of the count over the reach (a disc of radius L sig)
+    const L = 6;
+    let umin = Infinity;
+    let umax = -Infinity;
+    for (let i = 0; i < 64; i++) {
+      const th = (TAU * i) / 64;
+      for (const r of [0.25, 0.5, 0.75, 1]) {
+        const w1 = r * L * S * Math.cos(th);
+        const w2 = r * L * S * Math.sin(th);
+        const u = u0 + a1 * w1 + a2 * w2 + 0.5 * (l1 * w1 * w1 + l2 * w2 * w2);
+        umin = Math.min(umin, u);
+        umax = Math.max(umax, u);
+      }
+    }
+    // the stationary point of the quadratic, if inside the disc
+    if (Math.abs(l1) > 1e-300 && Math.abs(l2) > 1e-300) {
+      const w1 = -a1 / l1;
+      const w2 = -a2 / l2;
+      if (Math.hypot(w1, w2) < L * S) {
+        const u = u0 + a1 * w1 + a2 * w2 + 0.5 * (l1 * w1 * w1 + l2 * w2 * w2);
+        umin = Math.min(umin, u);
+        umax = Math.max(umax, u);
+      }
+    }
+    umin = Math.min(umin, u0);
+    umax = Math.max(umax, u0);
+    const span = Math.max(umax - umin, 1e-300);
+    umin -= 1e-3 * span;
+    umax += 1e-3 * span;
+    // F(cv) = P(xi <= cv): condition on w1, intervals in w2
+    const Fof = (cv) => {
+      // for each w1 the set {w2: q(w2) <= 0}, q = (u0 + a1 w1 + l1 w1^2/2 - cv) + a2 w2 + l2 w2^2/2
+      const probW2 = (w1) => {
+        const k = u0 + a1 * w1 + 0.5 * l1 * w1 * w1 - cv;
+        if (Math.abs(l2) < 1e-14 * (Math.abs(a2) + 1e-300)) {
+          if (Math.abs(a2) < 1e-300) return k <= 0 ? 1 : 0;
+          // a2 w2 + k <= 0
+          const r = -k / a2;
+          return a2 > 0 ? normalCdf(r / S) : 1 - normalCdf(r / S);
+        }
+        const D = a2 * a2 - 2 * l2 * k;
+        if (D < 0) return l2 > 0 ? 0 : 1;
+        const sq = Math.sqrt(D);
+        const r1 = (-a2 - sq) / l2;
+        const r2 = (-a2 + sq) / l2;
+        const lo = Math.min(r1, r2);
+        const hi = Math.max(r1, r2);
+        const inside = normalCdf(hi / S) - normalCdf(lo / S);
+        return l2 > 0 ? inside : 1 - inside;
+      };
+      // cut the w1 line where the discriminant vanishes (roots appear), or,
+      // when the second direction is inert, where the count itself crosses
+      // the level (the indicator jumps in w1)
+      const cuts = [-L * S, L * S];
+      if (Math.abs(l2) < 1e-14 * (Math.abs(a2) + 1e-300) && Math.abs(a2) < 1e-300) {
+        // l1 w1^2 / 2 + a1 w1 + (u0 - cv) = 0
+        const A = 0.5 * l1;
+        const B = a1;
+        const C = u0 - cv;
+        if (Math.abs(A) > 1e-300) {
+          const dd = B * B - 4 * A * C;
+          if (dd >= 0) {
+            const sq = Math.sqrt(dd);
+            for (const r of [(-B - sq) / (2 * A), (-B + sq) / (2 * A)]) if (r > -L * S && r < L * S) cuts.push(r);
+          }
+        } else if (Math.abs(B) > 1e-300) {
+          const r = -C / B;
+          if (r > -L * S && r < L * S) cuts.push(r);
+        }
+      } else if (Math.abs(l2) >= 1e-14 * (Math.abs(a2) + 1e-300)) {
+        // D(w1) = a2^2 - 2 l2 (u0 - cv + a1 w1 + l1 w1^2 / 2) = 0: quadratic in w1
+        const A = -l2 * l1;
+        const B = -2 * l2 * a1;
+        const C = a2 * a2 - 2 * l2 * (u0 - cv);
+        if (Math.abs(A) > 1e-300) {
+          const dd = B * B - 4 * A * C;
+          if (dd >= 0) {
+            const sq = Math.sqrt(dd);
+            for (const r of [(-B - sq) / (2 * A), (-B + sq) / (2 * A)]) if (r > -L * S && r < L * S) cuts.push(r);
+          }
+        } else if (Math.abs(B) > 1e-300) {
+          const r = -C / B;
+          if (r > -L * S && r < L * S) cuts.push(r);
+        }
+      }
+      cuts.sort((x, y) => x - y);
+      const gl = gaussLegendre(32);
+      let total = 0;
+      for (let i = 0; i + 1 < cuts.length; i++) {
+        const lo = cuts[i];
+        const hi = cuts[i + 1];
+        if (hi - lo < 1e-300) continue;
+        // split long panels so the Gaussian weight is resolved
+        const nsub = Math.max(1, Math.ceil((hi - lo) / (1.5 * S)));
+        for (let j = 0; j < nsub; j++) {
+          const p0 = lo + ((hi - lo) * j) / nsub;
+          const p1 = lo + ((hi - lo) * (j + 1)) / nsub;
+          const h = 0.5 * (p1 - p0);
+          const m = 0.5 * (p1 + p0);
+          for (let q = 0; q < gl.x.length; q++) {
+            const w1 = m + h * gl.x[q];
+            total += h * gl.w[q] * Math.exp(-0.5 * (w1 / S) ** 2) * probW2(w1);
+          }
+        }
+      }
+      return total / (S * Math.sqrt(TAU));
+    };
+    // the picture on the excursion: a grid with jumps located by bisection
+    const NG = this.coverageNG;
+    const pic = (u) => fn(u);
+    const us = [];
+    const vs = [];
+    for (let i = 0; i <= NG; i++) {
+      const u = umin + ((umax - umin) * i) / NG;
+      us.push(u);
+      vs.push(pic(u));
+    }
+    // jump detection: a change far above the typical step of the grid;
+    // kink detection (a relu): a change of slope far above the typical one,
+    // located by bisection on the deviation from the chord, since most of
+    // the count's mass sits at its extremes, where a kink often is
+    const diffs = [];
+    for (let i = 0; i < NG; i++) diffs.push(Math.abs(vs[i + 1] - vs[i]));
+    const sorted = diffs.slice().sort((x, y) => x - y);
+    const typical = sorted[Math.floor(NG * 0.5)];
+    const scaleV = Math.max(...vs.map(Math.abs), 1e-300);
+    const d2 = [];
+    for (let i = 0; i + 1 < NG; i++) d2.push(Math.abs(vs[i + 2] - 2 * vs[i + 1] + vs[i]));
+    const typical2 = d2.slice().sort((x, y) => x - y)[Math.floor(d2.length * 0.5)];
+    const kinkAt = (a, b) => {
+      // the point in [a, b] where the slope changes: keep the half whose
+      // midpoint deviates more from its chord
+      let lo = a;
+      let hi = b;
+      for (let it = 0; it < 50; it++) {
+        const m = 0.5 * (lo + hi);
+        const ml = 0.5 * (lo + m);
+        const mr = 0.5 * (m + hi);
+        const devL = Math.abs(pic(ml) - 0.5 * (pic(lo) + pic(m)));
+        const devR = Math.abs(pic(mr) - 0.5 * (pic(m) + pic(hi)));
+        if (devL >= devR) hi = m;
+        else lo = m;
+        if (hi - lo < 1e-12 * (Math.abs(a) + Math.abs(b) + 1e-300)) break;
+      }
+      return 0.5 * (lo + hi);
+    };
+    // a jump is a step far above both its neighbours' (a kink or a smooth
+    // slope has neighbours of the same size; the median is no guide when
+    // most of the excursion is flat); a kink is a change of slope far above
+    // its neighbours', which shows in two consecutive second differences
+    const nb = (i) => Math.max(i > 0 ? diffs[i - 1] : 0, i + 1 < NG ? diffs[i + 1] : 0);
+    const nb2 = (i) => Math.max(i - 2 >= 0 ? d2[i - 2] : 0, i + 1 < d2.length ? d2[i + 1] : 0);
+    const isJump = (i) => diffs[i] > 4 * nb(i) + 8 * typical + 1e-12 * scaleV + 1e-300;
+    const isKink = (i) => i >= 1 && i < d2.length && d2[i - 1] + d2[i] > 4 * nb2(i) + 8 * typical2 + 1e-10 * scaleV + 1e-300;
+    const nodes = [[us[0], vs[0]]];
+    for (let i = 0; i < NG; i++) {
+      if (isJump(i)) {
+        // bisect the jump
+        let lo = us[i];
+        let hi = us[i + 1];
+        const vlo = vs[i];
+        for (let it = 0; it < 60; it++) {
+          const mid = 0.5 * (lo + hi);
+          if (Math.abs(pic(mid) - vlo) < 0.5 * diffs[i]) lo = mid;
+          else hi = mid;
+        }
+        nodes.push([lo, pic(lo)]);
+        nodes.push([hi, pic(hi)]);
+      } else if (isKink(i) && !(i + 1 < NG && isJump(i + 1)) && !(i > 0 && isJump(i - 1))) {
+        // a kink between us[i-1] and us[i+1]; locate it and add a node
+        const k = kinkAt(us[i - 1], us[i + 1]);
+        if (k > us[i] && k < us[i + 1]) nodes.push([k, pic(k)]);
+        else if (k > us[i - 1] && k < us[i] && nodes.length && nodes[nodes.length - 1][0] < k) {
+          // it lies in the previous segment: insert before the last node
+          const last = nodes.pop();
+          nodes.push([k, pic(k)]);
+          nodes.push(last);
+        }
+      }
+      nodes.push([us[i + 1], vs[i + 1]]);
+    }
+    nodes.sort((p, q) => p[0] - q[0]);
+    // E p(xi) = sum over segments of (alpha + beta u) integrated against dF:
+    // alpha (F(b) - F(a)) + beta (b F(b) - a F(a) - int_a^b F du), the
+    // last by Simpson on F (smooth between the nodes)
+    let total = 0;
+    let Fa = Fof(nodes[0][0]);
+    for (let i = 0; i + 1 < nodes.length; i++) {
+      const [ua, va] = nodes[i];
+      const [ub, vb] = nodes[i + 1];
+      const Fb = Fof(ub);
+      if (ub - ua < 1e-9 * span) {
+        // a located jump: no length to speak of, and a chord across it
+        // would have a slope of 1e16 and cancel catastrophically
+        Fa = Fb;
+        continue;
+      }
+      const beta = (vb - va) / (ub - ua);
+      const alpha = va - beta * ua;
+      let intF = 0;
+      if (beta !== 0) {
+        // int_a^b F du by adaptive Simpson: F has square-root singularities
+        // at the count's extremes, where a linear picture's slope matters
+        const simpson = (x0, f0, x2, f2, x1, f1) => ((x2 - x0) / 6) * (f0 + 4 * f1 + f2);
+        const adapt = (x0, f0, x2, f2, x1, f1, whole, depth) => {
+          const xl = 0.5 * (x0 + x1);
+          const xr = 0.5 * (x1 + x2);
+          const fl = Fof(xl);
+          const fr = Fof(xr);
+          const left = simpson(x0, f0, x1, f1, xl, fl);
+          const right = simpson(x1, f1, x2, f2, xr, fr);
+          if (depth >= 14 || Math.abs(left + right - whole) <= 1e-10 * Math.max(1, Math.abs(whole)) * (x2 - x0) / span * 96) return left + right + (left + right - whole) / 15;
+          return adapt(x0, f0, x1, f1, xl, fl, left, depth + 1) + adapt(x1, f1, x2, f2, xr, fr, right, depth + 1);
+        };
+        const um = 0.5 * (ua + ub);
+        const Fm = Fof(um);
+        intF = adapt(ua, Fa, ub, Fb, um, Fm, simpson(ua, Fa, ub, Fb, um, Fm), 0);
+      }
+      total += alpha * (Fb - Fa) + beta * (ub * Fb - ua * Fa - intF);
+      Fa = Fb;
+    }
+    this.stats.recipes += nodes.length;
+    return total;
   }
   // an axis may be local (its count integrated by quadrature along its
   // gradient) when it is narrow and the rate dominates the curvature
@@ -2076,7 +2412,12 @@ export class Pixel {
   }
   prepareAxis(axis) {
     if (axis.kind === 'edge') {
-      const s = this.sig * axis.count.gradNorm();
+      // the count's width across the pixel, curvature included (a step of a
+      // count at its stationary point has no rate and a whole excursion)
+      const c = axis.count;
+      const s2 = this.sig * this.sig;
+      const hf = this.curvedWidth ? c.hxx * c.hxx + 2 * c.hxy * c.hxy + c.hyy * c.hyy : 0;
+      const s = Math.sqrt(s2 * c.gradNorm() * c.gradNorm() + 0.5 * s2 * s2 * hf);
       // the period must hold the whole argument across the pixel: the
       // smooth part's reach and the field's amplitude (bounded by the sum
       // of its coefficient magnitudes)
@@ -2223,6 +2564,50 @@ export class Pixel {
     // reviewer's example, cos(2 pi t^2) under a pixel of sigma 1/2, is
     // 0.445, not 1).
     const frozen = axes.filter((a) => this.isFrozen(a));
+    // hard pictures on a count that is mostly curvature are replaced, term
+    // by term, by their expectation under the pushed-forward pixel, the
+    // coverage of the quadratic count: a frozen coordinate would put the
+    // whole pixel on one side of the edge, and the periodised series of a
+    // step of a stationary count converges only as K^(-1/2). Edge axes
+    // qualify by kind, periodic axes when their pictures jump within the
+    // excursion (a smooth picture of a curved count is exact spectrally).
+    // Axes a closure or a field reads keep their coordinate (the closure
+    // needs a number), and so do axes of no width.
+    {
+      let any = false;
+      let constant = 0;
+      const ts2 = [];
+      const curved = axes.filter((a) => this.axisSigma(a) >= 1e-9 && !this.rateDominates(a));
+      for (const tj of ts) {
+        let cr = tj.c.re;
+        let ci = tj.c.im;
+        let fs = tj.f;
+        let ch = false;
+        for (const a of curved) {
+          const usedElsewhere = fs.some((f) => (f.kind === 'clo' && f.axes.includes(a)) || (f.kind === 'pic' && f.axis !== a && f.axis.field && f.axis.field.axes().includes(a)) || (f.kind === 'pic' && f.axis === a && f.axis.field));
+          if (usedElsewhere) continue;
+          const mine = fs.filter((f) => f.kind === 'pic' && f.axis === a);
+          if (mine.length === 0) continue;
+          const prod = (u) => mine.reduce((pr, f) => pr * f.fn(u), 1);
+          if (a.kind !== 'edge' && !this.isFrozen(a) && !this.picturesJump(a, prod)) continue;
+          const v = this.coverageExpect(a, prod);
+          cr = cr.scale(v);
+          ci = ci.scale(v);
+          fs = fs.filter((f) => !mine.includes(f));
+          ch = true;
+        }
+        if (!ch) {
+          ts2.push(tj);
+          continue;
+        }
+        any = true;
+        if (fs.length === 0) constant += cr.v + 0.5 * this.sig * this.sig * (cr.hxx + cr.hyy);
+        else ts2.push({ c: { re: cr, im: ci }, f: fs });
+      }
+      // the factorless part is a number; the rest goes round again with
+      // its coverage axes gone
+      if (any) return constant + (ts2.length ? this.expectTerm(ts2) : 0);
+    }
     // local axes: axes whose pixel-sigma is small in their own scale (an
     // edge with a field counts in units of the field's amplitude); those
     // without a field over another local axis go first, so that the second
