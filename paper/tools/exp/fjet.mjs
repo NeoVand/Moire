@@ -1941,11 +1941,61 @@ export class Pixel {
     this.shiftNG = 64; // grid per shift axis for the family over the shift torus
     this.shiftKW = 16; // window of shift harmonics kept
     this.shiftDTheta = 0.05; // theta step of the family (quadratic interpolation)
+    this.curvedWidth = true; // the width of a count includes its curvature (false: first order only, the ablation)
     this.stats = { terms: 0, recipes: 0, dfts: 0, overflow: 0, localNodes: 0 };
   }
+  // the width of a count under the pixel, in periods: the standard deviation
+  // of g.z + z^T H z / 2 for z ~ N(0, sig^2 I), whose variance is
+  // sig^2 |g|^2 + sig^4 |H|_F^2 / 2. A count at its stationary point is not
+  // constant across the pixel when it curves: E cos(2 pi A t^2) over a pixel
+  // of sigma 1/2 is Re (1 - 4 pi i A sig^2)^(-1/2) = 0.445 at A = 1, not 1.
+  // The curvature enters the width, and with it the choice between frozen,
+  // local and spectral, so that a stationary count stays spectral where the
+  // quadratic phase is integrated in closed form.
   axisSigma(axis) {
     const p = axis.kind === 'edge' ? axis.edgePeriod : 1;
+    const c = axis.count;
+    const s2 = this.sig * this.sig;
+    if (!this.curvedWidth) return (this.sig * c.gradNorm()) / p;
+    const hf = c.hxx * c.hxx + 2 * c.hxy * c.hxy + c.hyy * c.hyy;
+    return Math.sqrt(s2 * c.gradNorm() * c.gradNorm() + 0.5 * s2 * s2 * hf) / p;
+  }
+  // the first-order width alone: what the local path's line quadrature
+  // sizes its panels by, since it models the count as linear along the line
+  axisSigmaLinear(axis) {
+    const p = axis.kind === 'edge' ? axis.edgePeriod : 1;
     return (this.sig * axis.count.gradNorm()) / p;
+  }
+  // does the rate dominate the curvature in the count's width? A narrow
+  // count that is mostly curvature has no line to integrate along.
+  rateDominates(axis) {
+    if (!this.curvedWidth) return true;
+    const lin = this.axisSigmaLinear(axis);
+    const tot = this.axisSigma(axis);
+    return lin * lin >= 0.5 * tot * tot;
+  }
+  // an axis is frozen (its coordinate a number) when the count neither moves
+  // nor curves across the pixel, or when it is narrow (under the local
+  // threshold) and mostly curvature: then the line quadrature has no line,
+  // and the series in its torus coordinate would carry every harmonic at
+  // full strength (a stationary count suppresses nothing), so the count is
+  // held at its mean over the pixel, u0 + sig^2 tr(H) / 2. A stationary count
+  // whose curvature makes it wide stays spectral, where its quadratic phase
+  // is integrated in closed form (cos(2 pi t^2) under sigma 1/2 is 0.445).
+  isFrozen(axis) {
+    const w = this.axisSigma(axis);
+    return w < 1e-9 || (w < this.localSigma && !this.rateDominates(axis));
+  }
+  // the value a frozen axis's coordinate takes: the mean of the count over
+  // the pixel (its centre value plus the curvature's shift)
+  frozenValue(axis) {
+    const c = axis.count;
+    return c.v + 0.5 * this.sig * this.sig * (c.hxx + c.hyy);
+  }
+  // an axis may be local (its count integrated by quadrature along its
+  // gradient) when it is narrow and the rate dominates the curvature
+  canBeLocal(axis) {
+    return !this.isFrozen(axis) && this.axisSigma(axis) < this.localSigma;
   }
   harmonicsFor(axis) {
     return Math.min(this.maxK, Math.ceil(this.reach / (TAU * Math.max(this.axisSigma(axis), 1e-9))));
@@ -2139,6 +2189,7 @@ export class Pixel {
       if (usedElsewhere) continue;
       const mine = factors.filter((f) => f.kind === 'pic' && f.axis === a);
       if (mine.length === 0) continue;
+      // the count's whole excursion across the pixel, curvature included
       const sigA = this.axisSigma(a) * this.axisScale(a);
       const c0 = a.count.v;
       let vmin = Infinity;
@@ -2165,23 +2216,27 @@ export class Pixel {
       ts = [t];
       axes = this.bundleAxes(ts);
     }
-    // axes with no rate at all (a count at its stationary point) are
-    // frozen: their coordinate is a number, the count at the point
-    const frozen = axes.filter((a) => a.count.gradNorm() < 1e-9);
+    // axes whose count is narrow and mostly curvature (or does not move at
+    // all) are frozen: their coordinate is a number, the count's mean over
+    // the pixel. A stationary count that curves enough to be wide is not
+    // frozen: its quadratic phase is integrated by the spectral path (the
+    // reviewer's example, cos(2 pi t^2) under a pixel of sigma 1/2, is
+    // 0.445, not 1).
+    const frozen = axes.filter((a) => this.isFrozen(a));
     // local axes: axes whose pixel-sigma is small in their own scale (an
     // edge with a field counts in units of the field's amplitude); those
     // without a field over another local axis go first, so that the second
     // axis's jumps can be located with the first one fixed
-    const local = axes.filter((a) => a.count.gradNorm() >= 1e-9 && this.axisSigma(a) < this.localSigma);
+    const local = axes.filter((a) => this.canBeLocal(a));
     // an axis nearly parallel to a faster axis of the term is local too
     // while its own sigma is moderate: along their common direction the
     // spectral sum is a station family without end, and quadrature is cheap
     for (const a of axes) {
-      if (local.includes(a) || a.count.gradNorm() < 1e-9 || this.axisSigma(a) >= this.parallelSigma) continue;
+      if (local.includes(a) || this.isFrozen(a) || this.axisSigma(a) >= this.parallelSigma) continue;
       const ga = this.axisRate(a);
       const na = Math.hypot(ga[0], ga[1]);
       for (const o of axes) {
-        if (o === a || o.count.gradNorm() < 1e-9 || this.axisSigma(o) <= this.axisSigma(a)) continue;
+        if (o === a || this.isFrozen(o) || this.axisSigma(o) <= this.axisSigma(a)) continue;
         const go = this.axisRate(o);
         const no = Math.hypot(go[0], go[1]);
         if (Math.abs(ga[0] * go[1] - ga[1] * go[0]) / (na * no) < this.parallelSin) {
@@ -2192,7 +2247,7 @@ export class Pixel {
     }
     if (local.length === 0) {
       const base = new Map();
-      for (const o of frozen) base.set(o.id, o.count.v);
+      for (const o of frozen) base.set(o.id, this.frozenValue(o));
       let v = 0;
       for (const tj of ts) v += this.spectral(tj, { dim: 2, sig: this.sig }, base);
       return v;
@@ -2225,7 +2280,7 @@ export class Pixel {
       }
     }
     if (!b) {
-      const sigA = this.axisSigma(a) * this.axisScale(a);
+      const sigA = this.axisSigmaLinear(a) * this.axisScale(a);
       // along the line every other axis has a rate; if any is slow there
       // (a picture that changes little along the line, or a second local
       // axis nearly parallel to the first) the line is integrated pointwise

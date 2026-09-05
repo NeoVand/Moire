@@ -371,15 +371,90 @@ const brutePixel = (cs, x, y, n, seed, ch = 0) => {
   }
   return a / n;
 };
-const oursPixel = (cs, x, y, stats) => {
+// The pixel as a mixture of narrower Gaussians: N(0, s^2) is the mixture of
+// N(mu, r^2 s^2) over mu ~ N(0, (1 - r^2) s^2), discretised by Gauss-Hermite
+// with n nodes per axis. Each sub-pixel is traced and expanded at its own
+// centre, so the second-order model has a shorter reach where the third
+// order would bite (the horizon rows). FJET_SPLIT=n turns it on for every
+// probe pixel. Measured against a million samples it does not help: with
+// five nodes per axis and ratio 0.5 (sub-pixels of sigma 0.25, each exact
+// to 3e-4 to 6e-4 on its own) the mixture errs by 5.1e-3 at the circles'
+// (240,5) and 5.8e-3 at (300,12), where the plain pixel is 1.5e-3 and 1e-3,
+// because the sub-pixel value varies with its centre on the pattern's own
+// scale and five Hermite nodes cannot integrate it. Kept as the record of
+// the experiment; the third-order remedy is still open.
+const hermiteNodes = (n) => {
+  // probabilists' Hermite: roots of He_n and weights, by Newton on the recurrence
+  const x = [];
+  const w = [];
+  // the non-negative roots by Newton from the standard initial guesses, then mirrored
+  const half = [];
+  for (let i = 0; i < Math.floor(n / 2) + (n % 2); i++) {
+    let z = Math.sqrt(2 * n + 1) * Math.cos((Math.PI * (i + 0.75)) / (n + 0.5));
+    if (n % 2 === 1 && i === (n - 1) / 2) z = 0;
+    let dp = 1;
+    for (let it = 0; it < 60; it++) {
+      let p0 = 1;
+      let p1 = z;
+      for (let k = 2; k <= n; k++) {
+        const p2 = z * p1 - (k - 1) * p0;
+        p0 = p1;
+        p1 = p2;
+      }
+      dp = n * p0;
+      const dz = p1 / dp;
+      z -= dz;
+      if (Math.abs(dz) < 1e-14) break;
+    }
+    // weight: n! sqrt(2 pi) / (n^2 He_{n-1}(z)^2); normalised below
+    let p0 = 1;
+    let p1 = z;
+    for (let k = 2; k <= n - 1; k++) {
+      const p2 = z * p1 - (k - 1) * p0;
+      p0 = p1;
+      p1 = p2;
+    }
+    half.push([z, 1 / (n * n * p1 * p1)]);
+  }
+  for (const [z, wt] of half) {
+    if (Math.abs(z) < 1e-12) {
+      x.push(0);
+      w.push(wt);
+    } else {
+      x.push(z, -z);
+      w.push(wt, wt);
+    }
+  }
+  const tot = w.reduce((a, b) => a + b, 0);
+  return { x, w: w.map((v) => v / tot) };
+};
+const SPLIT = process.env.FJET_SPLIT ? Number(process.env.FJET_SPLIT) : 0;
+const SPLIT_RATIO = process.env.FJET_SPLIT_RATIO ? Number(process.env.FJET_SPLIT_RATIO) : 0.5;
+const oursPixelSplit = (cs, x, y, stats, n, ratio) => {
+  const gh = hermiteNodes(n);
+  const outer = SIG * Math.sqrt(1 - ratio * ratio);
+  const acc = [0, 0, 0];
+  for (let i = 0; i < n; i++)
+    for (let j = 0; j < n; j++) {
+      const v = oursPixelAt(cs, x + outer * gh.x[i], y + outer * gh.x[j], stats, SIG * ratio);
+      const w = gh.w[i] * gh.w[j];
+      for (let ch = 0; ch < 3; ch++) acc[ch] += w * v[ch];
+    }
+  return acc;
+};
+const oursPixel = (cs, x, y, stats) => (SPLIT ? oursPixelSplit(cs, x, y, stats, SPLIT, SPLIT_RATIO) : oursPixelAt(cs, x, y, stats, SIG));
+const oursPixelAt = (cs, x, y, stats, sig) => {
   F.resetAxes();
-  const px = new Pixel(SIG, 1e-4);
+  const px = new Pixel(sig, 1e-4);
   if (process.env.FJET_PANEL) px.localPanel = Number(process.env.FJET_PANEL);
   if (process.env.FJET_PANEL_B) px.localPanelB = Number(process.env.FJET_PANEL_B);
   if (process.env.FJET_LOCALSIG) px.localSigma = Number(process.env.FJET_LOCALSIG);
   if (process.env.FJET_PARSIN) px.parallelSin = Number(process.env.FJET_PARSIN);
   if (process.env.FJET_PARSIG) px.parallelSigma = Number(process.env.FJET_PARSIG);
   if (process.env.FJET_LINEMAX) px.lineMaxPeriods = Number(process.env.FJET_LINEMAX);
+  if (process.env.FJET_FOLDGROWTH) px.foldGrowth = Number(process.env.FJET_FOLDGROWTH);
+  if (process.env.FJET_CURV === '0') px.curvedWidth = false;
+  if (process.env.FJET_MAXK) px.maxK = Number(process.env.FJET_MAXK);
   const out = cs.eval(FJ, x, y, true);
   // channels with the same structure (grey shaders build three equal
   // elements) are computed once

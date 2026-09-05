@@ -3,7 +3,19 @@
   "oneD": {
    "ratiosChecked": 207,
    "recordsMatchConvergents": 207,
-   "mismatches": 0
+   "mismatches": 0,
+   "pricedMerit": {
+    "maxDenominator": 300,
+    "records": 452,
+    "recordsThatAreConvergents": 452,
+    "convergents": 1246,
+    "convergentsThatAreRecords": 452,
+    "ratiosWithANonRecordConvergent": 205,
+    "sqrt2": {
+     "mu11": 0.3431457505076199,
+     "mu32": 0.3532470182743126
+    }
+   }
   },
   "twoD": {
    "trials": 4000,

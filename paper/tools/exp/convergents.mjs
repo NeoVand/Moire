@@ -99,6 +99,59 @@ for (const [name, rho] of RATIOS) {
   else mismatches.push({ name, rho, extras, rec, conv });
 }
 
+// The priced merit mu = eta |ab|, the paper's visibility figure: for parallel
+// families of pitch ratio rho the recipe (h, -k) has eta = 2|h - k rho|/(h + k rho),
+// so mu = 2hk|h - k rho|/(h + k rho). The paper once stated that the recipes
+// beating every lower-order recipe under mu are EXACTLY the convergents. The
+// reviewer's counterexample: rho = sqrt 2 has mu(1,1) = 0.3431 and
+// mu(3,2) = 0.3532, so the convergent 3/2 is no record. Measured here, by
+// denominator (for each k the best h; a record beats every smaller k):
+// every priced record is a convergent (the one direction Lagrange gives, since
+// mu is k|k rho - h| up to a factor near one), and most convergents are not
+// records. The continued fraction is the candidate ladder; the record and
+// station statements are about the merit, and the coefficient (the harmonic
+// amplitude the merit only prices generically) decides what shows.
+const mu = (h, k, rho) => (2 * h * k * Math.abs(h - k * rho)) / (h + k * rho);
+let pricedRecords = 0;
+let pricedRecordsConvergent = 0;
+let convergentsSeen = 0;
+let convergentsThatAreRecords = 0;
+let ratiosWithNonRecordConvergent = 0;
+const pricedMismatches = [];
+const MAXQ_MU = 300;
+for (const [name, rho] of RATIOS) {
+  const conv = convergents(rho, MAXQ_MU).filter(([, q]) => q <= MAXQ_MU);
+  const convSet = new Set(conv.map(([p, q]) => `${p}/${q}`));
+  let best = Infinity;
+  const recs = new Set();
+  for (let k = 1; k <= MAXQ_MU; k += 1) {
+    let bh = 0;
+    let bm = Infinity;
+    for (let h = Math.max(1, Math.floor(k * rho) - 1); h <= Math.ceil(k * rho) + 1; h += 1) {
+      const m = mu(h, k, rho);
+      if (m < bm) {
+        bm = m;
+        bh = h;
+      }
+    }
+    if (bm < best - 1e-12) {
+      best = bm;
+      recs.add(`${bh}/${k}`);
+      pricedRecords += 1;
+      if (convSet.has(`${bh}/${k}`)) pricedRecordsConvergent += 1;
+      else pricedMismatches.push({ name, rho, h: bh, k, mu: bm });
+    }
+  }
+  let missing = 0;
+  for (const c of convSet) {
+    convergentsSeen += 1;
+    if (recs.has(c)) convergentsThatAreRecords += 1;
+    else missing += 1;
+  }
+  if (missing > 0) ratiosWithNonRecordConvergent += 1;
+}
+const sqrt2 = { mu11: mu(1, 1, Math.SQRT2), mu32: mu(3, 2, Math.SQRT2) };
+
 // The convergent fan: winning character against ratio at a fixed order
 // budget, for the figure. Winner = argmin over 1 <= q <= A of q-weighted
 // slowness (the profile's harmonic amplitude decays with order, so weight
@@ -314,6 +367,15 @@ const summary = {
     ratiosChecked: checked,
     recordsMatchConvergents: matched,
     mismatches: mismatches.length,
+    pricedMerit: {
+      maxDenominator: MAXQ_MU,
+      records: pricedRecords,
+      recordsThatAreConvergents: pricedRecordsConvergent,
+      convergents: convergentsSeen,
+      convergentsThatAreRecords: convergentsThatAreRecords,
+      ratiosWithANonRecordConvergent: ratiosWithNonRecordConvergent,
+      sqrt2,
+    },
   },
   twoD: {
     trials,
@@ -359,6 +421,14 @@ console.log(
   `  ${matched}/${checked} ratios: every record-setter is a convergent` +
     (mismatches.length ? ` (${mismatches.length} MISMATCH)` : '')
 );
+console.log('1D, priced merit mu = eta |ab| by denominator (k <= ' + MAXQ_MU + ')');
+console.log(
+  `  ${pricedRecordsConvergent}/${pricedRecords} priced records are convergents` +
+    (pricedMismatches.length ? ` (${pricedMismatches.length} NOT)` : '') +
+    `; ${convergentsThatAreRecords}/${convergentsSeen} convergents are records` +
+    ` (${ratiosWithNonRecordConvergent}/${checked} ratios have a convergent that is not)`
+);
+console.log(`  sqrt 2: mu(1,1) = ${sqrt2.mu11.toFixed(6)}, mu(3,2) = ${sqrt2.mu32.toFixed(6)}: the convergent 3/2 is no record`);
 console.log('2D: eta scan winners, 4000 random carrier pairs');
 console.log(`  fringes (eta < ${THRESH}) missed by the |k|<=2 cap:      ${capMisses}`);
 console.log(`  fringes missed by Gauss reduction + local refine:        ${reducedMisses}`);
