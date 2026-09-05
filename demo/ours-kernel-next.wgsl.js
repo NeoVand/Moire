@@ -1666,6 +1666,7 @@ fn maskMeanHMode(hu: vec3f, hv: vec3f, hd: vec3f, x: f32, y: f32, period: f32, S
   var HF: vec3f = vec3f(0.0);
   var kmax: f32 = 0.0;
   var gk: vec2f = vec2f(1.0, 0.0); // the fastest component's rate: the line direction of the mid regime
+  var k1c: f32 = 0.0; var k2c: f32 = 0.0; var k3c: f32 = 0.0; // the phases' pixel rates cubed, for the enclosure's remainder
   var th0: vec3f = vec3f(0.0);
   var thk: vec3f = vec3f(0.0); // the phases without their offsets: the rational form's numerator
   var g1: vec2f = vec2f(0.0); var g2: vec2f = vec2f(0.0); var g3: vec2f = vec2f(0.0);
@@ -1679,6 +1680,8 @@ fn maskMeanHMode(hu: vec3f, hv: vec3f, hd: vec3f, x: f32, y: f32, period: f32, S
     let gth: vec2f = k.x * gs + k.y * gt;
     let Hth: vec3f = k.x * Hs + k.y * Ht;
     if (i == 0) { th0.x = th; thk.x = thl; g1 = gth; H1 = Hth; } else if (i == 1) { th0.y = th; thk.y = thl; g2 = gth; H2 = Hth; } else { th0.z = th; thk.z = thl; g3 = gth; H3 = Hth; }
+    let gl3: f32 = length(gth) * length(gth) * length(gth);
+    if (i == 0) { k1c = gl3; } else if (i == 1) { k2c = gl3; } else { k3c = gl3; }
     let sn: f32 = sin(th);
     let cs: f32 = cos(th);
     F0 += a * sn;
@@ -1688,8 +1691,20 @@ fn maskMeanHMode(hu: vec3f, hv: vec3f, hd: vec3f, x: f32, y: f32, period: f32, S
   }
   let ks: f32 = kmax * sig;
   if (mode == 8u) { return maskSpectral(th0, thk, rr, g1, g2, g3, H1, H2, H3, S); }
-  if (ks < 0.15 && mode != 7u) {
-    // the near field: the zero set of the jet is a conic; quadRegion measures q <= 0
+  if ((ks < 0.15 && mode != 7u) || mode == 11u || mode == 12u) {
+    // the near field: the zero set of the jet is a conic; quadRegion measures q <= 0.
+    // The coverage enclosure (the collaborator's, bridge #64): with |F - q| <= eps
+    // on the ball of radius Rb, {q > t + eps} is inside {F > t} is inside {q > t - eps}
+    // there, and tau, the window's mass outside the ball, bounds the rest; the
+    // Taylor remainder of a sum of sines over the ball is sum_i a_i |k_i|^3 Rb^3 / 6.
+    // Mode 11 returns the interval's width, mode 12 its lower end
+    let Rb: f32 = 3.0 * sig;
+    let eps: f32 = (MASK_A.x * k1c + MASK_A.y * k2c + MASK_A.z * k3c) * Rb * Rb * Rb / 6.0;
+    let tau: f32 = exp(-0.5 * Rb * Rb / S);
+    let pLo: f32 = max(0.0, quadRegion(MASK_T0 + eps - F0, -gF, -HF, S) - tau);
+    let pHi: f32 = min(1.0, quadRegion(MASK_T0 - eps - F0, -gF, -HF, S) + tau);
+    if (mode == 11u) { return vec2f(pHi - pLo, 1.0); }
+    if (mode == 12u) { return vec2f(pLo, 1.0); }
     return vec2f(quadRegion(MASK_T0 - F0, -gF, -HF, S), 1.0);
   }
   if (ks < 1.5 || mode == 7u) {
