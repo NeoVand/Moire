@@ -87,6 +87,18 @@ fn multRe(phi0: f32, b: vec2f, q: vec3f, S: f32) -> f32 {
   let Ei: f32 = -0.5 * S * (Ai * Dr - Ar * Di) / dd;
   return modu * exp(Er) * cos(phi0 + ph + Ei);
 }
+// Gauss-Legendre 8 nodes and weights by index, without an indexed array
+fn glx8(k: i32) -> f32 {
+  var v: f32 = -0.9602898564975363;
+  if (k == 1) { v = -0.7966664774136267; } else if (k == 2) { v = -0.5255324099163290; } else if (k == 3) { v = -0.1834346424956498; }
+  else if (k == 4) { v = 0.1834346424956498; } else if (k == 5) { v = 0.5255324099163290; } else if (k == 6) { v = 0.7966664774136267; } else if (k == 7) { v = 0.9602898564975363; }
+  return v;
+}
+fn glw8(k: i32) -> f32 {
+  var v: f32 = 0.1012285362903763;
+  if (k == 1 || k == 6) { v = 0.2223810344533745; } else if (k == 2 || k == 5) { v = 0.3137066458778873; } else if (k == 3 || k == 4) { v = 0.3626837833783620; }
+  return v;
+}
 // the same expectation for a rational-linear phase, phi0 + A . X / (1 + r . X),
 // evaluated exactly: along lines perpendicular to r the phase is linear in the
 // coordinate p, so the Gaussian integral over p is closed form, and the
@@ -173,7 +185,7 @@ fn latticeReach(J: Jets, S: f32) -> f32 {
 
 // the checkerboard's spectral path: 1/2 - (2 / pi^2) sum over odd (k, l) of
 // Re E[e^{2 pi i (k u + l v)}] / (k l) over the reduced lattice within reach
-fn checkerSpectral(J: Jets, S: f32) -> vec2f {
+fn checkerSpectral(J: Jets, r: vec2f, S: f32) -> vec2f {
   let L: Lattice = reduceLattice(J.gu, J.gv);
   let R: f32 = latticeReach(J, S);
   let n1: f32 = length(L.b1);
@@ -213,7 +225,13 @@ fn checkerSpectral(J: Jets, S: f32) -> vec2f {
         if (dot(bb, bb) <= reach * reach) {
           let coef: f32 = -4.0 / (PI * PI * k * l);
           let phi0: f32 = TAU * (k * J.u0 + l * J.v0);
-          acc += coef * multRe(phi0, bb, qq, S);
+          // the phase is rational-linear on a plane, phi0 + A . X / (1 + r . X): where its
+          // cubic term along depth over 2.5 sigma exceeds 0.05 radians the exact depth
+          // quadrature replaces the quadratic multiplier
+          let A: vec2f = bb + TAU * (k * J.u0 + l * J.v0) * r;
+          let cub3: f32 = abs(dot(A, r)) * length(r) * 1.953125 * S * sqrt(S);
+          if (cub3 > 0.05) { acc += coef * multDepthRe(phi0, A, r, S); }
+          else { acc += coef * multRe(phi0, bb, qq, S); }
           count += 1.0;
         }
       }
@@ -247,7 +265,7 @@ fn j1overx(x: f32) -> f32 {
 }
 // the circles' spectral path: the disc's series over the reduced lattice,
 // coefficient (-1)^(k + l) rho J1(2 pi rho |kappa|) / |kappa|, DC pi rho^2
-fn circlesSpectral(J: Jets, S: f32) -> vec2f {
+fn circlesSpectral(J: Jets, rq: vec2f, S: f32) -> vec2f {
   let L: Lattice = reduceLattice(J.gu, J.gv);
   let R: f32 = latticeReach(J, S);
   let n1: f32 = length(L.b1);
@@ -289,7 +307,10 @@ fn circlesSpectral(J: Jets, S: f32) -> vec2f {
           if (parity > 0.5) { coef = -coef; }
           if (!dc) { coef = 2.0 * coef; }
           let phi0: f32 = TAU * (k * J.u0 + l * J.v0);
-          acc += coef * multRe(phi0, bb, qq, S);
+          let A: vec2f = bb + TAU * (k * J.u0 + l * J.v0) * rq;
+          let cub3: f32 = abs(dot(A, rq)) * length(rq) * 1.953125 * S * sqrt(S);
+          if (cub3 > 0.05) { acc += coef * multDepthRe(phi0, A, rq, S); }
+          else { acc += coef * multRe(phi0, bb, qq, S); }
           count += 1.0;
         }
       }
@@ -566,7 +587,7 @@ fn checkerMeanHMode(hu: vec3f, hv: vec3f, hd: vec3f, x: f32, y: f32, period: f32
   if (!eu.ok || !ev.ok) {
     if (mode == 4u) { return vec2f(0.5, 3.0); }
     let J: Jets = jetsFromHomography(hu, hv, hd, x, y, period);
-    let sp: vec2f = checkerSpectral(J, S);
+    let sp: vec2f = checkerSpectral(J, r, S);
     return vec2f(sp.x, select(4.0, 3.0, sp.y > 0.5)); // 3 the lattice fallback, 4 declined or exhausted: approximate
   }
   if (mode == 5u) { return vec2f(0.5, 1.0); }
@@ -620,6 +641,7 @@ fn circlesMeanHMode(hu: vec3f, hv: vec3f, hd: vec3f, x: f32, y: f32, period: f32
   let D: f32 = dot(hd, p);
   let dD: vec2f = hd.xy;
   let rn: f32 = length(dD) / abs(D);
+  let r: vec2f = dD / D;
   let u0: f32 = Nu / D / period;
   let v0: f32 = Nv / D / period;
   let gu: vec2f = (hu.xy * D - Nu * dD) / (D * D) / period;
@@ -637,14 +659,13 @@ fn circlesMeanHMode(hu: vec3f, hv: vec3f, hd: vec3f, x: f32, y: f32, period: f32
   if (denom <= 0.05 || (nu1 - nu0 + 1.0) * (nv1 - nv0 + 1.0) > 9.5 || abs(u0) > 1048576.0 || abs(v0) > 1048576.0) {
     if (mode == 4u) { return vec2f(0.5454, 3.0); }
     let J: Jets = jetsFromHomography(hu, hv, hd, x, y, period);
-    let sp: vec2f = circlesSpectral(J, S);
+    let sp: vec2f = circlesSpectral(J, r, S);
     return vec2f(sp.x, select(4.0, 3.0, sp.y > 0.5));
   }
   if (mode == 5u) { return vec2f(0.5454, 1.0); }
   // the conic through the pullback: (u - cu) = (du + a . X) / (1 + r . X) with
   // a = gu + du r, so the disc is (du + a . X)^2 + (dv + b . X)^2 <= R^2 (1 + r . X)^2,
   // an exact quadratic in X built from fractional offsets, no cell origin subtracted
-  let r: vec2f = dD / D;
   let L: f32 = 5.5 * sig;
   var acc: f32 = 0.0;
   let cellsU: i32 = i32(nu1 - nu0) + 1;
@@ -832,18 +853,6 @@ fn rippleLighting(psi: f32, dir: vec2f, viewer: vec3f, light: vec3f) -> vec2f {
   let R: vec3f = 2.0 * LN * n - light;
   let spec: f32 = pow(max(dot(R, viewer), 0.0), 50.0);
   return vec2f(LN, spec);
-}
-// Gauss-Legendre 8 nodes and weights by index, without an indexed array
-fn glx8(k: i32) -> f32 {
-  var v: f32 = -0.9602898564975363;
-  if (k == 1) { v = -0.7966664774136267; } else if (k == 2) { v = -0.5255324099163290; } else if (k == 3) { v = -0.1834346424956498; }
-  else if (k == 4) { v = 0.1834346424956498; } else if (k == 5) { v = 0.5255324099163290; } else if (k == 6) { v = 0.7966664774136267; } else if (k == 7) { v = 0.9602898564975363; }
-  return v;
-}
-fn glw8(k: i32) -> f32 {
-  var v: f32 = 0.1012285362903763;
-  if (k == 1 || k == 6) { v = 0.2223810344533745; } else if (k == 2 || k == 5) { v = 0.3137066458778873; } else if (k == 3 || k == 4) { v = 0.3626837833783620; }
-  return v;
 }
 // the probability under N(0, sigma^2) of the intersection of two half-lines
 // given as (coefficient, offset): the set c sigma + d >= 0
@@ -1271,7 +1280,7 @@ fn checkerMeanMode(J: Jets, S: f32, mode: u32) -> vec2f {
     return vec2f(0.5 + 0.5 * e, 1.0);
   }
   if (mode == 1u) { return vec2f(0.5, 2.0); }
-  let sp = checkerSpectral(J, S);
+  let sp = checkerSpectral(J, vec2f(0.0), S);
   return vec2f(sp.x, select(4.0, 2.0, sp.y > 0.5));
 }
 
@@ -1405,7 +1414,7 @@ fn circlesMeanMode(J: Jets, S: f32, mode: u32) -> vec2f {
     return vec2f(acc, 1.0);
   }
   if (mode == 1u) { return vec2f(0.5454, 2.0); }
-  let sp = circlesSpectral(J, S);
+  let sp = circlesSpectral(J, vec2f(0.0), S);
   return vec2f(sp.x, select(4.0, 2.0, sp.y > 0.5));
 }
 `;

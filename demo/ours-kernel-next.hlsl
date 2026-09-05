@@ -36,6 +36,50 @@ float multRe(float phi0, float2 b, float3 q, float S) {
   float Ei = -0.5 * S * (Ai * Dr - Ar * Di) / dd;
   return modu * exp(Er) * cos(phi0 + ph + Ei);
 }
+// Gauss-Legendre 8 nodes and weights by index, without an indexed array
+float glx8(int k) {
+  float v = -0.9602898564975363;
+  if (k == 1) { v = -0.7966664774136267; } else if (k == 2) { v = -0.5255324099163290; } else if (k == 3) { v = -0.1834346424956498; }
+  else if (k == 4) { v = 0.1834346424956498; } else if (k == 5) { v = 0.5255324099163290; } else if (k == 6) { v = 0.7966664774136267; } else if (k == 7) { v = 0.9602898564975363; }
+  return v;
+}
+float glw8(int k) {
+  float v = 0.1012285362903763;
+  if (k == 1 || k == 6) { v = 0.2223810344533745; } else if (k == 2 || k == 5) { v = 0.3137066458778873; } else if (k == 3 || k == 4) { v = 0.3626837833783620; }
+  return v;
+}
+// the same expectation for a rational-linear phase, phi0 + A . X / (1 + r . X),
+// evaluated exactly: along lines perpendicular to r the phase is linear in the
+// coordinate p, so the Gaussian integral over p is closed form, and the
+// integral over the depth coordinate tau is a quadrature with the exact phase
+// (24 nodes over 4 sigma). Used where the third-order witness says the
+// quadratic model of the phase fails (the mid rows of a plane in perspective)
+float multDepthRe(float phi0, float2 A, float2 r, float S) {
+  float sig = sqrt(S);
+  float rn = length(r);
+  float2 er = float2(1.0, 0.0);
+  if (rn > 1e-30) { er = r / rn; }
+  float2 ep = float2(-er.y, er.x);
+  float Ar = dot(A, er);
+  float Ap = dot(A, ep);
+  float Lt = 4.0 * sig;
+  float acc = 0.0;
+  float norm = 0.0;
+  for (int q = 0; q < 3; q++) {
+    float a = -Lt + float(q) * (2.0 * Lt / 3.0);
+    float half = Lt / 3.0;
+    for (int kq = 0; kq < 8; kq++) {
+      float tau = a + half * (1.0 + glx8(kq));
+      float den = 1.0 + rn * tau;
+      float w = glw8(kq) * half * 0.3989422804014327 * exp(-0.5 * tau * tau / S) / sig;
+      float beta = Ap / den;
+      float alpha = phi0 + Ar * tau / den;
+      acc += w * exp(-0.5 * S * beta * beta) * cos(alpha);
+      norm += w;
+    }
+  }
+  return acc / max(norm, 1e-12);
+}
 
 struct Jets { float u0; float v0; float2 gu; float2 gv; float3 Hu; float3 Hv; };
 // exact jets of the two counts from a homography: (Nu, Nv, D) = (hu, hv, hd) . (x, y, 1),
@@ -89,7 +133,7 @@ float latticeReach(Jets J, float S) {
 
 // the checkerboard's spectral path: 1/2 - (2 / pi^2) sum over odd (k, l) of
 // Re E[e^{2 pi i (k u + l v)}] / (k l) over the reduced lattice within reach
-float2 checkerSpectral(Jets J, float S) {
+float2 checkerSpectral(Jets J, float2 r, float S) {
   Lattice L = reduceLattice(J.gu, J.gv);
   float R = latticeReach(J, S);
   float n1 = length(L.b1);
@@ -129,7 +173,13 @@ float2 checkerSpectral(Jets J, float S) {
         if (dot(bb, bb) <= reach * reach) {
           float coef = -4.0 / (OURS_PI * OURS_PI * k * l);
           float phi0 = OURS_TAU * (k * J.u0 + l * J.v0);
-          acc += coef * multRe(phi0, bb, qq, S);
+          // the phase is rational-linear on a plane, phi0 + A . X / (1 + r . X): where its
+          // cubic term along depth over 2.5 sigma exceeds 0.05 radians the exact depth
+          // quadrature replaces the quadratic multiplier
+          float2 A = bb + OURS_TAU * (k * J.u0 + l * J.v0) * r;
+          float cub3 = abs(dot(A, r)) * length(r) * 1.953125 * S * sqrt(S);
+          if (cub3 > 0.05) { acc += coef * multDepthRe(phi0, A, r, S); }
+          else { acc += coef * multRe(phi0, bb, qq, S); }
           count += 1.0;
         }
       }
@@ -163,7 +213,7 @@ float j1overx(float x) {
 }
 // the circles' spectral path: the disc's series over the reduced lattice,
 // coefficient (-1)^(k + l) rho J1(2 pi rho |kappa|) / |kappa|, DC pi rho^2
-float2 circlesSpectral(Jets J, float S) {
+float2 circlesSpectral(Jets J, float2 rq, float S) {
   Lattice L = reduceLattice(J.gu, J.gv);
   float R = latticeReach(J, S);
   float n1 = length(L.b1);
@@ -205,7 +255,10 @@ float2 circlesSpectral(Jets J, float S) {
           if (parity > 0.5) { coef = -coef; }
           if (!dc) { coef = 2.0 * coef; }
           float phi0 = OURS_TAU * (k * J.u0 + l * J.v0);
-          acc += coef * multRe(phi0, bb, qq, S);
+          float2 A = bb + OURS_TAU * (k * J.u0 + l * J.v0) * rq;
+          float cub3 = abs(dot(A, rq)) * length(rq) * 1.953125 * S * sqrt(S);
+          if (cub3 > 0.05) { acc += coef * multDepthRe(phi0, A, rq, S); }
+          else { acc += coef * multRe(phi0, bb, qq, S); }
           count += 1.0;
         }
       }
@@ -592,7 +645,11 @@ EdgeRange edgeRange(float u0, float2 g, float2 r, float sig) {
       last = max(last, h);
     }
   }
-  if (count > 10.0) { E.ok = false; return E; }
+  // more than four edges an axis inside the window means several periods across
+  // it, where the spectral path is both cheaper and as accurate: on 52 mid-band
+  // probes the mean count of erf and multiplier calls drops from 78 to 18 (max 664
+  // to 157) at the same 2e-4 worst error (CPU harness, scene 0)
+  if (count > 4.0) { E.ok = false; return E; }
   if (count > 0.0) {
     bool even = abs(first - 2.0 * round(0.5 * first)) < 0.5;
     E.low = ((even) ? (-1.0) : (1.0));
@@ -620,7 +677,7 @@ float2 checkerMeanHMode(float3 hu, float3 hv, float3 hd, float x, float y, float
   if (!eu.ok || !ev.ok) {
     if (mode == 4) { return float2(0.5, 3.0); }
     Jets J = jetsFromHomography(hu, hv, hd, x, y, period);
-    float2 sp = checkerSpectral(J, S);
+    float2 sp = checkerSpectral(J, r, S);
     return float2(sp.x, ((sp.y > 0.5) ? (3.0) : (4.0))); // 3 the lattice fallback, 4 declined or exhausted: approximate
   }
   if (mode == 5) { return float2(0.5, 1.0); }
@@ -674,6 +731,7 @@ float2 circlesMeanHMode(float3 hu, float3 hv, float3 hd, float x, float y, float
   float D = dot(hd, p);
   float2 dD = hd.xy;
   float rn = length(dD) / abs(D);
+  float2 r = dD / D;
   float u0 = Nu / D / period;
   float v0 = Nv / D / period;
   float2 gu = (hu.xy * D - Nu * dD) / (D * D) / period;
@@ -691,14 +749,13 @@ float2 circlesMeanHMode(float3 hu, float3 hv, float3 hd, float x, float y, float
   if (denom <= 0.05 || (nu1 - nu0 + 1.0) * (nv1 - nv0 + 1.0) > 9.5 || abs(u0) > 1048576.0 || abs(v0) > 1048576.0) {
     if (mode == 4) { return float2(0.5454, 3.0); }
     Jets J = jetsFromHomography(hu, hv, hd, x, y, period);
-    float2 sp = circlesSpectral(J, S);
+    float2 sp = circlesSpectral(J, r, S);
     return float2(sp.x, ((sp.y > 0.5) ? (3.0) : (4.0)));
   }
   if (mode == 5) { return float2(0.5454, 1.0); }
   // the conic through the pullback: (u - cu) = (du + a . X) / (1 + r . X) with
   // a = gu + du r, so the disc is (du + a . X)^2 + (dv + b . X)^2 <= R^2 (1 + r . X)^2,
   // an exact quadratic in X built from fractional offsets, no cell origin subtracted
-  float2 r = dD / D;
   float L = 5.5 * sig;
   float acc = 0.0;
   int cellsU = int(nu1 - nu0) + 1;
