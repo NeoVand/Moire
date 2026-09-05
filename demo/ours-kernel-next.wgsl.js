@@ -710,7 +710,7 @@ const RIP_A: f32 = 0.3333333333333333;
 const RIP_F: f32 = 3.0;
 const RIP_M: i32 = 12;        // lighting harmonics kept, |m| <= RIP_M
 const RIP_NB: i32 = 6;        // sideband orders kept, |n| <= RIP_NB
-const RIP_SAMPLES: i32 = 64;  // samples of psi for the lighting's spectrum
+const RIP_SAMPLES: i32 = 32;  // samples of psi over [0, pi] for the lighting's spectrum (array<f32, 32> below)
 
 struct J2 { v: f32, g: vec2f, H: vec3f };
 fn j2add(a: J2, b: J2) -> J2 { return J2(a.v + b.v, a.g + b.g, a.H + b.H); }
@@ -764,23 +764,16 @@ fn besselJ(n: i32, x: f32) -> f32 {
   let v: f32 = besselSmall(an, x);
   return select(v, -v, n < 0 && (an & 1) == 1);
 }
-// the rippled counts' second-order jets: s = period u, t = period v, r = hypot(s, t),
-// psi = f r, h = a sin psi, displaced count u + (vx / period) h
-struct RippleJets { psi: J2, u: Jets };
+// the ripple phase's second-order jet: s = period u, t = period v, r = hypot(s, t), psi = f r
+struct RippleJets { psi: J2 };
 fn rippleJets(J: Jets, period: f32, viewer: vec3f) -> RippleJets {
   let sJ: J2 = J2(J.u0 * period, J.gu * period, J.Hu * period);
   let tJ: J2 = J2(J.v0 * period, J.gv * period, J.Hv * period);
   let r2: J2 = j2add(j2mul(sJ, sJ), j2mul(tJ, tJ));
   let r0: f32 = sqrt(max(r2.v, 1e-12));
   let rJ: J2 = j2fn(r2, r0, 0.5 / r0, -0.25 / (r0 * r0 * r0));
-  let psi: J2 = j2scale(rJ, RIP_F);
-  let hJ: J2 = j2fn(psi, RIP_A * sin(psi.v), RIP_A * cos(psi.v), -RIP_A * sin(psi.v));
-  let uJ: J2 = j2add(J2(J.u0, J.gu, J.Hu), j2scale(hJ, viewer.x / period));
-  let vJ: J2 = j2add(J2(J.v0, J.gv, J.Hv), j2scale(hJ, viewer.y / period));
   var out: RippleJets;
-  out.psi = psi;
-  out.u.u0 = uJ.v; out.u.gu = uJ.g; out.u.Hu = uJ.H;
-  out.u.v0 = vJ.v; out.u.gv = vJ.g; out.u.Hv = vJ.H;
+  out.psi = j2scale(rJ, RIP_F);
   return out;
 }
 // the lighting as a function of psi at this pixel: the normal from the height's
@@ -820,76 +813,101 @@ fn halfLinesProb(c1: f32, d1: f32, c2: f32, d2: f32, sig: f32) -> f32 {
   if (hi <= lo) { return 0.0; }
   return Phi(hi / sig) - Phi(lo / sig);
 }
-// the first moments E[p 1{...}] under N(0, sigma^2) of the same sets: the
-// lighting's slope along a line multiplies these
-fn halfLineMom(c: f32, d: f32, sig: f32) -> f32 {
-  if (abs(c) < 1e-30) { return 0.0; }
-  let a: f32 = -d / c;
-  let ph: f32 = 0.3989422804014327 * exp(-0.5 * a * a / (sig * sig));
-  return select(-sig * ph, sig * ph, c > 0.0);
-}
-fn halfLinesMom(c1: f32, d1: f32, c2: f32, d2: f32, sig: f32) -> f32 {
-  var lo: f32 = -1e30;
-  var hi: f32 = 1e30;
-  if (abs(c1) < 1e-30) { if (d1 < 0.0) { return 0.0; } } else if (c1 > 0.0) { lo = max(lo, -d1 / c1); } else { hi = min(hi, -d1 / c1); }
-  if (abs(c2) < 1e-30) { if (d2 < 0.0) { return 0.0; } } else if (c2 > 0.0) { lo = max(lo, -d2 / c2); } else { hi = min(hi, -d2 / c2); }
-  if (hi <= lo) { return 0.0; }
-  let plo: f32 = select(0.3989422804014327 * exp(-0.5 * lo * lo / (sig * sig)), 0.0, lo < -1e29);
-  let phi: f32 = select(0.3989422804014327 * exp(-0.5 * hi * hi / (sig * sig)), 0.0, hi > 1e29);
-  return sig * (plo - phi);
-}
 `;
 export const RIPPLES_LINE = /* wgsl */ `// the line quadrature across the ripple: on each line perpendicular to grad psi
 // the phase is psi(tau) plus the first-order tilt H_TP tau p, the displaced
 // checker edges are half-lines in the perpendicular coordinate p, and the
-// lighting's first-order variation along the line enters through the first
-// moment of the picture under the window
+// lighting is taken at the line's centre. Along tau the integrand has a step
+// wherever an edge crosses the line family's axis (a root of d0(tau)), sharp
+// when the edge runs nearly parallel to the lines: the integral is split at
+// those roots and each piece, at most half a pixel wide, takes eight
+// Gauss-Legendre nodes (measured on the CPU: 1.8e-4 worst on the near field at
+// 72 to 88 nodes a pixel; a smoothstep map clustering the nodes at the ends
+// was worse, since the steps' layers are 0.1 px wide, not 0.001)
+fn psiAlong(psi0: f32, gpsi: f32, Hpp: f32, tau: f32) -> f32 { return psi0 + gpsi * tau + 0.5 * Hpp * tau * tau; }
+// an edge's d0 along tau: (delta + A sin psi)(1 + rT tau) + gT tau
+fn edgeD0(dd: f32, A: f32, gT: f32, rT: f32, psi0: f32, gpsi: f32, Hpp: f32, tau: f32) -> f32 {
+  return (dd + A * sin(psiAlong(psi0, gpsi, Hpp, tau))) * (1.0 + rT * tau) + gT * tau;
+}
 fn ripplesLine(J: Jets, R: RippleJets, eu: EdgeRange, ev: EdgeRange, rr: vec2f, dir: vec2f, dirX: vec2f, dirY: vec2f, viewer: vec3f, light: vec3f, Au: f32, Av: f32, S: f32, mode: u32) -> f32 {
   let sig: f32 = sqrt(S);
   let gpsi: f32 = length(R.psi.g);
-  let psiRate: f32 = gpsi / TAU;
   var eT: vec2f = vec2f(1.0, 0.0);
   if (gpsi > 1e-9) { eT = R.psi.g / gpsi; }
   let eP: vec2f = vec2f(-eT.y, eT.x);
   let Hpp: f32 = R.psi.H.x * eT.x * eT.x + 2.0 * R.psi.H.y * eT.x * eT.y + R.psi.H.z * eT.y * eT.y;
   let Htp: f32 = R.psi.H.x * eT.x * eP.x + R.psi.H.y * (eT.x * eP.y + eT.y * eP.x) + R.psi.H.z * eT.y * eP.y;
-  // the radial direction's variation along the nodes and along each line
+  // the radial direction's variation along the nodes (its variation along a line,
+  // and the lighting's, integrate to under 2e-5 and are dropped)
   let dirT: vec2f = vec2f(dot(dirX, eT), dot(dirY, eT));
-  let dirP: vec2f = vec2f(dot(dirX, eP), dot(dirY, eP));
   let Lt: f32 = 4.0 * sig;
-  // the edges nearly parallel to the lines are steps in tau of width sigma |np| / |d0'|,
-  // which shrinks as the ripple rate grows: the panel count follows the rate
-  // (measured on the CPU: 12 panels leave 6e-4 at 1.4 cycles a pixel, 24 leave 1.7e-4)
-  let panels: i32 = clamp(i32(ceil(6.0 + 12.0 * psiRate)), 8, 30);
-  let dz: f32 = 2.0 * Lt / f32(panels);
   let nu: i32 = i32(eu.hhi - eu.hlo) + 1;
   let nv: i32 = i32(ev.hhi - ev.hlo) + 1;
+  let rT: f32 = dot(rr, eT);
+  let gTu: f32 = dot(J.gu, eT);
+  let gTv: f32 = dot(J.gv, eT);
+  let psi0: f32 = R.psi.v;
+  // the breakpoints: every edge's roots of d0 on [-Lt, Lt], by sign changes on a
+  // grid of 96 cells and eight bisections; at most 64 kept (a folded edge near the
+  // spectral boundary crosses about three times a ripple period)
+  var bp: array<f32, 64>;
+  var nbp: i32 = 0;
+  let NG: i32 = 96;
+  let dg: f32 = 2.0 * Lt / f32(NG);
+  for (var ie: i32 = 0; ie < nu + nv; ie++) {
+    var dd: f32 = J.u0 - 0.5 * (eu.hlo + f32(ie));
+    var A: f32 = Au;
+    var gT: f32 = gTu;
+    if (ie >= nu) { dd = J.v0 - 0.5 * (ev.hlo + f32(ie - nu)); A = Av; gT = gTv; }
+    var ta: f32 = -Lt;
+    var fa: f32 = edgeD0(dd, A, gT, rT, psi0, gpsi, Hpp, ta);
+    for (var ig: i32 = 1; ig <= NG; ig++) {
+      let tb: f32 = -Lt + f32(ig) * dg;
+      let fb: f32 = edgeD0(dd, A, gT, rT, psi0, gpsi, Hpp, tb);
+      if ((fa < 0.0) != (fb < 0.0) && nbp < 64) {
+        var lo: f32 = ta;
+        var hi: f32 = tb;
+        var flo: f32 = fa;
+        for (var it: i32 = 0; it < 8; it++) {
+          let tm: f32 = 0.5 * (lo + hi);
+          let fm: f32 = edgeD0(dd, A, gT, rT, psi0, gpsi, Hpp, tm);
+          if ((fm < 0.0) == (flo < 0.0)) { lo = tm; flo = fm; } else { hi = tm; }
+        }
+        bp[nbp] = 0.5 * (lo + hi);
+        nbp += 1;
+      }
+      ta = tb;
+      fa = fb;
+    }
+  }
   var acc: f32 = 0.0;
   var norm: f32 = 0.0;
-  for (var q: i32 = 0; q < panels; q++) {
-    let pa: f32 = -Lt + f32(q) * dz;
-    let half: f32 = 0.5 * dz;
-    let mid: f32 = pa + half;
+  var a: f32 = -Lt;
+  let W0: f32 = 0.5; // the widest piece, in pixels
+  for (var seg: i32 = 0; seg < 96; seg++) {
+    if (a >= Lt - 1e-6) { break; }
+    var b: f32 = min(a + W0, Lt);
+    for (var i: i32 = 0; i < nbp; i++) {
+      let t: f32 = bp[i];
+      if (t > a + 1e-5 && t < b) { b = t; }
+    }
+    let wid: f32 = b - a;
     for (var kq: i32 = 0; kq < 8; kq++) {
-      let tau: f32 = mid + half * glx8(kq);
-      let wq: f32 = glw8(kq) * half * 0.3989422804014327 * exp(-0.5 * tau * tau / S) / sig;
+      let tau: f32 = a + 0.5 * wid * (1.0 + glx8(kq));
+      let wq: f32 = glw8(kq) * 0.5 * wid * 0.3989422804014327 * exp(-0.5 * tau * tau / S) / sig;
       norm += wq;
-      let psiT: f32 = R.psi.v + gpsi * tau + 0.5 * Hpp * tau * tau;
+      WORK += 1.0; // a line node: three lighting evaluations and the edges' half-line terms
+      let psiT: f32 = psiAlong(psi0, gpsi, Hpp, tau);
       let kap: f32 = Htp * tau; // d psi / d p on this line
       let sh: f32 = sin(psiT);
       let ch: f32 = cos(psiT);
       let dT: vec2f = dir + dirT * tau;
       let l0: vec2f = rippleLighting(psiT, dT, viewer, light);
-      // the lighting's slope along the line: a central difference over one sigma
-      let lp: vec2f = rippleLighting(psiT + kap * sig, dT + dirP * sig, viewer, light);
-      let lm: vec2f = rippleLighting(psiT - kap * sig, dT - dirP * sig, viewer, light);
-      let lam: f32 = (lp.x - lm.x) / (2.0 * sig);
       if (mode == 10u) { acc += wq * (l0.x * 0.5 + l0.y); continue; }
       // the displacement on the line is Au (sh + ch kap p) to first order in p
       let tu: f32 = Au * ch * kap;
       let tv: f32 = Av * ch * kap;
       var e: f32 = eu.low * ev.low;
-      var e1: f32 = 0.0;
       for (var ih: i32 = 0; ih < nu; ih++) {
         let h: f32 = eu.hlo + f32(ih);
         let du: f32 = J.u0 - 0.5 * h + Au * sh;
@@ -898,7 +916,6 @@ fn ripplesLine(J: Jets, R: RippleJets, eu: EdgeRange, ev: EdgeRange, rr: vec2f, 
         let np: f32 = dot(nvec, eP) + tu;
         let ju: f32 = select(-2.0, 2.0, abs(h - 2.0 * round(0.5 * h)) < 0.5);
         e += ev.low * ju * halfLineProb(np, d0, sig);
-        e1 += ev.low * ju * halfLineMom(np, d0, sig);
         for (var ik: i32 = 0; ik < nv; ik++) {
           let k: f32 = ev.hlo + f32(ik);
           let dv: f32 = J.v0 - 0.5 * k + Av * sh;
@@ -907,7 +924,6 @@ fn ripplesLine(J: Jets, R: RippleJets, eu: EdgeRange, ev: EdgeRange, rr: vec2f, 
           let mp: f32 = dot(mvec, eP) + tv;
           let jv: f32 = select(-2.0, 2.0, abs(k - 2.0 * round(0.5 * k)) < 0.5);
           e += ju * jv * halfLinesProb(np, d0, mp, c0, sig);
-          e1 += ju * jv * halfLinesMom(np, d0, mp, c0, sig);
         }
       }
       for (var ik: i32 = 0; ik < nv; ik++) {
@@ -918,10 +934,10 @@ fn ripplesLine(J: Jets, R: RippleJets, eu: EdgeRange, ev: EdgeRange, rr: vec2f, 
         let mp: f32 = dot(mvec, eP) + tv;
         let jv: f32 = select(-2.0, 2.0, abs(k - 2.0 * round(0.5 * k)) < 0.5);
         e += eu.low * jv * halfLineProb(mp, c0, sig);
-        e1 += eu.low * jv * halfLineMom(mp, c0, sig);
       }
-      acc += wq * (l0.x * (0.5 + 0.5 * e) + 0.5 * lam * e1 + l0.y);
+      acc += wq * (l0.x * (0.5 + 0.5 * e) + l0.y);
     }
+    a = b;
   }
   return acc / max(norm, 1e-12);
 }
@@ -932,49 +948,55 @@ export const RIPPLES_SPECTRAL = /* wgsl */ `// the spectral path: recipes (k, l,
 // harmonics come first and the shifts run from p = 0 outward, so a partial sum
 // (regime 4) has dropped only the weakest recipes
 fn ripplesSpectral(J: Jets, R: RippleJets, dir: vec2f, viewer: vec3f, light: vec3f, Au: f32, Av: f32, S: f32) -> vec2f {
-  var Lc: array<vec2f, 25>;
-  var Sc: array<vec2f, 25>;
-  for (var m: i32 = -RIP_M; m <= RIP_M; m++) {
-    var lr: f32 = 0.0; var li: f32 = 0.0; var sr: f32 = 0.0; var si: f32 = 0.0;
+  // the lighting is a function of cos psi (the normal tilts along the frozen radial
+  // direction), so its spectrum is real and even: sample it once over [0, pi] and
+  // take the cosine sums, L_m = (1 / N) sum_j L(psi_j) cos(m psi_j)
+  var Ls: array<f32, 32>;
+  var Ss: array<f32, 32>;
+  for (var jj: i32 = 0; jj < RIP_SAMPLES; jj++) {
+    let ps: f32 = PI * (f32(jj) + 0.5) / f32(RIP_SAMPLES);
+    let ls: vec2f = rippleLighting(ps, dir, viewer, light);
+    Ls[jj] = ls.x;
+    Ss[jj] = ls.y;
+  }
+  var Lc: array<f32, 13>;
+  var Sc: array<f32, 13>;
+  for (var m: i32 = 0; m <= RIP_M; m++) {
+    var lr: f32 = 0.0;
+    var sr: f32 = 0.0;
     for (var jj: i32 = 0; jj < RIP_SAMPLES; jj++) {
-      let ps: f32 = TAU * (f32(jj) + 0.5) / f32(RIP_SAMPLES);
-      let ls: vec2f = rippleLighting(ps, dir, viewer, light);
-      let cm: f32 = cos(f32(m) * ps);
-      let sm: f32 = sin(f32(m) * ps);
-      lr += ls.x * cm; li -= ls.x * sm;
-      sr += ls.y * cm; si -= ls.y * sm;
+      let cm: f32 = cos(f32(m) * PI * (f32(jj) + 0.5) / f32(RIP_SAMPLES));
+      lr += Ls[jj] * cm;
+      sr += Ss[jj] * cm;
     }
-    Lc[m + RIP_M] = vec2f(lr, li) / f32(RIP_SAMPLES);
-    Sc[m + RIP_M] = vec2f(sr, si) / f32(RIP_SAMPLES);
+    Lc[m] = lr / f32(RIP_SAMPLES);
+    Sc[m] = sr / f32(RIP_SAMPLES);
   }
   // the lighting harmonics above the cut bound the shifts worth visiting
   var mEff: i32 = 0;
   for (var m: i32 = 1; m <= RIP_M; m++) {
-    if (max(length(Lc[m + RIP_M]), length(Lc[RIP_M - m])) > 1e-4) { mEff = m; }
+    if (abs(Lc[m]) > 1e-4) { mEff = m; }
   }
   // the recipes' phases are 2 pi (k u + l v) + p psi on the undisplaced counts: the
   // displacement is already expanded into the sidebands, so the rates and the
   // curvatures come from J, not from the displaced jets
-  let Ju: Jets = J;
   let wpsi: vec2f = R.psi.g / TAU;
-  var acc: f32 = 0.5 * Lc[RIP_M].x + Sc[RIP_M].x; // the mean: E[1] = 1
-  // the lighting's harmonics at the checker's mean, p and -p together
+  var acc: f32 = 0.5 * Lc[0] + Sc[0]; // the mean: E[1] = 1
+  // the lighting's harmonics at the checker's mean, p and -p together (real coefficients)
   for (var ip: i32 = 1; ip <= RIP_M; ip++) {
-    let cr0: f32 = 0.5 * Lc[ip + RIP_M].x + Sc[ip + RIP_M].x;
-    let ci0: f32 = 0.5 * Lc[ip + RIP_M].y + Sc[ip + RIP_M].y;
-    if (cr0 * cr0 + ci0 * ci0 < 1e-12) { continue; }
+    let cr0: f32 = 0.5 * Lc[ip] + Sc[ip];
+    if (abs(cr0) < 1e-6) { continue; }
     let bb0: vec2f = f32(ip) * R.psi.g;
     let qq0: vec3f = f32(ip) * R.psi.H;
     let lam0: f32 = sqrt(qq0.x * qq0.x + 2.0 * qq0.y * qq0.y + qq0.z * qq0.z);
     let reach0: f32 = TAU * 1.6 * sqrt(1.0 + S * S * lam0 * lam0);
     if (dot(bb0, bb0) > reach0 * reach0) { continue; }
-    let E0: vec2f = multC(f32(ip) * R.psi.v, bb0, qq0, S);
-    acc += 2.0 * (cr0 * E0.x - ci0 * E0.y);
+    acc += 2.0 * cr0 * multRe(f32(ip) * R.psi.v, bb0, qq0, S);
   }
   // the odd sublattice (k, l) = (2 a + 1, 2 b + 1): basis 2 gu, 2 gv, offset gu + gv
-  let Lat: Lattice = reduceLattice(2.0 * Ju.gu, 2.0 * Ju.gv);
-  let off: vec2f = Ju.gu + Ju.gv;
-  let Rr: f32 = latticeReach(Ju, S);
+  let Lat: Lattice = reduceLattice(2.0 * J.gu, 2.0 * J.gv);
+  let off: vec2f = J.gu + J.gv;
+  let Rr: f32 = latticeReach(J, S);
   let n1: f32 = length(Lat.b1);
   let e1: vec2f = Lat.b1 / max(n1, 1e-30);
   let ePerp: vec2f = vec2f(-e1.y, e1.x);
@@ -988,8 +1010,8 @@ fn ripplesSpectral(J: Jets, R: RippleJets, dir: vec2f, viewer: vec3f, light: vec
     // this shift's largest possible coefficient: 2 / pi^2 times the lighting harmonics its sidebands reach
     var cb: f32 = 0.0;
     for (var nb: i32 = -RIP_NB; nb <= RIP_NB; nb++) {
-      let mm: i32 = pp - nb;
-      if (mm >= -RIP_M && mm <= RIP_M) { cb = max(cb, length(Lc[mm + RIP_M])); }
+      let mm: i32 = abs(pp - nb);
+      if (mm <= RIP_M) { cb = max(cb, abs(Lc[mm])); }
     }
     if (cb * 0.2026423672846756 < 1e-5) { continue; }
     let mult: f32 = select(2.0, 1.0, pp == 0); // p > 0 stands for its conjugate -p as well
@@ -1019,27 +1041,27 @@ fn ripplesSpectral(J: Jets, R: RippleJets, dir: vec2f, viewer: vec3f, light: vec
         let ab: vec2f = m * Lat.T0 + n * Lat.T1;
         let k: f32 = 2.0 * ab.x + 1.0;
         let l: f32 = 2.0 * ab.y + 1.0;
-        let bb: vec2f = TAU * (k * Ju.gu + l * Ju.gv) + f32(pp) * R.psi.g;
-        let qq: vec3f = TAU * (k * Ju.Hu + l * Ju.Hv) + f32(pp) * R.psi.H;
+        let bb: vec2f = TAU * (k * J.gu + l * J.gv) + f32(pp) * R.psi.g;
+        let qq: vec3f = TAU * (k * J.Hu + l * J.Hv) + f32(pp) * R.psi.H;
         let lamT: f32 = sqrt(qq.x * qq.x + 2.0 * qq.y * qq.y + qq.z * qq.z);
-        let reach: f32 = TAU * 1.6 * sqrt(1.0 + S * S * lamT * lamT);
+        let curv: f32 = 1.0 + S * S * lamT * lamT;
+        let reach: f32 = TAU * 1.6 * sqrt(curv);
         if (dot(bb, bb) > reach * reach) { continue; }
+        // the term's coefficient bound against its multiplier's bound, before the Bessel sums
+        let base: f32 = -2.0 / (PI * PI * k * l);
+        let mb: f32 = exp(-0.5 * S * dot(bb, bb) / curv);
+        if (abs(base) * cb * mb < 1e-5) { continue; }
         let theta: f32 = TAU * (k * Au + l * Av);
         if (abs(theta) > 8.0) { continue; }
-        let base: f32 = -2.0 / (PI * PI * k * l);
         var cr: f32 = 0.0;
-        var ci: f32 = 0.0;
         for (var nb: i32 = -RIP_NB; nb <= RIP_NB; nb++) {
-          let mm: i32 = pp - nb;
-          if (mm < -RIP_M || mm > RIP_M) { continue; }
-          let jn: f32 = besselJ(nb, theta);
-          cr += base * jn * Lc[mm + RIP_M].x;
-          ci += base * jn * Lc[mm + RIP_M].y;
+          let mm: i32 = abs(pp - nb);
+          if (mm > RIP_M) { continue; }
+          cr += base * besselJ(nb, theta) * Lc[mm];
         }
-        if (cr * cr + ci * ci < 1e-12) { continue; }
-        let phi0: f32 = TAU * (k * Ju.u0 + l * Ju.v0) + f32(pp) * R.psi.v;
-        let E: vec2f = multC(phi0, bb, qq, S);
-        acc += mult * (cr * E.x - ci * E.y);
+        if (abs(cr) * mb < 1e-5) { continue; }
+        let phi0: f32 = TAU * (k * J.u0 + l * J.v0) + f32(pp) * R.psi.v;
+        acc += mult * cr * multRe(phi0, bb, qq, S);
       }
       if (exhausted) { break; }
     }
