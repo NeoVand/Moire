@@ -2,6 +2,8 @@
 // normal is parallel to a direction u (the stationary points of the phase u.theta on the level surface),
 // and the Gaussian curvature of the level surface there. If the curvature vanishes at a stationary
 // point for u in the cone around the kernel direction, the |m|^-2 envelope degrades there.
+// Exploratory only (collaborator's #132, #133): the sign-change scan misses tangent and endpoint roots, and
+// sampled minima certify nothing; the certificate needs interval root exclusion on the explicit equations.
 import { MASK } from '../../../../demo/mask-table.js';
 const a = MASK.a, ph = MASK.ph, t0 = MASK.t0, K = MASK.k;
 const det = (p, q) => p[0] * q[1] - p[1] * q[0];
@@ -40,5 +42,5 @@ for (const m of dirs) { const n = Math.hypot(...m); const u = m.map((x) => x / n
 // random cone sample
 let seed = 7; const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
 let coneMin = Infinity; let coneCount = 0;
-for (let i = 0; i < 400; i++) { const r = [rnd() - 0.5, rnd() - 0.5, rnd() - 0.5]; const d = r.map((x, j) => x - (x * v[j]) * v[j]); const dn = Math.hypot(...d); const ang = 0.15 * Math.sqrt(rnd()); const u = v.map((x, j) => Math.cos(ang) * x + Math.sin(ang) * d[j] / dn); const sp = stationary(u); for (const p of sp) { coneCount++; if (Math.abs(p.gaussK) < coneMin) coneMin = Math.abs(p.gaussK); } }
+for (let i = 0; i < 400; i++) { const r = [rnd() - 0.5, rnd() - 0.5, rnd() - 0.5]; const rv = r[0] * v[0] + r[1] * v[1] + r[2] * v[2]; const d = r.map((x, j) => x - rv * v[j]); // orthogonal projection (the first version subtracted (r_j v_j) v_j, a bug the collaborator found in #133; the cone numbers quoted in the notes predate this fix and are observations only) const dn = Math.hypot(...d); const ang = 0.15 * Math.sqrt(rnd()); const u = v.map((x, j) => Math.cos(ang) * x + Math.sin(ang) * d[j] / dn); const sp = stationary(u); for (const p of sp) { coneCount++; if (Math.abs(p.gaussK) < coneMin) coneMin = Math.abs(p.gaussK); } }
 console.log(`cone of half-angle 0.15 rad around v, 400 directions: ${coneCount} stationary points, min |Gaussian curvature| ${coneMin.toExponential(2)}`);
