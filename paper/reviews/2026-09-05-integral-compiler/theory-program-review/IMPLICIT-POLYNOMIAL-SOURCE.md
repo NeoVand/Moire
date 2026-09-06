@@ -245,7 +245,33 @@ with a declared margin. Its degree and numerical amplification may still
 depend strongly on mean range. Only the geometric acquisition estimate
 has removed section 6's exponential mean-range penalty.
 
+## Relationship to prior graphics work
+
+Conservative adaptive acquisition of procedural shaders is established
+graphics work. Greene and Kass (1994), detailed in Greene's dissertation
+sections 5.4.3--5.4.4, bound uncertainty in each cell's contribution under
+the actual pixel filter and refine the largest contributors.
+Heidrich, Slusallek and Seidel (1998) use affine arithmetic to bound
+procedural shader ranges, including noise and discontinuous operations,
+and construct adaptive piecewise-constant textures.
+
+Thus neither adaptive source approximation nor charging uncertainty under
+the query filter is new here. This note supplies a specified polynomial
+source class, complete cell decisions with degree/bit costs, an explicit
+stopping bound and the connection to the reusable Gaussian moment state.
+An incomplete range oracle may still fail to meet a requested tolerance;
+the complete polynomial decision procedure is a substantive assumption.
+
 ## Primary references
+
+- Ned Greene (1995), [Hierarchical Rendering of Complex
+  Environments](https://tr.soe.ucsc.edu/sites/default/files/technical-reports/UCSC-CRL-95-27.pdf),
+  dissertation, sections 5.4.3--5.4.4, for the Greene--Kass shader filtering
+  method and filter-weighted adaptive uncertainty.
+- Wolfgang Heidrich, Philipp Slusallek and Hans-Peter Seidel (1998),
+  [Sampling Procedural Shaders Using Affine
+  Arithmetic](https://vccimaging.org/Publications/Heidrich1998SPS/Heidrich1998SPS.pdf),
+  sections 3 and 5.
 
 - Richard Wongkew (1993), [Volumes of tubular neighbourhoods of real
   algebraic varieties](https://msp.org/pjm/1993/159-1/pjm-v159-n1-p10-p.pdf),
