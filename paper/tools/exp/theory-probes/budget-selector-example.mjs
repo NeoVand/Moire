@@ -4,7 +4,8 @@
 // union count per edge N(T) = (4 c T / D) [1 + (1/2) log(c T / h^2)], total over the 8 edges (4 of A, 4 of B) in the outer lattice.
 const D = (2 * Math.PI) ** 2, rho = Math.PI * Math.SQRT2, l = 0.5, J = 1, AA = 1, AB = 1;
 const edgesA = 4, edgesB = 4;
-for (const [b, NE, eta] of [[0.2, 1, 1 / 512], [0.2, 1, 1 / 8192], [1.0, 1, 1 / 512], [3.0, 4, 1 / 512]]) {
+// The reach b is in radians per cell; the beat-pair-count probe's disc radius 0.2 in cycles per cell is b = 2 pi 0.2 = 1.2566 radians (fourth line).
+for (const [b, NE, eta] of [[0.2, 1, 1 / 512], [0.2, 1, 1 / 8192], [1.0, 1, 1 / 512], [2 * Math.PI * 0.2, 1, 1 / 512], [3.0, 4, 1 / 512]]) {
   const h = Math.max(2 * b, b + 2 / l, rho);
   const c = (1 + rho / h) ** 2;
   const C0 = 4 * edgesA * edgesB * J * J * (l * l + l * l) / (AA * AB * D);
@@ -14,5 +15,5 @@ for (const [b, NE, eta] of [[0.2, 1, 1 / 512], [0.2, 1, 1 / 8192], [1.0, 1, 1 / 
   const T = h * h * u;
   const tail = K * (3 + Math.log(c * u)) / u;
   const Nedge = (4 * c * T / D) * (1 + 0.5 * Math.log(c * T / (h * h)));
-  console.log(`b ${b} N_E ${NE} eta ${eta.toExponential(2)}: h ${h.toFixed(3)} c ${c.toFixed(3)} C0 ${C0.toFixed(4)} K ${K.toFixed(4)} u ${u.toExponential(3)} T ${T.toExponential(3)} tail ${tail.toExponential(3)} (<= eta ${tail <= eta}) union per edge ${Nedge.toExponential(3)} total ${((edgesA + edgesB) * Nedge).toExponential(3)}`);
+  console.log(`b ${b.toFixed(4)} rad N_E ${NE} eta ${eta.toExponential(2)}: h ${h.toFixed(3)} c ${c.toFixed(3)} C0 ${C0.toFixed(4)} K ${K.toFixed(4)} u ${u.toExponential(3)} T ${T.toExponential(3)} tail ${tail.toExponential(3)} (<= eta ${tail <= eta}) union per edge region at most ${Nedge.toExponential(3)}, eight-edge sum at most ${((edgesA + edgesB) * Nedge).toExponential(3)} (an upper bound; the square's opposite edges share a tangent, so four distinct regions: at most ${(4 * Nedge).toExponential(3)})`);
 }
