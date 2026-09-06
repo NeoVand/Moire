@@ -32,11 +32,11 @@ Theorem. For f as in the lemma and M > 0,
 
 the minimum attained where exp(beta) = 1 + 2 beta; the exact expression is the certified constant, and c* < 0.1408 is an outward numerical bound (the minimizer is near 1.2564 and the value near 0.1407). Proof: 1_{|m| > M} <= (1 - exp(-beta |m|^2 / M^2)) / (1 - exp(-beta)), then the lemma at 2 pi^2 s^2 = beta / M^2.
 
-Physical lattices. For f periodic on Lambda = B Z^2, pull back to the unit torus by g(u) = f(B u); the coefficients are unchanged, the unit-torus variation is at most ||B|| V_f / |Lambda|, and a physical radius R corresponds to a unit radius at least sigma_min(B) R. Hence
+Physical lattices. The translation proof of the lemma runs unchanged on the physical torus R^2 / Lambda: <f, f - K f> = (1 / 2) E ||f(. + Y) - f||_2^2 <= (1 / 2) E ||f(. + Y) - f||_1 <= (1 / 2) E |Y . nu| V_f / |Lambda| per unit cell area, with Y the physical Gaussian displacement and E |Y . nu| = s sqrt(2 / pi) for the footprint's standard deviation s along nu. Hence, for a physical cycle radius R,
 
-    sum_{|k| > R, k in Lambda^*} |a_k|^2 <= c* kappa(B) V_f / (|Lambda| R),   kappa(B) = ||B|| / sigma_min(B),
+    sum_{|k| > R, k in Lambda^*} |a_k|^2 <= c* (V_f / |Lambda|) / R,
 
-with the basis chosen reduced so that kappa is small (kappa = 1 for a square cell). This is the form that matches a radius in cycles per physical unit.
+the variation density V_f / |Lambda| (inverse length) against the radius (cycles per length), with no basis condition number [the earlier form with kappa(B) = ||B|| / sigma_min(B) was a safe overestimate from the chart-bound proof and is withdrawn, #351]. For an anisotropic footprint the lemma is applied with s the standard deviation in the direction of the translation, and the tail radius M is measured in the physical metric of the cut.
 
 Remarks, not part of the theorem. The density V / (2 pi^2 r^2) dr saturates the lemma at every s, and the measured ratio of tail energy times M to variation tends to 1 / (2 pi^2) for polygons (polygon-tail-energy.mjs); the certified constant is 2.777 times larger, and a point mass at radius M shows that no majorant built from the lemma alone does better.
 
