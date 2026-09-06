@@ -13,6 +13,14 @@ of one common hash key and two integer-carry classes. Polynomial composition
 increases the degree of the response, but does not increase the number of
 carry classes.
 
+This is not yet a small per-pixel construction. For P=256 and a square
+(Q=12), the sufficient contraction has 256×8²×13²=2,768,896 coefficient
+product terms per pixel, before weight generation and transforms. Its
+coefficient table alone would occupy about 10.6 MiB at four bytes per scalar.
+These are formula counts, not measured operations or timing. The theoretical
+value is the finite state and error certificate; practical cost needs a
+further reduction.
+
 Let P=2^b, b≥1. Identify the integers 0,…,P−1 with b-bit vectors. Let
 A_x and A_y be invertible linear maps over GF(2). A noise gradient component
 has a specified lookup profile f and hash
@@ -116,6 +124,36 @@ The basis is nonnegative and sums to one, so |F|≤B. This B is a coefficient
 bound, not the true range of F. It may be much larger, especially at high
 degree. Computing the maximum over the constructed tables is included in
 preparation. B=0 is the identically zero material.
+
+There is also a useful bound available from the shader expression, as Claude
+observed in bridge 190. For univariate Bernstein polynomials,
+
+\[
+ B_i^p(t)B_j^q(t)=
+ \frac{\binom pi\binom qj}{\binom{p+q}{i+j}}
+ B_{i+j}^{p+q}(t).
+\]
+
+For each resulting coefficient the weights sum to one by Vandermonde's
+identity. Tensor products preserve this property, and degree elevation is
+also convex. Thus B(fg)≤B(f)B(g) and B(f+g)≤B(f)+B(g), using the corresponding
+constructed Bernstein representations. If a shader polynomial is
+\(\sum_S c_S\prod_l F_l^{k_{Sl}}\), then
+
+\[
+ B\le\sum_S|c_S|\prod_l B(F_l)^{k_{Sl}}.
+\]
+
+The quintic fade has degree-five Bernstein controls (0,0,0,1,1,1).
+The interpolation weights and their complementary weights therefore have
+nonnegative controls that partition unity. The linear gradient response at
+each corner has coefficient magnitude at most sqrt(2) times the largest
+gradient norm on a two-dimensional cell. Multiplying these responses by the
+interpolation weights and combining their elevated coefficients proves the
+same bound for one noise field. Coordinate component bounds of one give
+B(F_l)≤2. This makes the amplification bound explicit, but does not guarantee
+it is close to the actual output range: large shader coefficients and
+cancellation can still separate the two substantially.
 
 ## 3. Exact footprint pairing by masked Walsh contractions
 
