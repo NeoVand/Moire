@@ -170,6 +170,99 @@ a>1. This source satisfies the coherent-mixture condition with radius
 zero. A periodic envelope theorem requiring a global bounded circle
 density therefore needs an additional hypothesis or localized tail bound.
 
+## 4a. A localized Selberg bracket improves the degree law
+
+The needed localization follows from the classical finite Selberg/Vaaler
+construction. The normalizations are given in
+[Akiyama and Tanigawa, equations (4)-(7)](https://publi.math.unideb.hu/paper/940/download/10_5486_PMD_2004_2888.pdf),
+and the Vaaler pointwise bound is restated in
+[Morgenbesser, equation (4.5)](https://www.impan.pl/shop/en/publication/transaction/download/product/82751).
+The following finite formula and localization were independently checked.
+
+Use circle measure dx of total mass one, n=N+1, and
+
+\[
+ K_N(x)=\frac1n\left(\frac{\sin(\pi nx)}{\sin(\pi x)}\right)^2,
+ \qquad \int K_N=1.
+\]
+
+For one arc with endpoints a,b, the Selberg upper and lower polynomials
+have one-sided uniform excess 1/n and exact gap
+
+\[
+ S^+-S^-=\frac{K_N(x-a)+K_N(x-b)}n.
+ \tag{6a}
+\]
+
+Continuity makes the bracket cover both interior and exterior endpoint
+limits, so open and closed thresholds, including atoms, are bracketed.
+For m disjoint arcs, sum the constructions. If a probability density is
+at most M within circle distance d of every endpoint, integration of
+(6a) there and the bound K_N(x)/n<=1/[n^2 sin^2(pi d)] elsewhere give
+
+\[
+ E(S^+-S^-)\le\frac{2mM}{n}
+ +\frac{2m}{n^2\sin^2(\pi d)}.
+ \tag{6b}
+\]
+
+Each one-sided expected error is bounded by mM/n plus the same tail term.
+No density bound is required outside those endpoint neighborhoods.
+
+For intensity t=W sin^2(pi x), the threshold t>=tau is the single
+symmetric arc [a_tau,1-a_tau], where
+a_tau=arcsin(sqrt(tau/W))/pi. The symmetric lifted density is
+rho_x(x)=f_h(t(x))|t'(x)|/2. Equation (4), by differentiation of interval
+mass, gives f_h(t)<=1/[2t sqrt(det B)] almost everywhere. Hence for
+0<d<min(a_tau,1/2-a_tau), one may use
+
+\[
+ M=\frac{\pi}{2\sqrt{\det B}}\cot(\pi(a_\tau-d)).
+\]
+
+A sufficient choice for unweighted bracket gap at most rho_gap is
+
+\[
+ n\ge\left\lceil\max\left\{
+ \frac{4M}{\rho_{gap}},
+ \frac{2}{\sqrt{\rho_{gap}}\sin(\pi d)}\right\}\right\rceil.
+ \tag{6c}
+\]
+
+This has linear leading dependence on inverse gap at fixed source
+parameters and endpoint distance. An interior intensity band maps to two
+reflected arcs and uses m=2. Evenness is necessary for conversion to an
+ordinary polynomial in intensity.
+
+For the single threshold arc, that conversion can be written explicitly.
+For 1<=k<=N let
+
+\[
+ v_k=\pi\frac{k}{n}\left(1-\frac{k}{n}\right)
+ \cot(\pi k/n)+\frac{k}{n}.
+\]
+
+The finite degree-N algebraic bracket is
+
+\[
+ p_N^\pm(t)=1-2a_\tau\ \pm\frac1n
+ +\sum_{k=1}^N\left[
+ -\frac{2v_k\sin(2\pi k a_\tau)}{\pi k}
+ \ \pm\frac2n\left(1-\frac{k}{n}\right)\cos(2\pi k a_\tau)
+ \right]T_k(1-2t/W).
+ \tag{6d}
+\]
+
+This follows by combining the two odd Vaaler terms and the even Fejer
+terms for reflected endpoints. It avoids truncating an infinite Beurling
+series or a periodization. If the certified sum of absolute coefficient
+errors is epsilon_c, |T_k|<=1 on this intensity range gives uniform
+polynomial error at most epsilon_c; lower the computed minorant and
+raise the majorant accordingly. Expectation errors still need separate
+certificates. Stable Chebyshev evaluation is not a substitute for the
+missing common-rule quadrature proof. The signed correction remains
+subject to its separate midpoint/weighted-gap bound.
+
 ## 5. The margin has an exact failure family
 
 Two positive unit-width atoms with amplitudes 1/2 centered at +/-a e_1
