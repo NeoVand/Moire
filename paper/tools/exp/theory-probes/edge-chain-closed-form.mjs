@@ -1,0 +1,10 @@
+// Closed form of the homogeneous amplification of the edge-chain error recurrence x_q = |a| sqrt(2/q) x_{q-1} + sqrt(2 (q-1)/q) x_{q-2}, x_0 = 1, x_1 = |a| sqrt 2:
+// with y_q = x_q sqrt(q!) 2^{-q/2} the recurrence is y_q = |a| y_{q-1} + ((q-1)/sqrt 2) y_{q-2}, whose solution is the positive-coefficient Hermite-type polynomial
+// y_q = sum_k q! / (k! (q-2k)!) 2^{-3k/2} |a|^{q-2k}. So A_q(a) = 2^{q/2} / sqrt(q!) sum_k q! / (k! (q-2k)!) 2^{-3k/2} |a|^{q-2k}.
+// Uniform Gaussian-weighted bound: sup_a A_q(a) e^{-a^2/4} <= 2^{q/2} / sqrt(q!) sum_k q! / (k! (q-2k)!) 2^{-3k/2} (2 (q-2k) / e)^{(q-2k)/2}, since sup_a |a|^m e^{-a^2/4} = (2m/e)^{m/2}.
+// Ordinary doubles; a derivation check and an illustration, not an outward-rounded certificate.
+const fact = n => { let f = 1; for (let i = 2; i <= n; i++) f *= i; return f; };
+function closed(a, q) { let s = 0; for (let k = 0; 2 * k <= q; k++) s += fact(q) / (fact(k) * fact(q - 2 * k)) * Math.pow(2, -1.5 * k) * Math.pow(a, q - 2 * k); return Math.pow(2, q / 2) / Math.sqrt(fact(q)) * s; }
+function rec(a, q) { const d = [1, a * Math.SQRT2]; for (let i = 2; i <= q; i++) d.push(a * Math.sqrt(2 / i) * d[i - 1] + Math.sqrt(2 * (i - 1) / i) * d[i - 2]); return d[q]; }
+function uniform(q) { let s = 0; for (let k = 0; 2 * k <= q; k++) { const m = q - 2 * k; s += fact(q) / (fact(k) * fact(m)) * Math.pow(2, -1.5 * k) * (m === 0 ? 1 : Math.pow(2 * m / Math.E, m / 2)); } return Math.pow(2, q / 2) / Math.sqrt(fact(q)) * s; }
+for (const q of [6, 12, 18, 24]) console.log(`q ${q}: closed form vs recurrence at |a| = 0: ${closed(0, q).toExponential(4)} vs ${rec(0, q).toExponential(4)}; at |a| = 3: ${closed(3, q).toExponential(4)} vs ${rec(3, q).toExponential(4)}; at |a| = 5: ${closed(5, q).toExponential(4)} vs ${rec(5, q).toExponential(4)}; uniform bound of A_q(a) e^{-a^2/4}: ${uniform(q).toExponential(3)}; actual max over a in [0, 8] of A_q e^{-a^2/4}: ${(Math.max(...Array.from({ length: 801 }, (_, i) => rec(i / 100, q) * Math.exp(-((i / 100) ** 2) / 4)))).toExponential(3)}`);
