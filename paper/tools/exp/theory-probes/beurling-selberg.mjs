@@ -11,7 +11,7 @@
 // band certificate with the Jackson construction at equal degree on the two toy laws of jackson-majorant.mjs.
 const NT = 20000; // terms of the two series; the tails are handled by the integral comparison below
 const B = (x) => {
-  if (Number.isInteger(x)) return x >= 0 ? 1 : -1; // removable singularities: the (sin pi z / pi)^2 factor cancels the double pole at each integer, leaving B(m) = sgn(m) for m != 0 and B(0) = 1
+  if (Math.abs(x - Math.round(x)) < 1e-6) return Math.round(x) >= 0 ? 1 : -1; /* at and near the integers the series loses all precision against the vanishing sine factor; the limit is sgn, and 1 at zero */ // removable singularities: the (sin pi z / pi)^2 factor cancels the double pole at each integer, leaving B(m) = sgn(m) for m != 0 and B(0) = 1
   const s = Math.sin(Math.PI * x) / Math.PI; let sum = 2 / x;
   for (let n = 0; n <= NT; n++) sum += 1 / ((x - n) * (x - n));
   for (let n = 1; n <= NT; n++) sum -= 1 / ((x + n) * (x + n));
