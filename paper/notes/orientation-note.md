@@ -1,0 +1,96 @@
+# The orientation note: the pair tail of polygonal materials by edge orientation
+
+2026-09-06. A theorem draft for the collaborator's audit (bridge #349 to #355). It refines the source tails of the two-factor composition certificate (composition-certificate.md, the collaborator's GAUSSIAN-LATTICE-PAIR.md) for materials that are piecewise constant on polygonal partitions: the pair mass dropped when the sources are cut at a harmonic radius M is bounded edge pair by edge pair, uniformly in orientation at the rate 1 / M, and for edge pairs with separated normals at the rate log M / M^2. Everything is in radian frequencies with the symbols of the pair note. Certified inequalities are marked as such; one sharper form is an asymptotic and is kept apart. Nothing here is a runtime cost.
+
+## 1. Setting
+
+A material A is a function on the plane with values in [0, 1], periodic on a lattice Lambda_A with cell area D_A, piecewise constant on a polygonal partition of the cell: finitely many edges e, each of length l_e, unit tangent t_e, unit normal n_e, and jump |jump_e| in [0, 1], the difference of the values on its two sides. Its Fourier series uses radian frequencies on the frequency lattice Lambda_A^*, whose cell area is D = (2 pi)^2 / D_A:
+
+    A(x) = sum_{m in Lambda_A^*} a_m e^{i m . x},   a_m = (1 / D_A) int_cell A(x) e^{-i m . x} dx.
+
+The covering radius rho of Lambda_A^* is the largest distance from a point of a fundamental cell to its centre (for a rectangular cell, half its diagonal). A second material B has the same data with the subscript B, edges f, frequency lattice Lambda_B^* with cell area D' = (2 pi)^2 / D_B and covering radius rho'.
+
+The pixel keeps the beats m + n inside an output set E, and the pair note's neighbour bound is the count L_B = max over m of #{n in Lambda_B^* : m + n in E}; here N_E denotes that count, and r_E denotes the reach of E, so that every k in E has |k| <= r_E (for the ellipse k^T Sigma k <= R_out^2, r_E = R_out / sqrt(lambda_min(Sigma))). The one-sided dropped set at radius M is
+
+    P_A(M) = {(m, n) : m in Lambda_A^*, |m| > M, n in Lambda_B^*, m + n in E},
+
+and the quantity bounded is its mass sum_{P_A(M)} |a_m| |b_n|, which dominates the change of the filtered product from dropping those pairs (each pair lands at one beat and the damping is at most one). The mirror set P_B(M) with |n| > M is bounded by the same theorems with the roles exchanged. Pairs whose beat lies outside E are the pair note's output-tail allowance and are not counted here.
+
+## 2. Lemma 1, the per-edge bound
+
+For m in Lambda_A^*, m != 0,
+
+    |a_m| <= sum_e |jump_e| g_e(m . t_e) / (D_A |m|),   g_e(s) = min(l_e, 2 / |s|).
+
+Proof. Write A = sum_c v_c 1_{P_c} over the cells of the partition. For one cell, the divergence theorem with the field e^{-i m . x} m / (-i |m|^2), whose divergence is e^{-i m . x}, gives int_{P_c} e^{-i m . x} dx = (1 / (-i |m|^2)) sum_{edges of P_c} (m . n_out) I_e(m), I_e(m) = int_e e^{-i m . x} ds. Summing over cells, each edge appears once from each side with opposite outward normals, so D_A a_m = (1 / (-i |m|^2)) sum_e (v_left - v_right)(m . n_e) I_e(m) with n_e pointing from the right cell into the left one. Along the edge, m . x = m . p + s (m . t_e), so |I_e(m)| = |int_0^{l_e} e^{-i s (m . t_e)} ds| <= min(l_e, 2 / |m . t_e|). With |m . n_e| <= |m| the claim follows. Certified.
+
+The bound is a star: inside the strip |m . t_e| <= 2 / l_e the e-term is |jump_e| l_e / (D_A |m|), and outside it |jump_e| 2 / (D_A |m| |m . t_e|), the inverse square with an angular factor. This is a quantitative finite-edge envelope and nothing more: the edge Fourier formula and its angular decay are Lemma 2.2 of Brandolini, Colzani and Travaglini (1997), the organization of interactions by spectral orientation is in Durand and others (2005), and a polygon's wavefront set contains the corner covectors as well as the edge conormals, so the result below is not a product criterion on wavefront sets but an envelope on a lattice, with constants.
+
+## 3. Lemma 2, the counting lemma (the collaborator's, #353)
+
+For a lattice Lambda with cell area D and covering radius rho, a unit vector t, and R, u > 0,
+
+    #{m in Lambda : |m| <= 2R, |m . t| <= u} <= 4 (2R + rho)(u + rho) / D,   #{m in Lambda : |m| <= 2R} <= pi (2R + rho)^2 / D.
+
+Proof. The translated fundamental cells centred at the counted points are disjoint, each of area D, and each lies inside the rectangle |x . t| <= u + rho, |x . n| <= 2R + rho (respectively inside the disc of radius 2R + rho), whose area bounds their number. Certified; no comparison of a point value with a cell supremum is used.
+
+## 4. Lemma 3, the layer-cake sums on a dyadic annulus
+
+For the annulus R < |m| <= 2R of Lambda_A^*, a unit vector t, a length l > 0 and a shift c >= 0, let f_{l,c}(s) = min(l, 2 / (|s| - c)_+) (the l branch when the denominator vanishes), and write A_R = 4 (2R + rho) / D and Psi(x) = x for x <= 1, Psi(x) = 1 + log x for x > 1. Then
+
+    sum_{annulus} f_{l,c}(m . t) <= A_R [ l (rho + min(c, 2R)) + 2 Psi(l (2R - c)_+ / 2) ] <= A_R [ l (rho + c) + 2 + 2 log_+(l R) ],
+    sum_{annulus} f_{l,c}(m . t)^2 <= A_R [ 4 l + (rho + c) l^2 ].
+
+The edge factors are g_e = f_{l_e, 0} and the widened partner factors g~_f = f_{l_f, r_E}; the sums S_1^{(e)}, S_2^{(e)}, S~_1^{(f)}, S~_2^{(f)} of section 5 are these with t = t_e, c = 0 and t = t_f, c = r_E respectively.
+
+Proof (the collaborator's form, #356, reproduced). For 0 < lambda <= l, {f_{l,c} >= lambda} = {|m . t| <= 2 / lambda + c}; since |m . t| <= |m| <= 2R on the annulus, the count is at most the strip count of Lemma 2 with u = min(2 / lambda + c, 2R), at most A_R (min(2 / lambda + c, 2R) + rho). The layer-cake formula gives sum f_{l,c} <= A_R int_0^l [rho + min(2 / lambda + c, 2R)] dlambda; the integrand is at most rho + min(c, 2R) + min(2 / lambda, (2R - c)_+), and int_0^l min(2 / lambda, K) dlambda = 2 Psi(l K / 2) for K > 0 (the constant branch K up to lambda = 2 / K, then the logarithm), which gives the first line, and the cruder second line follows from min(c, 2R) <= c and Psi(l R) <= 1 + log_+(l R). For the square, {f_{l,c}^2 >= mu} = {|m . t| <= 2 / sqrt(mu) + c} for 0 < mu <= l^2, so sum f_{l,c}^2 <= A_R int_0^{l^2} (2 / sqrt(mu) + c + rho) dmu = A_R [4 l + (c + rho) l^2], the integral of mu^{-1/2} converging at zero without a ball cap. Certified.
+
+## 5. Theorem A, uniform in orientation
+
+Let M >= 2 r_E. For every edge e of A and f of B, whatever the angle between their normals,
+
+    sum_{(m, n) in P_A(M)} |a_m^{(e)}| |b_n^{(f)}| <= 32 N_E |jump_e| |jump_f| (1 + rho / (3 M)) sqrt(U_e U_f) / (D_A D_B D M),
+
+    U_e = 4 l_e + rho l_e^2,   U_f = 4 l_f + (r_E + rho) l_f^2,
+
+where a_m^{(e)} and b_n^{(f)} denote the e-term and the f-term of Lemma 1, and D = (2 pi)^2 / D_A is the cell area of Lambda_A^*. Summing over the edge pairs bounds the one-sided dropped mass: the rate is 1 / M for every orientation, and this is the complete angular contribution for shared and nearly parallel normals, strips and outside alike, including the coherent pairs at a fixed offset from a shared normal line (the collaborator's example, #351).
+
+Proof. Fix the dyadic annulus R < |m| <= 2R with R = 2^j M. For (m, n) in P_A(M) with m in the annulus, |n| >= |m| - r_E >= R - r_E >= R / 2, and |n . t_f| >= |m . t_f| - r_E, so g_f(n . t_f) <= g~_f(m . t_f). By Lemma 1 the pair weight is at most |jump_e| |jump_f| g_e(m . t_e) g~_f(m . t_f) / (D_A D_B |m| |n|) <= 2 |jump_e| |jump_f| g_e(m . t_e) g~_f(m . t_f) / (D_A D_B R^2). Each m has at most N_E partners, so the annulus contributes at most (2 N_E |jump_e| |jump_f| / (D_A D_B R^2)) sum_{annulus} g_e(m . t_e) g~_f(m . t_f), and by the Cauchy-Schwarz inequality the sum is at most sqrt(S_2^{(e)}(R) S~_2^{(f)}(R)) <= A_R sqrt(U_e U_f) = 4 (2R + rho) sqrt(U_e U_f) / D by Lemma 3. The annulus therefore contributes at most 8 N_E |jump_e| |jump_f| (2R + rho) sqrt(U_e U_f) / (D_A D_B D R^2), and with R = 2^j M, sum_j (2R + rho) / R^2 = (2 / M) sum_j 2^{-j} + (rho / M^2) sum_j 4^{-j} = (4 / M)(1 + rho / (3 M)). Certified, given Lemmas 1 to 3.
+
+Remark. The collaborator's independent derivation (#356) gives this bound with the same constant; the two derivations differ only in the order of the steps. For the half square against itself on the unit torus (D_A = D_B = 1, l = 1 / 2, jumps 1, rho = pi sqrt 2 in radians, N_E = 1, r_E small), one edge pair with a shared normal gives 32 (1 + rho / (3 M)) (2 + pi sqrt 2 / 4) / ((2 pi)^2 M) and more, against the coherent tail 1 / (18 pi^4 M_cycles) = 2 pi / (18 pi^4 M) of the example, which the bound must and does dominate; the constant is a certificate's, and the angular route of section 8 gives a smaller one under an asymptotic remainder.
+
+## 6. Theorem B, separated normals
+
+Let delta = |det(t_e, t_f)| = |sin psi| > 0 with psi the angle between the two normals (equivalently between the two tangents), and let M >= max(4 r_E / delta, 2 r_E). Then
+
+    sum_{(m, n) in P_A(M)} |a_m^{(e)}| |b_n^{(f)}| <= (256 / 3) N_E |jump_e| |jump_f| (2 + rho / M) [Q_M + (4 / 3) log 2] / (delta D_A D_B D M^2),
+
+    Q_M = rho (l_e + l_f) + r_E l_f + 4 + 2 log_+(l_e M) + 2 log_+(l_f M),
+
+and for M >= rho the factor (2 + rho / M) / 3 may be replaced by 1. This includes every strip and off-strip contribution and has no remainder term.
+
+Proof. Step 1, one tangent distance is large. For any m, max(|m . t_e|, |m . t_f|) >= delta |m| / 2. Otherwise m lies within the angle arcsin(delta / 2) of both normal lines, whose angle is psi (taken in (0, pi / 2] modulo the line symmetry), so psi <= 2 arcsin(delta / 2), that is sin(psi / 2) <= delta / 2 = sin(psi / 2) cos(psi / 2), impossible for 0 < psi < pi. Step 2, the case split (the collaborator's, #353). Let (m, n) be in P_A(M) with m in the annulus R < |m| <= 2R, R = 2^j M. If |m . t_e| >= delta |m| / 2 >= delta R / 2 then g_e(m . t_e) <= 4 / (delta R) and the product of the two tangent factors is at most (4 / (delta R)) g~_f(m . t_f). If instead |m . t_f| >= delta R / 2 then |n . t_f| >= delta R / 2 - r_E >= delta R / 4 by R >= 4 r_E / delta, so g_f(n . t_f) <= 8 / (delta R) and the product is at most (8 / (delta R)) g_e(m . t_e). In both cases g_e(m . t_e) g_f(n . t_f) <= (8 / (delta R)) [g_e(m . t_e) + g~_f(m . t_f)]: the sum of the two clipped factors replaces their product, and no double angular singularity is multiplied. Step 3, the annulus. With |n| >= R / 2 and at most N_E partners per m, the annulus contributes at most (N_E |jump_e| |jump_f| / (D_A D_B R (R / 2))) (8 / (delta R)) [S_1^{(e)}(R) + S~_1^{(f)}(R)] <= (16 N_E |jump_e| |jump_f| / (delta D_A D_B R^3)) A_R [rho l_e + 2 + 2 log_+(l_e R) + (rho + r_E) l_f + 2 + 2 log_+(l_f R)] = 64 N_E |jump_e| |jump_f| (2R + rho) Q_R / (delta D_A D_B D R^3) by Lemma 3, with Q_R as displayed at radius R. Step 4, the dyadic sum. With R = 2^j M, Q_R <= Q_M + 4 j log 2, and (2R + rho) / R^3 = 2 / (4^j M^2) + rho / (8^j M^3); using sum_j 4^{-j} = 4 / 3, sum_j j 4^{-j} = 4 / 9, sum_j 8^{-j} = 8 / 7 <= 4 / 3 and sum_j j 8^{-j} = 8 / 49 <= (4 / 3)(1 / 3), the sum is at most (4 / 3)(2 / M^2 + rho / M^3)[Q_M + (4 / 3) log 2], which gives the constant 64 (4 / 3) = 256 / 3 with the factor (2 + rho / M). Certified, given Lemmas 1 to 3.
+
+Remark. The collaborator's independent derivation (#356) gives this bound with the same constant and the same Q_M; my earlier form (research log at a757bf3) had the cruder ball term 3 pi / 2 in place of 4 and required M >= rho and M >= 1 / l, which the refinement min(2 / lambda + c, 2R) in Lemma 3 removes.
+
+## 7. The edge-pair partition and the composed certificate
+
+For each edge pair take the smaller of Theorem A and Theorem B (Theorem B only where its conditions hold; as delta shrinks the condition M >= 4 r_E / delta fails first and Theorem A takes over, so nearly parallel normals degrade continuously to the 1 / M rate and no separation is assumed, only paid for). Summing over edge pairs and adding the mirror set,
+
+    dropped mass with beat in E <= sum_{e, f} [T_{ef}(M) + T'_{fe}(M)],
+
+with T the chosen bound on P_A(M) and T' the same on P_B(M) with the roles of the lattices exchanged (D, rho, N_E replaced by the B-side quantities). The full-response certificate composes with the pair note's cuts: cutting both sources at M and the output at reach r_E, the filtered product changes by at most that dropped mass plus the output-tail allowance 2 exp(-R_out^2 / 4) K_{Sigma / 2} ||a||_2 ||b||_2 of GAUSSIAN-LATTICE-PAIR.md, and the retained pairs are enumerated by its neighbour box, at most N_A(M) (1 + L_B) candidates with N_A(M) <= pi (M + rho)^2 / D; a fully explicit partner bound is N_E <= pi (r_E + rho_B)^2 / D' by Lemma 2 on the B side, or the shifted integer-box count of the pair note. Zero frequencies are separate area terms and enter neither tail.
+
+What this buys. If every edge pair of the two materials has separated normals, the dropped mass is of order log M / M^2 and M of order (C_T log(1 / epsilon) / epsilon)^{1/2} meets a budget epsilon, so the retained candidates N_A(M) (1 + L_B) are of order (C_T / epsilon) log(1 / epsilon) (1 + L_B), against the general count of order epsilon^{-2} log(1 / epsilon) of the pair note. The reach r_E enters through c_0 (the term r_E l_f), through the condition M >= 4 r_E / delta, and through L_B; since the output tail forces R_out of order sqrt(log(1 / epsilon)), r_E grows like sqrt(log(1 / epsilon)) / sqrt(lambda_min(Sigma)), and the interaction with the angle threshold delta must be carried in any assembled price: for a footprint whose reach exceeds delta M / 4 the transverse theorem does not apply at that M. If some edge pair has parallel or nearly parallel normals, Theorem A governs that pair, M is of order C_U / epsilon, and the retained count is of order epsilon^{-2} again: the general bound is valid there but gives no improved list. An improved list for shared normals needs the coherent direction represented and enumerated on its own (the pairs near the common normal line, a one-dimensional family), which this note does not do; the two parallel gratings of the one-dimensional moire are the model problem.
+
+## 8. The angular route, kept apart
+
+The research log derives, for separated normals, the circle integral of the product of the two clipped factors by the identity cot phi - cot(phi + psi) = sin psi / (sin phi sin(phi + psi)) on the four arcs between the zeros: in cycle units the outside-strip part is (4 / (pi^2 r r' sin psi)) log(pi^2 l_e l_f r r' sin^2 psi) + o(1), the constant in the logarithm being 2 log sin psi (checked to four decimals against the numerical integral by angular-log-constant.mjs). This is an asymptotic statement with an unquantified remainder at any admitted radius, and it is not a certified inequality; its lattice step (the comparison of an annulus sum with an angular integral) is exactly what Lemma 2 replaces. It is recorded because its constant is smaller than Theorem B's by a large factor, and because the layer cake of Lemma 3 applied to the hyperbolic level sets of the product of the two factors on an annulus (the set |m . t_e| |m . t_f| <= 4 / mu within the annulus has angular measure of order mu^{-1} / sin psi with no logarithm, the logarithm arising only from the layer-cake integral) is the route by which that constant could be certified; that route needs the cell corrections of the hyperbolic regions written out, which this note does not do.
+
+## 9. Conditions collected, and what is not covered
+
+Conditions: M >= 2 r_E; M >= rho (the covering radius of the frequency lattice on the side being cut); M >= 1 / l_e and M >= 1 / l_f (the layer-cake split at 1 / R lies below the edge lengths; shorter edges are handled by the ball count alone, S_1 <= l pi (2R + rho)^2 / D, at a worse rate); for Theorem B, M >= 4 r_E / delta. The partner count N_E is the pair note's L_B for the ellipse E; the edge data (lengths, jumps, tangents) is the authored partition's; values in [0, 1] enter only through the jumps. Not covered: smooth boundaries, where the tangent factor decays like |s|^{-1/2} per unit length rather than |s|^{-1} and the star has no rays; the coherent representation for shared normals (section 7); three or more factors; the transition of a nearly parallel pair between the two theorems as a single formula; and the assembled price against the error budget with the reach carried through, which belongs with the pair note.
+
+## 10. Status and credits
+
+Lemma 1, Theorem A and Theorem B are certified given Lemma 2, whose proof is the collaborator's disjoint-cell argument (#353), and Lemma 3, whose form with the shift c and the function Psi is the collaborator's (#356). The two theorems were derived independently on both sides of the bridge and agree in every constant (#356 and this note). The case split of Theorem B, the sum of clipped factors, the widened partner factor and the layer-cake plan are the collaborator's (#353); the Cauchy-Schwarz uniform bound, the per-edge bound in jump amplitudes and the angular constant of section 8 are mine. The checks in the research log (polygon-star-bound.mjs for Lemma 1 pointwise, star-class-tails.mjs for the classes and rates) are exploratory and no constant here rests on them. Prior art: Brandolini, Colzani and Travaglini (1997), Lemma 2.2, for the edge Fourier formula and its angular decay; Durand and others (2005) for interactions organized by spectral orientation; the collaborator's literature search continues so that no classical direction is labelled new. The scalar bounds are proved; an improved work count still has to combine their constants with the output reach, the source coefficient acquisition and the actual enumeration, which is the pair note's frame.
