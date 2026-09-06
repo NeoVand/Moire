@@ -65,3 +65,11 @@ for (const [r0, L] of [[0.25, 1], [0.125, 1], [0.0625, 1], [0.0625, 0.25]]) { co
 for (const bits of [8, 10]) { const eps = 2 ** -bits, R = Math.sqrt(2 * Math.log(8 / eps)); let perAxisSum = 0, levels = 0, readsAxis = 0; const rows = [];
   for (let d = 0.5; d <= P * P / 2; d *= 2) { const h = Math.PI * Math.sqrt(d / Math.log(16 / eps)), n = Math.ceil(P / h); perAxisSum += n; levels++; const reads = 2 * R * Math.sqrt(3 * d) / h + 2; readsAxis = Math.max(readsAxis, reads); if (d <= 4) rows.push(`d=${d}: h=${h.toFixed(3)}, n=${n}, reads/axis<=${reads.toFixed(1)}`); }
   console.log(`scale lookup (${bits} bits, P=256): levels ${levels}; ${rows.join('; ')}; stored values over level pairs ${(perAxisSum * perAxisSum).toExponential(2)}; reads per footprint <= ${(readsAxis * readsAxis).toFixed(0)}`); }
+// Two-dimensional residual lemma (7m(xii-b)), certified selector: a = ln(32/delta) (theta error E <= 2 E_1 + E_1^2 with E_1 = 2 e^{-a}/(1 - e^{-3a}) <= delta/8),
+// level grid h_i = pi sqrt((1 - rhobar) d_i / a) (valid for every admitted Sigma >= 2 D with posterior correlation |rho_w| <= rhobar), buffer
+// b <= pi sqrt((1 - rhobar) kappa(D) / (2 a)) with kappa(D) = d_max/d_min, reach R = sqrt(2 ln(4 (3 + 1.88 b)/delta)) so the dropped mass is at most delta/4,
+// normalized error at most 2 (E + M) < delta; retained nodes at most pi (R + 3 b)^2 sqrt(det(Sigma - D))/(h_x h_y) <= 7 (R + 3 b)^2 a / (pi (1 - rhobar)) under Sigma <= 8 D.
+for (const bits of [8, 10]) for (const rhobar of [0, 1 / 3]) { const delta = 2 ** -bits, a = Math.log(32 / delta), E1 = 2 * Math.exp(-a) / (1 - Math.exp(-3 * a)), E = 2 * E1 + E1 * E1;
+  const b = Math.PI * Math.sqrt((1 - rhobar) / (2 * a)), R = Math.sqrt(2 * Math.log(4 * (3 + 1.88 * b) / delta)), M = (3 + 1.88 * b) * Math.exp(-R * R / 2);
+  const nodes = 7 * (R + 3 * b) ** 2 * a / (Math.PI * (1 - rhobar)), hOverSqrtD = Math.PI * Math.sqrt((1 - rhobar) / a);
+  console.log(`2D residual lemma (${bits} bits, rhobar ${rhobar.toFixed(3)}, isotropic cache): a ${a.toFixed(2)}, E ${E.toExponential(2)}, b ${b.toFixed(3)}, R ${R.toFixed(2)}, M ${M.toExponential(2)}, total 2(E+M)/delta ${((2 * (E + M)) / delta).toFixed(3)}, h/sqrt(d) ${hOverSqrtD.toFixed(3)}, certified nodes <= ${nodes.toFixed(0)}`); }
