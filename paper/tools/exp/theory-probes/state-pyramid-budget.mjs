@@ -57,3 +57,11 @@ for (const [r0, L] of [[0.25, 1], [0.125, 1], [0.0625, 1], [0.0625, 0.25]]) { co
   console.log(`coherent decomposition (8 bits): eta = ${eta.toExponential(2)}, h = ${h.toExponential(2)}, depth ${Lq}, nodes per prototype ${nodes.toExponential(2)}, over S prototypes ${(nodes * S).toExponential(2)}`);
   console.log(`pyramid tables at J' = ${b.Jp}: ${(nodes * S * (b.Jp + 1) ** 2).toExponential(2)} moment operations; at J' = ${b2.Jp} (r0 = 1/8): ${(nodes * S * (b2.Jp + 1) ** 2).toExponential(2)}; FFT acquisition ${b.acq.toExponential(2)} and ${b2.acq.toExponential(2)}`);
   console.log(`lookup tables at J = ${J}: ${(nodes * S * (J + 1) ** 2).toExponential(2)} moment operations; node acquisition unchanged 1.81e+17`); }
+// Candidate scale lookup (the collaborator's, #461), a sufficient selector as read here: target axis variance v >= 1 served by the cached blur
+// d in [v/4, v/2] from d_j = 2^{j-1}; U_v(mu) = integral phi_{v-d}(z - mu) U_d(z) dz; the lattice sum over z in h Z has, by completing the square
+// in phi_{v-d}(z - mu) phi_d(x - z) = phi_v(x - mu) phi_w(z - m) with w = d (v - d)/v >= d/2, uniform relative error 2 sum_{n>=1} e^{-2 pi^2 w n^2/h^2}
+// <= 4 e^{-2 pi^2 w/h^2} <= eps/4 once h <= pi sqrt(d / log(16/eps)); period rounding n = ceil(P/h) per axis; reads per axis within R sqrt(v - d),
+// R = sqrt(2 log(8/eps)), v - d <= 3 d: at most 2 R sqrt(3 d)/h + 2. Levels up to d = P^2/2 (Haar beyond). Formula values, not measurements.
+for (const bits of [8, 10]) { const eps = 2 ** -bits, R = Math.sqrt(2 * Math.log(8 / eps)); let perAxisSum = 0, levels = 0, readsAxis = 0; const rows = [];
+  for (let d = 0.5; d <= P * P / 2; d *= 2) { const h = Math.PI * Math.sqrt(d / Math.log(16 / eps)), n = Math.ceil(P / h); perAxisSum += n; levels++; const reads = 2 * R * Math.sqrt(3 * d) / h + 2; readsAxis = Math.max(readsAxis, reads); if (d <= 4) rows.push(`d=${d}: h=${h.toFixed(3)}, n=${n}, reads/axis<=${reads.toFixed(1)}`); }
+  console.log(`scale lookup (${bits} bits, P=256): levels ${levels}; ${rows.join('; ')}; stored values over level pairs ${(perAxisSum * perAxisSum).toExponential(2)}; reads per footprint <= ${(readsAxis * readsAxis).toFixed(0)}`); }
