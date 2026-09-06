@@ -369,6 +369,7 @@ const main = async () => {
   let refPing = 0;
   let matKey = ''; // the material as the reference and the histories saw it: a change invalidates both
   let historyReset = true;
+  let lastH = null; // the homography of the last frame rendered, for the CPU-side validity mask
   const jitter = [0, 0];
   const setUniforms = (Hm, still) => {
     const set = (o, v) => uni.set(v, o);
@@ -493,6 +494,7 @@ const main = async () => {
     if (!still) refCount = 0;
     // the histories are invalid after a cut (no previous camera), a material change or a resize: the resolves take the current sample alone
     historyReset = !prevH || !sameMaterial;
+    lastH = Hm;
     setUniforms(Hm, still);
     // the frame's passes share one uniform buffer per submission; arms that
     // need their own sample counts get their own writes and submissions
@@ -596,11 +598,12 @@ const main = async () => {
           const sums = new Array(NPART).fill(0);
           for (let g = 0; g < numWG; g++) for (let j = 0; j < NPART; j++) sums[j] += arr[g * NPART + j];
           partialsRead.unmap();
-          const count = Math.max(1, sums[12]);
-          meters.pixels = sums[12];
+          const count = sums[12];
+          meters.pixels = count;
           for (let k = 0; k < 6; k++) {
-            meters.rms[k] = Math.sqrt(sums[2 * k] / count);
-            meters.rms8[k] = Math.sqrt(sums[2 * k + 1] / count);
+            // an empty domain (every footprint reaches the horizon) has no error to report
+            meters.rms[k] = count > 0 ? Math.sqrt(sums[2 * k] / count) : NaN;
+            meters.rms8[k] = count > 0 ? Math.sqrt(sums[2 * k + 1] / count) : NaN;
           }
           if (hasTs) {
             const ts = new BigInt64Array(tsRead.getMappedRange());
@@ -684,6 +687,26 @@ const main = async () => {
   window.demoState = state;
   window.demoMeters = meters;
   window.demoBench = bench;
+  // a programmatic cut: after setting demoState.path or demoState.time directly (the
+  // select's handler does this itself), call demoCut() so the reference restarts and the
+  // histories are reset on the next frame instead of blending across the cut
+  window.demoCut = () => {
+    prevH = null;
+    refCount = 0;
+  };
+  // the validity domain shared by the meters and the hooks: a pixel counts when its
+  // footprint (3 sigma) stays on the ground plane, the same test as csMeters; the
+  // Gaussian has no finite support, so a retained centre keeps an off-plane
+  // probability of at most Phi(-3), about 0.00135, which a certified mean must budget
+  const validMask = () => {
+    const mask = new Uint8Array(W * H);
+    if (!lastH) return mask.fill(1);
+    const [a, b, c] = lastH.hd;
+    const reach = 3 * 0.5 * Math.hypot(a, b);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) mask[y * W + x] = a * x + b * y + c - reach > 0 ? 1 : 0;
+    return mask;
+  };
+  window.demoValidMask = validMask;
   // step frames without the animation loop (an occluded window throttles it):
   // the loop is suspended, each step awaits the GPU, the loop resumes after
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -711,30 +734,42 @@ const main = async () => {
       await sleep(50);
       updateTable();
     });
-  // the meters over a run of frames: each frame's RMS per arm (after the readback lands), and their RMS over the frames past a warm-up
+  // the meters over a run of frames: each frame's RMS per arm with its count of
+  // accepted pixels (after the readback lands); past the warm-up, the error pooled
+  // over accepted pixel-frame pairs (the sum of squared errors over the sum of counts),
+  // which equals the frame-weighted figure only when the domain does not move
   window.demoRun = async (n = 60, warm = 30) =>
     manually(async () => {
       const per = [];
       for (let i = 0; i < n; i++) {
         await stepOne();
         while (meters.pending) await sleep(2);
-        per.push(meters.rms.slice());
+        per.push({ rms: meters.rms.slice(), pixels: meters.pixels });
       }
       const used = per.slice(warm);
-      const rms = ARMS.slice(0, 6).map((_, k) => Math.sqrt(used.reduce((acc, r) => acc + r[k] * r[k], 0) / used.length));
-      return { arms: ARMS.slice(0, 6), rms, frames: used.length, per, pixels: meters.pixels, refFrames: refCount };
+      const pairs = used.reduce((acc, f) => acc + f.pixels, 0);
+      const rms = ARMS.slice(0, 6).map((_, k) => (pairs > 0 ? Math.sqrt(used.reduce((acc, f) => acc + f.rms[k] * f.rms[k] * f.pixels, 0) / pairs) : NaN));
+      const counts = used.map((f) => f.pixels);
+      return { arms: ARMS.slice(0, 6), rms, frames: used.length, pixelFrames: pairs, pixelsMin: Math.min(...counts), pixelsMax: Math.max(...counts), per, refFrames: refCount };
     });
-  // temporal statistics of arm textures over a run of frames: the per-pixel
-  // standard deviation across frames (its RMS over the pixels and by row band)
-  // and the mean absolute frame-to-frame difference; the variance ratio
-  // rho = Var(residCur) / Var(taaCur) is the residual's share of the sample variance
+  // temporal statistics of arm textures over a run of frames on a still scene: the
+  // per-pixel standard deviation across frames (its RMS over the accepted pixels and
+  // by row band) and the mean absolute frame-to-frame difference; the variance ratio
+  // rho = Var(residCur) / Var(taaCur) is the residual's share of the sample variance.
+  // The domain is the meters' validity mask taken at the first measured frame; if it
+  // changes during the run (a moving camera) the result says so and is not a flicker figure
   window.demoTemporal = async (n = 64, names = ['taa', 'combo', 'ours', 'taaCur', 'residCur'], warm = 0) =>
     manually(async () => {
       const N = W * H;
       const acc = Object.fromEntries(names.map((nm) => [nm, { sum: new Float64Array(N), sq: new Float64Array(N), ad: new Float64Array(N), prev: null, count: 0 }]));
+      let mask = null;
+      let maskChanged = false;
       for (let i = 0; i < n + warm; i++) {
         await stepOne();
         if (i < warm) continue;
+        const m = validMask();
+        if (!mask) mask = m;
+        else if (!maskChanged) for (let k = 0; k < N; k++) if (m[k] !== mask[k]) { maskChanged = true; break; }
         for (const nm of names) {
           const d = await window.demoReadTex(nm);
           const a = acc[nm];
@@ -748,23 +783,23 @@ const main = async () => {
         }
       }
       const bands = [[0, Math.round(H * 0.08)], [Math.round(H * 0.08), Math.round(H * 0.2)], [Math.round(H * 0.2), H]];
-      const out = {};
+      const out = { maskChanged, pixels: 0, excluded: 0 };
+      for (let k = 0; k < N; k++) out.pixels += mask[k];
+      out.excluded = N - out.pixels;
+      const over = (y0, y1, v, ad, c) => {
+        let sv = 0;
+        let sd = 0;
+        let m = 0;
+        for (let y = y0; y < y1; y++) for (let x = 0; x < W; x++) { const k = y * W + x; if (!mask[k]) continue; sv += v[k]; sd += ad[k] / Math.max(1, c - 1); m++; }
+        return m > 0 ? { std: +Math.sqrt(sv / m).toFixed(5), var: sv / m, madiff: +(sd / m).toFixed(5), pixels: m } : { std: NaN, var: NaN, madiff: NaN, pixels: 0 };
+      };
       for (const nm of names) {
         const a = acc[nm];
         const c = a.count;
         const v = new Float64Array(N);
         for (let k = 0; k < N; k++) v[k] = Math.max(0, a.sq[k] / c - (a.sum[k] / c) * (a.sum[k] / c));
-        const band = bands.map(([y0, y1]) => {
-          let sv = 0;
-          let sd = 0;
-          for (let y = y0; y < y1; y++) for (let x = 0; x < W; x++) { sv += v[y * W + x]; sd += a.ad[y * W + x] / Math.max(1, c - 1); }
-          const m = (y1 - y0) * W;
-          return { rows: `${y0}-${y1 - 1}`, std: +Math.sqrt(sv / m).toFixed(5), madiff: +(sd / m).toFixed(5) };
-        });
-        let sv = 0;
-        let sd = 0;
-        for (let k = 0; k < N; k++) { sv += v[k]; sd += a.ad[k] / Math.max(1, c - 1); }
-        out[nm] = { std: +Math.sqrt(sv / N).toFixed(5), var: sv / N, madiff: +(sd / N).toFixed(5), bands: band };
+        const band = bands.map(([y0, y1]) => ({ rows: `${y0}-${y1 - 1}`, ...over(y0, y1, v, a.ad, c) }));
+        out[nm] = { ...over(0, H, v, a.ad, c), bands: band };
       }
       if (out.taaCur && out.residCur) out.rho = out.residCur.var / out.taaCur.var;
       return out;
@@ -785,20 +820,30 @@ const main = async () => {
     for (let i = 0; i < W * H; i++) out[i] = data[i * 4];
     return out;
   };
-  // the error of ours against the reference by row: RMS per row and the worst pixel
-  window.demoRowError = async (bandRows = 8) => {
-    const a = await window.demoReadTex('ours');
+  // the error of an arm (ours by default) against the reference by row band and
+  // the worst pixel, over the meters' validity domain; a band with no accepted
+  // pixel reads NaN
+  window.demoRowError = async (bandRows = 8, name = 'ours') => {
+    const a = await window.demoReadTex(name);
     const b = await window.demoReadTex('ref');
-    const rows = [];
+    const mask = validMask();
     let worst = { err: 0, x: 0, y: 0 };
-    for (let y = 0; y < H; y++) {
-      let s = 0;
-      for (let x = 0; x < W; x++) { const e = a[y * W + x] - b[y * W + x]; s += e * e; if (Math.abs(e) > worst.err) worst = { err: Math.abs(e), x, y, ours: a[y * W + x], ref: b[y * W + x] }; }
-      rows.push(Math.sqrt(s / W));
-    }
     const bands = [];
-    for (let y0 = 0; y0 < H; y0 += bandRows) { let s = 0; let n = 0; for (let y = y0; y < Math.min(H, y0 + bandRows); y++) { s += rows[y] * rows[y]; n++; } bands.push({ rows: `${y0}-${Math.min(H, y0 + bandRows) - 1}`, rms: +Math.sqrt(s / n).toFixed(5) }); }
-    return { bands, worst, refFrames: refCount };
+    for (let y0 = 0; y0 < H; y0 += bandRows) {
+      let s = 0;
+      let n = 0;
+      for (let y = y0; y < Math.min(H, y0 + bandRows); y++)
+        for (let x = 0; x < W; x++) {
+          const k = y * W + x;
+          if (!mask[k]) continue;
+          const e = a[k] - b[k];
+          s += e * e;
+          n++;
+          if (Math.abs(e) > worst.err) worst = { err: Math.abs(e), x, y, arm: a[k], ref: b[k] };
+        }
+      bands.push({ rows: `${y0}-${Math.min(H, y0 + bandRows) - 1}`, rms: n > 0 ? +Math.sqrt(s / n).toFixed(5) : NaN, pixels: n });
+    }
+    return { bands, worst, refFrames: refCount, excluded: W * H - mask.reduce((acc, v) => acc + v, 0) };
   };
   // read the ours texture back: statistics of channel 0 by row band, for the work counter and error maps
   window.demoReadOurs = async () => {
