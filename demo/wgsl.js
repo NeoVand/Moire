@@ -43,7 +43,8 @@ struct Uniforms {
   p0: vec4f,      // sigma, time, jitter x, jitter y (pixels)
   p1: vec4f,      // samples, seed, scene, period
   p2: vec4f,      // taa alpha, reference accumulate (0/1), regime debug, ours cut
-  p3: vec4f,      // x: the mask's stationary coverage (scene 3)
+  p3: vec4f,      // x: the mask's stationary coverage (scene 3); y: the detail amplitude m; z: the residual arm's blend weight; w: the detail lattice (plane units)
+  p4: vec4f,      // x: 1 when the histories are invalid this frame (a camera cut, a material change, a resize): the resolves take the current sample alone
 };
 @group(0) @binding(0) var<uniform> U: Uniforms;
 
@@ -154,10 +155,14 @@ fn shadeD(x: f32, y: f32, detail: f32) -> vec3f {
     return vec3f(l.x * P + l.y);
   }
   if (scene >= 4u) {
-    // 4: the checkerboard times (1 + m T), the correlated case; 5: the checkerboard plus m T
+    // 4: the checkerboard times (1 + m T), the correlated case; 5: the checkerboard plus m T.
+    // The predictor (detail = 0) is the lit checkerboard alone, what the kernel integrates
+    // exactly; the specular, which the ours pass only evaluates at the pixel centre, is
+    // part of the residual, so nothing enters the analytic term that is not integrated
     let P4 = pictureAt(0u, g.s, g.t);
     let LN4 = lightingLN();
-    let m = U.p3.y * detail;
+    if (detail < 0.5) { return vec3f(LN4 * P4); }
+    let m = U.p3.y;
     let T = detailT(g.s, g.t);
     let base = select(LN4 * (P4 + m * T), LN4 * P4 * (1.0 + m * T), scene == 4u);
     return vec3f(base + lightingSpec(g.viewer, 50.0));
@@ -328,6 +333,7 @@ fn resolveAt(px: i32, py: i32, alpha0: f32) -> vec3f {
   let g = ground(f32(px), f32(py));
   var alpha = alpha0;
   var hist = cur;
+  if (U.p4.x > 0.5) { return cur; } // the history is invalid this frame
   if (g.d > 0.0) {
     let q = vec3f(g.s, g.t, 1.0);
     let w = dot(U.invP2.xyz, q);
@@ -424,8 +430,9 @@ ${KERNEL}
   let g = ground(x, y);
   if (g.d <= 0.0) { return vec4f(0.0, 0.0, 0.0, 1.0); }
   let S = U.p0.x * U.p0.x;
-  // scenes 4 and 5 take the checkerboard's path: the kernel integrates the predictor, the residual arm adds the rest
-  let scene = select(u32(U.p1.z), 0u, u32(U.p1.z) >= 4u);
+  // scenes 4 and 5 take the checkerboard's path: the kernel integrates the predictor (the lit checkerboard, no specular), the residual arm adds the rest
+  let sceneRaw = u32(U.p1.z);
+  let scene = select(sceneRaw, 0u, sceneRaw >= 4u);
   let period = U.p1.w;
   let J = jetsFromHomography(U.hu.xyz, U.hv.xyz, U.hd.xyz, x, y, period);
   var P = 0.5;
@@ -474,7 +481,7 @@ ${KERNEL}
   }
   let LN = lightingLN();
   var v = LN * P;
-  if (scene == 0u) { v += lightingSpec(g.viewer, 50.0); }
+  if (sceneRaw == 0u) { v += lightingSpec(g.viewer, 50.0); }
   if (mode == 6u) {
     // the work count as a grey level: 256 expensive calls saturate
     return vec4f(vec3f(WORK), 1.0);
@@ -502,10 +509,14 @@ export const METERS = /* wgsl */ `
 @group(0) @binding(6) var arm4: texture_2d<f32>;
 @group(0) @binding(7) var arm5: texture_2d<f32>;
 @group(0) @binding(8) var<storage, read_write> partials: array<f32>;
-var<workgroup> sh: array<f32, 3072>; // 256 lanes x 6 arms x 2 metrics
+var<workgroup> sh: array<f32, 3328>; // 256 lanes x (6 arms x 2 metrics + the count of pixels measured)
 fn q8(c: vec3f) -> vec3f { return round(clamp(c, vec3f(0.0), vec3f(1.0)) * 255.0) / 255.0; }
 @compute @workgroup_size(16, 16) fn csMeters(@builtin(global_invocation_id) gid: vec3u, @builtin(local_invocation_index) li: u32, @builtin(workgroup_id) wg: vec3u, @builtin(num_workgroups) nwg: vec3u) {
-  let inside = gid.x < u32(U.res.x) && gid.y < u32(U.res.y);
+  // a pixel counts when it is inside the image and its footprint (3 sigma) stays on the ground:
+  // the analytic arm has no term for a footprint crossing the horizon, so those pixels are excluded for every arm alike
+  let D = dot(U.hd.xyz, vec3f(f32(gid.x), f32(gid.y), 1.0));
+  let onGround = D - 3.0 * U.p0.x * length(U.hd.xy) > 0.0;
+  let inside = gid.x < u32(U.res.x) && gid.y < u32(U.res.y) && onGround;
   let p = vec2i(i32(gid.x), i32(gid.y));
   var r = vec3f(0.0);
   var a = array<vec3f, 6>(vec3f(0.0), vec3f(0.0), vec3f(0.0), vec3f(0.0), vec3f(0.0), vec3f(0.0));
@@ -522,19 +533,20 @@ fn q8(c: vec3f) -> vec3f { return round(clamp(c, vec3f(0.0), vec3f(1.0)) * 255.0
   for (var k = 0u; k < 6u; k++) {
     let e = a[k] - r;
     let e8 = q8(a[k]) - r8;
-    sh[li * 12u + k * 2u] = select(0.0, dot(e, e) / 3.0, inside);
-    sh[li * 12u + k * 2u + 1u] = select(0.0, dot(e8, e8) / 3.0, inside);
+    sh[li * 13u + k * 2u] = select(0.0, dot(e, e) / 3.0, inside);
+    sh[li * 13u + k * 2u + 1u] = select(0.0, dot(e8, e8) / 3.0, inside);
   }
+  sh[li * 13u + 12u] = select(0.0, 1.0, inside);
   workgroupBarrier();
   for (var stride = 128u; stride > 0u; stride >>= 1u) {
     if (li < stride) {
-      for (var j = 0u; j < 12u; j++) { sh[li * 12u + j] += sh[(li + stride) * 12u + j]; }
+      for (var j = 0u; j < 13u; j++) { sh[li * 13u + j] += sh[(li + stride) * 13u + j]; }
     }
     workgroupBarrier();
   }
   if (li == 0u) {
-    let base = (wg.y * nwg.x + wg.x) * 12u;
-    for (var j = 0u; j < 12u; j++) { partials[base + j] = sh[j]; }
+    let base = (wg.y * nwg.x + wg.x) * 13u;
+    for (var j = 0u; j < 13u; j++) { partials[base + j] = sh[j]; }
   }
 }
 `;

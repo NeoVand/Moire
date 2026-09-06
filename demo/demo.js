@@ -252,7 +252,7 @@ const main = async () => {
   const picSampler = device.createSampler({ addressModeU: 'repeat', addressModeV: 'repeat', magFilter: 'linear', minFilter: 'linear', mipmapFilter: 'linear', maxAnisotropy: 16 });
 
   // uniforms: 16 vec4
-  const UBYTES = 16 * 16;
+  const UBYTES = 17 * 16;
   const ubuf = device.createBuffer({ size: UBYTES, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
   const dbuf = device.createBuffer({ size: 32, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
   // the mask node's coefficient table (scene 3), read by the ours pass at binding 3
@@ -333,7 +333,7 @@ const main = async () => {
   });
 
   let numWG = Math.ceil(W / 16) * Math.ceil(H / 16);
-  const NPART = 12; // six arms, two metrics
+  const NPART = 13; // six arms, two metrics, and the count of pixels measured
   let partials = device.createBuffer({ size: numWG * NPART * 4, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC });
   let partialsRead = device.createBuffer({ size: numWG * NPART * 4, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
   const NPASS = 11; // point, ssaa, taa sample, taa resolve, mip, ours, residual sample, residual resolve, combine, reference, meters
@@ -363,10 +363,12 @@ const main = async () => {
   canvas.height = 2 * H;
 
   // uniform assembly
-  const uni = new Float32Array(64);
+  const uni = new Float32Array(68);
   let prevH = null;
   let refCount = 0;
   let refPing = 0;
+  let matKey = ''; // the material as the reference and the histories saw it: a change invalidates both
+  let historyReset = true;
   const jitter = [0, 0];
   const setUniforms = (Hm, still) => {
     const set = (o, v) => uni.set(v, o);
@@ -395,6 +397,7 @@ const main = async () => {
     set(52, [0, state.frame, state.scene, state.scene === 1 ? 2 * (25 / 3) + 2 * (5 / 3) : 20]);
     set(56, [state.taaAlpha, still ? 1 : 0, state.regime ? 1 : 0, state.oursMode || 0]);
     set(60, [maskMean, state.detail, state.residAlpha, state.detailScale]);
+    set(64, [historyReset ? 1 : 0, 0, 0, 0]);
   };
   const writeUniforms = (samples, seed) => {
     uni[52] = samples;
@@ -406,7 +409,7 @@ const main = async () => {
   const view = (t) => t.createView();
 
   // meter state
-  const meters = { rms: new Array(6).fill(NaN), rms8: new Array(6).fill(NaN), ms: new Array(NPASS).fill(NaN), pending: false };
+  const meters = { rms: new Array(6).fill(NaN), rms8: new Array(6).fill(NaN), ms: new Array(NPASS).fill(NaN), pixels: 0, pending: false };
   const msAvg = new Array(NPASS).fill(0);
   let msN = 0;
 
@@ -483,8 +486,13 @@ const main = async () => {
     fps = 0.9 * fps + 0.1 * (1 / Math.max(dt, 1e-3));
     if (!state.paused) state.time += dt * state.speed;
     const Hm = PATHS[state.path].at(state.time, W, H);
-    const still = prevH && prevH.hu.every((v, i) => v === Hm.hu[i]) && prevH.hv.every((v, i) => v === Hm.hv[i]) && prevH.hd.every((v, i) => v === Hm.hd[i]);
+    const key = `${state.scene}|${state.detail}|${state.detailScale}|${W}x${H}`;
+    const sameMaterial = key === matKey;
+    matKey = key;
+    const still = sameMaterial && prevH && prevH.hu.every((v, i) => v === Hm.hu[i]) && prevH.hv.every((v, i) => v === Hm.hv[i]) && prevH.hd.every((v, i) => v === Hm.hd[i]);
     if (!still) refCount = 0;
+    // the histories are invalid after a cut (no previous camera), a material change or a resize: the resolves take the current sample alone
+    historyReset = !prevH || !sameMaterial;
     setUniforms(Hm, still);
     // the frame's passes share one uniform buffer per submission; arms that
     // need their own sample counts get their own writes and submissions
@@ -588,9 +596,11 @@ const main = async () => {
           const sums = new Array(NPART).fill(0);
           for (let g = 0; g < numWG; g++) for (let j = 0; j < NPART; j++) sums[j] += arr[g * NPART + j];
           partialsRead.unmap();
+          const count = Math.max(1, sums[12]);
+          meters.pixels = sums[12];
           for (let k = 0; k < 6; k++) {
-            meters.rms[k] = Math.sqrt(sums[2 * k] / (W * H));
-            meters.rms8[k] = Math.sqrt(sums[2 * k + 1] / (W * H));
+            meters.rms[k] = Math.sqrt(sums[2 * k] / count);
+            meters.rms8[k] = Math.sqrt(sums[2 * k + 1] / count);
           }
           if (hasTs) {
             const ts = new BigInt64Array(tsRead.getMappedRange());
@@ -623,7 +633,8 @@ const main = async () => {
     const acc = refCount > 1 ? `, ${refCount} frames accumulated: ${(refCount * state.refSamples).toLocaleString()} spp` : '';
     rows.push(`<tr class="ref"><td>reference (${state.refSamples} spp a frame${acc})</td><td>0</td><td>0</td><td>∞</td><td>${fmt(bench.ms[6], 3)}</td></tr>`);
     $('meters').innerHTML = rows.join('');
-    $('status').textContent = `${W}x${H} per pane · ${fps.toFixed(0)} fps · t = ${state.time.toFixed(1)} s · frame ${state.frame}${state.zoom ? ` · magnifier at (${state.zoom[0]}, ${state.zoom[1]})` : ''}`;
+    const excluded = W * H - meters.pixels;
+    $('status').textContent = `${W}x${H} per pane · ${fps.toFixed(0)} fps · t = ${state.time.toFixed(1)} s · frame ${state.frame}${excluded > 0 ? ` · ${excluded} pixels whose footprint reaches the horizon are not measured` : ''}${state.zoom ? ` · magnifier at (${state.zoom[0]}, ${state.zoom[1]})` : ''}`;
   };
 
   // controls
@@ -711,7 +722,7 @@ const main = async () => {
       }
       const used = per.slice(warm);
       const rms = ARMS.slice(0, 6).map((_, k) => Math.sqrt(used.reduce((acc, r) => acc + r[k] * r[k], 0) / used.length));
-      return { arms: ARMS.slice(0, 6), rms, frames: used.length, per };
+      return { arms: ARMS.slice(0, 6), rms, frames: used.length, per, pixels: meters.pixels, refFrames: refCount };
     });
   // temporal statistics of arm textures over a run of frames: the per-pixel
   // standard deviation across frames (its RMS over the pixels and by row band)
