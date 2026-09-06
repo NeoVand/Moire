@@ -75,13 +75,42 @@ Remark. The collaborator's independent derivation (#356) gives this bound with t
 
 ## 7. The edge-pair partition and the composed certificate
 
-For each edge pair take the smaller of Theorem A and Theorem B (Theorem B only where its conditions hold; as delta shrinks the condition M >= 4 r_E / delta fails first and Theorem A takes over, so nearly parallel normals degrade continuously to the 1 / M rate and no separation is assumed, only paid for). Summing over edge pairs and adding the mirror set,
+[Superseded for the count by Theorem C of section 7b, which needs no partition; kept as the disc-shaped statement.] For each edge pair take the smaller of Theorem A and Theorem B (Theorem B only where its conditions hold; as delta shrinks the condition M >= 4 r_E / delta fails first and Theorem A takes over, so nearly parallel normals degrade continuously to the 1 / M rate and no separation is assumed, only paid for). Summing over edge pairs and adding the mirror set,
 
     dropped mass with beat in E <= sum_{e, f} [T_{ef}(M) + T'_{fe}(M)],
 
 with T the chosen bound on P_A(M) and T' the same on P_B(M) with the roles of the lattices exchanged (D, rho, N_E replaced by the B-side quantities). The full-response certificate composes with the pair note's cuts: cutting both sources at M and the output at reach r_E, the filtered product changes by at most that dropped mass plus the output-tail allowance 2 exp(-R_out^2 / 4) K_{Sigma / 2} ||a||_2 ||b||_2 of GAUSSIAN-LATTICE-PAIR.md, and the retained pairs are enumerated by its neighbour box, at most N_A(M) (1 + L_B) candidates with N_A(M) <= pi (M + rho)^2 / D; a fully explicit partner bound is N_E <= pi (r_E + rho_B)^2 / D' by Lemma 2 on the B side, or the shifted integer-box count of the pair note. Zero frequencies are separate area terms and enter neither tail.
 
 What this buys. If every edge pair of the two materials has separated normals, the dropped mass is of order log M / M^2 and M of order (C_T log(1 / epsilon) / epsilon)^{1/2} meets a budget epsilon, so the retained candidates N_A(M) (1 + L_B) are of order (C_T / epsilon) log(1 / epsilon) (1 + L_B), against the general count of order epsilon^{-2} log(1 / epsilon) of the pair note. The reach r_E enters through c_0 (the term r_E l_f), through the condition M >= 4 r_E / delta, and through L_B; since the output tail forces R_out of order sqrt(log(1 / epsilon)), r_E grows like sqrt(log(1 / epsilon)) / sqrt(lambda_min(Sigma)), and the interaction with the angle threshold delta must be carried in any assembled price: for a footprint whose reach exceeds delta M / 4 the transverse theorem does not apply at that M. If some edge pair has parallel or nearly parallel normals, Theorem A governs that pair, M is of order C_U / epsilon, and the retained count is of order epsilon^{-2} again: the general bound is valid there but gives no improved list. An improved list for shared normals needs the coherent direction represented and enumerated on its own (the pairs near the common normal line, a one-dimensional family), which this note does not do; the two parallel gratings of the one-dimensional moire are the model problem.
+
+## 7b. Theorem C, hyperbolic regions: the angle split removed (the collaborator's, #358; verified here)
+
+The retained set need not be a disc, and once it is edge-adapted the orientation cases disappear. For a unit tangent t and a floor h > 0 define the hyperbolic weight
+
+    X_t(m) = |m| max(h, |m . t|),
+
+and retain the region X_t(m) <= T, the disc of radius T / h along the normal line thinning to radius T / u at tangential distance u: a hyperbolic cross adapted to the edge (classical; the count and tail laws are those of Dung, Temlyakov and Ullrich, eq. 2.16, no novelty claimed).
+
+Lemma 4 (count and tail). On a lattice of cell area D and covering radius rho, with c = (1 + rho / h)^2 and T >= h^2,
+
+    N_t(T) = #{m : X_t(m) <= T} <= (4 c T / D) [1 + (1 / 2) log(c T / h^2)],
+    sum_{X_t(m) > T} X_t(m)^{-2} <= (4 c / (D T)) [3 + log(c T / h^2)].
+
+Proof. Buffering: for m in the region with |m| >= h and m' within rho of m, |m'| <= |m| (1 + rho / h) and max(h, |m' . t|) <= max(h, |m . t|) (1 + rho / h), so X_t(m') <= c X_t(m) <= c T; for |m| < h, X_t(m) = h |m| < h^2 <= T and the point lies in the disc of radius h, whose buffered version lies in the region as well. The disjoint translated cells of the counted points therefore lie in {X_t <= c T}, whose area in tangent and normal coordinates is 2 (2 c T / h) h for |m . t| <= h plus int_h^{sqrt(c T)} 2 (2 c T / u) du = 2 c T log(c T / h^2) for the rest, that is 4 c T [1 + (1 / 2) log(c T / h^2)], and dividing by D gives the count. For the tail, sum_{X > T} X^{-2} = int_T^inf N_t(tau) 2 tau^{-3} dtau <= (8 c / D) int_T^inf [1 + (1 / 2) log(c tau / h^2)] tau^{-2} dtau = (8 c / D)[1 / T + (log(c T / h^2) + 1) / (2 T)] = (4 c / (D T)) [3 + log(c T / h^2)]. Certified.
+
+Lemma 5 (the clipped factors under the hyperbolic weight). If h >= 2 / l_e then g_e(s) = min(l_e, 2 / |s|) <= l_e h / max(h, |s|); if h >= r_E + 2 / l_f then g~_f(s) = min(l_f, 2 / (|s| - r_E)_+) <= l_f h / max(h, |s|). Proof. For |s| <= h both sides of the first are at most l_e and the right side equals it; for |s| > h, 2 / |s| <= l_e h / |s| is h >= 2 / l_e. For the second, |s| <= h as before; for |s| > h, 2 / (|s| - r_E) <= l_f h / |s| is |s| (l_f h - 2) >= l_f h r_E, which holds at |s| = h exactly when h >= r_E + 2 / l_f and then for all larger |s|. Certified.
+
+Theorem C. Let h_e >= 2 / l_e, h_f >= r_E + 2 / l_f, T_e >= max(h_e^2, 4 r_E^2), T_f >= max(h_f^2, 4 r_E^2), and retain in Lambda_A^* the union of the two regions X_{t_e}(m) <= T_e and X_{t_f}(m) <= T_f (the second edge's region is taken in the outer lattice, the reach r_E having carried its factor to m). Outside the union, |m| > 2 r_E, so |n| >= |m| / 2, and the pair weight of the edge pair is, by Lemma 1, Lemma 5 and 2 g h <= g^2 + h^2,
+
+    |a_m^{(e)}| |b_n^{(f)}| <= (2 |jump_e| |jump_f| / (D_A D_B)) g_e(m . t_e) g~_f(m . t_f) / |m|^2 <= (|jump_e| |jump_f| / (D_A D_B)) [ l_e^2 h_e^2 / X_{t_e}(m)^2 + l_f^2 h_f^2 / X_{t_f}(m)^2 ],
+
+so the omitted edge-pair mass, with at most N_E partners per m and the two tails of Lemma 4, is at most
+
+    (4 N_E |jump_e| |jump_f| / (D_A D_B D)) [ c_e l_e^2 h_e^2 (3 + log(c_e T_e / h_e^2)) / T_e + c_f l_f^2 h_f^2 (3 + log(c_f T_f / h_f^2)) / T_f ],
+
+c_e = (1 + rho / h_e)^2, c_f = (1 + rho / h_f)^2, and the retained region has at most N_{t_e}(T_e) + N_{t_f}(T_f) points, of order T log T. No inverse sine and no angle enters. Certified, given Lemmas 1, 4 and 5. For a shared tangent the product form is sharper: g_e h~_f <= l_e l_f h^2 / max(h, |s|)^2 with one h >= max(2 / l_e, r_E + 2 / l_f), giving at most 8 c N_E |jump_e| |jump_f| l_e l_f h^2 (3 + log(c T / h^2)) / (D_A D_B D T) for T >= max(h^2, 4 r_E^2): the collaborator's repair of the off-strip coherent pairs of #351, which the hyperbolic region contains to the radius T / u at every offset u.
+
+What changes. The retained set of the product in the outer lattice is the union over the edges of both materials of edge-adapted hyperbolic crosses, of size of order (E_A + E_B) T log T with E the edge counts, and the omitted mass is of order log T / T; at a budget epsilon this is T of order (1 / epsilon) log(1 / epsilon) and a candidate count of order (1 / epsilon) log^2(1 / epsilon) times explicit constants, for every polygonal pair, aligned edges included. Theorems A and B remain true and are now the disc-shaped special cases; the partition of section 7 is no longer needed for the count. The region is a count-map object, a lattice count in a region shaped by the material's own edges rather than by the footprint, and the footprint enters only through the reach r_E (in h_f and the conditions on T) and the partner count N_E. Enumeration, the collaborator's plan: cover each region by a central rectangle and dyadic tangent bands, and enumerate each rotated rectangle by integer-index rows, solving the other coordinate's interval, at O(T log T) candidates and O(T) row overhead at a fixed lattice and floor; the constants and their growth with r_E, N_E and h against the error budget are being assembled on their side.
 
 ## 8. The angular route, kept apart
 
