@@ -138,8 +138,12 @@ fn lightingOn(normal: vec3f, viewer: vec3f, specPow: f32) -> vec2f {
   let spec = pow(max(dot(R, viewer), 0.0), specPow);
   return vec2f(LN, spec);
 }
-// the shader's colour at a continuous pixel position: the point sample
-fn shade(x: f32, y: f32) -> vec3f {
+// the shader's colour at a continuous pixel position: the point sample;
+// detail = 1 is the material, detail = 0 its predictor (scenes 4 and 5: the
+// checkerboard without its noise layer), the difference being the residual
+// the history arm accumulates
+fn shade(x: f32, y: f32) -> vec3f { return shadeD(x, y, 1.0); }
+fn shadeD(x: f32, y: f32, detail: f32) -> vec3f {
   let g = ground(x, y);
   if (g.d <= 0.0) { return vec3f(0.0); }
   let scene = u32(U.p1.z);
@@ -148,6 +152,15 @@ fn shade(x: f32, y: f32) -> vec3f {
     let P = pictureAt(0u, rp.s, rp.t);
     let l = lightingOn(rp.normal, g.viewer, 50.0);
     return vec3f(l.x * P + l.y);
+  }
+  if (scene >= 4u) {
+    // 4: the checkerboard times (1 + m T), the correlated case; 5: the checkerboard plus m T
+    let P4 = pictureAt(0u, g.s, g.t);
+    let LN4 = lightingLN();
+    let m = U.p3.y * detail;
+    let T = detailT(g.s, g.t);
+    let base = select(LN4 * (P4 + m * T), LN4 * P4 * (1.0 + m * T), scene == 4u);
+    return vec3f(base + lightingSpec(g.viewer, 50.0));
   }
   let P = pictureAt(scene, g.s, g.t);
   let LN = lightingLN();
@@ -165,6 +178,31 @@ fn hash3(p: vec3u) -> u32 {
   return h;
 }
 fn unit(h: u32) -> f32 { return (f32(h & 0x00FFFFFFu) + 0.5) / 16777216.0; }
+
+// the detail layer of scenes 4 and 5: value noise on the plane, lattice
+// spacing U.p3.w plane units, hashed values in [-1, 1] on a 64-cell period,
+// quintic interpolation; the kernel has no node for it, so it stands in for
+// the parts of a material a product leaves to the engine
+fn latticeVal(i: i32, j: i32) -> f32 {
+  return 2.0 * unit(hash3(vec3u(u32(i & 63), u32(j & 63), 77u))) - 1.0;
+}
+fn detailT(s: f32, t: f32) -> f32 {
+  let u = s / U.p3.w;
+  let v = t / U.p3.w;
+  let i0 = floor(u);
+  let j0 = floor(v);
+  let fu = u - i0;
+  let fv = v - j0;
+  let wu = fu * fu * fu * (fu * (fu * 6.0 - 15.0) + 10.0);
+  let wv = fv * fv * fv * (fv * (fv * 6.0 - 15.0) + 10.0);
+  let i = i32(i0);
+  let j = i32(j0);
+  let a = latticeVal(i, j);
+  let b = latticeVal(i + 1, j);
+  let c = latticeVal(i, j + 1);
+  let d = latticeVal(i + 1, j + 1);
+  return mix(mix(a, b, wu), mix(c, d, wu), wv);
+}
 `;
 
 // point sampling: the pixel's centre
@@ -238,12 +276,21 @@ export const ARM_REFERENCE = /* wgsl */ `
 `;
 
 // temporal AA: one jittered sample a frame, the history reprojected through
-// the previous homography, clamped to the current neighbourhood, blended
+// the previous homography, clamped to the current neighbourhood, blended.
+// The residual arm runs the same machinery on the residual f - a of the
+// material against its predictor a (shadeD with detail 0), at the same jitter
+// and with its own blend weight U.p3.z; the predictor's exact pixel mean
+// (the ours arm) is added back afterwards, so nothing of it enters the history
 export const ARM_TAA = /* wgsl */ `
 @fragment fn fsTaaSample(i: VOut) -> @location(0) vec4f {
   let x = floor(i.uv.x * U.res.x);
   let y = floor(i.uv.y * U.res.y);
   return vec4f(shade(x + U.p0.z, y + U.p0.w), 1.0);
+}
+@fragment fn fsResidualSample(i: VOut) -> @location(0) vec4f {
+  let x = floor(i.uv.x * U.res.x) + U.p0.z;
+  let y = floor(i.uv.y * U.res.y) + U.p0.w;
+  return vec4f(shadeD(x, y, 1.0) - shadeD(x, y, 0.0), 1.0);
 }
 @group(0) @binding(1) var taaCur: texture_2d<f32>;
 @group(0) @binding(2) var taaHist: texture_2d<f32>;
@@ -264,9 +311,7 @@ fn bilinearHist(xp: f32, yp: f32) -> vec3f {
   let c11 = textureLoad(taaHist, vec2i(ix1, iy1), 0).xyz;
   return mix(mix(c00, c10, fx), mix(c01, c11, fx), fy);
 }
-@fragment fn fsTaaResolve(i: VOut) -> @location(0) vec4f {
-  let px = i32(i.uv.x * U.res.x);
-  let py = i32(i.uv.y * U.res.y);
+fn resolveAt(px: i32, py: i32, alpha0: f32) -> vec3f {
   let cur = textureLoad(taaCur, vec2i(px, py), 0).xyz;
   // the neighbourhood's bounds
   var lo = cur;
@@ -281,7 +326,7 @@ fn bilinearHist(xp: f32, yp: f32) -> vec3f {
   }
   // reprojection: the pixel's ground point through the previous camera
   let g = ground(f32(px), f32(py));
-  var alpha = U.p2.x;
+  var alpha = alpha0;
   var hist = cur;
   if (g.d > 0.0) {
     let q = vec3f(g.s, g.t, 1.0);
@@ -294,7 +339,23 @@ fn bilinearHist(xp: f32, yp: f32) -> vec3f {
       } else { alpha = 1.0; }
     } else { alpha = 1.0; }
   } else { alpha = 1.0; }
-  return vec4f(mix(hist, cur, alpha), 1.0);
+  return mix(hist, cur, alpha);
+}
+@fragment fn fsTaaResolve(i: VOut) -> @location(0) vec4f {
+  return vec4f(resolveAt(i32(i.uv.x * U.res.x), i32(i.uv.y * U.res.y), U.p2.x), 1.0);
+}
+@fragment fn fsResidualResolve(i: VOut) -> @location(0) vec4f {
+  return vec4f(resolveAt(i32(i.uv.x * U.res.x), i32(i.uv.y * U.res.y), U.p3.z), 1.0);
+}
+`;
+
+// the residual arm's output: the predictor's exact pixel mean plus the residual's history
+export const ARM_COMBO = /* wgsl */ `
+@group(0) @binding(1) var comboA: texture_2d<f32>;
+@group(0) @binding(2) var comboB: texture_2d<f32>;
+@fragment fn fsCombine(i: VOut) -> @location(0) vec4f {
+  let p = vec2i(i32(i.uv.x * U.res.x), i32(i.uv.y * U.res.y));
+  return vec4f(textureLoad(comboA, p, 0).xyz + textureLoad(comboB, p, 0).xyz, 1.0);
 }
 `;
 
@@ -303,6 +364,7 @@ fn bilinearHist(xp: f32, yp: f32) -> vec3f {
 export const ARM_MIP = /* wgsl */ `
 @group(0) @binding(1) var picTex: texture_2d<f32>;
 @group(0) @binding(2) var picSamp: sampler;
+@group(0) @binding(3) var detailTex: texture_2d<f32>; // the detail layer, 64 lattice cells a tile, stored as (T + 1) / 2
 @fragment fn fsMip(i: VOut) -> @location(0) vec4f {
   let x = floor(i.uv.x * U.res.x);
   let y = floor(i.uv.y * U.res.y);
@@ -330,6 +392,14 @@ export const ARM_MIP = /* wgsl */ `
   }
   let P = textureSampleGrad(picTex, picSamp, uv, ddx, ddy).x;
   let LN = lightingLN();
+  if (scene >= 4u) {
+    // a game's route for a detail layer: the second texture sampled with its own footprint, the product of the two filtered values
+    let Ld = U.p3.w * 64.0;
+    let T2 = 2.0 * textureSampleGrad(detailTex, picSamp, vec2f(g.s, g.t) / Ld, ddx * period / Ld, ddy * period / Ld).x - 1.0;
+    let m = U.p3.y;
+    let vd = select(LN * (P + m * T2), LN * P * (1.0 + m * T2), scene == 4u) + lightingSpec(g.viewer, 50.0);
+    return vec4f(vec3f(vd), 1.0);
+  }
   var v = LN * P;
   if (scene == 0u) { v += lightingSpec(g.viewer, 50.0); }
   return vec4f(vec3f(v), 1.0);
@@ -354,7 +424,8 @@ ${KERNEL}
   let g = ground(x, y);
   if (g.d <= 0.0) { return vec4f(0.0, 0.0, 0.0, 1.0); }
   let S = U.p0.x * U.p0.x;
-  let scene = u32(U.p1.z);
+  // scenes 4 and 5 take the checkerboard's path: the kernel integrates the predictor, the residual arm adds the rest
+  let scene = select(u32(U.p1.z), 0u, u32(U.p1.z) >= 4u);
   let period = U.p1.w;
   let J = jetsFromHomography(U.hu.xyz, U.hv.xyz, U.hd.xyz, x, y, period);
   var P = 0.5;
@@ -429,14 +500,15 @@ export const METERS = /* wgsl */ `
 @group(0) @binding(4) var arm2: texture_2d<f32>;
 @group(0) @binding(5) var arm3: texture_2d<f32>;
 @group(0) @binding(6) var arm4: texture_2d<f32>;
-@group(0) @binding(7) var<storage, read_write> partials: array<f32>;
-var<workgroup> sh: array<f32, 2560>; // 256 lanes x 5 arms x 2 metrics
+@group(0) @binding(7) var arm5: texture_2d<f32>;
+@group(0) @binding(8) var<storage, read_write> partials: array<f32>;
+var<workgroup> sh: array<f32, 3072>; // 256 lanes x 6 arms x 2 metrics
 fn q8(c: vec3f) -> vec3f { return round(clamp(c, vec3f(0.0), vec3f(1.0)) * 255.0) / 255.0; }
 @compute @workgroup_size(16, 16) fn csMeters(@builtin(global_invocation_id) gid: vec3u, @builtin(local_invocation_index) li: u32, @builtin(workgroup_id) wg: vec3u, @builtin(num_workgroups) nwg: vec3u) {
   let inside = gid.x < u32(U.res.x) && gid.y < u32(U.res.y);
   let p = vec2i(i32(gid.x), i32(gid.y));
   var r = vec3f(0.0);
-  var a = array<vec3f, 5>(vec3f(0.0), vec3f(0.0), vec3f(0.0), vec3f(0.0), vec3f(0.0));
+  var a = array<vec3f, 6>(vec3f(0.0), vec3f(0.0), vec3f(0.0), vec3f(0.0), vec3f(0.0), vec3f(0.0));
   if (inside) {
     r = textureLoad(refTex, p, 0).xyz;
     a[0] = textureLoad(arm0, p, 0).xyz;
@@ -444,29 +516,31 @@ fn q8(c: vec3f) -> vec3f { return round(clamp(c, vec3f(0.0), vec3f(1.0)) * 255.0
     a[2] = textureLoad(arm2, p, 0).xyz;
     a[3] = textureLoad(arm3, p, 0).xyz;
     a[4] = textureLoad(arm4, p, 0).xyz;
+    a[5] = textureLoad(arm5, p, 0).xyz;
   }
   let r8 = q8(r);
-  for (var k = 0u; k < 5u; k++) {
+  for (var k = 0u; k < 6u; k++) {
     let e = a[k] - r;
     let e8 = q8(a[k]) - r8;
-    sh[li * 10u + k * 2u] = select(0.0, dot(e, e) / 3.0, inside);
-    sh[li * 10u + k * 2u + 1u] = select(0.0, dot(e8, e8) / 3.0, inside);
+    sh[li * 12u + k * 2u] = select(0.0, dot(e, e) / 3.0, inside);
+    sh[li * 12u + k * 2u + 1u] = select(0.0, dot(e8, e8) / 3.0, inside);
   }
   workgroupBarrier();
   for (var stride = 128u; stride > 0u; stride >>= 1u) {
     if (li < stride) {
-      for (var j = 0u; j < 10u; j++) { sh[li * 10u + j] += sh[(li + stride) * 10u + j]; }
+      for (var j = 0u; j < 12u; j++) { sh[li * 12u + j] += sh[(li + stride) * 12u + j]; }
     }
     workgroupBarrier();
   }
   if (li == 0u) {
-    let base = (wg.y * nwg.x + wg.x) * 10u;
-    for (var j = 0u; j < 10u; j++) { partials[base + j] = sh[j]; }
+    let base = (wg.y * nwg.x + wg.x) * 12u;
+    for (var j = 0u; j < 12u; j++) { partials[base + j] = sh[j]; }
   }
 }
 `;
 
-// the panes: six arm textures tiled 3 x 2, with an optional magnifier
+// the panes: eight textures tiled 4 x 2: point, SSAA, TAA, mip; ours, the
+// residual arm, the residual history itself (on mid grey), the reference
 export const DISPLAY = /* wgsl */ `
 @group(0) @binding(1) var t0: texture_2d<f32>;
 @group(0) @binding(2) var t1: texture_2d<f32>;
@@ -474,8 +548,10 @@ export const DISPLAY = /* wgsl */ `
 @group(0) @binding(4) var t3: texture_2d<f32>;
 @group(0) @binding(5) var t4: texture_2d<f32>;
 @group(0) @binding(6) var t5: texture_2d<f32>;
+@group(0) @binding(7) var t6: texture_2d<f32>;
+@group(0) @binding(8) var t7: texture_2d<f32>;
 struct Disp { zoom: vec4f, mode: vec4f }; // zoom: cx, cy (pixels), factor, on; mode: x = error heat (0/1), y = heat gain
-@group(0) @binding(7) var<uniform> Dp: Disp;
+@group(0) @binding(9) var<uniform> Dp: Disp;
 fn armLoad(k: u32, p: vec2i) -> vec3f {
   switch (k) {
     case 0u: { return textureLoad(t0, p, 0).xyz; }
@@ -483,17 +559,19 @@ fn armLoad(k: u32, p: vec2i) -> vec3f {
     case 2u: { return textureLoad(t2, p, 0).xyz; }
     case 3u: { return textureLoad(t3, p, 0).xyz; }
     case 4u: { return textureLoad(t4, p, 0).xyz; }
-    default: { return textureLoad(t5, p, 0).xyz; }
+    case 5u: { return textureLoad(t5, p, 0).xyz; }
+    case 6u: { return vec3f(0.5) + textureLoad(t6, p, 0).xyz; }
+    default: { return textureLoad(t7, p, 0).xyz; }
   }
 }
 @fragment fn fsDisplay(i: VOut) -> @location(0) vec4f {
   let W = U.res.x;
   let H = U.res.y;
-  let fx = i.uv.x * 3.0;
+  let fx = i.uv.x * 4.0;
   let fy = i.uv.y * 2.0;
   let col = u32(floor(fx));
   let row = u32(floor(fy));
-  let k = min(row * 3u + col, 5u);
+  let k = min(row * 4u + col, 7u);
   var px = (fx - f32(col)) * W;
   var py = (fy - f32(row)) * H;
   if (Dp.zoom.w > 0.5) {
@@ -504,10 +582,9 @@ fn armLoad(k: u32, p: vec2i) -> vec3f {
   }
   let p = vec2i(i32(px), i32(py));
   var c = armLoad(k, p);
-  if (Dp.mode.x > 0.5 && k < 5u) {
-    let r = textureLoad(t5, p, 0).xyz;
+  if (Dp.mode.x > 0.5 && k < 6u) {
+    let r = textureLoad(t7, p, 0).xyz;
     let e = abs(c - r) * Dp.mode.y;
-    c = vec3f(e.x, e.y * 0.5, 0.0) + vec3f(0.0, 0.0, 0.0);
     c = vec3f(min(e.x + e.y + e.z, 1.0));
   }
   // a thin border between panes

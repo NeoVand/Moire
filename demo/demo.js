@@ -5,7 +5,7 @@
 // against the reference in linear light and after the 8-bit clamp, and the
 // GPU time of each arm's pass.
 import { MASK, maskField, maskCoefTable } from './mask-table.js';
-import { COMMON, ARM_POINT, ARM_SSAA, ARM_REFERENCE, ARM_TAA, ARM_MIP, ARM_OURS, METERS, DISPLAY } from './wgsl.js';
+import { COMMON, ARM_POINT, ARM_SSAA, ARM_REFERENCE, ARM_TAA, ARM_MIP, ARM_OURS, ARM_COMBO, METERS, DISPLAY } from './wgsl.js';
 
 const $ = (id) => document.getElementById(id);
 const log = (msg) => {
@@ -14,7 +14,7 @@ const log = (msg) => {
 };
 
 const LIGHT = [0.22808577638091165, 0.60822873701576452, 0.76028592126970562];
-const ARMS = ['point', 'ssaa', 'taa', 'mip', 'ours', 'reference'];
+const ARMS = ['point', 'ssaa', 'taa', 'mip', 'ours', 'combo', 'reference'];
 
 // ---------------------------------------------------------------------------
 // camera: a homography (x, y, 1) -> (Nu, Nv, D), plane coordinates (Nu, Nv) / D
@@ -90,6 +90,35 @@ const PATHS = {
   },
 };
 
+// the detail layer of scenes 4 and 5 on the CPU (the same hash and quintic
+// interpolation as the shader's detailT), in lattice units; 64 cells a period
+const hash3 = (x, y, z) => {
+  let h = (Math.imul(x, 0x9e3779b1) ^ Math.imul(y, 0x85ebca77) ^ Math.imul(z, 0xc2b2ae3d)) >>> 0;
+  h = (h ^ (h >>> 15)) >>> 0;
+  h = Math.imul(h, 0x2c1b3c6d) >>> 0;
+  h = (h ^ (h >>> 12)) >>> 0;
+  h = Math.imul(h, 0x297a2d39) >>> 0;
+  h = (h ^ (h >>> 15)) >>> 0;
+  return h;
+};
+const unit = (h) => ((h & 0x00ffffff) + 0.5) / 16777216;
+const latticeVal = (i, j) => 2 * unit(hash3(i & 63, j & 63, 77)) - 1;
+const detailAt = (u, v) => {
+  const i0 = Math.floor(u);
+  const j0 = Math.floor(v);
+  const fu = u - i0;
+  const fv = v - j0;
+  const wu = fu * fu * fu * (fu * (fu * 6 - 15) + 10);
+  const wv = fv * fv * fv * (fv * (fv * 6 - 15) + 10);
+  const a = latticeVal(i0, j0);
+  const b = latticeVal(i0 + 1, j0);
+  const c = latticeVal(i0, j0 + 1);
+  const d = latticeVal(i0 + 1, j0 + 1);
+  const top = a + (b - a) * wu;
+  const bot = c + (d - c) * wu;
+  return top + (bot - top) * wv;
+};
+
 // Halton for the TAA jitter
 const halton = (i, b) => {
   let f = 1;
@@ -137,6 +166,15 @@ const main = async () => {
     ssaa: 16,
     refSamples: 1024,
     taaAlpha: 0.1,
+    // the residual arm (scenes 4 and 5): the predictor's exact mean from the
+    // ours pass plus a TAA history of the residual at its own blend weight;
+    // detail is the noise layer's amplitude m, detailScale its lattice in plane units
+    residAlpha: 0.5,
+    detail: 0.3,
+    detailScale: 4,
+    autoBench: true,
+    manual: false,
+    fixedDt: null,
     paused: false,
     time: 0,
     frame: 0,
@@ -155,6 +193,7 @@ const main = async () => {
     for (const t of Object.values(tex)) t.destroy();
     tex = {
       point: makeTex(), ssaa: makeTex(), taa: makeTex(), taaCur: makeTex(), taaHist: makeTex(), mip: makeTex(), ours: makeTex(),
+      residCur: makeTex(), resid: makeTex(), residHist: makeTex(), combo: makeTex(),
       refA: makeTex(), refB: makeTex(),
     };
   };
@@ -162,15 +201,30 @@ const main = async () => {
 
   // the mipmapped picture: one period of the checkerboard (scene 0) or the circles cell (scene 1), 1024 texels, box-filtered chain
   const PIC_N = 1024;
-  const picTexFor = (sceneIn) => {
-    const scene = sceneIn === 2 ? 0 : sceneIn; // the rippled checkerboard samples the checker texture
+  const mipPicture = (valueAt) => {
     const levels = Math.log2(PIC_N) + 1;
     const t = device.createTexture({ size: [PIC_N, PIC_N], format: 'r8unorm', mipLevelCount: levels, usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST });
     let data = new Float32Array(PIC_N * PIC_N);
     for (let j = 0; j < PIC_N; j++)
-      for (let i = 0; i < PIC_N; i++) {
-        const u = (i + 0.5) / PIC_N;
-        const v = (j + 0.5) / PIC_N;
+      for (let i = 0; i < PIC_N; i++) data[j * PIC_N + i] = valueAt((i + 0.5) / PIC_N, (j + 0.5) / PIC_N);
+    let n = PIC_N;
+    for (let level = 0; level < levels; level++) {
+      const bytes = new Uint8Array(n * n);
+      for (let k = 0; k < n * n; k++) bytes[k] = Math.round(Math.min(1, Math.max(0, data[k])) * 255);
+      device.queue.writeTexture({ texture: t, mipLevel: level }, bytes, { bytesPerRow: n }, [n, n]);
+      if (n === 1) break;
+      const m = n / 2;
+      const next = new Float32Array(m * m);
+      for (let j = 0; j < m; j++)
+        for (let i = 0; i < m; i++) next[j * m + i] = 0.25 * (data[2 * j * n + 2 * i] + data[2 * j * n + 2 * i + 1] + data[(2 * j + 1) * n + 2 * i] + data[(2 * j + 1) * n + 2 * i + 1]);
+      data = next;
+      n = m;
+    }
+    return t;
+  };
+  const picTexFor = (sceneIn) => {
+    const scene = sceneIn === 2 || sceneIn >= 4 ? 0 : sceneIn; // the rippled and the detailed checkerboards sample the checker texture
+    return mipPicture((u, v) => {
         let P;
         if (scene === 3) {
           P = maskField(u * 1024, v * 1024) > MASK.t0 ? 1 : 0; // 1024 plane units a tile
@@ -187,23 +241,11 @@ const main = async () => {
           const r = Math.hypot(xm - circleR, ym - circleR);
           P = 0.5 - 0.5 * Math.sign(r - circleR);
         }
-        data[j * PIC_N + i] = P;
-      }
-    let n = PIC_N;
-    for (let level = 0; level < levels; level++) {
-      const bytes = new Uint8Array(n * n);
-      for (let k = 0; k < n * n; k++) bytes[k] = Math.round(Math.min(1, Math.max(0, data[k])) * 255);
-      device.queue.writeTexture({ texture: t, mipLevel: level }, bytes, { bytesPerRow: n }, [n, n]);
-      if (n === 1) break;
-      const m = n / 2;
-      const next = new Float32Array(m * m);
-      for (let j = 0; j < m; j++)
-        for (let i = 0; i < m; i++) next[j * m + i] = 0.25 * (data[2 * j * n + 2 * i] + data[2 * j * n + 2 * i + 1] + data[(2 * j + 1) * n + 2 * i] + data[(2 * j + 1) * n + 2 * i + 1]);
-      data = next;
-      n = m;
-    }
-    return t;
+        return P;
+    });
   };
+  // the detail layer's picture: 64 lattice cells a tile, 16 texels a cell, (T + 1) / 2
+  const detailTex = mipPicture((u, v) => 0.5 + 0.5 * detailAt(u * 64, v * 64));
   let picTex = picTexFor(state.scene);
   $('scene').value = String(state.scene);
   $('res').value = `${W}x${H}`;
@@ -252,18 +294,23 @@ const main = async () => {
     reference: render(ARM_REFERENCE, 'fsReference', [texEntry(1)]),
     taaSample: render(ARM_TAA, 'fsTaaSample'),
     taaResolve: render(ARM_TAA, 'fsTaaResolve', [texEntry(1), texEntry(2)]),
+    residSample: render(ARM_TAA, 'fsResidualSample'),
+    residResolve: render(ARM_TAA, 'fsResidualResolve', [texEntry(1), texEntry(2)]),
+    combine: render(ARM_COMBO, 'fsCombine', [texEntry(1), texEntry(2)]),
     mip: render(ARM_MIP, 'fsMip', [
       { binding: 1, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'float' } },
       { binding: 2, visibility: GPUShaderStage.FRAGMENT, sampler: { type: 'filtering' } },
+      { binding: 3, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'float' } },
     ]),
     ours: render(ARM_OURS, 'fsOurs', [maskEntry]),
   };
+  const mipBinds = () => [{ binding: 1, resource: picTex.createView() }, { binding: 2, resource: picSampler }, { binding: 3, resource: detailTex.createView() }];
   // meters
   const metersLayout = device.createBindGroupLayout({
     entries: [
       { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'uniform' } },
-      ...[1, 2, 3, 4, 5, 6].map((b) => ({ binding: b, visibility: GPUShaderStage.COMPUTE, texture: { sampleType: 'unfilterable-float' } })),
-      { binding: 7, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
+      ...[1, 2, 3, 4, 5, 6, 7].map((b) => ({ binding: b, visibility: GPUShaderStage.COMPUTE, texture: { sampleType: 'unfilterable-float' } })),
+      { binding: 8, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
     ],
   });
   const metersPipeline = device.createComputePipeline({
@@ -274,8 +321,8 @@ const main = async () => {
   const displayLayout = device.createBindGroupLayout({
     entries: [
       { binding: 0, visibility: GPUShaderStage.FRAGMENT | GPUShaderStage.VERTEX, buffer: { type: 'uniform' } },
-      ...[1, 2, 3, 4, 5, 6].map((b) => ({ binding: b, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'unfilterable-float' } })),
-      { binding: 7, visibility: GPUShaderStage.FRAGMENT, buffer: { type: 'uniform' } },
+      ...[1, 2, 3, 4, 5, 6, 7, 8].map((b) => ({ binding: b, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'unfilterable-float' } })),
+      { binding: 9, visibility: GPUShaderStage.FRAGMENT, buffer: { type: 'uniform' } },
     ],
   });
   const displayPipeline = device.createRenderPipeline({
@@ -286,9 +333,10 @@ const main = async () => {
   });
 
   let numWG = Math.ceil(W / 16) * Math.ceil(H / 16);
-  let partials = device.createBuffer({ size: numWG * 10 * 4, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC });
-  let partialsRead = device.createBuffer({ size: numWG * 10 * 4, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
-  const NPASS = 8; // point, ssaa, taa sample, taa resolve, mip, ours, reference, meters
+  const NPART = 12; // six arms, two metrics
+  let partials = device.createBuffer({ size: numWG * NPART * 4, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC });
+  let partialsRead = device.createBuffer({ size: numWG * NPART * 4, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+  const NPASS = 11; // point, ssaa, taa sample, taa resolve, mip, ours, residual sample, residual resolve, combine, reference, meters
   let querySet = null;
   let tsBuf = null;
   let tsRead = null;
@@ -305,13 +353,13 @@ const main = async () => {
     numWG = Math.ceil(W / 16) * Math.ceil(H / 16);
     partials.destroy();
     partialsRead.destroy();
-    partials = device.createBuffer({ size: numWG * 10 * 4, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC });
-    partialsRead = device.createBuffer({ size: numWG * 10 * 4, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
-    canvas.width = 3 * W;
+    partials = device.createBuffer({ size: numWG * NPART * 4, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC });
+    partialsRead = device.createBuffer({ size: numWG * NPART * 4, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+    canvas.width = 4 * W;
     canvas.height = 2 * H;
     refCount = 0;
   };
-  canvas.width = 3 * W;
+  canvas.width = 4 * W;
   canvas.height = 2 * H;
 
   // uniform assembly
@@ -346,7 +394,7 @@ const main = async () => {
     set(48, [0.5, state.time, jitter[0], jitter[1]]);
     set(52, [0, state.frame, state.scene, state.scene === 1 ? 2 * (25 / 3) + 2 * (5 / 3) : 20]);
     set(56, [state.taaAlpha, still ? 1 : 0, state.regime ? 1 : 0, state.oursMode || 0]);
-    set(60, [maskMean, 0, 0, 0]);
+    set(60, [maskMean, state.detail, state.residAlpha, state.detailScale]);
   };
   const writeUniforms = (samples, seed) => {
     uni[52] = samples;
@@ -358,7 +406,7 @@ const main = async () => {
   const view = (t) => t.createView();
 
   // meter state
-  const meters = { rms: new Array(5).fill(NaN), rms8: new Array(5).fill(NaN), ms: new Array(NPASS).fill(NaN), pending: false };
+  const meters = { rms: new Array(6).fill(NaN), rms8: new Array(6).fill(NaN), ms: new Array(NPASS).fill(NaN), pending: false };
   const msAvg = new Array(NPASS).fill(0);
   let msN = 0;
 
@@ -378,7 +426,7 @@ const main = async () => {
   // GPU time per arm: each arm's pass alone, repeated, timed from submit to
   // onSubmittedWorkDone; the pass timestamps on Metal read the command
   // buffer's span, not the pass's, so they are not used
-  const bench = { ms: new Array(6).fill(NaN), running: false, last: 0 };
+  const bench = { ms: new Array(7).fill(NaN), running: false, last: 0 };
   const benchArms = async () => {
     if (bench.running) return;
     bench.running = true;
@@ -403,10 +451,16 @@ const main = async () => {
         draw(enc, plain(tex.taaCur), P.taaSample.pipeline, bind(P.taaSample.layout, []));
         draw(enc, plain(tex.taa), P.taaResolve.pipeline, bind(P.taaResolve.layout, [{ binding: 1, resource: view(tex.taaCur) }, { binding: 2, resource: view(tex.taaHist) }]));
       });
-      bench.ms[3] = await run((enc) => draw(enc, plain(tex.mip), P.mip.pipeline, bind(P.mip.layout, [{ binding: 1, resource: picTex.createView() }, { binding: 2, resource: picSampler }])));
+      bench.ms[3] = await run((enc) => draw(enc, plain(tex.mip), P.mip.pipeline, bind(P.mip.layout, mipBinds())));
       bench.ms[4] = await run((enc) => draw(enc, plain(tex.ours), P.ours.pipeline, bind(P.ours.layout, [maskBind])));
+      // the residual arm's own passes (its total is this plus the ours pass)
+      bench.ms[5] = await run((enc) => {
+        draw(enc, plain(tex.residCur), P.residSample.pipeline, bind(P.residSample.layout, []));
+        draw(enc, plain(tex.resid), P.residResolve.pipeline, bind(P.residResolve.layout, [{ binding: 1, resource: view(tex.residCur) }, { binding: 2, resource: view(tex.residHist) }]));
+        draw(enc, plain(tex.combo), P.combine.pipeline, bind(P.combine.layout, [{ binding: 1, resource: view(tex.ours) }, { binding: 2, resource: view(tex.resid) }]));
+      });
       writeUniforms(state.refSamples, 1);
-      bench.ms[5] = await run((enc) => draw(enc, plain(tex.refB), P.reference.pipeline, bind(P.reference.layout, [{ binding: 1, resource: view(tex.refA) }])));
+      bench.ms[6] = await run((enc) => draw(enc, plain(tex.refB), P.reference.pipeline, bind(P.reference.layout, [{ binding: 1, resource: view(tex.refA) }])));
     } catch (e) {
       log(`bench failed: ${e.message}`);
     }
@@ -424,7 +478,7 @@ const main = async () => {
       return;
     }
     const now = performance.now();
-    const dt = Math.min(0.1, (now - lastFrameTime) / 1000);
+    const dt = state.fixedDt !== null ? state.fixedDt : Math.min(0.1, (now - lastFrameTime) / 1000);
     lastFrameTime = now;
     fps = 0.9 * fps + 0.1 * (1 / Math.max(dt, 1e-3));
     if (!state.paused) state.time += dt * state.speed;
@@ -447,17 +501,22 @@ const main = async () => {
       draw(enc, passDesc(tex.taaCur, 2), P.taaSample.pipeline, bind(P.taaSample.layout, []));
       draw(enc, passDesc(tex.taa, 3), P.taaResolve.pipeline, bind(P.taaResolve.layout, [{ binding: 1, resource: view(tex.taaCur) }, { binding: 2, resource: view(tex.taaHist) }]));
       enc.copyTextureToTexture({ texture: tex.taa }, { texture: tex.taaHist }, [W, H]);
-      draw(enc, passDesc(tex.mip, 4), P.mip.pipeline, bind(P.mip.layout, [{ binding: 1, resource: picTex.createView() }, { binding: 2, resource: picSampler }]));
+      draw(enc, passDesc(tex.mip, 4), P.mip.pipeline, bind(P.mip.layout, mipBinds()));
       draw(enc, passDesc(tex.ours, 5), P.ours.pipeline, bind(P.ours.layout, [maskBind]));
+      // the residual arm: the residual at the jitter, its history, the predictor's mean added back
+      draw(enc, passDesc(tex.residCur, 6), P.residSample.pipeline, bind(P.residSample.layout, []));
+      draw(enc, passDesc(tex.resid, 7), P.residResolve.pipeline, bind(P.residResolve.layout, [{ binding: 1, resource: view(tex.residCur) }, { binding: 2, resource: view(tex.residHist) }]));
+      enc.copyTextureToTexture({ texture: tex.resid }, { texture: tex.residHist }, [W, H]);
+      draw(enc, passDesc(tex.combo, 8), P.combine.pipeline, bind(P.combine.layout, [{ binding: 1, resource: view(tex.ours) }, { binding: 2, resource: view(tex.resid) }]));
     });
     // the reference, with its own sample count
     const refSrc = refPing ? tex.refB : tex.refA;
     const refDst = refPing ? tex.refA : tex.refB;
     writeUniforms(state.refSamples, state.frame * 7919 + 13);
     submitOne((enc) => {
-      draw(enc, passDesc(refDst, 6), P.reference.pipeline, bind(P.reference.layout, [{ binding: 1, resource: view(refSrc) }]));
+      draw(enc, passDesc(refDst, 9), P.reference.pipeline, bind(P.reference.layout, [{ binding: 1, resource: view(refSrc) }]));
       // meters
-      const pass = enc.beginComputePass(hasTs ? { timestampWrites: { querySet, beginningOfPassWriteIndex: 14, endOfPassWriteIndex: 15 } } : {});
+      const pass = enc.beginComputePass(hasTs ? { timestampWrites: { querySet, beginningOfPassWriteIndex: 2 * (NPASS - 1), endOfPassWriteIndex: 2 * (NPASS - 1) + 1 } } : {});
       pass.setPipeline(metersPipeline);
       pass.setBindGroup(
         0,
@@ -471,14 +530,15 @@ const main = async () => {
             { binding: 4, resource: view(tex.taa) },
             { binding: 5, resource: view(tex.mip) },
             { binding: 6, resource: view(tex.ours) },
-            { binding: 7, resource: { buffer: partials } },
+            { binding: 7, resource: view(tex.combo) },
+            { binding: 8, resource: { buffer: partials } },
           ],
         }),
       );
       pass.dispatchWorkgroups(Math.ceil(W / 16), Math.ceil(H / 16));
       pass.end();
       if (!meters.pending) {
-        enc.copyBufferToBuffer(partials, 0, partialsRead, 0, numWG * 10 * 4);
+        enc.copyBufferToBuffer(partials, 0, partialsRead, 0, numWG * NPART * 4);
         if (hasTs) {
           enc.resolveQuerySet(querySet, 0, 2 * NPASS, tsBuf, 0);
           enc.copyBufferToBuffer(tsBuf, 0, tsRead, 0, 2 * NPASS * 8);
@@ -499,8 +559,10 @@ const main = async () => {
             { binding: 3, resource: view(tex.taa) },
             { binding: 4, resource: view(tex.mip) },
             { binding: 5, resource: view(tex.ours) },
-            { binding: 6, resource: view(refDst) },
-            { binding: 7, resource: { buffer: dbuf } },
+            { binding: 6, resource: view(tex.combo) },
+            { binding: 7, resource: view(tex.resid) },
+            { binding: 8, resource: view(refDst) },
+            { binding: 9, resource: { buffer: dbuf } },
           ],
         }),
       );
@@ -523,10 +585,10 @@ const main = async () => {
       Promise.all(reads)
         .then(() => {
           const arr = new Float32Array(partialsRead.getMappedRange());
-          const sums = new Array(10).fill(0);
-          for (let g = 0; g < numWG; g++) for (let j = 0; j < 10; j++) sums[j] += arr[g * 10 + j];
+          const sums = new Array(NPART).fill(0);
+          for (let g = 0; g < numWG; g++) for (let j = 0; j < NPART; j++) sums[j] += arr[g * NPART + j];
           partialsRead.unmap();
-          for (let k = 0; k < 5; k++) {
+          for (let k = 0; k < 6; k++) {
             meters.rms[k] = Math.sqrt(sums[2 * k] / (W * H));
             meters.rms8[k] = Math.sqrt(sums[2 * k + 1] / (W * H));
           }
@@ -549,18 +611,17 @@ const main = async () => {
           log(`readback failed: ${e.message}`);
         });
     }
-    if (!bench.running && performance.now() - bench.last > 15000) benchArms();
-    requestAnimationFrame(frame);
+    if (state.autoBench && !bench.running && performance.now() - bench.last > 15000) benchArms();
+    if (!state.manual) requestAnimationFrame(frame);
   };
 
   const fmt = (v, d = 4) => (Number.isFinite(v) ? v.toFixed(d) : '—');
   const psnr = (r) => (r > 0 ? 20 * Math.log10(1 / r) : Infinity);
   const updateTable = () => {
-    const names = ['no AA (1 spp)', `SSAA ${state.ssaa}x`, 'TAA (1 spp + history)', 'mipmap, 16x aniso', 'ours (closed form)'];
-    // the pass indices: point 0, ssaa 1, taa sample 2 + resolve 3, mip 4, ours 5, reference 6, meters 7
+    const names = ['no AA (1 spp)', `SSAA ${state.ssaa}x`, `TAA (1 spp + history, alpha ${state.taaAlpha})`, 'mipmap, 16x aniso', 'ours (closed form)', `ours + residual history (alpha ${state.residAlpha}; its ms exclude the ours pass)`];
     const rows = names.map((n, k) => `<tr><td>${n}</td><td>${fmt(meters.rms[k])}</td><td>${fmt(meters.rms8[k] * 255, 2)}</td><td>${fmt(psnr(meters.rms[k]), 1)}</td><td>${fmt(bench.ms[k], 3)}</td></tr>`);
     const acc = refCount > 1 ? `, ${refCount} frames accumulated: ${(refCount * state.refSamples).toLocaleString()} spp` : '';
-    rows.push(`<tr class="ref"><td>reference (${state.refSamples} spp a frame${acc})</td><td>0</td><td>0</td><td>∞</td><td>${fmt(bench.ms[5], 3)}</td></tr>`);
+    rows.push(`<tr class="ref"><td>reference (${state.refSamples} spp a frame${acc})</td><td>0</td><td>0</td><td>∞</td><td>${fmt(bench.ms[6], 3)}</td></tr>`);
     $('meters').innerHTML = rows.join('');
     $('status').textContent = `${W}x${H} per pane · ${fps.toFixed(0)} fps · t = ${state.time.toFixed(1)} s · frame ${state.frame}${state.zoom ? ` · magnifier at (${state.zoom[0]}, ${state.zoom[1]})` : ''}`;
   };
@@ -592,6 +653,8 @@ const main = async () => {
     $('pause').textContent = state.paused ? 'resume' : 'pause';
   };
   $('regime').onchange = (e) => (state.regime = e.target.checked);
+  $('ralpha').onchange = (e) => (state.residAlpha = Number(e.target.value));
+  $('detail').onchange = (e) => (state.detail = Number(e.target.value));
   $('measure').onclick = () => benchArms();
   $('heat').onchange = (e) => (state.heat = e.target.checked);
   $('gain').onchange = (e) => (state.heatGain = Number(e.target.value));
@@ -601,7 +664,7 @@ const main = async () => {
       return;
     }
     const r = canvas.getBoundingClientRect();
-    const fx = ((e.clientX - r.left) / r.width) * 3;
+    const fx = ((e.clientX - r.left) / r.width) * 4;
     const fy = ((e.clientY - r.top) / r.height) * 2;
     const px = Math.floor((fx - Math.floor(fx)) * W);
     const py = Math.floor((fy - Math.floor(fy)) * H);
@@ -610,15 +673,91 @@ const main = async () => {
   window.demoState = state;
   window.demoMeters = meters;
   window.demoBench = bench;
-  // step frames without the animation loop (an occluded window throttles it): await the GPU each step
-  window.demoStep = async (n = 1) => {
-    for (let i = 0; i < n; i++) {
-      frame();
-      await device.queue.onSubmittedWorkDone();
+  // step frames without the animation loop (an occluded window throttles it):
+  // the loop is suspended, each step awaits the GPU, the loop resumes after
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const manually = async (fn) => {
+    const wasManual = state.manual;
+    state.manual = true;
+    state.autoBench = false;
+    while (bench.running) await sleep(20);
+    await sleep(40); // let a pending animation frame return without rescheduling
+    try {
+      return await fn();
+    } finally {
+      state.manual = wasManual;
+      state.autoBench = true;
+      if (!wasManual) requestAnimationFrame(frame);
     }
-    await new Promise((r) => setTimeout(r, 50));
-    updateTable();
   };
+  const stepOne = async () => {
+    frame();
+    await device.queue.onSubmittedWorkDone();
+  };
+  window.demoStep = async (n = 1) =>
+    manually(async () => {
+      for (let i = 0; i < n; i++) await stepOne();
+      await sleep(50);
+      updateTable();
+    });
+  // the meters over a run of frames: each frame's RMS per arm (after the readback lands), and their RMS over the frames past a warm-up
+  window.demoRun = async (n = 60, warm = 30) =>
+    manually(async () => {
+      const per = [];
+      for (let i = 0; i < n; i++) {
+        await stepOne();
+        while (meters.pending) await sleep(2);
+        per.push(meters.rms.slice());
+      }
+      const used = per.slice(warm);
+      const rms = ARMS.slice(0, 6).map((_, k) => Math.sqrt(used.reduce((acc, r) => acc + r[k] * r[k], 0) / used.length));
+      return { arms: ARMS.slice(0, 6), rms, frames: used.length, per };
+    });
+  // temporal statistics of arm textures over a run of frames: the per-pixel
+  // standard deviation across frames (its RMS over the pixels and by row band)
+  // and the mean absolute frame-to-frame difference; the variance ratio
+  // rho = Var(residCur) / Var(taaCur) is the residual's share of the sample variance
+  window.demoTemporal = async (n = 64, names = ['taa', 'combo', 'ours', 'taaCur', 'residCur'], warm = 0) =>
+    manually(async () => {
+      const N = W * H;
+      const acc = Object.fromEntries(names.map((nm) => [nm, { sum: new Float64Array(N), sq: new Float64Array(N), ad: new Float64Array(N), prev: null, count: 0 }]));
+      for (let i = 0; i < n + warm; i++) {
+        await stepOne();
+        if (i < warm) continue;
+        for (const nm of names) {
+          const d = await window.demoReadTex(nm);
+          const a = acc[nm];
+          for (let k = 0; k < N; k++) {
+            a.sum[k] += d[k];
+            a.sq[k] += d[k] * d[k];
+            if (a.prev) a.ad[k] += Math.abs(d[k] - a.prev[k]);
+          }
+          a.prev = d;
+          a.count++;
+        }
+      }
+      const bands = [[0, Math.round(H * 0.08)], [Math.round(H * 0.08), Math.round(H * 0.2)], [Math.round(H * 0.2), H]];
+      const out = {};
+      for (const nm of names) {
+        const a = acc[nm];
+        const c = a.count;
+        const v = new Float64Array(N);
+        for (let k = 0; k < N; k++) v[k] = Math.max(0, a.sq[k] / c - (a.sum[k] / c) * (a.sum[k] / c));
+        const band = bands.map(([y0, y1]) => {
+          let sv = 0;
+          let sd = 0;
+          for (let y = y0; y < y1; y++) for (let x = 0; x < W; x++) { sv += v[y * W + x]; sd += a.ad[y * W + x] / Math.max(1, c - 1); }
+          const m = (y1 - y0) * W;
+          return { rows: `${y0}-${y1 - 1}`, std: +Math.sqrt(sv / m).toFixed(5), madiff: +(sd / m).toFixed(5) };
+        });
+        let sv = 0;
+        let sd = 0;
+        for (let k = 0; k < N; k++) { sv += v[k]; sd += a.ad[k] / Math.max(1, c - 1); }
+        out[nm] = { std: +Math.sqrt(sv / N).toFixed(5), var: sv / N, madiff: +(sd / N).toFixed(5), bands: band };
+      }
+      if (out.taaCur && out.residCur) out.rho = out.residCur.var / out.taaCur.var;
+      return out;
+    });
   // read any arm's texture back (channel 0 as a Float32Array of W * H): 'ours' or 'ref'
   window.demoReadTex = async (name) => {
     const t = name === 'ref' ? (refPing ? tex.refB : tex.refA) : tex[name];

@@ -13,7 +13,7 @@
       button { cursor: pointer; }
       main { padding: 8px 12px; }
       #canvas { width: 100%; max-width: 1440px; display: block; image-rendering: pixelated; background: #000; }
-      .labels { display: grid; grid-template-columns: repeat(3, 1fr); max-width: 1440px; font-size: 12px; color: #aaa; }
+      .labels { display: grid; grid-template-columns: repeat(4, 1fr); max-width: 1440px; font-size: 12px; color: #aaa; }
       .labels span { padding: 2px 4px; }
       table { border-collapse: collapse; margin-top: 8px; }
       td, th { padding: 3px 12px 3px 0; text-align: right; border-bottom: 1px solid #23252c; }
@@ -26,7 +26,7 @@
   </head>
   <body>
     <header>
-      <label>scene <select id="scene"><option value="0" selected>checkerboard</option><option value="1">circles</option><option value="2">checkerboard with ripples</option><option value="3">noise mask</option></select></label>
+      <label>scene <select id="scene"><option value="0" selected>checkerboard</option><option value="1">circles</option><option value="2">checkerboard with ripples</option><option value="3">noise mask</option><option value="4">checkerboard x (1 + noise detail)</option><option value="5">checkerboard + noise detail</option></select></label>
       <label>camera <select id="path"></select></label>
       <label>speed <select id="speed"><option value="0.25">0.25x</option><option value="1" selected>1x</option><option value="3">3x</option></select></label>
       <button id="pause">pause</button>
@@ -36,17 +36,19 @@
       <label>size <select id="res"><option value="240x160">240 x 160</option><option value="480x320" selected>480 x 320</option><option value="960x640">960 x 640</option></select></label>
       <label><input type="checkbox" id="heat" /> error x <select id="gain"><option value="4">4</option><option value="8" selected>8</option><option value="32">32</option></select></label>
       <label><input type="checkbox" id="regime" /> show regime</label>
+      <label title="the blend weight of the residual history (scenes 4 and 5)">residual alpha <select id="ralpha"><option value="0.1">0.1</option><option value="0.25">0.25</option><option value="0.5" selected>0.5</option><option value="1">1 (no history)</option></select></label>
+      <label title="the amplitude m of the noise detail layer (scenes 4 and 5)">detail m <select id="detail"><option value="0">0</option><option value="0.15">0.15</option><option value="0.3" selected>0.3</option><option value="0.6">0.6</option></select></label>
     </header>
     <main>
-      <div class="labels"><span>no anti-aliasing (1 sample)</span><span>supersampling</span><span>temporal AA</span></div>
-      <canvas id="canvas" width="1440" height="640"></canvas>
-      <div class="labels"><span>mipmapped texture, 16x anisotropic</span><span>ours: the pixel integrated in closed form</span><span>reference: sampled</span></div>
+      <div class="labels"><span>no anti-aliasing (1 sample)</span><span>supersampling</span><span>temporal AA</span><span>mipmapped texture, 16x anisotropic</span></div>
+      <canvas id="canvas" width="1920" height="640"></canvas>
+      <div class="labels"><span>ours: the pixel integrated in closed form</span><span>ours + a history of the residual</span><span>the residual history alone, on mid grey</span><span>reference: sampled</span></div>
       <table>
         <thead><tr><th>arm</th><th>RMS (linear)</th><th>RMS (8-bit, /255)</th><th>PSNR dB</th><th>GPU ms</th></tr></thead>
         <tbody id="meters"></tbody>
       </table>
       <div id="status"></div>
-      <p class="note">Every pane renders the same shader on the same plane at the same instant. The reference draws each pixel with stratified Gaussian samples (sigma 0.5 px, the protocol of Yang and Barnes 2018) and keeps accumulating while the camera rests. Click a pane to magnify the six views around that pixel; click again to release.</p>
+      <p class="note">Every pane renders the same shader on the same plane at the same instant. The reference draws each pixel with stratified Gaussian samples (sigma 0.5 px, the protocol of Yang and Barnes 2018) and keeps accumulating while the camera rests. Click a pane to magnify the eight views around that pixel; click again to release. Scenes 4 and 5 add a noise detail layer the closed form does not cover: the residual arm integrates the checkerboard exactly and accumulates only the layer's residual through a TAA history at its own blend weight.</p>
       <div id="log"></div>
     </main>
     <script type="module" src="./demo.js"></script>
