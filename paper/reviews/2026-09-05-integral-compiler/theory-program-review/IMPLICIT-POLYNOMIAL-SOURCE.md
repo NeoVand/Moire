@@ -192,6 +192,59 @@ Price substitution bit growth and the changed source/query state. Excessively
 broad references worsen q_- and Hermite degree; (10) is not uniform near
 delta=0, q_-=0 or unbounded mean. This choice is not asserted optimal.
 
+## 7. Price acquisition directly under the query family
+
+The Gaussian reference used for the Hermite basis need not also be the
+measure used to bound acquisition error. A simpler sufficient construction
+avoids the exponential mean-range factor in (10).
+
+In the same reference coordinates, suppose the whole query family has
+\(q_-I\preceq Q\preceq q_+I\) and \(|m|\le L_q\), with \(q_->0\).
+Every two-dimensional query density is at most \(1/(2\pi q_-)\).
+Writing \(Y=m+Q^{1/2}Z\), for \(R>L_q\) gives
+\[
+ P_q(Y\notin[-R,R]^2)
+ \le P(|Z|>(R-L_q)/\sqrt{q_+})
+ =\exp[-(R-L_q)^2/(2q_+)].
+\]
+Thus the same resolved-cell approximation satisfies, uniformly over queries,
+\[
+ 0\le E_qF-E_q\widehat F
+ \le\frac{20DRh+C_Dh^2}{2\pi q_-}
+       +\exp[-(R-L_q)^2/(2q_+)].                         \tag{12}
+\]
+No density-ratio bound or \(Q<I\) assumption is needed for this step.
+
+For \(D\ge1\) and \(0<\epsilon_A\le1\), choose a rational reach rounded
+upward so that
+\[
+ R\ge\max\{1,L_q+\sqrt{2q_+\log(2/\epsilon_A)}\},\qquad
+ h_*=\min\left\{2R,\frac{\pi q_-\epsilon_A}{40DR},
+                   \sqrt{\frac{\pi q_-\epsilon_A}{2C_D}}\right\},
+ \quad L=\max\{0,\lceil\log_2(2R/h_*)\rceil\}.            \tag{13}
+\]
+The tail costs at most \(\epsilon_A/2\), and each area term at most
+\(\epsilon_A/4\). Use one mesh chosen from these family bounds, rather
+than rebuilding a different approximation for each query.
+With \(R\) within a constant factor of its lower bound and this minimal depth,
+\[
+ T_L=O\left(\frac{D^2R^2}{q_-\epsilon_A}
+          +D^2\log\frac{DR^2}{q_-\epsilon_A}\right).       \tag{14}
+\]
+The quadratic step-size constraint fits this bound because
+\(R^2/(q_-\epsilon_A)\ge2\log2\).
+Exact cell decisions, circuit evaluation, and rectangle moment arithmetic
+and precision are still charged as in section 5.
+
+Compile the one bounded \(\widehat F\) into its Hermite state. The response
+budget is \(\epsilon_A\), plus its bounded-source query truncation, plus
+numerical state/query/accumulation errors. Do not additionally charge
+\(\|F-\widehat F\|_2\): (12) already accounts for this source approximation.
+The Hermite query itself retains its separate strict \(Q<2I\) admission
+with a declared margin. Its degree and numerical amplification may still
+depend strongly on mean range. Only the geometric acquisition estimate
+has removed section 6's exponential mean-range penalty.
+
 ## Primary references
 
 - Richard Wongkew (1993), [Volumes of tubular neighbourhoods of real
