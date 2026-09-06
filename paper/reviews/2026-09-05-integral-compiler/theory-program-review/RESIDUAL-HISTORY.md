@@ -1,6 +1,6 @@
 # Put temporal history on the unresolved residual
 
-2026-09-06. Theory review of collaboration messages 219–225. No new
+2026-09-06. Theory review of collaboration messages 219–235. No new
 implementation or benchmark. The formulas below are elementary filtering
 and control-variate results; no novelty or real-time performance is claimed.
 
@@ -230,6 +230,232 @@ describe both residual amplitude and where that error occurs under the
 pixel measure. Cheap certificates of this kind for composed materials are
 an open target, not a consequence of the elementary inequalities alone.
 
+### 4.1 A graph-level bound avoids enumerating branch combinations
+
+Let F=Ψ(1{g_i≥0}) and A=Ψ(1{q_i≥0}) use the same finite decision graph Ψ,
+whose final values lie in an interval of width W. On a common reach E,
+suppose |g_i−q_i|≤δ_i. Outside the union of bands E_i={|q_i|≤δ_i}, every
+predicate agrees, so the whole graph agrees. Therefore, if the reach has
+omitted probability τ and B_i bounds R 1_(E_i intersect E),
+
+\[
+ p=\min(1,\tau+\sum_i B_i),\qquad
+ R|F-A|\le Wp,\qquad R|F-A|^2\le W^2p.
+\]
+
+The common reach tail is charged once. Independence is unnecessary. Given
+the per-count remainders and band bounds, this certificate needs no branch
+enumeration and no factor for graph depth. It still needs the final range W;
+unbounded arithmetic compositions are outside this statement. An integral
+of A computed within ε_A then approximates RF within ε_A+Wp. Computing
+that integral can remain expensive.
+
+Pivotality tested only at the predictor is unsafe: AND at predictor (0,0)
+has no individually influential bit, but changing both bits to (1,1) changes
+the output. Exact telescoping instead uses hybrid contexts
+h^(j)=(true first j bits, predictor remaining bits). The j-th difference
+depends on whether bit j changes and on its influence at that hybrid
+context. These events are correlated and cannot be replaced by independent
+influence factors.
+
+A conservative refinement evaluates the range of Ψ on the uncertainty
+subcube: known bits are fixed; bits whose bands contain the current point
+may vary. This can certify, for example, that AND remains zero when any
+input is certainly zero. Exact range computation for arbitrary circuits
+may be difficult. Cheap interval propagation can preserve uncertainty
+rather than make an unsupported simplification.
+
+### 4.2 Explicit bounds for a single Gaussian threshold band
+
+Whiten the footprint with Z~N(0,I_d), and write the quadratic count model
+
+\[
+ q(Z)=m+b^T Z+\tfrac12 Z^T HZ,\qquad H=H^T.
+\]
+
+The source remainder δ must be certified on ||Z||≤R. The following bounds
+apply to the band's mass on that reach; global bounds also bound the
+restricted mass. Add the reach tail only when converting to a source
+disagreement bound. In two whitened dimensions τ_R=exp(−R²/2).
+
+For an affine count, s=||b||>0 gives the exact global band mass
+
+\[
+ B_{\rm aff}=\Phi((\delta-m)/s)-\Phi((-\delta-m)/s).
+\]
+
+For s=0, evaluate the constant event |m|≤δ. If δ=0 is a valid zero-error
+certificate, the original predicate equals its model exactly, even when
+this conservative band event includes a constant at the threshold.
+
+For a unit direction e satisfying
+λ=|bᵀe|−R||He||>0, the count is monotone along each e-parallel slice of the
+reach. Its band slice has length at most 2δ/λ. The maximum standard-Gaussian
+mass of an interval of that length is attained at the origin, yielding
+
+\[
+ B_{\rm direction}\le 2\Phi(\delta/\lambda)-1.
+\]
+
+This requires a reliable derivative only on the certified reach. Also,
+if |m|>||b||R+||H||op R²/2+δ, the reach has no band at all.
+
+At a critical point a nonzero curvature still supplies a bound. For
+h=||H||op>0, condition along an eigenvector attaining that magnitude. The
+one-variable quadratic preimage of [−δ,δ] has total interval length at
+most 4 sqrt(δ/h). Among measurable sets of that length, a centered interval
+has maximal Gaussian probability. Hence
+
+\[
+ B_{\rm curvature}\le2\Phi(2\sqrt{\delta/h})-1.
+\]
+
+This is sharp over offsets already for q=(h/2)Z_1²−δ. No global gradient
+floor is assumed.
+
+In two dimensions, definite H permits a sharper estimate. Completing the
+square gives an elliptical disk or annulus of area at most
+4πδ/sqrt(|det H|). Among sets of that area, a centered disk has maximal
+standard-Gaussian mass, giving
+
+\[
+ B_{\rm definite}\le1-\exp[-2\delta/\sqrt{|\det H|}].
+\]
+
+If the extremum value of q is exactly zero, replace 2δ in the exponent by
+δ. This concerns the single band around zero, not all thresholds of a
+periodic material.
+
+For a full-rank saddle with eigenvalues λ>0 and −ν<0, set
+z_* = −H^(-1)b and L_*²=(λ+ν)(R+||z_*||)²/2. After completing the square,
+a linear change of variables gives q=q_*+uv, with absolute Jacobian
+sqrt(|det H|), and the reach lies inside |u|,|v|≤L_*. Each vertical band
+slice has length at most min(2L_*,2δ/|u|). Integration gives
+
+\[
+ B_{\rm saddle}\le {2\over\pi\sqrt{|\det H|}}
+ \begin{cases}
+ \delta[1+\log(L_*^2/\delta)],&0<\delta\le L_*^2,\\
+ L_*^2,&\delta>L_*^2.
+ \end{cases}
+\]
+
+The result is capped at one; at δ=0 use the zero limit. Take the smallest
+applicable certificate. Poor conditioning of H or a far-away critical
+point may make the saddle bound loose.
+
+These distinct rates reflect actual instability. For independent standard
+normals, the band masses near zero are asymptotically:
+
+| Count model | Probability of the threshold band as δ decreases to zero |
+| --- | --- |
+| Z_1 | sqrt(2/π) δ |
+| Z_1² | sqrt(2/π) sqrt(δ) |
+| Z_1²+Z_2² | δ/2 |
+| Z_1 Z_2 | (2/π) δ log(1/δ) |
+| Constant zero | 1 |
+
+Small constant count perturbations attain these disagreement orders; for
+the constant-zero model with the ≥0 convention, perturb negatively. Thus
+there is no universal linear-in-δ mask error bound. The squared ridge can
+produce an L2 indicator residual of order δ^(1/4).
+
+### 4.3 Periodic predicates require wrapped bands
+
+A stripe or checker predicate has repeated discontinuities. If its jump
+set in count coordinates is a_0+L Z, a count approximation error δ can
+change the predicate anywhere that dist(q−a_0,L Z)≤δ. A single band around
+zero does not cover this event. Multiple jump families can be union-bounded.
+
+For 0<δ<L/2, put a=δ/L. The L-periodic band indicator B has coefficients
+
+\[
+ \widehat B_0=2a,\qquad
+ \widehat B_n=e^{-2\pi i n a_0/L}
+ {\sin(2\pi n a)\over\pi n},\qquad
+ |\widehat B_n|\le\min(2a,1/(\pi|n|)).
+\]
+
+The quadratic count's characteristic-function modulus is exactly
+
+\[
+ |\chi_q(\omega)|=
+ \prod_j(1+\omega^2\lambda_j^2)^{-1/4}
+ \exp\left[-{\omega^2\over2}
+ b^T(I+\omega^2H^2)^{-1}b\right],
+\]
+
+where λ_j are the eigenvalues of H. For the global wrapped-band mass p_B,
+
+\[
+ |p_B-2a|\le
+ 2\sum_{n\ge1}\min(2a,1/(\pi n))
+ |\chi_q(2\pi n/L)|.
+\]
+
+This identity can be justified with Fejér means: nonconstant Gaussian
+quadratic or affine counts have no atoms, so the countable band-boundary
+set has probability zero; the means stay in [0,1] and converge almost
+surely. Dominated convergence then applies. The absolute bounds below
+also make the weighted Fourier series summable. If H=b=0, evaluate the
+constant band membership directly; a Fourier midpoint at a jump is not
+the deterministic answer.
+
+For affine spread s=||b||>0, the wrapped Gaussian density has maximum at
+its mean modulo L. A sum-versus-integral Gaussian bound gives its maximum
+at most 1/L+1/(sqrt(2π)s). Therefore
+
+\[
+ \boxed{p_B\le\min\left(1,
+ {2\delta\over L}+{2\delta\over\sqrt{2\pi}s}\right).}
+\]
+
+The same bound applies when H≠0 and the exactly known nullspace component
+b_0=Proj_(ker H)b is nonzero, with s=||b_0||. Conditioning on the curved
+coordinates leaves an independent Gaussian shift of that variance.
+
+For any nonzero curvature h=||H||op,
+|χ_q(2πn/L)|≤sqrt(L/(2πhn)). The positive decreasing function
+min(2a x^(-1/2),π^(-1)x^(-3/2)) has integral
+8 sqrt(a)/sqrt(2π) over x>0. Bounding its sum by that integral gives
+
+\[
+ \boxed{p_B\le\min\left(1,
+ {2\delta\over L}+{8\over\pi}\sqrt{\delta/h}\right).}
+\]
+
+For two nonzero eigenvalues, set d_H=sqrt(|λ_1 λ_2|), equal to
+sqrt(|det H|) in two dimensions. The characteristic function instead
+obeys |χ_q(2πn/L)|≤L/(2πn d_H). Let u=2πδ/L. For u≤1,
+
+\[
+ \sum_{n\ge1}\min(u/n,1/n^2)
+ \le u[2+\log(1/u)],
+\]
+
+by a first-term-plus-integral bound. Consequently,
+
+\[
+ \boxed{p_B\le\min\left(1,{2\delta\over L}
+ +{2\delta\over\pi d_H}
+ [2+\log(L/(2\pi\delta))]\right),\quad u\le1.}
+\]
+
+For any u, the sum is also at most π²/6, giving
+p_B≤min(1,2δ/L+L/(6d_H)). Use this when u>1, or take the smaller valid
+bound when u≤1. These bounds are conservative and uniform in the count
+offset. They pay no factor for the number of periods crossed by the
+footprint. The constant 2δ/L is the uniform phase fraction, not a new
+rendering target that permits averaging away resolved structure.
+
+For δ≥L/2 the band covers the whole line. For δ=0 and a valid zero source
+remainder, there is no predicate disagreement. Add the common reach tail
+once when converting model band bounds to a source/material error bound.
+Numerical use requires certified parameter bounds: a small computed
+eigenvalue cannot silently be treated as an exact nullspace, and the
+positive denominators require safe lower bounds. Certifying the source
+remainder remains separate from these inexpensive band calculations.
+
 ## 5. The decomposition and temporal correction have close precedents
 
 [Crespo, Jarabo and Muñoz, Primary-Space Adaptive Control Variates, 2021](https://graphics.unizar.es/papers/Crespo_primarySpaceQuadCV.pdf)
@@ -255,3 +481,11 @@ The possible contribution is a useful source-derived predictor, its
 integration and pointwise error certificate, and affordable correction of
 the unresolved history. A familiar decomposition with a new name would
 not establish that contribution.
+
+[Audibert and Tsybakov, Fast Learning Rates for Plug-In Classifiers, 2007](https://arxiv.org/pdf/0708.2321)
+is related prior art for turning approximation errors in a decision
+function into probability bounds near its threshold. Its margin condition
+excludes exact ties, whose contribution to excess classification risk is
+zero. Rendering disagreement cannot generally discard that mass. The
+classification risk weights and rates should not be copied into this
+material error problem without deriving the appropriate observation.
