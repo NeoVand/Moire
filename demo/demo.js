@@ -746,7 +746,7 @@ const main = async () => {
         while (meters.pending) await sleep(2);
         per.push({ rms: meters.rms.slice(), pixels: meters.pixels });
       }
-      const used = per.slice(warm);
+      const used = per.slice(warm).filter((f) => f.pixels > 0); // a frame with an empty domain contributes nothing
       const pairs = used.reduce((acc, f) => acc + f.pixels, 0);
       const rms = ARMS.slice(0, 6).map((_, k) => (pairs > 0 ? Math.sqrt(used.reduce((acc, f) => acc + f.rms[k] * f.rms[k] * f.pixels, 0) / pairs) : NaN));
       const counts = used.map((f) => f.pixels);
@@ -764,9 +764,13 @@ const main = async () => {
       const acc = Object.fromEntries(names.map((nm) => [nm, { sum: new Float64Array(N), sq: new Float64Array(N), ad: new Float64Array(N), prev: null, count: 0 }]));
       let mask = null;
       let maskChanged = false;
+      let cameraMoved = false; // the window is a flicker figure only on a still scene: the camera must not change
+      let H0 = null;
       for (let i = 0; i < n + warm; i++) {
         await stepOne();
         if (i < warm) continue;
+        if (!H0) H0 = lastH;
+        else if (!cameraMoved) cameraMoved = !['hu', 'hv', 'hd'].every((r) => H0[r].every((v, j) => v === lastH[r][j]));
         const m = validMask();
         if (!mask) mask = m;
         else if (!maskChanged) for (let k = 0; k < N; k++) if (m[k] !== mask[k]) { maskChanged = true; break; }
@@ -783,7 +787,7 @@ const main = async () => {
         }
       }
       const bands = [[0, Math.round(H * 0.08)], [Math.round(H * 0.08), Math.round(H * 0.2)], [Math.round(H * 0.2), H]];
-      const out = { maskChanged, pixels: 0, excluded: 0 };
+      const out = { maskChanged, cameraMoved, flickerFigure: !maskChanged && !cameraMoved, pixels: 0, excluded: 0 };
       for (let k = 0; k < N; k++) out.pixels += mask[k];
       out.excluded = N - out.pixels;
       const over = (y0, y1, v, ad, c) => {
@@ -823,11 +827,13 @@ const main = async () => {
   // the error of an arm (ours by default) against the reference by row band and
   // the worst pixel, over the meters' validity domain; a band with no accepted
   // pixel reads NaN
-  window.demoRowError = async (bandRows = 8, name = 'ours') => {
+  window.demoRowError = async (bandRows = 8, name = 'ours') =>
+    manually(async () => {
+    // the loop is suspended, so the two readbacks and the mask see the same frame
     const a = await window.demoReadTex(name);
     const b = await window.demoReadTex('ref');
     const mask = validMask();
-    let worst = { err: 0, x: 0, y: 0 };
+    let worst = null; // stays null when no pixel qualifies
     const bands = [];
     for (let y0 = 0; y0 < H; y0 += bandRows) {
       let s = 0;
@@ -839,12 +845,12 @@ const main = async () => {
           const e = a[k] - b[k];
           s += e * e;
           n++;
-          if (Math.abs(e) > worst.err) worst = { err: Math.abs(e), x, y, arm: a[k], ref: b[k] };
+          if (!worst || Math.abs(e) > worst.err) worst = { err: Math.abs(e), x, y, arm: a[k], ref: b[k] };
         }
       bands.push({ rows: `${y0}-${Math.min(H, y0 + bandRows) - 1}`, rms: n > 0 ? +Math.sqrt(s / n).toFixed(5) : NaN, pixels: n });
     }
     return { bands, worst, refFrames: refCount, excluded: W * H - mask.reduce((acc, v) => acc + v, 0) };
-  };
+    });
   // read the ours texture back: statistics of channel 0 by row band, for the work counter and error maps
   window.demoReadOurs = async () => {
     const bytes = W * 16;
