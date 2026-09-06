@@ -73,3 +73,8 @@ for (const bits of [8, 10]) for (const rhobar of [0, 1 / 3]) { const delta = 2 *
   const b = Math.PI * Math.sqrt((1 - rhobar) / (2 * a)), R = Math.sqrt(2 * Math.log(4 * (3 + 1.88 * b) / delta)), M = (3 + 1.88 * b) * Math.exp(-R * R / 2);
   const nodes = 7 * (R + 3 * b) ** 2 * a / (Math.PI * (1 - rhobar)), hOverSqrtD = Math.PI * Math.sqrt((1 - rhobar) / a);
   console.log(`2D residual lemma (${bits} bits, rhobar ${rhobar.toFixed(3)}, isotropic cache): a ${a.toFixed(2)}, E ${E.toExponential(2)}, b ${b.toFixed(3)}, R ${R.toFixed(2)}, M ${M.toExponential(2)}, total 2(E+M)/delta ${((2 * (E + M)) / delta).toFixed(3)}, h/sqrt(d) ${hOverSqrtD.toFixed(3)}, certified nodes <= ${nodes.toFixed(0)}`); }
+// The collaborator's conservative cache and stencil counts (#465), evaluated at P = 256: a = ln(32/eps), R = sqrt(2 ln(8/eps)), H = max(1, P^2 ln(8/eps)/(2 pi^2)),
+// J = ceil(log2 H); S_eps = 5 + floor((4 R/pi) sqrt(7 a)); values per query (2 S_eps + 1)^2; cache <= [J + 3 + (4 + 2 sqrt 2) P sqrt(a)/pi]^2.
+for (const bits of [8, 10]) { const eps = 2 ** -bits, a = Math.log(32 / eps), R = Math.sqrt(2 * Math.log(8 / eps)), Hc = Math.max(1, P * P * Math.log(8 / eps) / (2 * Math.PI * Math.PI)), J = Math.ceil(Math.log2(Hc));
+  const S = 5 + Math.floor((4 * R / Math.PI) * Math.sqrt(7 * a)), reads = (2 * S + 1) ** 2, cache = (J + 3 + (4 + 2 * Math.SQRT2) * P * Math.sqrt(a) / Math.PI) ** 2;
+  console.log(`collaborator's cache contract (${bits} bits, P=256): J ${J}, S_eps ${S}, values per query <= ${reads}, cache <= ${cache.toExponential(2)}`); }
