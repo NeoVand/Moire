@@ -6,6 +6,7 @@ import {
   PauseIcon,
   PlayIcon,
   PreviousIcon,
+  PrinterIcon,
   StopIcon,
 } from '@hugeicons/core-free-icons';
 import { capturePng, captureSize, exportPng } from '../gpu/capture';
@@ -38,6 +39,7 @@ import { FloatingPanel } from './ui/FloatingPanel';
 import { Icon } from './ui/Icon';
 import { NumberField } from './ui/NumberField';
 import { InfoTip } from './ui/Tip';
+import { PrintDialog } from './PrintDialog';
 
 /** Still export and deterministic, frame-by-frame recording share the same framing. */
 
@@ -78,6 +80,9 @@ let remembered: {
 } | undefined;
 
 export function CaptureDialog({ onClose }: { onClose: () => void }) {
+  const [printOpen, setPrintOpen] = useState(false);
+  const printOpenRef = useRef(false);
+  printOpenRef.current = printOpen;
   const revision = useProjectStore((s) => s.documentRevision);
   const [initial] = useState(() => remembered);
   const [aspect, setAspect] = useState(initial?.aspect ?? 0);
@@ -163,7 +168,7 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
   }, [revision, aspect, scale, fps, intent, t0, t1, format, videoHeight]);
 
   const refreshPreview = useCallback(async () => {
-    if (!mounted.current || useTransportStore.getState().recording) return;
+    if (!mounted.current || printOpenRef.current || useTransportStore.getState().recording) return;
     if (rendering.current) {
       again.current = true;
       return;
@@ -339,6 +344,7 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
     'grid size-7 place-items-center rounded-md text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] disabled:opacity-30';
 
   return (
+    <>
     <FloatingPanel
       id="capture"
       width={286}
@@ -394,10 +400,15 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
             )}
           </div>
         </fieldset>
+        <div className="flex gap-2">
         <button type="button" className={button} onClick={() => void saveStill()} disabled={busy}>
           <Icon icon={ImageDownloadIcon} size={13} />
           {saving ? 'Saving PNG…' : 'Save frame'}
         </button>
+        <button type="button" className={button} onClick={() => setPrintOpen(true)} disabled={busy}>
+          <Icon icon={PrinterIcon} size={13} />Print
+        </button>
+        </div>
 
         <div className="flex items-center gap-1 border-t border-[var(--border)] pt-2.5">
           <span className={rowLabel}>Recording</span>
@@ -603,5 +614,7 @@ export function CaptureDialog({ onClose }: { onClose: () => void }) {
         )}
       </div>
     </FloatingPanel>
+    {printOpen && <PrintDialog onClose={() => setPrintOpen(false)} />}
+    </>
   );
 }

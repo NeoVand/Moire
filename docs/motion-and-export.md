@@ -89,12 +89,45 @@ MP4 and WebM capability checks attempt an actual short encode at the selected
 settings. Video files still accumulate in memory before download; streaming
 long videos directly to disk remains a separate improvement.
 
+## Print sheets
+
+Open Capture, then Print. Choose A5, A4, A3, US Letter, US Legal, Tabloid, or a
+custom size in millimetres. Orientation, DPI, margins, optional alignment marks,
+and a black-ink override apply to every selected layer. Visible layers start
+selected; hidden layers can also be included. The preview shows one selected
+sheet over a transparency checkerboard.
+
+Export downloads one ZIP containing a separate transparent PNG per layer and
+printing instructions. PNGs carry the chosen DPI. Use the selected paper size
+and print at 100% or actual size. Disable fit to page, cropping, and borderless
+enlargement so all sheets keep the same scale.
+
+Opening Print freezes the source pose and framing for that dialog. Every sheet
+fits the same world extent inside its margins, extending the view when the
+paper has a different aspect ratio. A separate renderer uses the existing ink
+solvers and emits coverage as alpha before colour conversion. Backgrounds and
+margins are transparent; layer colours, opacity, expression fields, and image
+fields are retained. White ink remains white ink. Print uses the physical
+patterns without the Envelope, Contours, or Fringe ratio overlays and without
+the screen's minimum stroke width. Original capture and live shaders keep
+their existing path. Printing never writes the project, history, or transport.
+
+Jobs above 8192 pixels per side or 24 million pixels per sheet are rejected with
+a request to lower DPI or paper size. There is no silent rescaling. A cancelled
+or failed job releases its offscreen renderer and does not download a partial
+ZIP.
+
 ## Verification
 
 - `npm run test:motion`: timing, mixed cycles, parameter units, transport,
   undo/redo, shared timing, persistence, and autosave isolation.
 - `npm run test:export`: capture ownership, failures, cancellation, restoration,
-  sequence files, image texture lifetime, and codec lifecycle.
+  sequence files, image texture lifetime, codec lifecycle, print dimensions,
+  PNG DPI metadata, ZIP structure, and print cleanup.
+- `npm run test:print`: actual WebGPU alpha and edge colours, independent aligned
+  sheets, expression/image/tiling support, unchanged live capture, and the print
+  dialog's real ZIP download. Evidence goes to a temporary folder, or to
+  `PRINT_EVIDENCE_DIR` when set.
 - `npm run test:export:integration`: fresh headless Chrome with real WebGPU;
   repeated ordinary/image-field takes must match byte-for-byte, and MP4/WebM
   decode to the stated dimensions, frame count, rate, and duration. Requires

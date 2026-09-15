@@ -220,6 +220,13 @@ const POOL_STROKE_PX = 1.4;
 const WARMUP_MS = 500;
 
 export class MoireRenderer {
+  /** An isolated, single-layer renderer for transparent print sheets. */
+  private readonly print: boolean;
+
+  constructor(options: { print?: boolean } = {}) {
+    this.print = options.print === true;
+  }
+
   private renderer: THREE.WebGPURenderer | null = null;
   private scene: THREE.Scene | null = null;
   private camera: THREE.OrthographicCamera | null = null;
@@ -281,7 +288,7 @@ export class MoireRenderer {
 
     const renderer = new THREE.WebGPURenderer({
       antialias: false,
-      alpha: false,
+      alpha: this.print,
       powerPreference: 'high-performance',
     });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -395,8 +402,10 @@ export class MoireRenderer {
       this.viewUniforms!,
       this.slots.slice(0, this.slotCount),
       this.fieldSources.slice(0, this.slotCount).map((source) => this.programFor(source)),
-      this.tableRT?.texture ?? null
+      this.tableRT?.texture ?? null,
+      this.print
     );
+    material.transparent = this.print;
     material.side = THREE.DoubleSide;
     material.toneMapped = false;
     return material;
@@ -425,7 +434,9 @@ export class MoireRenderer {
           .then((field) => {
             this.imageFields.set(source, field);
           })
-          .catch(() => undefined)
+          .catch(() => {
+            if (this.print) throw new Error('Could not load a layer\'s image field for print.');
+          })
       );
     });
     await Promise.all(loads);
@@ -443,7 +454,7 @@ export class MoireRenderer {
     this.writeSlots();
     if (this.scale !== 1) this.restoreFullResolution();
     this.watchFields();
-    if (hasLayerMorphs()) this.ensureMorphLoop();
+    if (!this.print && hasLayerMorphs()) this.ensureMorphLoop();
   }
 
   /**
@@ -576,7 +587,7 @@ export class MoireRenderer {
     this.cameraUniforms.scale.value = this.scale;
     this.cameraUniforms.pan.value.set(state.camera.pan.x, state.camera.pan.y);
     this.cameraUniforms.background.value.set(state.backgroundColor);
-    this.renderer?.setClearColor(state.backgroundColor, 1);
+    this.renderer?.setClearColor(state.backgroundColor, this.print ? 0 : 1);
 
     const rank = rankStack(state.layers);
     const scalarPair: [number, number] | null =
@@ -674,7 +685,7 @@ export class MoireRenderer {
     // A morphing layer carries two trios; the exact chain carries one, so a
     // type ease (280 ms) rides the tap loop and the exact path resumes on
     // its final tick, after the slot updates above settle it.
-    this.viewUniforms.exactSweep.value = envelope && !anyLattice && !hasLayerMorphs() ? 1 : 0;
+    this.viewUniforms.exactSweep.value = envelope && !anyLattice && (this.print || !hasLayerMorphs()) ? 1 : 0;
     // The pair table serves the exact envelope of two field-free scalar
     // families under a whole-number sweep (a walking family's trio is not
     // symmetric, and a partial sweep is not a function of the count alone).
@@ -714,7 +725,7 @@ export class MoireRenderer {
     );
     // At most four layers: the synthesis has (2M+1)^K terms.
     this.poolable =
-      state.view.pool !== false && !envelope && !anyLattice && !hasLayerMorphs() && scalar.length <= 4;
+      state.view.pool !== false && !envelope && !anyLattice && (this.print || !hasLayerMorphs()) && scalar.length <= 4;
     this.poolK = scalar.length;
     this.poolFinest = Math.min(...scalar.map((l) => Math.abs(l.spacing)), Infinity);
     this.poolStroke = Math.min(...scalar.map((l) => Math.abs(l.thickness) * 0.5), Infinity);
@@ -843,6 +854,13 @@ export class MoireRenderer {
     const scale = Math.max(opts.scale ?? 1, 0.05);
     const bufW = opts.framing?.width ?? Math.max(1, Math.round(this.lastWidth * (this.lastDpr || 1)));
     const bufH = opts.framing?.height ?? Math.max(1, Math.round(this.lastHeight * (this.lastDpr || 1)));
+    if (opts.size) {
+      const { width, height } = opts.size;
+      if (![width, height].every((n) => Number.isInteger(n) && n >= 1 && n <= 8192)) {
+        throw new Error('Print dimensions must be whole pixels between 1 and 8192.');
+      }
+      return { width, height, zScale: Math.min(width / bufW, height / bufH) };
+    }
     const aspect = opts.aspect || bufW / bufH;
     const coverByWidth = aspect <= bufW / bufH;
     // A stated height wins over a multiplier. A still is sized relative to the
@@ -912,20 +930,21 @@ export class MoireRenderer {
     ) {
       throw new Error('Renderer is not ready');
     }
+    // Validate exact print dimensions before taking ownership of the canvas.
+    const { width, height, zScale } = this.exportFrame(opts);
     if (this.raf) {
       cancelAnimationFrame(this.raf);
       this.raf = 0;
     }
     if (this.morphRaf) cancelAnimationFrame(this.morphRaf);
     this.morphRaf = 0;
-    clearLayerMorphs();
+    if (!this.print) clearLayerMorphs();
     this.writeSlots();
     this.restoreFullResolution();
     this.capturing = true;
     // One render at an explicit framebuffer size, with the zoom uniform scaled
     // to match — the pattern is resolution-free, so the pixels are simply asked
     // again, and the stroke floor keeps hairlines printable at any size.
-    const { width, height, zScale } = this.exportFrame(opts);
     const zoom0 = this.cameraUniforms.zoom.value;
     try {
       this.renderer.setPixelRatio(1);
@@ -999,7 +1018,7 @@ export class MoireRenderer {
     this.fullCost = 0;
     this.held = false;
     this.lastState = null;
-    clearLayerMorphs();
+    if (!this.print) clearLayerMorphs();
     this.observer?.disconnect();
     this.observer = null;
     this.mesh?.geometry.dispose();

@@ -485,7 +485,8 @@ export function buildColorNode(
   view: ViewUniforms,
   slots: LayerSlot[],
   fields: FieldProgram[] = [],
-  table: THREE.Texture | null = null
+  table: THREE.Texture | null = null,
+  print = false
 ) {
   return Fn(() => {
     const centered = screenCoordinate.sub(screenSize.mul(0.5));
@@ -507,11 +508,17 @@ export function buildColorNode(
       .or(view.contours.greaterThan(0.5));
 
     const pixelRest = pixel.mul(camera.scale.max(0.05));
-    const solved = solveLayers(slots, fields, view, world, pixel, pixelRest, scanOn);
+    // Print uses the same ink solver as the studio. White over black gives
+    // coverage directly, before colour conversion, so edges carry true alpha.
+    // Only the isolated print renderer takes this branch, with one layer.
+    const inkSlots = print ? slots.map((slot) => ({ ...slot, color: vec3(1) })) : slots;
+    const inkCamera = print ? { ...camera, background: vec3(0) } : camera;
+    const solved = solveLayers(inkSlots, fields, view, world, pixel, pixelRest, scanOn, print);
     const coords = latticeCoords(solved);
     const scan = scanCharacters(view, solved, coords, scanOn);
     const lattice = matchLattices(view, solved, scan, coords, scanOn);
-    const swept = sweepStack(camera, view, solved, lattice.coh, scan, scanOn, table);
+    const swept = sweepStack(inkCamera, view, solved, lattice.coh, scan, scanOn, table);
+    if (print) return vec4(slots[0].color, swept.mean.r.clamp(0, 1));
     return grade(camera, view, swept.mean, swept.pivot, scan.etaAll, scan.etaEnv, [
       { val: scan.beatVal, rate: scan.beatRate, eta: scan.eta, on: float(1) },
       ...lattice.chars,
@@ -580,7 +587,7 @@ function latticeCoords(solved) {
 // here, so a tap costs arithmetic rather than a search — and a hidden layer
 // costs nothing, because the whole solve sits under the same branch that
 // decides whether the layer draws at all.
-function solveLayers(slots, fields, view, world, pixel, pixelRest, scanOn) {
+function solveLayers(slots, fields, view, world, pixel, pixelRest, scanOn, print = false) {
   return slots.map((slot, index) => {
     const local = vec2(0).toVar();
     const halfT = float(0).toVar();
@@ -630,7 +637,7 @@ function solveLayers(slots, fields, view, world, pixel, pixelRest, scanOn) {
       // continuously in the zoom, with no hand-over to carry.
       const floorCap = slot.spacing.abs().mul(0.15);
       const floorW = mix(pixelRest.mul(1.15), min(pixelRest.mul(1.15), floorCap), step(float(1e-3), slot.spacing.abs()));
-      halfT.assign(max(slot.thickness.mul(0.5), floorW));
+      halfT.assign(print ? max(slot.thickness.mul(0.5), float(1e-3)) : max(slot.thickness.mul(0.5), floorW));
       aa.assign(pixel.mul(0.7));
       aaRest.assign(pixelRest.mul(0.7));
       // How exactly the phase must be measured depends on who consumes it.
@@ -3042,4 +3049,3 @@ export function createSlots(count = MAX_LAYERS): LayerSlot[] {
   const tiling = createTilingNodes();
   return Array.from({ length: count }, () => ({ ...createLayerSlot(), tiling }));
 }
-

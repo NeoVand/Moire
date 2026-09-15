@@ -79,6 +79,24 @@ test('frozen framing keeps world extent unchanged after a window resize', () => 
   assert.equal(after.zScale, 2);
 });
 
+test('print dimensions retain odd pixels and reject oversized sheets before rescaling', () => {
+  const { r } = harness();
+  const opts = { size: { width: 1275, height: 1650 }, framing: { width: 640, height: 480 } };
+  assert.equal(r.exportFrame(opts).width, 1275);
+  assert.equal(r.exportFrame(opts).height, 1650);
+  assert.equal(r.exportFrame(opts).zScale, 1275 / 640);
+  for (const width of [0, NaN, 1.5, 8193]) {
+    assert.throws(() => r.exportFrame({ size: { width, height: 100 } }), /Print dimensions/);
+  }
+});
+
+test('invalid exact size leaves the live renderer available for the next capture', async () => {
+  const { r, canvas } = harness();
+  await assert.rejects(r.snapshotWith({ size: { width: 8193, height: 100 } }, () => {}), /Print dimensions/);
+  assert.equal(r.capturing, false); assert.equal(canvas.width, 100);
+  await r.snapshotWith({ height: 200 }, (frame) => assert.equal(frame.height, 200));
+});
+
 test('uniform-only animation does not dispose image field textures', () => {
   const { r, MoireRenderer } = harness(); let disposed = 0;
   Object.assign(r, {

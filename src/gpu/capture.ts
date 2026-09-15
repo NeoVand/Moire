@@ -5,6 +5,8 @@ export interface CaptureOptions {
   aspect?: number;
   /** An exact frame height in pixels, which overrides `scale` when given. */
   height?: number;
+  /** Exact still dimensions, without video rounding or silent downscaling. */
+  size?: { width: number; height: number };
   /** Internal: viewport buffer used to frame a whole take despite window resizes. */
   framing?: { width: number; height: number };
   /**
