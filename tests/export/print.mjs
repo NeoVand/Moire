@@ -109,6 +109,78 @@ try {
   assert.equal(decoded.width, 600);
   console.log('PASS WebGPU alpha, colored edges, white ink, expression/image/tiling fields, identical sheets, unchanged live capture, valid ZIP');
 
+  const proofs = await page.evaluate(async ({ imageScene, lineScene }) => {
+    const { renderPrintPreview, stackPrintSheets, fitPrintPreview } = await import('/src/gpu/printPreview.ts');
+    const { renderPrintSheets } = await import('/src/gpu/print.ts');
+    const { DEFAULT_PRINT } = await import('/src/gpu/printFormat.ts');
+    const { useProjectStore } = await import('/src/store/project.ts');
+    const { captureSize } = await import('/src/gpu/capture.ts');
+    const { useTransportStore } = await import('/src/store/transport.ts');
+    const pixels = async (blob) => {
+      const img = await createImageBitmap(blob);
+      const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+      const ctx = c.getContext('2d'); ctx.drawImage(img, 0, 0); img.close();
+      return ctx.getImageData(0, 0, c.width, c.height).data;
+    };
+    const results = [];
+    const settings = { ...DEFAULT_PRINT, paper: 'custom', customWidth: 101.6, customHeight: 76.2, dpi: 150, margin: 6 };
+    const expressionScene = structuredClone(lineScene);
+    expressionScene.layers[1].field = { source: 'sin(x / 30) + cos(y / 25)', amount: 1, scale: 100 };
+    for (const [name, scene] of [['expression', expressionScene], ['shared image', imageScene]]) {
+      window.__zoo.load(JSON.stringify(scene));
+      useTransportStore.getState().pause();
+      const { layers, camera, backgroundColor, view } = useProjectStore.getState();
+      const source = { state: structuredClone({ layers, camera, backgroundColor, view }), framing: captureSize() };
+      const ids = layers.map((l) => l.id);
+      const preview = await renderPrintPreview(source, settings, [...ids].reverse());
+      const exports = await renderPrintSheets(source, settings, ids);
+      const a = await pixels(exports[0].blob), b = await pixels(exports[1].blob), stacked = await pixels(preview.blob);
+      let worst = 0, differsFromFirst = 0;
+      const bounds = [600, 450, 0, 0];
+      for (let i = 3; i < stacked.length; i += 4) {
+        const expected = b[i] + a[i] * (1 - b[i] / 255);
+        worst = Math.max(worst, Math.abs(stacked[i] - expected));
+        if (Math.abs(stacked[i] - a[i]) > 20) differsFromFirst++;
+        if (Math.abs(a[i] - b[i]) > 20) {
+          const x = ((i - 3) / 4) % 600, y = Math.floor((i - 3) / 2400);
+          bounds[0] = Math.min(bounds[0], x); bounds[1] = Math.min(bounds[1], y);
+          bounds[2] = Math.max(bounds[2], x); bounds[3] = Math.max(bounds[3], y);
+        }
+      }
+      const fit = await fitPrintPreview(preview.blob, { width: 400, height: 300 });
+      results.push({ name, worst, differsFromFirst, width: preview.width, height: preview.height,
+        fit: Array.from(new Uint8Array(await fit.arrayBuffer())),
+        bounds,
+      });
+    }
+    // A simple encoded image: two individually uniform stripe sheets make a
+    // half-gray / half-black overlay. Pre-filtering the sheets erases the image.
+    const sheets = [];
+    for (let layer = 0; layer < 2; layer++) {
+      const c = document.createElement('canvas'); c.width = 64; c.height = 32;
+      const ctx = c.getContext('2d');
+      for (let x = 0; x < 64; x++) if (x % 2 === (layer && x >= 32 ? 1 : 0)) ctx.fillRect(x, 0, 1, 32);
+      sheets.push({ blob: await new Promise((resolve) => c.toBlob(resolve)) });
+    }
+    const stacked = await stackPrintSheets(sheets);
+    const tiny = await fitPrintPreview(stacked.blob, { width: 2, height: 1 });
+    const tinyPixels = Array.from(await pixels(tiny));
+    return { results, tinyPixels };
+  }, { imageScene: imageCases.find((c) => c.name === 'inverse-halves-aligned').scene, lineScene: cases.find((c) => c.name === 'lines-pair').scene });
+  for (const proof of proofs.results) {
+    assert.equal(proof.width, 600); assert.equal(proof.height, 450);
+    assert.ok(proof.worst <= 1.5, `${proof.name}: preview differs from exported alpha composition`);
+    assert.ok(proof.differsFromFirst > 100, `${proof.name}: second sheet is missing from the overlay`);
+    fs.writeFileSync(path.join(output, `${proof.name.replaceAll(' ', '-')}-proof.png`), new Uint8Array(proof.fit));
+    if (proof.name === 'shared image') {
+      assert.ok(proof.bounds[0] > 150 && proof.bounds[1] > 100 && proof.bounds[2] < 450 && proof.bounds[3] < 350,
+        'Shared image sheets must stay in register outside the image field');
+    }
+  }
+  assert.ok(Math.abs(proofs.tinyPixels[3] - 128) <= 1);
+  assert.equal(proofs.tinyPixels[7], 255, 'Downsampling erased the image encoded in the sheet alignment');
+  console.log('PASS expression and shared-image overlays match exported sheets; subpixel encoded image survives preview resizing');
+
   const clickButton = async (text, scope = '') => {
     await page.waitForFunction((text, scope) => [...document.querySelectorAll(`${scope} button`)].some((el) => el.textContent.trim() === text), {}, text, scope);
     await page.evaluate((text, scope) => [...document.querySelectorAll(`${scope} button`)].find((el) => el.textContent.trim() === text).click(), text, scope);
@@ -117,12 +189,39 @@ try {
   await clickButton('Print');
   await page.waitForSelector('dialog[open]');
   await page.waitForSelector('dialog img');
+  await page.waitForFunction(() => document.querySelector('dialog img')?.naturalWidth > 0);
+  assert.equal(await page.$eval('dialog img', (img) => img.alt), 'All selected print sheets stacked in alignment');
+  assert.ok(await page.$eval('dialog img', (img) => img.naturalWidth <= 238), 'Fit preview should be filtered to display resolution');
   await page.screenshot({ path: path.join(output, 'print-dialog.png') });
+  const overlayUrl = await page.$eval('dialog img', (img) => img.dataset.printSource);
+  const previewSelect = (await page.$$('dialog select'))[3];
+  await previewSelect.select('1');
+  await page.waitForFunction(() => document.querySelector('dialog img')?.alt.includes('Rings'));
+  assert.notEqual(await page.$eval('dialog img', (img) => img.dataset.printSource), overlayUrl);
+  await previewSelect.select('');
+  await page.waitForSelector('dialog img');
+  assert.equal(await page.$eval('dialog img', (img) => img.dataset.printSource), overlayUrl, 'Switching preview mode should reuse the rendered sheets');
+  await clickButton('Enlarge', 'dialog');
+  await page.waitForFunction(() => document.querySelector('dialog img')?.naturalHeight >= 440);
+  await page.screenshot({ path: path.join(output, 'print-overlay-expanded.png') });
+  await clickButton('100%', 'dialog');
+  await page.waitForFunction(() => document.querySelector('dialog img')?.naturalWidth === 2480);
+  assert.equal(await page.$eval('dialog img', (img) => img.clientWidth), 2480);
+  assert.ok(await page.$eval('dialog img', (img) => img.parentElement.scrollLeft > 0), 'Detail view should begin at the drawing center');
+  await page.keyboard.press('Escape');
+  assert.ok(await page.$('dialog[open]'), 'Escape from enlarged preview should return to print settings');
+  // Deselecting the displayed sheet must update the combined proof as well.
+  const layerCheckboxes = await page.$$('dialog label input[type="checkbox"]');
+  await layerCheckboxes.at(-1).click();
+  await page.waitForFunction((old) => document.querySelector('dialog img')?.dataset.printSource && document.querySelector('dialog img').dataset.printSource !== old, {}, overlayUrl);
+  const singleUrl = await page.$eval('dialog img', (img) => img.dataset.printSource);
+  await layerCheckboxes.at(-1).click();
+  await page.waitForFunction((old) => document.querySelector('dialog img')?.dataset.printSource && document.querySelector('dialog img').dataset.printSource !== old, {}, singleUrl);
   await page.select('dialog select', 'letter');
   const orientation = (await page.$$('dialog select'))[1];
   await orientation.select('landscape');
   await page.waitForSelector('dialog img');
-  const paperRatio = await page.$eval('dialog img', (img) => img.parentElement.clientWidth / img.parentElement.clientHeight);
+  const paperRatio = await page.$eval('dialog img', (img) => img.clientWidth / img.clientHeight);
   assert.ok(Math.abs(paperRatio - 279.4 / 215.9) < .02, 'Landscape preview distorted the paper');
   await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 1 });
   await page.screenshot({ path: path.join(output, 'print-mobile.png') });

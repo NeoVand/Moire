@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Cancel01Icon, PrinterIcon } from '@hugeicons/core-free-icons';
 import { captureSize } from '../gpu/capture';
-import { exportPrint, renderPrintSheets, type PrintProgress, type PrintSource } from '../gpu/print';
+import { exportPrint, type PrintProgress, type PrintSource } from '../gpu/print';
+import { fitPrintPreview, renderPrintPreview } from '../gpu/printPreview';
 import { DEFAULT_PRINT, PAPER_SIZES, printLayout, type PrintSettings } from '../gpu/printFormat';
 import { useProjectStore } from '../store/project';
 import { Icon } from './ui/Icon';
@@ -20,7 +21,11 @@ export function PrintDialog({ onClose }: { onClose: () => void }) {
   });
   const [settings, setSettings] = useState<PrintSettings>(remembered);
   const [selected, setSelected] = useState(() => source.state.layers.filter((l) => l.visible).map((l) => l.id));
-  const [preview, setPreview] = useState<string | null>(null);
+  const [preview, setPreview] = useState<{ overlay: string; layers: Record<string, string>; overlayBlob: Blob; layerBlobs: Record<string, Blob>; width: number; height: number } | null>(null);
+  const [fitted, setFitted] = useState<{ source: string; url: string } | null>(null);
+  const [enlarged, setEnlarged] = useState(false);
+  const [detail, setDetail] = useState(false);
+  const previewViewport = useRef<HTMLDivElement>(null);
   const [previewError, setPreviewError] = useState(false);
   const [progress, setProgress] = useState<PrintProgress | null>(null);
   const [busy, setBusy] = useState(false);
@@ -29,13 +34,15 @@ export function PrintDialog({ onClose }: { onClose: () => void }) {
   const abort = useRef<AbortController | null>(null);
   const previewAbort = useRef<AbortController | null>(null);
   const previewQueue = useRef<Promise<void>>(Promise.resolve());
-  const previewUrl = useRef<string | null>(null);
+  const previewUrls = useRef<string[]>([]);
+  const fittedUrl = useRef<string | null>(null);
   const downloadUrl = useRef<string | null>(null);
   const mounted = useRef(true);
-  const [previewId, setPreviewId] = useState(selected[0] ?? '');
-  const shownLayer = source.state.layers.find((l) => selected.includes(l.id) && l.id === previewId)
-    ?? source.state.layers.find((l) => selected.includes(l.id));
-  const firstId = shownLayer?.id;
+  const [previewId, setPreviewId] = useState('');
+  const shownLayer = source.state.layers.find((l) => selected.includes(l.id) && l.id === previewId);
+  const previewSrc = shownLayer ? preview?.layers[shownLayer.id] : preview?.overlay;
+  const previewBlob = shownLayer ? preview?.layerBlobs[shownLayer.id] : preview?.overlayBlob;
+  const displaySrc = detail ? previewSrc : fitted?.source === previewSrc ? fitted?.url : undefined;
   let layout: ReturnType<typeof printLayout> | undefined;
   let error = '';
   try { layout = printLayout(settings); } catch (err) { error = (err as Error).message; }
@@ -54,15 +61,31 @@ export function PrintDialog({ onClose }: { onClose: () => void }) {
       mounted.current = false;
       abort.current?.abort();
       previewAbort.current?.abort();
-      if (previewUrl.current) URL.revokeObjectURL(previewUrl.current);
+      previewUrls.current.forEach((url) => URL.revokeObjectURL(url));
+      if (fittedUrl.current) URL.revokeObjectURL(fittedUrl.current);
       if (downloadUrl.current) URL.revokeObjectURL(downloadUrl.current);
     };
   }, []);
 
   useEffect(() => { remembered = settings; }, [settings]);
 
+  // Disabling controls during export can move focus to the document body.
+  // Catch Escape before the floating Capture panel, even in that focus state.
   useEffect(() => {
-    if (busy || error || !firstId) return;
+    const escape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if (busy) abort.current?.abort();
+      else if (enlarged) { setEnlarged(false); setDetail(false); }
+      else onClose();
+    };
+    window.addEventListener('keydown', escape, true);
+    return () => window.removeEventListener('keydown', escape, true);
+  }, [busy, enlarged, onClose]);
+
+  useEffect(() => {
+    if (busy || error) return;
     const controller = new AbortController();
     previewAbort.current = controller;
     setPreview(null);
@@ -72,19 +95,56 @@ export function PrintDialog({ onClose }: { onClose: () => void }) {
       previewQueue.current = previewQueue.current.then(async () => {
         if (controller.signal.aborted) return;
         try {
-          const [file] = await renderPrintSheets(source, settings, [firstId], { preview: true, signal: controller.signal });
+          const result = await renderPrintPreview(source, settings, selected, { signal: controller.signal });
           if (controller.signal.aborted) return;
-          const url = URL.createObjectURL(file.blob);
-          if (previewUrl.current) URL.revokeObjectURL(previewUrl.current);
-          previewUrl.current = url;
-          setPreview(url);
+          const overlay = URL.createObjectURL(result.blob);
+          const layers = Object.fromEntries(result.sheets.map((sheet) => [sheet.id, URL.createObjectURL(sheet.blob)]));
+          previewUrls.current.forEach((url) => URL.revokeObjectURL(url));
+          previewUrls.current = [overlay, ...Object.values(layers)];
+          const layerBlobs = Object.fromEntries(result.sheets.map((sheet) => [sheet.id, sheet.blob]));
+          setPreview({ overlay, layers, overlayBlob: result.blob, layerBlobs, width: result.width, height: result.height });
         } catch {
           if (!controller.signal.aborted) setPreviewError(true);
         }
       });
     }, 350);
     return () => { clearTimeout(timer); controller.abort(); };
-  }, [source, settings, firstId, error, busy]);
+  }, [source, settings, selected, error, busy]);
+
+  useEffect(() => {
+    const el = previewViewport.current;
+    if (!el || !previewBlob || !previewSrc || detail) return;
+    let controller: AbortController | undefined;
+    const resize = () => {
+      controller?.abort();
+      const job = new AbortController();
+      controller = job;
+      const style = getComputedStyle(el);
+      const dpr = window.devicePixelRatio || 1;
+      const bounds = {
+        width: (el.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight)) * dpr,
+        height: (el.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom)) * dpr,
+      };
+      void fitPrintPreview(previewBlob, bounds, job.signal).then((blob) => {
+        if (job.signal.aborted) return;
+        if (fittedUrl.current) URL.revokeObjectURL(fittedUrl.current);
+        const url = URL.createObjectURL(blob);
+        fittedUrl.current = url;
+        setFitted({ source: previewSrc, url });
+      }).catch(() => { if (!job.signal.aborted) setPreviewError(true); });
+    };
+    const observer = new ResizeObserver(resize);
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+      controller?.abort();
+    };
+  }, [previewBlob, previewSrc, detail]);
+
+  useEffect(() => {
+    const el = previewViewport.current;
+    if (el && detail) el.scrollTo((el.scrollWidth - el.clientWidth) / 2, (el.scrollHeight - el.clientHeight) / 2);
+  }, [detail, preview, previewId]);
 
   const save = async () => {
     if (abort.current || error) return;
@@ -121,8 +181,8 @@ export function PrintDialog({ onClose }: { onClose: () => void }) {
     <dialog
       ref={dialog}
       aria-labelledby="print-title"
-      className="m-auto max-h-[calc(100dvh-24px)] w-[660px] max-w-[calc(100vw-24px)] overflow-y-auto rounded-2xl border border-[var(--border)] bg-[var(--bg-secondary)] p-0 text-[var(--text-primary)] shadow-2xl backdrop:bg-black/55"
-      onCancel={(e) => { e.preventDefault(); if (busy) abort.current?.abort(); else onClose(); }}
+      className={`m-auto max-h-[calc(100dvh-24px)] ${enlarged ? 'w-[920px]' : 'w-[660px]'} max-w-[calc(100vw-24px)] overflow-y-auto rounded-2xl border border-[var(--border)] bg-[var(--bg-secondary)] p-0 text-[var(--text-primary)] shadow-2xl backdrop:bg-black/55`}
+      onCancel={(e) => { e.preventDefault(); if (busy) abort.current?.abort(); else if (enlarged) { setEnlarged(false); setDetail(false); } else onClose(); }}
       onKeyDown={(e) => e.stopPropagation()}
     >
       <div className="flex items-center gap-2 border-b border-[var(--border)] px-5 py-4">
@@ -133,7 +193,7 @@ export function PrintDialog({ onClose }: { onClose: () => void }) {
         </button>
       </div>
       <div className="grid gap-5 p-5 sm:grid-cols-[1fr_230px]">
-        <fieldset disabled={busy} className="grid min-w-0 content-start gap-3.5">
+        <fieldset disabled={busy} className={`${enlarged ? 'hidden' : 'grid'} min-w-0 content-start gap-3.5`}>
           <p className="text-[12px] leading-relaxed text-[var(--text-secondary)]">Print each layer on its own transparent sheet, then stack them to reveal the moiré.</p>
           <div className="grid grid-cols-2 gap-3">
             <label className={label}>Paper size
@@ -178,26 +238,37 @@ export function PrintDialog({ onClose }: { onClose: () => void }) {
             </div>
           </div>
         </fieldset>
-        <div className="flex min-w-0 flex-col gap-3">
-          <div className="flex h-[270px] items-center justify-center rounded-xl bg-[var(--bg-primary)] p-4">
-            <div className="relative max-h-full max-w-full overflow-hidden border border-white/30 shadow-md" style={{
-              width: Math.min(198, 238 * (layout ? layout.widthMm / layout.heightMm : 210 / 297)),
-              height: Math.min(238, 198 * (layout ? layout.heightMm / layout.widthMm : 297 / 210)),
-              backgroundColor: '#fff',
-              backgroundImage: 'conic-gradient(#e3e3e3 25%, #fff 0 50%, #e3e3e3 0 75%, #fff 0)',
-              backgroundSize: '12px 12px',
-            }}>
-              {preview && !error ? <img alt={`Transparent print preview of ${shownLayer?.name ?? 'layer'}`} src={preview} className="h-full w-full object-contain" /> : <div className="grid h-full place-items-center p-3 text-center text-[11px] text-neutral-600">{error ? 'Adjust the settings to preview' : busy ? 'Exporting…' : previewError ? 'Preview unavailable' : 'Rendering preview…'}</div>}
-            </div>
+        <div className={`flex min-w-0 flex-col gap-3 ${enlarged ? 'sm:col-span-2' : ''}`}>
+          <div className="flex items-center justify-between gap-2 text-[11px] text-[var(--text-secondary)]">
+            <span>{shownLayer ? 'Single sheet' : 'Stacked sheets'}</span>
+            {enlarged && <div className="flex gap-2">
+              <button type="button" aria-pressed={!detail} className={!detail ? 'text-[var(--text-primary)] underline' : ''} onClick={() => setDetail(false)}>Fit</button>
+              <button type="button" aria-pressed={detail} className={detail ? 'text-[var(--text-primary)] underline' : ''} onClick={() => setDetail(true)}>100%</button>
+            </div>}
+            <button type="button" className="underline hover:text-[var(--text-primary)]" onClick={() => { setEnlarged(!enlarged); setDetail(false); }}>{enlarged ? 'Back to settings' : 'Enlarge'}</button>
           </div>
-          <label className={label}>Preview layer
-            <select className={field} disabled={busy || !firstId} value={firstId ?? ''} onChange={(e) => setPreviewId(e.target.value)}>
-              {!firstId && <option value="">No layer selected</option>}
+          <div ref={previewViewport} aria-busy={!displaySrc && !error && !previewError} className={`${enlarged ? 'h-[min(60dvh,560px)]' : 'h-[270px]'} ${detail ? 'overflow-auto' : 'flex items-center justify-center p-4'} rounded-xl bg-[var(--bg-primary)]`}>
+            {displaySrc && !error ? <img
+              alt={shownLayer ? `Transparent print preview of ${shownLayer.name}` : 'All selected print sheets stacked in alignment'}
+              src={displaySrc}
+              data-print-source={previewSrc}
+              className={`${detail ? 'max-w-none' : 'max-h-full max-w-full object-contain'} block shadow-md ring-1 ring-white/30`}
+              style={{
+                ...(detail ? { width: preview?.width, height: preview?.height } : {}),
+                backgroundColor: '#fff',
+                backgroundImage: shownLayer ? 'conic-gradient(#e3e3e3 25%, #fff 0 50%, #e3e3e3 0 75%, #fff 0)' : undefined,
+                backgroundSize: '12px 12px',
+              }}
+            /> : <div className="grid h-full place-items-center p-3 text-center text-[11px] text-[var(--text-muted)]">{error ? 'Adjust the settings to preview' : busy ? 'Exporting…' : previewError ? 'Preview unavailable' : 'Rendering print preview…'}</div>}
+          </div>
+          <label className={label}>Preview
+            <select className={field} disabled={busy || !selected.length} value={shownLayer?.id ?? ''} onChange={(e) => setPreviewId(e.target.value)}>
+              <option value="">All selected layers</option>
               {source.state.layers.filter((l) => selected.includes(l.id)).map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
             </select>
           </label>
           {layout && <p className="text-[11px] leading-relaxed text-[var(--text-secondary)]">{layout.widthMm} × {layout.heightMm} mm<br />{layout.width} × {layout.height} px per sheet</p>}
-          <p className="text-[11px] leading-relaxed text-[var(--text-muted)]">Checkerboard areas are transparent. All sheets share this frozen view and scale. The paper shape extends the view without cropping.</p>
+          <p className="text-[11px] leading-relaxed text-[var(--text-muted)]">{shownLayer ? 'Checkerboard areas are transparent. Choose All selected layers to check the overlay.' : 'Selected sheets are stacked in layer order on white. Fields and alignment match the exported PNGs.'} {detail ? 'Scroll to inspect the print pixels.' : 'All sheets share the same frozen view and scale.'}</p>
           <p className="text-[11px] leading-relaxed text-[var(--text-secondary)]">Print at 100% or actual size with the same settings for every sheet. Turn off fit to page.</p>
         </div>
       </div>

@@ -94,8 +94,17 @@ long videos directly to disk remains a separate improvement.
 Open Capture, then Print. Choose A5, A4, A3, US Letter, US Legal, Tabloid, or a
 custom size in millimetres. Orientation, DPI, margins, optional alignment marks,
 and a black-ink override apply to every selected layer. Visible layers start
-selected; hidden layers can also be included. The preview shows one selected
-sheet over a transparency checkerboard.
+selected; hidden layers can also be included. The preview opens with all selected
+sheets stacked in layer order on white. Switch to an individual sheet to inspect
+its transparency over a checkerboard. Enlarge the preview and choose 100% to
+scroll through the actual print pixels and check field alignment.
+
+The overlay combines the full-resolution exported PNGs before display resizing.
+Resizing each layer separately would average out fine stripes before their
+overlap could reveal the moiré or an image field. Switching between the overlay
+and individual sheets reuses these same PNGs. Fit mode downsamples the finished
+overlay to the display resolution in stages to avoid false bands from browser
+image scaling. The ZIP still contains the separate print sheets.
 
 Export downloads one ZIP containing a separate transparent PNG per layer and
 printing instructions. PNGs carry the chosen DPI. Use the selected paper size
