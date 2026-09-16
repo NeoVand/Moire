@@ -102,9 +102,12 @@ scroll through the actual print pixels and check field alignment.
 The overlay combines the full-resolution exported PNGs before display resizing.
 Resizing each layer separately would average out fine stripes before their
 overlap could reveal the moiré or an image field. Switching between the overlay
-and individual sheets reuses these same PNGs. Fit mode downsamples the finished
-overlay to the display resolution in stages to avoid false bands from browser
-image scaling. The ZIP still contains the separate print sheets.
+and individual sheets reuses these same PNGs. Fit mode averages the finished
+overlay with a Gaussian filter at the display resolution. This suppresses false
+bands and spokes caused by dense lines aliasing against the screen's pixels,
+with the same filtering in every direction. Fine strokes can merge into gray
+in Fit; 100% shows the original print pixels. The ZIP contains the separate,
+full-resolution print sheets.
 
 Export downloads one ZIP containing a separate transparent PNG per layer and
 printing instructions. PNGs carry the chosen DPI. Use the selected paper size

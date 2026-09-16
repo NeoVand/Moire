@@ -163,8 +163,9 @@ try {
       sheets.push({ blob: await new Promise((resolve) => c.toBlob(resolve)) });
     }
     const stacked = await stackPrintSheets(sheets);
-    const tiny = await fitPrintPreview(stacked.blob, { width: 2, height: 1 });
-    const tinyPixels = Array.from(await pixels(tiny));
+    const tiny = await fitPrintPreview(stacked.blob, { width: 16, height: 8 });
+    const filtered = await pixels(tiny);
+    const tinyPixels = [filtered[(4 * 16 + 4) * 4 + 3], filtered[(4 * 16 + 12) * 4 + 3]];
     return { results, tinyPixels };
   }, { imageScene: imageCases.find((c) => c.name === 'inverse-halves-aligned').scene, lineScene: cases.find((c) => c.name === 'lines-pair').scene });
   for (const proof of proofs.results) {
@@ -177,9 +178,62 @@ try {
         'Shared image sheets must stay in register outside the image field');
     }
   }
-  assert.ok(Math.abs(proofs.tinyPixels[3] - 128) <= 1);
-  assert.equal(proofs.tinyPixels[7], 255, 'Downsampling erased the image encoded in the sheet alignment');
+  assert.ok(Math.abs(proofs.tinyPixels[0] - 128) <= 1);
+  assert.equal(proofs.tinyPixels[1], 255, 'Downsampling erased the image encoded in the sheet alignment');
   console.log('PASS expression and shared-image overlays match exported sheets; subpixel encoded image survives preview resizing');
+
+  const rings = await page.evaluate(async () => {
+    const { renderPrintSheets } = await import('/src/gpu/print.ts');
+    const { fitPrintPreview } = await import('/src/gpu/printPreview.ts');
+    const { DEFAULT_PRINT, printLayout } = await import('/src/gpu/printFormat.ts');
+    const { useProjectStore } = await import('/src/store/project.ts');
+    const { captureSize } = await import('/src/gpu/capture.ts');
+    const { layers, camera, view, backgroundColor } = useProjectStore.getState();
+    const layer = { ...layers[0], type: 'concentric-circles', field: undefined, spacing: 6, thickness: 3,
+      position: { x: 0, y: 0 }, offset: { x: 0, y: 0 }, rotation: 0, rotationOffset: 0, phase: 0, opacity: 1 };
+    const source = { state: { layers: [layer], camera: { ...camera, zoom: 1, pan: { x: 0, y: 0 } }, view, backgroundColor }, framing: captureSize() };
+    const [sheet] = await renderPrintSheets(source, DEFAULT_PRINT, [layer.id]);
+    const pixels = async (blob) => {
+      const bitmap = await createImageBitmap(blob);
+      const canvas = document.createElement('canvas'); canvas.width = bitmap.width; canvas.height = bitmap.height;
+      const ctx = canvas.getContext('2d'); ctx.drawImage(bitmap, 0, 0); bitmap.close();
+      return ctx.getImageData(0, 0, canvas.width, canvas.height);
+    };
+    const full = await pixels(sheet.blob), layout = printLayout(DEFAULT_PRINT);
+    const scale = Math.min(layout.artWidth / source.framing.width, layout.artHeight / source.framing.height);
+    let nativeWorst = 0, nativeSamples = 0;
+    // Check the exported geometry independently, away from anti-aliased edges.
+    for (let y = layout.inset + 4; y < full.height - layout.inset - 4; y += 3) {
+      for (let x = layout.inset + 4; x < full.width - layout.inset - 4; x += 3) {
+        const r = Math.hypot(x + .5 - full.width / 2, y + .5 - full.height / 2) / scale;
+        const distance = Math.abs((r + 3) % 6 - 3);
+        if (r < 20 || Math.abs(distance - 1.5) * scale < 1.1) continue;
+        nativeWorst = Math.max(nativeWorst, Math.abs(full.data[(y * full.width + x) * 4 + 3] - (distance < 1.5 ? 255 : 0)));
+        nativeSamples++;
+      }
+    }
+    const fits = [];
+    for (const height of [238, 448, 476]) {
+      const blob = await fitPrintPreview(sheet.blob, { width: height, height });
+      const fit = await pixels(blob);
+      let min = 255, max = 0, sum = 0, n = 0;
+      for (let y = 30; y < fit.height - 30; y++) for (let x = 30; x < fit.width - 30; x++) {
+        if (Math.hypot(x - fit.width / 2, y - fit.height / 2) < 20) continue;
+        const a = fit.data[(y * fit.width + x) * 4 + 3];
+        min = Math.min(min, a); max = Math.max(max, a); sum += a; n++;
+      }
+      fits.push({ height, min, max, mean: sum / n, png: Array.from(new Uint8Array(await blob.arrayBuffer())) });
+    }
+    return { nativeWorst, nativeSamples, fits };
+  });
+  assert.ok(rings.nativeSamples > 100_000);
+  assert.ok(rings.nativeWorst <= 3, `Single-layer export disagrees with concentric ring geometry: ${rings.nativeWorst}`);
+  for (const fit of rings.fits) {
+    assert.ok(fit.max - fit.min <= 10, `${fit.height}px preview invented single-layer moire: ${fit.min}–${fit.max}`);
+    assert.ok(Math.abs(fit.mean - 127.5) < 1, 'Preview changed the ink coverage');
+    fs.writeFileSync(path.join(output, `single-rings-${fit.height}.png`), new Uint8Array(fit.png));
+  }
+  console.log('PASS single-layer PNG matches ring geometry; normal, enlarged and high-DPI fits suppress false moire');
 
   const clickButton = async (text, scope = '') => {
     await page.waitForFunction((text, scope) => [...document.querySelectorAll(`${scope} button`)].some((el) => el.textContent.trim() === text), {}, text, scope);

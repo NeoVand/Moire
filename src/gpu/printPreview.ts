@@ -1,32 +1,25 @@
 import { renderPrintSheets, type PrintSource, type PrintProgress } from './print';
 import type { PrintSettings } from './printFormat';
+import { resamplePrintPixels } from './printResample';
 
-/** Build a display-sized proof after compositing. Repeated half-size reductions
- * keep a browser's single bilinear image resize from inventing carrier beats. */
+/** Build a display-sized proof after compositing, with explicit low-pass filtering. */
 export async function fitPrintPreview(blob: Blob, bounds: { width: number; height: number }, signal?: AbortSignal) {
   signal?.throwIfAborted();
   const image = await createImageBitmap(blob);
-  const canvases = [document.createElement('canvas'), document.createElement('canvas')];
+  const canvas = document.createElement('canvas');
   try {
     signal?.throwIfAborted();
     const factor = Math.min(1, Math.max(1, bounds.width) / image.width, Math.max(1, bounds.height) / image.height);
     const targetWidth = Math.max(1, Math.round(image.width * factor));
     const targetHeight = Math.max(1, Math.round(image.height * factor));
-    let source: CanvasImageSource = image;
-    let width = image.width, height = image.height, step = 0;
-    let canvas: HTMLCanvasElement;
-    do {
-      canvas = canvases[step++ % 2];
-      width = Math.max(targetWidth, Math.floor(width / 2));
-      height = Math.max(targetHeight, Math.floor(height / 2));
-      canvas.width = width; canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) throw new Error('This browser cannot resize a print preview.');
-      ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = 'high';
-      ctx.drawImage(source, 0, 0, width, height);
-      source = canvas;
-    } while (width > targetWidth || height > targetHeight);
+    if (targetWidth === image.width && targetHeight === image.height) return blob;
+    canvas.width = image.width; canvas.height = image.height;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    if (!ctx) throw new Error('This browser cannot resize a print preview.');
+    ctx.drawImage(image, 0, 0);
+    const data = await resamplePrintPixels(ctx.getImageData(0, 0, image.width, image.height), targetWidth, targetHeight, signal);
+    canvas.width = targetWidth; canvas.height = targetHeight;
+    ctx.putImageData(new ImageData(data, targetWidth, targetHeight), 0, 0);
     const fitted = await new Promise<Blob>((resolve, reject) => {
       canvas.toBlob((value) => value ? resolve(value) : reject(new Error('Could not resize the print preview.')), 'image/png');
     });
@@ -34,7 +27,7 @@ export async function fitPrintPreview(blob: Blob, bounds: { width: number; heigh
     return fitted;
   } finally {
     image.close();
-    for (const canvas of canvases) canvas.width = canvas.height = 1;
+    canvas.width = canvas.height = 1;
   }
 }
 

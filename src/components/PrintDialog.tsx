@@ -268,7 +268,7 @@ export function PrintDialog({ onClose }: { onClose: () => void }) {
             </select>
           </label>
           {layout && <p className="text-[11px] leading-relaxed text-[var(--text-secondary)]">{layout.widthMm} × {layout.heightMm} mm<br />{layout.width} × {layout.height} px per sheet</p>}
-          <p className="text-[11px] leading-relaxed text-[var(--text-muted)]">{shownLayer ? 'Checkerboard areas are transparent. Choose All selected layers to check the overlay.' : 'Selected sheets are stacked in layer order on white. Fields and alignment match the exported PNGs.'} {detail ? 'Scroll to inspect the print pixels.' : 'All sheets share the same frozen view and scale.'}</p>
+          <p className="text-[11px] leading-relaxed text-[var(--text-muted)]">{shownLayer ? 'Checkerboard areas are transparent. Choose All selected layers to check the overlay.' : 'Selected sheets are stacked in layer order on white. Fields and alignment match the exported PNGs.'} {detail ? 'Scroll to inspect the print pixels.' : `Fit averages fine detail. ${enlarged ? 'Choose' : 'Enlarge and choose'} 100% to inspect individual strokes.`}</p>
           <p className="text-[11px] leading-relaxed text-[var(--text-secondary)]">Print at 100% or actual size with the same settings for every sheet. Turn off fit to page.</p>
         </div>
       </div>
